@@ -35,7 +35,7 @@ mod_staApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
-                                   column(width=12,shinycssloaders::withSpinner(DT::DTOutput(ns("phenoSta"))),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                   column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Predictions",
@@ -63,14 +63,14 @@ mod_staApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
-                                   column(width=12,style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("References",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
-                                   column(width=12,style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                   column(width=12,    style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       )
     )) # end mainpanel
@@ -211,6 +211,7 @@ mod_staApp_server <- function(id,data){
           modeling <- result$modeling
           modeling <- modeling[modeling$module=="sta",]
           current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+          current.modeling <- subset(current.modeling, select = -c(module,analysisId))
           DT::datatable(current.modeling,
                         options = list(autoWidth = TRUE),
                         filter = "top"
