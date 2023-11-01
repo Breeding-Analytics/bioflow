@@ -51,15 +51,17 @@ mod_getData_ui <- function(id){
           tags$p('Comming soon!', style = 'color:red; font-size:20px;')
         ),
 
-        shinydashboard::box(title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'primary', solidHeader = TRUE,
-                            radioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                         choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+        tags$span(id = ns('pheno_csv_options'),
+          shinydashboard::box(title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'primary', solidHeader = TRUE,
+                              radioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                           choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
-                            radioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                         choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+                              radioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                           choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
 
-                            radioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                         choices = c('Dot' = '.', 'Comma' = ',')),
+                              radioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                           choices = c('Dot' = '.', 'Comma' = ',')),
+          ),
         ),
 
         if (!is.null(pheno_example)) {
@@ -110,24 +112,31 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
         golem::invoke_js('showid', ns('pheno_file_holder'))
         golem::invoke_js('hideid', ns('pheno_url'))
         golem::invoke_js('hideid', ns('pheno_db'))
+        golem::invoke_js('showid', ns('pheno_csv_options'))
       } else if (input$pheno_input == 'url') {
         golem::invoke_js('hideid', ns('pheno_file_holder'))
         golem::invoke_js('showid', ns('pheno_url'))
         golem::invoke_js('hideid', ns('pheno_db'))
+        golem::invoke_js('showid', ns('pheno_csv_options'))
       } else {
         golem::invoke_js('hideid', ns('pheno_file_holder'))
         golem::invoke_js('hideid', ns('pheno_url'))
         golem::invoke_js('showid', ns('pheno_db'))
+        golem::invoke_js('hideid', ns('pheno_csv_options'))
       }
     )
 
     pheno_data <- reactive({
       if (input$pheno_input == 'file') {
         if (is.null(input$pheno_file)) return(NULL)
-        return(read.csv(input$pheno_file$datapath))
-      } else {
+        return(read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
+                        quote = input$pheno_quote, dec = input$pheno_dec))
+      } else if (input$pheno_input == 'url') {
         if (input$pheno_url == '') return(NULL)
-        return(read.csv(input$pheno_url))
+        return(read.csv(input$pheno_url, sep = input$pheno_sep,
+                        quote = input$pheno_quote, dec = input$pheno_dec))
+      } else {
+
       }
     })
 
@@ -150,7 +159,7 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
                 summary(values)
               }
             }
-          })
+          }),
         )
       })
       do.call(tagList, pheno_map)
