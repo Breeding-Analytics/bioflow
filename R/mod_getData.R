@@ -113,6 +113,7 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
         golem::invoke_js('hideid', ns('pheno_url'))
         golem::invoke_js('hideid', ns('pheno_db'))
         golem::invoke_js('showid', ns('pheno_csv_options'))
+        updateCheckboxInput(session, 'pheno_example', value = FALSE)
       } else if (input$pheno_input == 'url') {
         golem::invoke_js('hideid', ns('pheno_file_holder'))
         golem::invoke_js('showid', ns('pheno_url'))
@@ -123,6 +124,7 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
         golem::invoke_js('hideid', ns('pheno_url'))
         golem::invoke_js('showid', ns('pheno_db'))
         golem::invoke_js('hideid', ns('pheno_csv_options'))
+        updateCheckboxInput(session, 'pheno_example', value = FALSE)
       }
     )
 
