@@ -11,61 +11,69 @@ mod_staApp_ui <- function(id){
   ns <- NS(id)
   tagList(
     sidebarPanel(
-      tags$style(".well {background-color:black; color: #FFFFFF;}"),
+      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
+      div(tags$p( "Single Trial Analysis")),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE),
-      selectInput(ns("fixedTermSta2"), "Fixed effects", choices = NULL, multiple = TRUE),
+      selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-
       hr(style = "border-top: 1px solid #4c4c4c;"),
-
-      shinyjs::useShinyjs(),
-      actionButton(ns("togglesettingsSta"), "Settings..."),
-
-      selectInput(ns("genoAsFixedSta"), "Return BLUEs", choices = list(TRUE,FALSE), selected = TRUE),
-      numericInput(ns("maxitSta"), "Number of iterations", value = 35),
-      selectInput(ns("verboseSta"), "Print logs", choices = list(TRUE,FALSE), selected = FALSE),
-
-      # div(id="settingsSta",
-      #     selectInput(ns("genoAsFixedSta"), "Return BLUEs", choices = list(TRUE,FALSE), selected = TRUE),
-      #     numericInput(ns("maxitSta"), "Number of iterations", value = 35),
-      #     selectInput(ns("verboseSta"), "Print logs", choices = list(TRUE,FALSE), selected = FALSE)
-      # ),
-
-      # conditionalPanel(
-      #   condition = "input.settingsSta > 0",
-      #   selectInput(ns("genoAsFixedSta"), "Return BLUEs", choices = list(TRUE,FALSE), selected = TRUE),
-      #   numericInput(ns("maxitSta"), "Number of iterations", value = 35),
-      #   selectInput(ns("verboseSta"), "Print logs", choices = list(TRUE,FALSE), selected = FALSE),
-      # ),
+      shinydashboard::box(width = 12, status = "primary", background =  "light-blue", solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                          selectInput(ns("genoAsFixedSta"), "Return BLUEs", choices = list(TRUE,FALSE), selected = TRUE),
+                          numericInput(ns("maxitSta"), "Number of iterations", value = 35),
+                          selectInput(ns("verboseSta"), "Print logs", choices = list(TRUE,FALSE), selected = FALSE)
+      ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runSta"), "Run", icon = icon("play-circle"))
-    ),
+      actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      shinycssloaders::withSpinner(textOutput(ns("outSta")),type=8)
+    ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
 
       tabPanel("Data",
                br(),
-
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
+                                   column(width=12,shinycssloaders::withSpinner(DT::DTOutput(ns("phenoSta"))),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
       ),
       tabPanel("Predictions",
                br(),
-               DT::DTOutput(ns("predictionsSta"))
-
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
+                                   column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
       ),
       tabPanel("Metrics",
                br(),
-
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
+                                   column(width=12,DT::DTOutput(ns("metricsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
       ),
       tabPanel("Modeling",
                br(),
-
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
+                                   column(width=12,DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
       ),
-
-
-
-
-    ))
+      tabPanel("Documentation",
+               br(),
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
+                                   column(width=12,style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
+      ),
+      tabPanel("References",
+               br(),
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE, #collapsible = TRUE, collapsed = FALSE,
+                                   column(width=12,style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
+      )
+    )) # end mainpanel
 
   )
 }
@@ -78,39 +86,30 @@ mod_staApp_server <- function(id,data){
     ns <- session$ns
 
     # Create the fields
-    observe({req(data())
-      dtSta <- data()$data$pheno
-      dNames <- names(dtSta)
-      updateSelectInput(session, "genoUnitSta", choices = dNames)
+    observe({
+      req(data())
+      genetic.evaluation <- c("designation", "mother","father")
+      updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation)
     })
     observeEvent(input$genoUnitSta, {
       req(data())
       dtSta <- data()$data$pheno
       dNames <- names(dtSta)
-      updateSelectInput(session, "fixedTermSta2",
-                        choices = dNames[dNames!=input$genoUnitSta])
+      updateSelectInput(session, "fixedTermSta2",choices = dNames[dNames!=input$genoUnitSta])
     })
     observeEvent(c(input$genoUnitSta,input$fixedTermSta2), {
       req(data())
-      dtSta <- data()$data$pheno
-      dNames <- names(dtSta)
-      updateSelectInput(session, "trait2Sta",
-                        choices = dNames[!dNames %in% c(input$fixedTermSta2,input$genoUnitSta)])
-    })
-    # toggle the button "Settings"
-    observeEvent(input$togglesettingsSta, {
-      shinyjs::toggle("genoAsFixedSta")
-      shinyjs::toggle("maxitSta")
-      shinyjs::toggle("verboseSta")
+      dtTraitsSta <- data()$metadata$pheno
+      traitsSta <- dtTraitsSta[dtTraitsSta$parameter=="trait","value"]
+      updateSelectInput(session, "trait2Sta",choices = traitsSta)
     })
 
     # reactive table for trait family distributions
     dtDistTrait = reactive({
+      req(data())
       dtSta <- data()$data$pheno
-      req(dtSta)
       req(input$trait2Sta)
-      # dtProv = dtSta()$predictions
-      traitNames = input$trait2Sta#unique(dtProv$trait)
+      traitNames = input$trait2Sta
       mm = matrix(0,nrow = 8, ncol = length(traitNames));
       rownames(mm) <- c(
         "gaussian(link = 'identity')",
@@ -150,16 +149,28 @@ mod_staApp_server <- function(id,data){
       v = info$value
       xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
     })
+    ## render the data to be analyzed
+    output$phenoSta <-  DT::renderDT({
+      req(data())
+      dtSta <- data()$data$pheno
+        DT::datatable(dtSta,
+                      options = list(autoWidth = TRUE),
+                      filter = "top" # This will position the column filters at the top
+        )
+
+
+    })
+
     ## render result of "run" button click
-    observeEvent(input$runSta, {
-    # outSta <- eventReactive(input$runSta, {
-      # dtSta <- data()$data$pheno
-      # family distributions input
+    # outSta <- observeEvent(input$runSta, {
+    outSta <- eventReactive(input$runSta, {
+      req(data())
+      req(input$trait2Sta)
+      req(input$genoUnitSta)
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
       dontHaveDist <- which(is.na(myFamily))
       if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
       # run the modeling
-      # print(dtSta)
       result <- try(cgiarPipe::staLMM(phenoDTfile = data(),
                                       trait=input$trait2Sta, traitFamily = myFamily,
                                       fixedTerm = input$fixedTermSta2,
@@ -167,49 +178,53 @@ mod_staApp_server <- function(id,data){
                                       verbose = input$verboseSta, maxit = input$maxitSta),
                     silent=TRUE
       )
-      print("xxxx")
-      print(ls())
-      print(result)
-      # if(!inherits(result,"try-error") ){
-      #   # saveRDS(result, file = paste0("OUTPUT.rds"))
-      #   # googledrive::drive_upload(
-      #   #   media= paste0("OUTPUT.rds"),
-      #   #   path = file.path(res_auth$userType, paste0(result$id,".rds") ),
-      #   #   overwrite = TRUE
-      #   # )
-      #   # print(paste("Your results have been stored on the cloud with ID:",result$id))
-      # } #else{
-      #   print(result[[1]])
-      # }
-      # if(file.exists("staAppData.rds")){unlink("staAppData.rds")}
-      # if(file.exists("OUTPUT.rds")){unlink("OUTPUT.rds")}
-
       output$predictionsSta <-  DT::renderDT({
-
         if(!inherits(result,"try-error") ){
-          DT::datatable(result$predictions,
+          predictions <- result$predictions
+          predictions <- predictions[predictions$module=="sta",]
+          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+          numeric.output <- c("predictedValue", "stdError", "reliability")
+          DT::formatRound(DT::datatable(current.predictions,
                         options = list(autoWidth = TRUE),
-                        filter = "top" # This will position the column filters at the top
+                        filter = "top"
+          ), numeric.output)
+        }
+      })
+
+      output$metricsSta <-  DT::renderDT({
+        if(!inherits(result,"try-error") ){
+          metrics <- result$metrics
+          metrics <- metrics[metrics$module=="sta",]
+          current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+          current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+          numeric.output <- c("value", "stdError")
+          DT::formatRound(DT::datatable(current.metrics,
+                        options = list(autoWidth = TRUE),
+                        filter = "top"
+          ), numeric.output)
+        }
+      })
+
+      output$modelingSta <-  DT::renderDT({
+        if(!inherits(result,"try-error") ){
+          modeling <- result$modeling
+          modeling <- modeling[modeling$module=="sta",]
+          current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+          DT::datatable(current.modeling,
+                        options = list(autoWidth = TRUE),
+                        filter = "top"
           )
         }
-
       })
+
+
     })
 
+    output$outSta <- renderPrint({
+      outSta()
+    })
 
-
-
-    # output$outSta <- renderPrint({
-    #   outSta()
-    # })
-    # ## render result of selected file
-    # output$tableStaAnalysis <- DT::renderDataTable( dtSta$cleaned[1:min(c(100,nrow(dtSta$cleaned))),], filter = list(position = 'top', clear = FALSE),
-    #                                                 options = list(
-    #                                                   # pageLength = 50,
-    #                                                   paging=TRUE,
-    #                                                   initComplete = I("function(settings, json) {alert('Done.');}")
-    #                                                 )
-    # )
 
 ## end
   })

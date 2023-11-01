@@ -1,17 +1,17 @@
 .navbar .nav > li > a, .navbar .nav > li > a
 .navbar .nav > li.current-menu-item > a
-.navbar .nav > li.current-menu-ancestor > a {color: black;}
+.navbar .nav > li.current-menu-ancestor > a {color: white;}
 
 .navbar1 .navbar{background-color: #2E7636;}
 
-.navbar1 .navbar-default .navbar-brand{color: white;}
+.navbar1 .navbar-default .navbar-brand{color: black;}
 
 .navbar1 .tab-panel{background-color: #000000; color: #000000}
 
 .navbar1 .navbar-nav li a:hover,
 .navbar1 .navbar-nav > .active > a
   {
-    color: #fff !important;
+    color: yellow !important;
     background-color:#2E7636 !important;
     background-image: #fff !important;
   }
