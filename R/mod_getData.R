@@ -53,14 +53,14 @@ mod_getData_ui <- function(id){
 
         tags$span(id = ns('pheno_csv_options'),
           shinydashboard::box(title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'primary', solidHeader = TRUE,
-                              radioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                           choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+            shinyWidgets::prettyRadioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                             choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
-                              radioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                           choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+            shinyWidgets::prettyRadioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                             choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
 
-                              radioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                           choices = c('Dot' = '.', 'Comma' = ',')),
+            shinyWidgets::prettyRadioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                             choices = c('Dot' = '.', 'Comma' = ',')),
           ),
         ),
 
