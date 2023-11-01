@@ -18,6 +18,28 @@
 ## install.packages('attachment') # if needed.
 attachment::att_amend_desc()
 
+
+usethis::use_package("DT")
+usethis::use_package("config")
+usethis::use_package("sommer")
+usethis::use_package("RSpectra")
+usethis::use_package("pedigreemm")
+usethis::use_package("LMMsolver")
+usethis::use_package("utils")
+usethis::use_package("stats")
+usethis::use_package("shiny")
+usethis::use_package("shinyjs")
+usethis::use_package("shinydashboard")
+usethis::use_package("shinycssloaders")
+usethis::use_package("magrittr")
+usethis::use_package("plotly")
+usethis::use_package("shinyAce")
+usethis::use_package("tibble")
+usethis::use_package("psych")
+usethis::use_pipe()
+usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
+usethis::use_dev_package("cgiarPipe", type = "Imports", remote = "Breeding-Analytics/cgiarPipe")
+
 ## Add modules ----
 ## Create a module infrastructure in R/
 golem::add_module(name = "input_file_sta", with_test = TRUE) # Name of the module

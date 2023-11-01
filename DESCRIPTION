@@ -6,9 +6,26 @@ Authors@R:
 Description: PKG_DESC.
 License: MIT + file LICENSE
 Imports: 
+    cgiarBase (>= 1.0.1),
+    cgiarPipe (>= 1.0.1),
     config (>= 0.3.2),
+    DT,
     golem (>= 0.4.0),
-    shiny (>= 1.7.5)
+    LMMsolver,
+    magrittr,
+    pedigreemm,
+    plotly,
+    psych,
+    RSpectra,
+    shiny (>= 1.7.5),
+    shinyAce,
+    shinycssloaders,
+    shinydashboard,
+    shinyjs,
+    sommer,
+    stats,
+    tibble,
+    utils
 Suggests: 
     knitr,
     rmarkdown,
@@ -21,3 +38,6 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.2.3
+Remotes:  
+    Breeding-Analytics/cgiarBase,
+    Breeding-Analytics/cgiarPipe
