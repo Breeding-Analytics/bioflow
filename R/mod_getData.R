@@ -103,8 +103,9 @@ mod_getData_ui <- function(id){
 #'
 #' @noRd
 mod_getData_server <- function(id, map = NULL, df = NULL){
-  moduleServer( id, function(input, output, session){
+  moduleServer(id , function(input, output, session){
     ns <- session$ns
+    if (is.null(df)) df <<- create_getData_object()
 
     observeEvent(
       input$pheno_input,
@@ -131,15 +132,19 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
     pheno_data <- reactive({
       if (input$pheno_input == 'file') {
         if (is.null(input$pheno_file)) return(NULL)
-        return(read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
-                        quote = input$pheno_quote, dec = input$pheno_dec))
+        data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
+                         quote = input$pheno_quote, dec = input$pheno_dec)
       } else if (input$pheno_input == 'url') {
         if (input$pheno_url == '') return(NULL)
-        return(read.csv(input$pheno_url, sep = input$pheno_sep,
-                        quote = input$pheno_quote, dec = input$pheno_dec))
+        data <- read.csv(input$pheno_url, sep = input$pheno_sep,
+                         quote = input$pheno_quote, dec = input$pheno_dec)
       } else {
-
+        return(NULL)
       }
+
+      df$data$pheno <<- data
+
+      return(data)
     })
 
     output$pheno_map <- renderUI({
@@ -159,6 +164,12 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
                 head(as.factor(values))
               } else {
                 summary(values)
+              }
+
+              if (x %in% df$metadata$pheno$parameter) {
+                df$metadata$pheno[df$metadata$pheno$parameter == x, 'value'] <<- input[[paste0('select', x)]]
+              } else {
+                df$metadata$pheno <<- rbind(df$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
               }
             }
           }),
@@ -215,9 +226,98 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
       {
        n <- which(tab_list == input$tabset)
        updateTabsetPanel(session, 'tabset', selected = tab_list[n + 1])
+       # if (n == 1) save(df, file = 'temp.RData')
       }
     )
+
+    return(df)
   })
+}
+
+create_getData_object <- function() {
+  obj <- list()
+
+  obj$data <- list()
+  obj$metadata <- list()
+  obj$modifications <- list()
+
+  obj$data$pheno    <- data.frame()
+  obj$data$geno     <- matrix()
+  obj$data$weather  <- data.frame()
+  obj$data$pedigree <- data.frame(designation = character(),
+                                  mother = character(),
+                                  father = character())
+
+  obj$metadata$pheno <- data.frame(parameter = character(),
+                                   value = character())
+
+  obj$metadata$geno <- data.frame(marker = character(),
+                                  chr = character(),
+                                  pos = double(),
+                                  refAllele = character(),
+                                  altAllele = character())
+
+  obj$metadata$pedigree <- data.frame()
+
+  obj$metadata$weather <- data.frame(environment = character(),
+                                     parameter = character(),
+                                     value = double())
+
+  obj$modifications$pheno <- data.frame(module = character(),
+                                        analysisId = character(),
+                                        trait = character(),
+                                        reason = character(),
+                                        row = integer(),
+                                        value = double())
+
+  obj$modifications$geno <- data.frame(module = character(),
+                                       analysisId = character(),
+                                       reason = character(),
+                                       row = integer(),
+                                       col = integer(),
+                                       value = double())
+
+  obj$modifications$pedigree <- data.frame(module = character(),
+                                           analysisId = character(),
+                                           reason = character(),
+                                           row = integer())
+
+  obj$modifications$weather <- data.frame()
+
+  obj$predictions <- data.frame(module = character(),
+                                analysisId = character(),
+                                pipeline = character(),
+                                trait = character(),
+                                gid = character(),
+                                designation = character(),
+                                mother = character(),
+                                father = character(),
+                                entryType = character(),
+                                environment = character(),
+                                predictedValue = double(),
+                                stdError = double(),
+                                reliability = double())
+
+  obj$metrics <- data.frame(module = character(),
+                            analysisId = character(),
+                            trait = character(),
+                            environment = character(),
+                            parameter = character(),
+                            method = character(),
+                            value = double(),
+                            stdError = double())
+
+  obj$modeling <- data.frame(module = character(),
+                             analysisId = character(),
+                             trait = character(),
+                             environment = character(),
+                             parameter = character(),
+                             value = character())
+
+  obj$status <- data.frame(module = character(),
+                           analysisId = character())
+
+  return(obj)
 }
 
 ## To be copied in the UI
