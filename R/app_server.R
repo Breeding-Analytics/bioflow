@@ -10,10 +10,10 @@ app_server <- function(input, output, session) {
                         "location", "trial", "environment", "rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 
-  data.sta <- mod_getData_server("getData_1", map = required_mapping)
+  data_getData <- mod_getData_server("getData_1", map = required_mapping)
   #data.sta <- mod_input_file_sta_server("input_file_sta_1")
-  mod_qaRawApp_server("qaRawApp_1", data.sta)
-  mod_staApp_server("staApp_1", data.sta)
+  data_qaRaw <- mod_qaRawApp_server("qaRawApp_1", data_getData)
+  mod_staApp_server("staApp_1", data_qaRaw)
 
   # observeEvent(input$settingsSta, {
   #   hideTab(inputId = "tabso", target = "Multiple Trials")
