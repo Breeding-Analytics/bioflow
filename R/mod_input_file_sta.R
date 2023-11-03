@@ -32,29 +32,45 @@ mod_input_file_sta_server <- function(id){
 
     ns <- session$ns
 
-    data <- reactiveValues(uploadedData = NULL)
+    data <- reactiveVal()
+
+
+    ############################################################################ clear the console
+    hideAll <- reactiveValues(clearAll = TRUE)
+    observeEvent(
+      c(
+        input$file
+      ), {
+        hideAll$clearAll <- TRUE
+      })
+    ############################################################################
 
     observeEvent(input$btnPreview, {
-
       req(input$file)
       showNotification("Uploading file...", type = "message")
       tryCatch({
-        data$uploadedData <- readRDS(input$file$datapath)
+        df <- readRDS(input$file$datapath)
+        data(df)
       }, error = function(e) {
         showNotification(paste0("Error reading file: ", e$message), type = "error")
         NULL
       })
 
       output$table <- DT::renderDT({
-        req(data$uploadedData)
-        mydata <- data$uploadedData
+        if ( hideAll$clearAll)
+          return()
+        else
+          req(data())
+        mydata <- data()
         mydata <- mydata$data$pheno
 
         DT::datatable(mydata,
                       options = list(autoWidth = TRUE),
-                      filter = "top"
+                      filter = "top" # This will position the column filters at the top
         )
       })
+
+      hideAll$clearAll <- FALSE
 
     })
 

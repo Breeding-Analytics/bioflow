@@ -96,29 +96,29 @@ mod_staApp_server <- function(id,data){
 
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
-    observeEvent(data$uploadedData, {
+    observeEvent(data(), {
         hideAll$clearAll <- TRUE
       })
     ############################################################################
 
     # Create the fields
     observe({
-      req(data$uploadedData)
+      req(data())
       genetic.evaluation <- c("designation", "mother","father")
       updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation)
     })
-    observeEvent(c(data$uploadedData,input$genoUnitSta), {
-      req(data$uploadedData)
+    observeEvent(c(data(),input$genoUnitSta), {
+      req(data())
       req(input$genoUnitSta)
-      dtSta <- data$uploadedData
+      dtSta <- data()
       dtSta <- dtSta$metadata$pheno
       dNames <- names(dtSta)
       updateSelectInput(session, "fixedTermSta2",choices = dNames[dNames!=input$genoUnitSta])
     })
-    observeEvent(c(data$uploadedData,input$genoUnitSta), {
-      req(data$uploadedData)
+    observeEvent(c(data(),input$genoUnitSta), {
+      req(data())
       req(input$genoUnitSta)
-      dtSta <- data$uploadedData
+      dtSta <- data()
       dtSta <- dtSta$metadata$pheno
       traitsSta <- dtSta[dtSta$parameter=="trait","value"]
       updateSelectInput(session, "trait2Sta", choices = traitsSta)
@@ -126,8 +126,8 @@ mod_staApp_server <- function(id,data){
 
     # reactive table for trait family distributions
     dtDistTrait = reactive({
-      req(data$uploadedData)
-      dtSta <- data$uploadedData
+      req(data())
+      dtSta <- data()
       dtSta <- dtSta$data$pheno
       req(input$trait2Sta)
       traitNames = input$trait2Sta
@@ -172,14 +172,14 @@ mod_staApp_server <- function(id,data){
     })
 
     ## render the data to be analyzed
-    observeEvent(data$uploadedData,{
-      if(sum(data$uploadedData$status$module %in% "qa") != 0) {
+    observeEvent(data(),{
+      if(sum(data()$status$module %in% "qa") != 0) {
         output$phenoSta <-  DT::renderDT({
           if ( hideAll$clearAll)
             return()
           else
-          req(data$uploadedData)
-          dtSta <- data$uploadedData
+          req(data())
+          dtSta <- data()
           dtSta <- dtSta$data$pheno
           DT::datatable(dtSta,
                         options = list(autoWidth = TRUE),
@@ -193,10 +193,10 @@ mod_staApp_server <- function(id,data){
 
     ## render result of "run" button click
     outSta <- eventReactive(input$runSta, {
-      req(data$uploadedData)
+      req(data())
       req(input$trait2Sta)
       req(input$genoUnitSta)
-      dtSta <- data$uploadedData
+      dtSta <- data()
 
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
       dontHaveDist <- which(is.na(myFamily))
