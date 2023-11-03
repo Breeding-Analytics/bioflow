@@ -102,10 +102,18 @@ mod_getData_ui <- function(id){
 #' getData Server Functions
 #'
 #' @noRd
-mod_getData_server <- function(id, map = NULL, df = NULL){
+mod_getData_server <- function(id, map = NULL, data = NULL){
   moduleServer(id , function(input, output, session){
     ns <- session$ns
-    if (is.null(df)) df <<- create_getData_object()
+    df <- reactiveVal()
+
+    observe({
+      if (is.null(data)) {
+        df(create_getData_object())
+      } else {
+        df(data)
+      }
+    })
 
     observeEvent(
       input$pheno_input,
@@ -142,10 +150,19 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
         return(NULL)
       }
 
-      df$data$pheno <<- data
-
       return(data)
     })
+
+    observeEvent(
+      pheno_data(),
+      {
+        temp <- df()
+        temp$data$pheno <- pheno_data()
+        #temp$status <- rbind(temp$status, data.frame(module = 'qa', analysisId = as.numeric(Sys.time())))
+        #save(temp, file = 'temp.RData')
+        df(temp)
+      }
+    )
 
     output$pheno_map <- renderUI({
       header <- colnames(pheno_data())
@@ -166,11 +183,13 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
                 summary(values)
               }
 
-              if (x %in% df$metadata$pheno$parameter) {
-                df$metadata$pheno[df$metadata$pheno$parameter == x, 'value'] <<- input[[paste0('select', x)]]
+              temp <- df()
+              if (x %in% temp$metadata$pheno$parameter) {
+                temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
               } else {
-                df$metadata$pheno <<- rbind(df$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
               }
+              df(temp)
             }
           }),
         )
@@ -226,7 +245,6 @@ mod_getData_server <- function(id, map = NULL, df = NULL){
       {
        n <- which(tab_list == input$tabset)
        updateTabsetPanel(session, 'tabset', selected = tab_list[n + 1])
-       # if (n == 1) save(df, file = 'temp.RData')
       }
     )
 
