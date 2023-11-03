@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "I.Dieng"
+title: "MyTitle"
+author: "XXXX"
 date: "2023-11-03"
 output: html_document
 ---
@@ -25,6 +25,13 @@ You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
 plot(pressure)
+```
+
+Ploting the predictions as an example
+
+```{r pressure, echo=FALSE}
+dat <- readRDS("result.rds")
+plot(dat$predictions$predictedValue)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

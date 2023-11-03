@@ -78,17 +78,17 @@ mod_staApp_ui <- function(id){
       #                                     div(tags$p("Please download the report below:") ),
       #                                     br(),
       #                                     uiOutput(ns('reportSta')),
-      #                                     markdown::includeMarkdown("./R/report_STA2.html"),
+      #                                     includeHTML("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.html"),
       #                                     style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
       #          )
       # ),
-      # tabPanel("Report",
-      #          br(),
-      #          div(tags$p("Please download the report below:") ),
-      #          br(),
-      #          uiOutput(ns('reportSta')),
-      #          includeHTML("./R/report_STA2.html")
-      # ),
+      tabPanel("Report",
+               # br(),
+               # div(tags$p("Please download the report below:") ),
+               br(),
+               uiOutput(ns('reportSta')),
+               # includeHTML("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.html")
+      ),
       tabPanel("Documentation",
                br(),
                shinydashboard::box(status="primary",width = 12,
@@ -324,23 +324,18 @@ mod_staApp_server <- function(id,data){
       outSta()
     })
 
-    output$reportSta <- renderUI({
-      rmarkdown::render(
-        input = ("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.Rmd"),
-        params = list(
-          data_rds_sta = "/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/result.rds"
-        )
-      )
-    })
-
     # output$reportSta <- renderUI({
     #   rmarkdown::render(
-    #     input = ("/Users/idieng/Downloads/testRMD/test2RMD/report_STA.Rmd"),
+    #     input = ("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.Rmd"),
     #     params = list(
-    #       data_rds_sta = "/Users/idieng/Downloads/testRMD/test2RMD/result.rds"
+    #       data_rds_sta = "/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/result.rds"
     #     )
     #   )
     # })
+
+    output$reportSta <- renderUI({
+      HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
+    })
 
 
   }) ## end moduleserver

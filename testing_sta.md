@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "I.Dieng"
+title: "MyTitle"
+author: "XXXX"
 date: "2023-11-03"
 output: html_document
 ---
@@ -33,5 +33,9 @@ summary(cars)
 You can also embed plots, for example:
 
 ![plot of chunk pressure](figure/pressure-1.png)
+
+Ploting the predictions as an example
+
+![plot of chunk pressure-1](figure/pressure-1-1.png)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
