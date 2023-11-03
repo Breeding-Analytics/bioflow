@@ -4,9 +4,10 @@ subtitle: "`r params$doc_subtitle`"
 author: "Biometrics Group OneCGIAR"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 # date last modified: March 9, 2023
+
 params:
   # data_original: NULL
-  data_rds_sta: NULL
+  data_rds_sta: "result.rds"
   # data_original: !r read.csv(here::here(paste0("data/misc/DataAYT-SEN-FN-ND-DS-TR-2022.csv")))
   # data_rds_clp: !r readRDS(here::here(paste0("data/misc/clpclp2023.02.27.14.37.11.pv_BD_CG_CM_BRRI-2022-Wet-001_Plot_List_20230227_025910.rds")))
   # data_rds_sta: !r readRDS(here::here("data/misc/sta2023.02.28.03.10.13.jangh_BD_CG_CM_BRRI-2022-Wet-001_Plot_List_20230227_025910.rds"))
@@ -125,7 +126,7 @@ printTable <- function(DT, pageLength = 5,
 stopifnot(!is.null(params$data_rds_sta))
 
 # dt_orig <- params$data_original
-dt_sta <- params$data_rds_sta
+dt_sta <- readRDS(params$data_rds_sta)
 
 # printTable(rbind(head(dt_orig, 5), tail(dt_orig, 5)),
 #            caption = "Preview of the Original Dataset")
