@@ -20,7 +20,7 @@ mod_qaRawApp_ui <- function(id){
       selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE),
       numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = 0.01),
       numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = Inf),
-      numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 1.5),
+      numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 2.5),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
@@ -32,32 +32,32 @@ mod_qaRawApp_ui <- function(id){
       # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
-      tabsetPanel( #width=9,
-      type = "tabs",
+                     tabsetPanel( #width=9,
+                       type = "tabs",
 
-      tabPanel("Outlier detection",
-               br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                   column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Documentation",
-               br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("References",
-               br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,    style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      )
-    )) # end mainpanel
+                       tabPanel("Outlier detection",
+                                br(),
+                                shinydashboard::box(status="primary",width = 12,
+                                                    solidHeader = TRUE,
+                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                )
+                       ),
+                       tabPanel("Documentation",
+                                br(),
+                                shinydashboard::box(status="primary",width = 12,
+                                                    solidHeader = TRUE,
+                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                )
+                       ),
+                       tabPanel("References",
+                                br(),
+                                shinydashboard::box(status="primary",width = 12,
+                                                    solidHeader = TRUE,
+                                                    column(width=12,    style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                )
+                       )
+                     )) # end mainpanel
 
   )
 }
@@ -216,11 +216,11 @@ mod_qaRawApp_server <- function(id, data){
       dtQaRaw$modifications$pheno <- rbind(dtQaRaw$modifications$pheno, outlier[, colnames(dtQaRaw$modifications)])
       newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
       dtQaRaw$status <- rbind(dtQaRaw$status, newStatus)
-      # fileId <- dtQaRaw$metadata$general[which(dtQaRaw$metadata$general$parameter == "fileId"),"value"]
+      # fileId <- dtQaRaw$metadata$general[which(dtQaRaw$metadata$config$parameter == "fileId"),"value"]
       # save(dtQaRaw, file=paste0(fileId,".RData"))
+      data(dtQaRaw)
       print(paste0("Outliers saved for trait: ", input$traitOutqPheno))
 
-      data(dtQaRaw)
 
     })
     output$outQaRaw <- renderPrint({
