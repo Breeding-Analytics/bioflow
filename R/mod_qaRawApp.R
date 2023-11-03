@@ -220,6 +220,7 @@ mod_qaRawApp_server <- function(id, data){
       # save(dtQaRaw, file=paste0(fileId,".RData"))
       print(paste0("Outliers saved for trait: ", input$traitOutqPheno))
 
+      data(dtQaRaw)
 
     })
     output$outQaRaw <- renderPrint({

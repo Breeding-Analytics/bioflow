@@ -188,6 +188,9 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
             multiple = ifelse(x == 'trait', TRUE, FALSE),
             choices  = as.list(c('', header)),
           ),
+
+          # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
+
           renderPrint({
             req(input[[paste0('select', x)]])
             #if (input[[paste0('select', x)]] != '') {
