@@ -26,9 +26,7 @@ app_ui <- function(request) {
                  tabPanel("QA/QC (raw data)", mod_qaRawApp_ui("qaRawApp_1") ),
                  tabPanel("Single-Trial Analysis",  mod_staApp_ui("staApp_1")),
                  tabPanel("QA/QC (model-based)",  ) ,
-                 tabPanel("Relationship Matrix",  ) ,
-                 tabPanel("Multi-Trial Analysis",  ),
-                 tabPanel("Biplot",  ),
+                 tabPanel("Multi-Trial Analysis",  ), # biplot is part of the report in MET
                  tabPanel("Selection Indices",  ) ,
                  tabPanel("Optimal Cross Selection",  )
       ),
@@ -43,6 +41,7 @@ app_ui <- function(request) {
                  tabPanel("Markers (Clustering)", ),
                  tabPanel("Phenotype (QA/QC)", ),
                  tabPanel("Phenotype (Clustering)", ),
+                 tabPanel("Relationship Matrix",  )
 
       ),
 
