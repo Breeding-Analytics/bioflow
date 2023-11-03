@@ -158,7 +158,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       {
         temp <- df()
         temp$data$pheno <- pheno_data()
-        #temp$status <- rbind(temp$status, data.frame(module = 'qa', analysisId = as.numeric(Sys.time())))
+        temp$status <- rbind(temp$status, data.frame(module = 'qa', analysisId = as.numeric(Sys.time())))
         #save(temp, file = 'temp.RData')
         df(temp)
       }
@@ -171,26 +171,34 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
           selectInput(
             inputId = ns(paste0('select', x)),
             label = x,
+            multiple = ifelse(x == 'trait', TRUE, FALSE),
             choices = as.list(c('', header)),
           ),
           renderPrint({
             req(input[[paste0('select', x)]])
-            if (input[[paste0('select', x)]] != '') {
-              values <- pheno_data()[, input[[paste0('select', x)]]]
-              if (class(values) == 'character') {
-                head(as.factor(values))
-              } else {
-                summary(values)
-              }
+            #if (input[[paste0('select', x)]] != '') {
+              # values <- pheno_data()[, input[[paste0('select', x)]]]
+              # if (class(values) == 'character') {
+              #   head(as.factor(values))
+              # } else {
+              #   summary(values)
+              # }
 
               temp <- df()
-              if (x %in% temp$metadata$pheno$parameter) {
-                temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
+              if (x == 'trait') {
+                temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+                for (i in input[[paste0('select', x)]]) {
+                  temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+                }
               } else {
-                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                if (x %in% temp$metadata$pheno$parameter) {
+                  temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
+                } else {
+                  temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                }
               }
               df(temp)
-            }
+            #}
           }),
         )
       })
