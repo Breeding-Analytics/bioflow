@@ -26,10 +26,10 @@ mod_qaRawApp_ui <- function(id){
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaRaw"), "Run", icon = icon("play-circle")),
+      actionButton(ns("runQaRaw"), "Save outliers", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinycssloaders::withSpinner(textOutput(ns("outQaRaw")),type=8),
-      uiOutput(ns('navigate')),
+      # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
       tabsetPanel( #width=9,
@@ -83,6 +83,7 @@ mod_qaRawApp_server <- function(id, data){
       dtQaRaw <- dtQaRaw$metadata$pheno
       traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
       updateSelectInput(session, "traitOutqPheno",choices = traitsQaRaw)
+      shinyjs::hide(ns("traitOutqPheno"))
     })
 
     newOutliers <- reactive({ # p('File to be analyzed')
@@ -212,10 +213,12 @@ mod_qaRawApp_server <- function(id, data){
       analysisId <- as.numeric(Sys.time())
       outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
       ## bind new parameters
-      dtQaRaw$modifications <- rbind(dtQaRaw$modifications, outlier[, colnames(dtQaRaw$modifications)])
-      dtQaRaw$status <- rbind(dtQaRaw$status, data.frame(module="qaRaw", analysisId=analysisId ))
-      fileId <- dtQaRaw$metadata$general[which(dtQaRaw$metadata$general$parameter == "fileId"),"value"]
-      save(dtQaRaw, file=paste0(fileId,".RData"))
+      dtQaRaw$modifications$pheno <- rbind(dtQaRaw$modifications$pheno, outlier[, colnames(dtQaRaw$modifications)])
+      newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
+      dtQaRaw$status <- rbind(dtQaRaw$status, newStatus)
+      # fileId <- dtQaRaw$metadata$general[which(dtQaRaw$metadata$general$parameter == "fileId"),"value"]
+      # save(dtQaRaw, file=paste0(fileId,".RData"))
+      print(paste0("Outliers saved for trait: ", input$traitOutqPheno))
 
 
     })
@@ -223,41 +226,42 @@ mod_qaRawApp_server <- function(id, data){
       outQaRaw()
     })
 
-    back_bn  <- actionButton(ns('prev_trait'), 'Back')
-    next_bn  <- actionButton(ns('next_trait'), 'Next')
+    # back_bn  <- actionButton(ns('prev_trait'), 'Back')
+    # next_bn  <- actionButton(ns('next_trait'), 'Next')
+    #
+    # output$navigate <- renderUI({
+    #   dtQaRaw <- data()
+    #   dtQaRaw <- dtQaRaw$metadata$pheno
+    #   traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+    #
+    #   tags$div(align = 'center',
+    #            span(if (which(traitsQaRaw == input$traitOutqPheno) != 1) back_bn),
+    #            span(if (which(traitsQaRaw == input$traitOutqPheno) != length(traitsQaRaw)) next_bn),
+    #   )
+    # })
+    #
+    # observeEvent(input$prev_trait,
+    #              {
+    #                dtQaRaw <- data()
+    #                dtQaRaw <- dtQaRaw$metadata$pheno
+    #                traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+    #
+    #                n <- which(traitsQaRaw == input$traitOutqPheno)
+    #                updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n - 1])
+    #              }
+    # )
+    #
+    # observeEvent(input$next_trait,
+    #              {
+    #                dtQaRaw <- data()
+    #                dtQaRaw <- dtQaRaw$metadata$pheno
+    #                traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+    #
+    #                n <- which(traitsQaRaw == input$traitOutqPheno)
+    #                updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n + 1])
+    #              }
+    # )
 
-    output$navigate <- renderUI({
-      dtQaRaw <- data()
-      dtQaRaw <- dtQaRaw$metadata$pheno
-      traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-
-      tags$div(align = 'center',
-               span(if (which(traitsQaRaw == input$traitOutqPheno) != 1) back_bn),
-               span(if (which(traitsQaRaw == input$traitOutqPheno) != length(traitsQaRaw)) next_bn),
-      )
-    })
-
-    observeEvent(input$prev_trait,
-                 {
-                   dtQaRaw <- data()
-                   dtQaRaw <- dtQaRaw$metadata$pheno
-                   traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-
-                   n <- which(traitsQaRaw == input$traitOutqPheno)
-                   updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n - 1])
-                 }
-    )
-
-    observeEvent(input$next_trait,
-                 {
-                   dtQaRaw <- data()
-                   dtQaRaw <- dtQaRaw$metadata$pheno
-                   traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-
-                   n <- which(traitsQaRaw == input$traitOutqPheno)
-                   updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n + 1])
-                 }
-    )
   })
 }
 

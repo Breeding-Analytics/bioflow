@@ -19,8 +19,8 @@ app_ui <- function(request) {
 
       tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
 
-      tabPanel("Data Input 2 ", mod_getData_ui("getData_1")),
-      tabPanel("Data Input ", mod_input_file_sta_ui("input_file_sta_1")),
+      tabPanel("Data Input ", mod_getData_ui("getData_1")),
+      # tabPanel("Data Input ", mod_input_file_sta_ui("input_file_sta_1")),
 
       navbarMenu("Genetic Evaluation",
                  tabPanel("QA/QC (raw data)", mod_qaRawApp_ui("qaRawApp_1") ),
