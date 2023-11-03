@@ -23,7 +23,7 @@ app_ui <- function(request) {
       tabPanel("Data Input ", mod_input_file_sta_ui("input_file_sta_1")),
 
       navbarMenu("Genetic Evaluation",
-                 tabPanel("QA/QC (raw data)",  ),
+                 tabPanel("QA/QC (raw data)", mod_qaRawApp_ui("qaRawApp_1") ),
                  tabPanel("Single-Trial Analysis",  mod_staApp_ui("staApp_1")),
                  tabPanel("QA/QC (model-based)",  ) ,
                  tabPanel("Relationship Matrix",  ) ,

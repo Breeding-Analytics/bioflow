@@ -46,6 +46,7 @@ usethis::use_dev_package("cgiarPipe", type = "Imports", remote = "Breeding-Analy
 ## Create a module infrastructure in R/
 golem::add_module(name = "input_file_sta", with_test = TRUE) # Name of the module
 golem::add_module(name = "staApp", with_test = TRUE) # Name of the module
+golem::add_module(name = "qaRawApp", with_test = TRUE) # Name of the module
 golem::add_module(name = "getData", with_test = TRUE) # Name of the module
 golem::add_module(name = "reportSTA", with_test = TRUE) # Name of the module
 # golem::add_module(name = "name_of_module2", with_test = TRUE) # Name of the module
