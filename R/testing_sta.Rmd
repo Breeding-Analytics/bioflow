@@ -1,38 +1,9 @@
 ---
-title: "xxxx"
-subtitle: "gggg"
-author: "fff"
-date: "`rrrr"  
-# date last modified: March 9, 2023
-
-  doc_title: "Single-Trial Analysis"
-  doc_subtitle: ""
-  # is_full_report: TRUE
-  # is_extended_report: TRUE
-output: 
-  rmdformats::robobook:
-  # html_document:
-    # toc: TRUE
-    toc_depth: 4
-    # toc_float:
-    #   collapsed: FALSE
-    #   smooth_scroll: FALSE
+title: "Untitled"
+author: "I.Dieng"
+date: "2023-11-03"
+output: html_document
 ---
-
-<style>
-.main-container {
-  max-width: 200%;
-  margin-left: 0;
-  margin-right: 0;
-}
-.tab-content {
-  margin-bottom: 50px;
-}
-.book .book-body .page-inner {
-  max-width: 2000px;
-}
-</style>
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -57,5 +28,3 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-

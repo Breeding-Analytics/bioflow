@@ -19,16 +19,14 @@ app_ui <- function(request) {
 
       tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
 
-      tabPanel("Data Input 2 ", mod_getData_ui("getData_1")),
-      tabPanel("Data Input ", mod_input_file_sta_ui("input_file_sta_1")),
+      tabPanel("Data Input ", mod_getData_ui("getData_1")),
+      # tabPanel("Data Input ", mod_input_file_sta_ui("input_file_sta_1")),
 
       navbarMenu("Genetic Evaluation",
                  tabPanel("QA/QC (raw data)", mod_qaRawApp_ui("qaRawApp_1") ),
                  tabPanel("Single-Trial Analysis",  mod_staApp_ui("staApp_1")),
                  tabPanel("QA/QC (model-based)",  ) ,
-                 tabPanel("Relationship Matrix",  ) ,
-                 tabPanel("Multi-Trial Analysis",  ),
-                 tabPanel("Biplot",  ),
+                 tabPanel("Multi-Trial Analysis",  ), # biplot is part of the report in MET
                  tabPanel("Selection Indices",  ) ,
                  tabPanel("Optimal Cross Selection",  )
       ),
@@ -43,6 +41,7 @@ app_ui <- function(request) {
                  tabPanel("Markers (Clustering)", ),
                  tabPanel("Phenotype (QA/QC)", ),
                  tabPanel("Phenotype (Clustering)", ),
+                 tabPanel("Relationship Matrix",  )
 
       ),
 

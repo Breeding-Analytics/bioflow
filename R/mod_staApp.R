@@ -11,12 +11,22 @@ mod_staApp_ui <- function(id){
   ns <- NS(id)
   tagList(
     sidebarPanel(
+
+      # tags$head(tags$style(HTML("
+      #                          body {
+      #                             width: 100% !important;
+      #                             max-width: 100% !important;
+      #                          }
+      #
+      #                          "))),
+
+
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       div(tags$p( "Single Trial Analysis")),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE),
-      selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
+      selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("genoAsFixedSta"),"Predictions",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
@@ -60,14 +70,25 @@ mod_staApp_ui <- function(id){
                                    column(width=12,DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Report",
-               br(),
-               # uiOutput(ns('markdown'))
-               # shinydashboard::box(status="primary",width = 12,
-               #                     solidHeader = TRUE,
-               #                     column(width=12,uiOutput(ns('markdown')),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               # )
-      ),
+      # tabPanel("Report",
+      #          br(),
+      #          shinydashboard::box(status="primary",width = 12,
+      #                              solidHeader = TRUE,
+      #                              column(width=12,
+      #                                     div(tags$p("Please download the report below:") ),
+      #                                     br(),
+      #                                     uiOutput(ns('reportSta')),
+      #                                     markdown::includeMarkdown("./R/report_STA2.html"),
+      #                                     style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+      #          )
+      # ),
+      # tabPanel("Report",
+      #          br(),
+      #          div(tags$p("Please download the report below:") ),
+      #          br(),
+      #          uiOutput(ns('reportSta')),
+      #          includeHTML("./R/report_STA2.html")
+      # ),
       tabPanel("Documentation",
                br(),
                shinydashboard::box(status="primary",width = 12,
@@ -107,14 +128,7 @@ mod_staApp_server <- function(id,data){
       genetic.evaluation <- c("designation", "mother","father")
       updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation)
     })
-    observeEvent(c(data(),input$genoUnitSta), {
-      req(data())
-      req(input$genoUnitSta)
-      dtSta <- data()
-      dtSta <- dtSta$metadata$pheno
-      dNames <- names(dtSta)
-      updateSelectInput(session, "fixedTermSta2",choices = dNames[dNames!=input$genoUnitSta])
-    })
+
     observeEvent(c(data(),input$genoUnitSta), {
       req(data())
       req(input$genoUnitSta)
@@ -122,6 +136,16 @@ mod_staApp_server <- function(id,data){
       dtSta <- dtSta$metadata$pheno
       traitsSta <- dtSta[dtSta$parameter=="trait","value"]
       updateSelectInput(session, "trait2Sta", choices = traitsSta)
+    })
+
+    observeEvent(c(data(),input$genoUnitSta, input$trait2Sta), {
+      req(data())
+      req(input$genoUnitSta)
+      req(input$trait2Sta)
+      dtSta <- data()
+      dtSta <- dtSta$metadata$pheno
+      traitsSta <- dtSta[dtSta$parameter=="trait","value"]
+      updateSelectInput(session, "fixedTermSta2", choices = traitsSta[traitsSta!=input$trait2Sta])
     })
 
     # reactive table for trait family distributions
@@ -300,12 +324,23 @@ mod_staApp_server <- function(id,data){
       outSta()
     })
 
-    # output$markdown <- renderUI({
-    #   HTML(markdown::markdownToHTML(knitr::knit('R/testing_sta.Rmd', quiet = TRUE)))
+    output$reportSta <- renderUI({
+      rmarkdown::render(
+        input = ("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.Rmd"),
+        params = list(
+          data_rds_sta = "/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/result.rds"
+        )
+      )
+    })
+
+    # output$reportSta <- renderUI({
+    #   rmarkdown::render(
+    #     input = ("/Users/idieng/Downloads/testRMD/test2RMD/report_STA.Rmd"),
+    #     params = list(
+    #       data_rds_sta = "/Users/idieng/Downloads/testRMD/test2RMD/result.rds"
+    #     )
+    #   )
     # })
-
-
-
 
 
   }) ## end moduleserver

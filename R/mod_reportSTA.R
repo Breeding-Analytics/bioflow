@@ -11,8 +11,14 @@ mod_reportSTA_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    sidebarPanel(),
+    sidebarPanel(
+
+    ),
+
     mainpanel(
+      div(
+        tags$p("Please download the report below:")
+      ),
       uiOutput(ns('markdown'))
     )
 
@@ -31,8 +37,25 @@ mod_reportSTA_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$markdown <- renderUI({
-      HTML(markdown::markdownToHTML(knit('R/testing_sta.Rmd', quiet = TRUE)))
+    output$reportSta <- renderUI({
+
+
+      # rmarkdown::render(
+      #   # input RMD file
+      #   input = ("/Users/idieng/Downloads/testRMD/test2RMD/report_STA.Rmd"),
+      #   params = list(
+      #     data_rds_sta = "/Users/idieng/Downloads/testRMD/test2RMD/result.rds"
+      #   ), output_file = file
+      # )
+
+      rmarkdown::render(
+        # input RMD file
+        input = ("R/report_STA2.Rmd"),
+        params = list(
+          data_rds_sta = "R/result.rds"
+        )
+      )
+
     })
 
   })
