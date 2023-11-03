@@ -28,7 +28,8 @@ mod_qaRawApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runQaRaw"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinycssloaders::withSpinner(textOutput(ns("outQaRaw")),type=8)
+      shinycssloaders::withSpinner(textOutput(ns("outQaRaw")),type=8),
+      uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
       tabsetPanel( #width=9,
@@ -222,7 +223,41 @@ mod_qaRawApp_server <- function(id, data){
       outQaRaw()
     })
 
+    back_bn  <- actionButton(ns('prev_trait'), 'Back')
+    next_bn  <- actionButton(ns('next_trait'), 'Next')
 
+    output$navigate <- renderUI({
+      dtQaRaw <- data()
+      dtQaRaw <- dtQaRaw$metadata$pheno
+      traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+
+      tags$div(align = 'center',
+               span(if (which(traitsQaRaw == input$traitOutqPheno) != 1) back_bn),
+               span(if (which(traitsQaRaw == input$traitOutqPheno) != length(traitsQaRaw)) next_bn),
+      )
+    })
+
+    observeEvent(input$prev_trait,
+                 {
+                   dtQaRaw <- data()
+                   dtQaRaw <- dtQaRaw$metadata$pheno
+                   traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+
+                   n <- which(traitsQaRaw == input$traitOutqPheno)
+                   updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n - 1])
+                 }
+    )
+
+    observeEvent(input$next_trait,
+                 {
+                   dtQaRaw <- data()
+                   dtQaRaw <- dtQaRaw$metadata$pheno
+                   traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+
+                   n <- which(traitsQaRaw == input$traitOutqPheno)
+                   updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n + 1])
+                 }
+    )
   })
 }
 
