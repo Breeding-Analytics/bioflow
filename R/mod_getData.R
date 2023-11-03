@@ -75,7 +75,7 @@ mod_getData_ui <- function(id){
         },
 
         hr(),
-
+        DT::DTOutput(ns('preview_pheno')),
         uiOutput(ns('pheno_map')),
       ),
       tabPanel(
@@ -161,6 +161,20 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         temp$status <- rbind(temp$status, data.frame(module = 'qa', analysisId = as.numeric(Sys.time())))
         #save(temp, file = 'temp.RData')
         df(temp)
+
+        output$preview_pheno <- DT::renderDT({
+          req(pheno_data())
+
+          DT::datatable(pheno_data(),
+                        extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+          )
+
+        })
+
       }
     )
 
