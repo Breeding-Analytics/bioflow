@@ -169,10 +169,10 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       pheno_map <- lapply(map, function(x) {
         fluidPage(
           selectInput(
-            inputId = ns(paste0('select', x)),
-            label = x,
+            inputId  = ns(paste0('select', x)),
+            label    = x,
             multiple = ifelse(x == 'trait', TRUE, FALSE),
-            choices = as.list(c('', header)),
+            choices  = as.list(c('', header)),
           ),
           renderPrint({
             req(input[[paste0('select', x)]])
@@ -196,6 +196,10 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
                 } else {
                   temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
                 }
+              }
+
+              if (x == 'designation') {
+                temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA)
               }
               df(temp)
             #}
