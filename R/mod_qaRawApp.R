@@ -208,18 +208,16 @@ mod_qaRawApp_server <- function(id, data){
       ## get the outlier table
       outlier <- newOutliers()
       ## get data structure
-      dtQaRaw <- data()
+      temp <- data()
       ## update analsisId in the outliers table
       analysisId <- as.numeric(Sys.time())
       outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
-      ## bind new parameters
-      dtQaRaw$modifications$pheno <- rbind(dtQaRaw$modifications$pheno, outlier[, colnames(dtQaRaw$modifications)])
+      # ## bind new parameters
+      temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications)])
       newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
-      dtQaRaw$status <- rbind(dtQaRaw$status, newStatus)
-      # fileId <- dtQaRaw$metadata$general[which(dtQaRaw$metadata$config$parameter == "fileId"),"value"]
-      # save(dtQaRaw, file=paste0(fileId,".RData"))
-      data(dtQaRaw)
-      print(paste0("Outliers saved for trait: ", input$traitOutqPheno))
+      temp$status <- rbind(temp$status, newStatus)
+      data(temp)
+      print(data()$status)
 
 
     })

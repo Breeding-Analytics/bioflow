@@ -7,7 +7,7 @@ Description: PKG_DESC.
 License: MIT + file LICENSE
 Imports: 
     cgiarBase (>= 1.0.1),
-    cgiarPipe (>= 1.0.1),
+    cgiarPipeline (>= 1.0.2),
     config (>= 0.3.2),
     DT,
     golem (>= 0.4.0),
@@ -43,4 +43,4 @@ LazyData: true
 RoxygenNote: 7.2.3
 Remotes: 
     Breeding-Analytics/cgiarBase,
-    Breeding-Analytics/cgiarPipe
+    Breeding-Analytics/cgiarPipeline

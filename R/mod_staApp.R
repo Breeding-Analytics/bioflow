@@ -239,7 +239,7 @@ mod_staApp_server <- function(id,data){
         })
       } else {
         output$qaQcStaInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipe::staLMM(phenoDTfile = dtSta,
+        result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta,
                                         trait=input$trait2Sta, traitFamily = myFamily,
                                         fixedTerm = input$fixedTermSta2,
                                         returnFixedGeno=input$genoAsFixedSta, genoUnit = input$genoUnitSta,
