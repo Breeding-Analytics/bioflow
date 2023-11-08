@@ -218,6 +218,7 @@ mod_qaRawApp_server <- function(id, data){
       temp$status <- rbind(temp$status, newStatus)
       data(temp)
       print(data()$status)
+      # return(temp)
 
 
     })
