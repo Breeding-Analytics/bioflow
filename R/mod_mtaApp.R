@@ -16,7 +16,7 @@ mod_mtaApp_ui <- function(id){
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       div(tags$p( "Multi Trial Analysis")),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2Mta"), "Version to analyze", choices = NULL, multiple = TRUE),
+      selectInput(ns("version2Mta"), "Version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
@@ -149,6 +149,7 @@ mod_mtaApp_server <- function(id){
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
+      dtMta <- data()
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
@@ -162,6 +163,7 @@ mod_mtaApp_server <- function(id){
       req(input$version2Mta)
       req(input$trait2Mta)
       req(input$fixedTermMta2)
+      dtMta <- data()
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
@@ -248,15 +250,16 @@ mod_mtaApp_server <- function(id){
     ##############################################################################################
     ##############################################################################################
     ## render the data to be analyzed
-    observeEvent(data(),{
-      req(input$version2Mta)
-      dtMta <- data()
-      dtMta <- dtMta$predictions
-      dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
-      output$phenoMta <- DT::datatable(dtMta,
-                    options = list(autoWidth = TRUE),
-                    filter = "top"
-      )
+    output$phenoMta <-  DT::renderDT({
+        req(data())
+        req(input$version2Mta)
+        dtMta <- data()
+        dtMta <- dtMta$predictions
+        dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),setdiff(colnames(dtMta),c("module","analysisId"))]
+        DT::datatable(dtMta,
+                      options = list(autoWidth = TRUE),
+                      filter = "top"
+        )
     })
 
     ## render result of "run" button click
@@ -270,7 +273,7 @@ mod_mtaApp_server <- function(id){
       dontHaveDist <- which(is.na(myFamily))
       if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "quasi(link = 'identity', variance = 'constant')"}
 
-      # run the modeling, but before test if qa/qc done
+      # run the modeling, but before test if sta was done
       if(sum(dtMta$status$module %in% "sta") == 0) {
         output$qaQcMtaInfo <- renderUI({
           if (hideAll$clearAll)
@@ -281,7 +284,7 @@ mod_mtaApp_server <- function(id){
                                 "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
           )
         })
-      } else {
+      }else{
         output$qaQcMtaInfo <- renderUI({return(NULL)})
         result <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
@@ -298,9 +301,10 @@ mod_mtaApp_server <- function(id){
         ),
         silent=TRUE
         )
+        # data(result) # update data with results
       }
 
-      if(sum(dtMta$status$module %in% "sta") != 0) {
+      if(!inherits(result,"try-error")) {
 
         output$predictionsMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
@@ -308,7 +312,7 @@ mod_mtaApp_server <- function(id){
               return()
             else
               predictions <- result$predictions
-            predictions <- predictions[predictions$module=="sta",]
+            predictions <- predictions[predictions$module=="mta",]
 
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
@@ -330,7 +334,7 @@ mod_mtaApp_server <- function(id){
               return()
             else
               metrics <- result$metrics
-            metrics <- metrics[metrics$module=="sta",]
+            metrics <- metrics[metrics$module=="mta",]
             metrics$analysisId <- as.numeric(metrics$analysisId)
             metrics <- metrics[!is.na(metrics$analysisId),]
             current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
@@ -349,7 +353,7 @@ mod_mtaApp_server <- function(id){
               return()
             else
               modeling <- result$modeling
-            modeling <- modeling[modeling$module=="sta",]
+            modeling <- modeling[modeling$module=="mta",]
 
             modeling$analysisId <- as.numeric(modeling$analysisId)
             modeling <- modeling[!is.na(modeling$analysisId),]
