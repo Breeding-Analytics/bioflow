@@ -51,6 +51,7 @@ golem::add_module(name = "qaRawApp", with_test = TRUE) # Name of the module
 golem::add_module(name = "getData", with_test = TRUE) # Name of the module
 golem::add_module(name = "reportSTA", with_test = TRUE) # Name of the module
 golem::add_module(name = "mtaApp", with_test = TRUE) # Name of the module
+golem::add_module(name = "indexDesireApp", with_test = TRUE) # Name of the module
 # golem::add_module(name = "name_of_module2", with_test = TRUE) # Name of the module
 
 ## Add helper functions ----

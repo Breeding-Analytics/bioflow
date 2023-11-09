@@ -118,7 +118,7 @@ mod_mtaApp_server <- function(id){
     ############################################################################
 
     data = reactive({
-      load("~/Documents/bioflow/dataStrSta.RData")
+      load("~/Documents/bioflow/dataStr0.RData")
       data <- xx
       return(data)
     })

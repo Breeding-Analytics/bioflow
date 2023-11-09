@@ -15,6 +15,7 @@ app_server <- function(input, output, session) {
   data_qaRaw <- mod_qaRawApp_server("qaRawApp_1", data= data_getData)
   data_Sta <- mod_staApp_server("staApp_1", data_getData)
   data_Mta <- mod_mtaApp_server("mtaApp_1")
+  data_Index <- mod_indexDesireApp_server("indexDesireApp_1")
 
   # observeEvent(input$settingsSta, {
   #   hideTab(inputId = "tabso", target = "Multiple Trials")

@@ -27,7 +27,7 @@ app_ui <- function(request) {
                  tabPanel("Single-Trial Analysis",  mod_staApp_ui("staApp_1")),
                  tabPanel("QA/QC (model-based)",  ) ,
                  tabPanel("Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
-                 tabPanel("Selection Indices",  ) ,
+                 tabPanel("Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1") ) ,
                  tabPanel("Optimal Cross Selection",  )
       ),
 
