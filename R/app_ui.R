@@ -25,7 +25,7 @@ app_ui <- function(request) {
       navbarMenu("Genetic Evaluation",
                  tabPanel("QA/QC (raw data)", mod_qaRawApp_ui("qaRawApp_1") ),
                  tabPanel("Single-Trial Analysis",  mod_staApp_ui("staApp_1")),
-                 tabPanel("QA/QC (model-based)",  ) ,
+                 tabPanel("QA/QC (model-based)", mod_qaStaApp_ui("qaStaApp_1") ) ,
                  tabPanel("Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
                  tabPanel("Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1") ) ,
                  tabPanel("Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1") )

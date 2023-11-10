@@ -77,14 +77,27 @@ mod_ocsApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("References",
-               br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,    style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                          h1(strong("Details")),
+                                          p("This option aims to predict breeding values for individuals having marker data by using a
+                              training population obtained by the option to calculate marker effects.
+                                The way the options are used is the following:"),
+                                          p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
+                                          p(strong("Environment to analyze.-")," Fieldinst level to be used from the input file."),
+                                          p(strong("Number of crosses.-")," Number of crosses to be selected."),
+                                          p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity."),
+                                          p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
+                                          p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
+                                the expected value of the cross, 'stdError' is the average inbreeding of the cross, and 'rel' has the genetic algorithm value (lower the better)."),
+                                          h2(strong("References:")),
+                                          p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
+                                          p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
+                                          p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
+                                          h3(strong("Software used:")),
+                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/."),
+                                          p("https://github.com/gaynorr/QuantGenResources")
+                                   )
                )
       )
     )) # end mainpanel

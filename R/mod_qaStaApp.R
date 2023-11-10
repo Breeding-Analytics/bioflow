@@ -1,4 +1,4 @@
-#' qaRawApp UI Function
+#' qaStaApp UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,28 +7,29 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_qaRawApp_ui <- function(id){
+mod_qaStaApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    # input <- list(traitOutqPheno="YLD_TON-residual",traitLBOutqPheno=-4,traitUBOutqPheno=4,outlierCoefOutqPheno=2.5, outlierCoefOutqFont=12 )
     shiny::sidebarPanel(#width = 3,
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( "Outlier detection")),#, style = "color: #817e7e"
+      div(tags$p( "Model-based outlier detection")),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
       selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE),
-      numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = 0.01),
-      numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = Inf),
-      numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 2.5),
+      numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = -4),
+      numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 4),
+      numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaRaw"), "Save outliers", icon = icon("play-circle")),
+      actionButton(ns("runQaMb"), "Save outliers", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinycssloaders::withSpinner(textOutput(ns("outQaRaw")),type=8),
+      shinycssloaders::withSpinner(textOutput(ns("outQaMb")),type=8),
       # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
@@ -50,7 +51,7 @@ mod_qaRawApp_ui <- function(id){
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h1(strong("Details")),
-                                                             p("This option aims to allow users to select outliers based on plot whiskers and absolute values.
+                                                             p("This option aims to allow users to select model-based outliers based on plot whiskers and absolute values applied on conditional residuals.
                                 The way arguments are used is the following:"),
                                                              p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
                                                              p(strong("Trait lower bound.-"),"Lower bound threshold determining as an outlier any value smaller than this."),
@@ -60,20 +61,23 @@ mod_qaRawApp_ui <- function(id){
                                                              p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
                                                              p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
                                                            )
-                                                    )
+                                                    ),
+
                                 )
                        )
                      )) # end mainpanel
 
+
   )
 }
 
-#' qaRawApp Server Functions
+#' qaStaApp Server Functions
 #'
 #' @noRd
-mod_qaRawApp_server <- function(id, data){
+mod_qaStaApp_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
 
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
@@ -82,13 +86,19 @@ mod_qaRawApp_server <- function(id, data){
     })
     ############################################################################
 
+    data = reactive({ # provisional dataset for testing
+      load("~/Documents/bioflow/dataStr0.RData")
+      data <- xx
+      return(data)
+    })
     # Create the fields
     observeEvent(data(), {
       req(data())
-      dtQaRaw <- data()
-      dtQaRaw <- dtQaRaw$metadata$pheno
-      traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-      updateSelectInput(session, "traitOutqPheno",choices = traitsQaRaw)
+      dtQaMb <- data()
+      dtQaMb <- dtQaMb$metadata$pheno
+      traitsQaMb <- paste0(unique(dtQaMb[dtQaMb$parameter=="trait","value"]),"-residual")
+      traitsQaMb <- intersect(colnames(data()$data$pheno),traitsQaMb)
+      updateSelectInput(session, "traitOutqPheno",choices = traitsQaMb)
       shinyjs::hide(ns("traitOutqPheno"))
     })
 
@@ -101,8 +111,9 @@ mod_qaRawApp_server <- function(id, data){
       traitClasses <- unlist(lapply(mydata, class))
       analysisId <- NA#as.numeric(Sys.time())
       myoutliers <- myObject$modifications$pheno
+      originalTraitName <- gsub("-residual","",input$traitOutqPheno) # original names
       if(!is.null(myoutliers) & !is.null(nrow(myoutliers)) ){ # there's previous outliers for this trait
-        outsItrait <- which(myoutliers$trait == input$traitOutqPheno)
+        outsItrait <- which(myoutliers$trait == originalTraitName)
         myoutliersReduced <- myoutliers[outsItrait,] # outliers for the trait in turn
       }else{
         myoutliersReduced <- data.frame(matrix(nrow=0, ncol=6))
@@ -113,17 +124,17 @@ mod_qaRawApp_server <- function(id, data){
       for (i in 1:nlevels(mydata[, "environment"])) {
         sampleDT <- mydata[which(mydata[, "environment"] == levels(mydata[, "environment"])[i]), ] # data for the ith environment
         if(!is.na(input$outlierCoefOutqPheno)){
-          outlier <- grDevices::boxplot.stats(x=sampleDT[, input$traitOutqPheno],coef=input$outlierCoefOutqPheno )$out
-          toSilence <- sampleDT[which(sampleDT[,input$traitOutqPheno] %in% outlier),"rowindex"]
-          typeOut <- rep("outlierIQR",length(toSilence))
+          outlier <- grDevices::boxplot.stats(x=scale(sampleDT[, input$traitOutqPheno]),coef=input$outlierCoefOutqPheno )$out
+          toSilence <- sampleDT[which(scale(sampleDT[,input$traitOutqPheno]) %in% outlier),"rowindex"]
+          typeOut <- rep("outlierResidual",length(toSilence))
         }else{
           toSilence <- numeric()
           typeOut <- character()
         }
-        outOfBounds <- which((sampleDT[, input$traitOutqPheno] < input$traitLBOutqPheno) | (sampleDT[, input$traitOutqPheno] > input$traitUBOutqPheno ) )
-        if(length(outOfBounds) > 0){toSilence <- c(toSilence, sampleDT[outOfBounds,"rowindex"]); typeOut <- c(typeOut, rep("outlierIQR",length(outOfBounds))) }
+        outOfBounds <- which(( scale(sampleDT[, input$traitOutqPheno]) < input$traitLBOutqPheno) | ( scale(sampleDT[, input$traitOutqPheno]) > input$traitUBOutqPheno ) )
+        if(length(outOfBounds) > 0){toSilence <- c(toSilence, sampleDT[outOfBounds,"rowindex"]); typeOut <- c(typeOut, rep("outlierResidual",length(outOfBounds))) }
         if(length(toSilence) > 0){
-          outList[[counter]] <- data.frame(module="qaRaw",analysisId=analysisId,trait=input$traitOutqPheno,reason=typeOut,row=toSilence, value=NA);
+          outList[[counter]] <- data.frame(module="qaMb",analysisId=analysisId,trait=originalTraitName,reason=typeOut,row=toSilence, value=NA);
           counter=counter+1
         }
         # }# end of if enough data
@@ -163,7 +174,12 @@ mod_qaRawApp_server <- function(id, data){
         mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2
       }
       mydata$color <- as.factor(mydata$color)
-      mydata$environment <- cgiarBase::cleanChar(mydata$environment)# as.factor(apply(data.frame(cgiarBase::cleanChar(mydata$fieldinst)),1,function(x){substr(x,max(c(1,(nchar(x)-18))),nchar(x))}))
+      mydata$environment <- cgiarBase::cleanCharField(mydata$environment)#
+      fields <- as.character(unique(mydata$environment))
+      for(uField in fields){ # scale the residuals by field
+        vf <- which(mydata$environment == uField)
+        mydata[vf,input$traitOutqPheno2] <- scale(mydata[vf,input$traitOutqPheno2])
+      }
       res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
                              x = mydata[,"environment"], text=mydata[,"designation"],
                              pointpos = -1.8)
@@ -187,13 +203,13 @@ mod_qaRawApp_server <- function(id, data){
         outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
         colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
         ## add phenotypic data
-        dtQaRaw <- data()
-        dtQaRaw <- dtQaRaw$data$pheno
-        dtQaRaw$outlierRow <- 1:nrow(dtQaRaw)
+        dtQaMb <- data()
+        dtQaMb <- dtQaMb$data$pheno
+        dtQaMb$outlierRow <- 1:nrow(dtQaMb)
         removeCols <- c("stage","pipeline","country","year","season","location","trial","gid")
-        dtQaRaw <- dtQaRaw[,unique(c("outlierRow",setdiff(colnames(dtQaRaw), removeCols)))]
+        dtQaMb <- dtQaMb[,unique(c("outlierRow",setdiff(colnames(dtQaMb), removeCols)))]
         ## merge
-        myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
+        myTable <- base::merge(outlier,dtQaMb, by.x="record", by.y="outlierRow", all.x=TRUE)
 
         DT::datatable(myTable,
                       options = list(autoWidth = TRUE),
@@ -206,7 +222,7 @@ mod_qaRawApp_server <- function(id, data){
 
     ## save when user clicks
 
-    outQaRaw <- eventReactive(input$runQaRaw, {
+    outQaMb <- eventReactive(input$runQaMb, {
 
       req(data())
       req(input$outlierCoefOutqFont)
@@ -220,59 +236,24 @@ mod_qaRawApp_server <- function(id, data){
       outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
       # ## bind new parameters
       temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications)])
-      newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
+      newStatus <- data.frame(module="qaMb", analysisId=analysisId )
       temp$status <- rbind(temp$status, newStatus)
       data(temp)
       print(data()$status)
-      # return(temp)
 
 
     })
-    output$outQaRaw <- renderPrint({
-      outQaRaw()
+    output$outQaMb <- renderPrint({
+      outQaMb()
     })
 
-    # back_bn  <- actionButton(ns('prev_trait'), 'Back')
-    # next_bn  <- actionButton(ns('next_trait'), 'Next')
-    #
-    # output$navigate <- renderUI({
-    #   dtQaRaw <- data()
-    #   dtQaRaw <- dtQaRaw$metadata$pheno
-    #   traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-    #
-    #   tags$div(align = 'center',
-    #            span(if (which(traitsQaRaw == input$traitOutqPheno) != 1) back_bn),
-    #            span(if (which(traitsQaRaw == input$traitOutqPheno) != length(traitsQaRaw)) next_bn),
-    #   )
-    # })
-    #
-    # observeEvent(input$prev_trait,
-    #              {
-    #                dtQaRaw <- data()
-    #                dtQaRaw <- dtQaRaw$metadata$pheno
-    #                traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-    #
-    #                n <- which(traitsQaRaw == input$traitOutqPheno)
-    #                updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n - 1])
-    #              }
-    # )
-    #
-    # observeEvent(input$next_trait,
-    #              {
-    #                dtQaRaw <- data()
-    #                dtQaRaw <- dtQaRaw$metadata$pheno
-    #                traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-    #
-    #                n <- which(traitsQaRaw == input$traitOutqPheno)
-    #                updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n + 1])
-    #              }
-    # )
+
 
   })
 }
 
 ## To be copied in the UI
-# mod_qaRawApp_ui("qaRawApp_1")
+# mod_qaStaApp_ui("qaStaApp_1")
 
 ## To be copied in the server
-# mod_qaRawApp_server("qaRawApp_1")
+# mod_qaStaApp_server("qaStaApp_1")
