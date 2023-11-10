@@ -145,8 +145,8 @@ mod_indexDesireApp_server <- function(id){
       req(input$trait2IdxD)
       dtIdxD <- data()
 
-      # run the modeling, but before test if sta was done
-      if(sum(dtIdxD$status$module %in% "sta") == 0) {
+      # run the modeling, but before test if mta was done
+      if(sum(dtIdxD$status$module %in% "mta") == 0) {
         output$qaQcIdxDInfo <- renderUI({
           if (hideAll$clearAll)
             return()

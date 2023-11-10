@@ -41,7 +41,8 @@ usethis::use_package("shinybusy")
 usethis::use_package("RColorBrewer")
 usethis::use_pipe()
 usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
-usethis::use_dev_package("cgiarPipe", type = "Imports", remote = "Breeding-Analytics/cgiarPipe")
+usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
+usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
@@ -52,7 +53,7 @@ golem::add_module(name = "getData", with_test = TRUE) # Name of the module
 golem::add_module(name = "reportSTA", with_test = TRUE) # Name of the module
 golem::add_module(name = "mtaApp", with_test = TRUE) # Name of the module
 golem::add_module(name = "indexDesireApp", with_test = TRUE) # Name of the module
-# golem::add_module(name = "name_of_module2", with_test = TRUE) # Name of the module
+golem::add_module(name = "ocsApp", with_test = TRUE) # Name of the module
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
