@@ -40,7 +40,8 @@ mod_qaRawApp_ui <- function(id){
                                 shinydashboard::box(status="primary",width = 12,
                                                     solidHeader = TRUE,
                                                     plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
+                                                    downloadButton(ns('downloadData'), 'Download data')
                                 )
                        ),
                        tabPanel("Documentation",
@@ -231,6 +232,15 @@ mod_qaRawApp_server <- function(id, data){
     output$outQaRaw <- renderPrint({
       outQaRaw()
     })
+
+    output$downloadData <- downloadHandler(
+      filename = function() {
+        paste("tableOutliers-", Sys.Date(), ".csv", sep="")
+      },
+      content = function(file) {
+        toDownload <-  newOutliers()
+        utils::write.csv(toDownload, file)
+      })
 
     # back_bn  <- actionButton(ns('prev_trait'), 'Back')
     # next_bn  <- actionButton(ns('next_trait'), 'Next')

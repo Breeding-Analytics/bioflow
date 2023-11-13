@@ -76,11 +76,27 @@ mod_mtaApp_ui <- function(id){
                )
       ),
       tabPanel("Report",
-               # br(),
-               # div(tags$p("Please download the report below:") ),
-               # br(),
-               # uiOutput(ns('reportMta')),
-               # includeHTML("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.html")
+               br(),
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE,
+                                   column(width=12,br(),DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               ),
+               shinydashboard::box(status="success", width = 6,
+                                   selectInput(ns("traitPredictionsCorrelation"), "Trait(s) to view", choices = NULL, multiple = FALSE),
+               ),
+               shinydashboard::box(status="success", width = 6, solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                   checkboxGroupInput(ns("checkboxCluster"), label = "", choices = list("Cluster?" = TRUE),selected = NULL),
+                                   checkboxGroupInput(ns("checkboxText"), label = "",choices = list("Add cor labels?" = TRUE), selected = NULL),
+                                   checkboxGroupInput(ns("checkboxAxis"), label = "",choices = list("Add axis labels?" = TRUE), selected = NULL)
+               ),
+               shinydashboard::box(status="success", width = 12,
+                                   title = "Environment Correlation:", solidHeader = TRUE,
+                                   plotly::plotlyOutput(ns("plotPredictionsCorrelation"))
+               ),
+               shinydashboard::box(status="success", width = 12,
+                                   title = "Trait Correlation:", solidHeader = TRUE,
+                                   plotly::plotlyOutput(ns("plotPredictionsCorrelationTraits")),
+               )
       ),
       tabPanel("Documentation",
                br(),
@@ -164,6 +180,16 @@ mod_mtaApp_server <- function(id){
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       traitsMta <- unique(dtMta$trait)
       updateSelectInput(session, "trait2Mta", choices = traitsMta)
+    })
+    ## traits for plot
+    observeEvent(c(data(), input$version2Mta), {
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
+      traitsMta <- unique(dtMta$trait)
+      updateSelectInput(session, "traitPredictionsCorrelation", choices = traitsMta)
     })
     #################
     ## fixed effects
@@ -393,6 +419,57 @@ mod_mtaApp_server <- function(id){
         output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
         output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
       }
+      ## plots for report
+      if(!inherits(result,"try-error")) {
+        output$plotPredictionsCorrelation <-  plotly::renderPlotly({
+          mydata = result$predictions
+          stas <- result$status[which(result$status$module == "sta"),"analysisId"]
+          staId <- stas[length(stas)]
+          mydata <- mydata[which(mydata$analysisId == staId),]
+          corPlotPredictions(mydata, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
+                             valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
+
+        })
+        output$plotPredictionsCorrelationTraits <-  plotly::renderPlotly({
+          mydata = result$predictions
+          mtas <- result$status[which(result$status$module == "mta"),"analysisId"]
+          mtaId <- mtas[length(mtas)]
+          mydata <- mydata[which(mydata$analysisId == mtaId),]
+          corPlotPredictions(mydata, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+                             valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
+
+        })
+        output$tablePredictionsTraitsWide <- DT::renderDataTable(
+          if(TRUE){
+            mydata = result$predictions
+            mtas <- result$status[which(result$status$module == "mta"),"analysisId"]
+            mtaId <- mtas[length(mtas)]
+            mydata <- mydata[which(mydata$analysisId == mtaId),]
+            wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
+                                   timevar = "trait", v.names = c("predictedValue"), sep= "_")
+            colnames(wide) <- gsub("predictedValue_","",colnames(wide))
+          },
+          filter = list(position = 'top', clear = FALSE),
+          options = list(
+            # pageLength = 50,
+            paging=FALSE,
+            initComplete = I("function(settings, json) {alert('Done.');}")
+          )
+        )
+
+        # output$tablePredictionsTraitsWide <-  plotly::renderPlotly({
+        #   # req(input$traitPredictionsCorrelation2)
+        #   mydata = result$predictions
+        #   mtas <- result$status[which(result$status$module == "mta"),"analysisId"]
+        #   mtaId <- mtas[length(mtas)]
+        #   mydata <- mydata[which(mydata$analysisId == mtaId),]
+        #   wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
+        #                          timevar = "trait", v.names = c(predictedValue), sep= "_")
+        #   colnames(wide) <- gsub("predictedValue_","",colnames(wide))
+        #
+        # })
+
+      }
 
       hideAll$clearAll <- FALSE
 
@@ -402,9 +479,7 @@ mod_mtaApp_server <- function(id){
       outMta()
     })
 
-    output$reportMta <- renderUI({
-      HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
-    })
+
 
 
 

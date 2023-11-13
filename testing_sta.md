@@ -30,12 +30,17 @@ summary(cars)
 
 ## Including Plots
 
-You can also embed plots, for example:
-
-![plot of chunk pressure](figure/pressure-1.png)
-
 Ploting the predictions as an example
 
-![plot of chunk pressure-1](figure/pressure-1-1.png)
+
+```
+## Warning in gzfile(file, "rb"): cannot open compressed file 'R/result.rds', probable reason 'No such file or directory'
+```
+
+```
+## Error in gzfile(file, "rb"): cannot open the connection
+```
+
+![plot of chunk pressure](figure/pressure-1.png)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
