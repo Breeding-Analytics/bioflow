@@ -100,7 +100,7 @@ mod_mtaApp_ui <- function(id){
                ),
                shinydashboard::box(status="success", width = 12,
                                    title = "Trait Correlation:", solidHeader = TRUE,
-                                   plotly::plotlyOutput(ns("plotPredictionsCorrelationTraits")),
+                                   plotly::plotlyOutput(ns("plotPredictionsCorrelationTraits"))
                )
       ),
       tabPanel("Documentation",

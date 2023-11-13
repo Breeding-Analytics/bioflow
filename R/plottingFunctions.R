@@ -1,3 +1,92 @@
+radarPlot <-  function(mydata, environmentPredictionsRadar2=NULL,traitFilterPredictionsRadar2=NULL,proportion=NULL,meanGroupPredictionsRadar=NULL,
+                       fontSizeRadar=12, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE){
+
+
+  mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
+                           (mydata$trait %in% traitFilterPredictionsRadar2)
+  ),]
+  if(!is.null(environmentPredictionsRadar2) & !is.null(traitFilterPredictionsRadar2)){
+    mm <- stats::aggregate(predictedValue~trait, data=mydata, FUN=mean, na.rm=TRUE)
+    mmsd <- stats::aggregate(predictedValue~trait, data=mydata, FUN=stats::sd, na.rm=TRUE)
+    mm2 <- stats::aggregate(predictedValue~trait, data=mydata, FUN=min, na.rm=TRUE)
+    mm3 <- stats::aggregate(predictedValue~trait, data=mydata, FUN=max, na.rm=TRUE)
+    namesA <- mm[,1]
+    meanA <- mm[,2]/(mm3[,2])
+
+    # meanA <- rep(0.75,nrow(mm))
+    fig <-  plotly::plot_ly(
+      type = 'scatterpolar',
+      fill = 'toself'
+    )
+    fig <- fig %>%
+      plotly::add_trace(
+        r = meanA, #c(39, 28, 8, 7, 28, 39),
+        theta =paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+        name = 'Breeding population means',
+        text=round(mm[,2],3)
+      )
+    ## add product profile means
+    if(!is.null(meanGroupPredictionsRadar)){
+      meanB <- as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))
+      if(length(meanB) == length(mm[,2])){
+        meanB <- meanB + mm[,2]
+        # r2 = (meanB*0.75)/mm[,2]
+        r2 = meanB/(mm3[,2])
+        dToSearch <- meanB #- mm[,2]
+        fig <- fig %>%
+          plotly::add_trace(
+            r = r2, # c(1.5, 10, 39, 31, 15, 1.5),
+            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+            name = "Desired population", #'Group B'
+            # mode="text",
+            text=round(dToSearch,2)
+            # textfont = list(color = '#000000', size = fontSizeRadar)
+          )
+      }
+    }
+    # add SD polygon
+    if(plotSdRadar){
+      meanC <- (mm[,2]+mmsd[,2])/(mm3[,2])
+      fig <- fig %>%
+        plotly::add_trace(
+          r = meanC, # c(1.5, 10, 39, 31, 15, 1.5),
+          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+          name = "Mean + Standard Deviation from pop", #'Group B'
+          text=round(mm[,2]+mmsd[,2],3)
+        )
+      meanD <- (mm[,2]-mmsd[,2])/(mm3[,2])
+      fig <- fig %>%
+        plotly::add_trace(
+          r = meanD, # c(1.5, 10, 39, 31, 15, 1.5),
+          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+          name = "Mean - Standard Deviation from pop", #'Group B'
+          text=round(mm[,2]-mmsd[,2],3)
+        )
+    }
+    # add selection limits polygon
+    ## add product profile means'
+    if(!is.null(r0Radar)){
+      meanR <- as.numeric(unlist(strsplit(r0Radar,",")))/100
+      if(length(meanR) == length(mm[,2])){
+        meanR <- mm[,2] + ((meanR*mm[,2])*neRadar*2) # selection limits 2*Ne*R0
+        r3 = (meanR*0.75)/mm[,2]
+        dToSearchR <- meanR #- mm[,2]
+        fig <- fig %>%
+          plotly::add_trace(
+            r = r3, # c(1.5, 10, 39, 31, 15, 1.5),
+            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+            name = "Selection limits", #'Group B'
+            # mode="text",
+            text=round(dToSearchR,2)
+            # textfont = list(color = '#000000', size = fontSizeRadar)
+          )
+      }
+    }
+    return(fig)
+  }
+
+}
+
 corPlotPredictions <- function(predictions, traitPredictionsCorrelation=NULL, unitOfCorrelation=NULL,
                                correlatedAcross=NULL, valueForCorrelation=NULL,
                                checkboxCluster=NULL, checkboxText=NULL, checkboxAxis=NULL){
@@ -60,10 +149,10 @@ corPlotPredictions <- function(predictions, traitPredictionsCorrelation=NULL, un
 
 }
 
-histPlotPredictions <- function(fieldinstPredictionsHistTraits=NULL, yaxisPredictionsHistTraits=NULL, valuePredictionsHistTraits=NULL, checkboxScalePredictions=NULL){
+histPlotPredictions <- function(environmentPredictionsHistTraits=NULL, yaxisPredictionsHistTraits=NULL, valuePredictionsHistTraits=NULL, checkboxScalePredictions=NULL){
 
   # predictions <- dtHistPredictionstraits()$predictions
-  predictions <- predictions[which(predictions$environment %in% fieldinstPredictionsHistTraits ),]
+  predictions <- predictions[which(predictions$environment %in% environmentPredictionsHistTraits ),]
   if(length(yaxisPredictionsHistTraits) > 1){ # many traits, we need to scale and overlap
     fig <- plotly::plot_ly(alpha = 0.6)
     for(iTrait in 1:length(yaxisPredictionsHistTraits)){

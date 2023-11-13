@@ -19,7 +19,7 @@ mod_indexDesireApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2IdxD"), "Version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-      textInput(ns("desirev"), label = "Desire vector [Enter a numeric vector (comma delimited): e.g: 0,1,2 ]", value=NULL),
+      textInput(ns("desirev"), label = "Desired change [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
@@ -36,6 +36,10 @@ mod_indexDesireApp_ui <- function(id){
 
       tabPanel("Data",
                br(),
+               shinydashboard::box(status="primary",width = 12,
+                                   solidHeader = TRUE,
+                                   plotly::plotlyOutput(ns("plotPredictionsRadar"))
+               ),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
@@ -153,6 +157,15 @@ mod_indexDesireApp_server <- function(id){
       numeric.output <- colnames(wide)[-c(1)]
       DT::formatRound(DT::datatable(wide, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
     })
+    # render plot for initial values
+    output$plotPredictionsRadar <-  plotly::renderPlotly({
+      req(data())
+      req(input$version2IdxD)
+      dtIdxD <- data(); dtIdxD <- dtIdxD$predictions
+      mydata <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=input$trait2IdxD,proportion=0.2,meanGroupPredictionsRadar=input$desirev,
+                             fontSizeRadar=12, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
+    })
     # download predictions in wide format
     output$downloadPredictionsWide <- downloadHandler(
       filename = function() { paste("tableInputWide-", Sys.Date(), ".csv", sep="")},
@@ -251,6 +264,7 @@ mod_indexDesireApp_server <- function(id){
               utils::write.csv(modeling, file)
             }
           })
+        ## Report tab
         # table of predictions in wide format
         output$tablePredictionsTraitsWide2 <-  DT::renderDT({
           if ( hideAll$clearAll){
