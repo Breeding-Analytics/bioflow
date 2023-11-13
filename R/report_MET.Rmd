@@ -1,0 +1,519 @@
+---
+title: "Multi-Environment Trial Analysis"
+subtitle: ""
+author: "Biometrics Group, IRRI  \n  biometrics@irri.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+# date last modified: July 27, 2023
+params:
+  # is_plot_interactive: FALSE
+  # data_rds_met: !r readRDS(here::here("data/misc/met2023.03.08.02.44.49.quusn_TEMS-I-pheno---GQ-data-for-analysis-rev.rds"))
+  # data_rds_sta: !r readRDS(here::here("data/misc/sta2023.03.04.06.29.26.mjaiu_TEMS-I-pheno---GQ-data-for-analysis-rev.rds"))
+  # data_rds_cor: !r readRDS(here::here("data/misc/cor2023.03.08.05.03.19.jqmmn_TEMS-I-pheno---GQ-data-for-analysis-rev.rds"))
+  # doc_title: "Multi-Environment Trial Analysis"
+  # doc_subtitle: ""
+  # is_full_report: TRUE
+  # is_extended_report: TRUE
+# output: 
+#   rmdformats::robobook:
+#   # html_document:
+#     # toc: TRUE
+#     toc_depth: 4
+#     # toc_float:
+#     #   collapsed: FALSE
+#     #   smooth_scroll: FALSE
+output: html_document
+---
+
+<!-- <style> -->
+<!-- .main-container { -->
+<!--   max-width: 200%; -->
+<!--   margin-left: 0; -->
+<!--   margin-right: 0; -->
+<!-- } -->
+<!-- .tab-content { -->
+<!--   margin-bottom: 50px; -->
+<!-- } -->
+<!-- .book .book-body .page-inner { -->
+<!--   max-width: 2000px; -->
+<!-- } -->
+<!-- </style> -->
+
+```{r setup, include = FALSE}
+
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      include = TRUE,
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '', knitr.duplicate.label = "allow")
+
+# loading necessary R packages ####
+## data manipulation
+library(dplyr)      # %>%, data cleaning functions
+library(tidyr)      # pivot_(), separate_wider_delim()
+library(magrittr)   # %<>%, coerce col to factors or numeric
+library(stringr)    # str_detect(), str_split()
+library(scales)     # rescale data between to values
+
+## outputs - graphs, tables
+library(ggplot2)    # ggplot(), etc.
+library(DT)         # datatable()
+library(knitr)      # kable()
+library(kableExtra) # kable_styling(), etc.
+library(viridis)    # scale_fill_viridis()
+library(corrplot)   # corrplot()
+library(plotly)     # ggplotly()
+library(htmltools)  # tagList()
+library(ggrepel)
+
+```
+
+
+```{r printfxn, include = FALSE}
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 5, 
+                       numericColNames = NULL, numRound = 4, 
+                       scrollXOpt = FALSE, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = '<"pull-right"l>tpBi',# dom = '<<"pull-right"l><t>pB>i'
+                                        buttons = c('copy', 'csv', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(5, 10, 15, 20),
+                                        scrollX = scrollXOpt),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         # style = "bootstrap",
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+<!-- ***   -->
+
+<!-- ## Data Preview -->
+
+```{r data, error = FALSE}
+# loading the dataset ----
+# done outside the RMD
+
+# checking
+# stopifnot(!is.null(params$data_rds_met))
+
+load("~/Documents/bioflow/dataStr0.RData")
+dt_met <- yy
+
+dt_cor <- NULL
+# dt_met <- params$data_rds_met
+# dt_sta <- params$data_rds_sta
+# dt_cor <- params$data_rds_cor
+
+traits <- dt_met$metadata$pheno[which(dt_met$metadata$pheno$parameter == "trait"),"value"]#unique(dt_met$modeling$trait)
+numTraits <- length(traits)
+
+```
+
+
+***
+
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+htmltools::tagList(ggplotly(ggplot()))
+
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+```
+
+&nbsp;  
+
+```{r corr_heatmap, results = 'asis'}
+
+# Correlation Heatmap
+
+mydata4 <- vector(mode = "list", length = numTraits)
+plotly_corr_heatmap <- vector(mode = "list", length = numTraits)
+
+# asis_output(paste0("## Phenotypic Correlation of STA BLUEs between trials  {.tabset .tabset-pills}    \n\n  "))
+
+if (is.null(dt_cor)) { # phenotypic correlation
+  
+  cat(paste0("## Phenotypic Correlation of STA BLUEs between trials  \n\n  "))
+  # header_title <- paste0("## Phenotypic Correlation of STA BLUEs between trials  {.tabset .tabset-pills}    \n\n  ")
+
+  stas <- dt_met$status[which(dt_met$status$module == "sta"),"analysisId"]
+  staId <- stas[length(stas)]
+  dt_sta_pred <- dt_met$predictions[which(dt_met$predictions$analysisId == staId),]
+  
+  for (i in 1:numTraits) {
+    
+    if (!traits[i] %in% unique(dt_sta_pred$trait)) next
+    
+    sampleDT <- dt_sta_pred[dt_sta_pred$trait == traits[i], c("designation", "environment", "predictedValue")]
+    
+    names(plotly_corr_heatmap)[i] <- traits[i]
+    
+    if (nrow(sampleDT) == 0) next
+    if (length(unique(sampleDT$environment)) == 1) next
+    
+    cat("\n\n")
+    cat("### ", traits[i], "  \n  ")
+    
+    dt_sta_pred_wide <- stats::reshape(
+      data = sampleDT, 
+      direction = "wide", idvar = "designation", timevar = "environment", v.names = "predictedValue", sep= "_")
+    
+    colnames(dt_sta_pred_wide) <- gsub("predictedValue_", "", colnames(dt_sta_pred_wide))
+    dt_sta_pred_wide_2 <- as.data.frame(dt_sta_pred_wide[, -c(1)])
+    colnames(dt_sta_pred_wide_2) <- colnames(dt_sta_pred_wide)[-c(1)]
+    
+    nagm <- round(cor(dt_sta_pred_wide_2, use = "pairwise.complete.obs"), 3)
+    mydata4[[i]] <- as.data.frame(as.table(nagm))
+    mydata4[[i]]$mytext <- paste(mydata4[[i]]$Var1, mydata4[[i]]$Var2, sep = " X ")
+    
+    plotly_corr_heatmap[[i]] <-  plotly::plot_ly(
+    mydata4[[i]], x = mydata4[[i]][, "Var1"], y = mydata4[[i]][, "Var2"], z = mydata4[[i]][, "Freq"],
+    zmin = -1, zmax = 1,
+    color = mydata4[[i]][, "Freq"], text = mydata4[[i]][, "mytext"], colors = c('#ed7d31', '#deffee', '#038542'))
+  # colors = c('#65CDFA', '#0C4B8E'))
+  # colors = c('#BF382A', '#0C4B8E'))
+
+    plotly_corr_heatmap[[i]] <- plotly_corr_heatmap[[i]] %>%  plotly::add_heatmap() %>%
+      plotly::add_annotations(text = mydata4[[i]][, "Freq"], x = as.numeric(mydata4[[i]][, "Var1"]) - 1,
+                              y = as.numeric(mydata4[[i]][, "Var2"]) - 1, xref = 'x', yref = 'y',
+                              showarrow = FALSE, font = list(color = 'black'))
+    
+    # histogram
+    Ao_offd_df <- data.frame(r = nagm[lower.tri(nagm)])
+    Ao_hist <- ggplot(Ao_offd_df, aes(x = r)) + 
+      geom_histogram(bins = 10, breaks = seq(from = -1, to = 1, by = 0.2),
+                     fill = '#038542') + 
+      scale_x_continuous(breaks = seq(from = -1, to = 1, by = 0.2)) + 
+      labs(x = "correlation coefficient", y = "Freq", 
+           title = "Distribution of the correlation coefficients") + 
+      theme_classic()
+    
+    # if (params$is_plot_interactive == TRUE){
+    #   
+    #   # interactive plot
+    #   print(htmltools::tagList(ggplotly(plotly_corr_heatmap[[i]], height = get_h())))
+    #   print(htmltools::tagList(ggplotly(Ao_hist, height = get_h())))
+    #   
+    # } else {
+      
+      # static plot
+      corrplot(nagm, method = "color", order = "original",
+               addCoef.col = "black", tl.col = "black", 
+               col = colorRampPalette(c('#ed7d31', '#deffee', '#038542'))(200), 
+               tl.srt = 30, diag = TRUE, number.digits = 3)
+      print(Ao_hist)
+      
+    # }
+    
+  }
+  
+} else { # genotypic correlation
+
+  cat(paste0("## Genotypic Correlation between trials  {.tabset .tabset-pills}    \n\n  "))
+  # header_title <- paste0("## Genotypic Correlation between trials  {.tabset .tabset-pills}    \n\n  ")
+
+  dt_geno_cor <- dt_cor$metrics %>% filter(parameter == "corG") %>%
+    tidyr::separate_wider_delim(cols = environment, delim = "###", cols_remove = FALSE,
+                                names = paste0("environment", 1:2)) %>%
+    arrange(fieldinst1, fieldinst2)
+
+  for (i in 1:numTraits) {
+
+    if (!traits[i] %in% unique(dt_geno_cor$trait)) next
+
+    sampleDT <- dt_geno_cor[dt_geno_cor$trait == traits[i], c("fieldinst1", "fieldinst2", "value")] %>%
+      rename(Var1 = fieldinst1, Var2 = fieldinst2, Freq = value) %>%
+      mutate(Freq = round(Freq, 3))
+
+    names(plotly_corr_heatmap)[i] <- traits[i]
+
+    if (nrow(sampleDT) == 0) next
+    if (length(unique(sampleDT$environment)) == 1) next
+
+    cat("\n\n")
+    cat("### ", traits[i], "  \n  ")
+
+    mydata4[[i]] <- as.data.frame(sampleDT)
+    mydata4[[i]]$mytext <- paste(mydata4[[i]]$Var1, mydata4[[i]]$Var2, sep = " X ")
+    
+    mydata5 <- mydata4[[i]]
+    mydata5$Var1 <- mydata4[[i]]$Var2
+    mydata5$Var2 <- mydata4[[i]]$Var1
+    mydata6 <- rbind(mydata4[[i]], mydata5)
+    mydata6 <- unique(mydata6)
+    mydata6$Var1_num <- as.numeric(as.factor(mydata6$Var1))
+    mydata6$Var2_num <- as.numeric(as.factor(mydata6$Var2))
+    
+    A <- matrix(NA, nrow = max(mydata6$Var1_num), ncol = max(mydata6$Var2_num))
+    A[as.matrix(mydata6[, c("Var1_num","Var2_num")])] <- mydata6[, "Freq"]
+    A[lower.tri(A)] <- t(A)[lower.tri(A)] # fill the lower triangular
+    rownames(A) <- colnames(A) <- levels(as.factor(mydata6$Var1))
+    hc <- hclust(dist(A), "ave")
+    Ao <- A[hc$order,hc$order]
+    
+    Adf <- as.data.frame(as.table(Ao)) # converts a matrix in a data frame
+    colnames(Adf) <- c("Var1","Var2","Freq")
+    Adf$Var1_num <- as.numeric(as.factor(Adf$Var1))
+    Adf$Var2_num <- as.numeric(as.factor(Adf$Var2))
+    mydata6 <- Adf
+    mydata6$mytext <- paste(mydata6$Var1, mydata6$Var2, sep = " X ")
+    
+    mydata4[[i]] <- mydata6
+    
+    plotly_corr_heatmap[[i]] <-  plotly::plot_ly(
+      mydata4[[i]], x = mydata4[[i]][, "Var1"], y = mydata4[[i]][, "Var2"], z = mydata4[[i]][, "Freq"],
+      zmin = -1, zmax = 1,
+      color = mydata4[[i]][, "Freq"], text = mydata4[[i]][, "mytext"], colors = c('#ed7d31', '#deffee', '#038542'))
+    # colorscale = "Jet",
+    # colors = c('#65CDFA', '#0C4B8E'))
+    # colors = c('#BF382A', '#0C4B8E'))
+    
+    plotly_corr_heatmap[[i]] <- plotly_corr_heatmap[[i]] %>%  plotly::add_heatmap() %>%
+      plotly::add_annotations(text = mydata4[[i]][, "Freq"], x = mydata4[[i]][, "Var1"],
+                              y = mydata4[[i]][, "Var2"], xref = 'x', yref = 'y',
+                              showarrow = FALSE, font = list(color = 'black')) %>% 
+      plotly::layout(yaxis = list(dtick = 1, ticktext = unique(mydata4[[i]][, "Var1"]), 
+                                  tickmode = "array", tickvals = unique(mydata4[[i]][,"Var1"]) ),
+                     xaxis = list(dtick = 1, ticktext = unique(mydata4[[i]][, "Var2"]), 
+                                  tickmode = "array", tickvals = unique(mydata4[[i]][,"Var2"]) ))
+    
+    # histogram
+    Ao_offd_df <- data.frame(r = Ao[lower.tri(Ao)])
+    Ao_hist <- ggplot(Ao_offd_df, aes(x = r)) + 
+      geom_histogram(bins = 10, breaks = seq(from = -1, to = 1, by = 0.2),
+                     fill = '#038542') + 
+      scale_x_continuous(breaks = seq(from = -1, to = 1, by = 0.2)) + 
+      labs(x = "correlation coefficient", y = "Freq", 
+           title = "Distribution of the correlation coefficients") + 
+      theme_classic()
+    
+    
+    # if (params$is_plot_interactive == TRUE){
+    #   
+    #   # interactive plot
+    #   print(htmltools::tagList(ggplotly(plotly_corr_heatmap[[i]], height = get_h())))
+    #   print(htmltools::tagList(ggplotly(Ao_hist, height = get_h())))
+    #   
+    # } else {
+      
+      # static plot
+      corrplot(Ao, method = "color", order = "original",
+               addCoef.col = "black", tl.col = "black", 
+               col = colorRampPalette(c('#ed7d31', '#deffee', '#038542'))(200), 
+               tl.srt = 30, diag = TRUE, number.digits = 3)
+      print(Ao_hist)
+      
+    # }
+    
+
+  }
+}
+
+```
+
+
+## Predictions  
+
+```{r met_predictions}
+
+
+preds <- dt_met$predictions
+mtas <- dt_met$status[which(dt_met$status$module == "mta"),"analysisId"]
+mtaId <- mtas[length(mtas)]
+preds <- preds[which(preds$analysisId == mtaId),]
+printTable(preds %>% arrange(environment, match(trait, traits)) %>% 
+             relocate(analysisId, environment, trait, designation, predictedValue, stdError, reliability) %>% 
+             select(-c(analysisId)), 
+           caption = paste0("Multi-Environment Trial Analysis Results - Predictions"))
+
+```
+
+&nbsp;  
+
+## Metrics
+```{r met_metrics, include = TRUE}
+
+metrics <- dt_met$metrics
+metrics <- metrics[which(metrics$analysisId == mtaId),]
+
+printTable(metrics %>% arrange(environment, match(trait, traits)) %>% 
+             relocate(analysisId, environment, trait, parameter, value, stdError) %>% 
+             select(-c(analysisId, stdError)) %>%
+             filter(!grepl('-adaptability', trait)), 
+           caption = paste0("Multi-Environment Trial Analysis Results - Metrics"))
+
+```
+
+&nbsp;  
+
+
+```{r plot_init_2, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+htmltools::tagList(ggplotly(ggplot()))
+
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+
+```
+
+
+```{r values_dist, results = 'asis', fig.height = 6}
+
+preds <- dt_met$predictions
+mtas <- dt_met$status[which(dt_met$status$module == "mta"),"analysisId"]
+mtaId <- mtas[length(mtas)]
+preds <- preds[which(preds$analysisId == mtaId),]
+dt_met_pred <- preds#$predictions
+# dt_met_pred$CI <- dt_met_pred$stdError*1.96
+dt_met_pred$CI <- dt_met_pred$stdError
+
+# predValLabel <- str_split(unique(dt_met_pred$entryType), "_")[[1]][1]
+
+# if(predValLabel == "base"){
+   predValLabel <- "BLUP"
+# }
+
+asis_output(paste0("## Distribution of ", predValLabel, "s {.tabset .tabset-pills}    \n\n  "))
+
+plot_met_pred <- vector(mode = "list", length = numTraits)
+
+fieldinsts <- unique(preds$environment)
+numFieldinsts <- length(fieldinsts)
+
+# Visualization
+for (i in 1:numFieldinsts) {
+  for (j in 1:numTraits) {
+    
+    if (fieldinsts[i] != "across") {
+      label <- paste0(traits[j], "-", fieldinsts[i])
+    } else {
+      label <- traits[j]
+    }
+    # plot.new()
+    
+    cat("\n\n")
+    cat("### ", label, "  \n")
+    
+    sampleDT <- dt_met_pred %>% filter(fieldinsts == fieldinsts[i] &
+                                         trait == traits[j])
+    
+    if (nrow(sampleDT) == 0) next
+    
+    plot_met_pred[[i]][[j]] <- ggplot(
+      data = sampleDT, 
+      mapping = aes(
+        x = reorder(designation, -predictedValue),
+        y = predictedValue,
+        col = entryType,
+        text = paste(paste0('<br>', "designation: ", designation), #paste0('<br>', ifelse(is.na(dt_met$metadata$designation), "designation", dt_met$metadata$designation), ":"), designation,
+                     paste0('<br>', "designation type: ", entryType),
+                     paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+                     paste0('<br>', "standard error: ", round(stdError, 4)),
+                     # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
+                     #        round(predictedValue + CI, 2), ")")))) +
+                     paste0("<br>predVal +- stdError: (", round(predictedValue - CI, 2) , ", ", 
+                            round(predictedValue + CI, 4), ")")))) +
+      theme_classic() + 
+      geom_point() +
+      geom_errorbar(aes(ymax = predictedValue + CI,
+                        ymin = predictedValue - CI), position = position_dodge(0.5),
+                    width = 0.10) +
+      labs(title = label, x = "designation", y = "predicted value", col = "designation type") +
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+    
+    # remove the legend if there is only 1 entryType
+    if (length(unique(sampleDT$entryType)) == 1) plot_met_pred[[i]][[j]] <- plot_met_pred[[i]][[j]] + 
+      theme(legend.position = "none")
+    
+    # if(params$is_plot_interactive == TRUE) {
+    #   
+    #   # interactive plot
+    #   print(htmltools::tagList(ggplotly(plot_met_pred[[i]][[j]], height = get_h(), tooltip = "text")))
+    #   
+    # } else {
+      
+      # label the "important" points
+      plot_met_pred[[i]][[j]] <- plot_met_pred[[i]][[j]] + 
+        geom_text_repel(
+          data = bind_rows(
+            sampleDT %>% slice_min(predictedValue, n = 10),
+            sampleDT %>% slice_max(predictedValue, n = 10),
+            sampleDT %>% slice(grep("check", entryType))
+          ) %>% 
+            filter(!duplicated(.)),
+          aes(x = reorder(designation, -predictedValue),
+              label = designation,
+              y = predictedValue,
+              col = entryType))
+      
+      # static plot
+      print(plot_met_pred[[i]][[j]])
+      
+    # }
+    
+    
+    cat("\n\n&nbsp;  ")
+    
+  }
+}
+
+```
+
+## {-}
+
+<!-- &nbsp;   -->
+
+***  
+
+These results were generated using the latest version (July 2023) of the analytics R Shiny apps - [**bioflow**](https://cgiar-market-intelligence.shinyapps.io/bioflow) app from https://github.com/Breeding-Analytics. 
+
+
+

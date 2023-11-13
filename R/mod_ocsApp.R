@@ -121,7 +121,7 @@ mod_ocsApp_server <- function(id){
     ############################################################################
 
     data = reactive({
-      load("~/Documents/bioflow/dataStr0.RData")
+      load("dataStr0.RData")
       data <- zz
       return(data)
     })

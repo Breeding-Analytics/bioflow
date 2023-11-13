@@ -240,7 +240,7 @@ mod_qaRawApp_server <- function(id, data){
       content = function(file) {
         toDownload <-  newOutliers()
         utils::write.csv(toDownload, file)
-      })
+    })
 
     # back_bn  <- actionButton(ns('prev_trait'), 'Back')
     # next_bn  <- actionButton(ns('next_trait'), 'Next')

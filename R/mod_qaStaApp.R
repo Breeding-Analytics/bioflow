@@ -41,7 +41,8 @@ mod_qaStaApp_ui <- function(id){
                                 shinydashboard::box(status="primary",width = 12,
                                                     solidHeader = TRUE,
                                                     plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
+                                                    downloadButton(ns('downloadData'), 'Download data')
                                 )
                        ),
                        tabPanel("Documentation",
@@ -87,7 +88,7 @@ mod_qaStaApp_server <- function(id){
     ############################################################################
 
     data = reactive({ # provisional dataset for testing
-      load("~/Documents/bioflow/dataStr0.RData")
+      load("dataStr0.RData")
       data <- xx
       return(data)
     })
@@ -247,6 +248,14 @@ mod_qaStaApp_server <- function(id){
       outQaMb()
     })
 
+    output$downloadData <- downloadHandler(
+      filename = function() {
+        paste("tableOutliers-", Sys.Date(), ".csv", sep="")
+      },
+      content = function(file) {
+        toDownload <-  newOutliers()
+        utils::write.csv(toDownload, file)
+      })
 
 
   })
