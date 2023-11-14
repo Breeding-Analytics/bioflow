@@ -67,11 +67,26 @@ mod_ocsApp_ui <- function(id){
                )
       ),
       tabPanel("Report",
-               # br(),
-               # div(tags$p("Please download the report below:") ),
-               # br(),
-               # uiOutput(ns('reportOcs')),
-               # includeHTML("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.html")
+               br(),
+               shinydashboard::box(width = 6, status = "success",# background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                   selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to visualize", choices = NULL, multiple = FALSE),
+                                   selectInput(ns("environment"), "Treatment to view", choices = NULL, multiple = FALSE)
+               ),
+               shinydashboard::box(width = 6, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                   selectInput(ns("xAxisPredictions2D"),label = "X axis:", choices = c("designation","mother","father","entryType"),
+                                               multiple=FALSE,selected = "designation"),
+                                   selectInput(ns("yAxisPredictions2D"),label = "Y axis:",choices = c("predictedValue","stdError","reliability"),
+                                               multiple=FALSE,selected = "predictedValue"),
+                                   selectInput(ns("colorPredictions2D"),label = "Color by:", choices = c("mother","father","entryType"),
+                                               multiple=FALSE, selected = "mother"),
+                                   selectInput(ns("sizePredictions2D"),label = "Size by:",choices = c("predictedValue","stdError","reliability"),
+                                               multiple=FALSE,selected = "stdError"),
+                                   selectInput(ns("textPredictions2D"), label = "Text by:",choices = c("designation","mother","father","entryType"),
+                                               multiple=FALSE,selected = "designation")
+               ),
+               shinydashboard::box(status="success",width = 12,# solidHeader = TRUE, title = "Desired change and expected response",
+                                   plotly::plotlyOutput(ns("plotPredictionsScatter"))
+               )
       ),
       tabPanel("Documentation",
                br(),
@@ -145,6 +160,29 @@ mod_ocsApp_server <- function(id){
       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
       traitsOcs <- unique(dtOcs$trait)
       updateSelectInput(session, "trait2Ocs", choices = traitsOcs)
+    })
+    observeEvent(c(data(), input$version2Ocs), {
+      req(data())
+      req(input$version2Ocs)
+      dtOcs <- data()
+      dtOcs <- dtOcs$predictions
+      dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
+      traitsOcs <- unique(dtOcs$trait)
+      updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsOcs)
+    })
+    ##############
+    # treatments
+    observeEvent(c(data(), input$version2Ocs, input$nCrossOcs, input$targetAngleOcs, input$traitFilterPredictions2D2), {
+      req(data())
+      req(input$version2Ocs)
+      req(input$traitFilterPredictions2D2)
+      req(input$nCrossOcs)
+      req(input$targetAngleOcs)
+      a <- as.numeric(gsub(" ","",unlist(strsplit(input$nCrossOcs,","))))
+      b <- as.numeric(gsub(" ","",unlist(strsplit(input$targetAngleOcs,","))))
+      forLoop <- expand.grid(a, b)
+      traitsOcs <- apply(forLoop,1, function(x){ paste(input$traitFilterPredictions2D2,"~", paste(x[1],"crosses *",x[2], "degrees"))})
+      updateSelectInput(session, "environment", choices = traitsOcs)
     })
     ##############
     ## entry type
@@ -229,65 +267,74 @@ mod_ocsApp_server <- function(id){
       if(!inherits(result,"try-error")) {
 
         output$predictionsOcs <-  DT::renderDT({
-          if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
+            if ( hideAll$clearAll){
               return()
-            else
+            }else{
               predictions <- result$predictions
-            predictions <- predictions[predictions$module=="ocs",]
-
-            predictions$analysisId <- as.numeric(predictions$analysisId)
-            predictions <- predictions[!is.na(predictions$analysisId),]
-
-
-            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-            numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
-            ), numeric.output)
-          }
+              predictions <- predictions[predictions$module=="ocs",]
+              predictions$analysisId <- as.numeric(predictions$analysisId)
+              predictions <- predictions[!is.na(predictions$analysisId),]
+              current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+              current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+              numeric.output <- c("predictedValue", "stdError", "reliability")
+              DT::formatRound(DT::datatable(current.predictions,
+                                            options = list(autoWidth = TRUE),
+                                            filter = "top"
+              ), numeric.output)
+            }
         })
 
         output$metricsOcs <-  DT::renderDT({
-          if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
+            if ( hideAll$clearAll){
               return()
-            else
+            }else{
               metrics <- result$metrics
-            metrics <- metrics[metrics$module=="ocs",]
-            metrics$analysisId <- as.numeric(metrics$analysisId)
-            metrics <- metrics[!is.na(metrics$analysisId),]
-            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-            numeric.output <- c("value", "stdError")
-            DT::formatRound(DT::datatable(current.metrics,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
-            ), numeric.output)
-          }
+              metrics <- metrics[metrics$module=="ocs",]
+              metrics$analysisId <- as.numeric(metrics$analysisId)
+              metrics <- metrics[!is.na(metrics$analysisId),]
+              current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+              current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+              numeric.output <- c("value", "stdError")
+              DT::formatRound(DT::datatable(current.metrics,
+                                            options = list(autoWidth = TRUE),
+                                            filter = "top"
+              ), numeric.output)
+            }
         })
 
         output$modelingOcs <-  DT::renderDT({
-          if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
+            if ( hideAll$clearAll){
               return()
-            else
+            }else{
               modeling <- result$modeling
-            modeling <- modeling[modeling$module=="ocs",]
-
-            modeling$analysisId <- as.numeric(modeling$analysisId)
-            modeling <- modeling[!is.na(modeling$analysisId),]
-
-            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-            DT::datatable(current.modeling,
-                          options = list(autoWidth = TRUE),
-                          filter = "top"
-            )
-          }
+              modeling <- modeling[modeling$module=="ocs",]
+              modeling$analysisId <- as.numeric(modeling$analysisId)
+              modeling <- modeling[!is.na(modeling$analysisId),]
+              current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+              current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+              DT::datatable(current.modeling,
+                            options = list(autoWidth = TRUE),
+                            filter = "top"
+              )
+            }
         })
+        ## Report tab
+        # plot scatter of predictions and color by pedigree
+        output$plotPredictionsScatter <-  plotly::renderPlotly({
+          # input <- list(traitFilterPredictions2D2="desireIndex", environment="desireIndex ~ 20 crosses * 30 degrees", checkboxBoxplotPredictions2D=TRUE,
+          #               xAxisPredictions2D="designation",yAxisPredictions2D="predictedValue",colorPredictions2D="mother", sizePredictions2D="stdError", textPredictions2D="designation")
+          mydata = result$predictions
+          mtas <- result$status[which(result$status$module == "ocs"),"analysisId"];mtaId <- mtas[length(mtas)]
+          mydata <- mydata[which(mydata$analysisId == mtaId),]
+          mydata = mydata[which(mydata$trait == input$traitFilterPredictions2D2),]
+          mydata = mydata[which(mydata$environment == input$environment),]
+          res = plotly::plot_ly(data = mydata, x = mydata[,input$xAxisPredictions2D], y = mydata[,input$yAxisPredictions2D],
+                                color=mydata[,input$colorPredictions2D], size=mydata[,input$sizePredictions2D], #boxpoints = "all",
+                                text=mydata[,input$textPredictions2D],  type="box")
+          # res = res %>% plotly::layout(showlegend = FALSE)
+          res
+        })
+
       } else {
         output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
         output$metricsOcs <- DT::renderDT({DT::datatable(NULL)})
@@ -302,9 +349,9 @@ mod_ocsApp_server <- function(id){
       outOcs()
     })
 
-    output$reportOcs <- renderUI({
-      HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
-    })
+    # output$reportOcs <- renderUI({
+    #   HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
+    # })
 
 
 
