@@ -19,10 +19,12 @@ mod_indexDesireApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2IdxD"), "Version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-      textInput(ns("desirev"), label = "Desired change [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
+      textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                          numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
+                          selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                          numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
                           selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -34,11 +36,12 @@ mod_indexDesireApp_ui <- function(id){
     mainPanel(tabsetPanel(
       type = "tabs",
 
-      tabPanel("Data",
+      tabPanel("Input",
                br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   plotly::plotlyOutput(ns("plotPredictionsRadar"))
+               shinydashboard::box(status="success",width = 12,
+                                   solidHeader = TRUE, title = "Desired change and expected response",
+                                   plotly::plotlyOutput(ns("plotPredictionsRadar")),
+                                   plotly::plotlyOutput(ns("plotPotentialResponse"))
                ),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
@@ -163,8 +166,17 @@ mod_indexDesireApp_server <- function(id){
       req(input$version2IdxD)
       dtIdxD <- data(); dtIdxD <- dtIdxD$predictions
       mydata <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
-      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=input$trait2IdxD,proportion=0.2,meanGroupPredictionsRadar=input$desirev,
-                             fontSizeRadar=12, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
+      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=input$trait2IdxD,proportion=input$proportion,meanGroupPredictionsRadar=input$desirev,
+                             fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
+    })
+    # render plot for potential responses
+    output$plotPotentialResponse <-  plotly::renderPlotly({
+      req(data())
+      req(input$version2IdxD)
+      req(input$trait2IdxD)
+      dtIdxD <- data();
+      plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=input$desirev, proportion=input$proportion,
+                                       analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=input$desirev, scaled=input$scaledIndex)
     })
     # download predictions in wide format
     output$downloadPredictionsWide <- downloadHandler(
@@ -273,7 +285,7 @@ mod_indexDesireApp_server <- function(id){
             mydata = result$predictions
             mtas <- result$status[which(result$status$module == "indexD"),"analysisId"];
             mtaId <- c(mtas[length(mtas)],input$version2IdxD)
-            mydata <- mydata[which(mydata$analysisId == mtaId),]
+            mydata <- mydata[which(mydata$analysisId %in% mtaId),]
             wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
                                    timevar = "trait", v.names = c("predictedValue"), sep= "_")
             colnames(wide) <- gsub("predictedValue_","",colnames(wide))
@@ -291,7 +303,7 @@ mod_indexDesireApp_server <- function(id){
               mydata = result$predictions
               mtas <- result$status[which(result$status$module == "indexD"),"analysisId"];
               mtaId <- c(mtas[length(mtas)], input$version2IdxD)
-              mydata <- mydata[which(mydata$analysisId == mtaId),]
+              mydata <- mydata[which(mydata$analysisId %in% mtaId),]
               wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
                                      timevar = "trait", v.names = c("predictedValue"), sep= "_")
               colnames(wide) <- gsub("predictedValue_","",colnames(wide))

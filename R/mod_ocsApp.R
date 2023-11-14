@@ -183,10 +183,7 @@ mod_ocsApp_server <- function(id){
       dtOcs <- data()
       dtOcs <- dtOcs$predictions
       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),setdiff(colnames(dtOcs),c("module","analysisId"))]
-      DT::datatable(dtOcs,
-                    options = list(autoWidth = TRUE),
-                    filter = "top"
-      )
+      DT::datatable(dtOcs,options = list(autoWidth = TRUE),filter = "top")
     })
 
     ## render result of "run" button click
