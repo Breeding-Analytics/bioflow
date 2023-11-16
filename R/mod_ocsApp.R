@@ -124,7 +124,7 @@ mod_ocsApp_ui <- function(id){
 #' ocsApp Server Functions
 #'
 #' @noRd
-mod_ocsApp_server <- function(id){
+mod_ocsApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -135,11 +135,11 @@ mod_ocsApp_server <- function(id){
     })
     ############################################################################
 
-    data = reactive({
-      load("dataStr0.RData")
-      data <- zz
-      return(data)
-    })
+    # data = reactive({
+    #   load("dataStr0.RData")
+    #   data <- zz
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -235,13 +235,14 @@ mod_ocsApp_server <- function(id){
       # run the modeling, but before test if mta was done
       if(sum(dtOcs$status$module %in% "mta") == 0) {
         output$qaQcOcsInfo <- renderUI({
-          if (hideAll$clearAll)
+          if (hideAll$clearAll){
             return()
-          else
+          }else{
             req(dtOcs)
-          HTML(as.character(div(style="color: brown;",
-                                "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
-          )
+            HTML(as.character(div(style="color: brown;",
+                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+            )
+          }
         })
       }else{
         output$qaQcOcsInfo <- renderUI({return(NULL)})
@@ -259,72 +260,75 @@ mod_ocsApp_server <- function(id){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          print("Ocs calculated")
-        }else{print("There was an issue. Please contact your administrator.")}
-        # data(result) # update data with results
+          print("Optimal crosses calculated")
+          data(result) # update data with results
+          print(data()$status)
+        }else{
+          print(result)
+        }
       }
 
       if(!inherits(result,"try-error")) {
 
         output$predictionsOcs <-  DT::renderDT({
-            if ( hideAll$clearAll){
-              return()
-            }else{
-              predictions <- result$predictions
-              predictions <- predictions[predictions$module=="ocs",]
-              predictions$analysisId <- as.numeric(predictions$analysisId)
-              predictions <- predictions[!is.na(predictions$analysisId),]
-              current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-              current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-              numeric.output <- c("predictedValue", "stdError", "reliability")
-              DT::formatRound(DT::datatable(current.predictions,
-                                            options = list(autoWidth = TRUE),
-                                            filter = "top"
-              ), numeric.output)
-            }
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+            predictions <- data()$predictions
+            predictions <- predictions[predictions$module=="ocs",]
+            predictions$analysisId <- as.numeric(predictions$analysisId)
+            predictions <- predictions[!is.na(predictions$analysisId),]
+            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+            numeric.output <- c("predictedValue", "stdError", "reliability")
+            DT::formatRound(DT::datatable(current.predictions,
+                                          options = list(autoWidth = TRUE),
+                                          filter = "top"
+            ), numeric.output)
+          # }
         })
 
         output$metricsOcs <-  DT::renderDT({
-            if ( hideAll$clearAll){
-              return()
-            }else{
-              metrics <- result$metrics
-              metrics <- metrics[metrics$module=="ocs",]
-              metrics$analysisId <- as.numeric(metrics$analysisId)
-              metrics <- metrics[!is.na(metrics$analysisId),]
-              current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-              current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-              numeric.output <- c("value", "stdError")
-              DT::formatRound(DT::datatable(current.metrics,
-                                            options = list(autoWidth = TRUE),
-                                            filter = "top"
-              ), numeric.output)
-            }
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+            metrics <- data()$metrics
+            metrics <- metrics[metrics$module=="ocs",]
+            metrics$analysisId <- as.numeric(metrics$analysisId)
+            metrics <- metrics[!is.na(metrics$analysisId),]
+            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+            numeric.output <- c("value", "stdError")
+            DT::formatRound(DT::datatable(current.metrics,
+                                          options = list(autoWidth = TRUE),
+                                          filter = "top"
+            ), numeric.output)
+          # }
         })
 
         output$modelingOcs <-  DT::renderDT({
-            if ( hideAll$clearAll){
-              return()
-            }else{
-              modeling <- result$modeling
-              modeling <- modeling[modeling$module=="ocs",]
-              modeling$analysisId <- as.numeric(modeling$analysisId)
-              modeling <- modeling[!is.na(modeling$analysisId),]
-              current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-              current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-              DT::datatable(current.modeling,
-                            options = list(autoWidth = TRUE),
-                            filter = "top"
-              )
-            }
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+            modeling <- data()$modeling
+            modeling <- modeling[modeling$module=="ocs",]
+            modeling$analysisId <- as.numeric(modeling$analysisId)
+            modeling <- modeling[!is.na(modeling$analysisId),]
+            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+            DT::datatable(current.modeling,
+                          options = list(autoWidth = TRUE),
+                          filter = "top"
+            )
+          # }
         })
         ## Report tab
         # plot scatter of predictions and color by pedigree
         output$plotPredictionsScatter <-  plotly::renderPlotly({
           # input <- list(traitFilterPredictions2D2="desireIndex", environment="desireIndex ~ 20 crosses * 30 degrees", checkboxBoxplotPredictions2D=TRUE,
           #               xAxisPredictions2D="designation",yAxisPredictions2D="predictedValue",colorPredictions2D="mother", sizePredictions2D="stdError", textPredictions2D="designation")
-          mydata = result$predictions
-          mtas <- result$status[which(result$status$module == "ocs"),"analysisId"];mtaId <- mtas[length(mtas)]
+          mydata = data()$predictions
+          mtas <- data()$status[which(data()$status$module == "ocs"),"analysisId"];mtaId <- mtas[length(mtas)]
           mydata <- mydata[which(mydata$analysisId == mtaId),]
           mydata = mydata[which(mydata$trait == input$traitFilterPredictions2D2),]
           mydata = mydata[which(mydata$environment == input$environment),]

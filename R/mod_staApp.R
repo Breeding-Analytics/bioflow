@@ -248,12 +248,11 @@ mod_staApp_server <- function(id,data){
                       silent=TRUE
         )
         if(!inherits(result,"try-error") ){
-          save(result, file="toTest.RData")
           data(result)
           print("Sta finished succesfully")
           print(data()$status)
         }else{
-          print("Analysis failed")
+          print(result)
         }
       }
 

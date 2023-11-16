@@ -107,7 +107,7 @@ mod_indexDesireApp_ui <- function(id){
 #' indexDesireApp Server Functions
 #'
 #' @noRd
-mod_indexDesireApp_server <- function(id){
+mod_indexDesireApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -118,11 +118,11 @@ mod_indexDesireApp_server <- function(id){
     })
     ############################################################################
 
-    data = reactive({
-      load("dataStr0.RData")
-      data <- yy
-      return(data)
-    })
+    # data = reactive({
+    #   load("dataStr0.RData")
+    #   data <- yy
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -219,17 +219,23 @@ mod_indexDesireApp_server <- function(id){
         ),
         silent=TRUE
         )
-        print("Index calculated")
-        # data(result) # update data with results
+        if(!inherits(result,"try-error")) {
+          # save(result, file="toTest.RData")
+          print("Index calculated")
+          data(result) # update data with results
+          print(data()$status)
+        }else{
+          print(result)
+        }
       }
 
       if(!inherits(result,"try-error")) {
         # display table of predictions
         output$predictionsIdxD <-  DT::renderDT({
-          if ( hideAll$clearAll){
-            return()
-          }else{
-            predictions <- result$predictions
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+            predictions <- data()$predictions
             predictions <- predictions[predictions$module=="indexD",]
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
@@ -237,53 +243,54 @@ mod_indexDesireApp_server <- function(id){
             current.predictions <- subset(current.predictions, select = -c(module,analysisId))
             numeric.output <- c("predictedValue", "stdError", "reliability")
             DT::formatRound(DT::datatable(current.predictions, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
-          }
+          # }
         })
         # download predictions
         output$downloadPredictions <- downloadHandler(
           filename = function() { paste("tablePredictionstMta-", Sys.Date(), ".csv", sep="")},
           content = function(file) {
-            if ( hideAll$clearAll){
-              return()
-            }else{
-              predictions <- result$predictions
-              mtas <- result$status[which(result$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+              predictions <- data()$predictions
+              mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
               predictions <- predictions[which(predictions$analysisId == mtaId),]
               utils::write.csv(predictions, file)
-            }
+            # }
           })
         # display table of modeling
         output$modelingIdxD <-  DT::renderDT({
-          if ( hideAll$clearAll){
-            return()
-          }else{
-            modeling <- result$modeling
-            mtas <- result$status[which(result$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+            modeling <- data()$modeling
+            mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, options = list(autoWidth = TRUE),filter = "top")
-          }
+          # }
         })
         # download table of modelng
         output$downloadModeling <- downloadHandler(
           filename = function() { paste("tableModelingtMta-", Sys.Date(), ".csv", sep="")},
           content = function(file) {
-            if ( hideAll$clearAll){ return()
-            }else{
-              modeling <- result$modeling
-              mtas <- result$status[which(result$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+              modeling <- data()$modeling
+              mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
               modeling <- modeling[which(modeling$analysisId == mtaId),]
               utils::write.csv(modeling, file)
-            }
+            # }
           })
         ## Report tab
         # table of predictions in wide format
         output$tablePredictionsTraitsWide2 <-  DT::renderDT({
-          if ( hideAll$clearAll){
-            return()
-          }else{
-            mydata = result$predictions
-            mtas <- result$status[which(result$status$module == "indexD"),"analysisId"];
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+            mydata = data()$predictions
+            mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"];
             mtaId <- c(mtas[length(mtas)],input$version2IdxD)
             mydata <- mydata[which(mydata$analysisId %in% mtaId),]
             wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
@@ -291,24 +298,24 @@ mod_indexDesireApp_server <- function(id){
             colnames(wide) <- gsub("predictedValue_","",colnames(wide))
             numeric.output <- colnames(wide)[-c(1)]
             DT::formatRound(DT::datatable(wide, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
-          }
+          # }
         })
         # download predictions in wide format
         output$downloadPredictionsWide2 <- downloadHandler(
           filename = function() { paste("tablePredictionstIndexWide-", Sys.Date(), ".csv", sep="")},
           content = function(file) {
-            if ( hideAll$clearAll){
-              return()
-            }else{
-              mydata = result$predictions
-              mtas <- result$status[which(result$status$module == "indexD"),"analysisId"];
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+              mydata = data()$predictions
+              mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"];
               mtaId <- c(mtas[length(mtas)], input$version2IdxD)
               mydata <- mydata[which(mydata$analysisId %in% mtaId),]
               wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
                                      timevar = "trait", v.names = c("predictedValue"), sep= "_")
               colnames(wide) <- gsub("predictedValue_","",colnames(wide))
               utils::write.csv(wide, file)
-            }
+            # }
           })
 
       } else {

@@ -364,7 +364,7 @@ mod_mtaApp_server <- function(id, data){
           data(result) # update data with results
           print(data()$status)
         }else{
-          print("Analysis failed")
+          print(result)
         }
 
       }
