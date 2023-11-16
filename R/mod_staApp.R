@@ -83,8 +83,9 @@ mod_staApp_ui <- function(id){
       #          )
       # ),
       tabPanel("Report",
-               # br(),
-               # div(tags$p("Please download the report below:") ),
+               br(),
+               div(tags$p("Please download the report below:") ),
+               downloadButton(ns("downloadReportSta"), "Download report"),
                br(),
                uiOutput(ns('reportSta')),
                # includeHTML("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.html")
@@ -344,6 +345,70 @@ mod_staApp_server <- function(id,data){
     })
 
     # return(data)
+
+    #### for downloading report STA
+    # cleaned data reactive object
+    phenoSta <-  reactive({
+      if(sum(data()$status$module %in% "qa") != 0) {
+        if (hideAll$clearAll){
+          return(NULL)
+        }
+        else{
+          req(data())
+          dtSta <- data()
+          dtSta <- dtSta$data$pheno
+          return(dtSta)
+        }
+      } else {
+        return(NULL)
+      }
+    })
+
+    # metrics reactive object
+    # metricsSta <-  reactive({
+    #   if(!inherits(result,"try-error") ){
+    #     if ( hideAll$clearAll){
+    #       return(NULL)
+    #     }
+    #     else{
+    #       metrics <- result$metrics
+    #       metrics <- metrics[metrics$module=="sta",]
+    #       metrics$analysisId <- as.numeric(metrics$analysisId)
+    #       metrics <- metrics[!is.na(metrics$analysisId),]
+    #       current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+    #       current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+    #       return(current.metrics)
+    #     }
+    #   }
+    # })
+
+    output$downloadReportSta <- downloadHandler(
+      filename = function() {
+        paste0("reportSTA-",gsub("-|:| ", "", Sys.time()),".html")
+      },
+      content = function(file) {
+        shinybusy::show_modal_spinner(spin = "fading-circle",
+                                      color = "#F39C12",
+                                      text = "Generating Report...")
+
+        rmarkdown::render(
+          # input RMD file
+          input = ("R/report_STA.Rmd"),
+
+          # input RMD parameters ----
+          params = list(
+            ## phenotypic data (required) ----
+            data_rds_clp = phenoSta(),
+            traits = input$trait2Sta,
+            #data_rds_sta = metricsSta(),
+
+            ## file path and report parameters ----
+            doc_title = "Single-Trial Analysis",
+            doc_subtitle = "<subtitle>"
+          ), output_file = file)
+        shinybusy::remove_modal_spinner()
+      }, contentType = "html"
+    )
 
   }) ## end moduleserver
 }
