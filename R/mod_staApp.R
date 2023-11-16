@@ -199,16 +199,17 @@ mod_staApp_server <- function(id,data){
     observeEvent(data(),{
       if(sum(data()$status$module %in% "qa") != 0) {
         output$phenoSta <-  DT::renderDT({
-          if ( hideAll$clearAll)
-            return()
-          else
-          req(data())
-          dtSta <- data()
-          dtSta <- dtSta$data$pheno
-          DT::datatable(dtSta,
-                        options = list(autoWidth = TRUE),
-                        filter = "top"
-          )
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+            req(data())
+            dtSta <- data()
+            dtSta <- dtSta$data$pheno
+            DT::datatable(dtSta,
+                          options = list(autoWidth = TRUE),
+                          filter = "top"
+            )
+          # }
         })
       } else {
         output$phenoSta <- DT::renderDT({DT::datatable(NULL)})
@@ -227,7 +228,7 @@ mod_staApp_server <- function(id,data){
       if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
 
       # run the modeling, but before test if qa/qc done
-      if(sum(dtSta$status$module %in% "qa") == 0) {
+      if(sum(dtSta$status$module %in% c("qa","qaRaw","qaRes")) == 0) {
         output$qaQcStaInfo <- renderUI({
           if (hideAll$clearAll)
             return()
@@ -240,76 +241,82 @@ mod_staApp_server <- function(id,data){
       } else {
         output$qaQcStaInfo <- renderUI({return(NULL)})
         result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta,
-                                        trait=input$trait2Sta, traitFamily = myFamily,
+                                        trait=input$trait2Sta, traitFamily = NULL,
                                         fixedTerm = input$fixedTermSta2,
                                         returnFixedGeno=input$genoAsFixedSta, genoUnit = input$genoUnitSta,
                                         verbose = input$verboseSta, maxit = input$maxitSta),
                       silent=TRUE
         )
+        if(!inherits(result,"try-error") ){
+          save(result, file="toTest.RData")
+          data(result)
+          print("Sta finished succesfully")
+          print(data()$status)
+        }else{
+          print("Analysis failed")
+        }
       }
 
       if(sum(dtSta$status$module %in% "qa") != 0) {
 
         output$predictionsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
-              return()
-            else
-            predictions <- result$predictions
-            predictions <- predictions[predictions$module=="sta",]
-
-            predictions$analysisId <- as.numeric(predictions$analysisId)
-            predictions <- predictions[!is.na(predictions$analysisId),]
-
-
-            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-            numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
-            ), numeric.output)
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+              predictions <- data()$predictions
+              predictions <- predictions[predictions$module=="sta",]
+              predictions$analysisId <- as.numeric(predictions$analysisId)
+              predictions <- predictions[!is.na(predictions$analysisId),]
+              current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+              current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+              numeric.output <- c("predictedValue", "stdError", "reliability")
+              DT::formatRound(DT::datatable(current.predictions, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
+            # }
           }
         })
 
         output$metricsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
-              return()
-            else
-            metrics <- result$metrics
-            metrics <- metrics[metrics$module=="sta",]
-            metrics$analysisId <- as.numeric(metrics$analysisId)
-            metrics <- metrics[!is.na(metrics$analysisId),]
-            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-            numeric.output <- c("value", "stdError")
-            DT::formatRound(DT::datatable(current.metrics,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
-            ), numeric.output)
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+              metrics <- data()$metrics
+              metrics <- metrics[metrics$module=="sta",]
+              metrics$analysisId <- as.numeric(metrics$analysisId)
+              metrics <- metrics[!is.na(metrics$analysisId),]
+              current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+              current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+              numeric.output <- c("value", "stdError")
+              DT::formatRound(DT::datatable(current.metrics,
+                                            options = list(autoWidth = TRUE),
+                                            filter = "top"
+              ), numeric.output)
+            # }
           }
         })
 
         output$modelingSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
-              return()
-            else
-            modeling <- result$modeling
-            modeling <- modeling[modeling$module=="sta",]
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+              modeling <- data()$modeling
+              modeling <- modeling[modeling$module=="sta",]
 
-            modeling$analysisId <- as.numeric(modeling$analysisId)
-            modeling <- modeling[!is.na(modeling$analysisId),]
+              modeling$analysisId <- as.numeric(modeling$analysisId)
+              modeling <- modeling[!is.na(modeling$analysisId),]
 
-            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-            DT::datatable(current.modeling,
-                          options = list(autoWidth = TRUE),
-                          filter = "top"
-            )
+              current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+              current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+              DT::datatable(current.modeling,
+                            options = list(autoWidth = TRUE),
+                            filter = "top"
+              )
+            # }
           }
         })
+        data(result)
       } else {
         output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})
         output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
@@ -337,6 +344,7 @@ mod_staApp_server <- function(id,data){
       HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
     })
 
+    # return(data)
 
   }) ## end moduleserver
 }

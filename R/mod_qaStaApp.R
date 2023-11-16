@@ -75,7 +75,7 @@ mod_qaStaApp_ui <- function(id){
 #' qaStaApp Server Functions
 #'
 #' @noRd
-mod_qaStaApp_server <- function(id){
+mod_qaStaApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -87,11 +87,11 @@ mod_qaStaApp_server <- function(id){
     })
     ############################################################################
 
-    data = reactive({ # provisional dataset for testing
-      load("dataStr0.RData")
-      data <- xx
-      return(data)
-    })
+    # data = reactive({ # provisional dataset for testing
+    #   load("dataStr0.RData")
+    #   data <- xx
+    #   return(data)
+    # })
     # Create the fields
     observeEvent(data(), {
       req(data())

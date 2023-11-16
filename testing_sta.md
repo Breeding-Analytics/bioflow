@@ -32,15 +32,6 @@ summary(cars)
 
 Ploting the predictions as an example
 
-
-```
-## Warning in gzfile(file, "rb"): cannot open compressed file 'R/result.rds', probable reason 'No such file or directory'
-```
-
-```
-## Error in gzfile(file, "rb"): cannot open the connection
-```
-
 ![plot of chunk pressure](figure/pressure-1.png)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

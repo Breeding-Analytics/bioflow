@@ -105,15 +105,16 @@ mod_getData_ui <- function(id){
 mod_getData_server <- function(id, map = NULL, data = NULL){
   moduleServer(id , function(input, output, session){
     ns <- session$ns
-    df <- reactiveVal()
 
-    observe({
-      if (is.null(data)) {
-        df(create_getData_object())
-      } else {
-        df(data)
-      }
-    })
+    # df <- reactiveVal()
+    #
+    # observe({
+    #   if (is.null(data)) {
+    #     df(create_getData_object())
+    #   } else {
+    #     df(data)
+    #   }
+    # })
 
     observeEvent(
       input$pheno_input,
@@ -156,11 +157,11 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
     observeEvent(
       pheno_data(),
       {
-        temp <- df()
+        temp <- data()
         temp$data$pheno <- pheno_data()
         temp$status <- rbind(temp$status, data.frame(module = 'qa', analysisId = as.numeric(Sys.time())))
         #save(temp, file = 'temp.RData')
-        df(temp)
+        data(temp)
 
         output$preview_pheno <- DT::renderDT({
           req(pheno_data())
@@ -201,7 +202,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
               #   summary(values)
               # }
 
-              temp <- df()
+              temp <- data()
               if (x == 'trait') {
                 temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
                 for (i in input[[paste0('select', x)]]) {
@@ -218,7 +219,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
               if (x == 'designation') {
                 temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA)
               }
-              df(temp)
+              data(temp)
             #}
           }),
         )
@@ -277,94 +278,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       }
     )
 
-    return(df)
+    return(data)
   })
-}
-
-create_getData_object <- function() {
-  obj <- list()
-
-  obj$data <- list()
-  obj$metadata <- list()
-  obj$modifications <- list()
-
-  obj$data$pheno    <- data.frame()
-  obj$data$geno     <- matrix()
-  obj$data$weather  <- data.frame()
-  obj$data$pedigree <- data.frame(designation = character(),
-                                  mother = character(),
-                                  father = character())
-
-  obj$metadata$pheno <- data.frame(parameter = character(),
-                                   value = character())
-
-  obj$metadata$geno <- data.frame(marker = character(),
-                                  chr = character(),
-                                  pos = double(),
-                                  refAllele = character(),
-                                  altAllele = character())
-
-  obj$metadata$pedigree <- data.frame()
-
-  obj$metadata$weather <- data.frame(environment = character(),
-                                     parameter = character(),
-                                     value = double())
-
-  obj$modifications$pheno <- data.frame(module = character(),
-                                        analysisId = character(),
-                                        trait = character(),
-                                        reason = character(),
-                                        row = integer(),
-                                        value = double())
-
-  obj$modifications$geno <- data.frame(module = character(),
-                                       analysisId = character(),
-                                       reason = character(),
-                                       row = integer(),
-                                       col = integer(),
-                                       value = double())
-
-  obj$modifications$pedigree <- data.frame(module = character(),
-                                           analysisId = character(),
-                                           reason = character(),
-                                           row = integer())
-
-  obj$modifications$weather <- data.frame()
-
-  obj$predictions <- data.frame(module = character(),
-                                analysisId = character(),
-                                pipeline = character(),
-                                trait = character(),
-                                gid = character(),
-                                designation = character(),
-                                mother = character(),
-                                father = character(),
-                                entryType = character(),
-                                environment = character(),
-                                predictedValue = double(),
-                                stdError = double(),
-                                reliability = double())
-
-  obj$metrics <- data.frame(module = character(),
-                            analysisId = character(),
-                            trait = character(),
-                            environment = character(),
-                            parameter = character(),
-                            method = character(),
-                            value = double(),
-                            stdError = double())
-
-  obj$modeling <- data.frame(module = character(),
-                             analysisId = character(),
-                             trait = character(),
-                             environment = character(),
-                             parameter = character(),
-                             value = character())
-
-  obj$status <- data.frame(module = character(),
-                           analysisId = character())
-
-  return(obj)
 }
 
 ## To be copied in the UI
