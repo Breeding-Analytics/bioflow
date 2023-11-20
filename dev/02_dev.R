@@ -47,14 +47,16 @@ usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analyt
 ## Add modules ----
 ## Create a module infrastructure in R/
 # golem::add_module(name = "input_file_sta", with_test = TRUE) # Name of the module
-golem::add_module(name = "getData", with_test = TRUE) # Name of the module
-golem::add_module(name = "qaRawApp", with_test = TRUE) # Name of the module
-golem::add_module(name = "staApp", with_test = TRUE) # Name of the module
-golem::add_module(name = "qaStaApp", with_test = TRUE) # Name of the module
+golem::add_module(name = "getData", with_test = TRUE) # extracting raw data
+golem::add_module(name = "qaRawApp", with_test = TRUE) # QA on raw data
+golem::add_module(name = "staApp", with_test = TRUE) # single trial analysis
+golem::add_module(name = "qaStaApp", with_test = TRUE) # QA after sta
 golem::add_module(name = "reportSTA", with_test = TRUE) # Name of the module
-golem::add_module(name = "mtaApp", with_test = TRUE) # Name of the module
-golem::add_module(name = "indexDesireApp", with_test = TRUE) # Name of the module
-golem::add_module(name = "ocsApp", with_test = TRUE) # Name of the module
+golem::add_module(name = "mtaApp", with_test = TRUE) # multi trial analysis
+golem::add_module(name = "indexDesireApp", with_test = TRUE) # desire selection index
+golem::add_module(name = "ocsApp", with_test = TRUE) # optimal cross selection
+golem::add_module(name = "rggApp", with_test = TRUE) # realized genetic gain
+golem::add_module(name = "pggApp", with_test = TRUE) # predicted genetic gain
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

@@ -15,7 +15,7 @@ mod_indexDesireApp_ui <- function(id){
     sidebarPanel(
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( "Desire selection index")),#, style = "color: #817e7e"
+      div(tags$p( h4(strong("Desire selection index")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2IdxD"), "Version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),

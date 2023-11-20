@@ -15,7 +15,7 @@ mod_qaStaApp_ui <- function(id){
     shiny::sidebarPanel(#width = 3,
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( "Model-based outlier detection")),#, style = "color: #817e7e"
+      div(tags$p( h4(strong("Model-based outlier detection")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
       selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE),

@@ -14,7 +14,7 @@ mod_mtaApp_ui <- function(id){
     sidebarPanel(
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( "Multi Trial Analysis")),#, style = "color: #817e7e"
+      div(tags$p( h4(strong("Multi Trial Analysis")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2Mta"), "Version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
@@ -393,7 +393,7 @@ mod_mtaApp_server <- function(id, data){
             #   return()
             # }else{
               predictions <- data()$predictions
-              mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+              mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
               predictions <- predictions[which(predictions$analysisId == mtaId),]
               utils::write.csv(predictions, file)
             # }
