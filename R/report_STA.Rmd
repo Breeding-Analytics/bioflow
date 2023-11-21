@@ -5,8 +5,9 @@ author: "Biometrics Group, IRRI  \n  biometrics@irri.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 # date last modified: March 9, 2023
 params:
-  data_rds_clp: NULL
-  traits: NULL
+  data_clean: NULL
+  data_metrics: NULL
+  data_modelling: NULL
   doc_title: "Single-Trial Analysis"
   doc_subtitle: ""
 output: 
@@ -111,19 +112,22 @@ printTable <- function(DT, pageLength = 5,
 # done outside the RMD
 
 # checking
-stopifnot(!is.null(params$data_rds_clp))
+stopifnot(!is.null(params$data_clean) & !is.null(params$data_metrics))
 
-dt_clp <- params$data_rds_clp
+dt_clean <- params$data_clean
 
-dt_clean <- dt_clp
+dt_metrics <- params$data_metrics
 
+traits <- unique(dt_metrics[,"trait"])
+
+dt_modelling <- params$data_modelling
 ```
 
 
 ***
 
 
-## Trial Overview
+## Environment Overview
 
 <div style = "width:100%; height:auto;">
 ```{r summary1}
@@ -138,8 +142,6 @@ for (i in seq_along(overview_vars)) {
   summary_list[[i]] <- summary_temp
 }
 
-traits <- unique(params$traits)
-
 summaryInfo1 <- tribble(
   ~cat, ~val,
   "**Traits**", paste0(traits, collapse = ", "),
@@ -149,8 +151,8 @@ summaryInfo1 <- tribble(
   "**Seasons**", summary_list$season,
   "**Countries**", summary_list$country,
   "**Locations**", summary_list$location,
-  "**Number of Trials**", as.character(length(levels(dt_clean[, "trial"]))),
-  # "**Number of Environments**", as.character(length(levels(dt_clean[, "environment"]))),
+  # "**Number of Trials**", as.character(length(levels(dt_clean[, "trial"]))),
+  "**Number of Environments**", as.character(length(levels(dt_clean[, "environment"]))),
   "**Number of Entries**", as.character(length(levels(dt_clean[, "designation"])))
 )
 
@@ -163,14 +165,14 @@ kable(summaryInfo1) %>% kable_styling(full_width = F, position = "float_left")
   
 ```{r overview}
 
-dt_clp_year <- unique(dt_clp$year)[1]
-dt_clp_season <- unique(dt_clp$season)[1]
-dt_clp_location <- unique(dt_clp$location)[1]
-dt_clp_trial <- unique(dt_clp$trial)[1]
+dt_clean_year <- unique(dt_clean$year)[1]
+dt_clean_season <- unique(dt_clean$season)[1]
+dt_clean_location <- unique(dt_clean$location)[1]
+dt_clean_environment <- unique(dt_clean$environment)[1]
 
-grouping_vars <- !is.na(c(dt_clp_year, dt_clp_season, dt_clp_location, dt_clp_trial))
+grouping_vars <- !is.na(c(dt_clean_year, dt_clean_season, dt_clean_location, dt_clean_environment))
 
-grouping_vars_2 <- c("trial", "year", "season", "location")[grouping_vars]
+grouping_vars_2 <- c("environment", "year", "season", "location")[grouping_vars]
 grouping_vars_2_label <- str_to_title(grouping_vars_2)
 
 # remove all "dummy"s
@@ -183,19 +185,18 @@ remove_dummy <- function(DT, col) {
   return(DT)
 }
 
-dt_clean <- remove_dummy(dt_clean, "trial")
+dt_clean <- remove_dummy(dt_clean, "environment")
 
+dt_clean <- dt_clean %>% mutate(environment = as.factor(environment))
 
-dt_clean <- dt_clean %>% mutate(trial = as.factor(trial))
-
-trial_overview <- dt_clean %>%
+environment_overview <- dt_clean %>%
   group_by(across(all_of(grouping_vars_2))) %>%
   summarize(NumEntries = n_distinct(designation))
 
-names(trial_overview)[1:length(grouping_vars_2_label)] <- grouping_vars_2_label
+names(environment_overview)[1:length(grouping_vars_2_label)] <- grouping_vars_2_label
 
-printTable(trial_overview,
-           caption = paste0("List of trial(s) & year(s)/season(s)/location(s) and the total number of entries"))
+printTable(environment_overview,
+           caption = paste0("List of environment(s) & year(s)/season(s)/location(s) and the total number of entries"))
 
 ```
 
@@ -263,20 +264,20 @@ for (i in 1:numTraits) {
   cat("#### ", traits[i], "  \n ")
   
   plotly_boxplots_cleaned[[i]] <- ggplot(data = dt_clean,
-                                         mapping = aes(x = factor(trial),
+                                         mapping = aes(x = factor(environment),
                                                        y = get(traits[i]),
-                                                       fill = trial)) + 
+                                                       fill = environment)) + 
     geom_boxplot() + 
     scale_fill_viridis(discrete = TRUE, alpha = 0.6) + 
-    labs(title = paste0("Distribution of ", traits[i], " for each trial"),
-         fill = "trial") + 
+    labs(title = paste0("Distribution of ", traits[i], " for each environment"),
+         fill = "environment") + 
     theme_classic() + 
     theme(legend.position = "none",
           axis.text.x = element_text(angle = ifelse(
-            nlevels(dt_clean[, "trial"]) > 5 || 
-              max(sapply(levels(dt_clean[, "trial"]), nchar)) > 20, -20, 0))) + 
+            nlevels(dt_clean[, "environment"]) > 5 || 
+              max(sapply(levels(dt_clean[, "environment"]), nchar)) > 20, -20, 0))) + 
     ylab(traits[i]) + 
-    xlab("trial")
+    xlab("environment")
   # if (nlevels(dt_clean[, "fieldinstF"]) > 5 || max(sapply(levels(dt_clean$fieldinstF), nchar)) > 20)
   #   plotly_boxplots_cleaned[[i]] <- plotly_boxplots_cleaned[[i]] + coord_flip()
   
@@ -286,8 +287,80 @@ for (i in 1:numTraits) {
   
 }
 
-# trait_GY <- dt_sta$modeling$trait[grep(x = dt_sta$modeling$trait, pattern = "GY|YLD|Yield|yield|YKGH")]
-# has_GY <- ifelse(length(trait_GY) > 0, TRUE, FALSE)
-# plot_GY_heatmap <- has_GY && (dt_clp$metadata$rowcoord != "ABSENT") && (dt_clp$metadata$colcoord != "ABSENT")
+trait_GY <- dt_modelling[,"trait"][grep(x = dt_modelling[,"trait"], pattern = "GY|YLD|Yield|yield|YKGH")]
+has_GY <- ifelse(length(trait_GY) > 0, TRUE, FALSE)
+plot_GY_heatmap <- has_GY && ("row" %in% names(dt_clean)) && ("col" %in% names(dt_clean))
+
+```
+
+***  
+
+
+```{r GY_heatmap, eval = plot_GY_heatmap, results = "asis", fig.height = 7}
+
+asis_output(paste0("### Field Heatmap for Grain Yield {.tabset .tabset-pills}  \n    "))
+
+env <- as.vector(unique(dt_clean[,"environment"]))
+
+for (i in seq_along(env)) {
+  # print(i)
+  tempDT <- dt_clean %>% filter(environment == env[i])
+  if (nrow(tempDT) == 0 && length(env) == 1) {
+    tempDT <- dt_clean
+  } else if (nrow(tempDT) == 0 && length(env) > 1) {
+    tempDT <- dt_clean %>% filter(environment == env[i])
+  }
+  
+  isMissingAllRowsCols <- nrow(tempDT) == length(which(is.na(tempDT[, "row"]))) &&
+    nrow(tempDT) == length(which(is.na(tempDT[, "col"])))
+  
+  if (isMissingAllRowsCols) {
+    
+    cat("\n\n")
+    cat("#### ", env[i], "  \n")
+    cat("\t\tNote: All row and column values are NAs (missing).\n\n  ")
+    
+  } else if (!isMissingAllRowsCols) {
+    
+    cat("\n\n")
+    cat("#### ", env[i], "  \n")
+    
+    p <- ggplot(data = tempDT,
+                mapping = aes(x = col, y = row)) +
+      geom_tile(data = tempDT,
+                mapping = aes(
+                  fill = get(trait_GY[1]),
+                  text = paste(paste0('<br>', ifelse(is.na(dt_clean[,"col"]) || !("col" %in% names(dt_clean)), "col", dt_clean[,"col"]), ":"), col,
+                         paste0('<br>', ifelse(is.na(dt_clean[,"row"]) || !("row" %in% names(dt_clean)), "row", dt_clean[,"row"]), ":"), row,
+                         paste0('<br>', ifelse(is.na(dt_clean[,"designation"]) || !("designation" %in% names(dt_clean)), "designation", dt_clean[,"designation"]), ":"), designation,
+                         paste0('<br>', trait_GY, ":"), get(trait_GY[1]),
+                         paste0('<br>', ifelse(is.na(dt_clean[,"rep"]) || !("rep" %in% names(dt_clean)), "rep", dt_clean[,"rep"]), ":"), rep)),
+                size = 1) +
+    scale_fill_gradient(low = "#deffee", high = "#038542") +
+      labs(x = "Field columns", y = "Field rows", title = env[i]) +
+      theme(legend.position = "bottom")
+    p$labels$fill <- trait_GY
+    p$labels$colour <- ifelse(is.na(dt_clean[,"rep"]), "rep", dt_clean[,"rep"])
+    
+    print(htmltools::tagList(ggplotly(p, height = get_h(), tooltip = "text")))
+    
+    cat("\n\n  ")
+    
+  }
+}
+
+```
+
+## Single-Trial Analysis
+
+### metrics per trait & environment
+```{r trial_quality}
+
+dt_metrics <- remove_dummy(dt_metrics, "environment")
+
+numeric.output <- c("value", "stdError")
+
+printTable(dt_metrics,
+           caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & environment"))
 
 ```

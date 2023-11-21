@@ -350,38 +350,37 @@ mod_staApp_server <- function(id,data){
     # cleaned data reactive object
     phenoSta <-  reactive({
       if(sum(data()$status$module %in% "qa") != 0) {
-        if (hideAll$clearAll){
-          return(NULL)
-        }
-        else{
-          req(data())
-          dtSta <- data()
-          dtSta <- dtSta$data$pheno
-          return(dtSta)
-        }
+        req(data())
+        dtSta <- data()
+        dtSta <- dtSta$data$pheno
+        return(dtSta)
       } else {
         return(NULL)
       }
     })
-
+    
     # metrics reactive object
-    # metricsSta <-  reactive({
-    #   if(!inherits(result,"try-error") ){
-    #     if ( hideAll$clearAll){
-    #       return(NULL)
-    #     }
-    #     else{
-    #       metrics <- result$metrics
-    #       metrics <- metrics[metrics$module=="sta",]
-    #       metrics$analysisId <- as.numeric(metrics$analysisId)
-    #       metrics <- metrics[!is.na(metrics$analysisId),]
-    #       current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-    #       current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-    #       return(current.metrics)
-    #     }
-    #   }
-    # })
-
+    metricsSta <-  reactive({
+      metrics <- data()$metrics
+      metrics <- metrics[metrics$module=="sta",]
+      metrics$analysisId <- as.numeric(metrics$analysisId)
+      metrics <- metrics[!is.na(metrics$analysisId),]
+      current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+      current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+      return(current.metrics)
+    })
+    
+    # modelling reactive object
+    modellingSta <-  reactive({
+      modeling <- data()$modeling
+      modeling <- modeling[modeling$module=="sta",]
+      modeling$analysisId <- as.numeric(modeling$analysisId)
+      modeling <- modeling[!is.na(modeling$analysisId),]
+      current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+      current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+      return(current.modeling)
+    })
+    
     output$downloadReportSta <- downloadHandler(
       filename = function() {
         paste0("reportSTA-",gsub("-|:| ", "", Sys.time()),".html")
@@ -390,18 +389,17 @@ mod_staApp_server <- function(id,data){
         shinybusy::show_modal_spinner(spin = "fading-circle",
                                       color = "#F39C12",
                                       text = "Generating Report...")
-
+        
         rmarkdown::render(
           # input RMD file
           input = ("R/report_STA.Rmd"),
-
+          
           # input RMD parameters ----
           params = list(
             ## phenotypic data (required) ----
-            data_rds_clp = phenoSta(),
-            traits = input$trait2Sta,
-            #data_rds_sta = metricsSta(),
-
+            data_clean = phenoSta(),
+            data_metrics = metricsSta(),
+            data_modelling = modellingSta(),
             ## file path and report parameters ----
             doc_title = "Single-Trial Analysis",
             doc_subtitle = "<subtitle>"
