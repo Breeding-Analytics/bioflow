@@ -17,7 +17,7 @@ mod_ocsApp_ui <- function(id){
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       div(tags$p( h4(strong("Optimal Cross Selection")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2Ocs"), "Version to analyze", choices = NULL, multiple = FALSE),
+      selectInput(ns("version2Ocs"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Ocs"), "Trait(s) to use", choices = NULL, multiple = FALSE),
       selectInput(ns("entryType2Ocs"), "Entry types to use", choices = NULL, multiple = TRUE),
       textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20"),

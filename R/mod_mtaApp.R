@@ -16,7 +16,7 @@ mod_mtaApp_ui <- function(id){
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       div(tags$p( h4(strong("Multi Trial Analysis")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2Mta"), "Version to analyze", choices = NULL, multiple = FALSE),
+      selectInput(ns("version2Mta"), "STA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),

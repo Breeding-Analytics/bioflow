@@ -17,7 +17,7 @@ mod_rggApp_ui <- function(id){
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       div(tags$p( h4(strong("Realized Genetic Gain")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2Rgg"), "Version to analyze", choices = NULL, multiple = FALSE),
+      selectInput(ns("version2Rgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Rgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),

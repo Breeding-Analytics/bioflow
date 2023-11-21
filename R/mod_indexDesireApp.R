@@ -17,7 +17,7 @@ mod_indexDesireApp_ui <- function(id){
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       div(tags$p( h4(strong("Desire selection index")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2IdxD"), "Version to analyze", choices = NULL, multiple = FALSE),
+      selectInput(ns("version2IdxD"), "MTA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
       hr(style = "border-top: 1px solid #4c4c4c;"),

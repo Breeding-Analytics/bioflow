@@ -51,6 +51,7 @@ golem::add_module(name = "getData", with_test = TRUE) # extracting raw data
 golem::add_module(name = "qaRawApp", with_test = TRUE) # QA on raw data
 golem::add_module(name = "staApp", with_test = TRUE) # single trial analysis
 golem::add_module(name = "qaStaApp", with_test = TRUE) # QA after sta
+golem::add_module(name = "qaGenoApp", with_test = TRUE) # QA after sta
 golem::add_module(name = "reportSTA", with_test = TRUE) # Name of the module
 golem::add_module(name = "mtaApp", with_test = TRUE) # multi trial analysis
 golem::add_module(name = "indexDesireApp", with_test = TRUE) # desire selection index
