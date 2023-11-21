@@ -36,7 +36,7 @@ mod_rggApp_ui <- function(id){
     mainPanel(tabsetPanel(
       type = "tabs",
 
-      tabPanel("Data",
+      tabPanel("Input Data",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
@@ -69,13 +69,15 @@ mod_rggApp_ui <- function(id){
       ),
       tabPanel("Report",
                br(),
-               # shinydashboard::box(width = 6, status = "success",# background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-               #                     selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to visualize", choices = NULL, multiple = FALSE),
-               #                     selectInput(ns("environment"), "Treatment to view", choices = NULL, multiple = FALSE)
-               # ),
-               # shinydashboard::box(status="success",width = 12,# solidHeader = TRUE, title = "Desired change and expected response",
-               #                     plotly::plotlyOutput(ns("plotPredictionsScatter"))
-               # )
+               shinydashboard::box(width = 6, status = "success",# background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                   selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to visualize", choices = NULL, multiple = FALSE)
+               ),
+               shinydashboard::box(width = 6, status = "success",# background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                   selectInput(ns("environment"), "Environment to view", choices = NULL, multiple = FALSE)
+               ),
+               shinydashboard::box(status="success",width = 12,# solidHeader = TRUE, title = "Desired change and expected response",
+                                   plotly::plotlyOutput(ns("plotPredictionsScatter"))
+               )
       ),
       tabPanel("Documentation",
                br(),
@@ -152,15 +154,26 @@ mod_rggApp_server <- function(id){
       traitsRgg <- unique(dtRgg$trait)
       updateSelectInput(session, "trait2Rgg", choices = traitsRgg)
     })
-    # observeEvent(c(data(), input$version2Rgg), {
-    #   req(data())
-    #   req(input$version2Rgg)
-    #   dtRgg <- data()
-    #   dtRgg <- dtRgg$predictions
-    #   dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-    #   traitsRgg <- unique(dtRgg$trait)
-    #   updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsRgg)
-    # })
+    # trait for report tab
+    observeEvent(c(data(), input$version2Rgg), {
+      req(data())
+      req(input$version2Rgg)
+      dtRgg <- data()
+      dtRgg <- dtRgg$predictions
+      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+      traitsRgg <- unique(dtRgg$trait)
+      updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsRgg)
+    })
+    # environment for report tab
+    observeEvent(c(data(), input$version2Rgg), {
+      req(data())
+      req(input$version2Rgg)
+      dtRgg <- data()
+      dtRgg <- dtRgg$predictions
+      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+      traitsRgg <- unique(dtRgg$environment)
+      updateSelectInput(session, "environment", choices = traitsRgg)
+    })
     ##############
     ## entry type
     observeEvent(c(data(), input$version2Rgg, input$trait2Rgg), {
@@ -315,20 +328,33 @@ mod_rggApp_server <- function(id){
           })
         ## Report tab
         # plot scatter of predictions and color by pedigree
-        # output$plotPredictionsScatter <-  plotly::renderPlotly({
-        #   # input <- list(traitFilterPredictions2D2="desireIndex", environment="desireIndex ~ 20 crosses * 30 degrees", checkboxBoxplotPredictions2D=TRUE,
-        #   #               xAxisPredictions2D="designation",yAxisPredictions2D="predictedValue",colorPredictions2D="mother", sizePredictions2D="stdError", textPredictions2D="designation")
-        #   mydata = result$predictions
-        #   mtas <- result$status[which(result$status$module == "rgg"),"analysisId"];mtaId <- mtas[length(mtas)]
-        #   mydata <- mydata[which(mydata$analysisId == mtaId),]
-        #   mydata = mydata[which(mydata$trait == input$traitFilterPredictions2D2),]
-        #   mydata = mydata[which(mydata$environment == input$environment),]
-        #   res = plotly::plot_ly(data = mydata, x = mydata[,input$xAxisPredictions2D], y = mydata[,input$yAxisPredictions2D],
-        #                         color=mydata[,input$colorPredictions2D], size=mydata[,input$sizePredictions2D], #boxpoints = "all",
-        #                         text=mydata[,input$textPredictions2D],  type="box")
-        #   # res = res %>% plotly::layout(showlegend = FALSE)
-        #   res
-        # })
+        output$plotPredictionsScatter <-  plotly::renderPlotly({
+          mydata = result$predictions
+          mydata <- mydata[which(mydata$analysisId == input$version2Rgg),]
+          mydata = mydata[which(mydata$trait == input$traitFilterPredictions2D2),]
+          mydata = mydata[which(mydata$environment == input$environment),]
+          if(!is.null(result$data$pedigree$yearOfOrigin)){
+            mydata <- merge(mydata, result$data$pedigree[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE )
+            mydata <- mydata[which(!is.na(mydata$yearOfOrigin)),]
+            res = plotly::plot_ly(data = mydata, x = mydata[,"yearOfOrigin"], y = mydata[,"predictedValue"])
+            # calculate current metrics
+            metrics <- result$metrics
+            metrics <- metrics[metrics$module=="rgg",]
+            metrics$analysisId <- as.numeric(metrics$analysisId)
+            metrics <- metrics[!is.na(metrics$analysisId),]
+            metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+            if(input$traitFilterPredictions2D2 %in% metrics$trait ){
+              rownames(metrics) <- metrics$parameter
+              mt <- paste0("y = ",round(metrics["ggInter","value"],2), " + ",round(metrics["ggSlope","value"],2),"x", " (gain:",round(metrics["gg%","value"],2),"%)")
+              res = res %>% plotly::add_annotations(text = mt, x = mean(mydata[,"yearOfOrigin"],na.rm=TRUE), y = max(mydata[,"predictedValue"],na.rm=TRUE))
+            }
+            res
+          }else{
+            res = plotly::plot_ly()
+            res = res %>% plotly::add_annotations(text = "yearOfOrigin not available", x = 1, y = 1)#
+            res
+          }
+        })
 
       } else {
         output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)})

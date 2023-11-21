@@ -47,7 +47,7 @@ mod_mtaApp_ui <- function(id){
     mainPanel(tabsetPanel(
       type = "tabs",
 
-      tabPanel("Input",
+      tabPanel("Input Data",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,

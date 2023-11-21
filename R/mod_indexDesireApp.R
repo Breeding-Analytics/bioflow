@@ -36,7 +36,7 @@ mod_indexDesireApp_ui <- function(id){
     mainPanel(tabsetPanel(
       type = "tabs",
 
-      tabPanel("Input",
+      tabPanel("Input Data",
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE, title = "Desired change and expected response",

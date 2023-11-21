@@ -38,7 +38,7 @@ mod_ocsApp_ui <- function(id){
     mainPanel(tabsetPanel(
       type = "tabs",
 
-      tabPanel("Data",
+      tabPanel("Input Data",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
