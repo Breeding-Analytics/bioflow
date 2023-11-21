@@ -100,7 +100,7 @@ mod_pggApp_ui <- function(id){
 #' pggApp Server Functions
 #'
 #' @noRd
-mod_pggApp_server <- function(id){
+mod_pggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -112,11 +112,11 @@ mod_pggApp_server <- function(id){
     })
     ############################################################################
 
-    data = reactive({ # provisional dataset for testing
-      load("dataStr0.RData")
-      data <- zz
-      return(data)
-    })
+    # data = reactive({ # provisional dataset for testing
+    #   load("dataStr0.RData")
+    #   data <- zz
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {

@@ -116,7 +116,7 @@ mod_rggApp_ui <- function(id){
 #' rggApp Server Functions
 #'
 #' @noRd
-mod_rggApp_server <- function(id){
+mod_rggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -128,11 +128,11 @@ mod_rggApp_server <- function(id){
     })
     ############################################################################
 
-    data = reactive({ # provisional dataset for testing
-      load("dataStr0.RData")
-      data <- zz
-      return(data)
-    })
+    # data = reactive({ # provisional dataset for testing
+    #   load("dataStr0.RData")
+    #   data <- zz
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {
