@@ -288,7 +288,7 @@ mod_staApp_server <- function(id,data){
         output$modelingSta <- DT::renderDT({DT::datatable(NULL)})
       }
 
-      saveRDS(result, file = "./R/outputs/resultSta.rds")
+      save(result, file = "./R/outputs/resultSta.RData")
 
       output$reportSta <- renderUI({
         HTML(markdown::markdownToHTML(knitr::knit("./R/reportSta.Rmd", quiet = TRUE), fragment.only=TRUE))

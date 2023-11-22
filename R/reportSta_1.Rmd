@@ -13,15 +13,15 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FA
 ## Entries and traits by environment
 
 ```{r, results='asis'}
-dat <- suppressWarnings(tryCatch({
-        readRDS("./outputs/resultSta.rds")
+suppressWarnings(tryCatch({
+        readRDS("./outputs/resultSta.RData")
       }, error = function(e) {
         NULL
       }))
-if (is.null(dat)){
+if (is.null(result)){
   invisible(NULL)
 } else {
-  pred <- dat$predictions
+  pred <- result$predictions
   traits <- unique(pred$trait)
   traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
   traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
@@ -43,7 +43,7 @@ if (is.null(dat)){
   }
   colnames(summarySta) <- c('environment',traits)
   
-  pheno <- dat$data$pheno
+  pheno <- result$data$pheno
   pheno.env <- pheno[,c('environment','designation')]
   pheno.env<- unique(pheno.env[c('designation','environment')]) 
   pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
@@ -61,7 +61,7 @@ if (is.null(dat)){
 
 ## Summary statistics 
 ```{r }
-if (is.null(dat)){
+if (is.null(result)){
   invisible(NULL)
 } else {
   selectInput(ns("traitSta"), 
@@ -73,7 +73,7 @@ if (is.null(dat)){
 ```
 
 ```{r }
-if (is.null(dat)){
+if (is.null(result)){
   invisible(NULL)
 } else {
   pred.traits <- subset(pred, select = c(trait,designation,environment,predictedValue))
@@ -102,7 +102,7 @@ if (is.null(dat)){
   pred.traits.mean <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
   colnames(pred.traits.mean)[3] <- "mean"
   ## H2
-  metrics <- dat$metrics
+  metrics <- result$metrics
   metrics.h2 <- metrics[metrics$parameter=="plotH2",]
   metrics.h2 <- subset(metrics.h2, select = c(trait,environment,value))
   colnames(metrics.h2)[3] <- "H2"
@@ -149,7 +149,7 @@ if (is.null(dat)){
 ## Predictions 
 
 ```{r }
-if (is.null(dat)){
+if (is.null(result)){
   invisible(NULL)
 } else {
   selectInput(ns("envSta"), 
@@ -163,7 +163,7 @@ if (is.null(dat)){
 
 
 ```{r }
-if (is.null(dat)){
+if (is.null(result)){
   invisible(NULL)
 } else {
   traits <- unique(pred$trait)

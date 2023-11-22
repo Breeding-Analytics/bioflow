@@ -10,6 +10,7 @@ runtime: shiny
 
 ## Entries and traits by environment
 
+NULL
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; "><table class="table table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
@@ -99,7 +100,7 @@ runtime: shiny
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out6525d48443c6ccdf" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outcfb177ed8cd486c6" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -123,7 +124,7 @@ runtime: shiny
 
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out06df7dc56becbd1b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outb852049a01bed203" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
