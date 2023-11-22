@@ -1,0 +1,195 @@
+---
+title: "STA Report"
+author: ""
+date: "2023-11-03"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+## Entries and traits by environment
+
+```{r, results='asis'}
+dat <- suppressWarnings(tryCatch({
+        readRDS("./outputs/resultSta.rds")
+      }, error = function(e) {
+        NULL
+      }))
+if (is.null(dat)){
+  invisible(NULL)
+} else {
+  pred <- dat$predictions
+  traits <- unique(pred$trait)
+  traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
+  traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
+  colnames(traits.env) <- c('environment',traits)
+  
+  summarySta <- as.data.frame(traits.env[,'environment'])
+  for (i in 1:length(traits)){
+    temp <- traits.env[,c('environment',traits[i])]
+    colnames(temp)[2] <- "temp.col"
+    temp <- as.data.frame(temp)
+    j=i+1
+    tempp=within(temp,{
+      temp.col.n=NA
+      temp.col.n[!is.na(temp.col)]='✅ '
+      temp.col.n[is.na(temp.col)]=''
+    })
+    temp <- tempp[,3]
+    summarySta <- cbind(summarySta,temp)
+  }
+  colnames(summarySta) <- c('environment',traits)
+  
+  pheno <- dat$data$pheno
+  pheno.env <- pheno[,c('environment','designation')]
+  pheno.env<- unique(pheno.env[c('designation','environment')]) 
+  pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
+  colnames(pheno.env.designation)[2] <- "# of entries"
+  
+  summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
+  summarySta <- kableExtra::kbl(summarySta)
+  summarySta <-kableExtra::kable_styling(
+    summarySta, 
+    bootstrap_options = c("hover","condensed","responsive"), fixed_thead = T)
+  kableExtra::scroll_box(summarySta,width = "100%")
+}
+```
+
+
+## Summary statistics 
+```{r }
+if (is.null(dat)){
+  invisible(NULL)
+} else {
+  selectInput(ns("traitSta"), 
+            label = "Trait:", 
+            choices = unique(pred$trait), 
+            )
+}
+
+```
+
+```{r }
+if (is.null(dat)){
+  invisible(NULL)
+} else {
+  pred.traits <- subset(pred, select = c(trait,designation,environment,predictedValue))
+  pred.traits <- reshape(
+  data=pred.traits, 
+  timevar = c("trait"), 
+  idvar = c("environment","designation"), 
+  direction="wide"
+  )
+  names(pred.traits)[-c(1,2)] <- gsub("predictedValue.", "", names(pred.traits)[-c(1,2)]) 
+  pred.traits <- reshape(pred.traits, 
+          direction = "long",
+          varying = list(names(pred.traits)[3:ncol(pred.traits)]),
+          v.names = "Value",
+          idvar = c("designation", "environment"),
+          timevar = "trait",
+          times = traits)
+  rownames(pred.traits) <- NULL
+  ## Max
+  pred.traits.max <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
+  colnames(pred.traits.max)[3] <- "max"
+  ## Min
+  pred.traits.min <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) min(x,na.rm=T))
+  colnames(pred.traits.min)[3] <- "min"
+  ## Mean
+  pred.traits.mean <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
+  colnames(pred.traits.mean)[3] <- "mean"
+  ## H2
+  metrics <- dat$metrics
+  metrics.h2 <- metrics[metrics$parameter=="plotH2",]
+  metrics.h2 <- subset(metrics.h2, select = c(trait,environment,value))
+  colnames(metrics.h2)[3] <- "H2"
+  ## CV
+  metrics.CV <- metrics[metrics$parameter=="CV",]
+  metrics.CV <- subset(metrics.CV, select = c(trait,environment,value))
+  colnames(metrics.CV)[3] <- "CV"
+  ## r2
+  metrics.r2 <- metrics[metrics$parameter=="r2",]
+  metrics.r2 <- subset(metrics.r2, select = c(trait,environment,value))
+  colnames(metrics.r2)[3] <- "r2"
+  ## Vg
+  metrics.Vg <- metrics[metrics$parameter=="Vg",]
+  metrics.Vg <- subset(metrics.Vg, select = c(trait,environment,value))
+  colnames(metrics.Vg)[3] <- "Vg"
+  ## Vr
+  metrics.Vr <- metrics[metrics$parameter=="Vr",]
+  metrics.Vr <- subset(metrics.Vr, select = c(trait,environment,value))
+  colnames(metrics.Vr)[3] <- "Vr"
+  
+  pred.traits.summary <- merge(x = pred.traits.min, y = pred.traits.mean, by = c("environment","trait"), all = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = pred.traits.max, by = c("environment","trait"), all = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.h2, by = c("environment","trait"), all = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.CV, by = c("environment","trait"), all = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.r2, by = c("environment","trait"), all = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vg, by = c("environment","trait"), all = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vr, by = c("environment","trait"), all = TRUE)
+  numeric.output <- c("min","mean","max","H2","CV","r2","Vg","Vr")
+  DT::renderDT({DT::formatRound(DT::datatable(
+    pred.traits.summary[pred.traits.summary$trait==input$traitSta,],
+    rownames = FALSE,
+    class = 'cell-border stripe',
+    options = list(
+      scrollY = "400px",
+      scrollX = "400px",
+      paging = F)
+    ),numeric.output)
+    })
+}
+```
+
+
+
+## Predictions 
+
+```{r }
+if (is.null(dat)){
+  invisible(NULL)
+} else {
+  selectInput(ns("envSta"), 
+            label = "Environment:", 
+            choices = unique(pred$environment)
+            )
+}
+
+```
+
+
+
+```{r }
+if (is.null(dat)){
+  invisible(NULL)
+} else {
+  traits <- unique(pred$trait)
+  predictions.designation <- subset(pred, select = c(trait,designation,environment,predictedValue))
+  predictions.designation <- reshape(
+    data=predictions.designation, 
+    timevar = c("trait"), 
+    idvar = c("environment","designation"), 
+    direction="wide"
+    )
+  names(predictions.designation) <- c("deignation","environment",traits)
+  DT::renderDT({DT::formatRound(DT::datatable(
+    predictions.designation[predictions.designation$environment==input$envSta,],
+    rownames = FALSE,
+    class = 'cell-border stripe',
+    options = list(
+      scrollY = "400px",
+      scrollX = "400px",
+      paging = F)
+    ),traits)
+    })
+}
+
+```
+
+
+
+
+

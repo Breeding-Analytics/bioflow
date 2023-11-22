@@ -12,15 +12,6 @@ mod_staApp_ui <- function(id){
   tagList(
     sidebarPanel(
 
-      # tags$head(tags$style(HTML("
-      #                          body {
-      #                             width: 100% !important;
-      #                             max-width: 100% !important;
-      #                          }
-      #
-      #                          "))),
-
-
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       div(tags$p( "Single Trial Analysis")),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -70,25 +61,11 @@ mod_staApp_ui <- function(id){
                                    column(width=12,DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      # tabPanel("Report",
-      #          br(),
-      #          shinydashboard::box(status="primary",width = 12,
-      #                              solidHeader = TRUE,
-      #                              column(width=12,
-      #                                     div(tags$p("Please download the report below:") ),
-      #                                     br(),
-      #                                     uiOutput(ns('reportSta')),
-      #                                     includeHTML("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.html"),
-      #                                     style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-      #          )
-      # ),
       tabPanel("Report",
-               br(),
-               div(tags$p("Please download the report below:") ),
-               downloadButton(ns("downloadReportSta"), "Download report"),
+               # br(),
+               # div(tags$p("Please download the report below:") ),
                br(),
                uiOutput(ns('reportSta')),
-               # includeHTML("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.html")
       ),
       tabPanel("Documentation",
                br(),
@@ -129,7 +106,6 @@ mod_staApp_server <- function(id,data){
       genetic.evaluation <- c("designation", "mother","father")
       updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation)
     })
-
     observeEvent(c(data(),input$genoUnitSta), {
       req(data())
       req(input$genoUnitSta)
@@ -138,7 +114,6 @@ mod_staApp_server <- function(id,data){
       traitsSta <- dtSta[dtSta$parameter=="trait","value"]
       updateSelectInput(session, "trait2Sta", choices = traitsSta)
     })
-
     observeEvent(c(data(),input$genoUnitSta, input$trait2Sta), {
       req(data())
       req(input$genoUnitSta)
@@ -148,7 +123,6 @@ mod_staApp_server <- function(id,data){
       traitsSta <- dtSta[dtSta$parameter=="trait","value"]
       updateSelectInput(session, "fixedTermSta2", choices = traitsSta[traitsSta!=input$trait2Sta])
     })
-
     # reactive table for trait family distributions
     dtDistTrait = reactive({
       req(data())
@@ -200,17 +174,13 @@ mod_staApp_server <- function(id,data){
     observeEvent(data(),{
       if(sum(data()$status$module %in% "qa") != 0) {
         output$phenoSta <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-            req(data())
-            dtSta <- data()
-            dtSta <- dtSta$data$pheno
-            DT::datatable(dtSta,
-                          options = list(autoWidth = TRUE),
-                          filter = "top"
-            )
-          # }
+          req(data())
+          dtSta <- data()
+          dtSta <- dtSta$data$pheno
+          DT::datatable(dtSta,
+                        options = list(autoWidth = TRUE),
+                        filter = "top"
+          )
         })
       } else {
         output$phenoSta <- DT::renderDT({DT::datatable(NULL)})
@@ -229,7 +199,7 @@ mod_staApp_server <- function(id,data){
       if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
 
       # run the modeling, but before test if qa/qc done
-      if(sum(dtSta$status$module %in% c("qa","qaRaw","qaRes")) == 0) {
+      if(sum(dtSta$status$module %in% "qa") == 0) {
         output$qaQcStaInfo <- renderUI({
           if (hideAll$clearAll)
             return()
@@ -242,86 +212,87 @@ mod_staApp_server <- function(id,data){
       } else {
         output$qaQcStaInfo <- renderUI({return(NULL)})
         result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta,
-                                        trait=input$trait2Sta, traitFamily = NULL,
+                                        trait=input$trait2Sta, traitFamily = myFamily,
                                         fixedTerm = input$fixedTermSta2,
                                         returnFixedGeno=input$genoAsFixedSta, genoUnit = input$genoUnitSta,
                                         verbose = input$verboseSta, maxit = input$maxitSta),
                       silent=TRUE
         )
-        if(!inherits(result,"try-error") ){
-          data(result)
-          print("Sta finished succesfully")
-          print(data()$status)
-        }else{
-          print(result)
-        }
       }
 
       if(sum(dtSta$status$module %in% "qa") != 0) {
 
         output$predictionsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              predictions <- data()$predictions
-              predictions <- predictions[predictions$module=="sta",]
-              predictions$analysisId <- as.numeric(predictions$analysisId)
-              predictions <- predictions[!is.na(predictions$analysisId),]
-              current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-              current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-              numeric.output <- c("predictedValue", "stdError", "reliability")
-              DT::formatRound(DT::datatable(current.predictions, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
-            # }
+            if ( hideAll$clearAll)
+              return()
+            else
+            predictions <- result$predictions
+            predictions <- predictions[predictions$module=="sta",]
+
+            predictions$analysisId <- as.numeric(predictions$analysisId)
+            predictions <- predictions[!is.na(predictions$analysisId),]
+
+
+            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+            numeric.output <- c("predictedValue", "stdError", "reliability")
+            DT::formatRound(DT::datatable(current.predictions,
+                                          options = list(autoWidth = TRUE),
+                                          filter = "top"
+            ), numeric.output)
           }
         })
 
         output$metricsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              metrics <- data()$metrics
-              metrics <- metrics[metrics$module=="sta",]
-              metrics$analysisId <- as.numeric(metrics$analysisId)
-              metrics <- metrics[!is.na(metrics$analysisId),]
-              current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-              current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-              numeric.output <- c("value", "stdError")
-              DT::formatRound(DT::datatable(current.metrics,
-                                            options = list(autoWidth = TRUE),
-                                            filter = "top"
-              ), numeric.output)
-            # }
+            if ( hideAll$clearAll)
+              return()
+            else
+            metrics <- result$metrics
+            metrics <- metrics[metrics$module=="sta",]
+            metrics$analysisId <- as.numeric(metrics$analysisId)
+            metrics <- metrics[!is.na(metrics$analysisId),]
+            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+            numeric.output <- c("value", "stdError")
+            DT::formatRound(DT::datatable(current.metrics,
+                                          options = list(autoWidth = TRUE),
+                                          filter = "top"
+            ), numeric.output)
           }
         })
 
         output$modelingSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              modeling <- data()$modeling
-              modeling <- modeling[modeling$module=="sta",]
+            if ( hideAll$clearAll)
+              return()
+            else
+            modeling <- result$modeling
+            modeling <- modeling[modeling$module=="sta",]
 
-              modeling$analysisId <- as.numeric(modeling$analysisId)
-              modeling <- modeling[!is.na(modeling$analysisId),]
+            modeling$analysisId <- as.numeric(modeling$analysisId)
+            modeling <- modeling[!is.na(modeling$analysisId),]
 
-              current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-              current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-              DT::datatable(current.modeling,
-                            options = list(autoWidth = TRUE),
-                            filter = "top"
-              )
-            # }
+            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+            DT::datatable(current.modeling,
+                          options = list(autoWidth = TRUE),
+                          filter = "top"
+            )
           }
         })
-        data(result)
       } else {
         output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})
         output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
         output$modelingSta <- DT::renderDT({DT::datatable(NULL)})
       }
+
+      saveRDS(result, file = "./R/outputs/resultSta.rds")
+
+      output$reportSta <- renderUI({
+        HTML(markdown::markdownToHTML(knitr::knit("./R/reportSta.Rmd", quiet = TRUE), fragment.only=TRUE))
+      })
 
       hideAll$clearAll <- FALSE
 
@@ -331,82 +302,7 @@ mod_staApp_server <- function(id,data){
       outSta()
     })
 
-    # output$reportSta <- renderUI({
-    #   rmarkdown::render(
-    #     input = ("/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/report_STA2.Rmd"),
-    #     params = list(
-    #       data_rds_sta = "/Users/idieng/Library/CloudStorage/OneDrive-CGIAR/_IITA/_Shiny/lmm_golem/bioflow/R/result.rds"
-    #     )
-    #   )
-    # })
 
-    output$reportSta <- renderUI({
-      HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
-    })
-
-    # return(data)
-
-    #### for downloading report STA
-    # cleaned data reactive object
-    phenoSta <-  reactive({
-      if(sum(data()$status$module %in% "qa") != 0) {
-        req(data())
-        dtSta <- data()
-        dtSta <- dtSta$data$pheno
-        return(dtSta)
-      } else {
-        return(NULL)
-      }
-    })
-    
-    # metrics reactive object
-    metricsSta <-  reactive({
-      metrics <- data()$metrics
-      metrics <- metrics[metrics$module=="sta",]
-      metrics$analysisId <- as.numeric(metrics$analysisId)
-      metrics <- metrics[!is.na(metrics$analysisId),]
-      current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-      current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-      return(current.metrics)
-    })
-    
-    # modelling reactive object
-    modellingSta <-  reactive({
-      modeling <- data()$modeling
-      modeling <- modeling[modeling$module=="sta",]
-      modeling$analysisId <- as.numeric(modeling$analysisId)
-      modeling <- modeling[!is.na(modeling$analysisId),]
-      current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-      current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-      return(current.modeling)
-    })
-    
-    output$downloadReportSta <- downloadHandler(
-      filename = function() {
-        paste0("reportSTA-",gsub("-|:| ", "", Sys.time()),".html")
-      },
-      content = function(file) {
-        shinybusy::show_modal_spinner(spin = "fading-circle",
-                                      color = "#F39C12",
-                                      text = "Generating Report...")
-        
-        rmarkdown::render(
-          # input RMD file
-          input = ("R/report_STA.Rmd"),
-          
-          # input RMD parameters ----
-          params = list(
-            ## phenotypic data (required) ----
-            data_clean = phenoSta(),
-            data_metrics = metricsSta(),
-            data_modelling = modellingSta(),
-            ## file path and report parameters ----
-            doc_title = "Single-Trial Analysis",
-            doc_subtitle = "<subtitle>"
-          ), output_file = file)
-        shinybusy::remove_modal_spinner()
-      }, contentType = "html"
-    )
 
   }) ## end moduleserver
 }
