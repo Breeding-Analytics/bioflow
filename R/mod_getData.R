@@ -337,6 +337,98 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       }
     )
 
+    geno_data <- reactive({
+      if (input$geno_input == 'file') {
+        if (is.null(input$geno_file)) return(NULL)
+        snps_file <- input$geno_file$datapath
+      } else {
+        if (input$geno_url == '') return(NULL)
+        snps_file <- input$geno_url
+      }
+
+      # library(vcfR)
+      # vcf <- read.vcfR(file.choose())
+      #
+      # SNPs_info <- vcfR2tidy(vcf, info_only = TRUE)$fix
+      # View(SNPs_info)
+      #
+      # gt <- extract.gt(vcf, as.numeric = TRUE)
+      # View(gt[1:100,1:100])
+
+      shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+      df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
+      shinybusy::remove_modal_spinner()
+
+      hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
+                           'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode')
+
+      if (!all(colnames(df)[1:11] == hapmap_snp_attr)) {
+        shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
+        return(NULL)
+      }
+
+      first_row   <- df[1, -c(1:11)]
+      valid_IUPAC <- c('A', 'C', 'G', 'T', 'U', 'W', 'S', 'M', 'K', 'R', 'Y', 'B', 'D', 'H', 'V', 'N')
+
+      #' IUPAC single-letter code
+      if (all(first_row %in% valid_IUPAC)) {
+
+        shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
+        df <- hapMapChar2Numeric(df)
+        shinybusy::remove_modal_spinner()
+
+      #' -1, 0, 1 numeric coding
+      } else if (min(as.numeric(first_row), na.rm = TRUE) == -1 &
+                 max(as.numeric(first_row), na.rm = TRUE) == 1) {
+
+        df <- cbind(df[, 1:11],
+                    data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x)))))
+
+        #' 0, 1, 2 numeric coding
+      } else if (min(as.numeric(first_row), na.rm = TRUE) == 0 &
+                 max(as.numeric(first_row), na.rm = TRUE) == 2) {
+
+        df <- cbind(df[, 1:11],
+                    data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x))-1)))
+
+        #' something else!
+      } else {
+        shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
+        return(NULL)
+      }
+
+      return(df)
+    })
+
+    output$chrom_summary <- renderTable({
+      if (!is.null(geno_data())) {
+        data.frame(
+          chrom = unique(geno_data()[,'chrom']),
+          min_pos = aggregate(pos ~ chrom, data = geno_data(), FUN = min)[,2],
+          max_pos = aggregate(pos ~ chrom, data = geno_data(), FUN = max)[,2],
+          snps_count = aggregate(pos ~ chrom, data = geno_data(), FUN = length)[,2]
+        )
+      }
+    })
+
+    output$geno_summary <- renderText({
+      temp <- data()
+      if (!is.null(geno_data()) & any(temp$metadata$pheno$parameter == 'designation')) {
+        paste(
+          " Data Integrity Checks:\n",
+
+          sum(colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno$designation)),
+          "Accessions exist in both phenotypic and genotypic files (will be used to train the model)\n",
+
+          sum(!colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno$designation)),
+          "Accessions have genotypic data but no phenotypic (will be predicted, add to pheno data file with NA value)\n",
+
+          sum(!unique(temp$data$pheno$designation) %in% colnames(geno_data()[, -c(1:11)])),
+          'Accessions have phenotypic data but no genotypic (will filtered them out from the pheno dataset)'
+        )
+      }
+    })
+
     observeEvent(
       input$geno_example,
       if (input$geno_example) {
