@@ -382,14 +382,14 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
                  max(as.numeric(first_row), na.rm = TRUE) == 1) {
 
         df <- cbind(df[, 1:11],
-                    data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x)))))
+                    data.frame(apply(df[, -c(1:11)], 2, function(x) 1 + as.numeric(as.character(x)))))
 
         #' 0, 1, 2 numeric coding
       } else if (min(as.numeric(first_row), na.rm = TRUE) == 0 &
                  max(as.numeric(first_row), na.rm = TRUE) == 2) {
 
         df <- cbind(df[, 1:11],
-                    data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x))-1)))
+                    data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x)))))
 
         #' something else!
       } else {
@@ -428,6 +428,25 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         )
       }
     })
+
+    observeEvent(
+      geno_data(),
+      {
+        temp <- data()
+
+        temp$data$geno <- t(as.matrix(geno_data()[, -c(1:11)])) - 1
+        colnames(temp$data$geno) <- geno_data()$`rs#`
+
+        map <- geno_data()[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
+        colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
+        map$refAllele <- substr(map$refAllele, 1, 1)
+        map$altAllele <- substr(map$altAllele, 3, 3)
+
+        temp$metadata$geno <- map
+
+        data(temp)
+      }
+    )
 
     observeEvent(
       input$geno_example,
