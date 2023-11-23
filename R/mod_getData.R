@@ -195,16 +195,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
   moduleServer(id , function(input, output, session){
     ns <- session$ns
 
-    # df <- reactiveVal()
-    #
-    # observe({
-    #   if (is.null(data)) {
-    #     df(create_getData_object())
-    #   } else {
-    #     df(data)
-    #   }
-    # })
-
     observeEvent(
       input$pheno_input,
       if (input$pheno_input == 'file') {
@@ -261,8 +251,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         temp <- data()
         temp$data$pheno <- pheno_data()
         temp$status <- rbind(temp$status, data.frame(module = 'qa', analysisId = as.numeric(Sys.time())))
-        #save(temp, file = 'temp.RData')
-        data(temp)
 
         output$preview_pheno <- DT::renderDT({
           req(pheno_data())
@@ -276,7 +264,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
           )
 
         })
-
+        data(temp)
       }
     )
 
@@ -295,33 +283,24 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
 
           renderPrint({
             req(input[[paste0('select', x)]])
-            #if (input[[paste0('select', x)]] != '') {
-              # values <- pheno_data()[, input[[paste0('select', x)]]]
-              # if (class(values) == 'character') {
-              #   head(as.factor(values))
-              # } else {
-              #   summary(values)
-              # }
-
-              temp <- data()
-              if (x == 'trait') {
-                temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
-                for (i in input[[paste0('select', x)]]) {
-                  temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
-                }
+            temp <- data()
+            if (x == 'trait') {
+              temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+              for (i in input[[paste0('select', x)]]) {
+                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+              }
+            } else {
+              if (x %in% temp$metadata$pheno$parameter) {
+                temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
               } else {
-                if (x %in% temp$metadata$pheno$parameter) {
-                  temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
-                } else {
-                  temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
-                }
+                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
               }
+            }
 
-              if (x == 'designation') {
-                temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA)
-              }
-              data(temp)
-            #}
+            if (x == 'designation') {
+              temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA)
+            }
+            data(temp)
           }),
         )
       })
@@ -378,8 +357,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
        updateTabsetPanel(session, 'tabset', selected = tab_list[n + 1])
       }
     )
-
-    return(data)
   })
 }
 
