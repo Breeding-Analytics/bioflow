@@ -43,7 +43,8 @@ create_getData_object <- function() {
   obj$data$weather  <- data.frame()
   obj$data$pedigree <- data.frame(designation = character(),
                                   mother = character(),
-                                  father = character())
+                                  father = character(),
+                                  yearOfOrigin = integer())
 
   obj$metadata$pheno <- data.frame(parameter = character(),
                                    value = character())
