@@ -44,6 +44,10 @@ usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analy
 usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
 
+# remotes::install_github("Breeding-Analytics/cgiarBase")
+# remotes::install_github("Breeding-Analytics/cgiarPipeline")
+# remotes::install_github("Breeding-Analytics/cgiarOcs")
+
 ## Add modules ----
 ## Create a module infrastructure in R/
 # golem::add_module(name = "input_file_sta", with_test = TRUE) # Name of the module
