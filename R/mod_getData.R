@@ -1,4 +1,5 @@
 pheno_example <- 'www/example/pheno.csv'
+geno_example  <- 'www/example/geno.hmp.gz'
 
 #' getData UI Function
 #'
@@ -43,7 +44,7 @@ mod_getData_ui <- function(id){
           label   = NULL,
           value   = '',
           width   = '400px',
-          placeholder = 'https://urgi.versailles.inrae.fr/fairdom/'
+          placeholder = 'https://example.com/path/file.csv'
         ),
 
         tags$div(
@@ -81,7 +82,95 @@ mod_getData_ui <- function(id){
       tabPanel(
         title = 'Genotypic',
         value = ns('tab2'),
-        tags$p('Comming soon!', style = 'color: red; font-size: 20px; margin-top: 25px;'),
+        fluidRow(
+          style = 'padding: 30px;',
+
+          #' Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
+          #' Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
+          selectInput(
+            inputId = ns('geno_input'),
+            label   = 'Genotypic SNPs Source*:',
+            choices = list('Upload File' = 'file', 'Copy URL' = 'url'),
+            width   = '200px'
+          ),
+          tags$span(id = ns('geno_file_holder'),
+                    fileInput(
+                      inputId = ns('geno_file'),
+                      label   = NULL,
+                      width   = '400px',
+                      accept  = c('application/gzip', '.gz', '.txt', '.hmp')
+                    )
+          ),
+          textInput(
+            inputId = ns('geno_url'),
+            label   = NULL,
+            value   = '',
+            width   = '400px',
+            placeholder = 'https://example.com/path/file.gz'
+          ),
+
+          if (!is.null(pheno_example)) {
+            checkboxInput(
+              inputId = ns('geno_example'),
+              label = span('Load example ',
+                           a('genotypic data', target = '_blank',
+                             href = geno_example)),
+              value = FALSE
+            )
+          },
+
+          fluidRow(
+            style = 'padding-right: 0px; padding-left: 0px;',
+            shinydashboard::box(
+              title = 'Notes:',
+              width = 12,
+              solidHeader = TRUE,
+              status = 'success',
+              tags$ul(
+                tags$li('Accept HapMap format (tab-delimited text file with a header row).
+                         The file list SNPs in rows and Accessions (individual samples)
+                         in columns. The first 11 columns describe attributes of the SNP,
+                         but only the first 4 columns data are required for processing:
+                         rs# (SNP id), alleles (e.g., C/G), chrom (chromosome), and pos (position).'),
+
+                tags$li(
+                  tags$span(
+                    'Accept numeric coding ([0,1, and 2] or [-1,0, and 1] for reference/major,
+                     heterozygous, and alternative/minor alleles respectively), or the ',
+                    tags$a('IUPAC single-letter', target = '_blank', href = 'https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation'),
+                    'code (ref. ',
+                    tags$a('https://doi.org/10.1093/nar/13.9.3021', target = '_blank', href = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC341218/'),
+                    ').'
+                  )
+                ),
+
+                tags$li('Position should be in bp (base pairs) not cM (CentiMorgan).'),
+
+                tags$li(
+                  tags$span(
+                    'We recommend compressing your HapMap genotypic data using the gzip
+                     format (*.gz extension) to significantly reduce file size. On average,
+                     the compressed file size is only 5% of the original size. You can use
+                     free software such as',
+                    tags$a('7-Zip', href = 'https://www.7-zip.org', target = '_blank'),
+                    'to perform the compression.'
+                  )
+                ),
+              )
+            ),
+          ),
+
+          #' Verify file format: Hapmap file format (with reference link)
+          #' highlight that pos unit should be bp not cM
+          #' Report summary statistics (#acc, #snps, etc.)
+          #' to let the user verify before proceeding to the next step
+          tableOutput(ns('chrom_summary')),
+
+          #' Accessions exist in both phenotypic and genotypic files (will be used to train the model)
+          #' Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
+          #' Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
+          verbatimTextOutput(ns('geno_summary')),
+        )
       ),
       tabPanel(
         title = 'Pedigree',
@@ -135,6 +224,18 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         golem::invoke_js('showid', ns('pheno_db'))
         golem::invoke_js('hideid', ns('pheno_csv_options'))
         updateCheckboxInput(session, 'pheno_example', value = FALSE)
+      }
+    )
+
+    observeEvent(
+      input$geno_input,
+      if (input$geno_input == 'file') {
+        golem::invoke_js('showid', ns('geno_file_holder'))
+        golem::invoke_js('hideid', ns('geno_url'))
+        updateCheckboxInput(session, 'geno_example', value = FALSE)
+      } else if (input$geno_input == 'url') {
+        golem::invoke_js('hideid', ns('geno_file_holder'))
+        golem::invoke_js('showid', ns('geno_url'))
       }
     )
 
