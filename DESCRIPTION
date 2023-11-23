@@ -12,6 +12,7 @@ Imports:
     config (>= 0.3.2),
     DT,
     golem (>= 0.4.0),
+    inline,
     LMMsolver,
     magrittr,
     pedigreemm,
@@ -42,7 +43,7 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.2.3
-Remotes:  
+Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs
