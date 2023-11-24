@@ -13,8 +13,10 @@ mod_staApp_ui <- function(id){
     sidebarPanel(
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( "Single Trial Analysis")),#, style = "color: #817e7e"
+      div(tags$p( h4(strong("Single Trial Analysis")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      # input <- list(version2Sta=)
+      selectInput(ns("version2Sta"), "Data QA version(s) to consider", choices = NULL, multiple = TRUE),
       selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE),
@@ -23,6 +25,9 @@ mod_staApp_ui <- function(id){
                           selectInput(ns("genoAsFixedSta"),"Predictions",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
                           numericInput(ns("maxitSta"),"Number of iterations",value=35),
                           selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
+      ),
+      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions (optional)...",
+                          column(width = 12,DT::DTOutput(ns("traitDistSta")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
@@ -71,14 +76,34 @@ mod_staApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("References",
-               br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,    style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                          h1(strong("Details")),
+                                          p("This option aims to fit a genetic evaluation trial by trial, where each trial is one level of the fieldinst
+                              column (defined when the user matches the expected columns to columns present in the initial phenotypic input file).
+                              Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
+                              By default genotype (geno column) predictions are returned since a two-stage approach is assumed, but user can choose.
+                                The way the options are used is the following:"),
+                                          p(strong("Fixed effects.-"),"Columns to be fitted as fixed effects in each trial."),
+                                          p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                          p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trial-trait combination."),
+                                          p(strong("Note.-")," A design-agnostic spatial design is carried. That means, all the spatial-related factors will be fitted if pertinent.
+                                For example, if a trial has rowcoord information it will be fitted, if not it will be ignored. A two-dimensional spline kernel is only
+                                fitted when the trial size exceeds 5 rows and 5 columns. In addition the following rules are followed: 1) Rows or columns are fitted if
+                                you have equal or more than 3 levels, 2) Reps are fitted if you have equal or more than 2 levels, 3) Block (Sub-block) are fitted if you
+                                have equal or more than 4 levels. "),
+                                          h2(strong("References:")),
+                                          p("Velazco, J. G., Rodriguez-Alvarez, M. X., Boer, M. P., Jordan, D. R., Eilers, P. H., Malosetti, M., & Van Eeuwijk, F. A. (2017).
+                                Modelling spatial trends in sorghum breeding field trials using a two-dimensional P-spline mixed model. Theoretical and Applied
+                                Genetics, 130, 1375-1392."),
+                                          p("Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., & Eilers, P. H. (2018). Correcting for spatial heterogeneity in plant
+                                breeding experiments with P-splines. Spatial Statistics, 23, 52-71."),
+                                          h3(strong("Software used:")),
+                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/."),
+                                          p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
+
+
+                                   )
                )
       )
     )) # end mainpanel
@@ -96,33 +121,53 @@ mod_staApp_server <- function(id,data){
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
-        hideAll$clearAll <- TRUE
-      })
+      hideAll$clearAll <- TRUE
+    })
     ############################################################################
 
-    # Create the fields
+    # QA versions to use
+    observeEvent(c(data()), {
+      req(data())
+      dtMta <- data()
+      dtMta <- dtMta$status
+      dtMta <- dtMta[which(dtMta$module == "qaRaw"),]
+      traitsMta <- unique(dtMta$analysisId)
+      updateSelectInput(session, "version2Sta", choices = traitsMta)
+    })
+    # genetic evaluation unit
     observe({
       req(data())
       genetic.evaluation <- c("designation", "mother","father")
       updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation)
     })
-    observeEvent(c(data(),input$genoUnitSta), {
+    # traits
+    observeEvent(c(data(),input$version2Sta,input$genoUnitSta), {
       req(data())
+      req(input$version2Sta)
       req(input$genoUnitSta)
       dtSta <- data()
-      dtSta <- dtSta$metadata$pheno
-      traitsSta <- dtSta[dtSta$parameter=="trait","value"]
+      dtSta <- dtSta$modifications$pheno
+      dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
+      # dtSta <- dtSta$metadata$pheno
+      # traitsSta <- dtSta[dtSta$parameter=="trait","value"]
+      traitsSta <- unique(dtSta$trait)
       updateSelectInput(session, "trait2Sta", choices = traitsSta)
     })
-    observeEvent(c(data(),input$genoUnitSta, input$trait2Sta), {
+    # fixed effect covariates
+    observeEvent(c(data(),input$version2Sta,input$genoUnitSta, input$trait2Sta), {
       req(data())
+      req(input$version2Sta)
       req(input$genoUnitSta)
       req(input$trait2Sta)
       dtSta <- data()
-      dtSta <- dtSta$metadata$pheno
-      traitsSta <- dtSta[dtSta$parameter=="trait","value"]
+      # dtSta <- dtSta$metadata$pheno
+      # traitsSta <- dtSta[dtSta$parameter=="trait","value"]
+      dtSta <- dtSta$modifications$pheno # only traits that have been QA
+      dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),]
+      traitsSta <- unique(dtSta$trait)
       updateSelectInput(session, "fixedTermSta2", choices = traitsSta[traitsSta!=input$trait2Sta])
     })
+
     # reactive table for trait family distributions
     dtDistTrait = reactive({
       req(data())
@@ -205,17 +250,17 @@ mod_staApp_server <- function(id,data){
             return()
           else
             req(dtSta)
-            HTML(as.character(div(style="color: brown;",
+          HTML(as.character(div(style="color: brown;",
                                 "Please perform QA/QC before conducting a Single-Trial Analysis."))
-            )
+          )
         })
       } else {
         output$qaQcStaInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta,
-                                        trait=input$trait2Sta, traitFamily = myFamily,
-                                        fixedTerm = input$fixedTermSta2,
-                                        returnFixedGeno=input$genoAsFixedSta, genoUnit = input$genoUnitSta,
-                                        verbose = input$verboseSta, maxit = input$maxitSta),
+        result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta, analysisId=input$version2Sta,
+                                            trait=input$trait2Sta, traitFamily = myFamily,
+                                            fixedTerm = input$fixedTermSta2,
+                                            returnFixedGeno=input$genoAsFixedSta, genoUnit = input$genoUnitSta,
+                                            verbose = input$verboseSta, maxit = input$maxitSta),
                       silent=TRUE
         )
         if(!inherits(result,"try-error")) {
@@ -230,9 +275,9 @@ mod_staApp_server <- function(id,data){
 
         output$predictionsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
-              return()
-            else
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
             predictions <- result$predictions
             predictions <- predictions[predictions$module=="sta",]
 
@@ -247,14 +292,15 @@ mod_staApp_server <- function(id,data){
                                           options = list(autoWidth = TRUE),
                                           filter = "top"
             ), numeric.output)
+            # }
           }
         })
 
         output$metricsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
-              return()
-            else
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
             metrics <- result$metrics
             metrics <- metrics[metrics$module=="sta",]
             metrics$analysisId <- as.numeric(metrics$analysisId)
@@ -266,14 +312,15 @@ mod_staApp_server <- function(id,data){
                                           options = list(autoWidth = TRUE),
                                           filter = "top"
             ), numeric.output)
+            # }
           }
         })
 
         output$modelingSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
-            if ( hideAll$clearAll)
-              return()
-            else
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
             modeling <- result$modeling
             modeling <- modeling[modeling$module=="sta",]
 
@@ -286,6 +333,7 @@ mod_staApp_server <- function(id,data){
                           options = list(autoWidth = TRUE),
                           filter = "top"
             )
+            # }
           }
         })
       } else {

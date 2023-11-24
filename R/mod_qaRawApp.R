@@ -220,10 +220,15 @@ mod_qaRawApp_server <- function(id, data){
       analysisId <- as.numeric(Sys.time())
       outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
       # ## bind new parameters
-      temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications)])
+      if(is.null(temp$modifications$pheno )){
+        temp$modifications$pheno <- outlier
+      }else{
+        temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications$pheno)])
+      }
       newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
       temp$status <- rbind(temp$status, newStatus)
       data(temp)
+      # save(temp, file="toTest.RData")
       cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
 
     })

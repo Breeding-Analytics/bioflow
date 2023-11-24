@@ -62,14 +62,17 @@ mod_qaGenoApp_ui <- function(id){
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h1(strong("Details")),
-                                                             p("This option aims to allow users to select model-based outliers based on plot whiskers and absolute values applied on conditional residuals.
+                                                             p("This option aims to allow users to identify bad markers or individuals given certain QA parameters.
                                 The way arguments are used is the following:"),
-                                                             p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
-                                                             p(strong("Trait lower bound.-"),"Lower bound threshold determining as an outlier any value smaller than this."),
-                                                             p(strong("Trait upper bound.-"),"Upper bound threshold determining as an outlier any value greater than this."),
+                                                             p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                             p(strong("Threshold for missing data in individuals.-"),"  this sets a threshold for how much missing data in an individual is allowed. If lower than this value it will be marked as a row to be removed in posterior analyses. Value between 0 and 1."),
+                                                             p(strong("Minor allele frequency.-")," this sets a threshold for what is the minimum allele frequency allowed in the dataset. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                             p(strong("Threshold for heterozygosity in markers.-")," this sets a threshold for what is the maximum level of heterozygosity allowed in the markers. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                             p(strong("Threshold for inbreeding in markers.-")," this sets a threshold for what is the maximum level of inbreeding allowed in the markers. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                             p(strong("Imputation method.-")," method to impute missing cells. Median is the only method currently available."),
+                                                             p(strong("Ploidy.-")," number of chromosome copies. This value is important to compute some of the paramters. Default is 2 or diploid."),
                                                              h2(strong("References")),
                                                              p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                                             p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
                                                              p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
                                                            )
                                                     ),
