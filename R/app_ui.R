@@ -25,13 +25,13 @@ app_ui <- function(request) {
       navbarMenu("Genetic Evaluation",
                  tabPanel("1. QA/QC (raw-data)", mod_qaRawApp_ui("qaRawApp_1") ),
                  tabPanel("2. Single-Trial Analysis",  mod_staApp_ui("staApp_1")),
-                 tabPanel("3. QA/QC (model-based)", mod_qaStaApp_ui("qaStaApp_1") ) ,
-                 tabPanel("* Marker QA/QC (optional)", mod_qaGenoApp_ui("qaGenoApp_1")  ),
-                 tabPanel("4. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
-                 tabPanel("5. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1") ) ,
-                 tabPanel("6. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1") ),
-                 tabPanel("7.1. Realized Genetic Gain", mod_rggApp_ui("rggApp_1")), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
-                 tabPanel("7.2. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"))# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel("* Phenotype QA/QC (model-based)", mod_qaStaApp_ui("qaStaApp_1") ) ,
+                 tabPanel("* Marker QA/QC", mod_qaGenoApp_ui("qaGenoApp_1")  ),
+                 tabPanel("3. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
+                 tabPanel("4. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1") ) ,
+                 tabPanel("5. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1") ),
+                 tabPanel("6.1. Realized Genetic Gain", mod_rggApp_ui("rggApp_1")), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
+                 tabPanel("6.2. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"))# user needs to perform a multi-year genetic evaluation to provide the MET as input
       ),
 
       navbarMenu("QTL Mapping",
