@@ -218,6 +218,12 @@ mod_staApp_server <- function(id,data){
                                         verbose = input$verboseSta, maxit = input$maxitSta),
                       silent=TRUE
         )
+        if(!inherits(result,"try-error")) {
+          data(result) # update data with results
+          cat(paste("Single-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
+        }else{
+          print(result)
+        }
       }
 
       if(sum(dtSta$status$module %in% "qa") != 0) {

@@ -240,9 +240,8 @@ mod_rggApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          print("Realized genetic gain calculated")
-          # data(result) # update data with results
-          print(data()$status)
+          data(result) # update data with results
+          cat(paste("Realized genetic gain step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }

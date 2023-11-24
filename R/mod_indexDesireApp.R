@@ -215,10 +215,8 @@ mod_indexDesireApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          # save(result, file="toTest.RData")
-          print("Index calculated")
           data(result) # update data with results
-          print(data()$status)
+          cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }

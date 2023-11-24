@@ -224,9 +224,7 @@ mod_qaRawApp_server <- function(id, data){
       newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
       temp$status <- rbind(temp$status, newStatus)
       data(temp)
-      print(data()$status)
-      # return(temp)
-
+      cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
 
     })
     output$outQaRaw <- renderPrint({

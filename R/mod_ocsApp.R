@@ -272,9 +272,8 @@ mod_ocsApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          print("Optimal crosses calculated")
           data(result) # update data with results
-          print(data()$status)
+          cat(paste("Optimal cross selection step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }

@@ -85,7 +85,7 @@ mod_qaGenoApp_ui <- function(id){
 #' qaGenoApp Server Functions
 #'
 #' @noRd
-mod_qaGenoApp_server <- function(id){
+mod_qaGenoApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -97,11 +97,11 @@ mod_qaGenoApp_server <- function(id){
     })
     ############################################################################
 
-    data = reactive({ # provisional dataset for testing
-      load("dataStr0.RData")
-      data <- res
-      return(data)
-    })
+    # data = reactive({ # provisional dataset for testing
+    #   load("dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
 
     ##
     newModifications <- reactive({ # p('File to be analyzed')

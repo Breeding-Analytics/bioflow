@@ -360,9 +360,8 @@ mod_mtaApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          print("Multi-trial analysis finished")
           data(result) # update data with results
-          print(data()$status)
+          cat(paste("Multi-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }
