@@ -118,11 +118,6 @@ mod_indexDesireApp_server <- function(id, data){
     })
     ############################################################################
 
-    # data = reactive({
-    #   load("dataStr0.RData")
-    #   data <- yy
-    #   return(data)
-    # })
     #################
     ## version
     observeEvent(c(data()), {

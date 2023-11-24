@@ -99,7 +99,7 @@ mod_qaGenoApp_server <- function(id){
 
     data = reactive({ # provisional dataset for testing
       load("dataStr0.RData")
-      data <- yy
+      data <- res
       return(data)
     })
 

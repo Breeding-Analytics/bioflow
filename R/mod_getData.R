@@ -85,8 +85,8 @@ mod_getData_ui <- function(id){
         fluidRow(
           style = 'padding: 30px;',
 
-          #' Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
-          #' Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
+          # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
+          # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
           selectInput(
             inputId = ns('geno_input'),
             label   = 'Genotypic SNPs Source*:',
@@ -160,15 +160,15 @@ mod_getData_ui <- function(id){
             ),
           ),
 
-          #' Verify file format: Hapmap file format (with reference link)
-          #' highlight that pos unit should be bp not cM
-          #' Report summary statistics (#acc, #snps, etc.)
-          #' to let the user verify before proceeding to the next step
+          # Verify file format: Hapmap file format (with reference link)
+          # highlight that pos unit should be bp not cM
+          # Report summary statistics (#acc, #snps, etc.)
+          # to let the user verify before proceeding to the next step
           tableOutput(ns('chrom_summary')),
 
-          #' Accessions exist in both phenotypic and genotypic files (will be used to train the model)
-          #' Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
-          #' Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
+          # Accessions exist in both phenotypic and genotypic files (will be used to train the model)
+          #Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
+          # Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
           verbatimTextOutput(ns('geno_summary')),
         )
       ),
@@ -370,28 +370,28 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       first_row   <- df[1, -c(1:11)]
       valid_IUPAC <- c('A', 'C', 'G', 'T', 'U', 'W', 'S', 'M', 'K', 'R', 'Y', 'B', 'D', 'H', 'V', 'N')
 
-      #' IUPAC single-letter code
+      # IUPAC single-letter code
       if (all(first_row %in% valid_IUPAC)) {
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
         df <- hapMapChar2Numeric(df)
         shinybusy::remove_modal_spinner()
 
-      #' -1, 0, 1 numeric coding
+      # -1, 0, 1 numeric coding
       } else if (min(as.numeric(first_row), na.rm = TRUE) == -1 &
                  max(as.numeric(first_row), na.rm = TRUE) == 1) {
 
         df <- cbind(df[, 1:11],
                     data.frame(apply(df[, -c(1:11)], 2, function(x) 1 + as.numeric(as.character(x)))))
 
-        #' 0, 1, 2 numeric coding
+        # 0, 1, 2 numeric coding
       } else if (min(as.numeric(first_row), na.rm = TRUE) == 0 &
                  max(as.numeric(first_row), na.rm = TRUE) == 2) {
 
         df <- cbind(df[, 1:11],
                     data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x)))))
 
-        #' something else!
+        # something else!
       } else {
         shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
         return(NULL)
