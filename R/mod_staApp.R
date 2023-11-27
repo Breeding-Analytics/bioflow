@@ -33,7 +33,7 @@ mod_staApp_ui <- function(id){
       actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       uiOutput(ns("qaQcStaInfo")),
-      shinycssloaders::withSpinner(textOutput(ns("outSta")),type=8)
+      textOutput(ns("outSta"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -235,6 +235,7 @@ mod_staApp_server <- function(id,data){
       req(data())
       req(input$trait2Sta)
       req(input$genoUnitSta)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtSta <- data()
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
       dontHaveDist <- which(is.na(myFamily))
@@ -266,6 +267,7 @@ mod_staApp_server <- function(id,data){
         }else{
           print(result)
         }
+        shinybusy::remove_modal_spinner()
       }
 
       if(sum(dtSta$status$module %in% "qa") != 0) {

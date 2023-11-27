@@ -31,7 +31,7 @@ mod_rggApp_ui <- function(id){
       actionButton(ns("runRgg"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       uiOutput(ns("qaQcRggInfo")),
-      shinycssloaders::withSpinner(textOutput(ns("outRgg")),type=8)
+      textOutput(ns("outRgg"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -193,6 +193,7 @@ mod_rggApp_server <- function(id, data){
       req(input$version2Rgg)
       req(input$trait2Rgg)
       req(input$yearsToUse)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtRgg <- data()
 
       # run the modeling, but before test if mta was done
@@ -227,6 +228,7 @@ mod_rggApp_server <- function(id, data){
         }else{
           print(result)
         }
+        shinybusy::remove_modal_spinner()
       }
 
       if(!inherits(result,"try-error")) {

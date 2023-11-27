@@ -28,7 +28,7 @@ mod_pggApp_ui <- function(id){
       actionButton(ns("runPgg"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       uiOutput(ns("qaQcPggInfo")),
-      shinycssloaders::withSpinner(textOutput(ns("outPgg")),type=8)
+      textOutput(ns("outPgg"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -184,6 +184,7 @@ mod_pggApp_server <- function(id, data){
       req(input$version2Pgg)
       req(input$trait2Pgg)
       req(input$environmentToUse)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtPgg <- data()
       # run the modeling, but before test if mta was done
       if(sum(dtPgg$status$module %in% c("mta","indexD")) == 0) {
@@ -215,6 +216,7 @@ mod_pggApp_server <- function(id, data){
         }else{
           print(result)
         }
+        shinybusy::remove_modal_spinner()
       }
 
       if(!inherits(result,"try-error")) {

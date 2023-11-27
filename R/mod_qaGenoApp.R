@@ -32,7 +32,7 @@ mod_qaGenoApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runQaMb"), "Save modifications", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinycssloaders::withSpinner(textOutput(ns("outQaMb")),type=8),
+      textOutput(ns("outQaMb"))
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
@@ -204,14 +204,21 @@ mod_qaGenoApp_server <- function(id, data){
       req(input$propHetUpperThreshForMarker)
       req(input$propFisUpperThreshForMarker)
       req(input$imputationMethod)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ## get the outlier table
       mods <- newModifications()
-      ## store the new modifications table
-      temp <- data()
-      temp$modifications$geno <- rbind(temp$modifications$geno, mods )
-      ## write the new status table
-      newStatus <- data.frame(module="qaMb", analysisId= mods$analysisId[nrow(mods)])
-      temp$status <- rbind(temp$status, newStatus)
+      if(nrow(mods) > 0){
+        ## store the new modifications table
+        temp <- data()
+        temp$modifications$geno <- rbind(temp$modifications$geno, mods )
+        ## write the new status table
+        newStatus <- data.frame(module="qaMb", analysisId= mods$analysisId[nrow(mods)])
+        temp$status <- rbind(temp$status, newStatus)
+        cat(paste("Modifications to genotype information saved with id:",mods$analysisId[nrow(mods)]))
+      }else{
+        cat("No modifications to add.")
+      }
+      shinybusy::remove_modal_spinner()
     })
     output$outQaMb <- renderPrint({
       outQaMb()

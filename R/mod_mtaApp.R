@@ -42,7 +42,7 @@ mod_mtaApp_ui <- function(id){
       actionButton(ns("runMta"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       uiOutput(ns("qaQcMtaInfo")),
-      shinycssloaders::withSpinner(textOutput(ns("outMta")),type=8)
+      textOutput(ns("outMta"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -308,8 +308,8 @@ mod_mtaApp_server <- function(id, data){
     outMta <- eventReactive(input$runMta, {
       req(data())
       req(input$trait2Mta)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtMta <- data()
-
       # family distributions input
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
       dontHaveDist <- which(is.na(myFamily))
@@ -349,7 +349,7 @@ mod_mtaApp_server <- function(id, data){
         }else{
           print(result)
         }
-
+        shinybusy::remove_modal_spinner()
       }
 
       if(!inherits(result,"try-error")) { # if all goes well in the run

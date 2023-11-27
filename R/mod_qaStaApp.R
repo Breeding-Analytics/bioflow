@@ -29,7 +29,7 @@ mod_qaStaApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runQaMb"), "Save outliers", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinycssloaders::withSpinner(textOutput(ns("outQaMb")),type=8),
+      textOutput(ns("outQaMb"))
       # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
@@ -218,21 +218,25 @@ mod_qaStaApp_server <- function(id, data){
       req(data())
       req(input$outlierCoefOutqFont)
       req(input$traitOutqPheno)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ## get the outlier table
       outlier <- newOutliers()
-      ## get data structure
-      temp <- data()
-      ## update analsisId in the outliers table
-      analysisId <- as.numeric(Sys.time())
-      outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
-      # ## bind new parameters
-      temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications)])
-      newStatus <- data.frame(module="qaMb", analysisId=analysisId )
-      temp$status <- rbind(temp$status, newStatus)
-      data(temp)
-      print(data()$status)
-
-
+      if(nrow(outlier) > 0){
+        ## get data structure
+        temp <- data()
+        ## update analsisId in the outliers table
+        analysisId <- as.numeric(Sys.time())
+        outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
+        # ## bind new parameters
+        temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications)])
+        newStatus <- data.frame(module="qaMb", analysisId=analysisId )
+        temp$status <- rbind(temp$status, newStatus)
+        data(temp)
+        cat(paste("Modifications to phenotype information saved with id:",analysisId))
+      }else{
+        cat("No modifications to add")
+      }
+      shinybusy::remove_modal_spinner()
     })
     output$outQaMb <- renderPrint({
       outQaMb()

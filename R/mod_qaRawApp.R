@@ -28,7 +28,7 @@ mod_qaRawApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runQaRaw"), "Save outliers", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinycssloaders::withSpinner(textOutput(ns("outQaRaw")),type=8),
+      textOutput(ns("outQaRaw"))
       # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
@@ -40,8 +40,7 @@ mod_qaRawApp_ui <- function(id){
                                 shinydashboard::box(status="primary",width = 12,
                                                     solidHeader = TRUE,
                                                     plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                                    # downloadButton(ns('downloadData'), 'Download data')
+                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                 )
                        ),
                        tabPanel("Documentation",
@@ -207,6 +206,7 @@ mod_qaRawApp_server <- function(id, data){
       req(data())
       req(input$outlierCoefOutqFont)
       req(input$traitOutqPheno)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ## get the outlier table
       outlier <- newOutliers()
       ## get data structure
@@ -233,6 +233,7 @@ mod_qaRawApp_server <- function(id, data){
         temp$modeling <- rbind(temp$modeling, provMet[,colnames(temp$modeling)])
       }
       data(temp)
+      shinybusy::remove_modal_spinner()
       # save(temp, file="toTest.RData")
       cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
 

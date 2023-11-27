@@ -31,7 +31,7 @@ mod_indexDesireApp_ui <- function(id){
       actionButton(ns("runIdxD"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       uiOutput(ns("qaQcIdxDInfo")),
-      shinycssloaders::withSpinner(textOutput(ns("outIdxD")),type=8)
+      textOutput(ns("outIdxD"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -176,6 +176,7 @@ mod_indexDesireApp_server <- function(id, data){
     outIdxD <- eventReactive(input$runIdxD, {
       req(data())
       req(input$trait2IdxD)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtIdxD <- data()
       # run the modeling, but before test if mta was done
       if(sum(dtIdxD$status$module %in% "mta") == 0) {
@@ -206,6 +207,7 @@ mod_indexDesireApp_server <- function(id, data){
         }else{
           print(result)
         }
+        shinybusy::remove_modal_spinner()
       }
 
       if(!inherits(result,"try-error")) {

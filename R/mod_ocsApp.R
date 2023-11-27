@@ -32,7 +32,7 @@ mod_ocsApp_ui <- function(id){
       actionButton(ns("runOcs"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       uiOutput(ns("qaQcOcsInfo")),
-      shinycssloaders::withSpinner(textOutput(ns("outOcs")),type=8)
+      textOutput(ns("outOcs"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -226,8 +226,8 @@ mod_ocsApp_server <- function(id, data){
       req(input$version2Ocs)
       req(input$trait2Ocs)
       req(input$env2Ocs)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtOcs <- data()
-
       # run the modeling, but before test if mta was done
       if(sum(dtOcs$status$module %in% c("mta","indexD")) == 0) {
         output$qaQcOcsInfo <- renderUI({
@@ -261,6 +261,7 @@ mod_ocsApp_server <- function(id, data){
         }else{
           print(result)
         }
+        shinybusy::remove_modal_spinner()
       }
 
       if(!inherits(result,"try-error")) {
