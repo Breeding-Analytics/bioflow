@@ -190,6 +190,3 @@ if (is.null(result)){
 ```
 
 
-
-
-

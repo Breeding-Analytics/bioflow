@@ -64,10 +64,11 @@ mod_indexDesireApp_ui <- function(id){
       ),
       tabPanel("Report",
                br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide2")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
+               uiOutput(ns('reportIndex'))
+               # shinydashboard::box(status="primary",width = 12,
+               #                     solidHeader = TRUE,
+               #                     column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide2")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               # )
       ),
       tabPanel("Documentation",
                br(),
@@ -244,26 +245,6 @@ mod_indexDesireApp_server <- function(id, data){
             )
           # }
         })
-        ## Report tab
-        # table of predictions in wide format
-        output$tablePredictionsTraitsWide2 <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-            mydata = data()$predictions
-            mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"];
-            mtaId <- c(mtas[length(mtas)],input$version2IdxD)
-            mydata <- mydata[which(mydata$analysisId %in% mtaId),]
-            wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
-                                   timevar = "trait", v.names = c("predictedValue"), sep= "_")
-            colnames(wide) <- gsub("predictedValue_","",colnames(wide))
-            numeric.output <- colnames(wide)[-c(1)]
-            DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-            ), numeric.output)
-          # }
-        })
 
       } else {
         output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)})
@@ -271,7 +252,11 @@ mod_indexDesireApp_server <- function(id, data){
         output$modelingIdxD <- DT::renderDT({DT::datatable(NULL)})
         hideAll$clearAll <- TRUE
       }
-
+      ## Report tab
+      save(result, file = "./R/outputs/resultIndex.RData")
+      output$reportIndex <- renderUI({
+        HTML(markdown::markdownToHTML(knitr::knit("./R/reportIndex.Rmd", quiet = TRUE), fragment.only=TRUE))
+      })
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive

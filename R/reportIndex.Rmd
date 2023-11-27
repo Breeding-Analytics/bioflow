@@ -1,0 +1,224 @@
+---
+title: "Selection Index Report"
+author: ""
+date: "December 2023"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+## Trait view (wide format)
+
+```{r, results='asis'}
+suppressWarnings(tryCatch({
+  load("./outputs/resultIndex.RData")
+}, error = function(e) {
+  NULL
+}))
+
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  mydata = result$predictions
+  idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
+  idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydata <- mydata[which(mydata$analysisId %in% c(idMet,idIndex)),]
+  wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
+                         timevar = "trait", v.names = c("predictedValue"), sep= "_")
+  colnames(wide) <- gsub("predictedValue_","",colnames(wide))
+  numeric.output <- colnames(wide)[-c(1)]
+  DT::renderDT(DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
+                                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                            lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+  ), numeric.output)
+  )
+}
+```
+
+
+## Radar Plot
+```{r }
+library(dplyr)
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  dtIdxD <- result$predictions
+  idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
+  idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  
+  environmentPredictionsRadar2="across"
+  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
+  proportion=0.2
+  meanGroupPredictionsRadar= result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+  fontSizeRadar=12; r0Radar=NULL; neRadar=NULL; plotSdRadar=FALSE
+  
+  mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
+                           (mydata$trait %in% traitFilterPredictionsRadar2)
+  ),]
+  if(!is.null(environmentPredictionsRadar2) & !is.null(traitFilterPredictionsRadar2)){
+    mm <- stats::aggregate(predictedValue~trait, data=mydata, FUN=mean, na.rm=TRUE)
+    mmsd <- stats::aggregate(predictedValue~trait, data=mydata, FUN=stats::sd, na.rm=TRUE)
+    mm2 <- stats::aggregate(predictedValue~trait, data=mydata, FUN=min, na.rm=TRUE)
+    mm3 <- stats::aggregate(predictedValue~trait, data=mydata, FUN=max, na.rm=TRUE)
+    namesA <- mm[,1]
+    meanA <- mm[,2]/(mm3[,2])
+
+    # meanA <- rep(0.75,nrow(mm))
+    fig <-  plotly::plot_ly(
+      type = 'scatterpolar',
+      fill = 'toself'
+    )
+    fig <- fig %>%
+      plotly::add_trace(
+        r = meanA, #c(39, 28, 8, 7, 28, 39),
+        theta =paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+        name = 'Breeding population means',
+        text=round(mm[,2],3)
+      )
+    ## add product profile means
+    if(!is.null(meanGroupPredictionsRadar)){
+      meanB <- as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))
+      if(length(meanB) == length(mm[,2])){
+        meanB <- meanB + mm[,2]
+        # r2 = (meanB*0.75)/mm[,2]
+        r2 = meanB/(mm3[,2])
+        dToSearch <- meanB #- mm[,2]
+        fig <- fig %>%
+          plotly::add_trace(
+            r = r2, # c(1.5, 10, 39, 31, 15, 1.5),
+            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+            name = "Desired population", #'Group B'
+            # mode="text",
+            text=round(dToSearch,2)
+            # textfont = list(color = '#000000', size = fontSizeRadar)
+          )
+      }
+    }
+    # add SD polygon
+    if(plotSdRadar){
+      meanC <- (mm[,2]+mmsd[,2])/(mm3[,2])
+      fig <- fig %>%
+        plotly::add_trace(
+          r = meanC, # c(1.5, 10, 39, 31, 15, 1.5),
+          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+          name = "Mean + Standard Deviation from pop", #'Group B'
+          text=round(mm[,2]+mmsd[,2],3)
+        )
+      meanD <- (mm[,2]-mmsd[,2])/(mm3[,2])
+      fig <- fig %>%
+        plotly::add_trace(
+          r = meanD, # c(1.5, 10, 39, 31, 15, 1.5),
+          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+          name = "Mean - Standard Deviation from pop", #'Group B'
+          text=round(mm[,2]-mmsd[,2],3)
+        )
+    }
+    # add selection limits polygon
+    ## add product profile means'
+    if(!is.null(r0Radar)){
+      meanR <- as.numeric(unlist(strsplit(r0Radar,",")))/100
+      if(length(meanR) == length(mm[,2])){
+        meanR <- mm[,2] + ((meanR*mm[,2])*neRadar*2) # selection limits 2*Ne*R0
+        r3 = (meanR*0.75)/mm[,2]
+        dToSearchR <- meanR #- mm[,2]
+        fig <- fig %>%
+          plotly::add_trace(
+            r = r3, # c(1.5, 10, 39, 31, 15, 1.5),
+            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+            name = "Selection limits", #'Group B'
+            # mode="text",
+            text=round(dToSearchR,2)
+            # textfont = list(color = '#000000', size = fontSizeRadar)
+          )
+      }
+    }
+  }
+  fig
+}
+
+```
+
+
+## Expected Plot
+```{r }
+library(dplyr)
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  
+  dtIdxD <- result$predictions
+  idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
+  idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+  uTraits <- unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
+  
+  object=result
+  environmentPredictionsRadar2="across"
+  traitFilterPredictionsRadar2=uTraits
+  meanGroupPredictionsRadar=desirev
+  proportion=0.2
+  analysisId=idMet
+  trait=uTraits
+  desirev=desirev
+  scaled=TRUE
+  
+  mydata <- object$predictions
+  mydata <- mydata[which(mydata$analysisId == analysisId),]
+
+  mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
+                           (mydata$trait %in% traitFilterPredictionsRadar2)
+  ),]
+  mydata$selected <- "no"
+  ## pop means
+  mm <- stats::aggregate(predictedValue~trait, data=mydata, FUN=mean, na.rm=TRUE)
+  ## if user provides threshold values let them know the selection differentials
+  if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
+    ## add product profile means'
+    mm$threshold <- as.numeric(unlist(strsplit(meanGroupPredictionsRadar,","))) + mm[,2]
+    mm$desire <- mm$threshold - mm$predictedValue
+    # index calculation
+    resInd <- cgiarPipeline::indexDesire(
+      phenoDTfile= object, # input data structure
+      analysisId=analysisId, # analysis to be picked from predictions database
+      trait= trait, # traits to include in the index
+      desirev = as.numeric(unlist(strsplit(desirev,","))), # vector of desired values
+      scaled=scaled, # whether predicted values should be scaled or not
+      verbose=FALSE # sh
+    )
+    myIndex <- resInd$predictions
+    mtas <- resInd$status[which(resInd$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
+    myIndex <- myIndex[which(myIndex$analysisId == mtaId),]
+    myIndex <- myIndex[with(myIndex, order(-predictedValue)), ]
+    selected <- myIndex[1:round(nrow(myIndex)*proportion),"designation"]
+    mydata$selected[which(mydata$designation %in% selected)] <- "yes"
+    # update mm
+    mm2 <- stats::aggregate(predictedValue~trait, data=mydata[which(mydata$selected == "yes"),], FUN=mean, na.rm=TRUE)
+  }
+
+  if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
+    p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+      ggplot2::geom_histogram() +
+      ggplot2::ylab("Frequency") +
+      ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+      ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
+      ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red") +
+      ggplot2::geom_vline(data = mm2, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="cadetblue")
+  }else{
+    p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+      ggplot2::geom_histogram() +
+      ggplot2::ylab("Frequency") +
+      ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+      ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
+      ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red")
+  }
+  fig2 <-  plotly::ggplotly(p)
+  fig2
+  
+}
+
+```
