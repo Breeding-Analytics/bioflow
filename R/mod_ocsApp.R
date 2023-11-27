@@ -11,7 +11,6 @@ mod_ocsApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-
     sidebarPanel(
       # input <- list(version2Ocs="1699508839.68847",trait2Ocs="desireIndex",entryType2Ocs= "TGV_EST004D#TEST_tested",nCrossOcs="20", targetAngleOcs="30",maxRun=40, relType="grm", env2Ocs="across",verboseOcs=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
@@ -42,32 +41,28 @@ mod_ocsApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadData'), 'Download data')
+                                   column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Predictions",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("predictionsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadPredictions'), 'Download predictions')
+                                   column(width=12,DT::DTOutput(ns("predictionsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Metrics",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("metricsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadMetrics'), 'Download metrics')
+                                   column(width=12,br(),DT::DTOutput(ns("metricsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("modelingOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadModeling'), 'Download modeling')
+                                   column(width=12,DT::DTOutput(ns("modelingOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Report",
@@ -138,12 +133,6 @@ mod_ocsApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({
-    #   load("dataStr0.RData")
-    #   data <- zz
-    #   return(data)
-    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -225,17 +214,12 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- data()
       dtOcs <- dtOcs$predictions
       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),setdiff(colnames(dtOcs),c("module","analysisId"))]
-      DT::datatable(dtOcs,options = list(autoWidth = TRUE),filter = "top")
+      numeric.output <- c("predictedValue", "stdError", "reliability")
+      DT::formatRound(DT::datatable(dtOcs, extensions = 'Buttons',
+                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+      ), numeric.output)
     })
-    # download button for input data
-    output$downloadData <- downloadHandler(
-      filename = function() { paste("tableDataInputOcs-", Sys.Date(), ".csv", sep="") },
-      content = function(file) {
-        dtOcs <- data();  dtOcs <- dtOcs$predictions
-        dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),setdiff(colnames(dtOcs),c("module","analysisId"))]
-        utils::write.csv(dtOcs, file)
-      })
-
     ## render result of "run" button click
     outOcs <- eventReactive(input$runOcs, {
       req(data())
@@ -292,25 +276,12 @@ mod_ocsApp_server <- function(id, data){
             current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
             current.predictions <- subset(current.predictions, select = -c(module,analysisId))
             numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
+            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
             ), numeric.output)
           # }
         })
-        # download predictions
-        output$downloadPredictions <- downloadHandler(
-          filename = function() { paste("tablePredictionstOcs-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-            predictions <- data()$predictions
-            mtas <- data()$status[which(data()$status$module == "ocs"),"analysisId"]; mtaId <- mtas[length(mtas)]
-            predictions <- predictions[which(predictions$analysisId == mtaId),]
-            utils::write.csv(predictions, file)
-            # }
-          })
         # view metrics
         output$metricsOcs <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -323,24 +294,12 @@ mod_ocsApp_server <- function(id, data){
             current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
             current.metrics <- subset(current.metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
-            DT::formatRound(DT::datatable(current.metrics,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
+            DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
             ), numeric.output)
           # }
         })
-        # download metrics
-        output$downloadMetrics <- downloadHandler(
-          filename = function() { paste("tableMetricstOcs-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-            metrics <- data()$metrics
-            mtas <- data()$status[which(data()$status$module == "ocs"),"analysisId"]; mtaId <- mtas[length(mtas)]
-            metrics <- metrics[which(metrics$analysisId == mtaId),]
-            utils::write.csv(metrics, file)
-            # }
-          })
         # view modeling
         output$modelingOcs <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -352,26 +311,13 @@ mod_ocsApp_server <- function(id, data){
             modeling <- modeling[!is.na(modeling$analysisId),]
             current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
             current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-            DT::datatable(current.modeling,
-                          options = list(autoWidth = TRUE),
-                          filter = "top"
+            DT::datatable(current.modeling, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
             )
           # }
         })
-        # download modeling table
-        output$downloadModeling <- downloadHandler(
-          filename = function() { paste("tableModelingtOcs-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-            modeling <- data()$modeling
-            mtas <- data()$status[which(data()$status$module == "ocs"),"analysisId"]; mtaId <- mtas[length(mtas)]
-            modeling <- modeling[which(modeling$analysisId == mtaId),]
-            utils::write.csv(modeling, file)
-            # }
-          })
-        ## Report tab
-        # plot scatter of predictions and color by pedigree
+        ## Report tab: plot scatter of predictions and color by pedigree
         output$plotPredictionsScatter <-  plotly::renderPlotly({
           # input <- list(traitFilterPredictions2D2="desireIndex", environment="desireIndex ~ 20 crosses * 30 degrees", checkboxBoxplotPredictions2D=TRUE,
           #               xAxisPredictions2D="designation",yAxisPredictions2D="predictedValue",colorPredictions2D="mother", sizePredictions2D="stdError", textPredictions2D="designation")
@@ -400,12 +346,6 @@ mod_ocsApp_server <- function(id, data){
     output$outOcs <- renderPrint({
       outOcs()
     })
-
-    # output$reportOcs <- renderUI({
-    #   HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
-    # })
-
-
 
   })
 }

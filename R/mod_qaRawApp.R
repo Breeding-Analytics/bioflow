@@ -41,7 +41,7 @@ mod_qaRawApp_ui <- function(id){
                                                     solidHeader = TRUE,
                                                     plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                     column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                                    downloadButton(ns('downloadData'), 'Download data')
+                                                    # downloadButton(ns('downloadData'), 'Download data')
                                 )
                        ),
                        tabPanel("Documentation",
@@ -82,7 +82,6 @@ mod_qaRawApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
     # Create the fields
     observeEvent(data(), {
       req(data())
@@ -92,8 +91,8 @@ mod_qaRawApp_server <- function(id, data){
       updateSelectInput(session, "traitOutqPheno",choices = traitsQaRaw)
       shinyjs::hide(ns("traitOutqPheno"))
     })
-
-    newOutliers <- reactive({ # p('File to be analyzed')
+    ## function to calculate outliers
+    newOutliers <- reactive({ #
       req(data())
       myObject <- data()
       mydata <- myObject$data$pheno
@@ -147,9 +146,7 @@ mod_qaRawApp_server <- function(id, data){
       return(myoutliersReduced2)
 
     })
-
     ## render the expected result
-
     output$plotPredictionsCleanOut <- plotly::renderPlotly({
       req(data())
       req(input$outlierCoefOutqFont)
@@ -195,12 +192,10 @@ mod_qaRawApp_server <- function(id, data){
         dtQaRaw <- dtQaRaw[,unique(c("outlierRow",setdiff(colnames(dtQaRaw), removeCols)))]
         ## merge
         myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
-
-        DT::datatable(myTable,
-                      options = list(autoWidth = TRUE),
-                      filter = "top"
+        DT::datatable(myTable, extensions = 'Buttons',
+                                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
         )
-
       })
 
     })
@@ -225,8 +220,18 @@ mod_qaRawApp_server <- function(id, data){
       }else{
         temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications$pheno)])
       }
+      # add status table
       newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
       temp$status <- rbind(temp$status, newStatus)
+      # add modeling table
+      provMet <- data.frame(module="qaRaw",analysisId=analysisId, trait=input$traitOutqPheno, environment=NA,
+                            parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
+                            value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
+      if(is.null(temp$modeling)){
+        temp$modeling <- provMet
+      }else{
+        temp$modeling <- rbind(temp$modeling, provMet[,colnames(temp$modeling)])
+      }
       data(temp)
       # save(temp, file="toTest.RData")
       cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
@@ -235,16 +240,6 @@ mod_qaRawApp_server <- function(id, data){
     output$outQaRaw <- renderPrint({
       outQaRaw()
     })
-
-    output$downloadData <- downloadHandler(
-      filename = function() {
-        paste("tableOutliers-", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        toDownload <-  newOutliers()
-        utils::write.csv(toDownload, file)
-    })
-
     # back_bn  <- actionButton(ns('prev_trait'), 'Back')
     # next_bn  <- actionButton(ns('next_trait'), 'Next')
     #

@@ -33,7 +33,6 @@ mod_qaGenoApp_ui <- function(id){
       actionButton(ns("runQaMb"), "Save modifications", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinycssloaders::withSpinner(textOutput(ns("outQaMb")),type=8),
-      # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
@@ -51,8 +50,7 @@ mod_qaGenoApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="primary",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                                    downloadButton(ns('downnloadData'), 'Download data')
+                                                    column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                 )
                        ),
                        tabPanel("Documentation",
@@ -138,30 +136,36 @@ mod_qaGenoApp_server <- function(id, data){
       req(input$imputationMethod)
       mydata <- data()$data$geno
       ##
-      fig <- plotly::plot_ly(alpha = 0.6)
-      ## historgram for marker with missing data
-      propNaMarker <- apply(mydata,2,function(x){(length(which(is.na(x)))/length(x))})
-      fig <- fig %>% plotly::add_histogram(x = propNaMarker, histnorm = "probability", name="Missing data in markers" )
-      ## historgram for individuals with missing data
-      propNaIndividual <- apply(mydata,1,function(x){(length(which(is.na(x)))/length(x))})
-      fig <- fig %>% plotly::add_histogram(x = propNaIndividual, histnorm = "probability", name="Missing data in individuals" )
-      ## historgram for MAF
-      MAF <- apply(mydata+1, 2, function(x) {AF <- mean(x, na.rm = T)/input$ploidy;MAF <- ifelse(AF > 0.5, 1 - AF, AF) })
-      fig <- fig %>% plotly::add_histogram(x = MAF, histnorm = "probability", name="Minor allele frequency" )
-      ## histogram for heterozigosity
-      q <- MAF; p <- 1 - q
-      he <- 2 * p * q;  ho <- colMeans((mydata+1) == 1, na.rm = TRUE) # Get the obseved heterozygosity.
-      fig <- fig %>% plotly::add_histogram(x = ho, histnorm = "probability", name="Observed heterozygosity" )
-      ## histogram for inbreeding
-      Fis <- ifelse(he == 0, yes = 0, no = 1 - (ho / he))
-      fig <- fig %>% plotly::add_histogram(x = Fis, histnorm = "probability", name="Inbreeding" )
-      ## add threshold lines and layout
-      vline1 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-      vline2 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-      vline3 <- function(x = 0, color = "green") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-      fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Percentage of data"), yaxis = list(title = "Proportion of the population" ),
-                                    shapes = list(vline1(input$propNaUpperThreshForMarker),vline2(input$propNaUpperThreshForInds),vline3(input$maf) ) )
-      fig
+      if(!is.null(mydata)){
+        fig <- plotly::plot_ly(alpha = 0.6)
+        ## historgram for marker with missing data
+        propNaMarker <- apply(mydata,2,function(x){(length(which(is.na(x)))/length(x))})
+        fig <- fig %>% plotly::add_histogram(x = propNaMarker, histnorm = "probability", name="Missing data in markers" )
+        ## historgram for individuals with missing data
+        propNaIndividual <- apply(mydata,1,function(x){(length(which(is.na(x)))/length(x))})
+        fig <- fig %>% plotly::add_histogram(x = propNaIndividual, histnorm = "probability", name="Missing data in individuals" )
+        ## historgram for MAF
+        MAF <- apply(mydata+1, 2, function(x) {AF <- mean(x, na.rm = T)/input$ploidy;MAF <- ifelse(AF > 0.5, 1 - AF, AF) })
+        fig <- fig %>% plotly::add_histogram(x = MAF, histnorm = "probability", name="Minor allele frequency" )
+        ## histogram for heterozigosity
+        q <- MAF; p <- 1 - q
+        he <- 2 * p * q;  ho <- colMeans((mydata+1) == 1, na.rm = TRUE) # Get the obseved heterozygosity.
+        fig <- fig %>% plotly::add_histogram(x = ho, histnorm = "probability", name="Observed heterozygosity" )
+        ## histogram for inbreeding
+        Fis <- ifelse(he == 0, yes = 0, no = 1 - (ho / he))
+        fig <- fig %>% plotly::add_histogram(x = Fis, histnorm = "probability", name="Inbreeding" )
+        ## add threshold lines and layout
+        vline1 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
+        vline2 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
+        vline3 <- function(x = 0, color = "green") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
+        fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Percentage of data"), yaxis = list(title = "Proportion of the population" ),
+                                      shapes = list(vline1(input$propNaUpperThreshForMarker),vline2(input$propNaUpperThreshForInds),vline3(input$maf) ) )
+        fig
+      }else{
+        fig = plotly::plot_ly()
+        fig = fig %>% plotly::add_annotations(text = "Genetic marker information not available.", x = 1, y = 1)#
+        fig
+      }
     })
 
     ## display the current outliers
@@ -175,25 +179,22 @@ mod_qaGenoApp_server <- function(id, data){
         req(input$propHetUpperThreshForMarker)
         req(input$propFisUpperThreshForMarker)
         req(input$imputationMethod)
-        mo <- newModifications()
-        DT::datatable(mo,options = list(autoWidth = TRUE), filter = "top")
+        ##
+        if(!is.null(data()$data$geno)){
+          mo <- newModifications()
+        }else{
+          mo <- data.frame(warningText="Genetic marker data not available")
+        }
+        DT::datatable(mo, extensions = 'Buttons',
+                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+        )
 
       })
 
     })
-
-    output$downnloadData <- downloadHandler(
-      filename = function() {
-        paste("tableOutliersMarkers-", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        toDownload <-  newModifications()
-        utils::write.csv(toDownload, file)
-      })
-
     ##########################
     ## save when user clicks
-
     outQaMb <- eventReactive(input$runQaMb, {
 
       req(data())
@@ -216,7 +217,6 @@ mod_qaGenoApp_server <- function(id, data){
       outQaMb()
     })
     #
-
 
   })
 }

@@ -40,17 +40,9 @@ mod_rggApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadData'), 'Download data')
+                                   column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      # tabPanel("Predictions",
-      #          br(),
-      #          shinydashboard::box(status="primary",width = 12,
-      #                              solidHeader = TRUE,
-      #                              column(width=12,DT::DTOutput(ns("predictionsRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-      #          )
-      # ),
       tabPanel("Metrics",
                br(),
                shinydashboard::box(status="primary",width = 12,
@@ -127,12 +119,6 @@ mod_rggApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- zz
-    #   return(data)
-    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -195,16 +181,12 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- data()
       dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),setdiff(colnames(dtRgg),c("module","analysisId"))]
-      DT::datatable(dtRgg,options = list(autoWidth = TRUE),filter = "top")
+      numeric.output <- c("predictedValue", "stdError", "reliability")
+      DT::formatRound(DT::datatable(dtRgg, extensions = 'Buttons',
+                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+      ), numeric.output)
     })
-    # download button for input data
-    output$downloadData <- downloadHandler(
-      filename = function() { paste("tableDataInputRgg-", Sys.Date(), ".csv", sep="") },
-      content = function(file) {
-        dtRgg <- data();  dtRgg <- dtRgg$predictions
-        dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),setdiff(colnames(dtRgg),c("module","analysisId"))]
-        utils::write.csv(dtRgg, file)
-      })
     ## render result of "run" button click
     outRgg <- eventReactive(input$runRgg, {
       req(data())
@@ -249,23 +231,6 @@ mod_rggApp_server <- function(id, data){
 
       if(!inherits(result,"try-error")) {
 
-        # output$predictionsRgg <-  DT::renderDT({
-        #   # if ( hideAll$clearAll){
-        #   #   return()
-        #   # }else{
-        #   predictions <- result$predictions
-        #   predictions <- predictions[predictions$module=="rgg",]
-        #   predictions$analysisId <- as.numeric(predictions$analysisId)
-        #   predictions <- predictions[!is.na(predictions$analysisId),]
-        #   current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-        #   current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-        #   numeric.output <- c("predictedValue", "stdError", "reliability")
-        #   DT::formatRound(DT::datatable(current.predictions,
-        #                                 options = list(autoWidth = TRUE),
-        #                                 filter = "top"
-        #   ), numeric.output)
-        #   # }
-        # })
         # view metrics
         output$metricsRgg <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -278,24 +243,12 @@ mod_rggApp_server <- function(id, data){
           current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
           current.metrics <- subset(current.metrics, select = -c(module,analysisId))
           numeric.output <- c("value", "stdError")
-          DT::formatRound(DT::datatable(current.metrics,
-                                        options = list(autoWidth = TRUE),
-                                        filter = "top"
+          DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
           ), numeric.output)
           # }
         })
-        # download metrics
-        output$downloadMetrics <- downloadHandler(
-          filename = function() { paste("tableMetricstRgg-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-            metrics <- result$metrics
-            mtas <- result$status[which(result$status$module == "rgg"),"analysisId"]; mtaId <- mtas[length(mtas)]
-            metrics <- metrics[which(metrics$analysisId == mtaId),]
-            utils::write.csv(metrics, file)
-            # }
-          })
         # view modeling
         output$modelingRgg <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -307,24 +260,12 @@ mod_rggApp_server <- function(id, data){
           modeling <- modeling[!is.na(modeling$analysisId),]
           current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
           current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-          DT::datatable(current.modeling,
-                        options = list(autoWidth = TRUE),
-                        filter = "top"
+          DT::datatable(current.modeling, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
           )
           # }
         })
-        # download modeling table
-        output$downloadModeling <- downloadHandler(
-          filename = function() { paste("tableModelingtRgg-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-            modeling <- result$modeling
-            mtas <- result$status[which(result$status$module == "rgg"),"analysisId"]; mtaId <- mtas[length(mtas)]
-            modeling <- modeling[which(modeling$analysisId == mtaId),]
-            utils::write.csv(modeling, file)
-            # }
-          })
         ## Report tab
         # plot scatter of predictions and color by pedigree
         output$plotPredictionsScatter <-  plotly::renderPlotly({
@@ -368,10 +309,6 @@ mod_rggApp_server <- function(id, data){
     output$outRgg <- renderPrint({
       outRgg()
     })
-
-    # output$reportRgg <- renderUI({
-    #   HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
-    # })
 
 
   })

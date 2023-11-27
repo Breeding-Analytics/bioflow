@@ -41,8 +41,7 @@ mod_qaStaApp_ui <- function(id){
                                 shinydashboard::box(status="primary",width = 12,
                                                     solidHeader = TRUE,
                                                     plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                                    downloadButton(ns('downloadData'), 'Download data')
+                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                 )
                        ),
                        tabPanel("Documentation",
@@ -79,19 +78,12 @@ mod_qaStaApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- xx
-    #   return(data)
-    # })
     # Create the fields
     observeEvent(data(), {
       req(data())
@@ -211,12 +203,10 @@ mod_qaStaApp_server <- function(id, data){
         dtQaMb <- dtQaMb[,unique(c("outlierRow",setdiff(colnames(dtQaMb), removeCols)))]
         ## merge
         myTable <- base::merge(outlier,dtQaMb, by.x="record", by.y="outlierRow", all.x=TRUE)
-
-        DT::datatable(myTable,
-                      options = list(autoWidth = TRUE),
-                      filter = "top"
+        DT::datatable(myTable, extensions = 'Buttons',
+                                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
         )
-
       })
 
     })
@@ -247,15 +237,6 @@ mod_qaStaApp_server <- function(id, data){
     output$outQaMb <- renderPrint({
       outQaMb()
     })
-
-    output$downloadData <- downloadHandler(
-      filename = function() {
-        paste("tableOutliers-", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        toDownload <-  newOutliers()
-        utils::write.csv(toDownload, file)
-      })
 
 
   })

@@ -45,32 +45,28 @@ mod_indexDesireApp_ui <- function(id){
                ),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadPredictionsWide'), 'Download input traits')
+                                   column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Predictions",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("predictionsIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadPredictions'), 'Download predictions')
+                                   column(width=12,DT::DTOutput(ns("predictionsIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("modelingIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadModeling'), 'Download modeling')
+                                   column(width=12,DT::DTOutput(ns("modelingIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Report",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide2")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadPredictionsWide2'), 'Download predictions')
+                                   column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide2")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Documentation",
@@ -153,7 +149,10 @@ mod_indexDesireApp_server <- function(id, data){
                              timevar = "trait", v.names = c("predictedValue"), sep= "_")
       colnames(wide) <- gsub("predictedValue_","",colnames(wide))
       numeric.output <- colnames(wide)[-c(1)]
-      DT::formatRound(DT::datatable(wide, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
+      DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
+                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+      ), numeric.output)
     })
     # render plot for initial values
     output$plotPredictionsRadar <-  plotly::renderPlotly({
@@ -173,19 +172,6 @@ mod_indexDesireApp_server <- function(id, data){
       plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=input$desirev, proportion=input$proportion,
                                        analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=input$desirev, scaled=input$scaledIndex)
     })
-    # download predictions in wide format
-    output$downloadPredictionsWide <- downloadHandler(
-      filename = function() { paste("tableInputWide-", Sys.Date(), ".csv", sep="")},
-      content = function(file) {
-        req(data())
-        req(input$version2IdxD)
-        dtIdxD <- data(); dtIdxD <- dtIdxD$predictions
-        dtIdxD <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
-        wide <- stats::reshape(dtIdxD[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
-                               timevar = "trait", v.names = c("predictedValue"), sep= "_")
-        colnames(wide) <- gsub("predictedValue_","",colnames(wide))
-        utils::write.csv(wide, file)
-      })
     ## render result of "run" button click
     outIdxD <- eventReactive(input$runIdxD, {
       req(data())
@@ -235,22 +221,12 @@ mod_indexDesireApp_server <- function(id, data){
             current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
             current.predictions <- subset(current.predictions, select = -c(module,analysisId))
             numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
+            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+            ), numeric.output)
           # }
         })
-        # download predictions
-        output$downloadPredictions <- downloadHandler(
-          filename = function() { paste("tablePredictionstMta-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              predictions <- data()$predictions
-              mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              predictions <- predictions[which(predictions$analysisId == mtaId),]
-              utils::write.csv(predictions, file)
-            # }
-          })
         # display table of modeling
         output$modelingIdxD <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -260,22 +236,12 @@ mod_indexDesireApp_server <- function(id, data){
             mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
-            DT::datatable(modeling, options = list(autoWidth = TRUE),filter = "top")
+            DT::datatable(modeling, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+            )
           # }
         })
-        # download table of modelng
-        output$downloadModeling <- downloadHandler(
-          filename = function() { paste("tableModelingtMta-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              modeling <- data()$modeling
-              mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              modeling <- modeling[which(modeling$analysisId == mtaId),]
-              utils::write.csv(modeling, file)
-            # }
-          })
         ## Report tab
         # table of predictions in wide format
         output$tablePredictionsTraitsWide2 <-  DT::renderDT({
@@ -290,26 +256,12 @@ mod_indexDesireApp_server <- function(id, data){
                                    timevar = "trait", v.names = c("predictedValue"), sep= "_")
             colnames(wide) <- gsub("predictedValue_","",colnames(wide))
             numeric.output <- colnames(wide)[-c(1)]
-            DT::formatRound(DT::datatable(wide, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
+            DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+            ), numeric.output)
           # }
         })
-        # download predictions in wide format
-        output$downloadPredictionsWide2 <- downloadHandler(
-          filename = function() { paste("tablePredictionstIndexWide-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              mydata = data()$predictions
-              mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"];
-              mtaId <- c(mtas[length(mtas)], input$version2IdxD)
-              mydata <- mydata[which(mydata$analysisId %in% mtaId),]
-              wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
-                                     timevar = "trait", v.names = c("predictedValue"), sep= "_")
-              colnames(wide) <- gsub("predictedValue_","",colnames(wide))
-              utils::write.csv(wide, file)
-            # }
-          })
 
       } else {
         output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)})

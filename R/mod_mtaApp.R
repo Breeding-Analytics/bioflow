@@ -51,40 +51,35 @@ mod_mtaApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadData'), 'Download data')
+                                   column(width=12,DT::DTOutput(ns("phenoMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Predictions",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadPredictions'), 'Download predictions')
+                                   column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Metrics",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadMetrics'), 'Download metrics')
+                                   column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadModeling'), 'Download modeling')
+                                   column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Report",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadPredictionsWide'), 'Download prediction')
+                                   column(width=12,br(),DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
                ),
                shinydashboard::box(status="success", width = 6,
                                    selectInput(ns("traitPredictionsCorrelation"), "Trait(s) to view", choices = NULL, multiple = FALSE),
@@ -159,12 +154,6 @@ mod_mtaApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- xx
-    #   return(data)
-    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -309,16 +298,11 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- data()
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),setdiff(colnames(dtMta),c("module","analysisId"))]
-      DT::datatable(dtMta,options = list(autoWidth = TRUE),filter = "top"
-      )
-    })
-    # download button for input data
-    output$downloadData <- downloadHandler(
-      filename = function() { paste("tableDataInputMta-", Sys.Date(), ".csv", sep="") },
-      content = function(file) {
-        dtMta <- data();  dtMta <- dtMta$predictions
-        dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),setdiff(colnames(dtMta),c("module","analysisId"))]
-        utils::write.csv(dtMta, file)
+      numeric.output <- c("predictedValue", "stdError", "reliability")
+      DT::formatRound(DT::datatable(dtMta, extensions = 'Buttons',
+                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+      ), numeric.output)
     })
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {
@@ -381,21 +365,11 @@ mod_mtaApp_server <- function(id, data){
             current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
             current.predictions <- subset(current.predictions, select = -c(module,analysisId))
             numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
+            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+            ), numeric.output)
           # }
-        })
-        # download predictions
-        output$downloadPredictions <- downloadHandler(
-          filename = function() { paste("tablePredictionstMta-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              predictions <- data()$predictions
-              mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              predictions <- predictions[which(predictions$analysisId == mtaId),]
-              utils::write.csv(predictions, file)
-            # }
         })
         # metrics table
         output$metricsMta <-  DT::renderDT({
@@ -408,21 +382,12 @@ mod_mtaApp_server <- function(id, data){
               metrics <- metrics[which(metrics$analysisId == mtaId),]
               metrics <- subset(metrics, select = -c(module,analysisId))
               numeric.output <- c("value", "stdError")
-              DT::formatRound(DT::datatable(metrics, options = list(autoWidth = TRUE), filter = "top"), numeric.output)
+              DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
+                                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                           lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+              ), numeric.output)
             # }
           }
-        })
-        # download metrics
-        output$downloadMetrics <- downloadHandler(
-          filename = function() { paste("tableMetricstMta-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-              metrics <- data()$metrics
-              mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              metrics <- metrics[which(metrics$analysisId == mtaId),]
-              utils::write.csv(metrics, file)
-            # }
         })
         # modeling table
         output$modelingMta <-  DT::renderDT({
@@ -434,22 +399,13 @@ mod_mtaApp_server <- function(id, data){
               mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
               modeling <- modeling[which(modeling$analysisId == mtaId),]
               modeling <- subset(modeling, select = -c(module,analysisId))
-              DT::datatable(modeling, options = list(autoWidth = TRUE),filter = "top")
+              DT::datatable(modeling, extensions = 'Buttons',
+                                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                           lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+              )
             # }
           }
         })
-        # download modeling table
-        output$downloadModeling <- downloadHandler(
-          filename = function() { paste("tableModelingtMta-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-              modeling <- data()$modeling
-              mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              modeling <- modeling[which(modeling$analysisId == mtaId),]
-              utils::write.csv(modeling, file)
-            # }
-          })
         ## Report tab
         # plot correlation between environments
         output$plotPredictionsCorrelation <-  plotly::renderPlotly({
@@ -481,25 +437,12 @@ mod_mtaApp_server <- function(id, data){
                                    timevar = "trait", v.names = c("predictedValue"), sep= "_")
             colnames(wide) <- gsub("predictedValue_","",colnames(wide))
             numeric.output <- colnames(wide)[-c(1)]
-            DT::formatRound(DT::datatable(wide, options = list(autoWidth = TRUE),filter = "top"), numeric.output)
+            DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+            ), numeric.output)
           # }
         })
-        # download predictions in wide format
-        output$downloadPredictionsWide <- downloadHandler(
-          filename = function() { paste("tablePredictionstMtaWide-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
-              mydata = data()$predictions
-              mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"];mtaId <- mtas[length(mtas)]
-              mydata <- mydata[which(mydata$analysisId == mtaId),]
-              wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
-                                     timevar = "trait", v.names = c("predictedValue"), sep= "_")
-              colnames(wide) <- gsub("predictedValue_","",colnames(wide))
-              utils::write.csv(wide, file)
-            # }
-          })
 
       } else {
         output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
@@ -515,10 +458,6 @@ mod_mtaApp_server <- function(id, data){
     output$outMta <- renderPrint({
       outMta()
     })
-
-
-
-
 
   })
 }

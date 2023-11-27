@@ -148,8 +148,6 @@ mod_staApp_server <- function(id,data){
       dtSta <- data()
       dtSta <- dtSta$modifications$pheno
       dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
-      # dtSta <- dtSta$metadata$pheno
-      # traitsSta <- dtSta[dtSta$parameter=="trait","value"]
       traitsSta <- unique(dtSta$trait)
       updateSelectInput(session, "trait2Sta", choices = traitsSta)
     })
@@ -160,8 +158,6 @@ mod_staApp_server <- function(id,data){
       req(input$genoUnitSta)
       req(input$trait2Sta)
       dtSta <- data()
-      # dtSta <- dtSta$metadata$pheno
-      # traitsSta <- dtSta[dtSta$parameter=="trait","value"]
       dtSta <- dtSta$modifications$pheno # only traits that have been QA
       dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),]
       traitsSta <- unique(dtSta$trait)
@@ -222,10 +218,12 @@ mod_staApp_server <- function(id,data){
           req(data())
           dtSta <- data()
           dtSta <- dtSta$data$pheno
-          DT::datatable(dtSta,
-                        options = list(autoWidth = TRUE),
-                        filter = "top"
-          )
+          traitTypes <- unlist(lapply(dtSta,class))
+          numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
+          DT::formatRound(DT::datatable(dtSta, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+          ), numeric.output)
         })
       } else {
         output$phenoSta <- DT::renderDT({DT::datatable(NULL)})
@@ -238,7 +236,6 @@ mod_staApp_server <- function(id,data){
       req(input$trait2Sta)
       req(input$genoUnitSta)
       dtSta <- data()
-
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
       dontHaveDist <- which(is.na(myFamily))
       if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
@@ -280,17 +277,14 @@ mod_staApp_server <- function(id,data){
             # }else{
             predictions <- result$predictions
             predictions <- predictions[predictions$module=="sta",]
-
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
-
-
             current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
             current.predictions <- subset(current.predictions, select = -c(module,analysisId))
             numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
+            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
             ), numeric.output)
             # }
           }
@@ -308,9 +302,9 @@ mod_staApp_server <- function(id,data){
             current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
             current.metrics <- subset(current.metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
-            DT::formatRound(DT::datatable(current.metrics,
-                                          options = list(autoWidth = TRUE),
-                                          filter = "top"
+            DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
             ), numeric.output)
             # }
           }
@@ -323,15 +317,13 @@ mod_staApp_server <- function(id,data){
             # }else{
             modeling <- result$modeling
             modeling <- modeling[modeling$module=="sta",]
-
             modeling$analysisId <- as.numeric(modeling$analysisId)
             modeling <- modeling[!is.na(modeling$analysisId),]
-
             current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
             current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-            DT::datatable(current.modeling,
-                          options = list(autoWidth = TRUE),
-                          filter = "top"
+            DT::datatable(current.modeling, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
             )
             # }
           }

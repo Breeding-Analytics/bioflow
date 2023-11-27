@@ -37,24 +37,21 @@ mod_pggApp_ui <- function(id){
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadData'), 'Download data')
+                                   column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Metrics",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadMetrics'), 'Download metrics')
+                                   column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
                shinydashboard::box(status="primary",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadModeling'), 'Download modeling')
+                                   column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Report",
@@ -111,12 +108,6 @@ mod_pggApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- zz
-    #   return(data)
-    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -180,16 +171,13 @@ mod_pggApp_server <- function(id, data){
       dtPgg <- data()
       dtPgg <- dtPgg$predictions
       dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),setdiff(colnames(dtPgg),c("module","analysisId"))]
-      DT::datatable(dtPgg,options = list(autoWidth = TRUE),filter = "top")
+      current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+      numeric.output <- c("predictedValue", "stdError", "reliability")
+      DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+      ), numeric.output)
     })
-    # download button for input data
-    output$downloadData <- downloadHandler(
-      filename = function() { paste("tableDataInputPgg-", Sys.Date(), ".csv", sep="") },
-      content = function(file) {
-        dtPgg <- data();  dtPgg <- dtPgg$predictions
-        dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),setdiff(colnames(dtPgg),c("module","analysisId"))]
-        utils::write.csv(dtPgg, file)
-      })
     ## render result of "run" button click
     outPgg <- eventReactive(input$runPgg, {
       req(data())
@@ -197,7 +185,6 @@ mod_pggApp_server <- function(id, data){
       req(input$trait2Pgg)
       req(input$environmentToUse)
       dtPgg <- data()
-
       # run the modeling, but before test if mta was done
       if(sum(dtPgg$status$module %in% c("mta","indexD")) == 0) {
         output$qaQcPggInfo <- renderUI({
@@ -244,24 +231,12 @@ mod_pggApp_server <- function(id, data){
           current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
           current.metrics <- subset(current.metrics, select = -c(module,analysisId))
           numeric.output <- c("value", "stdError")
-          DT::formatRound(DT::datatable(current.metrics,
-                                        options = list(autoWidth = TRUE),
-                                        filter = "top"
+          DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
           ), numeric.output)
           # }
         })
-        # download metrics
-        output$downloadMetrics <- downloadHandler(
-          filename = function() { paste("tableMetricstPgg-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-            metrics <- result$metrics
-            mtas <- result$status[which(result$status$module == "pgg"),"analysisId"]; mtaId <- mtas[length(mtas)]
-            metrics <- metrics[which(metrics$analysisId == mtaId),]
-            utils::write.csv(metrics, file)
-            # }
-          })
         # view modeling
         output$modelingPgg <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -273,24 +248,12 @@ mod_pggApp_server <- function(id, data){
           modeling <- modeling[!is.na(modeling$analysisId),]
           current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
           current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-          DT::datatable(current.modeling,
-                        options = list(autoWidth = TRUE),
-                        filter = "top"
+          DT::datatable(current.modeling, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
           )
           # }
         })
-        # download modeling table
-        output$downloadModeling <- downloadHandler(
-          filename = function() { paste("tableModelingtPgg-", Sys.Date(), ".csv", sep="")},
-          content = function(file) {
-            # if ( hideAll$clearAll){ return()
-            # }else{
-            modeling <- result$modeling
-            mtas <- result$status[which(result$status$module == "pgg"),"analysisId"]; mtaId <- mtas[length(mtas)]
-            modeling <- modeling[which(modeling$analysisId == mtaId),]
-            utils::write.csv(modeling, file)
-            # }
-          })
         ## Report tab
         # plot scatter of predictions and color by pedigree
         output$plotPredictionsScatter <-  plotly::renderPlotly({
@@ -302,12 +265,10 @@ mod_pggApp_server <- function(id, data){
           current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
           if(input$traitFilterPredictions2D2 %in% current.metrics$trait ){
             fig <- plotly::plot_ly(alpha = 0.6)
-            # for(iTrait in input$traitFilterPredictions2D2){
             ## plot for the general population
             mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
             sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
             fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
-            # }
             ## plot for the expected new population
             R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
             fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
@@ -335,10 +296,6 @@ mod_pggApp_server <- function(id, data){
     output$outPgg <- renderPrint({
       outPgg()
     })
-
-    # output$reportPgg <- renderUI({
-    #   HTML(markdown::markdownToHTML(knitr::knit("./R/testing_sta.Rmd", quiet = TRUE), fragment.only=TRUE))
-    # })
 
 
   })
