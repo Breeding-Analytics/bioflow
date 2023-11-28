@@ -227,7 +227,7 @@ mod_getData_ui <- function(id){
           )
         },
 
-        uiOutput(ns('ped_map')),
+        verbatimTextOutput(ns('ped_summary')),
       ),
       tabPanel(
         title = 'Weather',
@@ -467,7 +467,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       temp <- data()
       if (!is.null(geno_data()) & any(temp$metadata$pheno$parameter == 'designation')) {
         paste(
-          " Data Integrity Checks:\n",
+          "Data Integrity Checks:\n",
 
           sum(colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno$designation)),
           "Accessions exist in both phenotypic and genotypic files (will be used to train the model)\n",
@@ -539,6 +539,53 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         golem::invoke_js('showid', ns('ped_csv_options'))
       }
     )
+
+    ped_data <- reactive({
+      if (input$ped_input == 'file') {
+        if (is.null(input$ped_file)) return(NULL)
+        data <- read.csv(input$ped_file$datapath, sep = input$ped_sep,
+                         quote = input$ped_quote, dec = input$ped_dec)
+      } else if (input$ped_input == 'url') {
+        if (input$ped_url == '') return(NULL)
+        data <- read.csv(input$ped_url, sep = input$ped_sep,
+                         quote = input$ped_quote, dec = input$ped_dec)
+      } else {
+        return(NULL)
+      }
+
+      return(data)
+    })
+
+    observeEvent(
+      ped_data(),
+      {
+        temp <- data()
+
+        # should check file format here!
+        temp$data$pedigree <- ped_data()
+
+        data(temp)
+      }
+    )
+
+    output$ped_summary <- renderText({
+      tmp <- data()
+      ped <- ped_data()
+      if (!is.null(ped) & any(tmp$metadata$pheno$parameter == 'designation')) {
+        paste(
+          "Data Integrity Checks:\n",
+
+          sum(ped$designation %in% unique(tmp$data$pheno$designation)),
+          "Accessions exist in both phenotypic and pedigree files\n",
+
+          sum(!unique(tmp$data$pheno$designation) %in% ped$designation),
+          "Accessions have phenotypic data but no pedigree data\n",
+
+          sum(is.na(ped[ped$designation %in% unique(tmp$data$pheno$designation), 'yearOfOrigin'])),
+          "Accessions in phenotypic data have no year of origin info\n"
+        )
+      }
+    })
 
     observeEvent(
       input$ped_example,
