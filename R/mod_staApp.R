@@ -126,14 +126,6 @@ mod_staApp_server <- function(id,data){
     # QA versions to use
     observeEvent(c(data()), {
       req(data())
-
-      # print(data())
-      print(names(data()))
-      print(data()$status)
-      print(data()$status$module)
-
-
-
       dtMta <- data()
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module == "qaRaw"),]
@@ -239,10 +231,6 @@ mod_staApp_server <- function(id,data){
     ## render result of "run" button click
     outSta <- eventReactive(input$runSta, {
       req(data())
-
-      # print(data())
-      # print(names(data()))
-
       req(input$trait2Sta)
       req(input$genoUnitSta)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
@@ -271,7 +259,6 @@ mod_staApp_server <- function(id,data){
                                             verbose = input$verboseSta, maxit = input$maxitSta),
                       silent=TRUE
         )
-        print(ls())
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           cat(paste("Single-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
@@ -346,9 +333,6 @@ mod_staApp_server <- function(id,data){
         output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
         output$modelingSta <- DT::renderDT({DT::datatable(NULL)})
       }
-
-      # print(ls())
-      # print(result)
 
       save(result, file = "./R/outputs/resultSta.RData")
 
