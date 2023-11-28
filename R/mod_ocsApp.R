@@ -105,7 +105,7 @@ mod_ocsApp_ui <- function(id){
 #' ocsApp Server Functions
 #'
 #' @noRd
-mod_ocsApp_server <- function(id){
+mod_ocsApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -115,11 +115,11 @@ mod_ocsApp_server <- function(id){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-    data = reactive({
-      load("~/Documents/bioflow/dataStr0.RData")
-      data <- res
-      return(data)
-    })
+    # data = reactive({
+    #   load("~/Documents/bioflow/dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -243,7 +243,7 @@ mod_ocsApp_server <- function(id){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          # data(result) # update data with results
+          data(result) # update data with results
           cat(paste("Optimal cross selection step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
