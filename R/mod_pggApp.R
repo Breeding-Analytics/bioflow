@@ -56,15 +56,7 @@ mod_pggApp_ui <- function(id){
       ),
       tabPanel("Report",
                br(),
-               shinydashboard::box(width = 6, status = "success",# background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                                   selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to visualize", choices = NULL, multiple = FALSE)
-               ),
-               shinydashboard::box(width = 6, status = "success",# background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                                   selectInput(ns("environment"), "Treatment to view", choices = NULL, multiple = FALSE)
-               ),
-               shinydashboard::box(status="success",width = 12,# solidHeader = TRUE, title = "Desired change and expected response",
-                                   plotly::plotlyOutput(ns("plotPredictionsScatter"))
-               )
+               uiOutput(ns('reportPgg'))
       ),
       tabPanel("Documentation",
                br(),
@@ -108,6 +100,11 @@ mod_pggApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    # data = reactive({
+    #   load("~/Documents/bioflow/dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -170,8 +167,8 @@ mod_pggApp_server <- function(id, data){
       req(input$version2Pgg)
       dtPgg <- data()
       dtPgg <- dtPgg$predictions
-      dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),setdiff(colnames(dtPgg),c("module","analysisId"))]
-      current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+      current.predictions <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),setdiff(colnames(dtPgg),c("module","analysisId"))]
+      # current.predictions <- subset(dtPgg, select = -c(module,analysisId))
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
@@ -256,34 +253,7 @@ mod_pggApp_server <- function(id, data){
           )
           # }
         })
-        ## Report tab
-        # plot scatter of predictions and color by pedigree
-        output$plotPredictionsScatter <-  plotly::renderPlotly({
-          # calculate current metrics
-          metrics <- result$metrics
-          metrics <- metrics[metrics$module=="pgg",]
-          metrics$analysisId <- as.numeric(metrics$analysisId)
-          metrics <- metrics[!is.na(metrics$analysisId),]
-          current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-          if(input$traitFilterPredictions2D2 %in% current.metrics$trait ){
-            fig <- plotly::plot_ly(alpha = 0.6)
-            ## plot for the general population
-            mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-            sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-            fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
-            ## plot for the expected new population
-            R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-            fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
-            ## add line for the selected population
-            vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-            vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-            vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-            # overlay the histograms
-            i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-            fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-            fig
-          }# end of if input$traitFilterPredictions2D2 %in% metrics$trait
-        })
+
 
       } else {
         output$predictionsPgg <- DT::renderDT({DT::datatable(NULL)})
@@ -291,6 +261,10 @@ mod_pggApp_server <- function(id, data){
         output$modelingPgg <- DT::renderDT({DT::datatable(NULL)})
       }
 
+      save(result, file = "./R/outputs/resultPgg.RData")
+      output$reportPgg <- renderUI({
+        HTML(markdown::markdownToHTML(knitr::knit("./R/reportPgg.Rmd", quiet = TRUE), fragment.only=TRUE))
+      })
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
