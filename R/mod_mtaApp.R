@@ -77,27 +77,8 @@ mod_mtaApp_ui <- function(id){
       ),
       tabPanel("Report",
                br(),
-               shinydashboard::box(status="primary",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+               uiOutput(ns('reportMta'))
                ),
-               shinydashboard::box(status="success", width = 6,
-                                   selectInput(ns("traitPredictionsCorrelation"), "Trait(s) to view", choices = NULL, multiple = FALSE),
-               ),
-               shinydashboard::box(status="success", width = 6, solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                                   checkboxGroupInput(ns("checkboxCluster"), label = "", choices = list("Cluster?" = TRUE),selected = NULL),
-                                   checkboxGroupInput(ns("checkboxText"), label = "",choices = list("Add cor labels?" = TRUE), selected = NULL),
-                                   checkboxGroupInput(ns("checkboxAxis"), label = "",choices = list("Add axis labels?" = TRUE), selected = NULL)
-               ),
-               shinydashboard::box(status="success", width = 12,
-                                   title = "Environment Correlation:", solidHeader = TRUE,
-                                   plotly::plotlyOutput(ns("plotPredictionsCorrelation"))
-               ),
-               shinydashboard::box(status="success", width = 12,
-                                   title = "Trait Correlation:", solidHeader = TRUE,
-                                   plotly::plotlyOutput(ns("plotPredictionsCorrelationTraits"))
-               )
-      ),
       tabPanel("Documentation",
                br(),
                shinydashboard::box(status="primary",width = 12,
@@ -328,7 +309,7 @@ mod_mtaApp_server <- function(id, data){
         })
       }else{
         output$qaQcMtaInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipeline::metLMM(
+        resultMta <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
           fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
@@ -343,16 +324,16 @@ mod_mtaApp_server <- function(id, data){
         ),
         silent=TRUE
         )
-        if(!inherits(result,"try-error")) {
-          data(result) # update data with results
-          cat(paste("Multi-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
+        if(!inherits(resultMta,"try-error")) {
+          data(resultMta) # update data with results
+          cat(paste("Multi-trial analysis step with id:",resultMta$status$analysisId[length(resultMta$status$analysisId)],"saved."))
         }else{
-          print(result)
+          print(resultMta)
         }
         shinybusy::remove_modal_spinner()
       }
 
-      if(!inherits(result,"try-error")) { # if all goes well in the run
+      if(!inherits(resultMta,"try-error")) { # if all goes well in the run
         ## predictions table
         output$predictionsMta <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -373,7 +354,7 @@ mod_mtaApp_server <- function(id, data){
         })
         # metrics table
         output$metricsMta <-  DT::renderDT({
-          if(!inherits(result,"try-error") ){
+          if(!inherits(resultMta,"try-error") ){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
@@ -391,7 +372,7 @@ mod_mtaApp_server <- function(id, data){
         })
         # modeling table
         output$modelingMta <-  DT::renderDT({
-          if(!inherits(result,"try-error") ){
+          if(!inherits(resultMta,"try-error") ){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
@@ -406,50 +387,56 @@ mod_mtaApp_server <- function(id, data){
             # }
           }
         })
-        ## Report tab
-        # plot correlation between environments
-        output$plotPredictionsCorrelation <-  plotly::renderPlotly({
-          mydata = data()$predictions
-          stas <- data()$status[which(data()$status$module == "sta"),"analysisId"];staId <- stas[length(stas)]
-          mydata <- mydata[which(mydata$analysisId == staId),]
-          corPlotPredictions(mydata, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-                             valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
-
-        })
-        # plot correlation between traits
-        output$plotPredictionsCorrelationTraits <-  plotly::renderPlotly({
-          mydata = data()$predictions
-          mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"];mtaId <- mtas[length(mtas)]
-          mydata <- mydata[which(mydata$analysisId == mtaId),]
-          corPlotPredictions(mydata, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-                             valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
-
-        })
-        # table of predictions in wide format
-        output$tablePredictionsTraitsWide <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-            mydata = data()$predictions
-            mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"];mtaId <- mtas[length(mtas)]
-            mydata <- mydata[which(mydata$analysisId == mtaId),]
-            wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
-                                   timevar = "trait", v.names = c("predictedValue"), sep= "_")
-            colnames(wide) <- gsub("predictedValue_","",colnames(wide))
-            numeric.output <- colnames(wide)[-c(1)]
-            DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-            ), numeric.output)
-          # }
-        })
+        # ## Report tab
+        # # plot correlation between environments
+        # output$plotPredictionsCorrelation <-  plotly::renderPlotly({
+        #   mydata = data()$predictions
+        #   stas <- data()$status[which(data()$status$module == "sta"),"analysisId"];staId <- stas[length(stas)]
+        #   mydata <- mydata[which(mydata$analysisId == staId),]
+        #   corPlotPredictions(mydata, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
+        #                      valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
+        #
+        # })
+        # # plot correlation between traits
+        # output$plotPredictionsCorrelationTraits <-  plotly::renderPlotly({
+        #   mydata = data()$predictions
+        #   mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"];mtaId <- mtas[length(mtas)]
+        #   mydata <- mydata[which(mydata$analysisId == mtaId),]
+        #   corPlotPredictions(mydata, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+        #                      valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
+        #
+        # })
+        # # table of predictions in wide format
+        # output$tablePredictionsTraitsWide <-  DT::renderDT({
+        #   # if ( hideAll$clearAll){
+        #   #   return()
+        #   # }else{
+        #     mydata = data()$predictions
+        #     mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"];mtaId <- mtas[length(mtas)]
+        #     mydata <- mydata[which(mydata$analysisId == mtaId),]
+        #     wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
+        #                            timevar = "trait", v.names = c("predictedValue"), sep= "_")
+        #     colnames(wide) <- gsub("predictedValue_","",colnames(wide))
+        #     numeric.output <- colnames(wide)[-c(1)]
+        #     DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
+        #                                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        #                                                  lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+        #     ), numeric.output)
+        #   # }
+        # })
 
       } else {
         output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
         output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
         output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
         hideAll$clearAll <- TRUE
-      } ### enf of if(!inherits(result,"try-error"))
+      } ### enf of if(!inherits(resultMta,"try-error"))
+
+      save(resultMta, file = "./R/outputs/resultMta.RData")
+
+      output$reportMta <- renderUI({
+        HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
+      })
 
       hideAll$clearAll <- FALSE
 

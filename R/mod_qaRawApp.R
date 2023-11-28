@@ -160,7 +160,7 @@ mod_qaRawApp_server <- function(id, data){
         mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2
       }
       mydata$color <- as.factor(mydata$color)
-      mydata$environment <- cgiarBase::cleanChar(mydata$environment)# as.factor(apply(data.frame(cgiarBase::cleanChar(mydata$fieldinst)),1,function(x){substr(x,max(c(1,(nchar(x)-18))),nchar(x))}))
+      # mydata$environment <- cgiarBase::cleanChar(mydata$environment)# as.factor(apply(data.frame(cgiarBase::cleanChar(mydata$fieldinst)),1,function(x){substr(x,max(c(1,(nchar(x)-18))),nchar(x))}))
       res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
                              x = mydata[,"environment"], text=mydata[,"designation"],
                              pointpos = -1.8)

@@ -1,0 +1,59 @@
+---
+title: "MTA Report"
+author: ""
+date: "2023-11-03"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+```{r }
+suppressWarnings(tryCatch({
+        load("./outputs/resultMta.RData")
+      }, error = function(e) {
+        NULL
+      }))
+if (is.null(resultMta)){
+  invisible(NULL)
+} else {
+  pred <- resultMta$predictions
+  traits <- unique(pred$trait)
+}
+```
+
+
+## Distribution by trait
+```{r }
+if (is.null(resultMta)){
+  invisible(NULL)
+} else {
+  selectInput(ns("traitMta"), 
+            label = "Trait:", 
+            choices = unique(pred$trait)
+            )
+}
+
+```
+
+```{r }
+if (is.null(resultMta)){
+  invisible(NULL)
+} else {
+  predictions.boxplot <- subset(pred, select = c(trait,designation,environment,predictedValue))
+
+plotly::renderPlotly({
+  temp.pred.box <- predictions.boxplot[predictions.boxplot$trait==input$traitMta,]
+  plotly::plot_ly(
+  data = temp.pred.box,
+  y = ~predictedValue,
+  x = ~environment,
+  type = "box",
+  color = ~environment
+)
+})
+}
+```
+
