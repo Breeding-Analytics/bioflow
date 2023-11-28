@@ -292,7 +292,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       {
         temp <- data()
         temp$data$pheno <- pheno_data()
-        temp$status <- rbind(temp$status, data.frame(module = 'qa', analysisId = as.numeric(Sys.time())))
 
         output$preview_pheno <- DT::renderDT({
           req(pheno_data())
