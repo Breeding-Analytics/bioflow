@@ -189,3 +189,28 @@ if (is.null(result)){
 
 ```
 
+## Boxplot
+
+```{r myBoxplot}
+suppressWarnings(tryCatch({
+        load("./outputs/resultSta.RData")
+      }, error = function(e) {
+        NULL
+      }))
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+predTrait <- result$predictions
+p <- ggplot2::ggplot(predTrait, ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
+  ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
+  # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
+  ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                 axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+  ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~., scales = "free") #+
+  # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
+
+fig2 <-  plotly::ggplotly(p, height = get_h()*2); # fig2
+plotly::renderPlotly({fig2})
+
+```

@@ -10,6 +10,7 @@ runtime: shiny
 
 ## Entries and traits by environment
 
+NULL
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; "><table class="table table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
@@ -88,11 +89,32 @@ runtime: shiny
 </div>
 </div><!--/html_preserve-->
 
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outbd75d7971cc6cbd7" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
+## Predictions 
+
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
+<div>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="2021_WS_BHU-STRESS_" selected>2021_WS_BHU-STRESS_</option>
+<option value="2021_WS_BHU-NONSTRESS_">2021_WS_BHU-NONSTRESS_</option>
+<option value="2021_WS_SHUATS-STRESSMOD_">2021_WS_SHUATS-STRESSMOD_</option>
+<option value="2021_WS_SHUATS-STRESSSEV_">2021_WS_SHUATS-STRESSSEV_</option>
+<option value="2021_WS_IRRI-HYD-STRESS_">2021_WS_IRRI-HYD-STRESS_</option>
+<option value="2021_WS_IRRI-HYD-NONSTRESS_">2021_WS_IRRI-HYD-NONSTRESS_</option>
+<option value="2021_WS_IGKV-NONSTRESS_">2021_WS_IGKV-NONSTRESS_</option>
+<option value="2021_WS_IGKV-STRESS_">2021_WS_IGKV-STRESS_</option>
+<option value="2023_DS_IRRIHQ-S2_">2023_DS_IRRIHQ-S2_</option></select>
+<script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
 
 
 
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out281c0ab49410ac37" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
+## Boxplot
 
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out866bfbb24f0e1d16" style="width:100%;height:400px;"></div><!--/html_preserve-->
