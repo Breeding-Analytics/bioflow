@@ -7,34 +7,14 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
-
-# knitr R markdown chunk options
-knitr::opts_chunk$set(dependson = knitr::all_labels(),
-                      include = TRUE,
-                      echo = FALSE,
-                      cache = FALSE,
-                      warning = FALSE,
-                      message = FALSE,
-                      comment = NA,
-                      out.width = "100%",
-                      error = TRUE)
-options(knitr.kable.NA = '', knitr.duplicate.label = "allow")
-
-# loading necessary R packages ####
-
-## outputs - graphs, tables
-library(ggplot2)    # ggplot(), etc.
-library(DT)         # datatable()
-library(knitr)      # kable()
-library(kableExtra) # kable_styling(), etc.
-library(viridis)    # scale_fill_viridis()
-library(plotly)     # ggplotly()
-library(htmltools)  # tagList()
-
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
 ```
 
-## Trait view (wide format)
+### Across-environment trait table
+
+The following table allows you to inspect the across-environment predictions for the different entries (rows) and different traits (columns).
+
+<p>&nbsp;</p>
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
@@ -62,8 +42,14 @@ if (is.null(result)){
 }
 ```
 
+<p>&nbsp;</p>
 
-## Radar Plot
+### Radar Plot
+
+This plot allows the user to visualize the distance between the population means and the target values.
+
+<p>&nbsp;</p>
+
 ```{r }
 library(dplyr)
 if (is.null(result)){
@@ -167,7 +153,12 @@ if (is.null(result)){
 ```
 
 
-## Expected Plot
+### Expected Response Plot
+
+This plot allows the user to visualize the expected response in the new generation given the individuals selected (best 20 percent) using the selection index.
+
+<p>&nbsp;</p>
+
 ```{r }
 library(dplyr)
 if (is.null(result)){

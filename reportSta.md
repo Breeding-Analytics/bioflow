@@ -8,7 +8,11 @@ runtime: shiny
 
 
 
-## Entries and traits by environment
+### Entries and traits by environment
+
+The following table allows to see which locations had data for the different traits.
+
+<p>&nbsp;</p>
 
 NULL
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; "><table class="table table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
@@ -78,8 +82,14 @@ NULL
 </tbody>
 </table></div>
 
+<p>&nbsp;</p>
 
-## Summary statistics 
+### Summary statistics
+
+The following table allows you to verify different quality metrics (KPIs) for the different environments. The selector button allows you to filter by trait.
+
+<p>&nbsp;</p>
+
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
@@ -89,11 +99,15 @@ NULL
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outbd75d7971cc6cbd7" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out56ab9becb550e8dd" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
+<p>&nbsp;</p>
 
+### Predictions 
 
-## Predictions 
+The following table allows you to check the trait predictions in wide format and filter them by environment.
+
+<p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
@@ -112,9 +126,14 @@ NULL
 </div><!--/html_preserve-->
 
 
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out3071ab3c4f545e68" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out281c0ab49410ac37" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<p>&nbsp;</p>
 
-## Boxplot
+### Boxplot
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out866bfbb24f0e1d16" style="width:100%;height:400px;"></div><!--/html_preserve-->
+The following boxplot allows you to see the distribution of predicted values by trait (y-axis) in the different environments.
+
+<p>&nbsp;</p>
+
+![plot of chunk myBoxplot](figure/myBoxplot-1.png)<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out561bdaca718ffe2c" style="width:100%;height:400px;"></div><!--/html_preserve-->

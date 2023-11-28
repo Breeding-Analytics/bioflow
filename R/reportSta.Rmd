@@ -10,7 +10,11 @@ runtime: shiny
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
 ```
 
-## Entries and traits by environment
+### Entries and traits by environment
+
+The following table allows to see which locations had data for the different traits.
+
+<p>&nbsp;</p>
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
@@ -58,8 +62,14 @@ if (is.null(result)){
 }
 ```
 
+<p>&nbsp;</p>
 
-## Summary statistics 
+### Summary statistics
+
+The following table allows you to verify different quality metrics (KPIs) for the different environments. The selector button allows you to filter by trait.
+
+<p>&nbsp;</p>
+
 ```{r }
 if (is.null(result)){
   invisible(NULL)
@@ -144,9 +154,13 @@ if (is.null(result)){
 }
 ```
 
+<p>&nbsp;</p>
 
+### Predictions 
 
-## Predictions 
+The following table allows you to check the trait predictions in wide format and filter them by environment.
+
+<p>&nbsp;</p>
 
 ```{r }
 if (is.null(result)){
@@ -159,7 +173,6 @@ if (is.null(result)){
 }
 
 ```
-
 
 
 ```{r }
@@ -189,7 +202,13 @@ if (is.null(result)){
 
 ```
 
-## Boxplot
+<p>&nbsp;</p>
+
+### Boxplot
+
+The following boxplot allows you to see the distribution of predicted values by trait (y-axis) in the different environments.
+
+<p>&nbsp;</p>
 
 ```{r myBoxplot}
 suppressWarnings(tryCatch({

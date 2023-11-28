@@ -67,25 +67,7 @@ mod_ocsApp_ui <- function(id){
       ),
       tabPanel("Report",
                br(),
-               shinydashboard::box(width = 6, status = "success",# background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                                   selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to visualize", choices = NULL, multiple = FALSE),
-                                   selectInput(ns("environment"), "Treatment to view", choices = NULL, multiple = FALSE)
-               ),
-               shinydashboard::box(width = 6, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                                   selectInput(ns("xAxisPredictions2D"),label = "X axis:", choices = c("designation","mother","father","entryType"),
-                                               multiple=FALSE,selected = "designation"),
-                                   selectInput(ns("yAxisPredictions2D"),label = "Y axis:",choices = c("predictedValue","stdError","reliability"),
-                                               multiple=FALSE,selected = "predictedValue"),
-                                   selectInput(ns("colorPredictions2D"),label = "Color by:", choices = c("mother","father","entryType"),
-                                               multiple=FALSE, selected = "mother"),
-                                   selectInput(ns("sizePredictions2D"),label = "Size by:",choices = c("predictedValue","stdError","reliability"),
-                                               multiple=FALSE,selected = "stdError"),
-                                   selectInput(ns("textPredictions2D"), label = "Text by:",choices = c("designation","mother","father","entryType"),
-                                               multiple=FALSE,selected = "designation")
-               ),
-               shinydashboard::box(status="success",width = 12,# solidHeader = TRUE, title = "Desired change and expected response",
-                                   plotly::plotlyOutput(ns("plotPredictionsScatter"))
-               )
+               uiOutput(ns('reportOcs'))
       ),
       tabPanel("Documentation",
                br(),
@@ -123,7 +105,7 @@ mod_ocsApp_ui <- function(id){
 #' ocsApp Server Functions
 #'
 #' @noRd
-mod_ocsApp_server <- function(id, data){
+mod_ocsApp_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -133,6 +115,11 @@ mod_ocsApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    data = reactive({
+      load("~/Documents/bioflow/dataStr0.RData")
+      data <- res
+      return(data)
+    })
     #################
     ## version
     observeEvent(c(data()), {
@@ -256,13 +243,13 @@ mod_ocsApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          data(result) # update data with results
+          # data(result) # update data with results
           cat(paste("Optimal cross selection step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }
-        shinybusy::remove_modal_spinner()
       }
+      shinybusy::remove_modal_spinner()
 
       if(!inherits(result,"try-error")) {
         # view predictions
@@ -318,21 +305,6 @@ mod_ocsApp_server <- function(id, data){
             )
           # }
         })
-        ## Report tab: plot scatter of predictions and color by pedigree
-        output$plotPredictionsScatter <-  plotly::renderPlotly({
-          # input <- list(traitFilterPredictions2D2="desireIndex", environment="desireIndex ~ 20 crosses * 30 degrees", checkboxBoxplotPredictions2D=TRUE,
-          #               xAxisPredictions2D="designation",yAxisPredictions2D="predictedValue",colorPredictions2D="mother", sizePredictions2D="stdError", textPredictions2D="designation")
-          mydata = data()$predictions
-          mtas <- data()$status[which(data()$status$module == "ocs"),"analysisId"];mtaId <- mtas[length(mtas)]
-          mydata <- mydata[which(mydata$analysisId == mtaId),]
-          mydata = mydata[which(mydata$trait == input$traitFilterPredictions2D2),]
-          mydata = mydata[which(mydata$environment == input$environment),]
-          res = plotly::plot_ly(data = mydata, x = mydata[,input$xAxisPredictions2D], y = mydata[,input$yAxisPredictions2D],
-                                color=mydata[,input$colorPredictions2D], size=mydata[,input$sizePredictions2D], #boxpoints = "all",
-                                text=mydata[,input$textPredictions2D],  type="box")
-          # res = res %>% plotly::layout(showlegend = FALSE)
-          res
-        })
 
       } else {
         output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
@@ -340,6 +312,11 @@ mod_ocsApp_server <- function(id, data){
         output$modelingOcs <- DT::renderDT({DT::datatable(NULL)})
       }
 
+      ## Report tab
+      save(result, file = "./R/outputs/resultOcs.RData")
+      output$reportOcs <- renderUI({
+        HTML(markdown::markdownToHTML(knitr::knit("./R/reportOcs.Rmd", quiet = TRUE), fragment.only=TRUE))
+      })
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
