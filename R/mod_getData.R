@@ -1,5 +1,6 @@
 pheno_example <- 'www/example/pheno.csv'
 geno_example  <- 'www/example/geno.hmp.gz'
+ped_example   <- 'www/example/pedigree.csv'
 
 #' getData UI Function
 #'
@@ -167,7 +168,7 @@ mod_getData_ui <- function(id){
           tableOutput(ns('chrom_summary')),
 
           # Accessions exist in both phenotypic and genotypic files (will be used to train the model)
-          #Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
+          # Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
           # Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
           verbatimTextOutput(ns('geno_summary')),
         )
@@ -175,7 +176,58 @@ mod_getData_ui <- function(id){
       tabPanel(
         title = 'Pedigree',
         value = ns('tab3'),
-        tags$p('Comming soon!', style = 'color: red; font-size: 20px; margin-top: 25px;'),
+        # tags$p('Comming soon!', style = 'color: red; font-size: 20px; margin-top: 25px;'),
+
+        tags$br(),
+
+        selectInput(
+          inputId = ns('ped_input'),
+          label   = 'Data Source*: ',
+          choices = list('Upload File' = 'file', 'Copy URL' = 'url'),
+          width   = '200px'
+        ),
+
+        tags$span(id = ns('ped_file_holder'),
+                  fileInput(
+                    inputId = ns('ped_file'),
+                    label   = NULL,
+                    width   = '400px',
+                    accept  = c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
+                  )
+        ),
+
+        textInput(
+          inputId = ns('ped_url'),
+          label   = NULL,
+          value   = '',
+          width   = '400px',
+          placeholder = 'https://example.com/path/file.csv'
+        ),
+
+        tags$span(id = ns('ped_csv_options'),
+                  shinydashboard::box(title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'primary', solidHeader = TRUE,
+                                      shinyWidgets::prettyRadioButtons(ns('ped_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                       choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                      shinyWidgets::prettyRadioButtons(ns('ped_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                       choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                      shinyWidgets::prettyRadioButtons(ns('ped_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                       choices = c('Dot' = '.', 'Comma' = ',')),
+                  ),
+        ),
+
+        if (!is.null(ped_example)) {
+          checkboxInput(
+            inputId = ns('ped_example'),
+            label = span('Load example ',
+                         a('pedigree data', target = '_blank',
+                           href = ped_example)),
+            value = FALSE
+          )
+        },
+
+        uiOutput(ns('ped_map')),
       ),
       tabPanel(
         title = 'Weather',
@@ -288,7 +340,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
             }
 
             if (x == 'designation') {
-              temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA)
+              temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
             }
             data(temp)
           }),
@@ -469,6 +521,46 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
 
         golem::invoke_js('showid', ns('geno_file_holder'))
         golem::invoke_js('hideid', ns('geno_url'))
+      }
+    )
+
+    ### Pedigree tab controls ##################################################
+
+    observeEvent(
+      input$ped_input,
+      if (input$ped_input == 'file') {
+        golem::invoke_js('showid', ns('ped_file_holder'))
+        golem::invoke_js('hideid', ns('ped_url'))
+        golem::invoke_js('showid', ns('ped_csv_options'))
+        updateCheckboxInput(session, 'ped_example', value = FALSE)
+      } else if (input$ped_input == 'url') {
+        golem::invoke_js('hideid', ns('ped_file_holder'))
+        golem::invoke_js('showid', ns('ped_url'))
+        golem::invoke_js('showid', ns('ped_csv_options'))
+      }
+    )
+
+    observeEvent(
+      input$ped_example,
+      if (input$ped_example) {
+        updateSelectInput(session, 'ped_input', selected = 'url')
+
+        ped_example_url <-  paste0(session$clientData$url_protocol, '//',
+                                   session$clientData$url_hostname, ':',
+                                   session$clientData$url_port,
+                                   session$clientData$url_pathname,
+                                   ped_example)
+
+        updateTextInput(session, 'ped_url', value = ped_example_url)
+
+        golem::invoke_js('hideid', ns('ped_file_holder'))
+        golem::invoke_js('showid', ns('ped_url'))
+      } else {
+        updateSelectInput(session, 'ped_input', selected = 'file')
+        updateTextInput(session, 'ped_url', value = '')
+
+        golem::invoke_js('showid', ns('ped_file_holder'))
+        golem::invoke_js('hideid', ns('ped_url'))
       }
     )
 
