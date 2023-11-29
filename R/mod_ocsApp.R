@@ -244,6 +244,7 @@ mod_ocsApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
+          save(result, file = "./R/outputs/resultOcs.RData")
           cat(paste("Optimal cross selection step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
@@ -257,7 +258,7 @@ mod_ocsApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            predictions <- data()$predictions
+            predictions <- result$predictions
             predictions <- predictions[predictions$module=="ocs",]
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
@@ -275,7 +276,7 @@ mod_ocsApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            metrics <- data()$metrics
+            metrics <- result$metrics
             metrics <- metrics[metrics$module=="ocs",]
             metrics$analysisId <- as.numeric(metrics$analysisId)
             metrics <- metrics[!is.na(metrics$analysisId),]
@@ -293,7 +294,7 @@ mod_ocsApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            modeling <- data()$modeling
+            modeling <- result$modeling
             modeling <- modeling[modeling$module=="ocs",]
             modeling$analysisId <- as.numeric(modeling$analysisId)
             modeling <- modeling[!is.na(modeling$analysisId),]
@@ -305,6 +306,10 @@ mod_ocsApp_server <- function(id, data){
             )
           # }
         })
+        ## Report tab
+        output$reportOcs <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportOcs.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
 
       } else {
         output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
@@ -312,11 +317,7 @@ mod_ocsApp_server <- function(id, data){
         output$modelingOcs <- DT::renderDT({DT::datatable(NULL)})
       }
 
-      ## Report tab
-      save(result, file = "./R/outputs/resultOcs.RData")
-      output$reportOcs <- renderUI({
-        HTML(markdown::markdownToHTML(knitr::knit("./R/reportOcs.Rmd", quiet = TRUE), fragment.only=TRUE))
-      })
+
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive

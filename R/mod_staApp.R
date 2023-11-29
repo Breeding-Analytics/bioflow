@@ -261,12 +261,13 @@ mod_staApp_server <- function(id,data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
+          save(result, file = "./R/outputs/resultSta.RData")
           cat(paste("Single-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }
-        shinybusy::remove_modal_spinner()
       }
+      shinybusy::remove_modal_spinner()
 
       if(sum(dtSta$status$module %in% "qaRaw") != 0) {
 
@@ -328,17 +329,16 @@ mod_staApp_server <- function(id,data){
             # }
           }
         })
+        ## report
+        output$reportSta <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportSta.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
+
       } else {
         output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})
         output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
         output$modelingSta <- DT::renderDT({DT::datatable(NULL)})
       }
-
-      save(result, file = "./R/outputs/resultSta.RData")
-
-      output$reportSta <- renderUI({
-        HTML(markdown::markdownToHTML(knitr::knit("./R/reportSta.Rmd", quiet = TRUE), fragment.only=TRUE))
-      })
 
       hideAll$clearAll <- FALSE
 

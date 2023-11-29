@@ -209,12 +209,13 @@ mod_pggApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
+          save(result, file = "./R/outputs/resultPgg.RData")
           cat(paste("Predicted genetic gain step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }
-        shinybusy::remove_modal_spinner()
       }
+      shinybusy::remove_modal_spinner()
 
       if(!inherits(result,"try-error")) {
 
@@ -253,6 +254,10 @@ mod_pggApp_server <- function(id, data){
           )
           # }
         })
+        # Report tab
+        output$reportPgg <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportPgg.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
 
 
       } else {
@@ -261,10 +266,6 @@ mod_pggApp_server <- function(id, data){
         output$modelingPgg <- DT::renderDT({DT::datatable(NULL)})
       }
 
-      save(result, file = "./R/outputs/resultPgg.RData")
-      output$reportPgg <- renderUI({
-        HTML(markdown::markdownToHTML(knitr::knit("./R/reportPgg.Rmd", quiet = TRUE), fragment.only=TRUE))
-      })
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive

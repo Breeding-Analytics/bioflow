@@ -326,12 +326,13 @@ mod_mtaApp_server <- function(id, data){
         )
         if(!inherits(resultMta,"try-error")) {
           data(resultMta) # update data with results
+          save(resultMta, file = "./R/outputs/resultMta.RData")
           cat(paste("Multi-trial analysis step with id:",resultMta$status$analysisId[length(resultMta$status$analysisId)],"saved."))
         }else{
           print(resultMta)
         }
-        shinybusy::remove_modal_spinner()
       }
+      shinybusy::remove_modal_spinner()
 
       if(!inherits(resultMta,"try-error")) { # if all goes well in the run
         ## predictions table
@@ -339,7 +340,7 @@ mod_mtaApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            predictions <- data()$predictions
+            predictions <- resultMta$predictions
             predictions <- predictions[predictions$module=="mta",]
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
@@ -358,8 +359,8 @@ mod_mtaApp_server <- function(id, data){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-              metrics <- data()$metrics
-              mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+              metrics <- resultMta$metrics
+              mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
               metrics <- metrics[which(metrics$analysisId == mtaId),]
               metrics <- subset(metrics, select = -c(module,analysisId))
               numeric.output <- c("value", "stdError")
@@ -376,8 +377,8 @@ mod_mtaApp_server <- function(id, data){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-              modeling <- data()$modeling
-              mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+              modeling <- resultMta$modeling
+              mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
               modeling <- modeling[which(modeling$analysisId == mtaId),]
               modeling <- subset(modeling, select = -c(module,analysisId))
               DT::datatable(modeling, extensions = 'Buttons',
@@ -388,42 +389,9 @@ mod_mtaApp_server <- function(id, data){
           }
         })
         # ## Report tab
-        # # plot correlation between environments
-        # output$plotPredictionsCorrelation <-  plotly::renderPlotly({
-        #   mydata = data()$predictions
-        #   stas <- data()$status[which(data()$status$module == "sta"),"analysisId"];staId <- stas[length(stas)]
-        #   mydata <- mydata[which(mydata$analysisId == staId),]
-        #   corPlotPredictions(mydata, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-        #                      valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
-        #
-        # })
-        # # plot correlation between traits
-        # output$plotPredictionsCorrelationTraits <-  plotly::renderPlotly({
-        #   mydata = data()$predictions
-        #   mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"];mtaId <- mtas[length(mtas)]
-        #   mydata <- mydata[which(mydata$analysisId == mtaId),]
-        #   corPlotPredictions(mydata, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-        #                      valueForCorrelation="predictedValue",input$checkboxCluster,input$checkboxText, input$checkboxAxis)
-        #
-        # })
-        # # table of predictions in wide format
-        # output$tablePredictionsTraitsWide <-  DT::renderDT({
-        #   # if ( hideAll$clearAll){
-        #   #   return()
-        #   # }else{
-        #     mydata = data()$predictions
-        #     mtas <- data()$status[which(data()$status$module == "mta"),"analysisId"];mtaId <- mtas[length(mtas)]
-        #     mydata <- mydata[which(mydata$analysisId == mtaId),]
-        #     wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
-        #                            timevar = "trait", v.names = c("predictedValue"), sep= "_")
-        #     colnames(wide) <- gsub("predictedValue_","",colnames(wide))
-        #     numeric.output <- colnames(wide)[-c(1)]
-        #     DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
-        #                                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-        #                                                  lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-        #     ), numeric.output)
-        #   # }
-        # })
+        output$reportMta <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
 
       } else {
         output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
@@ -431,12 +399,6 @@ mod_mtaApp_server <- function(id, data){
         output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
         hideAll$clearAll <- TRUE
       } ### enf of if(!inherits(resultMta,"try-error"))
-
-      save(resultMta, file = "./R/outputs/resultMta.RData")
-
-      output$reportMta <- renderUI({
-        HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
-      })
 
       hideAll$clearAll <- FALSE
 

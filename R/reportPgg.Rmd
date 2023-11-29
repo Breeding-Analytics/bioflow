@@ -17,7 +17,7 @@ get_h <- function() {
 
 ### Predicted genetic gain
 
-The following table provides an overview of the performance of the predicted crosses for the different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs.
+The following density plot allows you to see the expected change in the next generation compared to the current generation given the current genetic gain parameters (accuracy, intensity, genetic variance) obtained in a particular MET for the selected traits.
 
 <p>&nbsp;</p>
 
@@ -36,9 +36,9 @@ if (is.null(result)){
   idPgg <- idPgg[length(idPgg)]
   modeling <- modeling[which(modeling$analysisId == idPgg & modeling$environment == "across"),"trait"]
   selectInput(ns("traitFilterPredictions2D2"), 
-            label = "Trait:", 
-            choices = unique(modeling), 
-            )
+              label = "Trait:", 
+              choices = unique(modeling), 
+  )
 }
 
 ```
@@ -53,22 +53,24 @@ if (is.null(result)){
   idPgg <- idPgg[length(idPgg)]
   current.metrics <- metrics[which(metrics$analysisId %in% c(idPgg)),]
   
-  fig <- plotly::plot_ly(alpha = 0.6)
-  ## plot for the general population
-  mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-  sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-  fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
-  ## plot for the expected new population
-  R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-  fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
-  ## add line for the selected population
-  vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-  vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-  vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-  # overlay the histograms
-  i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-  fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-  plotly::renderPlotly({fig})
+  plotly::renderPlotly({
+    fig <- plotly::plot_ly(alpha = 0.6)
+    ## plot for the general population
+    mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+    sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+    fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
+    ## plot for the expected new population
+    R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+    fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
+    ## add line for the selected population
+    vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
+    vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
+    vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
+    # overlay the histograms
+    i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+    fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
+    fig
+  })
   
   
 }

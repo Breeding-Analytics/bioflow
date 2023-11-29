@@ -114,7 +114,11 @@ mod_indexDesireApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
+    # data = reactive({
+    #   load("~/Documents/bioflow/dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -155,13 +159,21 @@ mod_indexDesireApp_server <- function(id, data){
                                                    lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
       ), numeric.output)
     })
-    # render plot for initial values
+    # render radar plot for initial values
     output$plotPredictionsRadar <-  plotly::renderPlotly({
       req(data())
       req(input$version2IdxD)
+      req(input$trait2IdxD)
       dtIdxD <- data(); dtIdxD <- dtIdxD$predictions
       mydata <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
-      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=input$trait2IdxD,proportion=input$proportion,meanGroupPredictionsRadar=input$desirev,
+      ## ensure product profile means come sorted
+      if(length(input$trait2IdxD) == length(unlist(strsplit(input$desirev,",")))){
+        dd <- data.frame(trait=input$trait2IdxD, value=unlist(strsplit(input$desirev,",")))
+        dd <- dd[with(dd, order(as.numeric(as.factor(trait)))), ]
+        desireRp <- dd[,"value"]
+        traitRp <- dd[,"trait"]
+      }else{desireRp <- input$desirev; traitRp <- input$trait2IdxD}
+      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar=desireRp,
                              fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
     })
     # render plot for potential responses
@@ -176,7 +188,9 @@ mod_indexDesireApp_server <- function(id, data){
     ## render result of "run" button click
     outIdxD <- eventReactive(input$runIdxD, {
       req(data())
+      req(input$version2IdxD)
       req(input$trait2IdxD)
+      req(input$desirev)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtIdxD <- data()
       # run the modeling, but before test if mta was done
@@ -204,20 +218,20 @@ mod_indexDesireApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
+          save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           print(result)
         }
-        shinybusy::remove_modal_spinner()
       }
-
+      shinybusy::remove_modal_spinner()
       if(!inherits(result,"try-error")) {
         # display table of predictions
         output$predictionsIdxD <-  DT::renderDT({
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            predictions <- data()$predictions
+            predictions <- result$predictions
             predictions <- predictions[predictions$module=="indexD",]
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
@@ -235,8 +249,8 @@ mod_indexDesireApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            modeling <- data()$modeling
-            mtas <- data()$status[which(data()$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            modeling <- result$modeling
+            mtas <- result$status[which(result$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',
@@ -245,6 +259,10 @@ mod_indexDesireApp_server <- function(id, data){
             )
           # }
         })
+        ## Report tab
+        output$reportIndex <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportIndex.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
 
       } else {
         output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)})
@@ -252,11 +270,7 @@ mod_indexDesireApp_server <- function(id, data){
         output$modelingIdxD <- DT::renderDT({DT::datatable(NULL)})
         hideAll$clearAll <- TRUE
       }
-      ## Report tab
-      save(result, file = "./R/outputs/resultIndex.RData")
-      output$reportIndex <- renderUI({
-        HTML(markdown::markdownToHTML(knitr::knit("./R/reportIndex.Rmd", quiet = TRUE), fragment.only=TRUE))
-      })
+
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
