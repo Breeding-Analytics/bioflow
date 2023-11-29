@@ -205,7 +205,7 @@ mod_qaStaApp_server <- function(id, data){
         myTable <- base::merge(outlier,dtQaMb, by.x="record", by.y="outlierRow", all.x=TRUE)
         DT::datatable(myTable, extensions = 'Buttons',
                                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
         )
       })
 

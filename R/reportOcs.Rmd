@@ -68,35 +68,58 @@ The following barplot allows you identify the number of times (y-axis) that a pa
 
 <p>&nbsp;</p>
 
+```{r}
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  predictions <- result$predictions
+  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+  idOcs <- idOcs[length(idOcs)]
+  myEnvs <- predictions[which(predictions$analysisId == idOcs),"environment"]
+  selectInput(ns("environ"), 
+              label = "Treatment:", 
+              multiple = TRUE,
+              selected = unique(myEnvs),
+              choices = unique(myEnvs)
+  )
+}
+```
+
 ```{r myBarplot}
 if (is.null(result)){
   invisible(NULL)
 } else {
-  mydata = result$predictions
-  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-  idOcs <- idOcs[length(idOcs)]
-  ocsTrait <- result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$parameter == "ocsFormula"),"trait"];
-  mydata <- mydata[which(mydata$analysisId %in% c(idOcs[length(idOcs)])),]
-  mydata <- mydata[which(mydata$trait == ocsTrait),]
   
-  treatments <- unique(mydata$environment)
-  wideList <- list()
-  for(iTreatment in treatments){
-    overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
-    countsCol <- data.frame(times=apply(overlayCounts,2,sum))
-    countsCol$parent <- as.factor(rownames(countsCol))
-    countsCol$treatment <- iTreatment
-    wideList[[iTreatment]] <- countsCol
-  }
-  countsCol <- do.call(rbind, wideList)
-  
-  p2 <- ggplot2::ggplot(data=countsCol, ggplot2::aes(x=parent, y=times)) +
-    ggplot2::geom_bar(stat="identity", fill="steelblue")+
-    ggplot2::geom_text(ggplot2::aes(label=times), vjust=6, size=3.5)+
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) + ggplot2::facet_grid(~treatment) + 
-    ggplot2::labs(x="Parent", y="Times used in a cross") 
-  fig2 <-  plotly::ggplotly(p2)#, height = get_h()); 
-  plotly::renderPlotly({fig2})
+  plotly::renderPlotly({
+    
+    mydata = result$predictions
+    idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+    idOcs <- idOcs[length(idOcs)]
+    ocsTrait <- result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$parameter == "ocsFormula"),"trait"];
+    mydata <- mydata[which(mydata$analysisId %in% c(idOcs[length(idOcs)])),]
+    mydata <- mydata[which(mydata$trait == ocsTrait),]
+    mydata <- mydata[which(mydata$environment %in% input$environ),]
+    
+    treatments <- unique(mydata$environment)
+    wideList <- list()
+    for(iTreatment in treatments){
+      overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
+      countsCol <- data.frame(times=apply(overlayCounts,2,sum))
+      countsCol$parent <- as.factor(rownames(countsCol))
+      countsCol$treatment <- iTreatment
+      wideList[[iTreatment]] <- countsCol
+    }
+    countsCol <- do.call(rbind, wideList)
+    
+    p2 <- ggplot2::ggplot(data=countsCol, ggplot2::aes(x=parent, y=times)) +
+      ggplot2::geom_bar(stat="identity", fill="steelblue")+
+      ggplot2::geom_text(ggplot2::aes(label=times), vjust=6, size=3.5)+
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) + ggplot2::facet_grid(~treatment) + 
+      ggplot2::labs(x="Parent", y="Times used in a cross") 
+    fig2 <-  plotly::ggplotly(p2)#, height = get_h()); 
+    fig2
+    
+  })
 }
 ```
 
@@ -179,36 +202,58 @@ if (is.null(result)){
 The following boxplot allows you to see the performance of the different crosses predicted (dots in the boxplot) grouped by the different parents (x-axis).
 
 <p>&nbsp;</p>
+```{r}
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  predictions <- result$predictions
+  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+  idOcs <- idOcs[length(idOcs)]
+  myTraits <- predictions[which(predictions$analysisId == idOcs),"trait"]
+  selectInput(ns("traitFilterPredictions2D2"), 
+              label = "Trait:", 
+              multiple = TRUE,
+              selected = unique(myTraits),
+              choices = unique(myTraits)
+  )
+}
+```
 
 ```{r myBoxplot}
 library(dplyr)
 if (is.null(result)){
   invisible(NULL)
 } else {
-  mydata = result$predictions
-  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-  idOcs <- idOcs[length(idOcs)]
-  mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
   
-  mydataF <- mydataM <- mydata
-  mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
-  colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
-  mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
-  colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
-  mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+  # cat("A total of",paste(length(unique(mydata2$parent))), "parents were selected.")
   
-  cat("A total of",paste(length(unique(mydata2$parent))), "parents were selected.")
-  p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=parent, y=predictedValue, label=designation) ) + 
-    ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
-    ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
-    ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                   axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-    ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~environment, scales = "free")# +
-  # ggplot2::guides(color=ggplot2::guide_legend(""))
-  
-  fig <-  plotly::ggplotly(p, height = get_h()*2); 
-  plotly::renderPlotly({fig})
-  
+  plotly::renderPlotly({
+    mydata = result$predictions
+    idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+    idOcs <- idOcs[length(idOcs)]
+    mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+    ## get the required traits
+    mydata <- mydata[which(mydata$trait %in% c(input$traitFilterPredictions2D2)),]
+    ##
+    mydataF <- mydataM <- mydata
+    mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
+    colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
+    mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
+    colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
+    mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+    
+    
+    p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=parent, y=predictedValue, label=designation) ) + 
+      ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
+      ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+      ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~environment, scales = "free")# +
+    # ggplot2::guides(color=ggplot2::guide_legend(""))
+    
+    fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+    fig
+  })
 }
 ```
 

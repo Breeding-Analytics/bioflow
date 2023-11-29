@@ -39,7 +39,7 @@ mod_indexDesireApp_ui <- function(id){
       tabPanel("Input Data",
                br(),
                shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE, title = "Desired change and expected response",
+                                   solidHeader = TRUE,
                                    plotly::plotlyOutput(ns("plotPredictionsRadar")),
                                    plotly::plotlyOutput(ns("plotPotentialResponse"))
                ),
@@ -65,10 +65,6 @@ mod_indexDesireApp_ui <- function(id){
       tabPanel("Report",
                br(),
                uiOutput(ns('reportIndex'))
-               # shinydashboard::box(status="primary",width = 12,
-               #                     solidHeader = TRUE,
-               #                     column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide2")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               # )
       ),
       tabPanel("Documentation",
                br(),
@@ -156,7 +152,7 @@ mod_indexDesireApp_server <- function(id, data){
       numeric.output <- colnames(wide)[-c(1)]
       DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
     })
     # render radar plot for initial values
@@ -221,7 +217,7 @@ mod_indexDesireApp_server <- function(id, data){
           save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
-          print(result)
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
       }
       shinybusy::remove_modal_spinner()
@@ -240,7 +236,7 @@ mod_indexDesireApp_server <- function(id, data){
             numeric.output <- c("predictedValue", "stdError", "reliability")
             DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             ), numeric.output)
           # }
         })
@@ -255,7 +251,7 @@ mod_indexDesireApp_server <- function(id, data){
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',
                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             )
           # }
         })

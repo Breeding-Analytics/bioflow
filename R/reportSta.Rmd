@@ -18,10 +18,10 @@ The following table allows to see which locations had data for the different tra
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-        readRDS("./outputs/resultSta.RData")
-      }, error = function(e) {
-        NULL
-      }))
+  readRDS("./outputs/resultSta.RData")
+}, error = function(e) {
+  NULL
+}))
 if (is.null(result)){
   invisible(NULL)
 } else {
@@ -74,10 +74,15 @@ The following table allows you to verify different quality metrics (KPIs) for th
 if (is.null(result)){
   invisible(NULL)
 } else {
+  modeling <- result$modeling
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
   selectInput(ns("traitSta"), 
-            label = "Trait:", 
-            choices = unique(pred$trait), 
-            )
+              label = "Trait:", 
+              multiple = FALSE,
+              choices = unique(modeling), 
+  )
 }
 
 ```
@@ -88,19 +93,19 @@ if (is.null(result)){
 } else {
   pred.traits <- subset(pred, select = c(trait,designation,environment,predictedValue))
   pred.traits <- reshape(
-  data=pred.traits, 
-  timevar = c("trait"), 
-  idvar = c("environment","designation"), 
-  direction="wide"
+    data=pred.traits, 
+    timevar = c("trait"), 
+    idvar = c("environment","designation"), 
+    direction="wide"
   )
   names(pred.traits)[-c(1,2)] <- gsub("predictedValue.", "", names(pred.traits)[-c(1,2)]) 
   pred.traits <- reshape(pred.traits, 
-          direction = "long",
-          varying = list(names(pred.traits)[3:ncol(pred.traits)]),
-          v.names = "Value",
-          idvar = c("designation", "environment"),
-          timevar = "trait",
-          times = traits)
+                         direction = "long",
+                         varying = list(names(pred.traits)[3:ncol(pred.traits)]),
+                         v.names = "Value",
+                         idvar = c("designation", "environment"),
+                         timevar = "trait",
+                         times = traits)
   rownames(pred.traits) <- NULL
   ## Max
   pred.traits.max <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
@@ -149,8 +154,8 @@ if (is.null(result)){
       scrollY = "400px",
       scrollX = "400px",
       paging = F)
-    ),numeric.output)
-    })
+  ),numeric.output)
+  })
 }
 ```
 
@@ -166,10 +171,14 @@ The following table allows you to check the trait predictions in wide format and
 if (is.null(result)){
   invisible(NULL)
 } else {
+  modeling <- result$modeling
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  envs <- unique(result$predictions[which( result$predictions$analysisId == idSta),"environment"])
   selectInput(ns("envSta"), 
-            label = "Environment:", 
-            choices = unique(pred$environment)
-            )
+              label = "Environment:", 
+              choices = envs, 
+  )
 }
 
 ```
@@ -186,7 +195,7 @@ if (is.null(result)){
     timevar = c("trait"), 
     idvar = c("environment","designation"), 
     direction="wide"
-    )
+  )
   names(predictions.designation) <- c("deignation","environment",traits)
   DT::renderDT({DT::formatRound(DT::datatable(
     predictions.designation[predictions.designation$environment==input$envSta,],
@@ -196,8 +205,8 @@ if (is.null(result)){
       scrollY = "400px",
       scrollX = "400px",
       paging = F)
-    ),traits)
-    })
+  ),traits)
+  })
 }
 
 ```
@@ -210,26 +219,45 @@ The following boxplot allows you to see the distribution of predicted values by 
 
 <p>&nbsp;</p>
 
+```{r }
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  modeling <- result$modeling
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
+  selectInput(ns("traitStaBox"), 
+              label = "Trait:", 
+              multiple = TRUE,
+              selected = unique(modeling),
+              choices = unique(modeling), 
+  )
+}
+
+```
+
 ```{r myBoxplot}
-suppressWarnings(tryCatch({
-        load("./outputs/resultSta.RData")
-      }, error = function(e) {
-        NULL
-      }))
 get_h <- function() {
   with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
        fig.height*dpi/fig.retina)
 }
 predTrait <- result$predictions
-p <- ggplot2::ggplot(predTrait, ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
-  ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
-  # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
-  ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                 axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-  ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~., scales = "free") #+
-  # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
 
-fig2 <-  plotly::ggplotly(p, height = get_h()*2); # fig2
-plotly::renderPlotly({fig2})
+plotly::renderPlotly({
+  if(length(input$traitStaBox) > 0){
+    p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% input$traitStaBox),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
+      ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
+      # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+      ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~., scales = "free") #+
+    # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
+    
+    fig2 <-  plotly::ggplotly(p)#, height = get_h()*2); # fig2
+    fig2
+  }
+  
+})
 
 ```

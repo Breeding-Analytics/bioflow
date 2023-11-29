@@ -21,9 +21,9 @@ mod_qaGenoApp_ui <- function(id){
 
       numericInput(ns("propNaUpperThreshForMarker"), label = "Threshold for missing data in markers", value = .3, step = .05, max = 1, min = 0),
       numericInput(ns("propNaUpperThreshForInds"), label = "Threshold for missing data in individuals", value = .3, step = .05, max = 1, min = 0),
-      numericInput(ns("maf"), label = "Minor allele frequency", value = .05, step = .05, max = 1, min = 0),
-      numericInput(ns("propHetUpperThreshForMarker"), label = "Threshold for heterozygosity in markers", value = .05, step = .05, max = 1, min = 0),
-      numericInput(ns("propFisUpperThreshForMarker"), label = "Threshold for inbreeding in markers", value = .05, step = .05, max = 1, min = 0),
+      numericInput(ns("maf"), label = "Minor allele frequency", value = 0, step = .05, max = 1, min = 0),
+      numericInput(ns("propHetUpperThreshForMarker"), label = "Threshold for heterozygosity in markers", value = 1, step = .05, max = 1, min = 0),
+      numericInput(ns("propFisUpperThreshForMarker"), label = "Threshold for inbreeding in markers", value = 1, step = .05, max = 1, min = 0),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
@@ -158,7 +158,7 @@ mod_qaGenoApp_server <- function(id, data){
         vline1 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
         vline2 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
         vline3 <- function(x = 0, color = "green") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-        fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Percentage of data"), yaxis = list(title = "Proportion of the population" ),
+        fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Value of paramter"), yaxis = list(title = "Proportion of markers" ),
                                       shapes = list(vline1(input$propNaUpperThreshForMarker),vline2(input$propNaUpperThreshForInds),vline3(input$maf) ) )
         fig
       }else{
@@ -187,7 +187,7 @@ mod_qaGenoApp_server <- function(id, data){
         }
         DT::datatable(mo, extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
         )
 
       })
@@ -210,6 +210,7 @@ mod_qaGenoApp_server <- function(id, data){
       if(nrow(mods) > 0){
         ## store the new modifications table
         temp <- data()
+        # save(temp, file = "./R/outputs/resultQaGeno.RData")
         temp$modifications$geno <- rbind(temp$modifications$geno, mods )
         ## write the new status table
         newStatus <- data.frame(module="qaMb", analysisId= mods$analysisId[nrow(mods)])

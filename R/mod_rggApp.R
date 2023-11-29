@@ -176,7 +176,7 @@ mod_rggApp_server <- function(id, data){
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtRgg, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
     })
     ## render result of "run" button click
@@ -219,7 +219,7 @@ mod_rggApp_server <- function(id, data){
           save(result, file = "./R/outputs/resultRgg.RData")
           cat(paste("Realized genetic gain step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
-          print(result)
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
       }
       shinybusy::remove_modal_spinner()
@@ -240,7 +240,7 @@ mod_rggApp_server <- function(id, data){
           numeric.output <- c("value", "stdError")
           DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
         })
@@ -257,7 +257,7 @@ mod_rggApp_server <- function(id, data){
           current.modeling <- subset(current.modeling, select = -c(module,analysisId))
           DT::datatable(current.modeling, extensions = 'Buttons',
                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
         })

@@ -193,7 +193,7 @@ mod_qaRawApp_server <- function(id, data){
         myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
         DT::datatable(myTable, extensions = 'Buttons',
                                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
         )
       })
 
@@ -209,34 +209,35 @@ mod_qaRawApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ## get the outlier table
       outlier <- newOutliers()
-      ## get data structure
-      temp <- data()
-      ## update analsisId in the outliers table
-      analysisId <- as.numeric(Sys.time())
-      outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
-      # ## bind new parameters
-      if(is.null(temp$modifications$pheno )){
-        temp$modifications$pheno <- outlier
-      }else{
-        temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications$pheno)])
+      if(nrow(outlier) > 0){ # if there's new outliers
+        ## get data structure
+        temp <- data()
+        ## update analsisId in the outliers table
+        analysisId <- as.numeric(Sys.time())
+        outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
+        # ## bind new parameters
+        if(is.null(temp$modifications$pheno )){
+          temp$modifications$pheno <- outlier
+        }else{
+          temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications$pheno)])
+        }
+        # add status table
+        newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
+        temp$status <- rbind(temp$status, newStatus)
+        # add modeling table
+        provMet <- data.frame(module="qaRaw",analysisId=analysisId, trait=input$traitOutqPheno, environment=NA,
+                              parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
+                              value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
+        if(is.null(temp$modeling)){
+          temp$modeling <- provMet
+        }else{
+          temp$modeling <- rbind(temp$modeling, provMet[,colnames(temp$modeling)])
+        }
+        data(temp)
+        cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
       }
-      # add status table
-      newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
-      temp$status <- rbind(temp$status, newStatus)
-      # add modeling table
-      provMet <- data.frame(module="qaRaw",analysisId=analysisId, trait=input$traitOutqPheno, environment=NA,
-                            parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
-                            value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
-      if(is.null(temp$modeling)){
-        temp$modeling <- provMet
-      }else{
-        temp$modeling <- rbind(temp$modeling, provMet[,colnames(temp$modeling)])
-      }
-      data(temp)
       shinybusy::remove_modal_spinner()
       # save(temp, file="toTest.RData")
-      cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
-
     })
     output$outQaRaw <- renderPrint({
       outQaRaw()
