@@ -15,9 +15,11 @@ app_ui <- function(request) {
 
       golem_add_external_resources(),
 
-      title=div(tags$b("MyTitle"), style = "color:#FFFFFF"),
+      title=div(tags$b(""), style = "color:#FFFFFF"),
 
       tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
+
+      tabPanel("Home", mod_homeApp_ui("homeApp_1")),
 
       tabPanel("Data Input ", mod_getData_ui("getData_1")),
       # tabPanel("Data Input ", mod_input_file_sta_ui("input_file_sta_1")),
@@ -40,7 +42,7 @@ app_ui <- function(request) {
                  tabPanel("QA/QC (model-based)",  ) ,
                  tabPanel("Marker QA/QC (optional)",  ),
                  tabPanel("GWAS",  ) # user needs to make all the process up to Marker QA/QC
-      ),
+      )
 
       # navbarMenu("Marker Structure ",
       #            tabPanel("Marker QA/QC",  ),
@@ -55,8 +57,6 @@ app_ui <- function(request) {
       # ),
 
 
-
-      tabPanel("About", "Bla Bla Bla")
 
     )
 

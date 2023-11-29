@@ -65,6 +65,7 @@ golem::add_module(name = "indexDesireApp", with_test = TRUE) # desire selection 
 golem::add_module(name = "ocsApp", with_test = TRUE) # optimal cross selection
 golem::add_module(name = "rggApp", with_test = TRUE) # realized genetic gain
 golem::add_module(name = "pggApp", with_test = TRUE) # predicted genetic gain
+golem::add_module(name = "homeApp", with_test = TRUE) # home
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

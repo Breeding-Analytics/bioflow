@@ -23,6 +23,8 @@ app_server <- function(input, output, session) {
   mod_ocsApp_server("ocsApp_1", data = data)
   mod_rggApp_server("rggApp_1", data = data)
   mod_pggApp_server("pggApp_1", data = data)
+
+  mod_homeApp_server("homeApp_1")
   # observeEvent(input$settingsSta, {
   #   hideTab(inputId = "tabso", target = "Multiple Trials")
   #   showTab(inputId = "tabso", target = "Single Trial")
