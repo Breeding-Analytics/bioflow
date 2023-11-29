@@ -42,7 +42,9 @@ app_ui <- function(request) {
                  tabPanel("QA/QC (model-based)",  ) ,
                  tabPanel("Marker QA/QC (optional)",  ),
                  tabPanel("GWAS",  ) # user needs to make all the process up to Marker QA/QC
-      )
+      ),
+
+      tabPanel("About", mod_aboutApp_ui("aboutApp_1")),
 
       # navbarMenu("Marker Structure ",
       #            tabPanel("Marker QA/QC",  ),

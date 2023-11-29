@@ -57,8 +57,8 @@ mod_homeApp_ui <- function(id){
         # images: top -> bottom, left -> right
         tags$div(tags$img(src = "www/homeImageAsia.JPG")),
         tags$div(tags$img(src = "www/homeImageAfrica4.png")),
-        tags$div(tags$img(src = "www/homeImageEurope3.jpg")),
-        tags$div(tags$img(src = "www/homeImageAmericas3.jpg"))
+        tags$div(tags$img(src = "www/homeImageAmericas2.jpg")),
+        tags$div(tags$img(src = "www/homeImageEurope3.jpg"))
       ),
       # child element 2: content
       tags$div(
@@ -69,8 +69,8 @@ mod_homeApp_ui <- function(id){
           tags$h1("Biometrical Genetics Workflow (bioflow)"),
           tags$p(
             "The OneCGIAR biometrical genetics workflow or pipeline has been built to provide access to automatic state-of-the-art genetic evaluation.",
-            "Designed to be database agnostic, it only requires connecting to one of the available databases to retrieve phenotypic,",
-            "genotypic or pedigree data and quickly map the features (columns) required to carry analytical procedures."
+            "Designed to be database agnostic, it only requires connecting to one of the available databases (EBS, BMS, BreedBase) to retrieve phenotypic,",
+            "genotypic or pedigree data, quickly map some features (columns) required, and carry the analytical procedures."
           )
         )
       )
