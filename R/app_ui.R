@@ -22,7 +22,6 @@ app_ui <- function(request) {
       tabPanel("Home", mod_homeApp_ui("homeApp_1")),
 
       tabPanel("Data Input ", mod_getData_ui("getData_1")),
-      # tabPanel("Data Input ", mod_input_file_sta_ui("input_file_sta_1")),
 
       navbarMenu("Genetic Evaluation",
                  tabPanel("1. QA/QC (raw-data)", mod_qaRawApp_ui("qaRawApp_1") ),
@@ -37,14 +36,14 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("QTL Mapping",
-                 tabPanel("QA/QC (raw data)", ),
-                 tabPanel("Single-Trial Analysis",  ),
-                 tabPanel("QA/QC (model-based)",  ) ,
-                 tabPanel("Marker QA/QC (optional)",  ),
-                 tabPanel("GWAS",  ) # user needs to make all the process up to Marker QA/QC
+                 tabPanel("P3D-GWAS",  ) # user needs to make all the process up to Marker QA/QC
       ),
 
-      tabPanel("About", mod_aboutApp_ui("aboutApp_1")),
+      navbarMenu("About",
+               tabPanel("Technology", mod_aboutApp_ui("aboutApp_1")),
+               tabPanel("Contact us",  ),
+               tabPanel("Meet the team",  ) ,
+               )
 
       # navbarMenu("Marker Structure ",
       #            tabPanel("Marker QA/QC",  ),
