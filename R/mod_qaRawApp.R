@@ -147,27 +147,49 @@ mod_qaRawApp_server <- function(id, data){
     })
     ## render the expected result
     output$plotPredictionsCleanOut <- plotly::renderPlotly({
-      req(data())
-      req(input$outlierCoefOutqFont)
-      req(input$traitOutqPheno)
-      mydata <- data()$data$pheno
-      mydata$rowindex <- 1:nrow(mydata)
-      mydata[, "environment"] <- as.factor(mydata[, "environment"])
-      mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      mo <- newOutliers()
-      mydata$color <- 1
-      if(nrow(mo) > 0){
-        mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2
+      # req(data())
+      # req(input$outlierCoefOutqFont)
+      # req(input$traitOutqPheno)
+      condition=FALSE
+      if(is.null(data())){ # if data is not there
+        mess <- "Please retrieve or load your phenotypic data using the 'Data' tab."
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){ # all are present
+          condition=TRUE
+        }else{
+          mess <- "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab."
+        }
       }
-      mydata$color <- as.factor(mydata$color)
-      # mydata$environment <- cgiarBase::cleanChar(mydata$environment)# as.factor(apply(data.frame(cgiarBase::cleanChar(mydata$fieldinst)),1,function(x){substr(x,max(c(1,(nchar(x)-18))),nchar(x))}))
-      res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
-                             x = mydata[,"environment"], text=mydata[,"designation"],
-                             pointpos = -1.8)
-      res = res %>% plotly::layout(showlegend = FALSE,
-                                   xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont))
-      )
-      res
+      if(condition){ # the user met all conditions we do the outlier plot
+        req(input$outlierCoefOutqFont)
+        req(input$traitOutqPheno)
+        mydata <- data()$data$pheno
+        mydata$rowindex <- 1:nrow(mydata)
+        mydata[, "environment"] <- as.factor(mydata[, "environment"])
+        mydata[, "designation"] <- as.factor(mydata[, "designation"])
+        mo <- newOutliers()
+        mydata$color <- 1
+        if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
+        mydata$color <- as.factor(mydata$color)
+        # mydata$environment <- cgiarBase::cleanChar(mydata$environment)# as.factor(apply(data.frame(cgiarBase::cleanChar(mydata$fieldinst)),1,function(x){substr(x,max(c(1,(nchar(x)-18))),nchar(x))}))
+        res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
+                               x = mydata[,"environment"], text=mydata[,"designation"],
+                               pointpos = -1.8)
+        res = res %>% plotly::layout(showlegend = FALSE,  xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont)))
+        res
+      }else{ # user didn't meet the conditions
+        plotly::plot_ly(x = c(1, 2), y = c(1, 2), type = 'scatter', mode = 'markers') %>%
+          # Add image
+          plotly::layout(
+            xaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)), yaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)),
+            images = list(
+              list( source =  "www/maize.jpg", xref = "x", yref = "y",x = 0,  y = 3,sizex = 3.5,  sizey = 3.5, sizing = "stretch", opacity = .9, layer = "above")
+            )
+          ) %>%
+          plotly::add_annotations(text = mess, x = 1, y = 2.5) # add a message
+      }
+
     })
 
     ## display the current outliers
@@ -175,26 +197,37 @@ mod_qaRawApp_server <- function(id, data){
 
       output$modificationsQa <-  DT::renderDT({
 
-        req(data())
-        req(input$outlierCoefOutqFont)
-        req(input$traitOutqPheno)
-        ## get the outlier table
-        outlier <- newOutliers()
-        removeCols <- c("module","analysisId","value")
-        outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
-        colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
-        ## add phenotypic data
-        dtQaRaw <- data()
-        dtQaRaw <- dtQaRaw$data$pheno
-        dtQaRaw$outlierRow <- 1:nrow(dtQaRaw)
-        removeCols <- c("stage","pipeline","country","year","season","location","trial","gid")
-        dtQaRaw <- dtQaRaw[,unique(c("outlierRow",setdiff(colnames(dtQaRaw), removeCols)))]
-        ## merge
-        myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
-        DT::datatable(myTable, extensions = 'Buttons',
-                                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-        )
+        condition=FALSE
+        if(is.null(data())){
+          # if data is not there
+        }else{ # data is there
+          mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+          if(mappedColumns == 3){ # all are present
+            condition=TRUE
+          }else{}
+        }
+        # req(data())
+        if(condition){
+          req(input$outlierCoefOutqFont)
+          req(input$traitOutqPheno)
+          ## get the outlier table
+          outlier <- newOutliers()
+          removeCols <- c("module","analysisId","value")
+          outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
+          colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
+          ## add phenotypic data
+          dtQaRaw <- data()
+          dtQaRaw <- dtQaRaw$data$pheno
+          dtQaRaw$outlierRow <- 1:nrow(dtQaRaw)
+          removeCols <- c("stage","pipeline","country","year","season","location","trial","gid")
+          dtQaRaw <- dtQaRaw[,unique(c("outlierRow",setdiff(colnames(dtQaRaw), removeCols)))]
+          ## merge
+          myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
+          DT::datatable(myTable, extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          )
+        }
       })
 
     })
@@ -203,40 +236,53 @@ mod_qaRawApp_server <- function(id, data){
 
     outQaRaw <- eventReactive(input$runQaRaw, {
 
-      req(data())
-      req(input$outlierCoefOutqFont)
-      req(input$traitOutqPheno)
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      ## get the outlier table
-      outlier <- newOutliers()
-      if(nrow(outlier) > 0){ # if there's new outliers
-        ## get data structure
-        temp <- data()
-        ## update analsisId in the outliers table
-        analysisId <- as.numeric(Sys.time())
-        outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
-        # ## bind new parameters
-        if(is.null(temp$modifications$pheno )){
-          temp$modifications$pheno <- outlier
-        }else{
-          temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications$pheno)])
-        }
-        # add status table
-        newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
-        temp$status <- rbind(temp$status, newStatus)
-        # add modeling table
-        provMet <- data.frame(module="qaRaw",analysisId=analysisId, trait=input$traitOutqPheno, environment=NA,
-                              parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
-                              value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
-        if(is.null(temp$modeling)){
-          temp$modeling <- provMet
-        }else{
-          temp$modeling <- rbind(temp$modeling, provMet[,colnames(temp$modeling)])
-        }
-        data(temp)
-        cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
+      # req(data())
+      condition=FALSE
+      if(is.null(data())){
+        # if data is not there
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){ # all are present
+          condition=TRUE
+        }else{}
       }
-      shinybusy::remove_modal_spinner()
+      if(condition){
+        req(input$outlierCoefOutqFont)
+        req(input$traitOutqPheno)
+        shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+        ## get the outlier table
+        outlier <- newOutliers()
+        if(nrow(outlier) > 0){ # if there's new outliers
+          ## get data structure
+          temp <- data()
+          ## update analsisId in the outliers table
+          analysisId <- as.numeric(Sys.time())
+          outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
+          # ## bind new parameters
+          if(is.null(temp$modifications$pheno )){
+            temp$modifications$pheno <- outlier
+          }else{
+            temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications$pheno)])
+          }
+          # add status table
+          newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
+          temp$status <- rbind(temp$status, newStatus)
+          # add modeling table
+          provMet <- data.frame(module="qaRaw",analysisId=analysisId, trait=input$traitOutqPheno, environment=NA,
+                                parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
+                                value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
+          if(is.null(temp$modeling)){
+            temp$modeling <- provMet
+          }else{
+            temp$modeling <- rbind(temp$modeling, provMet[,colnames(temp$modeling)])
+          }
+          data(temp)
+          cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
+        }
+        shinybusy::remove_modal_spinner()
+      }else{
+        cat("Please meet the data conditions before you identify and save outliers.")
+      }
       # save(temp, file="toTest.RData")
     })
     output$outQaRaw <- renderPrint({

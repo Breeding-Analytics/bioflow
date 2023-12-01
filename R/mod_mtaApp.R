@@ -29,13 +29,14 @@ mod_mtaApp_ui <- function(id){
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
       shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                          selectInput(ns("modelMet"), label = "Method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
+                          selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
                           textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
                           selectInput(ns("scaledDesireMet"), label = "Scale desire file", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
-                          selectInput(ns("modelMet"), label = "Method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -124,7 +125,7 @@ mod_mtaApp_ui <- function(id){
 #' mtaApp Server Functions
 #'
 #' @noRd
-mod_mtaApp_server <- function(id, data){
+mod_mtaApp_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -135,6 +136,11 @@ mod_mtaApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    data = reactive({ # provisional dataset for testing
+      load("dataStr0.RData")
+      data <- res
+      return(data)
+    })
     #################
     ## version
     observeEvent(c(data()), {
@@ -144,6 +150,15 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$module == "sta"),]
       traitsMta <- unique(dtMta$analysisId)
       updateSelectInput(session, "version2Mta", choices = traitsMta)
+    })
+    ## version qa marker
+    observeEvent(c(data()), {
+      req(data())
+      dtMta <- data()
+      dtMta <- dtMta$status
+      dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
+      traitsMta <- unique(dtMta$analysisId)
+      updateSelectInput(session, "versionMarker2Mta", choices = traitsMta, selected = traitsMta[length(traitsMta)])
     })
     #################
     ## traits
@@ -312,6 +327,7 @@ mod_mtaApp_server <- function(id, data){
         resultMta <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
+          analysisIdForGenoModifications = input$versionMarker2Mta,
           fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
           trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,

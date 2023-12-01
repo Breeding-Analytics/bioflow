@@ -19,30 +19,30 @@ app_ui <- function(request) {
 
       tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
 
-      tabPanel("Home", mod_homeApp_ui("homeApp_1")),
+      tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
-      tabPanel("Data Input ", mod_getData_ui("getData_1")),
+      tabPanel("Data Input ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
-      navbarMenu("Genetic Evaluation",
-                 tabPanel("1. QA/QC (raw-data)", mod_qaRawApp_ui("qaRawApp_1") ),
-                 tabPanel("2. Single-Trial Analysis",  mod_staApp_ui("staApp_1")),
-                 tabPanel("* Phenotype QA/QC (model-based)", mod_qaStaApp_ui("qaStaApp_1") ) ,
-                 tabPanel("* Marker QA/QC", mod_qaGenoApp_ui("qaGenoApp_1")  ),
-                 tabPanel("3. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
-                 tabPanel("4. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1") ) ,
-                 tabPanel("5. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1") ),
-                 tabPanel("6.1. Realized Genetic Gain", mod_rggApp_ui("rggApp_1")), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
-                 tabPanel("6.2. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"))# user needs to perform a multi-year genetic evaluation to provide the MET as input
+      navbarMenu("Genetic Evaluation", icon = icon("lightbulb"),
+                 tabPanel("1. Raw-Phenotypes QA/QC", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
+                 tabPanel("2. Single-Trial Analysis",  mod_staApp_ui("staApp_1"), icon = icon("seedling")),
+                 tabPanel("** Model-Based QA/QC", mod_qaStaApp_ui("qaStaApp_1"), icon = icon("soap") ) ,
+                 tabPanel("** Marker QA/QC", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
+                 tabPanel("3. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1"), icon = icon("circle-nodes") ), # biplot is part of the report in MET
+                 tabPanel("4. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1"), icon = icon("filter") ) ,
+                 tabPanel("5. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1"), icon = icon("diagram-project") ),
+                 tabPanel("6.1. Realized Genetic Gain", mod_rggApp_ui("rggApp_1"), icon = icon("chart-line") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
+                 tabPanel("6.2. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"), icon = icon("chart-line"))# user needs to perform a multi-year genetic evaluation to provide the MET as input
       ),
 
-      navbarMenu("QTL Mapping",
-                 tabPanel("P3D-GWAS",  ) # user needs to make all the process up to Marker QA/QC
+      navbarMenu("QTL Mapping", icon = icon("dna"),
+                 tabPanel("P3D-GWAS",  icon = icon("chart-line")) # user needs to make all the process up to Marker QA/QC
       ),
 
-      navbarMenu("About",
-               tabPanel("Technology", mod_aboutApp_ui("aboutApp_1")),
-               tabPanel("Contact us",  ),
-               tabPanel("Meet the team",  ) ,
+      navbarMenu("About", icon = icon("question"),
+               tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
+               tabPanel("Contact us", icon = icon("envelope") ),
+               tabPanel("Meet the team", icon = icon("yin-yang") ) ,
                )
 
       # navbarMenu("Marker Structure ",

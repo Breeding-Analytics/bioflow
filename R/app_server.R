@@ -18,7 +18,7 @@ app_server <- function(input, output, session) {
   mod_staApp_server("staApp_1", data = data)
   mod_qaStaApp_server("qaStaApp_1",data = data)
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
-  mod_mtaApp_server("mtaApp_1", data = data)
+  mod_mtaApp_server("mtaApp_1")
   mod_indexDesireApp_server("indexDesireApp_1", data = data)
   mod_ocsApp_server("ocsApp_1", data = data)
   mod_rggApp_server("rggApp_1", data = data)

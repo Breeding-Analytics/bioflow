@@ -99,7 +99,7 @@ The following table allows you to verify different quality metrics (KPIs) for th
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outd918120292454cc5" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outfc1b5b59b66000e9" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -126,7 +126,7 @@ The following table allows you to check the trait predictions in wide format and
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out5b653f74435e602f" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out5f4937897e2ef1d0" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -139,10 +139,10 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select" multiple="multiple"><option value="HT_AVG">HT_AVG</option>
-<option value="YLD_TON">YLD_TON</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select" multiple="multiple"><option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLD_TON" selected>YLD_TON</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out72329e8a932e8cd3" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out615848c9ae9a6d70" style="width:100%;height:400px;"></div><!--/html_preserve-->
