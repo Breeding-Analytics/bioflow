@@ -42,7 +42,10 @@ mod_qaRawApp_ui <- function(id){
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
-                                                           textOutput(ns("warningMessage")),
+                                                           tags$body(tags$style('h4 {color:red;}')),
+                                                           tags$body(tags$style('h5 {color:green;}')),
+                                                           h4(textOutput(ns("negativeMessage"))),
+                                                           h5(strong(textOutput(ns("positiveMessage")))),
                                                            tags$body(
                                                              h1(strong("Details")),
                                                              p("This option aims to allow users to select outliers based on plot whiskers and absolute values.
@@ -87,17 +90,22 @@ mod_qaRawApp_server <- function(id, data){
     })
     ############################################################################
     # warning message
-
-    output$warningMessage <- renderPrint({
-      if(is.null(data())){ # if data is not there
+    output$negativeMessage <- renderPrint({
+      if(is.null(data())){
         cat("Please retrieve or load your phenotypic data using the 'Data' tab.")
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ # all are present
-          cat("Data is complete, please proceed to run you analysis and see the other tabs.")
-        }else{
+        if(mappedColumns == 3){ cat("") }else{
           cat("Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")
         }
+      }
+    })
+    output$positiveMessage <- renderPrint({
+      if(is.null(data())){ cat("") }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){ # all are present
+          cat("Data is complete, please proceed to identify outliers using the 'Outlier detection' tab.")
+        }else{cat("")}
       }
     })
     # Create the fields
@@ -278,42 +286,6 @@ mod_qaRawApp_server <- function(id, data){
     output$outQaRaw <- renderPrint({
       outQaRaw()
     })
-    # back_bn  <- actionButton(ns('prev_trait'), 'Back')
-    # next_bn  <- actionButton(ns('next_trait'), 'Next')
-    #
-    # output$navigate <- renderUI({
-    #   dtQaRaw <- data()
-    #   dtQaRaw <- dtQaRaw$metadata$pheno
-    #   traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-    #
-    #   tags$div(align = 'center',
-    #            span(if (which(traitsQaRaw == input$traitOutqPheno) != 1) back_bn),
-    #            span(if (which(traitsQaRaw == input$traitOutqPheno) != length(traitsQaRaw)) next_bn),
-    #   )
-    # })
-    #
-    # observeEvent(input$prev_trait,
-    #              {
-    #                dtQaRaw <- data()
-    #                dtQaRaw <- dtQaRaw$metadata$pheno
-    #                traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-    #
-    #                n <- which(traitsQaRaw == input$traitOutqPheno)
-    #                updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n - 1])
-    #              }
-    # )
-    #
-    # observeEvent(input$next_trait,
-    #              {
-    #                dtQaRaw <- data()
-    #                dtQaRaw <- dtQaRaw$metadata$pheno
-    #                traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-    #
-    #                n <- which(traitsQaRaw == input$traitOutqPheno)
-    #                updateSelectInput(session, "traitOutqPheno", selected = traitsQaRaw[n + 1])
-    #              }
-    # )
-    # return(data)
 
   })
 }
