@@ -125,7 +125,7 @@ mod_mtaApp_ui <- function(id){
 #' mtaApp Server Functions
 #'
 #' @noRd
-mod_mtaApp_server <- function(id){
+mod_mtaApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -136,11 +136,11 @@ mod_mtaApp_server <- function(id){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-    data = reactive({ # provisional dataset for testing
-      load("dataStr0.RData")
-      data <- res
-      return(data)
-    })
+    # data = reactive({ # provisional dataset for testing
+    #   load("dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
     #################
     ## version
     observeEvent(c(data()), {
