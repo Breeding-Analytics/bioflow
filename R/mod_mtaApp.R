@@ -24,13 +24,13 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
                           column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("modelMet"), label = "Method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
                           selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
@@ -49,7 +49,44 @@ mod_mtaApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-
+      tabPanel("Documentation",
+               br(),
+               shinydashboard::box(status="success",width = 12,
+                                   solidHeader = TRUE,
+                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                          h2(strong("Status:")),
+                                          uiOutput(ns("warningMessage")),
+                                          h2(strong("Details")),
+                                          p("This option aims to fit a genetic evaluation across trials using the results from the single trial
+                              analysis and additionally a relationship matrix between individuals.
+                                The way the arguments are used is the following:"),
+                                          p(strong("Relationship matrix (optional).-"),"Columns to be fitted as fixed effects."),
+                                          p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                          p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
+                                          p(strong("Random effects.-")," Columns to be fitted as random effects."),
+                                          p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
+                                          p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect."),
+                                          p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
+                                          p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
+                                          p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
+                                          p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
+                                          p(strong("Scale desire file.-")," A TRUE or FALSE value to decide if the DESIRE (software) input file to be created should assume scaled traits or in their original units (scaled is recommended)."),
+                                          p(strong("Use rrBLUP method.-")," A TRUE or FALSE value to decide if the MET should use the rrBLUP approach using either a certain number of principal components or the full matrix using the nPC argument."),
+                                          p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
+                                          p(strong("Some details.-")," If genotypes are fitted as fixed effects the reliability cannot be properly computed and the surrogate of genetic variance is the variance of BLUEs. If STA predictions were BLUPs the deregress option can be used."),
+                                          h2(strong("References:")),
+                                          p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
+                                          p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
+                                          p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
+                                          h2(strong("Software used:")),
+                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/."),
+                                          p(" Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
+                                          p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.")
+                                          # img(src = "www/met.png", height = 400, width = 700) # add an image
+                                   )
+               )
+      ),
       tabPanel("Input Data",
                br(),
                shinydashboard::box(status="success",width = 12,
@@ -81,43 +118,7 @@ mod_mtaApp_ui <- function(id){
       tabPanel("Report",
                br(),
                uiOutput(ns('reportMta'))
-               ),
-      tabPanel("Documentation",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
-                                          h1(strong("Details")),
-                                          p("This option aims to fit a genetic evaluation across trials using the results from the single trial
-                              analysis and additionally a relationship matrix between individuals.
-                                The way the arguments are used is the following:"),
-                                          p(strong("Relationship matrix (optional).-"),"Columns to be fitted as fixed effects."),
-                                          p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
-                                          p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
-                                          p(strong("Random effects.-")," Columns to be fitted as random effects."),
-                                          p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
-                                          p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect."),
-                                          p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
-                                          p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
-                                          p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
-                                          p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                          p(strong("Scale desire file.-")," A TRUE or FALSE value to decide if the DESIRE (software) input file to be created should assume scaled traits or in their original units (scaled is recommended)."),
-                                          p(strong("Use rrBLUP method.-")," A TRUE or FALSE value to decide if the MET should use the rrBLUP approach using either a certain number of principal components or the full matrix using the nPC argument."),
-                                          p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
-                                          p(strong("Some details.-")," If genotypes are fitted as fixed effects the reliability cannot be properly computed and the surrogate of genetic variance is the variance of BLUEs. If STA predictions were BLUPs the deregress option can be used."),
-                                          h2(strong("References:")),
-                                          p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
-                                          p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
-                                          p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
-                                          h3(strong("Software used:")),
-                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-                                Vienna, Austria. URL https://www.R-project.org/."),
-                                          p(" Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
-                                          p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.")
-                                          # img(src = "www/met.png", height = 400, width = 700) # add an image
-                                   )
                )
-      )
     )) # end mainpanel
 
 
@@ -143,6 +144,19 @@ mod_mtaApp_server <- function(id, data){
     #   data <- res
     #   return(data)
     # })
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){
+          if("sta" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the MTA inspecting the other tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform STA before performing an MTA.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )}
+      }
+    )
     #################
     ## version
     observeEvent(c(data()), {
@@ -305,6 +319,7 @@ mod_mtaApp_server <- function(id, data){
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {
       req(data())
+      req(input$version2Mta)
       req(input$trait2Mta)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtMta <- data()

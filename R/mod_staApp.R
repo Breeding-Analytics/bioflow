@@ -45,7 +45,9 @@ mod_staApp_ui <- function(id){
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
-                                          h1(strong("Details")),
+                                          h2(strong("Status:")),
+                                          uiOutput(ns("warningMessage")),
+                                          h2(strong("Details")),
                                           p("This option aims to fit a genetic evaluation trial by trial, where each trial is one level of the fieldinst
                               column (defined when the user matches the expected columns to columns present in the initial phenotypic input file).
                               Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
@@ -65,7 +67,7 @@ mod_staApp_ui <- function(id){
                                 Genetics, 130, 1375-1392."),
                                           p("Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., & Eilers, P. H. (2018). Correcting for spatial heterogeneity in plant
                                 breeding experiments with P-splines. Spatial Statistics, 23, 52-71."),
-                                          h3(strong("Software used:")),
+                                          h2(strong("Software used:")),
                                           p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                           p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
@@ -124,7 +126,19 @@ mod_staApp_server <- function(id,data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){
+          if("qaRaw" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the STA inspecting the other tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform QA/QC in the raw data before performing an STA.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )}
+      }
+    )
     # QA versions to use
     observeEvent(c(data()), {
       req(data())
@@ -163,7 +177,6 @@ mod_staApp_server <- function(id,data){
       traitsSta <- unique(dtSta$trait)
       updateSelectInput(session, "fixedTermSta2", choices = traitsSta[traitsSta!=input$trait2Sta])
     })
-
     # reactive table for trait family distributions
     dtDistTrait = reactive({
       req(data())
@@ -210,7 +223,6 @@ mod_staApp_server <- function(id,data){
       v = info$value
       xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
     })
-
     ## render the data to be analyzed
     observeEvent(data(),{
       if(sum(data()$status$module %in% "qaRaw") != 0) {
@@ -229,7 +241,6 @@ mod_staApp_server <- function(id,data){
         output$phenoSta <- DT::renderDT({DT::datatable(NULL)})
       }
     })
-
     ## render result of "run" button click
     outSta <- eventReactive(input$runSta, {
       req(data())
@@ -325,8 +336,8 @@ mod_staApp_server <- function(id,data){
             current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
             current.modeling <- subset(current.modeling, select = -c(module,analysisId))
             DT::datatable(current.modeling, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             )
             # }
           }

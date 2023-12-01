@@ -38,7 +38,35 @@ mod_ocsApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-
+      tabPanel("Documentation",
+               br(),
+               shinydashboard::box(status="success",width = 12,
+                                   solidHeader = TRUE,
+                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                          h2(strong("Status:")),
+                                          uiOutput(ns("warningMessage")),
+                                          h2(strong("Details")),
+                                          p("This option aims to predict breeding values for individuals having marker data by using a
+                              training population obtained by the option to calculate marker effects.
+                                The way the options are used is the following:"),
+                                          p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
+                                          p(strong("Environment to analyze.-")," Fieldinst level to be used from the input file."),
+                                          p(strong("Number of crosses.-")," Number of crosses to be selected."),
+                                          p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity."),
+                                          p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
+                                          p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
+                                the expected value of the cross, 'stdError' is the average inbreeding of the cross, and 'rel' has the genetic algorithm value (lower the better)."),
+                                          h2(strong("References:")),
+                                          p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
+                                          p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
+                                          p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
+                                          h2(strong("Software used:")),
+                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/."),
+                                          p("https://github.com/gaynorr/QuantGenResources")
+                                   )
+               )
+      ),
       tabPanel("Input Data",
                br(),
                shinydashboard::box(status="success",width = 12,
@@ -70,33 +98,6 @@ mod_ocsApp_ui <- function(id){
       tabPanel("Report",
                br(),
                uiOutput(ns('reportOcs'))
-      ),
-      tabPanel("Documentation",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
-                                          h1(strong("Details")),
-                                          p("This option aims to predict breeding values for individuals having marker data by using a
-                              training population obtained by the option to calculate marker effects.
-                                The way the options are used is the following:"),
-                                          p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
-                                          p(strong("Environment to analyze.-")," Fieldinst level to be used from the input file."),
-                                          p(strong("Number of crosses.-")," Number of crosses to be selected."),
-                                          p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity."),
-                                          p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
-                                          p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
-                                the expected value of the cross, 'stdError' is the average inbreeding of the cross, and 'rel' has the genetic algorithm value (lower the better)."),
-                                          h2(strong("References:")),
-                                          p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
-                                          p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
-                                          p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
-                                          h3(strong("Software used:")),
-                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-                                Vienna, Austria. URL https://www.R-project.org/."),
-                                          p("https://github.com/gaynorr/QuantGenResources")
-                                   )
-               )
       )
     )) # end mainpanel
 
@@ -122,6 +123,19 @@ mod_ocsApp_server <- function(id, data){
     #   data <- res
     #   return(data)
     # })
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){
+          if("mta" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) inspecting the other tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform MTA or a selection index before performing optimal cross selection (OCS).")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )}
+      }
+    )
     #################
     ## version
     observeEvent(c(data()), {

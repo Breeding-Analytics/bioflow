@@ -42,9 +42,10 @@ mod_qaRawApp_ui <- function(id){
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                           h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
-                                                             h1(strong("Details")),
+                                                             h2(strong("Details")),
                                                              p("This option aims to allow users to select outliers based on plot whiskers and absolute values.
                                 The way arguments are used is the following:"),
                                                              p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
@@ -89,11 +90,11 @@ mod_qaRawApp_server <- function(id, data){
     # warning message
     output$warningMessage <- renderUI(
         if(is.null(data())){
-          HTML( as.character(div(style="color: red;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
         }else{ # data is there
           mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-          if(mappedColumns == 3){ HTML( as.character(div(style="color: green;", "Data is complete, please proceed to identify outliers using the 'Outlier detection' tab.")) ) }else{
-            HTML( as.character(div(style="color: red;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )
+          if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers using the 'Outlier detection' tab.")) )
+            }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )
           }
         }
     )

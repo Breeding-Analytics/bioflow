@@ -37,7 +37,33 @@ mod_indexDesireApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-
+      tabPanel("Documentation",
+               br(),
+               shinydashboard::box(status="success",width = 12,
+                                   solidHeader = TRUE,
+                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                          h2(strong("Status:")),
+                                          uiOutput(ns("warningMessage")),
+                                          h2(strong("Details")),
+                                          p("This option aims to calculate a selection index using across-environment predictions from multiple
+                              traits based on user's weights and return a table of predictions with the index and the traits used
+                              for the index calculation.
+                                The way the options are used is the following:"),
+                                          p(strong("Traits to analyze.-")," Traits to be considered in the index."),
+                                          p(strong("Desire vector.-")," Vector of values indicating the desired change in traits."),
+                                          p(strong("Scale predictions.-")," A TRUE or FALSE value indicating if the table of traits should be
+                                scaled or not. If TRUE is selected, the values of the desire vector are expected to be expressed in
+                                standard deviations. If FALSE, the values of the desire vector are expected to be expressed in
+                                original units."),
+                                          h2(strong("References:")),
+                                          p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
+                                          p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
+                                          h2(strong("Software used:")),
+                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/.")
+                                   )
+               )
+      ),
       tabPanel("Input Data",
                br(),
                shinydashboard::box(status="success",width = 12,
@@ -67,31 +93,6 @@ mod_indexDesireApp_ui <- function(id){
       tabPanel("Report",
                br(),
                uiOutput(ns('reportIndex'))
-      ),
-      tabPanel("Documentation",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
-                                          h1(strong("Details")),
-                                          p("This option aims to calculate a selection index using across-environment predictions from multiple
-                              traits based on user's weights and return a table of predictions with the index and the traits used
-                              for the index calculation.
-                                The way the options are used is the following:"),
-                                          p(strong("Traits to analyze.-")," Traits to be considered in the index."),
-                                          p(strong("Desire vector.-")," Vector of values indicating the desired change in traits."),
-                                          p(strong("Scale predictions.-")," A TRUE or FALSE value indicating if the table of traits should be
-                                scaled or not. If TRUE is selected, the values of the desire vector are expected to be expressed in
-                                standard deviations. If FALSE, the values of the desire vector are expected to be expressed in
-                                original units."),
-                                          h2(strong("References:")),
-                                          p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
-                                          p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
-                                          h3(strong("Software used:")),
-                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-                                Vienna, Austria. URL https://www.R-project.org/.")
-                                   )
-               )
       )
     )) # end mainpanel
 
@@ -117,6 +118,19 @@ mod_indexDesireApp_server <- function(id, data){
     #   data <- res
     #   return(data)
     # })
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){
+          if("mta" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index inspecting the other tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform MTA before performing a selection index")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )}
+      }
+    )
     #################
     ## version
     observeEvent(c(data()), {

@@ -99,7 +99,7 @@ The following table allows you to verify different quality metrics (KPIs) for th
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outfc1b5b59b66000e9" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outb6be834e2f3d1bbc" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -126,7 +126,7 @@ The following table allows you to check the trait predictions in wide format and
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out5f4937897e2ef1d0" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outc9b1e7dc40ce2df9" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -145,4 +145,4 @@ The following boxplot allows you to see the distribution of predicted values by 
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="staApp_1-out615848c9ae9a6d70" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="staApp_1-outefef1279dfe79373" style="width:100%;height:400px;"></div><!--/html_preserve-->

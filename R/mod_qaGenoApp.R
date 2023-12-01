@@ -27,7 +27,7 @@ mod_qaGenoApp_ui <- function(id){
       numericInput(ns("propHetUpperThreshForMarker"), label = "Threshold for heterozygosity in markers", value = 1, step = .05, max = 1, min = 0),
       numericInput(ns("propFisUpperThreshForMarker"), label = "Threshold for inbreeding in markers", value = 1, step = .05, max = 1, min = 0),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
                           numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
       ),
@@ -39,29 +39,15 @@ mod_qaGenoApp_ui <- function(id){
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
                        type = "tabs",
-
-
-                       tabPanel("Overview",
-                                br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker"))
-                                )
-                       ),
-                       tabPanel("Modifications table",
-                                br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                )
-                       ),
                        tabPanel("Documentation",
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
-                                                             h1(strong("Details")),
+                                                             h2(strong("Status:")),
+                                                             uiOutput(ns("warningMessage")),
+                                                             h2(strong("Details")),
                                                              p("This option aims to allow users to identify bad markers or individuals given certain QA parameters.
                                 The way arguments are used is the following:"),
                                                              p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
@@ -77,6 +63,20 @@ mod_qaGenoApp_ui <- function(id){
                                                            )
                                                     ),
 
+                                )
+                       ),
+                       tabPanel("Overview",
+                                br(),
+                                shinydashboard::box(status="success",width = 12,
+                                                    solidHeader = TRUE,
+                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker"))
+                                )
+                       ),
+                       tabPanel("Modifications table",
+                                br(),
+                                shinydashboard::box(status="success",width = 12,
+                                                    solidHeader = TRUE,
+                                                    column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                 )
                        )
                      )) # end mainpanel
@@ -105,7 +105,16 @@ mod_qaGenoApp_server <- function(id, data){
     #   data <- res
     #   return(data)
     # })
-
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
+      }else{ # data is there
+        if(!is.null(data()$data$geno)){
+          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the marker QA inspecting the other tabs.")) )
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
+      }
+    )
     ##
     newModifications <- reactive({ # p('File to be analyzed')
       req(data())
@@ -168,6 +177,7 @@ mod_qaGenoApp_server <- function(id, data){
         fig = fig %>% plotly::add_annotations(text = "Genetic marker information not available.", x = 1, y = 1)#
         fig
       }
+
     })
 
     ## display the current outliers
