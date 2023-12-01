@@ -14,13 +14,15 @@ mod_pggApp_ui <- function(id){
     sidebarPanel(
       # input <- list(version2Pgg="1699508839.68847",trait2Pgg="desireIndex",entryType2Pgg= "TGV_EST004D#TEST_tested",nCrossPgg="20", targetAnglePgg="30",maxRun=40, relType="grm", env2Pgg="across",verbosePgg=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p(h4(strong("Predicted Genetic Gain")))),#, style = "color: #817e7e"
+      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  <font size='5'>Predicted Genetic Gain</font>"),
+      # div(tags$p(h4(strong("Predicted Genetic Gain")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2Pgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("environmentToUse"), "Environments to use", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
                           selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
       ),
@@ -35,21 +37,21 @@ mod_pggApp_ui <- function(id){
 
       tabPanel("Input Data",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Metrics",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
@@ -60,7 +62,7 @@ mod_pggApp_ui <- function(id){
       ),
       tabPanel("Documentation",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                           h1(strong("Details")),

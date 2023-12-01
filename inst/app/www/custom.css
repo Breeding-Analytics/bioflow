@@ -1,8 +1,8 @@
 .navbar .nav > li > a, .navbar .nav > li > a
 .navbar .nav > li.current-menu-item > a
 .navbar .nav > li.current-menu-ancestor > a {color: white;}
-
-.navbar1 .navbar{background-color: #2E7636;}
+/* #2E7636*/
+.navbar1 .navbar{background-color: green;}
 
 .navbar1 .navbar-default .navbar-brand{color: black;}
 
@@ -12,7 +12,7 @@
 .navbar1 .navbar-nav > .active > a
   {
     color: yellow !important;
-    background-color:#2E7636 !important;
+    background-color:green !important;
     background-image: #fff !important;
   }
 

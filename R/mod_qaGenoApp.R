@@ -16,7 +16,9 @@ mod_qaGenoApp_ui <- function(id){
     shiny::sidebarPanel(#width = 3,
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( h4(strong("Quality Assurance for Genetic Markers")))),#, style = "color: #817e7e"
+      # div(tags$p( h4(strong("Quality Assurance for Genetic Markers")))),#, style = "color: #817e7e"
+      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  <font size='5'>Quality Assurance for Genetic Markers</font>"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
       numericInput(ns("propNaUpperThreshForMarker"), label = "Threshold for missing data in markers", value = .3, step = .05, max = 1, min = 0),
@@ -25,7 +27,7 @@ mod_qaGenoApp_ui <- function(id){
       numericInput(ns("propHetUpperThreshForMarker"), label = "Threshold for heterozygosity in markers", value = 1, step = .05, max = 1, min = 0),
       numericInput(ns("propFisUpperThreshForMarker"), label = "Threshold for inbreeding in markers", value = 1, step = .05, max = 1, min = 0),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
                           numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
       ),
@@ -41,21 +43,21 @@ mod_qaGenoApp_ui <- function(id){
 
                        tabPanel("Overview",
                                 br(),
-                                shinydashboard::box(status="primary",width = 12,
+                                shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker"))
                                 )
                        ),
                        tabPanel("Modifications table",
                                 br(),
-                                shinydashboard::box(status="primary",width = 12,
+                                shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                 )
                        ),
                        tabPanel("Documentation",
                                 br(),
-                                shinydashboard::box(status="primary",width = 12,
+                                shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(

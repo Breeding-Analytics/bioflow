@@ -15,13 +15,15 @@ mod_indexDesireApp_ui <- function(id){
     sidebarPanel(
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( h4(strong("Desire selection index")))),#, style = "color: #817e7e"
+      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  <font size='5'>Desire selection index</font>"),
+      # div(tags$p( h4(strong("Desire selection index")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2IdxD"), "MTA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
                           selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                           numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
@@ -43,21 +45,21 @@ mod_indexDesireApp_ui <- function(id){
                                    plotly::plotlyOutput(ns("plotPredictionsRadar")),
                                    plotly::plotlyOutput(ns("plotPotentialResponse"))
                ),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Predictions",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("predictionsIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("modelingIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
@@ -68,7 +70,7 @@ mod_indexDesireApp_ui <- function(id){
       ),
       tabPanel("Documentation",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                           h1(strong("Details")),

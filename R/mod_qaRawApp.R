@@ -14,7 +14,9 @@ mod_qaRawApp_ui <- function(id){
     shiny::sidebarPanel(#width = 3,
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( h4(strong("Outlier detection")))),#, style = "color: #817e7e"
+      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  <font size='5'>Outlier detection</font>"),
+      # div(tags$p( h4(strong("Outlier detection")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
       selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE),
@@ -22,7 +24,7 @@ mod_qaRawApp_ui <- function(id){
       numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = Inf),
       numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 2.5),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -35,19 +37,12 @@ mod_qaRawApp_ui <- function(id){
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel("Outlier detection",
-                                br(),
-                                shinydashboard::box(status="primary",width = 12,
-                                                    solidHeader = TRUE,
-                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                )
-                       ),
                        tabPanel("Documentation",
                                 br(),
-                                shinydashboard::box(status="primary",width = 12,
+                                shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                           textOutput(ns("warningMessage")),
                                                            tags$body(
                                                              h1(strong("Details")),
                                                              p("This option aims to allow users to select outliers based on plot whiskers and absolute values.
@@ -62,7 +57,17 @@ mod_qaRawApp_ui <- function(id){
                                                            )
                                                     )
                                 )
+                       ),
+
+                       tabPanel("Outlier detection", #icon = icon("wind"),
+                                br(),
+                                shinydashboard::box(status="success",width = 12, #background = "green",
+                                                    solidHeader = TRUE,
+                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                )
                        )
+
                      )) # end mainpanel
 
   )
@@ -81,6 +86,20 @@ mod_qaRawApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    # warning message
+
+    output$warningMessage <- renderPrint({
+      if(is.null(data())){ # if data is not there
+        cat("Please retrieve or load your phenotypic data using the 'Data' tab.")
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){ # all are present
+          cat("Data is complete, please proceed to run you analysis and see the other tabs.")
+        }else{
+          cat("Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")
+        }
+      }
+    })
     # Create the fields
     observeEvent(data(), {
       req(data())
@@ -147,24 +166,12 @@ mod_qaRawApp_server <- function(id, data){
     })
     ## render the expected result
     output$plotPredictionsCleanOut <- plotly::renderPlotly({
-      # req(data())
-      # req(input$outlierCoefOutqFont)
-      # req(input$traitOutqPheno)
-      condition=FALSE
-      if(is.null(data())){ # if data is not there
-        mess <- "Please retrieve or load your phenotypic data using the 'Data' tab."
-      }else{ # data is there
-        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ # all are present
-          condition=TRUE
-        }else{
-          mess <- "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab."
-        }
-      }
-      if(condition){ # the user met all conditions we do the outlier plot
-        req(input$outlierCoefOutqFont)
-        req(input$traitOutqPheno)
-        mydata <- data()$data$pheno
+      req(data())
+      req(input$outlierCoefOutqFont)
+      req(input$traitOutqPheno)
+      mydata <- data()$data$pheno
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3){ # all required columns are present
         mydata$rowindex <- 1:nrow(mydata)
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
@@ -178,18 +185,16 @@ mod_qaRawApp_server <- function(id, data){
                                pointpos = -1.8)
         res = res %>% plotly::layout(showlegend = FALSE,  xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont)))
         res
-      }else{ # user didn't meet the conditions
-        plotly::plot_ly(x = c(1, 2), y = c(1, 2), type = 'scatter', mode = 'markers') %>%
-          # Add image
-          plotly::layout(
-            xaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)), yaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)),
-            images = list(
-              list( source =  "www/maize.jpg", xref = "x", yref = "y",x = 0,  y = 3,sizex = 3.5,  sizey = 3.5, sizing = "stretch", opacity = .9, layer = "above")
-            )
-          ) %>%
-          plotly::add_annotations(text = mess, x = 1, y = 2.5) # add a message
-      }
-
+      }else{}
+      # plotly::plot_ly(x = c(1, 2), y = c(1, 2), type = 'scatter', mode = 'markers') %>%
+      #   # Add image
+      #   plotly::layout(
+      #     xaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)), yaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)),
+      #     images = list(
+      #       list( source =  "www/maize.jpg", xref = "x", yref = "y",x = 0,  y = 3,sizex = 3.5,  sizey = 3.5, sizing = "stretch", opacity = .9, layer = "above")
+      #     )
+      #   ) %>%
+      #   plotly::add_annotations(text = mess, x = 1, y = 2.5) # add a message
     })
 
     ## display the current outliers
@@ -197,17 +202,9 @@ mod_qaRawApp_server <- function(id, data){
 
       output$modificationsQa <-  DT::renderDT({
 
-        condition=FALSE
-        if(is.null(data())){
-          # if data is not there
-        }else{ # data is there
-          mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-          if(mappedColumns == 3){ # all are present
-            condition=TRUE
-          }else{}
-        }
-        # req(data())
-        if(condition){
+        req(data())
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){ # all required columns are present
           req(input$outlierCoefOutqFont)
           req(input$traitOutqPheno)
           ## get the outlier table
@@ -228,6 +225,7 @@ mod_qaRawApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
         }
+
       })
 
     })
@@ -236,17 +234,9 @@ mod_qaRawApp_server <- function(id, data){
 
     outQaRaw <- eventReactive(input$runQaRaw, {
 
-      # req(data())
-      condition=FALSE
-      if(is.null(data())){
-        # if data is not there
-      }else{ # data is there
-        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ # all are present
-          condition=TRUE
-        }else{}
-      }
-      if(condition){
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3){ # all required columns are present
         req(input$outlierCoefOutqFont)
         req(input$traitOutqPheno)
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
@@ -282,8 +272,8 @@ mod_qaRawApp_server <- function(id, data){
         shinybusy::remove_modal_spinner()
       }else{
         cat("Please meet the data conditions before you identify and save outliers.")
-      }
-      # save(temp, file="toTest.RData")
+      }      # save(temp, file="toTest.RData")
+
     })
     output$outQaRaw <- renderPrint({
       outQaRaw()

@@ -15,7 +15,9 @@ mod_qaStaApp_ui <- function(id){
     shiny::sidebarPanel(#width = 3,
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( h4(strong("Model-based outlier detection")))),#, style = "color: #817e7e"
+      # div(tags$p( h4(strong("Model-based outlier detection")))),#, style = "color: #817e7e"
+      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  <font size='5'>Model-based outlier detection</font>"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
       selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE),
@@ -23,7 +25,7 @@ mod_qaStaApp_ui <- function(id){
       numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 4),
       numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -38,7 +40,7 @@ mod_qaStaApp_ui <- function(id){
 
                        tabPanel("Outlier detection",
                                 br(),
-                                shinydashboard::box(status="primary",width = 12,
+                                shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                     column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
@@ -46,7 +48,7 @@ mod_qaStaApp_ui <- function(id){
                        ),
                        tabPanel("Documentation",
                                 br(),
-                                shinydashboard::box(status="primary",width = 12,
+                                shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(

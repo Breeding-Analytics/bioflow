@@ -14,7 +14,9 @@ mod_mtaApp_ui <- function(id){
     sidebarPanel(
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( h4(strong("Multi Trial Analysis")))),#, style = "color: #817e7e"
+      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  <font size='5'>Multi Trial Analysis</font>"),
+      # div(tags$p( h4(strong("Multi Trial Analysis")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2Mta"), "STA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
@@ -22,13 +24,13 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
                           column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("modelMet"), label = "Method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
                           selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
@@ -50,28 +52,28 @@ mod_mtaApp_ui <- function(id){
 
       tabPanel("Input Data",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Predictions",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Metrics",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
@@ -82,7 +84,7 @@ mod_mtaApp_ui <- function(id){
                ),
       tabPanel("Documentation",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                           h1(strong("Details")),

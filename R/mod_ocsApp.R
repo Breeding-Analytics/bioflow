@@ -14,7 +14,9 @@ mod_ocsApp_ui <- function(id){
     sidebarPanel(
       # input <- list(version2Ocs="1699508839.68847",trait2Ocs="desireIndex",entryType2Ocs= "TGV_EST004D#TEST_tested",nCrossOcs="20", targetAngleOcs="30",maxRun=40, relType="grm", env2Ocs="across",verboseOcs=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      div(tags$p( h4(strong("Optimal Cross Selection")))),#, style = "color: #817e7e"
+      # div(tags$p( h4(strong("Optimal Cross Selection")))),#, style = "color: #817e7e"
+      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  <font size='5'>Optimal Cross Selection</font>"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2Ocs"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Ocs"), "Trait(s) to use", choices = NULL, multiple = FALSE),
@@ -22,7 +24,7 @@ mod_ocsApp_ui <- function(id){
       textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20"),
       textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "primary", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
                           selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE),
                           selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
@@ -39,28 +41,28 @@ mod_ocsApp_ui <- function(id){
 
       tabPanel("Input Data",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Predictions",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("predictionsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Metrics",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,br(),DT::DTOutput(ns("metricsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
       tabPanel("Modeling",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("modelingOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
@@ -71,7 +73,7 @@ mod_ocsApp_ui <- function(id){
       ),
       tabPanel("Documentation",
                br(),
-               shinydashboard::box(status="primary",width = 12,
+               shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                           h1(strong("Details")),
