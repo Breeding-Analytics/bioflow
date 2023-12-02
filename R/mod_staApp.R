@@ -12,6 +12,7 @@ mod_staApp_ui <- function(id){
   tagList(
     sidebarPanel(
 
+      # tags$style(".fa-hand-holding {color:#E87722}"),
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Single Trial Analysis</font>"),
@@ -40,7 +41,7 @@ mod_staApp_ui <- function(id){
     mainPanel(tabsetPanel(
       type = "tabs",
 
-      tabPanel("Documentation",
+      tabPanel("Information", icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -76,38 +77,44 @@ mod_staApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel("Input",
+      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Predictions",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Metrics",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("metricsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Modeling",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Report",
-               br(),
-               uiOutput(ns('reportSta')),
-      )
+      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+               tabsetPanel(
+                 tabPanel("Predictions", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
+                 tabPanel("Metrics", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,br(),DT::DTOutput(ns("metricsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
+                 tabPanel("Modeling", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
+                 tabPanel("Report", icon = icon("file-image"),
+                          br(),
+                          uiOutput(ns('reportSta')),
+                 )
+               ) # of of tabsetPanel
+      )# end of output panel
+
+
     )) # end mainpanel
 
   )

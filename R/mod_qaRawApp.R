@@ -37,7 +37,7 @@ mod_qaRawApp_ui <- function(id){
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel("Documentation",
+                       tabPanel("Information", icon = icon("book"),
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
@@ -59,16 +59,18 @@ mod_qaRawApp_ui <- function(id){
                                                     )
                                 )
                        ),
-
-                       tabPanel("Outlier detection", #icon = icon("wind"),
-                                br(),
-                                shinydashboard::box(status="success",width = 12, #background = "green",
-                                                    solidHeader = TRUE,
-                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                )
-                       )
-
+                       tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+                                tabsetPanel(
+                                  tabPanel("Outlier detection", icon = icon("magnifying-glass-chart"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12, #background = "green",
+                                                               solidHeader = TRUE,
+                                                               plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                               column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           )
+                                  )
+                                ) # end of tabset
+                       )# end of output panel
                      )) # end mainpanel
 
   )
@@ -89,14 +91,14 @@ mod_qaRawApp_server <- function(id, data){
     ############################################################################
     # warning message
     output$warningMessage <- renderUI(
-        if(is.null(data())){
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
-        }else{ # data is there
-          mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-          if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers using the 'Outlier detection' tab.")) )
-            }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )
-          }
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers using the 'Outlier detection' tab.")) )
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )
         }
+      }
     )
     # Create the fields
     observeEvent(data(), {

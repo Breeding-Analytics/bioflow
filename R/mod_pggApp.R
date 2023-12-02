@@ -34,38 +34,14 @@ mod_pggApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-
-      tabPanel("Input Data",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Metrics",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Modeling",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Report",
-               br(),
-               uiOutput(ns('reportPgg'))
-      ),
-      tabPanel("Documentation",
+      tabPanel("Information",  icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
-                                          h1(strong("Details")),
+                                          h2(strong("Status:")),
+                                          uiOutput(ns("warningMessage")),
+                                          h2(strong("Details")),
                                           p("This option aims to calculate the predicted genetic gain from the classical breeders' equation
                               R = i*r*s being R the response to selection, i the selection intensity, r the selection accuracy, s the genetic standard deviation.
                                 The way the options are used is the following:"),
@@ -77,12 +53,41 @@ mod_pggApp_ui <- function(id){
                                           h2(strong("References:")),
                                           p("Lush, J. L. (2013). Animal breeding plans. Read Books Ltd."),
                                           p("Mrode, R. A. (2014). Linear models for the prediction of animal breeding values. Cabi."),
-                                          h3(strong("Software used:")),
+                                          h2(strong("Software used:")),
                                           p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/.")
                                    )
                )
-      )
+      ),
+      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+               br(),
+               shinydashboard::box(status="success",width = 12,
+                                   solidHeader = TRUE,
+                                   column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
+      ),
+      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+               tabsetPanel(
+                 tabPanel("Metrics", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
+                 tabPanel("Modeling", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
+                 tabPanel("Report", icon = icon("file-image"),
+                          br(),
+                          uiOutput(ns('reportPgg'))
+                 )
+               )
+      )# end of output panel
     )) # end mainpanel
 
   )
@@ -107,6 +112,16 @@ mod_pggApp_server <- function(id, data){
     #   data <- res
     #   return(data)
     # })
+    ## warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+      }else{ # data is there
+        if("mta" %in% data()$status$module){
+          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain inspecting the other tabs.")) )
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform MTA before performing a predicted genetic gain analysis.")) ) }
+      }
+    )
     #################
     ## version
     observeEvent(c(data()), {
@@ -159,7 +174,6 @@ mod_pggApp_server <- function(id, data){
       traitsPgg <- unique(dtPgg$environment)
       updateSelectInput(session, "environmentToUse", choices = traitsPgg, selected =traitsPgg )
     })
-
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
@@ -220,7 +234,6 @@ mod_pggApp_server <- function(id, data){
       shinybusy::remove_modal_spinner()
 
       if(!inherits(result,"try-error")) {
-
         # view metrics
         output$metricsPgg <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -251,8 +264,8 @@ mod_pggApp_server <- function(id, data){
           current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
           current.modeling <- subset(current.modeling, select = -c(module,analysisId))
           DT::datatable(current.modeling, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
         })

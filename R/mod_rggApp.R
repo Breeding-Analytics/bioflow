@@ -37,40 +37,14 @@ mod_rggApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-
-      tabPanel("Input Data",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
-      ),
-      tabPanel("Metrics",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,br(),DT::DTOutput(ns("metricsRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadMetrics'), 'Download metrics')
-               )
-      ),
-      tabPanel("Modeling",
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("modelingRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                   downloadButton(ns('downloadModeling'), 'Download modeling')
-               )
-      ),
-      tabPanel("Report",
-               br(),
-               uiOutput(ns('reportRgg'))
-      ),
-      tabPanel("Documentation",
+      tabPanel("Information",  icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
-                                          h1(strong("Details")),
+                                          h2(strong("Status:")),
+                                          uiOutput(ns("warningMessage")),
+                                          h2(strong("Details")),
                                           p("This option aims to calculate the realized genetic gain using the methods from Mackay et al. (2011). The
                               method uses across-environment means from multiple years of data that have been adjusted based on a good connectivity
                               to then fit a regression of the form means~year.of.origin. In case the means used are BLUPs these can be
@@ -87,12 +61,43 @@ mod_rggApp_ui <- function(id){
                                 Genetics, 122, 225-238."),
                                           p("Laidig, F., Piepho, H. P., Drobek, T., & Meyer, U. (2014). Genetic and non-genetic long-term trends of 12 different crops in German
                                 official variety performance trials and on-farm yield trends. Theoretical and Applied Genetics, 127, 2599-2617."),
-                                          h3(strong("Software used:")),
+                                          h2(strong("Software used:")),
                                           p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/.")
                                    )
                )
-      )
+      ),
+      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+               br(),
+               shinydashboard::box(status="success",width = 12,
+                                   solidHeader = TRUE,
+                                   column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               )
+      ),
+      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+               tabsetPanel(
+                 tabPanel("Metrics", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,br(),DT::DTOutput(ns("metricsRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
+                                              downloadButton(ns('downloadMetrics'), 'Download metrics')
+                          )
+                 ),
+                 tabPanel("Modeling", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("modelingRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
+                                              downloadButton(ns('downloadModeling'), 'Download modeling')
+                          )
+                 ),
+                 tabPanel("Report", icon = icon("file-image"),
+                          br(),
+                          uiOutput(ns('reportRgg'))
+                 )
+               )
+      )# end of output panel
     )) # end mainpanel
 
 
@@ -113,6 +118,18 @@ mod_rggApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$data$pedigree)))
+        if(mappedColumns == 1){
+          if("mta" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain inspecting the other tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform MTA before performing a realized genetic gain analysis.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data input' tab.")) )}
+      }
+    )
     #################
     ## version
     observeEvent(c(data()), {
@@ -258,8 +275,8 @@ mod_rggApp_server <- function(id, data){
           current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
           current.modeling <- subset(current.modeling, select = -c(module,analysisId))
           DT::datatable(current.modeling, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
         })

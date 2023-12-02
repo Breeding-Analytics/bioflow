@@ -21,18 +21,18 @@ app_ui <- function(request) {
 
       tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
-      tabPanel("Data Input ", mod_getData_ui("getData_1"), icon = icon("upload") ),
+      tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
       navbarMenu("Genetic Evaluation", icon = icon("lightbulb"),
-                 tabPanel(strong("1. Raw-Phenotypes QA/QC"), mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
-                 tabPanel(strong("2. Single-Trial Analysis"),  mod_staApp_ui("staApp_1"), icon = icon("seedling")),
+                 tabPanel("1. Raw-Phenotypes QA/QC", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
+                 tabPanel("2. Single-Trial Analysis",  mod_staApp_ui("staApp_1"), icon = icon("seedling")),
                  tabPanel("**** Model-Based QA/QC", mod_qaStaApp_ui("qaStaApp_1"), icon = icon("chart-bar") ) ,
                  tabPanel("**** Markers QA/QC", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
-                 tabPanel(strong("3. Multi-Trial Analysis"), mod_mtaApp_ui("mtaApp_1"), icon = icon("circle-nodes") ), # biplot is part of the report in MET
-                 tabPanel(strong("4. Selection Indices"), mod_indexDesireApp_ui("indexDesireApp_1"), icon = icon("sort") ) ,
-                 tabPanel(strong("5. Optimal Cross Selection"), mod_ocsApp_ui("ocsApp_1"), icon = icon("shuffle") ),
-                 tabPanel(strong("6.1. Realized Genetic Gain"), mod_rggApp_ui("rggApp_1"), icon = icon("chart-line") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(strong("6.2. Predicted Genetic Gain"), mod_pggApp_ui("pggApp_1"), icon = icon("barcode"))# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel("3. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1"), icon = icon("circle-nodes") ), # biplot is part of the report in MET
+                 tabPanel("4. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1"), icon = icon("sort") ) ,
+                 tabPanel("5. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1"), icon = icon("shuffle") ),
+                 tabPanel("6.1. Realized Genetic Gain", mod_rggApp_ui("rggApp_1"), icon = icon("chart-line") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
+                 tabPanel("6.2. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"), icon = icon("barcode"))# user needs to perform a multi-year genetic evaluation to provide the MET as input
       ),
 
       navbarMenu("QTL Mapping", icon = icon("dna"),

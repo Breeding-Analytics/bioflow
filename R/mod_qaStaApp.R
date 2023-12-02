@@ -37,7 +37,7 @@ mod_qaStaApp_ui <- function(id){
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
                        type = "tabs",
-                       tabPanel("Documentation",
+                       tabPanel("Information",  icon = icon("book"),
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
@@ -60,14 +60,18 @@ mod_qaStaApp_ui <- function(id){
 
                                 )
                        ),
-                       tabPanel("Outlier detection",
-                                br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                    column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                )
-                       )
+                       tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+                                tabsetPanel(
+                                  tabPanel("Outlier detection", icon = icon("magnifying-glass-chart"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12,
+                                                               solidHeader = TRUE,
+                                                               plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                               column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           )
+                                  )
+                                ) # end of tabset
+                       )# end of output panel
                      )) # end mainpanel
 
 

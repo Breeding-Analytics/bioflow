@@ -39,7 +39,7 @@ mod_qaGenoApp_ui <- function(id){
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
                        type = "tabs",
-                       tabPanel("Documentation",
+                       tabPanel("Information",  icon = icon("book"),
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
@@ -65,20 +65,24 @@ mod_qaGenoApp_ui <- function(id){
 
                                 )
                        ),
-                       tabPanel("Overview",
-                                br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker"))
-                                )
-                       ),
-                       tabPanel("Modifications table",
-                                br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                )
-                       )
+                       tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+                                tabsetPanel(
+                                  tabPanel("Outlier detection", icon = icon("magnifying-glass-chart"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12,
+                                                               solidHeader = TRUE,
+                                                               plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker"))
+                                           )
+                                  ),
+                                  tabPanel("Modifications", icon = icon("table"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12,
+                                                               solidHeader = TRUE,
+                                                               column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           )
+                                  )
+                                ) # end of tabset
+                       )# end of output panel
                      )) # end mainpanel
 
 
