@@ -12,7 +12,7 @@ mod_staApp_ui <- function(id){
   tagList(
     sidebarPanel(
 
-      # tags$style(".fa-hand-holding {color:#E87722}"),
+
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Single Trial Analysis</font>"),
@@ -41,7 +41,7 @@ mod_staApp_ui <- function(id){
     mainPanel(tabsetPanel(
       type = "tabs",
 
-      tabPanel("Information", icon = icon("book"),
+      tabPanel(p("Information", class="info-p"), icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -54,6 +54,7 @@ mod_staApp_ui <- function(id){
                               Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
                               By default genotype (geno column) predictions are returned since a two-stage approach is assumed, but user can choose.
                                 The way the options are used is the following:"),
+                                          img(src = "www/sta.png", height = 200, width = 300), # add an image
                                           p(strong("Fixed effects.-"),"Columns to be fitted as fixed effects in each trial."),
                                           p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
                                           p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trial-trait combination."),
@@ -77,14 +78,14 @@ mod_staApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input",class = "input-p"), icon = icon("arrow-right-to-bracket"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class = "output-p"), icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),

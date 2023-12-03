@@ -22,7 +22,7 @@ mod_pggApp_ui <- function(id){
       selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("environmentToUse"), "Environments to use", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
                           selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
       ),
@@ -34,7 +34,7 @@ mod_pggApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-      tabPanel("Information",  icon = icon("book"),
+      tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -45,6 +45,7 @@ mod_pggApp_ui <- function(id){
                                           p("This option aims to calculate the predicted genetic gain from the classical breeders' equation
                               R = i*r*s being R the response to selection, i the selection intensity, r the selection accuracy, s the genetic standard deviation.
                                 The way the options are used is the following:"),
+                                          img(src = "www/pgg.png", height = 250, width = 500), # add an image
                                           p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
                                           p(strong("Year to analyze.-")," Year of data to be used from the input file."),
                                           p(strong("Fieldinst.-")," Field instance of data to be used from the input file."),
@@ -59,14 +60,14 @@ mod_pggApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Metrics", icon = icon("table"),
                           br(),

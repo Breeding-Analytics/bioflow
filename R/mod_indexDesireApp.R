@@ -23,7 +23,7 @@ mod_indexDesireApp_ui <- function(id){
       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
                           selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                           numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
@@ -37,7 +37,7 @@ mod_indexDesireApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-      tabPanel("Information",  icon = icon("book"),
+      tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -49,6 +49,7 @@ mod_indexDesireApp_ui <- function(id){
                               traits based on user's weights and return a table of predictions with the index and the traits used
                               for the index calculation.
                                 The way the options are used is the following:"),
+                                          img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
                                           p(strong("Traits to analyze.-")," Traits to be considered in the index."),
                                           p(strong("Desire vector.-")," Vector of values indicating the desired change in traits."),
                                           p(strong("Scale predictions.-")," A TRUE or FALSE value indicating if the table of traits should be
@@ -64,7 +65,7 @@ mod_indexDesireApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -76,7 +77,7 @@ mod_indexDesireApp_ui <- function(id){
                                    column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),

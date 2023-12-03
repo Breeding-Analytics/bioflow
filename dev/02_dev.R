@@ -66,6 +66,7 @@ golem::add_module(name = "ocsApp", with_test = TRUE) # optimal cross selection
 golem::add_module(name = "rggApp", with_test = TRUE) # realized genetic gain
 golem::add_module(name = "pggApp", with_test = TRUE) # predicted genetic gain
 golem::add_module(name = "homeApp", with_test = TRUE) # home
+golem::add_module(name = "homeGeApp", with_test = TRUE) # home of genetic evaluation section
 golem::add_module(name = "aboutApp", with_test = TRUE) # home
 
 ## Add helper functions ----

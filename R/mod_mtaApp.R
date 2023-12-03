@@ -49,7 +49,7 @@ mod_mtaApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-      tabPanel("Information",  icon = icon("book"),
+      tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -60,6 +60,7 @@ mod_mtaApp_ui <- function(id){
                                           p("This option aims to fit a genetic evaluation across trials using the results from the single trial
                               analysis and additionally a relationship matrix between individuals.
                                 The way the arguments are used is the following:"),
+                                          img(src = "www/mta.png", height = 300, width = 600), # add an image
                                           p(strong("Relationship matrix (optional).-"),"Columns to be fitted as fixed effects."),
                                           p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
                                           p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
@@ -87,14 +88,14 @@ mod_mtaApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),

@@ -24,7 +24,7 @@ mod_ocsApp_ui <- function(id){
       textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20"),
       textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
                           selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE),
                           selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
@@ -38,7 +38,7 @@ mod_ocsApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-      tabPanel("Information",  icon = icon("book"),
+      tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -49,6 +49,7 @@ mod_ocsApp_ui <- function(id){
                                           p("This option aims to predict breeding values for individuals having marker data by using a
                               training population obtained by the option to calculate marker effects.
                                 The way the options are used is the following:"),
+                                          img(src = "www/ocs.png", height = 400, width = 250), # add an image
                                           p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
                                           p(strong("Environment to analyze.-")," Fieldinst level to be used from the input file."),
                                           p(strong("Number of crosses.-")," Number of crosses to be selected."),
@@ -67,14 +68,14 @@ mod_ocsApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),

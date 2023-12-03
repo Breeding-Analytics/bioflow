@@ -39,7 +39,7 @@ mod_qaGenoApp_ui <- function(id){
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
                        type = "tabs",
-                       tabPanel("Information",  icon = icon("book"),
+                       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
@@ -50,6 +50,7 @@ mod_qaGenoApp_ui <- function(id){
                                                              h2(strong("Details")),
                                                              p("This option aims to allow users to identify bad markers or individuals given certain QA parameters.
                                 The way arguments are used is the following:"),
+                                                             img(src = "www/qaGeno.png", height = 300, width = 650), # add an image
                                                              p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
                                                              p(strong("Threshold for missing data in individuals.-"),"  this sets a threshold for how much missing data in an individual is allowed. If lower than this value it will be marked as a row to be removed in posterior analyses. Value between 0 and 1."),
                                                              p(strong("Minor allele frequency.-")," this sets a threshold for what is the minimum allele frequency allowed in the dataset. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
@@ -65,7 +66,7 @@ mod_qaGenoApp_ui <- function(id){
 
                                 )
                        ),
-                       tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+                       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
                                 tabsetPanel(
                                   tabPanel("Outlier detection", icon = icon("magnifying-glass-chart"),
                                            br(),

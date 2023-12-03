@@ -37,7 +37,7 @@ mod_qaRawApp_ui <- function(id){
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel("Information", icon = icon("book"),
+                       tabPanel(p("Information",class="info-p"), icon = icon("book"),
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
@@ -48,6 +48,7 @@ mod_qaRawApp_ui <- function(id){
                                                              h2(strong("Details")),
                                                              p("This option aims to allow users to select outliers based on plot whiskers and absolute values.
                                 The way arguments are used is the following:"),
+                                                             img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
                                                              p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
                                                              p(strong("Trait lower bound.-"),"Lower bound threshold determining as an outlier any value smaller than this."),
                                                              p(strong("Trait upper bound.-"),"Upper bound threshold determining as an outlier any value greater than this."),
@@ -59,7 +60,7 @@ mod_qaRawApp_ui <- function(id){
                                                     )
                                 )
                        ),
-                       tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+                       tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
                                 tabsetPanel(
                                   tabPanel("Outlier detection", icon = icon("magnifying-glass-chart"),
                                            br(),

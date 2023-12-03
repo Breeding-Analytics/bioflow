@@ -11,7 +11,7 @@ runtime: shiny
 
 ### Predicted genetic gain
 
-The following table provides an overview of the performance of the predicted crosses for the different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs.
+The following density plot allows you to see the expected change in the next generation compared to the current generation given the current genetic gain parameters (accuracy, intensity, genetic variance) obtained in a particular MET for the selected traits.
 
 <p>&nbsp;</p>
 
@@ -24,5 +24,5 @@ The following table provides an overview of the performance of the predicted cro
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="pggApp_1-outaccb8005373c8b79" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="pggApp_1-outfd74dc461fc63a53" style="width:100%;height:400px;"></div><!--/html_preserve-->
 

@@ -23,7 +23,7 @@ mod_rggApp_ui <- function(id){
       selectInput(ns("trait2Rgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="light-blue",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
                           selectInput(ns("deregress"), "Should deregress estimates", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                           selectInput(ns("partition"), "Partitioned regression", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
@@ -37,7 +37,7 @@ mod_rggApp_ui <- function(id){
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
-      tabPanel("Information",  icon = icon("book"),
+      tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
@@ -67,14 +67,14 @@ mod_rggApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel("Input", icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input", class="input-p"), icon = icon("arrow-right-to-bracket"),
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
                                    column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                )
       ),
-      tabPanel("Output", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Metrics", icon = icon("table"),
                           br(),
@@ -94,6 +94,9 @@ mod_rggApp_ui <- function(id){
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
+                          # selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to use", choices = NULL, multiple = TRUE),
+                          # selectInput(ns("environment"), "environment to use", choices = NULL, multiple = TRUE),
+                          # plotly::plotlyOutput(ns("plotPredictionsScatter")),
                           uiOutput(ns('reportRgg'))
                  )
                )
@@ -117,6 +120,11 @@ mod_rggApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
+    # data = reactive({
+    #   load("~/Documents/bioflow/dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
     ############################################################################
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -151,26 +159,26 @@ mod_rggApp_server <- function(id, data){
       traitsRgg <- unique(dtRgg$trait)
       updateSelectInput(session, "trait2Rgg", choices = traitsRgg)
     })
-    # trait for report tab
-    observeEvent(c(data(), input$version2Rgg), {
-      req(data())
-      req(input$version2Rgg)
-      dtRgg <- data()
-      dtRgg <- dtRgg$predictions
-      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-      traitsRgg <- unique(dtRgg$trait)
-      updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsRgg)
-    })
-    # environment for report tab
-    observeEvent(c(data(), input$version2Rgg), {
-      req(data())
-      req(input$version2Rgg)
-      dtRgg <- data()
-      dtRgg <- dtRgg$predictions
-      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-      traitsRgg <- unique(dtRgg$environment)
-      updateSelectInput(session, "environment", choices = traitsRgg)
-    })
+    # # trait for report tab
+    # observeEvent(c(data(), input$version2Rgg), {
+    #   req(data())
+    #   req(input$version2Rgg)
+    #   dtRgg <- data()
+    #   dtRgg <- dtRgg$predictions
+    #   dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+    #   traitsRgg <- unique(dtRgg$trait)
+    #   updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsRgg)
+    # })
+    # # environment for report tab
+    # observeEvent(c(data(), input$version2Rgg), {
+    #   req(data())
+    #   req(input$version2Rgg)
+    #   dtRgg <- data()
+    #   dtRgg <- dtRgg$predictions
+    #   dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+    #   traitsRgg <- unique(dtRgg$environment)
+    #   updateSelectInput(session, "environment", choices = traitsRgg)
+    # })
     ##############
     ## entry type
     observeEvent(c(data(), input$version2Rgg, input$trait2Rgg), {
