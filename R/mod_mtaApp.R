@@ -57,11 +57,12 @@ mod_mtaApp_ui <- function(id){
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
-                                          p("This option aims to fit a genetic evaluation across trials using the results from the single trial
-                              analysis and additionally a relationship matrix between individuals.
+                                          p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
+                                          This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
+                              analysis and optionally a relationship matrix between individuals.
                                 The way the arguments are used is the following:"),
                                           img(src = "www/mta.png", height = 300, width = 600), # add an image
-                                          p(strong("Relationship matrix (optional).-"),"Columns to be fitted as fixed effects."),
+                                          p(strong("Model type (optional).-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
                                           p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
                                           p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
                                           p(strong("Random effects.-")," Columns to be fitted as random effects."),

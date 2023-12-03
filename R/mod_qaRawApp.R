@@ -46,7 +46,8 @@ mod_qaRawApp_ui <- function(id){
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
                                                              h2(strong("Details")),
-                                                             p("This option aims to allow users to select outliers based on plot whiskers and absolute values.
+                                                             p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
+                                                             This option aims to allow users to select outliers based on plot whiskers and absolute values.
                                 The way arguments are used is the following:"),
                                                              img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
                                                              p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),

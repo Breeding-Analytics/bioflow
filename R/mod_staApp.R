@@ -49,10 +49,12 @@ mod_staApp_ui <- function(id){
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
-                                          p("This option aims to fit a genetic evaluation trial by trial, where each trial is one level of the fieldinst
+                                          p("The genetic evaluation approach we use known as 'two-step' first analyze trait by trait and trial by trial
+                                          to remove the spatial noise from experiments using experimental factors like blocking and spatial coordinates.
+                                          Each trial is one level of the environment
                               column (defined when the user matches the expected columns to columns present in the initial phenotypic input file).
                               Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
-                              By default genotype (geno column) predictions are returned since a two-stage approach is assumed, but user can choose.
+                              By default genotype (designation column) predictions and their standard errors are returned.
                                 The way the options are used is the following:"),
                                           img(src = "www/sta.png", height = 200, width = 300), # add an image
                                           p(strong("Fixed effects.-"),"Columns to be fitted as fixed effects in each trial."),

@@ -45,9 +45,11 @@ mod_indexDesireApp_ui <- function(id){
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
-                                          p("This option aims to calculate a selection index using across-environment predictions from multiple
-                              traits based on user's weights and return a table of predictions with the index and the traits used
-                              for the index calculation.
+                                          p("Genetic evaluation has as final purpose to select the individuals with highest genetic merit across
+                                          all traits of interest. In order to select for multiple traits at the same time a selection index is preferred.
+                                          This option aims to calculate a selection index using across-environment predictions from multiple
+                              traits based on user's desired change (used to calculate weights) and return a table of predictions with the index and the traits used
+                              for selection.
                                 The way the options are used is the following:"),
                                           img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
                                           p(strong("Traits to analyze.-")," Traits to be considered in the index."),

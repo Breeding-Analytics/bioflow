@@ -48,7 +48,8 @@ mod_qaGenoApp_ui <- function(id){
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
                                                              h2(strong("Details")),
-                                                             p("This option aims to allow users to identify bad markers or individuals given certain QA parameters.
+                                                             p("When genetic evaluation is carried using genomic data, we need to ensure the quality of genetic markers.
+                                                             This option aims to allow users to identify bad markers or individuals given certain QA parameters.
                                 The way arguments are used is the following:"),
                                                              img(src = "www/qaGeno.png", height = 300, width = 650), # add an image
                                                              p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),

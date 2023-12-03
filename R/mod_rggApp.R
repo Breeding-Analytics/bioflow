@@ -45,7 +45,8 @@ mod_rggApp_ui <- function(id){
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
-                                          p("This option aims to calculate the realized genetic gain using the methods from Mackay et al. (2011). The
+                                          p("In order to monitor the efficacy of genetic evaluation across cycles of selection, the realized genetic gain is the preferred process.
+                                          This option aims to calculate the realized genetic gain using the methods from Mackay et al. (2011). The
                               method uses across-environment means from multiple years of data that have been adjusted based on a good connectivity
                               to then fit a regression of the form means~year.of.origin. In case the means used are BLUPs these can be
                               deregressed.

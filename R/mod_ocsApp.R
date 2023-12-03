@@ -46,8 +46,9 @@ mod_ocsApp_ui <- function(id){
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
-                                          p("This option aims to predict breeding values for individuals having marker data by using a
-                              training population obtained by the option to calculate marker effects.
+                                          p("A new generation of individuals with higher genetic merit can be produced selecting the top individuals or
+                                          selecting directly the best crosses. This option aims to optimize the new crosses given a desired trade-off between
+                                          short-term gain(performance) and long-term gain (genetic variance).
                                 The way the options are used is the following:"),
                                           img(src = "www/ocs.png", height = 400, width = 250), # add an image
                                           p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
