@@ -19,6 +19,7 @@ Imports:
     pedigreemm,
     plotly,
     psych,
+    QBMS (>= 0.9.1),
     RColorBrewer,
     RSpectra,
     shiny (>= 1.7.5),
@@ -44,7 +45,8 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.2.3
-Remotes: 
+Remotes:  
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
-    Breeding-Analytics/cgiarOcs
+    Breeding-Analytics/cgiarOcs,
+    icarda-git/QBMS

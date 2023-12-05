@@ -46,10 +46,12 @@ usethis::use_pipe()
 usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
 usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
+usethis::use_dev_package("QBMS", type = "Imports", remote = "icarda-git/QBMS")
 
 # remotes::install_github("Breeding-Analytics/cgiarBase")
 # remotes::install_github("Breeding-Analytics/cgiarPipeline")
 # remotes::install_github("Breeding-Analytics/cgiarOcs")
+# remotes::install_github("icarda-git/QBMS")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
