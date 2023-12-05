@@ -333,6 +333,23 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         data <- read.csv(input$pheno_url, sep = input$pheno_sep,
                          quote = input$pheno_quote, dec = input$pheno_dec)
       } else {
+        # stage       <- NA
+        # pipeline    <- NA
+        # country   **<- get_study_info()$locationDbId, then list_locations()
+        # year        <- get_trial_data()$year
+        # season    * <- get_study_info()$seasons
+        # location  * <- get_study_info()$locationName
+        # trial     * <- get_study_info()$trialName
+        # environment <- get_trial_data()$studyName
+        # rep         <- get_trial_data()$rep
+        # iBlock      <- get_trial_data()$block
+        # row         <- get_trial_data()$positionCoordinateY
+        # col         <- get_trial_data()$positionCoordinateX
+        # designation <- get_trial_data()$germplasmName
+        # gid         <- get_trial_data()$germplasmDbId
+        # entryType * <- get_germplasm_list()$check
+        # trait     * <- get_trial_obs_ontology()$trait$traitName
+
         return(NULL)
       }
 
