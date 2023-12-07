@@ -112,6 +112,9 @@ mod_staApp_ui <- function(id){
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportSta"), "Download report"),
+                          br(),
                           uiOutput(ns('reportSta')),
                  )
                ) # of of tabsetPanel
@@ -356,6 +359,26 @@ mod_staApp_server <- function(id,data){
         output$reportSta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit("./R/reportSta.Rmd", quiet = TRUE), fragment.only=TRUE))
         })
+
+        output$downloadReportSta <- downloadHandler(
+          filename = function() {
+            paste0("reportSta-",gsub("-|:| ", "", Sys.time()),".html")
+          },
+          content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle",
+                                          color = "#F39C12",
+                                          text = "Generating Report...")
+
+            rmarkdown::render(
+              # input RMD file
+              input = ("R/reportSta1.Rmd"),
+
+              # input RMD parameters ----
+              params = list(),
+              output_file = file)
+            shinybusy::remove_modal_spinner()
+          }, contentType = "html"
+        )
 
       } else {
         output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})

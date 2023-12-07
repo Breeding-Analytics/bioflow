@@ -95,6 +95,9 @@ mod_rggApp_ui <- function(id){
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportRgg"), "Download report"),
+                          br(),
                           # selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to use", choices = NULL, multiple = TRUE),
                           # selectInput(ns("environment"), "environment to use", choices = NULL, multiple = TRUE),
                           # plotly::plotlyOutput(ns("plotPredictionsScatter")),
@@ -289,10 +292,7 @@ mod_rggApp_server <- function(id, data){
           )
           # }
         })
-        ## Report tab
-        output$reportRgg <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit("./R/reportRgg.Rmd", quiet = TRUE), fragment.only=TRUE))
-        })
+
         # output$plotPredictionsScatter <-  plotly::renderPlotly({
         #   mydata = result$predictions
         #   mydata <- mydata[which(mydata$analysisId == input$version2Rgg),]
@@ -330,6 +330,31 @@ mod_rggApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
+
+    ## Report tab
+    output$reportRgg <- renderUI({
+      HTML(markdown::markdownToHTML(knitr::knit("./R/reportRgg.Rmd", quiet = TRUE), fragment.only=TRUE))
+    })
+
+    output$downloadReportRgg <- downloadHandler(
+      filename = function() {
+        paste0("reportRgg-",gsub("-|:| ", "", Sys.time()),".html")
+      },
+      content = function(file) {
+        shinybusy::show_modal_spinner(spin = "fading-circle",
+                                      color = "#F39C12",
+                                      text = "Generating Report...")
+
+        rmarkdown::render(
+          # input RMD file
+          input = ("R/reportRgg1.Rmd"),
+
+          # input RMD parameters ----
+          params = list(),
+          output_file = file)
+        shinybusy::remove_modal_spinner()
+      }, contentType = "html"
+    )
 
     output$outRgg <- renderPrint({
       outRgg()
