@@ -47,7 +47,6 @@ library(ggplot2)  # ggplot(), etc.
 library(plotly)  # ggplot(), etc.
 library(DT)       # datatable()
 library(knitr)    # kable
-library(grafify)
 library(data.table)
 library(shiny)
 ```
