@@ -16,24 +16,36 @@ mod_indexDesireApp_ui <- function(id){
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Desire selection index</font>"),
+                  <font size='5'>Selection indices</font>"),
       # div(tags$p( h4(strong("Desire selection index")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("version2IdxD"), "MTA version to analyze", choices = NULL, multiple = FALSE),
-      selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-      textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
-                          selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-                          numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
-                          selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+
+      radioButtons(ns("rbSelectionIndices"),"Selection Index",choices=c("Desire","Base"), selected="Desire"),
+
+      conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
+                       selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
+                       uiOutput(ns("SliderBaseIndex")),
+                       actionButton(ns("runIdxB"), "Run", icon = icon("play-circle")),
+                       hr(style = "border-top: 1px solid #4c4c4c;"),
+                       uiOutput(ns("qaQcIdxBInfo")),
+                       textOutput(ns("outIdxB"))
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runIdxD"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcIdxDInfo")),
-      textOutput(ns("outIdxD"))
+      conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
+                       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
+                       textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
+                       hr(style = "border-top: 1px solid #4c4c4c;"),
+                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                           numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
+                                           selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                           numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
+                                           selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                       ),
+                       actionButton(ns("runIdxD"), "Run", icon = icon("play-circle")),
+                       hr(style = "border-top: 1px solid #4c4c4c;"),
+                       uiOutput(ns("qaQcIdxDInfo")),
+                       textOutput(ns("outIdxD"))
+      )
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -85,19 +97,43 @@ mod_indexDesireApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("predictionsIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(
+                                                width=12,
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
+                                                                 DT::DTOutput(ns("predictionsIdxD"))
+                                                ),
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
+                                                                 DT::DTOutput(ns("predictionsIdxB"))
+                                                ),
+                                                style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
+                                                )
                           )
                  ),
                  tabPanel("Modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingIdxD")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(
+                                                width=12,
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
+                                                                 DT::DTOutput(ns("modelingIdxD"))
+                                                ),
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
+                                                                 DT::DTOutput(ns("modelingIdxB"))
+                                                ),
+                                                style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
+                                                )
                           )
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
-                          uiOutput(ns('reportIndex'))
+                          conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
+                                           uiOutput(ns('reportIndexD'))
+                          ),
+                          conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
+                                           DT::DTOutput(ns("BaseIndex"))
+                          )
+
                  )
                )
       )# end of output panel
@@ -120,11 +156,6 @@ mod_indexDesireApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-    # data = reactive({
-    #   load("~/Documents/bioflow/dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -138,6 +169,14 @@ mod_indexDesireApp_server <- function(id, data){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )}
       }
     )
+
+
+    ######################################################################################
+    ######################################################################################
+    ########################################### Desire Index
+    ######################################################################################
+    ######################################################################################
+
     #################
     ## version
     observeEvent(c(data()), {
@@ -159,10 +198,7 @@ mod_indexDesireApp_server <- function(id, data){
       traitsIdxD <- unique(dtIdxD$trait)
       updateSelectInput(session, "trait2IdxD", choices = traitsIdxD)
     })
-
-    ##############################################################################################
-    ##############################################################################################
-    ##############################################################################################
+    #################
     ## render the data to be analyzed (wide format)
     output$tablePredictionsTraitsWide <-  DT::renderDT({
       req(data())
@@ -237,7 +273,7 @@ mod_indexDesireApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
-          save(result, file = "./R/outputs/resultIndex.RData")
+          save(result, file = "./R/outputs/resultIndexD.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
@@ -279,8 +315,8 @@ mod_indexDesireApp_server <- function(id, data){
           # }
         })
         ## Report tab
-        output$reportIndex <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit("./R/reportIndex.Rmd", quiet = TRUE), fragment.only=TRUE))
+        output$reportIndexD <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportIndexD.Rmd", quiet = TRUE), fragment.only=TRUE))
         })
 
       } else {
@@ -296,6 +332,174 @@ mod_indexDesireApp_server <- function(id, data){
 
     output$outIdxD <- renderPrint({
       outIdxD()
+    })
+
+
+    ######################################################################################
+    ######################################################################################
+    ########################################### Base Index
+    ######################################################################################
+    ######################################################################################
+
+    ####################
+    ## traits for base index
+    observeEvent(c(data(), input$version2IdxD), {
+      req(data())
+      req(input$version2IdxD)
+      dtBaseIndex <- data()
+      dtBaseIndex <- dtBaseIndex$predictions
+      dtBaseIndex <- dtBaseIndex[which(dtBaseIndex$analysisId == input$version2IdxD),]
+      traitsBaseIndex <- unique(dtBaseIndex$trait)
+      updateSelectInput(session, "traitsBaseIndex", choices = traitsBaseIndex)
+    })
+    ####################
+    ## Weights for traits Base Index
+    output$SliderBaseIndex <- renderUI({
+      req(data())
+      req(input$traitsBaseIndex)
+      traitsBaseIndex <- input$traitsBaseIndex
+      lapply(1:length(traitsBaseIndex), function(i) {
+        sliderInput(
+          session$ns(paste0('SliderBaseIndex',i)),
+          paste0('Weight',": ",traitsBaseIndex[i]),
+          min = -5,
+          max = 5,
+          value = 1,
+          step = 0.5
+        )
+      })
+    })
+    ####################
+    ## Run button for Base Index
+    outIdxB <- eventReactive(input$runIdxB, {
+      req(data())
+      req(input$version2IdxD)
+      req(input$traitsBaseIndex)
+      dtBaseIndex <- data()
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+      dtBaseIndexPred <- dtBaseIndex$predictions
+      dtBaseIndexPred <- dtBaseIndexPred[dtBaseIndexPred$analysisId == input$version2IdxD,]
+      traitsBaseIndex <- input$traitsBaseIndex
+
+      # define values for slider all traits for base index
+      if (length(traitsBaseIndex) != 0) {
+        values <- NULL
+        for (i in 1:length(traitsBaseIndex)) {
+          tempval <- reactive({paste0('input$','SliderBaseIndex',i)})
+          values[i] <- tempval()
+          values[i] <- eval(parse(text = values[i]))
+        }
+        values <- t(as.numeric(values))
+        values <- as.data.frame(values)
+        colnames(values) <- traitsBaseIndex
+      }
+      values <- as.numeric(values)
+
+      # run the modeling, but before test if mta was done
+      if(sum(dtBaseIndex$status$module %in% "mta") == 0) {
+        output$qaQcIdxBInfo <- renderUI({
+          if (hideAll$clearAll)
+            return()
+          else
+            req(dtBaseIndex)
+          HTML(as.character(div(style="color: brown;",
+                                "Please perform Multi-Trial-Analysis before conducting a Selection index."))
+          )
+        })
+      }else{
+        output$qaQcIdxBInfo <- renderUI({return(NULL)})
+        resultBaseIndex <- try(cgiarPipeline::baseIndex(
+          dtBaseIndex,
+          input$version2IdxD,
+          traitsBaseIndex,
+          values),
+        silent=TRUE
+        )
+        if(!inherits(resultBaseIndex,"try-error")) {
+          data(resultBaseIndex) # update data with results
+          save(resultBaseIndex, file = "./R/outputs/resultIndexB.RData")
+          cat(paste("Selection index step with id:",resultBaseIndex$status$analysisId[length(resultBaseIndex$status$analysisId)],"saved."))
+        }else{
+          cat(paste("Analysis failed with the following error message: \n\n",resultBaseIndex[[1]]))
+        }
+      }
+      shinybusy::remove_modal_spinner()
+      if(!inherits(resultBaseIndex,"try-error")) {
+        # display table of predictions
+        output$predictionsIdxB <-  DT::renderDT({
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+          predictions <- resultBaseIndex$predictions
+          predictions <- predictions[predictions$module=="indexB",]
+          predictions$analysisId <- as.numeric(predictions$analysisId)
+          predictions <- predictions[!is.na(predictions$analysisId),]
+          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+          numeric.output <- c("predictedValue", "stdError", "reliability")
+          DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          ), numeric.output)
+          # }
+        })
+        # display table of modeling
+        output$modelingIdxB <-  DT::renderDT({
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+          modeling <- resultBaseIndex$modeling
+          mtas <- resultBaseIndex$status[which(resultBaseIndex$status$module == "indexB"),"analysisId"]; mtaId <- mtas[length(mtas)]
+          modeling <- modeling[which(modeling$analysisId == mtaId),]
+          modeling <- subset(modeling, select = -c(module,analysisId))
+          DT::datatable(modeling, extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          )
+          # }
+        })
+        # Report tab
+        analysisIdBaseIndex <- resultBaseIndex$status[ resultBaseIndex$status$module %in% c("mta","indexB"),"analysisId"]
+        predBaseIndex <- resultBaseIndex$predictions[resultBaseIndex$predictions$analysisId %in% analysisIdBaseIndex,]
+
+        predBaseIndexWide <- reshape(
+          data=subset(predBaseIndex, select=c(designation,trait,predictedValue)),
+          timevar = "trait",
+          idvar = "designation",
+          direction="wide"
+        )
+        colnames(predBaseIndexWide)[-1] <- gsub("predictedValue.","", colnames(predBaseIndexWide)[-1])
+        predBaseIndexWide <- predBaseIndexWide[order(predBaseIndexWide$baseIndex,decreasing=TRUE),]
+        predBaseIndexWide$Rank <- 1:nrow(predBaseIndexWide)
+
+        output$BaseIndex <-  DT::renderDT({
+          # if ( hideAll$clearAll){
+          #   return()
+          # }else{
+          numeric.output <- c(input$traitsBaseIndex,"baseIndex")
+          # print(head(predBaseIndexWide))
+          DT::formatRound(DT::datatable(predBaseIndexWide,
+                                        extensions = 'Buttons',
+                                        rownames = FALSE,
+                                        class = 'cell-border',
+                                        options = list(dom = 'Blfrtip',
+                                                       scrollY = "400px",
+                                                       scrollX = "400px",
+                                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       paging=F)
+          ), numeric.output)
+
+        })
+
+      }
+
+
+      # hideAll$clearAll <- FALSE
+
+    })
+
+    output$outIdxB <- renderPrint({
+      outIdxB()
     })
 
 

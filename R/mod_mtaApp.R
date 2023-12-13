@@ -24,15 +24,15 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = h5("Fields to include..."),
                           column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = h5("Trait distributions..."),
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = h5("Settings..."),
                           selectInput(ns("modelMet"), label = "Method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
-                          selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
+                          # selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
                           textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
@@ -173,15 +173,15 @@ mod_mtaApp_server <- function(id, data){
       traitsMta <- unique(dtMta$analysisId)
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
-    ## version qa marker
-    observeEvent(c(data()), {
-      req(data())
-      dtMta <- data()
-      dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
-      traitsMta <- unique(dtMta$analysisId)
-      updateSelectInput(session, "versionMarker2Mta", choices = traitsMta, selected = traitsMta[length(traitsMta)])
-    })
+    # ## version qa marker
+    # observeEvent(c(data()), {
+    #   req(data())
+    #   dtMta <- data()
+    #   dtMta <- dtMta$status
+    #   dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
+    #   traitsMta <- unique(dtMta$analysisId)
+    #   updateSelectInput(session, "versionMarker2Mta", choices = traitsMta, selected = traitsMta[length(traitsMta)])
+    # })
     #################
     ## traits
     observeEvent(c(data(), input$version2Mta), {
@@ -350,7 +350,8 @@ mod_mtaApp_server <- function(id, data){
         resultMta <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
-          analysisIdForGenoModifications = input$versionMarker2Mta,
+          # analysisIdForGenoModifications = input$versionMarker2Mta,
+          analysisIdForGenoModifications = NULL,
           fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
           trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
@@ -379,17 +380,17 @@ mod_mtaApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            predictions <- resultMta$predictions
-            predictions <- predictions[predictions$module=="mta",]
-            predictions$analysisId <- as.numeric(predictions$analysisId)
-            predictions <- predictions[!is.na(predictions$analysisId),]
-            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-            numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            ), numeric.output)
+          predictions <- resultMta$predictions
+          predictions <- predictions[predictions$module=="mta",]
+          predictions$analysisId <- as.numeric(predictions$analysisId)
+          predictions <- predictions[!is.na(predictions$analysisId),]
+          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+          numeric.output <- c("predictedValue", "stdError", "reliability")
+          DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          ), numeric.output)
           # }
         })
         # metrics table
@@ -398,15 +399,15 @@ mod_mtaApp_server <- function(id, data){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-              metrics <- resultMta$metrics
-              mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              metrics <- metrics[which(metrics$analysisId == mtaId),]
-              metrics <- subset(metrics, select = -c(module,analysisId))
-              numeric.output <- c("value", "stdError")
-              DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
-                                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-              ), numeric.output)
+            metrics <- resultMta$metrics
+            mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            metrics <- metrics[which(metrics$analysisId == mtaId),]
+            metrics <- subset(metrics, select = -c(module,analysisId))
+            numeric.output <- c("value", "stdError")
+            DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            ), numeric.output)
             # }
           }
         })
@@ -416,14 +417,14 @@ mod_mtaApp_server <- function(id, data){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-              modeling <- resultMta$modeling
-              mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              modeling <- modeling[which(modeling$analysisId == mtaId),]
-              modeling <- subset(modeling, select = -c(module,analysisId))
-              DT::datatable(modeling, extensions = 'Buttons',
-                                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-              )
+            modeling <- resultMta$modeling
+            mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            modeling <- modeling[which(modeling$analysisId == mtaId),]
+            modeling <- subset(modeling, select = -c(module,analysisId))
+            DT::datatable(modeling, extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            )
             # }
           }
         })
