@@ -383,7 +383,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
     output$pheno_map <- renderUI({
       header <- colnames(pheno_data())
       pheno_map <- lapply(map, function(x) {
-        fluidPage(
+        column(3,
           selectInput(
             inputId  = ns(paste0('select', x)),
             label    = x,
@@ -416,7 +416,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
           }),
         )
       })
-      do.call(tagList, pheno_map)
+      fluidRow(do.call(tagList, pheno_map))
     })
 
     observeEvent(
