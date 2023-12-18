@@ -254,7 +254,7 @@ mod_getData_ui <- function(id){
         ),
 
         tags$span(id = ns('ped_csv_options'),
-                  shinydashboard::box(title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'primary', solidHeader = TRUE,
+                  shinydashboard::box(title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
                                       shinyWidgets::prettyRadioButtons(ns('ped_sep'), 'Separator Character', selected = ',', inline = TRUE,
                                                                        choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
@@ -275,6 +275,8 @@ mod_getData_ui <- function(id){
             value = FALSE
           )
         },
+
+        uiOutput(ns('ped_map')),
 
         verbatimTextOutput(ns('ped_summary')),
       ),
@@ -635,6 +637,32 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         data(temp)
       }
     )
+
+    output$ped_map <- renderUI({
+      header <- colnames(ped_data())
+      fluidRow(
+        column(3, selectInput(
+          inputId  = ns('ped_designation'),
+          label    = 'Designation',
+          choices  = as.list(c('', header)),
+        )),
+        column(3, selectInput(
+          inputId  = ns('ped_mother'),
+          label    = 'Female Parent',
+          choices  = as.list(c('', header)),
+        )),
+        column(3, selectInput(
+          inputId  = ns('ped_father'),
+          label    = 'Male Parent',
+          choices  = as.list(c('', header)),
+        )),
+        column(3, selectInput(
+          inputId  = ns('ped_year'),
+          label    = 'Year of Origin',
+          choices  = as.list(c('', header)),
+        ))
+      )
+    })
 
     output$ped_summary <- renderText({
       tmp <- data()
