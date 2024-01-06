@@ -65,7 +65,7 @@ mod_homeApp_ui <- function(id){
         class = "landing-block foreground-content",
         tags$div(
           class = "foreground-text",
-          tags$img(src = "www/cgiar.png"),
+          tags$img(src = "www/cgiar.png", height = 190, width = 600),
           tags$h1("Biometrical Genetics Workflow (bioflow)"),
           tags$p(
             "The OneCGIAR biometrical genetics workflow or pipeline has been built to provide access to automatic state-of-the-art genetic evaluation.",
