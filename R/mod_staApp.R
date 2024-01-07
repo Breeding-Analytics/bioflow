@@ -81,11 +81,31 @@ mod_staApp_ui <- function(id){
                )
       ),
       tabPanel(p("Input",class = "input-p"), icon = icon("arrow-right-to-bracket"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-               )
+               tabsetPanel(
+                 tabPanel("Genetic Units", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              selectInput(ns("feature"), "Check units by:", choices = c("environment","year","season","location","trial"), selected = "environment", multiple = FALSE),
+                                              column(width=12,DT::DTOutput(ns("summariesSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
+                 tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                              plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
+                          )
+                 ),
+                 tabPanel("Data", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 )
+               )# of of tabsetPanel
       ),
       tabPanel(p("Output",class = "output-p"), icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
@@ -239,6 +259,55 @@ mod_staApp_server <- function(id,data){
     ## render the data to be analyzed
     observeEvent(data(),{
       if(sum(data()$status$module %in% "qaRaw") != 0) {
+        ## render summaries
+        output$summariesSta <-  DT::renderDT({
+          req(data())
+          req(input$feature)
+          dtSta <- data() # dtSta<- result
+          dtSta <- merge(dtSta$data$pheno, dtSta$data$pedigree, by="designation") # merge mother and father info in the pheno data frame
+          dtStaList <- split(dtSta, dtSta[,input$feature]) # split info by environment
+          dtStaListRes <- list()
+          for(i in 1:length(dtStaList)){
+            dtStaListRes[[i]] <- as.data.frame(as.table(apply(dtStaList[[i]][,c("designation","mother","father")],2, function(x){length(na.omit(unique(x)))})))
+            dtStaListRes[[i]][,input$feature] <- names(dtStaList)[i]
+          }
+          dtSta <- do.call(rbind, dtStaListRes)
+          colnames(dtSta)[1:2] <- c("geneticUnit", "numberOfUnits")
+          dtSta <- dtSta[with(dtSta, order(geneticUnit)), ]; rownames(dtSta) <- NULL
+          DT::datatable(dtSta, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          )
+        })
+        ## render plot of trait distribution
+        observeEvent(c(data(),input$version2Sta), { # update trait
+          req(data())
+          req(input$version2Sta)
+          dtSta <- data()
+          dtSta <- dtSta$modifications$pheno
+          dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
+          traitsSta <- unique(dtSta$trait)
+          updateSelectInput(session, "trait3Sta", choices = traitsSta)
+        })
+        output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
+          req(data())
+          req(input$trait3Sta)
+          mydata <- data()$data$pheno
+          mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+          if(mappedColumns == 3){ # all required columns are present
+            mydata$rowindex <- 1:nrow(mydata)
+            mydata[, "environment"] <- as.factor(mydata[, "environment"]);mydata[, "designation"] <- as.factor(mydata[, "designation"])
+            mo <- data()$modifications$pheno
+            mo <- mo[which(mo[,"trait"] %in% input$trait3Sta),]
+            mydata$color <- 1
+            if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
+            mydata$color <- as.factor(mydata$color)
+            res <- plotly::plot_ly(y = mydata[,input$trait3Sta], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
+                                   x = mydata[,"environment"], text=mydata[,"designation"], pointpos = -1.8)
+            res = res %>% plotly::layout(showlegend = FALSE); res
+          }else{}
+        })
+        ## render raw data
         output$phenoSta <-  DT::renderDT({
           req(data())
           dtSta <- data()
@@ -251,7 +320,9 @@ mod_staApp_server <- function(id,data){
           ), numeric.output)
         })
       } else {
+        output$summariesSta <- DT::renderDT({DT::datatable(NULL)})
         output$phenoSta <- DT::renderDT({DT::datatable(NULL)})
+        output$plotPredictionsCleanOut <- plotly::renderPlotly({NULL})
       }
     })
     ## render result of "run" button click

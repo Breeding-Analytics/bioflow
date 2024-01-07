@@ -97,7 +97,7 @@ mod_qaRawApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers using the 'Outlier detection' tab.")) )
+        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers using the 'Outlier detection' tab under the 'Output' section.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )
         }
       }
@@ -181,22 +181,12 @@ mod_qaRawApp_server <- function(id, data){
         mydata$color <- 1
         if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
         mydata$color <- as.factor(mydata$color)
-        # mydata$environment <- cgiarBase::cleanChar(mydata$environment)# as.factor(apply(data.frame(cgiarBase::cleanChar(mydata$fieldinst)),1,function(x){substr(x,max(c(1,(nchar(x)-18))),nchar(x))}))
         res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
                                x = mydata[,"environment"], text=mydata[,"designation"],
                                pointpos = -1.8)
         res = res %>% plotly::layout(showlegend = FALSE,  xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont)))
         res
       }else{}
-      # plotly::plot_ly(x = c(1, 2), y = c(1, 2), type = 'scatter', mode = 'markers') %>%
-      #   # Add image
-      #   plotly::layout(
-      #     xaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)), yaxis=list(showgrid=FALSE,zeroline = F, showticklabels=FALSE, range=c(0,3)),
-      #     images = list(
-      #       list( source =  "www/maize.jpg", xref = "x", yref = "y",x = 0,  y = 3,sizex = 3.5,  sizey = 3.5, sizing = "stretch", opacity = .9, layer = "above")
-      #     )
-      #   ) %>%
-      #   plotly::add_annotations(text = mess, x = 1, y = 2.5) # add a message
     })
 
     ## display the current outliers
