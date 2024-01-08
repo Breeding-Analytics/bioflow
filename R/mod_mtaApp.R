@@ -100,6 +100,14 @@ mod_mtaApp_ui <- function(id){
                                               column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) )
                           )
                  ),
+                 tabPanel("Sta metrics", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                              column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                              column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
+                          )
+                 ),
                  tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
@@ -393,6 +401,40 @@ mod_mtaApp_server <- function(id, data){
           )
       }
       fig
+    })
+    ## render metrics barplot
+    observeEvent(c(data(),input$version2Mta), { # update trait
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$metrics
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
+      traitMtaInput <- unique(dtMta$trait)
+      updateSelectInput(session, "traitMetrics", choices = traitMtaInput)
+    })
+    observeEvent(c(data(),input$version2Mta), { # update parameter
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$metrics
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
+      metricsMtaInput <- unique(dtMta$parameter)
+      updateSelectInput(session, "parameterMetrics", choices = metricsMtaInput)
+    })
+    output$barplotPredictionsMetrics <- plotly::renderPlotly({
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      mydata <- dtMta$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
+      mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
+      res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
+                            color=mydata[,"trait"]
+                            # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
+                            )   # , type="scatter", mode   = "markers")
+      res = res %>% plotly::add_bars()
+      res
     })
     ## render trait distribution plot
     observeEvent(c(data(),input$version2Mta), { # update trait
