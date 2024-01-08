@@ -82,7 +82,7 @@ mod_staApp_ui <- function(id){
       ),
       tabPanel(p("Input",class = "input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
-                 tabPanel("Genetic Units", icon = icon("table"),
+                 tabPanel("Effects", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,

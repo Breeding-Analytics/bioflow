@@ -80,15 +80,25 @@ mod_indexDesireApp_ui <- function(id){
                )
       ),
       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   plotly::plotlyOutput(ns("plotPredictionsRadar")),
-                                   plotly::plotlyOutput(ns("plotPotentialResponse"))
-               ),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               tabsetPanel(
+                 tabPanel("Radar plot", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                              plotly::plotlyOutput(ns("plotPredictionsRadar"))
+                          )
+                 ),
+                 tabPanel("Expected response", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              plotly::plotlyOutput(ns("plotPotentialResponse"))
+                          )
+                 ),
+                 tabPanel("Traits", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 )
                )
       ),
       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),

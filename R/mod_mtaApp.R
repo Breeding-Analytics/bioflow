@@ -24,13 +24,13 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = h5("Fields to include..."),
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
                           column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = h5("Trait distributions..."),
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = h5("Settings..."),
+      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("modelMet"), label = "Method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
                           # selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
@@ -90,10 +90,33 @@ mod_mtaApp_ui <- function(id){
                )
       ),
       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               tabsetPanel(
+                 tabPanel("Connectivity", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                              column(width=12,selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
+                                              column(width = 6, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = TRUE) ),
+                                              column(width = 6, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = TRUE) ),
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) )
+                          )
+                 ),
+                 tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                              column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
+                          )
+                 ),
+                 tabPanel("Data", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              column(width=12,
+                                                     DT::DTOutput(ns("phenoMta")),
+                                                     style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
+                                              )
+                          )
+                 )
                )
       ),
       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
@@ -222,7 +245,7 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
-      req(input$fixedTermMta2)
+      # req(input$fixedTermMta2)
       dtMta <- data()
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
@@ -321,6 +344,76 @@ mod_mtaApp_server <- function(id, data){
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
+    })
+    ## render connectivity plot
+    observeEvent(c(data(),input$version2Mta), { # update entry types included in the plot
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
+      entryTypeMtaInput <- unique(dtMta$entryType)
+      updateSelectInput(session, "entryTypeMta", choices = entryTypeMtaInput, selected = entryTypeMtaInput)
+    })
+    output$plotPredictionsConnectivity <-  plotly::renderPlotly({
+      req(data())
+      req(input$version2Mta)
+      req(input$entryTypeMta)
+      dtMta <- data()
+      mydata <- dtMta$predictions
+      mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
+      splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) )
+      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate)
+      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate)
+      for(i in 1:length(splitAggregate)){
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      mydata4 <- as.data.frame(as.table(nagm)); mydata4$mytext <- paste(mydata4$Var1, mydata4$Var2,sep=".")
+      mydata4$X1 <- as.numeric(as.factor(mydata4$Var1))
+      mydata4$X2 <- as.numeric(as.factor(mydata4$Var2))
+      ## make the plot
+      fig <-  plotly::plot_ly(mydata4, x = mydata4[,"X1"], y = mydata4[,"X2"],
+                              z = mydata4[,"Freq"], color = mydata4[,"Freq"],
+                              text=mydata4[,"mytext"], colors = c('#BF382A', '#0C4B8E'))
+      fig <- fig %>%  plotly::add_heatmap()
+      ## add text inside the corplot?
+      if(!is.null(input$checkboxText)){
+        fig <- fig %>%  plotly::add_annotations(text =mydata4[,"Freq"],x = mydata4[,"X1"],y = mydata4[,"X2"],
+                                                xref = 'x', yref = 'y',showarrow = FALSE, font=list(color='white')) #
+      }
+      ## add axis labels to the plot?
+      if(!is.null(input$checkboxAxis)){
+        fig <- fig %>%
+          plotly::layout(yaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var1"]), tickmode="array", tickvals = unique(mydata4[,"X1"]) ),
+                         xaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var2"]), tickmode="array", tickvals = unique(mydata4[,"X2"]) )
+
+          )
+      }
+      fig
+    })
+    ## render trait distribution plot
+    observeEvent(c(data(),input$version2Mta), { # update trait
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
+      traitMtaInput <- unique(dtMta$trait)
+      updateSelectInput(session, "trait3Mta", choices = traitMtaInput)
+    })
+    output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
+      req(data())
+      req(input$trait3Mta)
+      req(input$groupMtaInputPlot)
+      mydata <- data()$predictions
+      mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
+      mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, #color = mydata[,input$groupMtaInputPlot],
+                             x = mydata[,input$groupMtaInputPlot], text=mydata[,"designation"], pointpos = -1.8)
+      res = res %>% plotly::layout(showlegend = FALSE); res
     })
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {
