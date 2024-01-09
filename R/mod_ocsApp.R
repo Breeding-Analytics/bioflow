@@ -70,10 +70,23 @@ mod_ocsApp_ui <- function(id){
                )
       ),
       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               tabsetPanel(
+                 tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              column(width=5, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                              column(width=5, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
+                                              column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1)),
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
+                          )
+                 ),
+                 tabPanel("Data", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 )
                )
       ),
       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
@@ -216,6 +229,29 @@ mod_ocsApp_server <- function(id, data){
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
+    ## render trait distribution plot
+    observeEvent(c(data(),input$version2Ocs), { # update trait
+      req(data())
+      req(input$version2Ocs)
+      dtOcs <- data()
+      dtOcs <- dtOcs$predictions
+      dtOcs <- dtOcs[which(dtOcs$analysisId %in% input$version2Ocs),] # only traits that have been QA
+      traitOcsInput <- unique(dtOcs$trait)
+      updateSelectInput(session, "trait3Ocs", choices = traitOcsInput)
+    })
+    output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
+      req(data())
+      req(input$trait3Ocs)
+      req(input$fontSize)
+      req(input$groupOcsInputPlot)
+      mydata <- data()$predictions
+      mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Ocs),]
+      mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, color = mydata[,input$groupOcsInputPlot],
+                             x = mydata[,input$groupOcsInputPlot], text=mydata[,"designation"], pointpos = -1.8)
+      res = res %>% plotly::layout(showlegend = TRUE,  xaxis = list(titlefont = list(size = input$fontSize), tickfont = list(size = input$fontSize)))
+      res
+    })
     ## render the data to be analyzed
     output$phenoOcs <-  DT::renderDT({
       req(data())
@@ -280,17 +316,17 @@ mod_ocsApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            predictions <- result$predictions
-            predictions <- predictions[predictions$module=="ocs",]
-            predictions$analysisId <- as.numeric(predictions$analysisId)
-            predictions <- predictions[!is.na(predictions$analysisId),]
-            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-            numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            ), numeric.output)
+          predictions <- result$predictions
+          predictions <- predictions[predictions$module=="ocs",]
+          predictions$analysisId <- as.numeric(predictions$analysisId)
+          predictions <- predictions[!is.na(predictions$analysisId),]
+          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+          numeric.output <- c("predictedValue", "stdError", "reliability")
+          DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          ), numeric.output)
           # }
         })
         # view metrics
@@ -298,17 +334,17 @@ mod_ocsApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            metrics <- result$metrics
-            metrics <- metrics[metrics$module=="ocs",]
-            metrics$analysisId <- as.numeric(metrics$analysisId)
-            metrics <- metrics[!is.na(metrics$analysisId),]
-            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-            numeric.output <- c("value", "stdError")
-            DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            ), numeric.output)
+          metrics <- result$metrics
+          metrics <- metrics[metrics$module=="ocs",]
+          metrics$analysisId <- as.numeric(metrics$analysisId)
+          metrics <- metrics[!is.na(metrics$analysisId),]
+          current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+          current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+          numeric.output <- c("value", "stdError")
+          DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          ), numeric.output)
           # }
         })
         # view modeling
@@ -316,16 +352,16 @@ mod_ocsApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-            modeling <- result$modeling
-            modeling <- modeling[modeling$module=="ocs",]
-            modeling$analysisId <- as.numeric(modeling$analysisId)
-            modeling <- modeling[!is.na(modeling$analysisId),]
-            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-            DT::datatable(current.modeling, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            )
+          modeling <- result$modeling
+          modeling <- modeling[modeling$module=="ocs",]
+          modeling$analysisId <- as.numeric(modeling$analysisId)
+          modeling <- modeling[!is.na(modeling$analysisId),]
+          current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+          current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+          DT::datatable(current.modeling, extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          )
           # }
         })
         ## Report tab
