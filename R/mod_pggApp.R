@@ -98,6 +98,9 @@ mod_pggApp_ui <- function(id){
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportPgg"), "Download report"),
+                          br(),
                           uiOutput(ns('reportPgg'))
                  )
                )
@@ -332,6 +335,26 @@ mod_pggApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
+
+    output$downloadReportPgg <- downloadHandler(
+      filename = function() {
+        paste0("reportPgg-",gsub("-|:| ", "", Sys.time()),".html")
+      },
+      content = function(file) {
+        shinybusy::show_modal_spinner(spin = "fading-circle",
+                                      color = "#F39C12",
+                                      text = "Generating Report...")
+
+        rmarkdown::render(
+          # input RMD file
+          input = ("R/reportPggDownload.Rmd"),
+
+          # input RMD parameters ----
+          params = list(),
+          output_file = file)
+        shinybusy::remove_modal_spinner()
+      }, contentType = "html"
+    )
 
     output$outPgg <- renderPrint({
       outPgg()
