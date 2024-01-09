@@ -62,10 +62,22 @@ mod_pggApp_ui <- function(id){
                )
       ),
       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               tabsetPanel(
+                 tabPanel("Metrics view", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                              column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                              column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
+                          )
+                 ),
+                 tabPanel("Data", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 )
                )
       ),
       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
@@ -117,7 +129,7 @@ mod_pggApp_server <- function(id, data){
     ## warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         if("mta" %in% data()$status$module){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain inspecting the other tabs.")) )
@@ -179,6 +191,40 @@ mod_pggApp_server <- function(id, data){
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
+    ## render metrics barplot
+    observeEvent(c(data(),input$version2Pgg), { # update trait
+      req(data())
+      req(input$version2Pgg)
+      dtPgg <- data()
+      dtPgg <- dtPgg$metrics
+      dtPgg <- dtPgg[which(dtPgg$analysisId %in% input$version2Pgg),] # only traits that have been QA
+      traitPggInput <- unique(dtPgg$trait)
+      updateSelectInput(session, "traitMetrics", choices = traitPggInput, selected = traitPggInput)
+    })
+    observeEvent(c(data(),input$version2Pgg), { # update parameter
+      req(data())
+      req(input$version2Pgg)
+      dtPgg <- data()
+      dtPgg <- dtPgg$metrics
+      dtPgg <- dtPgg[which(dtPgg$analysisId %in% input$version2Pgg),] # only traits that have been QA
+      metricsPggInput <- unique(dtPgg$parameter)
+      updateSelectInput(session, "parameterMetrics", choices = metricsPggInput)
+    })
+    output$barplotPredictionsMetrics <- plotly::renderPlotly({
+      req(data())
+      req(input$version2Pgg)
+      dtPgg <- data()
+      mydata <- dtPgg$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Pgg),]
+      mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
+      res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
+                            color=mydata[,"trait"]
+                            # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
+      )   # , type="scatter", mode   = "markers")
+      res = res %>% plotly::add_bars()
+      res
+    })
     ## render the data to be analyzed
     output$phenoPgg <-  DT::renderDT({
       req(data())

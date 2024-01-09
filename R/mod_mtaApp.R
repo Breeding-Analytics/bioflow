@@ -184,7 +184,7 @@ mod_mtaApp_server <- function(id, data){
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
@@ -410,7 +410,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta$metrics
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
       traitMtaInput <- unique(dtMta$trait)
-      updateSelectInput(session, "traitMetrics", choices = traitMtaInput)
+      updateSelectInput(session, "traitMetrics", choices = traitMtaInput, selected = traitMtaInput)
     })
     observeEvent(c(data(),input$version2Mta), { # update parameter
       req(data())

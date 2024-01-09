@@ -162,7 +162,7 @@ mod_staApp_server <- function(id,data){
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
@@ -442,7 +442,7 @@ mod_staApp_server <- function(id,data){
 
             rmarkdown::render(
               # input RMD file
-              input = ("R/reportSta1.Rmd"),
+              input = ("R/reportStaDownload.Rmd"),
 
               # input RMD parameters ----
               params = list(),

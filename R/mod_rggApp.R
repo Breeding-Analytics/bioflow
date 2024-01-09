@@ -69,10 +69,23 @@ mod_rggApp_ui <- function(id){
                )
       ),
       tabPanel(p("Input", class="input-p"), icon = icon("arrow-right-to-bracket"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+               tabsetPanel(
+                 tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              column(width=12, selectInput(ns("trait3Rgg"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                              # column(width=5, selectInput(ns("groupRggInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
+                                              # column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1)),
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
+                          )
+                 ),
+                 tabPanel("Data", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 )
                )
       ),
       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
@@ -132,7 +145,7 @@ mod_rggApp_server <- function(id, data){
     ############################################################################
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data' tab.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$data$pedigree)))
         if(mappedColumns == 1){
@@ -163,26 +176,6 @@ mod_rggApp_server <- function(id, data){
       traitsRgg <- unique(dtRgg$trait)
       updateSelectInput(session, "trait2Rgg", choices = traitsRgg)
     })
-    # # trait for report tab
-    # observeEvent(c(data(), input$version2Rgg), {
-    #   req(data())
-    #   req(input$version2Rgg)
-    #   dtRgg <- data()
-    #   dtRgg <- dtRgg$predictions
-    #   dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-    #   traitsRgg <- unique(dtRgg$trait)
-    #   updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsRgg)
-    # })
-    # # environment for report tab
-    # observeEvent(c(data(), input$version2Rgg), {
-    #   req(data())
-    #   req(input$version2Rgg)
-    #   dtRgg <- data()
-    #   dtRgg <- dtRgg$predictions
-    #   dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-    #   traitsRgg <- unique(dtRgg$environment)
-    #   updateSelectInput(session, "environment", choices = traitsRgg)
-    # })
     ##############
     ## entry type
     observeEvent(c(data(), input$version2Rgg, input$trait2Rgg), {
@@ -197,6 +190,29 @@ mod_rggApp_server <- function(id, data){
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
+    ## render trait distribution plot
+    observeEvent(c(data(),input$version2Rgg), { # update trait
+      req(data())
+      req(input$version2Rgg)
+      dtRgg <- data()
+      dtRgg <- dtRgg$predictions
+      dtRgg <- dtRgg[which(dtRgg$analysisId %in% input$version2Rgg),] # only traits that have been QA
+      traitRggInput <- unique(dtRgg$trait)
+      updateSelectInput(session, "trait3Rgg", choices = traitRggInput)
+    })
+    output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
+      req(data())
+      req(input$trait3Rgg)
+      mydata <- data()$predictions
+      myYears <- data()$data$pedigree
+      mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+      mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
+      mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
+                             x = mydata[,"yearOfOrigin"], text=mydata[,"designation"], pointpos = -1.8)
+      # res = res %>% plotly::layout(showlegend = TRUE,  xaxis = list(titlefont = list(size = input$fontSize), tickfont = list(size = input$fontSize)))
+      res
+    })
     ## render the data to be analyzed
     output$phenoRgg <-  DT::renderDT({
       req(data())
@@ -293,34 +309,6 @@ mod_rggApp_server <- function(id, data){
           # }
         })
 
-        # output$plotPredictionsScatter <-  plotly::renderPlotly({
-        #   mydata = result$predictions
-        #   mydata <- mydata[which(mydata$analysisId == input$version2Rgg),]
-        #   mydata = mydata[which(mydata$trait == input$traitFilterPredictions2D2),]
-        #   mydata = mydata[which(mydata$environment == input$environment),]
-        #   if(!is.null(result$data$pedigree$yearOfOrigin)){
-        #     mydata <- merge(mydata, result$data$pedigree[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE )
-        #     mydata <- mydata[which(!is.na(mydata$yearOfOrigin)),]
-        #     res = plotly::plot_ly(data = mydata, x = mydata[,"yearOfOrigin"], y = mydata[,"predictedValue"])
-        #     # calculate current metrics
-        #     metrics <- result$metrics
-        #     metrics <- metrics[metrics$module=="rgg",]
-        #     metrics$analysisId <- as.numeric(metrics$analysisId)
-        #     metrics <- metrics[!is.na(metrics$analysisId),]
-        #     metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-        #     if(input$traitFilterPredictions2D2 %in% metrics$trait ){
-        #       rownames(metrics) <- metrics$parameter
-        #       mt <- paste0("y = ",round(metrics["ggInter","value"],2), " + ",round(metrics["ggSlope","value"],2),"x", " (gain:",round(metrics["gg%","value"],2),"%)")
-        #       res = res %>% plotly::add_annotations(text = mt, x = mean(mydata[,"yearOfOrigin"],na.rm=TRUE), y = max(mydata[,"predictedValue"],na.rm=TRUE))
-        #     }
-        #     res
-        #   }else{
-        #     res = plotly::plot_ly()
-        #     res = res %>% plotly::add_annotations(text = "yearOfOrigin not available", x = 1, y = 1)#
-        #     res
-        #   }
-        # })
-
       } else {
         output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)})
         output$metricsRgg <- DT::renderDT({DT::datatable(NULL)})
@@ -347,7 +335,7 @@ mod_rggApp_server <- function(id, data){
 
         rmarkdown::render(
           # input RMD file
-          input = ("R/reportRgg1.Rmd"),
+          input = ("R/reportRggDownload.Rmd"),
 
           # input RMD parameters ----
           params = list(),
