@@ -22,6 +22,7 @@ mod_rggApp_ui <- function(id){
       selectInput(ns("version2Rgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Rgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE),
+      selectInput(ns("entryTypeToUse"), "Entry types to use", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
@@ -74,8 +75,6 @@ mod_rggApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                               column(width=12, selectInput(ns("trait3Rgg"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                              # column(width=5, selectInput(ns("groupRggInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
-                                              # column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1)),
                                               column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
                           )
                  ),
@@ -111,9 +110,6 @@ mod_rggApp_ui <- function(id){
                           div(tags$p("Please download the report below:") ),
                           downloadButton(ns("downloadReportRgg"), "Download report"),
                           br(),
-                          # selectInput(ns("traitFilterPredictions2D2"), "Trait(s) to use", choices = NULL, multiple = TRUE),
-                          # selectInput(ns("environment"), "environment to use", choices = NULL, multiple = TRUE),
-                          # plotly::plotlyOutput(ns("plotPredictionsScatter")),
                           uiOutput(ns('reportRgg'))
                  )
                )
@@ -130,7 +126,6 @@ mod_rggApp_ui <- function(id){
 mod_rggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-
 
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
@@ -177,16 +172,30 @@ mod_rggApp_server <- function(id, data){
       updateSelectInput(session, "trait2Rgg", choices = traitsRgg)
     })
     ##############
+    ## years
+    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg), {
+      req(data())
+      req(input$version2Rgg)
+      req(input$trait2Rgg)
+      dtRgg <- data()
+      dtRgg <- dtRgg$predictions
+      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+      myYears <- data()$data$pedigree
+      dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+      traitsRgg <- unique(dtRgg$yearOfOrigin)
+      updateSelectInput(session, "yearsToUse", choices = traitsRgg, selected =traitsRgg )
+    })
     ## entry type
     observeEvent(c(data(), input$version2Rgg, input$trait2Rgg), {
       req(data())
       req(input$version2Rgg)
       req(input$trait2Rgg)
       dtRgg <- data()
-      traitsRgg <- unique(dtRgg$data$pedigree$yearOfOrigin)
-      updateSelectInput(session, "yearsToUse", choices = traitsRgg, selected =traitsRgg )
+      dtRgg <- dtRgg$predictions
+      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+      traitsRgg <- unique(dtRgg$entryType)
+      updateSelectInput(session, "entryTypeToUse", choices = traitsRgg, selected =traitsRgg )
     })
-
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
@@ -207,6 +216,7 @@ mod_rggApp_server <- function(id, data){
       myYears <- data()$data$pedigree
       mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
+      mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
       res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
                              x = mydata[,"yearOfOrigin"], text=mydata[,"designation"], pointpos = -1.8)
