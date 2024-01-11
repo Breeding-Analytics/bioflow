@@ -99,7 +99,7 @@ mod_pggApp_ui <- function(id){
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
                           div(tags$p("Please download the report below:") ),
-                          radioButtons(ns('format'), 'Document format', c('PDF', 'HTML', 'Word'), inline = TRUE),
+                          radioButtons(ns('format'), 'Document format', c('HTML'), inline = TRUE),
                           downloadButton(ns("downloadReportPgg"), "Download report"),
                           br(),
                           uiOutput(ns('reportPgg'))
@@ -355,33 +355,13 @@ mod_pggApp_server <- function(id){
         file.copy(src, 'report.Rmd', overwrite = TRUE)
         file.copy(src2, 'resultPgg.RData', overwrite = TRUE)
 
-        library(rmarkdown)
-        out <- render('report.Rmd', switch(
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
           input$format,
-          PDF = pdf_document(), HTML = html_document(), Word = word_document()
+          HTML = rmarkdown::html_document()
         ))
         file.rename(out, file)
       }
     )
-
-    # output$downloadReportPgg <- downloadHandler(
-    #   filename = function() {
-    #     paste0("reportPgg-",gsub("-|:| ", "", Sys.time()),".html")
-    #   },
-    #   content = function(file, result) {
-    #     shinybusy::show_modal_spinner(spin = "fading-circle",
-    #                                   color = "#F39C12",
-    #                                   text = "Generating Report...")
-    #     rmarkdown::render(
-    #       # input RMD file
-    #       input = ("R/reportPgg.Rmd"),
-    #
-    #       # input RMD parameters ----
-    #       params = list(traitFilterPredictions2D2 = isolate(input$trait2Pgg)),
-    #       output_file = file)
-    #     shinybusy::remove_modal_spinner()
-    #   }, contentType = "html"
-    # )
 
     output$outPgg <- renderPrint({
       outPgg()

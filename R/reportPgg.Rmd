@@ -3,7 +3,8 @@ title: "Predicted Genetic Report"
 author: ""
 date: "December 2023"
 output: html_document
-runtime: shiny
+params:
+ toDownload: FALSE
 ---
 
 
@@ -15,73 +16,6 @@ get_h <- function() {
 }
 library(dplyr)
 ```
-
-### Predicted genetic gain
-
-The following density plot allows you to see the expected change in the next generation compared to the current generation given the current genetic gain parameters (accuracy, intensity, genetic variance) obtained in a particular MET for the selected traits.
-
-<p>&nbsp;</p>
-
-```{r }
-suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultPgg.RData")){
-    load("./outputs/resultPgg.RData")
-  }else{
-    load("resultPgg.RData")
-  }
-}, error = function(e) {
-  NULL
-}))
-
-if (is.null(result)){
-  invisible(NULL)
-} else {
-  modeling <- result$modeling
-  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
-  idPgg <- idPgg[length(idPgg)]
-  modeling <- modeling[which(modeling$analysisId == idPgg & modeling$environment == "across"),"trait"]
-  selectInput(ns("traitFilterPredictions2D2"), 
-              label = "Trait:", 
-              choices = unique(modeling), 
-  )
-}
-
-```
-
-```{r, results='asis'}
-if (is.null(result)){
-  invisible(NULL)
-} else {
-  
-  metrics <- result$metrics
-  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
-  idPgg <- idPgg[length(idPgg)]
-  current.metrics <- metrics[which(metrics$analysisId %in% c(idPgg)),]
-  
-  plotly::renderPlotly({
-    fig <- plotly::plot_ly(alpha = 0.6)
-    ## plot for the general population
-    mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-    sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-    fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
-    ## plot for the expected new population
-    R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-    fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
-    ## add line for the selected population
-    vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-    vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-    vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-    # overlay the histograms
-    i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-    fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-    fig
-  })
-  
-  
-  
-}
-```
-
 
 ```{r plot_init, include = FALSE}
 # Init Step to make sure that the dependencies are loaded
@@ -101,57 +35,116 @@ get_h <- function() {
 
 ```
 
-```{r myBoxplot, echo = F, message = FALSE, warning = FALSE, results='asis'}
+### Predicted genetic gain
 
-cat(paste0("## Phenotypic Correlation of STA BLUEs between trials  {.tabset .tabset-pills}    \n\n  "))
+The following density plot allows you to see the expected change in the next generation compared to the current generation given the current genetic gain parameters (accuracy, intensity, genetic variance) obtained in a particular MET for the selected traits.
 
-l <- vector(mode = "list", length = length(unique(modeling))) #
-# l <- htmltools::tagList()
-counter <- 1
-for(iTrait in unique(modeling)){
-  
-  cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
-  
-  # mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"]
-  # sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"]
-  # R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"]
-  # vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-  # vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-  # vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-  # i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == iTrait ),"value"]
-  # l[[counter]] <- tagList(HTML(markdown::mark(text=paste0("\n\n#### ", iTrait, "\n"))),
-  # 
-  #                        plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-  # 
-  # )
-  # counter <- counter + 1
-  
-  
-  df <- data.frame(
-    sex=factor(rep(c("F", "M"), each=200)),
-    weight=round(c(rnorm(200, mean=55, sd=5), rnorm(200, mean=65, sd=5)))
-  )
+<p>&nbsp;</p>
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(x=weight)) + ggplot2::geom_histogram()
+```{r }
 
-  print(htmltools::tagList(plotly::ggplotly(p, height = get_h(), tooltip = "text")))
-  cat("\n")
-  cat("\n")
-  #  l[[counter]] <- plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-  # print(htmltools::tagList(plotly::ggplotly(p)))
-  # 
- 
-  
- 
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/resultPgg.RData")){
+    load("./outputs/resultPgg.RData")
+  }else{
+    load("resultPgg.RData")
+  }
+}, error = function(e) {
+  NULL
+}))
+
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  modeling <- result$modeling
+  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
+  idPgg <- idPgg[length(idPgg)]
+  modeling <- modeling[which(modeling$analysisId == idPgg & modeling$environment == "across"),"trait"]
+  if(params$toDownload == FALSE){
+    shiny::selectInput(ns("traitFilterPredictions2D2"),
+                       label = "Trait:",
+                       choices = unique(modeling),
+    )
+  }
 }
-
-
 
 ```
 
-# ```{r results='asis'}
-# l
-# ```
+```{r, results='asis'}
+if (is.null(result)){
+  invisible(NULL)
+} else {
+  
+  metrics <- result$metrics
+  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
+  idPgg <- idPgg[length(idPgg)]
+  current.metrics <- metrics[which(metrics$analysisId %in% c(idPgg)),]
+  
+  if(params$toDownload == FALSE){ # if user is just seeing the report
+    
+    
+    plotly::renderPlotly({
+      fig <- plotly::plot_ly(alpha = 0.6)
+      ## plot for the general population
+      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+      fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
+      ## plot for the expected new population
+      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+      fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
+      ## add line for the selected population
+      vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
+      vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
+      vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
+      # overlay the histograms
+      i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
+      fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
+      fig
+    })
+  }else{
+    
+    cat(paste0("## Phenotypic Correlation of STA BLUEs between trials  {.tabset .tabset-pills}    \n\n  "))
+    
+    # l <- vector(mode = "list", length = length(unique(modeling))) #
+    # l <- htmltools::tagList()
+    counter <- 1
+    for(iTrait in unique(modeling)){
+      
+      cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"]
+      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"]
+      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"]
+      vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
+      vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
+      vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
+      i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == iTrait ),"value"]
+      # l[[counter]] <- tagList(HTML(markdown::mark(text=paste0("\n\n#### ", iTrait, "\n"))),
+      # 
+      #                        plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
+      # 
+      # )
+      # counter <- counter + 1
+      
+      p <- plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      
+      
+      
+      
+    }
+    
+  }
+  
+  
+  
+  
+  
+}
+```
+
+
+
 
 
 
