@@ -99,7 +99,6 @@ mod_pggApp_ui <- function(id){
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
                           div(tags$p("Please download the report below:") ),
-                          radioButtons(ns('format'), 'Document format', c('HTML'), inline = TRUE),
                           downloadButton(ns("downloadReportPgg"), "Download report"),
                           br(),
                           uiOutput(ns('reportPgg'))
@@ -114,7 +113,7 @@ mod_pggApp_ui <- function(id){
 #' pggApp Server Functions
 #'
 #' @noRd
-mod_pggApp_server <- function(id){
+mod_pggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -125,11 +124,11 @@ mod_pggApp_server <- function(id){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-    data = reactive({
-      load("~/Documents/bioflow/dataStr0.RData")
-      data <- res
-      return(data)
-    })
+    # data = reactive({
+    #   load("~/Documents/bioflow/dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
     ## warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -276,7 +275,7 @@ mod_pggApp_server <- function(id){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          # data(result) # update data with results
+          data(result) # update data with results
           save(result, file = "./R/outputs/resultPgg.RData")
           cat(paste("Predicted genetic gain step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
@@ -323,7 +322,8 @@ mod_pggApp_server <- function(id){
         })
         # Report tab
         output$reportPgg <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit("./R/reportPgg.Rmd", quiet = TRUE), fragment.only=TRUE))
+          # HTML(markdown::markdownToHTML(knitr::knit("./R/reportPgg.Rmd", quiet = TRUE), fragment.only=TRUE))
+          HTML(markdown::markdownToHTML(rmarkdown::render('./R/reportPgg.Rmd', params = list(toDownload=FALSE)), fragment.only=TRUE))
         })
 
 
@@ -340,7 +340,7 @@ mod_pggApp_server <- function(id){
     output$downloadReportPgg <- downloadHandler(
       filename = function() {
         paste('my-report', sep = '.', switch(
-          input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
         ))
       },
 

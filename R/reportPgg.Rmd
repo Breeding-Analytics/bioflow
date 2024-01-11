@@ -82,7 +82,6 @@ if (is.null(result)){
   
   if(params$toDownload == FALSE){ # if user is just seeing the report
     
-    
     plotly::renderPlotly({
       fig <- plotly::plot_ly(alpha = 0.6)
       ## plot for the general population
@@ -101,17 +100,13 @@ if (is.null(result)){
       fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
       fig
     })
-  }else{
+  }else{# if user is downloading the report
     
     cat(paste0("## Phenotypic Correlation of STA BLUEs between trials  {.tabset .tabset-pills}    \n\n  "))
-    
-    # l <- vector(mode = "list", length = length(unique(modeling))) #
     # l <- htmltools::tagList()
     counter <- 1
     for(iTrait in unique(modeling)){
-      
       cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
-      
       mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"]
       sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"]
       R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"]
@@ -119,27 +114,16 @@ if (is.null(result)){
       vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
       vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
       i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == iTrait ),"value"]
+      p <- plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
+      print(htmltools::tagList(plotly::ggplotly(p)))
       # l[[counter]] <- tagList(HTML(markdown::mark(text=paste0("\n\n#### ", iTrait, "\n"))),
       # 
       #                        plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
       # 
       # )
       # counter <- counter + 1
-      
-      p <- plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-      print(htmltools::tagList(plotly::ggplotly(p)))
-      
-      
-      
-      
     }
-    
   }
-  
-  
-  
-  
-  
 }
 ```
 
