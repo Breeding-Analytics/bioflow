@@ -22,7 +22,7 @@ app_server <- function(input, output, session) {
   mod_indexDesireApp_server("indexDesireApp_1", data = data)
   mod_ocsApp_server("ocsApp_1", data = data)
   mod_rggApp_server("rggApp_1", data = data)
-  mod_pggApp_server("pggApp_1", data = data)
+  mod_pggApp_server("pggApp_1")
 
   mod_homeApp_server("homeApp_1")
   # mod_homeGeApp_server("homeGeApp_1")

@@ -99,6 +99,7 @@ mod_pggApp_ui <- function(id){
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
                           div(tags$p("Please download the report below:") ),
+                          radioButtons(ns('format'), 'Document format', c('PDF', 'HTML', 'Word'), inline = TRUE),
                           downloadButton(ns("downloadReportPgg"), "Download report"),
                           br(),
                           uiOutput(ns('reportPgg'))
@@ -113,7 +114,7 @@ mod_pggApp_ui <- function(id){
 #' pggApp Server Functions
 #'
 #' @noRd
-mod_pggApp_server <- function(id, data){
+mod_pggApp_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -124,11 +125,11 @@ mod_pggApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-    # data = reactive({
-    #   load("~/Documents/bioflow/dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
+    data = reactive({
+      load("~/Documents/bioflow/dataStr0.RData")
+      data <- res
+      return(data)
+    })
     ## warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -275,7 +276,7 @@ mod_pggApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
-          data(result) # update data with results
+          # data(result) # update data with results
           save(result, file = "./R/outputs/resultPgg.RData")
           cat(paste("Predicted genetic gain step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
@@ -338,23 +339,49 @@ mod_pggApp_server <- function(id, data){
 
     output$downloadReportPgg <- downloadHandler(
       filename = function() {
-        paste0("reportPgg-",gsub("-|:| ", "", Sys.time()),".html")
+        paste('my-report', sep = '.', switch(
+          input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
       },
+
       content = function(file) {
-        shinybusy::show_modal_spinner(spin = "fading-circle",
-                                      color = "#F39C12",
-                                      text = "Generating Report...")
+        src <- normalizePath('R/reportPgg.Rmd')
+        src2 <- normalizePath('R/outputs/resultPgg.RData')
 
-        rmarkdown::render(
-          # input RMD file
-          input = ("R/reportPggDownload.Rmd"),
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultPgg.RData', overwrite = TRUE)
 
-          # input RMD parameters ----
-          params = list(),
-          output_file = file)
-        shinybusy::remove_modal_spinner()
-      }, contentType = "html"
+        library(rmarkdown)
+        out <- render('report.Rmd', switch(
+          input$format,
+          PDF = pdf_document(), HTML = html_document(), Word = word_document()
+        ))
+        file.rename(out, file)
+      }
     )
+
+    # output$downloadReportPgg <- downloadHandler(
+    #   filename = function() {
+    #     paste0("reportPgg-",gsub("-|:| ", "", Sys.time()),".html")
+    #   },
+    #   content = function(file, result) {
+    #     shinybusy::show_modal_spinner(spin = "fading-circle",
+    #                                   color = "#F39C12",
+    #                                   text = "Generating Report...")
+    #     rmarkdown::render(
+    #       # input RMD file
+    #       input = ("R/reportPgg.Rmd"),
+    #
+    #       # input RMD parameters ----
+    #       params = list(traitFilterPredictions2D2 = isolate(input$trait2Pgg)),
+    #       output_file = file)
+    #     shinybusy::remove_modal_spinner()
+    #   }, contentType = "html"
+    # )
 
     output$outPgg <- renderPrint({
       outPgg()
