@@ -68,7 +68,8 @@ mod_homeApp_ui <- function(id){
           tags$img(src = "www/cgiar.png", height = 190, width = 600),
           tags$h1("Biometrical Genetics Workflow (bioflow)"),
           tags$p(
-            "The OneCGIAR biometrical genetics workflow or pipeline has been built to provide access to automatic state-of-the-art genetic evaluation.",
+            "The OneCGIAR biometrical genetics workflow or pipeline has been built to provide access to automatic state-of-the-art genetic evaluation",
+            "and other routines and methods to understand or use evolutionary forces (mutation, gene flow, migration and selection).",
             "Designed to be database agnostic, it only requires connecting to one of the available databases (EBS, BMS, BreedBase) to retrieve phenotypic,",
             "genotypic or pedigree data, quickly map some features (columns) required, and carry the analytical procedures."
           )

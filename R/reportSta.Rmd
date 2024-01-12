@@ -3,11 +3,84 @@ title: "STA Report"
 author: ""
 date: "2023-11-03"
 output: html_document
-runtime: shiny
+params:
+ toDownload: FALSE
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+# loading necessary R packages ####
+## data manipulation
+library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(data.table)
+library(shiny)
+```
+
+```{r printfxn, include=FALSE}
+
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r, include=FALSE}
+# Init Step to make sure that the dependencies are loaded
+htmltools::tagList(printTable(mtcars))
+htmltools::tagList(ggplotly(ggplot()))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
 ```
 
 ### Entries and traits by environment
@@ -30,7 +103,6 @@ if (is.null(result)){
   traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
   traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
   colnames(traits.env) <- c('environment',traits)
-  
   summarySta <- as.data.frame(traits.env[,'environment'])
   for (i in 1:length(traits)){
     temp <- traits.env[,c('environment',traits[i])]
@@ -52,13 +124,18 @@ if (is.null(result)){
   pheno.env<- unique(pheno.env[c('designation','environment')]) 
   pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
   colnames(pheno.env.designation)[2] <- "# of entries"
-  
   summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
-  summarySta <- kableExtra::kbl(summarySta)
-  summarySta <-kableExtra::kable_styling(
-    summarySta, 
-    bootstrap_options = c("hover","condensed","responsive"), fixed_thead = T)
-  kableExtra::scroll_box(summarySta,width = "100%")
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(summarySta)
+  }else{
+    summarySta <- kableExtra::kbl(summarySta)
+    summarySta <-kableExtra::kable_styling(
+      summarySta, 
+      bootstrap_options = c("hover","condensed","responsive"), fixed_thead = T)
+    kableExtra::scroll_box(summarySta,width = "100%")
+  }
+  
 }
 ```
 
@@ -78,16 +155,22 @@ if (is.null(result)){
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
   modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
-  selectInput(ns("traitSta"), 
-              label = "Trait:", 
-              multiple = FALSE,
-              choices = unique(modeling), 
-  )
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitSta"), 
+                label = "Trait:", 
+                multiple = FALSE,
+                choices = unique(modeling), 
+    )
+  }
+  
 }
 
 ```
 
-```{r }
+```{r, results='asis'}
 if (is.null(result)){
   invisible(NULL)
 } else {
@@ -146,16 +229,22 @@ if (is.null(result)){
   pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vg, by = c("environment","trait"), all = TRUE)
   pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vr, by = c("environment","trait"), all = TRUE)
   numeric.output <- c("min","mean","max","H2","CV","r2","Vg","Vr")
-  DT::renderDT({DT::formatRound(DT::datatable(
-    pred.traits.summary[pred.traits.summary$trait==input$traitSta,],
-    rownames = FALSE,
-    class = 'cell-border stripe',
-    options = list(
-      scrollY = "400px",
-      scrollX = "400px",
-      paging = F)
-  ),numeric.output)
-  })
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(pred.traits.summary)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      pred.traits.summary[pred.traits.summary$trait==input$traitSta,],
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      options = list(
+        scrollY = "400px",
+        scrollX = "400px",
+        paging = F)
+    ),numeric.output)
+    })
+  }
+  
 }
 ```
 
@@ -175,16 +264,22 @@ if (is.null(result)){
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
   envs <- unique(result$predictions[which( result$predictions$analysisId == idSta),"environment"])
-  selectInput(ns("envSta"), 
-              label = "Environment:", 
-              choices = envs, 
-  )
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("envSta"), 
+                label = "Environment:", 
+                choices = envs, 
+    )
+  }
+  
 }
 
 ```
 
 
-```{r }
+```{r, results='asis'}
 if (is.null(result)){
   invisible(NULL)
 } else {
@@ -197,16 +292,22 @@ if (is.null(result)){
     direction="wide"
   )
   names(predictions.designation) <- c("deignation","environment",traits)
-  DT::renderDT({DT::formatRound(DT::datatable(
-    predictions.designation[predictions.designation$environment==input$envSta,],
-    rownames = FALSE,
-    class = 'cell-border stripe',
-    options = list(
-      scrollY = "400px",
-      scrollX = "400px",
-      paging = F)
-  ),traits)
-  })
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(predictions.designation)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      predictions.designation[predictions.designation$environment==input$envSta,],
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      options = list(
+        scrollY = "400px",
+        scrollX = "400px",
+        paging = F)
+    ),traits)
+    })
+  }
+  
 }
 
 ```
@@ -227,37 +328,62 @@ if (is.null(result)){
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
   modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
-  selectInput(ns("traitStaBox"), 
-              label = "Trait:", 
-              multiple = TRUE,
-              selected = unique(modeling),
-              choices = unique(modeling), 
-  )
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    shiny::selectInput(ns("traitStaBox"), 
+                label = "Trait:", 
+                multiple = FALSE,
+                selected = unique(modeling),
+                choices = unique(modeling), 
+    )
+  }
+  
 }
 
 ```
 
-```{r myBoxplot}
-get_h <- function() {
-  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
-       fig.height*dpi/fig.retina)
-}
+```{r, results='asis'}
 predTrait <- result$predictions
 
-plotly::renderPlotly({
-  if(length(input$traitStaBox) > 0){
-    p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% input$traitStaBox),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
+if("params" %in% ls()){ # we will download the document
+  traits <- unique(modeling)
+  cat("\n\n## Trait view {.tabset .tabset-pills}       \n\n")
+  cat("\n\n The following boxplot allows you to see the distribution of predicted values by trait in the different environments.       \n\n")
+  
+  for (j in 1:length(traits)){
+    cat("\n\n###", traits[j], "{.tabset .tabset-pills}       \n\n")
+    
+    p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% traits[j]),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
       ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
       # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
       ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                      axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-      ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~., scales = "free") #+
-    # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
+      ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") 
+    print(htmltools::tagList(ggplotly(p)))
     
-    fig2 <-  plotly::ggplotly(p)#, height = get_h()*2); # fig2
-    fig2
+    cat("\n")
   }
   
-})
+  cat("\n")
+  
+}else{
+  plotly::renderPlotly({
+    if(length(input$traitStaBox) > 0){
+      p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% input$traitStaBox),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
+        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
+        # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") #+
+      # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
+      
+      fig2 <-  plotly::ggplotly(p)#, height = get_h()*2); # fig2
+      fig2
+    }
+    
+  })
+}
 
 ```
