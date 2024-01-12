@@ -3,7 +3,8 @@ title: "Optimal Cross Selection Report"
 author: ""
 date: "December 2023"
 output: html_document
-runtime: shiny
+params:
+ toDownload: FALSE
 ---
 
 
@@ -15,6 +16,60 @@ get_h <- function() {
 }
 ```
 
+```{r printfxn, include=FALSE}
+
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+htmltools::tagList(printTable(mtcars))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+```
+
 ### Cross performance table
 
 The following table provides an overview of the performance of the predicted crosses for the different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs.
@@ -23,7 +78,11 @@ The following table provides an overview of the performance of the predicted cro
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  load("./outputs/resultOcs.RData")
+  if(file.exists("./outputs/resultOcs.RData")){
+    load("./outputs/resultOcs.RData")
+  }else{
+    load("resultOcs.RData")
+  }
 }, error = function(e) {
   NULL
 }))
@@ -52,11 +111,16 @@ if (is.null(result)){
   
   cat("The trait used for OCS was: ",ocsTrait)
   
-  DT::renderDT(DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
-                                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                            lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-  ), numeric.output)
-  )
+  if("params" %in% ls()){ # we will download the document
+    printTable(wide)
+  }else{
+    DT::renderDT(DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
+                                               options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                              lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+    ), numeric.output)
+    )
+  }
+  
 }
 ```
 
@@ -76,50 +140,92 @@ if (is.null(result)){
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
   idOcs <- idOcs[length(idOcs)]
   myEnvs <- predictions[which(predictions$analysisId == idOcs),"environment"]
-  selectInput(ns("environ"), 
-              label = "Treatment:", 
-              multiple = TRUE,
-              selected = unique(myEnvs),
-              choices = unique(myEnvs)
-  )
+  if("params" %in% ls()){  # if user will download the report
+  }else{
+    shiny::selectInput(ns("environ"), 
+                       label = "Treatment:", 
+                       multiple = TRUE,
+                       selected = unique(myEnvs),
+                       choices = unique(myEnvs)
+    )
+  }
 }
 ```
 
-```{r myBarplot}
+```{r, results='asis'}
 if (is.null(result)){
   invisible(NULL)
 } else {
   
-  plotly::renderPlotly({
+  if("params" %in% ls()){  # if user will download the report
     
-    mydata = result$predictions
-    idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-    idOcs <- idOcs[length(idOcs)]
-    ocsTrait <- result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$parameter == "ocsFormula"),"trait"];
-    mydata <- mydata[which(mydata$analysisId %in% c(idOcs[length(idOcs)])),]
-    mydata <- mydata[which(mydata$trait == ocsTrait),]
-    mydata <- mydata[which(mydata$environment %in% input$environ),]
-    
-    treatments <- unique(mydata$environment)
-    wideList <- list()
-    for(iTreatment in treatments){
-      overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
-      countsCol <- data.frame(times=apply(overlayCounts,2,sum))
-      countsCol$parent <- as.factor(rownames(countsCol))
-      countsCol$treatment <- iTreatment
-      wideList[[iTreatment]] <- countsCol
+    cat(paste0("### A  {.tabset .tabset-pills}    \n\n  "))
+    counter <- 1
+    for(iEnv in unique(myEnvs)){
+      cat("\n\n####", iEnv, "{.tabset .tabset-pills}       \n\n")
+      mydata = result$predictions
+      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+      idOcs <- idOcs[length(idOcs)]
+      ocsTrait <- result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$parameter == "ocsFormula"),"trait"];
+      mydata <- mydata[which(mydata$analysisId %in% c(idOcs[length(idOcs)])),]
+      mydata <- mydata[which(mydata$trait == ocsTrait),]
+      mydata <- mydata[which(mydata$environment %in% iEnv),]
+      
+      treatments <- unique(mydata$environment)
+      wideList <- list()
+      for(iTreatment in treatments){
+        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
+        countsCol <- data.frame(times=apply(overlayCounts,2,sum))
+        countsCol$parent <- as.factor(rownames(countsCol))
+        countsCol$treatment <- iTreatment
+        wideList[[iTreatment]] <- countsCol
+      }
+      countsCol <- do.call(rbind, wideList)
+      
+      p2 <- ggplot2::ggplot(data=countsCol, ggplot2::aes(x=parent, y=times)) +
+        ggplot2::geom_bar(stat="identity", fill="steelblue")+
+        ggplot2::geom_text(ggplot2::aes(label=times), vjust=6, size=3.5)+
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) + ggplot2::facet_grid(~treatment) + 
+        ggplot2::labs(x="Parent", y="Times used in a cross") 
+      print(htmltools::tagList(plotly::ggplotly(p2)))
+      cat("\n")
     }
-    countsCol <- do.call(rbind, wideList)
+    cat("\n")
+  }else{
     
-    p2 <- ggplot2::ggplot(data=countsCol, ggplot2::aes(x=parent, y=times)) +
-      ggplot2::geom_bar(stat="identity", fill="steelblue")+
-      ggplot2::geom_text(ggplot2::aes(label=times), vjust=6, size=3.5)+
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) + ggplot2::facet_grid(~treatment) + 
-      ggplot2::labs(x="Parent", y="Times used in a cross") 
-    fig2 <-  plotly::ggplotly(p2)#, height = get_h()); 
-    fig2
+    plotly::renderPlotly({
+      
+      mydata = result$predictions
+      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+      idOcs <- idOcs[length(idOcs)]
+      ocsTrait <- result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$parameter == "ocsFormula"),"trait"];
+      mydata <- mydata[which(mydata$analysisId %in% c(idOcs[length(idOcs)])),]
+      mydata <- mydata[which(mydata$trait == ocsTrait),]
+      mydata <- mydata[which(mydata$environment %in% input$environ),]
+      
+      treatments <- unique(mydata$environment)
+      wideList <- list()
+      for(iTreatment in treatments){
+        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
+        countsCol <- data.frame(times=apply(overlayCounts,2,sum))
+        countsCol$parent <- as.factor(rownames(countsCol))
+        countsCol$treatment <- iTreatment
+        wideList[[iTreatment]] <- countsCol
+      }
+      countsCol <- do.call(rbind, wideList)
+      
+      p2 <- ggplot2::ggplot(data=countsCol, ggplot2::aes(x=parent, y=times)) +
+        ggplot2::geom_bar(stat="identity", fill="steelblue")+
+        ggplot2::geom_text(ggplot2::aes(label=times), vjust=6, size=3.5)+
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) + ggplot2::facet_grid(~treatment) + 
+        ggplot2::labs(x="Parent", y="Times used in a cross") 
+      fig2 <-  plotly::ggplotly(p2)#, height = get_h()); 
+      fig2
+      
+    })
     
-  })
+  }
+  
 }
 ```
 
@@ -157,11 +263,17 @@ if (is.null(result)){
   numeric.output <- colnames(wideParents)[-c(1)]
   wideParents <- wideParents[which(wideParents$designation %in% parentsSelected),]
   rownames(wideParents) <- NULL
-  DT::renderDT(DT::formatRound(DT::datatable(wideParents, extensions = 'Buttons',
-                                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                            lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-  ), numeric.output)
-  )
+  
+  if("params" %in% ls()){  # if user will download the report
+    printTable(wideParents)
+  }else{ # if user will just examinate the report on the website
+    DT::renderDT(DT::formatRound(DT::datatable(wideParents, extensions = 'Buttons',
+                                               options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                              lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+    ), numeric.output)
+    )
+  }
+  
 }
 ```
 
@@ -187,11 +299,17 @@ if (is.null(result)){
   colnames(metrics) <- cgiarBase::replaceValues(colnames(metrics), Search = "environment", Replace = "treatment")
   rownames(metrics) <- NULL
   numeric.output2 <- c("value","stdError")
-  DT::renderDT(DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
-                                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                            lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-  ), numeric.output2)
-  )
+  
+  if("params" %in% ls()){  # if user will download the report
+    printTable(metrics)
+  }else{ # if user will just examinate the report on the website
+    DT::renderDT(DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
+                                               options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                              lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+    ), numeric.output2)
+    )
+  }
+  
 }
 ```
 
@@ -210,50 +328,93 @@ if (is.null(result)){
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
   idOcs <- idOcs[length(idOcs)]
   myTraits <- predictions[which(predictions$analysisId == idOcs),"trait"]
-  selectInput(ns("traitFilterPredictions2D2"), 
-              label = "Trait:", 
-              multiple = TRUE,
-              selected = unique(myTraits),
-              choices = unique(myTraits)
-  )
+  
+  if("params" %in% ls()){  # if user will download the report
+    
+  }else{ # if user will just visualize the report in the website
+    
+    shiny::selectInput(ns("traitFilterPredictions2D2"), 
+                       label = "Trait:", 
+                       multiple = TRUE,
+                       selected = unique(myTraits),
+                       choices = unique(myTraits)
+    )
+    
+    
+  }
+  
 }
 ```
 
-```{r myBoxplot}
+```{r, results='asis'}
 library(dplyr)
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   # cat("A total of",paste(length(unique(mydata2$parent))), "parents were selected.")
   
-  plotly::renderPlotly({
-    mydata = result$predictions
-    idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-    idOcs <- idOcs[length(idOcs)]
-    mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
-    ## get the required traits
-    mydata <- mydata[which(mydata$trait %in% c(input$traitFilterPredictions2D2)),]
-    ##
-    mydataF <- mydataM <- mydata
-    mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
-    colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
-    mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
-    colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
-    mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+  if("params" %in% ls()){  # if user will download the report
     
+    cat(paste0("## B  {.tabset .tabset-pills}    \n\n  "))
+    # l <- htmltools::tagList()
+    counter <- 1
+    for(iTrait in unique(myTraits)){
+      cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
+      mydata = result$predictions
+      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+      idOcs <- idOcs[length(idOcs)]
+      mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+      ## get the required traits
+      mydata <- mydata[which(mydata$trait %in% c(iTrait)),]
+      ##
+      mydataF <- mydataM <- mydata
+      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
+      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
+      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
+      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
+      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+      
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=parent, y=predictedValue, label=designation) ) + 
+        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      
+    }
     
-    p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=parent, y=predictedValue, label=designation) ) + 
-      ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
-      ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
-      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-      ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~environment, scales = "free")# +
-    # ggplot2::guides(color=ggplot2::guide_legend(""))
-    
-    fig <-  plotly::ggplotly(p)#, height = get_h()*2);
-    fig
-  })
+  }else{ # if user will just visualize the report in the website
+    plotly::renderPlotly({
+      mydata = result$predictions
+      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+      idOcs <- idOcs[length(idOcs)]
+      mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+      ## get the required traits
+      mydata <- mydata[which(mydata$trait %in% c(input$traitFilterPredictions2D2)),]
+      ##
+      mydataF <- mydataM <- mydata
+      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
+      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
+      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
+      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
+      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+      
+      
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=parent, y=predictedValue, label=designation) ) + 
+        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~environment, scales = "free")# +
+      # ggplot2::guides(color=ggplot2::guide_legend(""))
+      
+      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+      fig
+    })
+  }
+  
 }
 ```
 

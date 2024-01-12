@@ -3,8 +3,13 @@ title: "Optimal Cross Selection Report"
 author: ""
 date: "December 2023"
 output: html_document
-runtime: shiny
+params:
+ toDownload: FALSE
 ---
+
+
+
+
 
 
 
@@ -15,7 +20,7 @@ The following table provides an overview of the performance of the predicted cro
 
 <p>&nbsp;</p>
 
-The trait used for OCS was:  YLD_TON<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="ocsApp_1-out20e64696c79beddb" style="width:100%;height:auto;"></div><!--/html_preserve-->
+The trait used for OCS was:  YLD_TON<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out2409f1ef07eb99b7" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -28,14 +33,12 @@ The following barplot allows you identify the number of times (y-axis) that a pa
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="ocsApp_1-environ-label" for="ocsApp_1-environ">Treatment:</label>
 <div>
-<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="YLD_TON ~ 20 crosses * 30 degrees" selected>YLD_TON ~ 20 crosses * 30 degrees</option>
-<option value="YLD_TON ~ 20 crosses * 60 degrees" selected>YLD_TON ~ 20 crosses * 60 degrees</option>
-<option value="YLD_TON ~ 20 crosses * 90 degrees" selected>YLD_TON ~ 20 crosses * 90 degrees</option></select>
+<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="YLD_TON ~ 20 crosses * 30 degrees" selected>YLD_TON ~ 20 crosses * 30 degrees</option></select>
 <script type="application/json" data-for="ocsApp_1-environ">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="ocsApp_1-out4c9d8eafb7c49714" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out601cee914ad876c9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -45,7 +48,7 @@ This table shows the performance of the parents selected by the OCS algorithm. T
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="ocsApp_1-out73fd369bc87fc40f" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out1db3bbb8a87e395e" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -55,7 +58,7 @@ The following table summarizes the trait means for the different OCS runs (numbe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="ocsApp_1-out33d4ef25dc133138" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out38d29050a913a2b7" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -73,7 +76,7 @@ The following boxplot allows you to see the performance of the different crosses
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="ocsApp_1-out49a995be1de598dd" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out55d91f2115d53986" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

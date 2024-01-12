@@ -18,6 +18,18 @@ The following density plot allows you to see the expected change in the next gen
 
 <p>&nbsp;</p>
 
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="pggApp_1-traitFilterPredictions2D2-label" for="pggApp_1-traitFilterPredictions2D2">Trait:</label>
+<div>
+<select id="pggApp_1-traitFilterPredictions2D2" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<option value="HT_AVG">HT_AVG</option></select>
+<script type="application/json" data-for="pggApp_1-traitFilterPredictions2D2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-outa9f1a82354f0bea8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+
 
 
 

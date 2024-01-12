@@ -114,6 +114,9 @@ mod_ocsApp_ui <- function(id){
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportOcs"), "Download report"),
+                          br(),
                           uiOutput(ns('reportOcs'))
                  )
                )
@@ -245,6 +248,7 @@ mod_ocsApp_server <- function(id, data){
       req(input$fontSize)
       req(input$groupOcsInputPlot)
       mydata <- data()$predictions
+      if(input$groupOcsInputPlot == "entryType"){mydata <- mydata[which(mydata$entryType %in% input$entryType2Ocs),]}
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Ocs),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
       res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, color = mydata[,input$groupOcsInputPlot],
@@ -367,6 +371,7 @@ mod_ocsApp_server <- function(id, data){
         ## Report tab
         output$reportOcs <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit("./R/reportOcs.Rmd", quiet = TRUE), fragment.only=TRUE))
+          # HTML(markdown::markdownToHTML(rmarkdown::render('./R/reportOcs.Rmd', params = list(toDownload=FALSE)), fragment.only=TRUE))
         })
 
       } else {
@@ -379,6 +384,29 @@ mod_ocsApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
+
+    output$downloadReportOcs <- downloadHandler(
+      filename = function() {
+        paste('my-report', sep = '.', switch(
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
+      },
+      content = function(file) {
+        src <- normalizePath('R/reportOcs.Rmd')
+        src2 <- normalizePath('R/outputs/resultOcs.RData')
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+          "HTML",
+          HTML = rmarkdown::html_document()
+        ))
+        file.rename(out, file)
+      }
+    )
 
     output$outOcs <- renderPrint({
       outOcs()

@@ -322,8 +322,8 @@ mod_pggApp_server <- function(id, data){
         })
         # Report tab
         output$reportPgg <- renderUI({
-          # HTML(markdown::markdownToHTML(knitr::knit("./R/reportPgg.Rmd", quiet = TRUE), fragment.only=TRUE))
-          HTML(markdown::markdownToHTML(rmarkdown::render('./R/reportPgg.Rmd', params = list(toDownload=FALSE)), fragment.only=TRUE))
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportPgg.Rmd", quiet = TRUE), fragment.only=TRUE))
+          # HTML(markdown::markdownToHTML(rmarkdown::render('./R/reportPgg.Rmd', params = list(toDownload=FALSE)), fragment.only=TRUE))
         })
 
 
@@ -343,20 +343,17 @@ mod_pggApp_server <- function(id, data){
           "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
         ))
       },
-
       content = function(file) {
         src <- normalizePath('R/reportPgg.Rmd')
         src2 <- normalizePath('R/outputs/resultPgg.RData')
-
         # temporarily switch to the temp dir, in case you do not have write
         # permission to the current working directory
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
         file.copy(src, 'report.Rmd', overwrite = TRUE)
         file.copy(src2, 'resultPgg.RData', overwrite = TRUE)
-
         out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-          input$format,
+          "HTML",
           HTML = rmarkdown::html_document()
         ))
         file.rename(out, file)
