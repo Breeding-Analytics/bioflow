@@ -47,10 +47,12 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("About", icon = icon("question"),
-               tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
-               tabPanel("Contact us", icon = icon("envelope") ),
-               tabPanel("Meet the team", icon = icon("yin-yang") ) ,
-               )
+                 # tabsetPanel(id="x",
+                   tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
+                   tabPanel("Contact us", icon = icon("envelope") ),
+                   tabPanel("Meet the team", icon = icon("yin-yang") )
+                 # )
+      )
 
       # navbarMenu("Marker Structure ",
       #            tabPanel("Marker QA/QC",  ),

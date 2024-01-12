@@ -137,6 +137,9 @@ mod_indexDesireApp_ui <- function(id){
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportIndex"), "Download report"),
+                          br(),
                           conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
                                            uiOutput(ns('reportIndexD'))
                           ),
@@ -165,6 +168,11 @@ mod_indexDesireApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
+    # data = reactive({
+    #   load("~/Documents/bioflow/dataStr0.RData")
+    #   data <- res
+    #   return(data)
+    # })
     ############################################################################
     # warning message
     output$warningMessage <- renderUI(
@@ -179,8 +187,6 @@ mod_indexDesireApp_server <- function(id, data){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )}
       }
     )
-
-
     ######################################################################################
     ######################################################################################
     ########################################### Desire Index
@@ -283,7 +289,7 @@ mod_indexDesireApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
-          save(result, file = "./R/outputs/resultIndexD.RData")
+          save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
@@ -427,7 +433,7 @@ mod_indexDesireApp_server <- function(id, data){
         )
         if(!inherits(resultBaseIndex,"try-error")) {
           data(resultBaseIndex) # update data with results
-          save(resultBaseIndex, file = "./R/outputs/resultIndexB.RData")
+          save(resultBaseIndex, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",resultBaseIndex$status$analysisId[length(resultBaseIndex$status$analysisId)],"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",resultBaseIndex[[1]]))
@@ -507,6 +513,29 @@ mod_indexDesireApp_server <- function(id, data){
       # hideAll$clearAll <- FALSE
 
     })
+
+    output$downloadReportIndex <- downloadHandler(
+      filename = function() {
+        paste('my-report', sep = '.', switch(
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
+      },
+      content = function(file) {
+        src <- normalizePath('R/reportIndexD.Rmd')
+        src2 <- normalizePath('R/outputs/resultIndex.RData')
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultIndex.RData', overwrite = TRUE)
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+          "HTML",
+          HTML = rmarkdown::html_document()
+        ))
+        file.rename(out, file)
+      }
+    )
 
     output$outIdxB <- renderPrint({
       outIdxB()

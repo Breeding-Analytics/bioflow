@@ -350,8 +350,6 @@ if (is.null(result)){
   if("params" %in% ls()){  # if user will download the report
     
     cat(paste0("## B  {.tabset .tabset-pills}    \n\n  "))
-    # l <- htmltools::tagList()
-    counter <- 1
     for(iTrait in unique(myTraits)){
       cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
       mydata = result$predictions
