@@ -336,22 +336,25 @@ mod_rggApp_server <- function(id, data){
 
     output$downloadReportRgg <- downloadHandler(
       filename = function() {
-        paste0("reportRgg-",gsub("-|:| ", "", Sys.time()),".html")
+        paste('my-report', sep = '.', switch(
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
       },
       content = function(file) {
-        shinybusy::show_modal_spinner(spin = "fading-circle",
-                                      color = "#F39C12",
-                                      text = "Generating Report...")
-
-        rmarkdown::render(
-          # input RMD file
-          input = ("R/reportRggDownload.Rmd"),
-
-          # input RMD parameters ----
-          params = list(),
-          output_file = file)
-        shinybusy::remove_modal_spinner()
-      }, contentType = "html"
+        src <- normalizePath('R/reportRgg.Rmd')
+        src2 <- normalizePath('R/outputs/resultRgg.RData')
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+          "HTML",
+          HTML = rmarkdown::html_document()
+        ))
+        file.rename(out, file)
+      }
     )
 
     output$outRgg <- renderPrint({
