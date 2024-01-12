@@ -3,7 +3,8 @@ title: "MTA Report"
 author: ""
 date: "2023-11-03"
 output: html_document
-runtime: shiny
+params:
+ toDownload: FALSE
 ---
 
 ```{r setup, include=FALSE}
@@ -11,15 +12,74 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FA
 font.plot_ly <- list(family="Courier New, monospace", size=9)
 ```
 
+```{r printfxn, include=FALSE}
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+htmltools::tagList(printTable(mtcars))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+```
+
 ```{r }
 library(tidyverse)
+
 suppressWarnings(tryCatch({
-        load("./outputs/resultMta.RData")
-      }, error = function(e) {
-        NULL
-      }))
+  if(file.exists("./outputs/resultMta.RData")){
+    load("./outputs/resultMta.RData")
+  }else{
+    load("resultMta.RData")
+  }
+}, error = function(e) {
+  NULL
+}))
+
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
@@ -29,7 +89,6 @@ if (is.null(resultMta)){
 }
 ```
 
-
 ### Distribution by trait
 
 The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**.
@@ -38,19 +97,25 @@ The following boxplot allows to see the distribution of predicted values (y-axis
 
 ```{r }
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
-  selectInput(ns("traitMta"), 
-            label = "", 
-            choices = traits
-            )
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitMta"), 
+                label = "", 
+                choices = traits
+    )
+  }
+  
 }
 
 ```
 
-```{r }
+```{r, results='asis'}
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idSta <- resultMta$status[which(resultMta$status$module == "sta"),"analysisId"]
   idSta <- idSta[length(idSta)]
@@ -58,22 +123,33 @@ if (is.null(resultMta)){
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   pred.sta.boxplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
   
-  plotly::renderPlotly({
-  temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
-  p <- plotly::plot_ly(
-  data = temp.pred.box,
-  y = ~predictedValue,
-  x = ~environment,
-  type = "box",
-  color = ~environment
-  )
-  plotly::layout(
-    p,
-    font=font.plot_ly,
-    xaxis=list( title=""), 
-    yaxis=list( title="Trait value")
-    )
-})
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("### Distribution  {.tabset .tabset-pills}    \n\n  "))
+    for(iTrait in traits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait== iTrait,]
+      
+      p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue, x = ~environment,
+                            type = "box", color = ~environment
+      ) %>%  plotly::layout(font=font.plot_ly, xaxis=list( title=""), yaxis=list( title="Trait value")  )
+      
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
+      p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
+                            x = ~environment,  type = "box", color = ~environment
+      ) %>%  plotly::layout( font=font.plot_ly,
+                             xaxis=list( title=""), yaxis=list( title="Trait value") )
+    })
+    
+  }
 }
 ```
 
@@ -87,25 +163,30 @@ The following graph allows to see the genetic correlations of the different envi
 
 ```{r }
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- resultMta$predictions
   pred <- pred[pred$analysisId == idMta,]
   traits <- unique(pred$trait)
-  selectInput(ns("traitPredictionsCorrelation"),
-              label = "",
-              choices = traits
-              )
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitPredictionsCorrelation"),
+                label = "",
+                choices = traits
+    )
+  }
+  
 }
 
 ```
 
 
-```{r }
+```{r, results='asis'}
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idSta <- resultMta$status[which(resultMta$status$module == "sta"),"analysisId"]
   idSta <- idSta[length(idSta)]
@@ -114,11 +195,28 @@ if (is.null(resultMta)){
   traits <- unique(pred.sta$trait)
   predictions.gcorrE <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
   
-  plotly::renderPlotly({
-    p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-                             valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
-    plotly::layout(p.cor.pred.env,font=font.plot_ly)
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("### Correlation  {.tabset .tabset-pills}    \n\n  "))
+    for(iTrait in traits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment",
+                                           valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+      print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
+      
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
+                                           valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+      plotly::layout(p.cor.pred.env,font=font.plot_ly)
     })
+    
+  }
+  
 }
 ```
 
@@ -130,20 +228,32 @@ The following graph allows to see the genetic correlations of the different trai
 
 <p>&nbsp;</p>
 
-```{r }
+```{r, results='asis'}
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred.mta <- resultMta$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   predictions.gcorrT <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
-  plotly::renderPlotly({
+  
+  if("params" %in% ls()){ # we will download the document
+    
     p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-                             valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
-    plotly::layout(p.cor.pred.traits,font=font.plot_ly)
+                                            valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+    print(htmltools::tagList(plotly::ggplotly(p.cor.pred.traits)))
+    
+  }else{
+    
+    plotly::renderPlotly({
+      p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+                                              valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+      plotly::layout(p.cor.pred.traits,font=font.plot_ly)
     })
+    
+  }
+  
 }
 ```
 
@@ -155,82 +265,128 @@ The following graph allows to see the performance of the genotypes over the enev
 
 <p>&nbsp;</p>
 
-```{r }
+```{r}
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred.mta <- resultMta$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   traits <- unique(pred.mta$trait)
-  # tags$style(type='text/css', 
-  #            ".selectize-input { font-size: 10px; line-height: 6px;}
-  #            .selectize-dropdown { font-size: 10px; line-height: 6px;}"
-  #            )
-  selectInput(ns("traitBiplot"),
-            label = "",
-            choices = unique(pred.mta$trait)
-            )
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitBiplot"),
+                label = "",
+                choices = unique(pred.mta$trait)
+    )
+  }
 }
 
 ```
 
-```{r }
+```{r, results='asis'}
 library(tidyverse)
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idSta <- resultMta$status[which(resultMta$status$module == "sta"),"analysisId"]
   idSta <- idSta[length(idSta)]
   pred.sta <- resultMta$predictions
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   
-plotly::renderPlotly({
-  pred.mta.biplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue)) %>%
-  filter(trait==input$traitBiplot) %>% #
-  droplevels() %>%
-  pivot_wider(names_from = environment, values_from = predictedValue) %>%
-  select(-trait) %>%
-  column_to_rownames("designation")
-
-pred.mta.biplot <- na.omit(pred.mta.biplot[,2:4])
-
-prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-components <- prin_comp[["x"]]
-components <- data.frame(components)
-components$PC2 <- -components$PC2
-
-explained_variance <- summary(prin_comp)[["sdev"]]
-explained_variance <- explained_variance[1:2]
-comp <- prin_comp[["rotation"]]
-comp[,'PC2'] <- - comp[,'PC2']
-loadings <- comp
-for (i in seq(explained_variance) ){
-  loadings[,i] <- comp[,i] * explained_variance[i]
-}
-
-p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                  x=components$PC1,
-                  y=components$PC2,
-                  text=rownames(components),
-                  marker=list(color="blue"),
-                  hoverinfo='text',
-                  showlegend=FALSE
-                  )
-
-
-for (i in 1:ncol(pred.mta.biplot)){
-  p.mta.biplot <- p.mta.biplot %>%
-    plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE) %>%
-    plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
-}
-    p.mta.biplot
-    plotly::layout(p.mta.biplot,font=font.plot_ly)
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("### Correlation  {.tabset .tabset-pills}    \n\n  "))
+    for(iTrait in traits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      pred.mta.biplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue)) %>%
+        filter(trait== iTrait) %>% droplevels() %>%
+        pivot_wider(names_from = environment, values_from = predictedValue) %>%
+        select(-trait) %>% column_to_rownames("designation")
+      
+      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:4])
+      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+      components <- prin_comp[["x"]]
+      components <- data.frame(components)
+      components$PC2 <- -components$PC2
+      
+      explained_variance <- summary(prin_comp)[["sdev"]]
+      explained_variance <- explained_variance[1:2]
+      comp <- prin_comp[["rotation"]]
+      comp[,'PC2'] <- - comp[,'PC2']
+      loadings <- comp
+      for (i in seq(explained_variance) ){
+        loadings[,i] <- comp[,i] * explained_variance[i]
+      }
+      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                        x=components$PC1,
+                                        y=components$PC2,
+                                        text=rownames(components),
+                                        marker=list(color="blue"),
+                                        hoverinfo='text',
+                                        showlegend=FALSE
+      )
+      for (i in 1:ncol(pred.mta.biplot)){
+        p.mta.biplot <- p.mta.biplot %>%
+          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE) %>%
+          plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+      }
+      print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+      
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      pred.mta.biplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue)) %>%
+        filter(trait==input$traitBiplot) %>% #
+        droplevels() %>%
+        pivot_wider(names_from = environment, values_from = predictedValue) %>%
+        select(-trait) %>%
+        column_to_rownames("designation")
+      
+      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:4])
+      
+      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+      components <- prin_comp[["x"]]
+      components <- data.frame(components)
+      components$PC2 <- -components$PC2
+      
+      explained_variance <- summary(prin_comp)[["sdev"]]
+      explained_variance <- explained_variance[1:2]
+      comp <- prin_comp[["rotation"]]
+      comp[,'PC2'] <- - comp[,'PC2']
+      loadings <- comp
+      for (i in seq(explained_variance) ){
+        loadings[,i] <- comp[,i] * explained_variance[i]
+      }
+      
+      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                        x=components$PC1,
+                                        y=components$PC2,
+                                        text=rownames(components),
+                                        marker=list(color="blue"),
+                                        hoverinfo='text',
+                                        showlegend=FALSE
+      )
+      
+      
+      for (i in 1:ncol(pred.mta.biplot)){
+        p.mta.biplot <- p.mta.biplot %>%
+          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE) %>%
+          plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+      }
+      plotly::layout(p.mta.biplot,font=font.plot_ly)
     })
-
-
+    
+  }
+  
 }
 
 ```
@@ -244,9 +400,9 @@ The following table allows to check the trait predictions in wide format.
 
 <p>&nbsp;</p>
 
-```{r }
+```{r, results='asis'}
 if (is.null(resultMta)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
@@ -261,7 +417,11 @@ if (is.null(resultMta)){
     direction="wide"
   )
   names(pred.mta.wide) <- c("designation","environment",traits)
-  DT::renderDT({DT::formatRound(DT::datatable(
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(pred.mta.wide)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
     pred.mta.wide,
     extensions = 'Buttons',
     rownames = FALSE,
@@ -274,6 +434,8 @@ if (is.null(resultMta)){
       paging = F)
   ),traits)
   })
+  }
+  
 }
 
 ```

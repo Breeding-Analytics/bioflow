@@ -91,10 +91,15 @@ The following table allows to see which locations had data for the different tra
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  readRDS("./outputs/resultSta.RData")
+  if(file.exists("./outputs/resultSta.RData")){
+    load("./outputs/resultSta.RData")
+  }else{
+    load("resultSta.RData")
+  }
 }, error = function(e) {
   NULL
 }))
+
 if (is.null(result)){
   invisible(NULL)
 } else {
@@ -159,7 +164,7 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
   }else{
-    selectInput(ns("traitSta"), 
+    shiny::selectInput(ns("traitSta"), 
                 label = "Trait:", 
                 multiple = FALSE,
                 choices = unique(modeling), 
@@ -268,7 +273,7 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
   }else{
-    selectInput(ns("envSta"), 
+    shiny::selectInput(ns("envSta"), 
                 label = "Environment:", 
                 choices = envs, 
     )

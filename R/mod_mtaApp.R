@@ -152,6 +152,9 @@ mod_mtaApp_ui <- function(id){
                  ),
                  tabPanel("Report", icon = icon("file-image"),
                           br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportMta"), "Download report"),
+                          br(),
                           uiOutput(ns('reportMta'))
                  )
                ) # end of tabset
@@ -578,6 +581,29 @@ mod_mtaApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
+
+    output$downloadReportMta <- downloadHandler(
+      filename = function() {
+        paste('my-report', sep = '.', switch(
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
+      },
+      content = function(file) {
+        src <- normalizePath('R/reportMta.Rmd')
+        src2 <- normalizePath('R/outputs/resultMta.RData')
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultMta.RData', overwrite = TRUE)
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+          "HTML",
+          HTML = rmarkdown::html_document()
+        ))
+        file.rename(out, file)
+      }
+    )
 
     output$outMta <- renderPrint({
       outMta()

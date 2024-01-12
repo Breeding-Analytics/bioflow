@@ -10,14 +10,9 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
-get_h <- function() {
-  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
-       fig.height*dpi/fig.retina)
-}
 ```
 
 ```{r printfxn, include=FALSE}
-
 # functions ####
 # for printing tables (data.frames) - DT::datatable()
 printTable <- function(DT, pageLength = 7, 
@@ -351,8 +346,6 @@ library(dplyr)
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  
-  # cat("A total of",paste(length(unique(mydata2$parent))), "parents were selected.")
   
   if("params" %in% ls()){  # if user will download the report
     
