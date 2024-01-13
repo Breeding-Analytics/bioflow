@@ -65,13 +65,13 @@ mod_homeApp_ui <- function(id){
         class = "landing-block foreground-content",
         tags$div(
           class = "foreground-text",
-          tags$img(src = "www/cgiar.png", height = 190, width = 600),
+          tags$img(src = "www/cgiar.png", height = 170, width = 600),
           tags$h1("Biometrical Genetics Workflow (bioflow)"),
           tags$p(
-            "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods to understand or use evolutionary forces",
+            "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods for understanding or using evolutionary forces",
             "(mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force).",
-            "Designed to be database agnostic, it only requires connecting to one of the available databases (EBS, BMS, BreedBase) to retrieve phenotypic,",
-            "genotypic or pedigree data, quickly map some features (columns) required, and carry the analytical procedures."
+            "Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase),",
+            "genotypic databases (GIGWA), and environmental databases (NASAPOWER) data, quickly map some required features (columns), and carry the analytical procedures."
           )
         )
       )

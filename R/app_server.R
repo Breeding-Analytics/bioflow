@@ -13,6 +13,10 @@ app_server <- function(input, output, session) {
                         "location", "trial", "environment", "rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 
+  ## home
+  mod_homeApp_server("homeApp_1")
+
+  ## selection tabs
   mod_getData_server("getData_1", map = required_mapping, data = data)
   mod_qaRawApp_server("qaRawApp_1", data = data)
   mod_staApp_server("staApp_1", data = data)
@@ -24,13 +28,10 @@ app_server <- function(input, output, session) {
   mod_rggApp_server("rggApp_1", data = data)
   mod_pggApp_server("pggApp_1", data = data)
 
-  mod_homeApp_server("homeApp_1")
-  # mod_homeGeApp_server("homeGeApp_1")
+  ## about tabs
   mod_aboutApp_server("aboutApp_1")
-  # observeEvent(input$settingsSta, {
-  #   hideTab(inputId = "tabso", target = "Multiple Trials")
-  #   showTab(inputId = "tabso", target = "Single Trial")
-  # })
+  mod_meetTheTeamApp_server("meetTheTeamApp_1")
+  mod_contactUsApp_server("contactUsApp_1")
 
 
 }

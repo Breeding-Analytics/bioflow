@@ -1,5 +1,5 @@
 testServer(
-  mod_homeGeApp_server,
+  mod_meetTheTeamApp_server,
   # Add here your module params
   args = list()
   , {
@@ -27,10 +27,10 @@ testServer(
 })
  
 test_that("module ui works", {
-  ui <- mod_homeGeApp_ui(id = "test")
+  ui <- mod_meetTheTeamApp_ui(id = "test")
   golem::expect_shinytaglist(ui)
   # Check that formals have not been removed
-  fmls <- formals(mod_homeGeApp_ui)
+  fmls <- formals(mod_meetTheTeamApp_ui)
   for (i in c("id")){
     expect_true(i %in% names(fmls))
   }
