@@ -33,6 +33,8 @@ app_server <- function(input, output, session) {
   mod_meetTheTeamApp_server("meetTheTeamApp_1")
   mod_contactUsApp_server("contactUsApp_1")
 
+  ## info section tabs
+  mod_sectionInfoGEApp_server("sectionInfoGEApp_1")
 
 }
 
