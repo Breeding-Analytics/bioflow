@@ -9,6 +9,13 @@ app_ui <- function(request) {
     class = "navbar1",
     shinyWidgets::useShinydashboard(),
 
+    # color the input and output tabs
+    tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
+    tags$style(".input-p {color: #FFA500;}"),
+    tags$style(".fa-arrow-right-from-bracket {color:#3CB371}"),
+    tags$style(".output-p {color: #3CB371;}"),
+    tags$style(".fa-book {color:#6495AD}"),
+    tags$style(".info-p {color: #6495AD;}"),
     navbarPage(
 
       id="tabso",
@@ -19,13 +26,6 @@ app_ui <- function(request) {
       # title=div(tags$b(""), style = "color:#FFFFFF"),
 
       tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
-      # color the input and output tabs
-      # tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
-      # tags$style(".input-p {color: #FFA500;}"),
-      # tags$style(".fa-arrow-right-from-bracket {color:#3CB371}"),
-      # tags$style(".output-p {color: #3CB371;}"),
-      # tags$style(".fa-book {color:#6495AD}"),
-      # tags$style(".info-p {color: #6495AD;}"),
 
       tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
