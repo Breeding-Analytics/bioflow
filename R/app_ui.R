@@ -20,12 +20,12 @@ app_ui <- function(request) {
 
       tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
       # color the input and output tabs
-      tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
-      tags$style(".input-p {color: #FFA500;}"),
-      tags$style(".fa-arrow-right-from-bracket {color:#3CB371}"),
-      tags$style(".output-p {color: #3CB371;}"),
-      tags$style(".fa-book {color:#6495AD}"),
-      tags$style(".info-p {color: #6495AD;}"),
+      # tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
+      # tags$style(".input-p {color: #FFA500;}"),
+      # tags$style(".fa-arrow-right-from-bracket {color:#3CB371}"),
+      # tags$style(".output-p {color: #3CB371;}"),
+      # tags$style(".fa-book {color:#6495AD}"),
+      # tags$style(".info-p {color: #6495AD;}"),
 
       tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
@@ -40,7 +40,7 @@ app_ui <- function(request) {
                  tabPanel("GE3. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1"), icon = icon("circle-nodes") ), # biplot is part of the report in MET
                  tabPanel("GE4. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1"), icon = icon("sort") ) ,
                  tabPanel("GE5. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1"), icon = icon("shuffle") ),
-                 tabPanel(strong("SELECTION HISTORY"),  icon = icon("timeline")),
+                 tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1"),  icon = icon("timeline")),
                  tabPanel("SH1a. Realized Genetic Gain", mod_rggApp_ui("rggApp_1"), icon = icon("chart-line") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
                  tabPanel("SH1b. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"), icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
                  tabPanel("SH2. Selection signatures",  icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.

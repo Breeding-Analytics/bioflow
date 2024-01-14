@@ -34,7 +34,8 @@ app_server <- function(input, output, session) {
   mod_contactUsApp_server("contactUsApp_1")
 
   ## info section tabs
-  mod_sectionInfoGEApp_server("sectionInfoGEApp_1")
+  mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # infor for genetic evaluation
+  mod_sectionInfoSHApp_server("sectionInfoSHApp_1")
 
 }
 

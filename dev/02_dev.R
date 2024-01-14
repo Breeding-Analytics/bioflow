@@ -74,7 +74,8 @@ golem::add_module(name = "aboutApp", with_test = TRUE) # technology
 golem::add_module(name = "meetTheTeamApp", with_test = TRUE) # home
 golem::add_module(name = "contactUsApp", with_test = TRUE) # home
 
-golem::add_module(name = "sectionInfoGEApp", with_test = TRUE) # home
+golem::add_module(name = "sectionInfoGEApp", with_test = TRUE) # for genetic evaluation
+golem::add_module(name = "sectionInfoSHApp", with_test = TRUE) # for selection history
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
