@@ -308,7 +308,8 @@ if (is.null(resultMta)){
         pivot_wider(names_from = environment, values_from = predictedValue) %>%
         select(-trait) %>% column_to_rownames("designation")
       
-      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:4])
+      # keep only as many columns as available or up to the 4th PC
+      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),4))])
       prin_comp <- prcomp(pred.mta.biplot, rank = 2)
       components <- prin_comp[["x"]]
       components <- data.frame(components)
@@ -349,8 +350,8 @@ if (is.null(resultMta)){
         pivot_wider(names_from = environment, values_from = predictedValue) %>%
         select(-trait) %>%
         column_to_rownames("designation")
-      
-      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:4])
+      # keep only as many columns as available or up to the 4th PC
+      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),4))])
       
       prin_comp <- prcomp(pred.mta.biplot, rank = 2)
       components <- prin_comp[["x"]]

@@ -364,7 +364,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
       entryTypeMtaInput <- unique(dtMta$entryType)
-      updateSelectInput(session, "entryTypeMta", choices = entryTypeMtaInput, selected = entryTypeMtaInput)
+      updateSelectInput(session, "entryTypeMta", choices = c(entryTypeMtaInput,"None"), selected = "None")
     })
     output$plotPredictionsConnectivity <-  plotly::renderPlotly({
       req(data())
@@ -372,7 +372,9 @@ mod_mtaApp_server <- function(id, data){
       req(input$entryTypeMta)
       dtMta <- data()
       mydata <- dtMta$predictions
-      mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
+      if(input$entryTypeMta != "None"){
+        mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
+      }
       splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) )
       splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate)
       nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate)
