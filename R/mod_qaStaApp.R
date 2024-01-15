@@ -121,6 +121,11 @@ mod_qaStaApp_server <- function(id, data){
       req(data())
       myObject <- data()
       mydata <- myObject$data$pheno
+      ### change column names for mapping
+      paramsPheno <- data()$metadata$pheno
+      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+      colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+      ###
       mydata$rowindex <- 1:nrow(mydata)
       mydata[, "environment"] <- as.factor(mydata[, "environment"])
       traitClasses <- unlist(lapply(mydata, class))
@@ -181,6 +186,11 @@ mod_qaStaApp_server <- function(id, data){
       req(input$traitOutqPheno)
       if("sta" %in% data()$status$module){
         mydata <- data()$data$pheno
+        ### change column names for mapping
+        paramsPheno <- data()$metadata$pheno
+        paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+        colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+        ###
         mydata$rowindex <- 1:nrow(mydata)
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
@@ -223,6 +233,11 @@ mod_qaStaApp_server <- function(id, data){
           ## add phenotypic data
           dtQaMb <- data()
           dtQaMb <- dtQaMb$data$pheno
+          ### change column names for mapping
+          paramsPheno <- data()$metadata$pheno
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          colnames(dtQaMb) <- cgiarBase::replaceValues(colnames(dtQaMb), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          ###
           dtQaMb$outlierRow <- 1:nrow(dtQaMb)
           removeCols <- c("stage","pipeline","country","year","season","location","trial","gid")
           dtQaMb <- dtQaMb[,unique(c("outlierRow",setdiff(colnames(dtQaMb), removeCols)))]

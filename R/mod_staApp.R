@@ -269,6 +269,12 @@ mod_staApp_server <- function(id,data){
           req(data())
           req(input$feature)
           dtSta <- data() # dtSta<- result
+          ### change column names for mapping
+          paramsPheno <- data()$metadata$pheno
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          colnames(dtSta$data$pheno) <- cgiarBase::replaceValues(colnames(dtSta$data$pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          ###
           dtSta <- merge(dtSta$data$pheno, dtSta$data$pedigree, by="designation") # merge mother and father info in the pheno data frame
           dtStaList <- split(dtSta, dtSta[,input$feature]) # split info by environment
           dtStaListRes <- list()
@@ -298,6 +304,11 @@ mod_staApp_server <- function(id,data){
           req(data())
           req(input$trait3Sta)
           mydata <- data()$data$pheno
+          ### change column names for mapping
+          paramsPheno <- data()$metadata$pheno
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          ###
           mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
           if(mappedColumns == 3){ # all required columns are present
             mydata$rowindex <- 1:nrow(mydata)
@@ -317,6 +328,11 @@ mod_staApp_server <- function(id,data){
           req(data())
           dtSta <- data()
           dtSta <- dtSta$data$pheno
+          ### change column names for mapping
+          paramsPheno <- data()$metadata$pheno
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          colnames(dtSta) <- cgiarBase::replaceValues(colnames(dtSta), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          ###
           traitTypes <- unlist(lapply(dtSta,class))
           numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
           DT::formatRound(DT::datatable(dtSta, extensions = 'Buttons',

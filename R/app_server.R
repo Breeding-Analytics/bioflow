@@ -4,6 +4,7 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @noRd
+options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
 app_server <- function(input, output, session) {
 
   data <- reactiveVal()

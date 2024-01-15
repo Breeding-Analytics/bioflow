@@ -115,7 +115,13 @@ mod_qaRawApp_server <- function(id, data){
     newOutliers <- reactive({ #
       req(data())
       myObject <- data()
+      # save(myObject, file = "./R/outputs/resultQAraw.RData")
       mydata <- myObject$data$pheno
+      ### change column names for mapping
+      paramsPheno <- data()$metadata$pheno
+      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+      colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+      ###
       mydata$rowindex <- 1:nrow(mydata)
       mydata[, "environment"] <- as.factor(mydata[, "environment"])
       traitClasses <- unlist(lapply(mydata, class))
@@ -132,7 +138,7 @@ mod_qaRawApp_server <- function(id, data){
       outList <- list(); counter=1
       for (i in 1:nlevels(mydata[, "environment"])) {
         sampleDT <- mydata[which(mydata[, "environment"] == levels(mydata[, "environment"])[i]), ] # data for the ith environment
-        if(!is.na(input$outlierCoefOutqPheno)){
+        if(!is.na(input$outlierCoefOutqPheno)){ # input <- list(outlierCoefOutqPheno=2, traitOutqPheno="Root_Lodging_plants")
           outlier <- grDevices::boxplot.stats(x=sampleDT[, input$traitOutqPheno],coef=input$outlierCoefOutqPheno )$out
           toSilence <- sampleDT[which(sampleDT[,input$traitOutqPheno] %in% outlier),"rowindex"]
           typeOut <- rep("outlierIQR",length(toSilence))
@@ -172,6 +178,11 @@ mod_qaRawApp_server <- function(id, data){
       req(input$outlierCoefOutqFont)
       req(input$traitOutqPheno)
       mydata <- data()$data$pheno
+      ### change column names for mapping
+      paramsPheno <- data()$metadata$pheno
+      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+      colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+      ###
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
       if(mappedColumns == 3){ # all required columns are present
         mydata$rowindex <- 1:nrow(mydata)
