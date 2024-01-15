@@ -125,6 +125,11 @@ if (is.null(result)){
   colnames(summarySta) <- c('environment',traits)
   
   pheno <- result$data$pheno
+  ### change column names for mapping
+  paramsPheno <- result$metadata$pheno
+  paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+  colnames(pheno) <- cgiarBase::replaceValues(colnames(pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+  ###
   pheno.env <- pheno[,c('environment','designation')]
   pheno.env<- unique(pheno.env[c('designation','environment')]) 
   pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
@@ -165,9 +170,9 @@ if (is.null(result)){
     
   }else{
     shiny::selectInput(ns("traitSta"), 
-                label = "Trait:", 
-                multiple = FALSE,
-                choices = unique(modeling), 
+                       label = "Trait:", 
+                       multiple = FALSE,
+                       choices = unique(modeling), 
     )
   }
   
@@ -274,8 +279,8 @@ if (is.null(result)){
     
   }else{
     shiny::selectInput(ns("envSta"), 
-                label = "Environment:", 
-                choices = envs, 
+                       label = "Environment:", 
+                       choices = envs, 
     )
   }
   
@@ -338,10 +343,10 @@ if (is.null(result)){
     
   }else{
     shiny::selectInput(ns("traitStaBox"), 
-                label = "Trait:", 
-                multiple = FALSE,
-                selected = unique(modeling),
-                choices = unique(modeling), 
+                       label = "Trait:", 
+                       multiple = FALSE,
+                       selected = unique(modeling),
+                       choices = unique(modeling), 
     )
   }
   

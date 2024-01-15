@@ -114,6 +114,7 @@ mod_qaRawApp_server <- function(id, data){
     ## function to calculate outliers
     newOutliers <- reactive({ #
       req(data())
+      req(input$traitOutqPheno)
       myObject <- data()
       # save(myObject, file = "./R/outputs/resultQAraw.RData")
       mydata <- myObject$data$pheno
@@ -154,18 +155,20 @@ mod_qaRawApp_server <- function(id, data){
         }
         # }# end of if enough data
       }# end for each trial
-      if(length(outList) > 0){
+      if(length(outList) > 0){ # we found outliers
         myoutliersReduced2 <- unique(do.call(rbind, outList))
         if( !is.null(myoutliers) & !is.null(nrow(myoutliers)) ){
           myoutliersReduced2 <- unique(rbind(myoutliersReduced,myoutliersReduced2))
         }
-      }else{
-        if(!is.null(myoutliers)){
-          myoutliersReduced2 <- unique(myoutliersReduced)
-        }else{
-          myoutliersNull <- data.frame(matrix(nrow=0, ncol=6))
-          colnames(myoutliersNull) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
-          myoutliersReduced2 <- myoutliersNull
+      }else{ # we did not find outliers
+        myoutliersReduced2 <- data.frame(module="qaRaw",analysisId=analysisId,trait=input$traitOutqPheno,reason="none",row=NA, value=NA);
+        if(!is.null(myoutliers)){ # if there was already outliers in the data structure
+          myoutliersReduced2 <- unique(rbind(myoutliersReduced,myoutliersReduced2))
+          # myoutliersReduced2 <- unique(myoutliersReduced)
+        }else{ # if the data structure was fully empty
+          # myoutliersNull <- data.frame(matrix(nrow=0, ncol=6))
+          # colnames(myoutliersNull) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
+          # myoutliersReduced2 <- myoutliersNull
         }
       }
       ## reactive
@@ -271,6 +274,8 @@ mod_qaRawApp_server <- function(id, data){
           }
           data(temp)
           cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
+        }else{
+
         }
         shinybusy::remove_modal_spinner()
       }else{

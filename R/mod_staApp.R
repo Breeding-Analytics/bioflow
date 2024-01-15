@@ -86,7 +86,8 @@ mod_staApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              selectInput(ns("feature"), "Check units by:", choices = c("environment","year","season","location","trial"), selected = "environment", multiple = FALSE),
+                                              selectInput(ns("feature"), "Check units by:", choices = NULL, multiple = FALSE),
+                                              # selectInput(ns("feature"), "Check units by:", choices = c("environment","year","season","location","trial"), selected = "environment", multiple = FALSE),
                                               column(width=12,DT::DTOutput(ns("summariesSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
@@ -294,6 +295,13 @@ mod_staApp_server <- function(id,data){
         observeEvent(c(data(),input$version2Sta), { # update trait
           req(data())
           req(input$version2Sta)
+          dtSta <- data()$metadata$pheno$parameter
+          traitsSta <- setdiff(dtSta, c("trait","designation"))
+          updateSelectInput(session, "feature", choices = traitsSta)
+        })
+        observeEvent(c(data(),input$version2Sta), { # update trait
+          req(data())
+          req(input$version2Sta)
           dtSta <- data()
           dtSta <- dtSta$modifications$pheno
           dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
@@ -370,6 +378,7 @@ mod_staApp_server <- function(id,data){
         })
       } else {
         output$qaQcStaInfo <- renderUI({return(NULL)})
+        # save(dtSta, file = "./R/outputs/resultSta.RData")
         result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta, analysisId=input$version2Sta,
                                             trait=input$trait2Sta, traitFamily = myFamily,
                                             fixedTerm = input$fixedTermSta2,

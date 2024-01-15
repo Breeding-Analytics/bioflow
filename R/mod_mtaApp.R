@@ -247,7 +247,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
-      traitsMta <- names(traitsMta)[which(traitsMta > 1)]
+      traitsMta <- names(traitsMta)[which(traitsMta > 1)] # remove factors that do not have more than one level
       updateSelectInput(session, "fixedTermMta2", choices = traitsMta)
     })
     #################

@@ -19,70 +19,37 @@ The following table allows to see which locations had data for the different tra
 
 <p>&nbsp;</p>
 
-NULL
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; "><table class="table table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> HT_AVG </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLD_TON </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Yield_Mg_ha </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> # of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> 2021_WS_BHU-NONSTRESS_ </td>
+   <td style="text-align:left;"> DEH1_2014 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 252 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_WS_BHU-STRESS_ </td>
+   <td style="text-align:left;"> IAH1a_2014 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 434 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_WS_IGKV-NONSTRESS_ </td>
+   <td style="text-align:left;"> IAH1b_2014 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2021_WS_IGKV-STRESS_ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2021_WS_IRRI-HYD-NONSTRESS_ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2021_WS_IRRI-HYD-STRESS_ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2021_WS_SHUATS-STRESSMOD_ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2021_WS_SHUATS-STRESSSEV_ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 288 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2023_DS_IRRIHQ-S2_ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 43 </td>
+   <td style="text-align:right;"> 237 </td>
   </tr>
 </tbody>
 </table></div>
@@ -98,13 +65,14 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLD_TON">YLD_TON</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
+<option value="Plant_Height_cm">Plant_Height_cm</option>
+<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out2f86e067720fcbd9" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out38b562de977fc9fa" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -117,21 +85,15 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="2021_WS_BHU-STRESS_" selected>2021_WS_BHU-STRESS_</option>
-<option value="2021_WS_BHU-NONSTRESS_">2021_WS_BHU-NONSTRESS_</option>
-<option value="2021_WS_SHUATS-STRESSMOD_">2021_WS_SHUATS-STRESSMOD_</option>
-<option value="2021_WS_SHUATS-STRESSSEV_">2021_WS_SHUATS-STRESSSEV_</option>
-<option value="2021_WS_IRRI-HYD-STRESS_">2021_WS_IRRI-HYD-STRESS_</option>
-<option value="2021_WS_IRRI-HYD-NONSTRESS_">2021_WS_IRRI-HYD-NONSTRESS_</option>
-<option value="2021_WS_IGKV-NONSTRESS_">2021_WS_IGKV-NONSTRESS_</option>
-<option value="2021_WS_IGKV-STRESS_">2021_WS_IGKV-STRESS_</option>
-<option value="2023_DS_IRRIHQ-S2_">2023_DS_IRRIHQ-S2_</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="IAH1a_2014" selected>IAH1a_2014</option>
+<option value="DEH1_2014">DEH1_2014</option>
+<option value="IAH1b_2014">IAH1b_2014</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out0700dec268aebaca" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out03051bada7ad083f" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -144,10 +106,11 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLD_TON" selected>YLD_TON</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
+<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out920859fd80aa9a11" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out1705edb1a9d2af37" style="width:100%;height:400px;"></div><!--/html_preserve-->
