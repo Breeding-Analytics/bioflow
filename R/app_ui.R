@@ -22,7 +22,7 @@ app_ui <- function(request) {
 
       golem_add_external_resources(),
 
-      title=div(img(src="www/cgiarmini.png"), "bioflow",style = "color:#FFFFFF"),
+      title=div(img(src="www/cgiarmini.png"), "",style = "color:#FFFFFF"),
       # title=div(tags$b(""), style = "color:#FFFFFF"),
 
       tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),

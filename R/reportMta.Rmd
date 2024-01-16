@@ -194,7 +194,8 @@ if (is.null(resultMta)){
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   traits <- unique(pred.sta$trait)
   predictions.gcorrE <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
-  
+  envs <- unique(predictions.gcorrE[,"environment"])
+  addTextInPlots <- ifelse(length(envs) > 40, FALSE, TRUE)
   if("params" %in% ls()){ # we will download the document
     
     cat(paste0("### Correlation  {.tabset .tabset-pills}    \n\n  "))
@@ -202,7 +203,8 @@ if (is.null(resultMta)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment",
-                                           valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+                                           valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
+                                           checkboxAxis= addTextInPlots)
       print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
       
     }
@@ -211,7 +213,8 @@ if (is.null(resultMta)){
     
     plotly::renderPlotly({
       p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-                                           valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+                                           valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
+                                           checkboxAxis= addTextInPlots)
       plotly::layout(p.cor.pred.env,font=font.plot_ly)
     })
     
@@ -237,18 +240,21 @@ if (is.null(resultMta)){
   pred.mta <- resultMta$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   predictions.gcorrT <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
-  
+  nTraits <- unique(predictions.gcorrE[,"trait"])
+  addTextInPlots <- ifelse(length(nTraits) > 40, FALSE, TRUE)
   if("params" %in% ls()){ # we will download the document
     
     p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-                                            valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+                                            valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
+                                            checkboxAxis= addTextInPlots)
     print(htmltools::tagList(plotly::ggplotly(p.cor.pred.traits)))
     
   }else{
     
     plotly::renderPlotly({
       p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-                                              valueForCorrelation="predictedValue",FALSE, FALSE, TRUE)
+                                              valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
+                                              checkboxAxis= addTextInPlots)
       plotly::layout(p.cor.pred.traits,font=font.plot_ly)
     })
     
@@ -308,8 +314,13 @@ if (is.null(resultMta)){
         pivot_wider(names_from = environment, values_from = predictedValue) %>%
         select(-trait) %>% column_to_rownames("designation")
       
-      # keep only as many columns as available or up to the 4th PC
-      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),4))])
+      # keep only 
+      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
+      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
+      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
       prin_comp <- prcomp(pred.mta.biplot, rank = 2)
       components <- prin_comp[["x"]]
       components <- data.frame(components)
@@ -334,8 +345,11 @@ if (is.null(resultMta)){
       )
       for (i in 1:ncol(pred.mta.biplot)){
         p.mta.biplot <- p.mta.biplot %>%
-          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE) %>%
-          plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+        if(ncol(pred.mta.biplot) < 20){
+          p.mta.biplot <- p.mta.biplot %>%
+            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+        }
       }
       print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
       
@@ -350,8 +364,13 @@ if (is.null(resultMta)){
         pivot_wider(names_from = environment, values_from = predictedValue) %>%
         select(-trait) %>%
         column_to_rownames("designation")
-      # keep only as many columns as available or up to the 4th PC
-      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),4))])
+      # keep only 
+      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
+      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
+      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
       
       prin_comp <- prcomp(pred.mta.biplot, rank = 2)
       components <- prin_comp[["x"]]
@@ -380,8 +399,11 @@ if (is.null(resultMta)){
       
       for (i in 1:ncol(pred.mta.biplot)){
         p.mta.biplot <- p.mta.biplot %>%
-          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE) %>%
-          plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+        if(ncol(pred.mta.biplot) < 20){
+          p.mta.biplot <- p.mta.biplot %>%
+            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+        }
       }
       plotly::layout(p.mta.biplot,font=font.plot_ly)
     })
@@ -423,18 +445,18 @@ if (is.null(resultMta)){
     printTable(pred.mta.wide)
   }else{
     DT::renderDT({DT::formatRound(DT::datatable(
-    pred.mta.wide,
-    extensions = 'Buttons',
-    rownames = FALSE,
-    class = 'cell-border',
-    options = list(
-      dom = 'Blfrtip',
-      scrollY = "400px",
-      scrollX = "400px",
-      buttons = c('copy','csv','excel','pdf','print'),
-      paging = F)
-  ),traits)
-  })
+      pred.mta.wide,
+      extensions = 'Buttons',
+      rownames = FALSE,
+      class = 'cell-border',
+      options = list(
+        dom = 'Blfrtip',
+        scrollY = "400px",
+        scrollX = "400px",
+        buttons = c('copy','csv','excel','pdf','print'),
+        paging = F)
+    ),traits)
+    })
   }
   
 }

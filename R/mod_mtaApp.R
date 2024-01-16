@@ -95,8 +95,8 @@ mod_mtaApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                               column(width=12,selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
-                                              column(width = 6, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = TRUE) ),
-                                              column(width = 6, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = TRUE) ),
+                                              column(width = 6, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
+                                              column(width = 6, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
                                               column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) )
                           )
                  ),
@@ -180,8 +180,8 @@ mod_mtaApp_server <- function(id, data){
     })
     ############################################################################
     # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- res
+    #   load(file.path(getwd(),"R/outputs/resultMta.RData"))
+    #   data <- resultMta
     #   return(data)
     # })
     # warning message
@@ -194,7 +194,7 @@ mod_mtaApp_server <- function(id, data){
           if("sta" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the MTA inspecting the other tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform STA before performing an MTA.")) ) }
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data input' tab.")) )}
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
     #################
@@ -372,6 +372,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$entryTypeMta)
       dtMta <- data()
       mydata <- dtMta$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
       if(input$entryTypeMta != "None"){
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
       }

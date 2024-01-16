@@ -147,7 +147,7 @@ radarPlot <-  function(mydata, environmentPredictionsRadar2=NULL,traitFilterPred
 
 corPlotPredictions <- function(predictions, traitPredictionsCorrelation=NULL, unitOfCorrelation=NULL,
                                correlatedAcross=NULL, valueForCorrelation=NULL,
-                               checkboxCluster=NULL, checkboxText=NULL, checkboxAxis=NULL){
+                               checkboxCluster=FALSE, checkboxText=FALSE, checkboxAxis=FALSE){
 
   if(!is.null(nrow(predictions))){
 
@@ -164,7 +164,7 @@ corPlotPredictions <- function(predictions, traitPredictionsCorrelation=NULL, un
     mydata4$X1 <- as.numeric(as.factor(mydata4$Var1))
     mydata4$X2 <- as.numeric(as.factor(mydata4$Var2))
 
-    if(!is.null(checkboxCluster)){
+    if(checkboxCluster){
       A <- matrix(NA, nrow=max(mydata4$X1), ncol = max(mydata4$X2))
       A[as.matrix(mydata4[,c("X1","X2")])] = mydata4[,"Freq"]
       A[lower.tri(A)] <- t(A)[lower.tri(A)] # fill the lower triangular
@@ -186,7 +186,7 @@ corPlotPredictions <- function(predictions, traitPredictionsCorrelation=NULL, un
                             color = mydata4[,"Freq"], text=mydata4[,"mytext"], colors = c('#BF382A', '#0C4B8E'))
     fig <- fig %>%  plotly::add_heatmap()
     ## add text inside the corplot
-    if(!is.null(checkboxText)){
+    if(checkboxText){
       fig <- fig %>%  plotly::add_annotations(text =mydata4[,"Freq"],
                                               x = mydata4[,"X1"],
                                               y = mydata4[,"X2"],
@@ -194,7 +194,7 @@ corPlotPredictions <- function(predictions, traitPredictionsCorrelation=NULL, un
                                               showarrow = FALSE, font=list(color='white')) #
     }
     ## add axis labels
-    if(!is.null(checkboxAxis)){
+    if(checkboxAxis){
       fig <- fig %>%
         plotly::layout(yaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var1"]), tickmode="array", tickvals = unique(mydata4[,"X1"]) ),
                        xaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var2"]), tickmode="array", tickvals = unique(mydata4[,"X2"]) )
