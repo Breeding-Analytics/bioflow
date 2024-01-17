@@ -81,15 +81,16 @@ suppressWarnings(tryCatch({
 if (is.null(resultMta)){
   # invisible(NULL)
 } else {
+  # resultMta$status <- resultMta$status[1:6,]
   idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- resultMta$predictions
   pred <- pred[pred$analysisId == idMta,]
-  traits <- unique(pred$trait)
+  traits <- unique(resultMta$modeling[which(resultMta$modeling$analysisId == idMta  & resultMta$modeling$environment == "across"),"trait"]) # unique(pred$trait)
 }
 ```
 
-### Distribution by trait
+### Trait distribution by environment
 
 The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**.
 
@@ -125,7 +126,7 @@ if (is.null(resultMta)){
   
   if("params" %in% ls()){ # we will download the document
     
-    cat(paste0("### Distribution  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("### Distribution by environment  {.tabset .tabset-pills}    \n\n  "))
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
@@ -153,6 +154,111 @@ if (is.null(resultMta)){
 }
 ```
 
+### Trait distribution across environment
+
+```{r }
+if (is.null(resultMta)){
+  # invisible(NULL)
+} else {
+  resultMta$status <- resultMta$status[1:6,]
+  idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  pred <- resultMta$predictions
+  pred <- pred[pred$analysisId == idMta,]
+  traits <- unique(pred$trait)
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitMta2"), 
+                label = "", 
+                choices = traits
+    )
+  }
+}
+```
+
+```{r, results='asis'}
+if (is.null(resultMta)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("### Distribution across environments  {.tabset .tabset-pills}    \n\n  "))
+    for(iTrait in traits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      temp.pred.box <- pred[pred$trait== iTrait,]
+      
+      p <- ggplot2::ggplot(
+        data = temp.pred.box, 
+        mapping = ggplot2::aes(
+          x = reorder(designation, -predictedValue),
+          y = predictedValue,
+          col = entryType,
+          text = paste(
+            paste0('<br>', "designation: ", designation),
+            paste0('<br>', "entry type: ", entryType),
+            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+            paste0('<br>', "standard error: ", round(stdError, 4)),
+            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
+            #        round(predictedValue + CI, 2), ")")))) +
+            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
+                   round(predictedValue + stdError, 4), ")")))) +
+        ggplot2::theme_classic() +  ggplot2::geom_point() +
+        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                               width = 0.10) +
+        ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+        ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+      if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
+        print(p)
+      }else{ # go dynamic
+        print(htmltools::tagList(plotly::ggplotly(p)))
+      }
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      
+      temp.pred.box <- pred[pred$trait== input$traitMta2,]
+      
+      p <- ggplot2::ggplot(
+        data = temp.pred.box, 
+        mapping = ggplot2::aes(
+          x = reorder(designation, -predictedValue),
+          y = predictedValue,
+          col = entryType,
+          text = paste(
+            paste0('<br>', "designation: ", designation),
+            paste0('<br>', "entry type: ", entryType),
+            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+            paste0('<br>', "standard error: ", round(stdError, 4)),
+            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
+            #        round(predictedValue + CI, 2), ")")))) +
+            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
+                   round(predictedValue + stdError, 4), ")")))) +
+        ggplot2::theme_classic() +  ggplot2::geom_point() +
+        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                               width = 0.10) +
+        ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+        ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+      if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
+        p
+      }else{ # go dynamic
+        plotly::ggplotly(p)
+      }
+      
+    })
+    
+  }
+}
+```
+
+
 <p>&nbsp;</p>
 
 ### Environmental correlations
@@ -169,7 +275,7 @@ if (is.null(resultMta)){
   idMta <- idMta[length(idMta)]
   pred <- resultMta$predictions
   pred <- pred[pred$analysisId == idMta,]
-  traits <- unique(pred$trait)
+  traits <- unique(resultMta$modeling[which(resultMta$modeling$analysisId == idMta  & resultMta$modeling$environment == "across"),"trait"])# unique(pred$trait)
   if("params" %in% ls()){ # we will download the document
     
   }else{
@@ -227,7 +333,7 @@ if (is.null(resultMta)){
 
 ## Trait correlations
 
-The following graph allows to see the genetic correlations of the different traits for across environments.
+The following graph allows to see the genetic correlations among traits using across environment estimates.
 
 <p>&nbsp;</p>
 
@@ -279,7 +385,7 @@ if (is.null(resultMta)){
   idMta <- idMta[length(idMta)]
   pred.mta <- resultMta$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
-  traits <- unique(pred.mta$trait)
+  traits <- unique(resultMta$modeling[which(resultMta$modeling$analysisId == idMta  & resultMta$modeling$environment == "across"),"trait"]) # unique(pred.mta$trait)
   
   if("params" %in% ls()){ # we will download the document
     
@@ -370,7 +476,7 @@ if (is.null(resultMta)){
       missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
       pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
       pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-      pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
+      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
       
       prin_comp <- prcomp(pred.mta.biplot, rank = 2)
       components <- prin_comp[["x"]]
