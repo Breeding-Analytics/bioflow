@@ -495,7 +495,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       colnames(df)[1:11] <- hapmap_snp_attr[1:11]
       first_row   <- df[1, -c(1:11)]
       valid_IUPAC <- c('A', 'C', 'G', 'T', 'U', 'W', 'S', 'M', 'K', 'R', 'Y', 'B', 'D', 'H', 'V', 'N')
-      double_code <- c("AA","TT","CC","GG","AT","TA","AC","CA","AG","GA","TC","CT","TG","GT","CG","GC")
+      double_code <- c("AA","TT","CC","GG","AT","TA","AC","CA","AG","GA","TC","CT","TG","GT","CG","GC","NN")
       # IUPAC single-letter code
       if (all(first_row %in% valid_IUPAC)) {
 
@@ -840,14 +840,14 @@ hapMapChar2NumericDouble <- function(hapMap) {
 
   # remove the first 11 columns
   hapMap <- hapMap[,-c(1:11)]
-
+  hapMap[which(hapMap=="NN", arr.ind = TRUE)] <- NA
   # convert the hapMap to numeric
   hapMapNumeric <- sommer::atcg1234(t(hapMap), maf = -1)
 
   # convert to data frame
   refAlleles <- hapMapNumeric$ref.alleles
 
-  hapMapNumeric <- as.data.frame(t(hapMapNumeric$M))
+  hapMapNumeric <- as.data.frame(t(hapMapNumeric$M+1))
 
   # add reference and alternate allele
   SNPInfo$alleles <- apply(refAlleles,2,function(x){paste(na.omit(x),collapse = "/")})

@@ -175,7 +175,7 @@ mod_qaGenoApp_server <- function(id, data){
         vline1 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
         vline2 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
         vline3 <- function(x = 0, color = "green") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-        fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Value of paramter"), yaxis = list(title = "Proportion of markers" ),
+        fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Value of parameter"), yaxis = list(title = "Proportion of markers" ),
                                       shapes = list(vline1(input$propNaUpperThreshForMarker),vline2(input$propNaUpperThreshForInds),vline3(input$maf) ) )
         fig
       }else{
