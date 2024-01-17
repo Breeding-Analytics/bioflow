@@ -482,16 +482,20 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       shinybusy::remove_modal_spinner()
 
       hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
-                           'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode')
+                           'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode',
+                           'rs', 'assembly','panel' # column versions of vcfR
+                           )
 
-      if (!all(colnames(df)[1:11] == hapmap_snp_attr)) {
+      if(length(intersect(hapmap_snp_attr, colnames(df)[1:11])) != 11){
+      # if (!all(colnames(df)[1:11] == hapmap_snp_attr)) {
         shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
         return(NULL)
       }
 
+      colnames(df)[1:11] <- hapmap_snp_attr[1:11]
       first_row   <- df[1, -c(1:11)]
       valid_IUPAC <- c('A', 'C', 'G', 'T', 'U', 'W', 'S', 'M', 'K', 'R', 'Y', 'B', 'D', 'H', 'V', 'N')
-
+      double_code <- c("AA","TT","CC","GG","AT","TA","AC","CA","AG","GA","TC","CT","TG","GT","CG","GC")
       # IUPAC single-letter code
       if (all(first_row %in% valid_IUPAC)) {
 
@@ -514,7 +518,11 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
                     data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x)))))
 
         # something else!
-      } else {
+      } else if(all(first_row %in% double_code)){
+        shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
+        df <- hapMapChar2NumericDouble(df)
+        shinybusy::remove_modal_spinner()
+      }else {
         shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
         return(NULL)
       }
@@ -821,4 +829,34 @@ hapMapChar2Numeric <- function(hapMap) {
   colnames(hapMapNumeric) <- colnames(hapMap)
 
   return(cbind(SNPInfo, hapMapNumeric))
+}
+
+hapMapChar2NumericDouble <- function(hapMap) {
+
+  hapMap <- as.data.frame(hapMap)
+  dim(hapMap)
+  # extract SNP infomation , which is the first 11 columns
+  SNPInfo <- hapMap[,1:11]
+
+  # remove the first 11 columns
+  hapMap <- hapMap[,-c(1:11)]
+
+  # convert the hapMap to numeric
+  hapMapNumeric <- sommer::atcg1234(t(hapMap), maf = -1)
+
+  # convert to data frame
+  refAlleles <- hapMapNumeric$ref.alleles
+
+  hapMapNumeric <- as.data.frame(t(hapMapNumeric$M))
+
+  # add reference and alternate allele
+  SNPInfo$alleles <- apply(refAlleles,2,function(x){paste(na.omit(x),collapse = "/")})
+  # convert -9 values to NA
+  # hapMapNumeric[hapMapNumeric == -9] <- NA
+
+  # get back the column names (accessions)
+  colnames(hapMapNumeric) <- colnames(hapMap)
+
+  result <- cbind(SNPInfo, hapMapNumeric)
+  return(result)
 }
