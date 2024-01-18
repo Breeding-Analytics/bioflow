@@ -543,18 +543,20 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
 
     output$geno_summary <- renderText({
       temp <- data()
+
       if (!is.null(geno_data()) & any(temp$metadata$pheno$parameter == 'designation')) {
+        designationColumn <- temp$metadata$pheno[which(temp$metadata$pheno$parameter == "designation"),"value"]
         paste(
           "Data Integrity Checks:\n",
 
-          sum(colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno$designation)),
+          sum(colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
           "Accessions exist in both phenotypic and genotypic files (will be used to train the model)\n",
 
-          sum(!colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno$designation)),
+          sum(!colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
           "Accessions have genotypic data but no phenotypic (will be predicted, add to pheno data file with NA value)\n",
 
-          sum(!unique(temp$data$pheno$designation) %in% colnames(geno_data()[, -c(1:11)])),
-          'Accessions have phenotypic data but no genotypic (will filtered them out from the pheno dataset)'
+          sum(!unique(temp$data$pheno[, designationColumn ]) %in% colnames(geno_data()[, -c(1:11)])),
+          'Accessions have phenotypic data but no genotypic (will not contribute to the training model)'
         )
       }
     })
@@ -668,7 +670,36 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
           inputId  = ns('ped_year'),
           label    = 'Year of Origin',
           choices  = as.list(c('', header)),
-        ))
+        )),
+        ## testing
+        renderPrint({
+          req(input$ped_designation)
+          # req(input$ped_father)
+          # req(input$ped_mother)
+          # req(input$ped_year)
+          temp <- data()
+          if ("designation" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "designation", 'value'] <- input$ped_designation
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "designation", value = input$ped_designation ))
+          }
+          if ("mother" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "mother", 'value'] <- input$ped_mother
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "mother", value = input$ped_mother ))
+          }
+          if ("father" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "father", 'value'] <- input$ped_father
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "father", value = input$ped_father ))
+          }
+          if ("yearOfOrigin" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "yearOfOrigin", 'value'] <- input$ped_year
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "yearOfOrigin", value = input$ped_year ))
+          }
+          data(temp)
+        }),
       )
     })
 
@@ -676,16 +707,18 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       tmp <- data()
       ped <- ped_data()
       if (!is.null(ped) & any(tmp$metadata$pheno$parameter == 'designation')) {
+        designationColumnInPheno <- tmp$metadata$pheno[which(tmp$metadata$pheno$parameter == "designation"),"value"]
+        designationColumnInPed <- tmp$metadata$pedigree[which(tmp$metadata$pedigree$parameter == "designation"),"value"]
         paste(
           "Data Integrity Checks:\n",
 
-          sum(ped$designation %in% unique(tmp$data$pheno$designation)),
+          sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])),
           "Accessions exist in both phenotypic and pedigree files\n",
 
-          sum(!unique(tmp$data$pheno$designation) %in% ped$designation),
+          sum(!unique(tmp$data$pheno[, designationColumnInPheno ]) %in% ped[, designationColumnInPed ]),
           "Accessions have phenotypic data but no pedigree data\n",
 
-          sum(is.na(ped[ped$designation %in% unique(tmp$data$pheno$designation), 'yearOfOrigin'])),
+          sum(is.na(ped[ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ]), 'yearOfOrigin'])),
           "Accessions in phenotypic data have no year of origin info\n"
         )
       }

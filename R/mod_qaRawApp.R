@@ -116,7 +116,7 @@ mod_qaRawApp_server <- function(id, data){
       req(data())
       req(input$traitOutqPheno)
       myObject <- data()
-      # save(myObject, file = "./R/outputs/resultQAraw.RData")
+      save(myObject, file = "./R/outputs/resultQAraw.RData")
       mydata <- myObject$data$pheno
       ### change column names for mapping
       paramsPheno <- data()$metadata$pheno
