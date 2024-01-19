@@ -11,7 +11,7 @@ app_ui <- function(request) {
 
     # color the input and output tabs
     tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
-    tags$style(".input-p {color: #FFA500;}"),
+    tags$style(".input-p {color: #FFA500}"),
     tags$style(".fa-arrow-right-from-bracket {color:#3CB371}"),
     tags$style(".output-p {color: #3CB371;}"),
     tags$style(".fa-book {color:#6495AD}"),
@@ -43,26 +43,26 @@ app_ui <- function(request) {
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1"),  icon = icon("timeline")),
                  tabPanel("SH1a. Realized Genetic Gain", mod_rggApp_ui("rggApp_1"), icon = icon("chart-line") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
                  tabPanel("SH1b. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"), icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel("SH2. Selection signatures",  icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
+                 tabPanel(div("SH2. Selection signatures",style = "color:red"))#  , icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
       ),
 
       navbarMenu("Mutation", icon = icon("dna"),
                  tabPanel(strong("DISCOVERY"),  icon = icon("timeline")),
-                 tabPanel("D1. Genome wide association",  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
-                 tabPanel("D2. Variant calling",  icon = icon("chart-simple")), #
+                 tabPanel(div("D1. Genome wide association",style = "color:red")), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
+                 tabPanel(div("D2. Variant calling",style = "color:red")), #  icon = icon("chart-simple")), #
                  tabPanel(strong("MUTATION HISTORY"),  icon = icon("timeline")),
-                 tabPanel("MH1. Mutation rate",  icon = icon("disease")) # may include
+                 tabPanel(div("MH1. Mutation rate",style = "color:red")) #  icon = icon("disease")) # may include
       ),
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
                  tabPanel(strong("CLUSTERS"),  icon = icon("puzzle-piece")),
-                 tabPanel("S1. Population structure",  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
-                 tabPanel("S2. Pool formation",  icon = icon("circle-nodes")), # may include k-means, simulated annealing
-                 tabPanel("S3. Pop-subset selection",  icon = icon("puzzle-piece")), # may include STPGA
+                 tabPanel(div("S1. Population structure",style = "color:red")), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
+                 tabPanel(div("S2. Pool formation",style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
+                 tabPanel(div("S3. Pop-subset selection",style = "color:red")), #  icon = icon("puzzle-piece")), # may include STPGA
                  tabPanel(strong("GENE FREQUENCIES"),  icon = icon("filter")),
-                 tabPanel("GF1. MAS", icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel("GF2. MABC", icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel("GF3. Effective-pop-size",  icon = icon("filter"))
+                 tabPanel(div("GF1. MAS",style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div("GF2. MABC",style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div("GF3. Number of founders",style = "color:red")) #  icon = icon("filter"))
 
       ),
 
