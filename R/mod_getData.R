@@ -305,7 +305,7 @@ mod_getData_ui <- function(id){
 #' getData Server Functions
 #'
 #' @noRd
-mod_getData_server <- function(id, map = NULL, data = NULL){
+mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
   moduleServer(id , function(input, output, session){
     ns <- session$ns
 
@@ -313,6 +313,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
 
     observeEvent(
       input$pheno_input,
+      if(length(input$pheno_input) > 0){ # added
       if (input$pheno_input == 'file') {
         golem::invoke_js('showid', ns('pheno_file_holder'))
         golem::invoke_js('hideid', ns('pheno_url'))
@@ -334,17 +335,19 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         golem::invoke_js('hideid', ns('pheno_map'))
         updateCheckboxInput(session, 'pheno_example', value = FALSE)
       }
+      }
     )
 
     pheno_data <- reactive({
+      if(length(input$pheno_input) > 0){ # added
       if (input$pheno_input == 'file') {
-        if (is.null(input$pheno_file)) return(NULL)
+        if (is.null(input$pheno_file)) {return(NULL)}else{
         data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
-                         quote = input$pheno_quote, dec = input$pheno_dec)
+                         quote = input$pheno_quote, dec = input$pheno_dec) }
       } else if (input$pheno_input == 'url') {
-        if (input$pheno_url == '') return(NULL)
+        if (input$pheno_url == ''){return(NULL)} else{
         data <- read.csv(input$pheno_url, sep = input$pheno_sep,
-                         quote = input$pheno_quote, dec = input$pheno_dec)
+                         quote = input$pheno_quote, dec = input$pheno_dec) }
       } else {
         # stage       <- NA
         # pipeline    <- NA
@@ -367,6 +370,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       }
 
       return(data)
+      }
     })
 
     observeEvent(
@@ -432,113 +436,122 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
 
     observeEvent(
       input$pheno_example,
-      if (input$pheno_example) {
-        updateSelectInput(session, 'pheno_input', selected = 'url')
+      if(length(input$pheno_example) > 0){
+        if (input$pheno_example) {
+          updateSelectInput(session, 'pheno_input', selected = 'url')
 
-        pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
-                                     session$clientData$url_hostname, ':',
-                                     session$clientData$url_port,
-                                     session$clientData$url_pathname,
-                                     pheno_example)
+          pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
+                                       session$clientData$url_hostname, ':',
+                                       session$clientData$url_port,
+                                       session$clientData$url_pathname,
+                                       pheno_example)
 
-        updateTextInput(session, 'pheno_url', value = pheno_example_url)
+          updateTextInput(session, 'pheno_url', value = pheno_example_url)
 
-        golem::invoke_js('hideid', ns('pheno_file_holder'))
-        golem::invoke_js('showid', ns('pheno_url'))
-        golem::invoke_js('hideid', ns('pheno_db'))
-      } else {
-        updateSelectInput(session, 'pheno_input', selected = 'file')
-        updateTextInput(session, 'pheno_url', value = '')
+          golem::invoke_js('hideid', ns('pheno_file_holder'))
+          golem::invoke_js('showid', ns('pheno_url'))
+          golem::invoke_js('hideid', ns('pheno_db'))
+        } else {
+          updateSelectInput(session, 'pheno_input', selected = 'file')
+          updateTextInput(session, 'pheno_url', value = '')
 
-        golem::invoke_js('showid', ns('pheno_file_holder'))
-        golem::invoke_js('hideid', ns('pheno_url'))
-        golem::invoke_js('hideid', ns('pheno_db'))
+          golem::invoke_js('showid', ns('pheno_file_holder'))
+          golem::invoke_js('hideid', ns('pheno_url'))
+          golem::invoke_js('hideid', ns('pheno_db'))
+        }
       }
+
     )
 
     ### Genotypic tab controls #################################################
 
     observeEvent(
       input$geno_input,
-      if (input$geno_input == 'file') {
-        golem::invoke_js('showid', ns('geno_file_holder'))
-        golem::invoke_js('hideid', ns('geno_url'))
-        updateCheckboxInput(session, 'geno_example', value = FALSE)
-      } else if (input$geno_input == 'url') {
-        golem::invoke_js('hideid', ns('geno_file_holder'))
-        golem::invoke_js('showid', ns('geno_url'))
+      if(length(input$geno_input) > 0){ # added
+        if (input$geno_input == 'file') {
+          golem::invoke_js('showid', ns('geno_file_holder'))
+          golem::invoke_js('hideid', ns('geno_url'))
+          updateCheckboxInput(session, 'geno_example', value = FALSE)
+        } else if (input$geno_input == 'url') {
+          golem::invoke_js('hideid', ns('geno_file_holder'))
+          golem::invoke_js('showid', ns('geno_url'))
+        }
       }
+
     )
 
     geno_data <- reactive({
-      if (input$geno_input == 'file') {
-        if (is.null(input$geno_file)) return(NULL)
-        snps_file <- input$geno_file$datapath
-      } else {
-        if (input$geno_url == '') return(NULL)
-        snps_file <- input$geno_url
-      }
+      if(length(input$geno_input) > 0){ # added
+        if (input$geno_input == 'file') {
+          if (is.null(input$geno_file)) {return(NULL)}else{
+          snps_file <- input$geno_file$datapath
+          }
+        } else {
+          if (input$geno_url == '') {return(NULL)}else{
+          snps_file <- input$geno_url
+          }
+        }
+        # library(vcfR)
+        # vcf <- read.vcfR(file.choose())
+        #
+        # SNPs_info <- vcfR2tidy(vcf, info_only = TRUE)$fix
+        # View(SNPs_info)
+        #
+        # gt <- extract.gt(vcf, as.numeric = TRUE)
+        # View(gt[1:100,1:100])
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+        df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
+        shinybusy::remove_modal_spinner()
+        hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
+                             'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode',
+                             'rs', 'assembly','panel' # column versions of vcfR
+        )
+        if(length(intersect(hapmap_snp_attr, colnames(df)[1:11])) != 11){
+          # if (!all(colnames(df)[1:11] == hapmap_snp_attr)) {
+          shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
+          return(NULL)
+        }
+        colnames(df)[1:11] <- hapmap_snp_attr[1:11]
+        first_row   <- df[1, -c(1:11)]
+        valid_IUPAC <- c('A', 'C', 'G', 'T', 'U', 'W', 'S', 'M', 'K', 'R', 'Y', 'B', 'D', 'H', 'V', 'N')
+        double_code <- c("AA","TT","CC","GG","AT","TA","AC","CA","AG","GA","TC","CT","TG","GT","CG","GC","NN")
+        # IUPAC single-letter code
+        if (all(first_row %in% valid_IUPAC)) {
 
-      # library(vcfR)
-      # vcf <- read.vcfR(file.choose())
-      #
-      # SNPs_info <- vcfR2tidy(vcf, info_only = TRUE)$fix
-      # View(SNPs_info)
-      #
-      # gt <- extract.gt(vcf, as.numeric = TRUE)
-      # View(gt[1:100,1:100])
+          shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
+          df <- hapMapChar2Numeric(df)
+          shinybusy::remove_modal_spinner()
 
-      shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-      df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
-      shinybusy::remove_modal_spinner()
+          # -1, 0, 1 numeric coding
+        } else if (min(as.numeric(first_row), na.rm = TRUE) == -1 &
+                   max(as.numeric(first_row), na.rm = TRUE) == 1) {
 
-      hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
-                           'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode',
-                           'rs', 'assembly','panel' # column versions of vcfR
-                           )
+          df <- cbind(df[, 1:11],
+                      data.frame(apply(df[, -c(1:11)], 2, function(x) 1 + as.numeric(as.character(x)))))
 
-      if(length(intersect(hapmap_snp_attr, colnames(df)[1:11])) != 11){
-      # if (!all(colnames(df)[1:11] == hapmap_snp_attr)) {
-        shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
+          # 0, 1, 2 numeric coding
+        } else if (min(as.numeric(first_row), na.rm = TRUE) == 0 &
+                   max(as.numeric(first_row), na.rm = TRUE) == 2) {
+
+          df <- cbind(df[, 1:11],
+                      data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x)))))
+
+          # something else!
+        } else if(all(first_row %in% double_code)){
+          shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
+          df <- hapMapChar2NumericDouble(df)
+          shinybusy::remove_modal_spinner()
+        }else {
+          shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
+          return(NULL)
+        }
+
+        return(df)
+
+      }else{
         return(NULL)
       }
 
-      colnames(df)[1:11] <- hapmap_snp_attr[1:11]
-      first_row   <- df[1, -c(1:11)]
-      valid_IUPAC <- c('A', 'C', 'G', 'T', 'U', 'W', 'S', 'M', 'K', 'R', 'Y', 'B', 'D', 'H', 'V', 'N')
-      double_code <- c("AA","TT","CC","GG","AT","TA","AC","CA","AG","GA","TC","CT","TG","GT","CG","GC","NN")
-      # IUPAC single-letter code
-      if (all(first_row %in% valid_IUPAC)) {
-
-        shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
-        df <- hapMapChar2Numeric(df)
-        shinybusy::remove_modal_spinner()
-
-      # -1, 0, 1 numeric coding
-      } else if (min(as.numeric(first_row), na.rm = TRUE) == -1 &
-                 max(as.numeric(first_row), na.rm = TRUE) == 1) {
-
-        df <- cbind(df[, 1:11],
-                    data.frame(apply(df[, -c(1:11)], 2, function(x) 1 + as.numeric(as.character(x)))))
-
-        # 0, 1, 2 numeric coding
-      } else if (min(as.numeric(first_row), na.rm = TRUE) == 0 &
-                 max(as.numeric(first_row), na.rm = TRUE) == 2) {
-
-        df <- cbind(df[, 1:11],
-                    data.frame(apply(df[, -c(1:11)], 2, function(x) as.numeric(as.character(x)))))
-
-        # something else!
-      } else if(all(first_row %in% double_code)){
-        shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
-        df <- hapMapChar2NumericDouble(df)
-        shinybusy::remove_modal_spinner()
-      }else {
-        shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
-        return(NULL)
-      }
-
-      return(df)
     })
 
     output$chrom_summary <- renderTable({
@@ -593,32 +606,36 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
 
     observeEvent(
       input$geno_example,
-      if (input$geno_example) {
-        updateSelectInput(session, 'geno_input', selected = 'url')
+      if(length(input$geno_example) > 0){ # added
+        if (input$geno_example) {
+          updateSelectInput(session, 'geno_input', selected = 'url')
 
-        geno_example_url <-  paste0(session$clientData$url_protocol, '//',
-                                    session$clientData$url_hostname, ':',
-                                    session$clientData$url_port,
-                                    session$clientData$url_pathname,
-                                    geno_example)
+          geno_example_url <-  paste0(session$clientData$url_protocol, '//',
+                                      session$clientData$url_hostname, ':',
+                                      session$clientData$url_port,
+                                      session$clientData$url_pathname,
+                                      geno_example)
 
-        updateTextInput(session, 'geno_url', value = geno_example_url)
+          updateTextInput(session, 'geno_url', value = geno_example_url)
 
-        golem::invoke_js('hideid', ns('geno_file_holder'))
-        golem::invoke_js('showid', ns('geno_url'))
-      } else {
-        updateSelectInput(session, 'geno_input', selected = 'file')
-        updateTextInput(session, 'geno_url', value = '')
+          golem::invoke_js('hideid', ns('geno_file_holder'))
+          golem::invoke_js('showid', ns('geno_url'))
+        } else {
+          updateSelectInput(session, 'geno_input', selected = 'file')
+          updateTextInput(session, 'geno_url', value = '')
 
-        golem::invoke_js('showid', ns('geno_file_holder'))
-        golem::invoke_js('hideid', ns('geno_url'))
+          golem::invoke_js('showid', ns('geno_file_holder'))
+          golem::invoke_js('hideid', ns('geno_url'))
+        }
       }
+
     )
 
     ### Pedigree tab controls ##################################################
 
     observeEvent(
       input$ped_input,
+      if(length(input$ped_input) > 0){ # added
       if (input$ped_input == 'file') {
         golem::invoke_js('showid', ns('ped_file_holder'))
         golem::invoke_js('hideid', ns('ped_url'))
@@ -629,9 +646,11 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
         golem::invoke_js('showid', ns('ped_url'))
         golem::invoke_js('showid', ns('ped_csv_options'))
       }
+      }
     )
 
     ped_data <- reactive({
+      if(length(input$ped_input) > 0){ # added
       if (input$ped_input == 'file') {
         if (is.null(input$ped_file)) return(NULL)
         data <- read.csv(input$ped_file$datapath, sep = input$ped_sep,
@@ -645,6 +664,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       }
 
       return(data)
+      }
     })
 
     observeEvent(
@@ -772,7 +792,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ## replace tables
       tmp <- data() # current or empty dataset
-      load(file.path(getwd(),"R/outputs",input$previous_input)) # old dataset
+      load(file.path(getwd(),res_auth$repository,input$previous_input)) # old dataset
       tmp$data <- result$data
       tmp$metadata <- result$metadata
       tmp$modifications <- result$modifications

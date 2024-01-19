@@ -36,7 +36,7 @@ mod_saveData_ui <- function(id){
 #' saveData Server Functions
 #'
 #' @noRd
-mod_saveData_server <- function(id, data){
+mod_saveData_server <- function(id, data, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -47,7 +47,7 @@ mod_saveData_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ## save
       tmp <- data() # current or empty dataset
-      save(tmp, file=file.path(getwd(),"R/outputs", paste0(input$fileNameUpload,".RData") ) ) # old dataset
+      save(tmp, file=file.path(getwd(),res_auth$repository, paste0(input$fileNameUpload,".RData") ) ) # old dataset
       shinybusy::remove_modal_spinner()
       cat(paste("Analysis named: '",input$fileNameUpload,"' saved successfully."))
     }) ## end eventReactive

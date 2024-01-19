@@ -47,6 +47,7 @@ usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analy
 usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
 usethis::use_dev_package("QBMS", type = "Imports", remote = "icarda-git/QBMS")
+usethis::use_package( "shinymanager" )
 
 # remotes::install_github("Breeding-Analytics/cgiarBase")
 # remotes::install_github("Breeding-Analytics/cgiarPipeline")

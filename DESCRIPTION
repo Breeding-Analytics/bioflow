@@ -28,6 +28,7 @@ Imports:
     shinycssloaders,
     shinydashboard,
     shinyjs,
+    shinymanager,
     shinyWidgets,
     sommer,
     stats,
@@ -45,7 +46,7 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.2.3
-Remotes:  
+Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
