@@ -116,7 +116,7 @@ mod_qaRawApp_server <- function(id, data){
       req(data())
       req(input$traitOutqPheno)
       myObject <- data()
-      save(myObject, file = "./R/outputs/resultQAraw.RData")
+      # save(myObject, file = "./R/outputs/resultQAraw.RData")
       mydata <- myObject$data$pheno
       ### change column names for mapping
       paramsPheno <- data()$metadata$pheno
@@ -250,29 +250,29 @@ mod_qaRawApp_server <- function(id, data){
         outlier <- newOutliers()
         if(nrow(outlier) > 0){ # if there's new outliers
           ## get data structure
-          temp <- data()
+          result <- data()
           ## update analsisId in the outliers table
           analysisId <- as.numeric(Sys.time())
           outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
           # ## bind new parameters
-          if(is.null(temp$modifications$pheno )){
-            temp$modifications$pheno <- outlier
+          if(is.null(result$modifications$pheno )){
+            result$modifications$pheno <- outlier
           }else{
-            temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications$pheno)])
+            result$modifications$pheno <- rbind(result$modifications$pheno, outlier[, colnames(result$modifications$pheno)])
           }
           # add status table
           newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
-          temp$status <- rbind(temp$status, newStatus)
+          result$status <- rbind(result$status, newStatus)
           # add modeling table
           provMet <- data.frame(module="qaRaw",analysisId=analysisId, trait=input$traitOutqPheno, environment=NA,
                                 parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
                                 value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
-          if(is.null(temp$modeling)){
-            temp$modeling <- provMet
+          if(is.null(result$modeling)){
+            result$modeling <- provMet
           }else{
-            temp$modeling <- rbind(temp$modeling, provMet[,colnames(temp$modeling)])
+            result$modeling <- rbind(result$modeling, provMet[,colnames(result$modeling)])
           }
-          data(temp)
+          data(result)
           cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
         }else{
 
@@ -280,7 +280,7 @@ mod_qaRawApp_server <- function(id, data){
         shinybusy::remove_modal_spinner()
       }else{
         cat("Please meet the data conditions before you identify and save outliers.")
-      }      # save(temp, file="toTest.RData")
+      }      # save(result, file="toTest.RData")
 
     })
     output$outQaRaw <- renderPrint({

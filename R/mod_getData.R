@@ -285,6 +285,17 @@ mod_getData_ui <- function(id){
         value = ns('tab4'),
         tags$p('Comming soon!', style = 'color: red; font-size: 20px; margin-top: 25px;'),
       ),
+      tabPanel(
+        title = 'Stored analyses',
+        value = ns('tab5'),
+        tags$br(),
+        actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve previous analysis"),
+        uiOutput(ns('previous_input2')),
+        hr(style = "border-top: 1px solid #4c4c4c;"),
+        actionButton(ns("runLoadPrevious"), "Load analysis", icon = icon("play-circle")),
+        textOutput(ns("outLoad")),
+        hr(style = "border-top: 1px solid #4c4c4c;")
+      ),
     ),
 
     uiOutput(ns('navigate')),
@@ -748,11 +759,39 @@ mod_getData_server <- function(id, map = NULL, data = NULL){
       }
     )
 
+    ### Weather tab controls ##################################################
+
+    ### Previous-analyses tab controls ##################################################
+    previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
+      selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path("R/outputs")), multiple = FALSE)
+    })
+    output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
+    outLoad <- eventReactive(input$runLoadPrevious, {
+      # req(data())
+      req(input$previous_input)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+      ## replace tables
+      tmp <- data() # current or empty dataset
+      load(file.path(getwd(),"R/outputs",input$previous_input)) # old dataset
+      tmp$data <- result$data
+      tmp$metadata <- result$metadata
+      tmp$modifications <- result$modifications
+      tmp$predictions <- result$predictions
+      tmp$metrics <- result$metrics
+      tmp$modeling <- result$modeling
+      tmp$status <- result$status
+      data(tmp) # update data with results
+      shinybusy::remove_modal_spinner()
+      cat(paste("Dataset:",input$previous_input,"loaded successfully."))
+    }) ## end eventReactive
+    output$outLoad <- renderPrint({
+      outLoad()
+    })
     ### Control Nex/Back buttons ###############################################
 
     back_bn  <- actionButton(ns('prev_tab'), 'Back')
     next_bn  <- actionButton(ns('next_tab'), 'Next')
-    tab_list <- c(ns('tab1'), ns('tab2'), ns('tab3'), ns('tab4'))
+    tab_list <- c(ns('tab1'), ns('tab2'), ns('tab3'), ns('tab4'), ns('tab5'))
 
     output$navigate <- renderUI({
       tags$div(align = 'center',

@@ -66,6 +66,8 @@ app_ui <- function(request) {
 
       ),
 
+      tabPanel("Save",  mod_saveData_ui("saveData_1"), icon = icon("floppy-disk") ),
+
       navbarMenu("About", icon = icon("question"),
                  tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
                  tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),

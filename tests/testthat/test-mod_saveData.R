@@ -1,5 +1,5 @@
 testServer(
-  mod_reportSTA_server,
+  mod_saveData_server,
   # Add here your module params
   args = list()
   , {
@@ -27,10 +27,10 @@ testServer(
 })
  
 test_that("module ui works", {
-  ui <- mod_reportSTA_ui(id = "test")
+  ui <- mod_saveData_ui(id = "test")
   golem::expect_shinytaglist(ui)
   # Check that formals have not been removed
-  fmls <- formals(mod_reportSTA_ui)
+  fmls <- formals(mod_saveData_ui)
   for (i in c("id")){
     expect_true(i %in% names(fmls))
   }

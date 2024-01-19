@@ -265,15 +265,15 @@ mod_qaStaApp_server <- function(id, data){
         outlier <- newOutliers()
         if(nrow(outlier) > 0){
           ## get data structure
-          temp <- data()
+          result <- data()
           ## update analsisId in the outliers table
           analysisId <- as.numeric(Sys.time())
           outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
           # ## bind new parameters
-          temp$modifications$pheno <- rbind(temp$modifications$pheno, outlier[, colnames(temp$modifications)])
+          result$modifications$pheno <- rbind(result$modifications$pheno, outlier[, colnames(result$modifications)])
           newStatus <- data.frame(module="qaMb", analysisId=analysisId )
-          temp$status <- rbind(temp$status, newStatus)
-          data(temp)
+          result$status <- rbind(result$status, newStatus)
+          data(result)
           cat(paste("Modifications to phenotype information saved with id:",analysisId))
         }else{
           cat("No modifications to add")

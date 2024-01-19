@@ -29,6 +29,9 @@ app_server <- function(input, output, session) {
   mod_rggApp_server("rggApp_1", data = data)
   mod_pggApp_server("pggApp_1", data = data)
 
+  ## save results tab
+  mod_saveData_server("saveData_1", data = data)
+
   ## about tabs
   mod_aboutApp_server("aboutApp_1")
   mod_meetTheTeamApp_server("meetTheTeamApp_1")
