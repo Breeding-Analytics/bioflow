@@ -314,27 +314,100 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_input,
       if(length(input$pheno_input) > 0){ # added
-      if (input$pheno_input == 'file') {
-        golem::invoke_js('showid', ns('pheno_file_holder'))
-        golem::invoke_js('hideid', ns('pheno_url'))
-        golem::invoke_js('showid', ns('pheno_csv_options'))
-        golem::invoke_js('hideid', ns('pheno_brapi_options'))
-        golem::invoke_js('showid', ns('pheno_map'))
-        updateCheckboxInput(session, 'pheno_example', value = FALSE)
-      } else if (input$pheno_input == 'url') {
-        golem::invoke_js('hideid', ns('pheno_file_holder'))
-        golem::invoke_js('showid', ns('pheno_url'))
-        golem::invoke_js('showid', ns('pheno_csv_options'))
-        golem::invoke_js('hideid', ns('pheno_brapi_options'))
-        golem::invoke_js('showid', ns('pheno_map'))
-      } else {
-        golem::invoke_js('hideid', ns('pheno_file_holder'))
-        golem::invoke_js('hideid', ns('pheno_url'))
-        golem::invoke_js('hideid', ns('pheno_csv_options'))
-        golem::invoke_js('showid', ns('pheno_brapi_options'))
-        golem::invoke_js('hideid', ns('pheno_map'))
-        updateCheckboxInput(session, 'pheno_example', value = FALSE)
+        if (input$pheno_input == 'file') {
+          golem::invoke_js('showid', ns('pheno_file_holder'))
+          golem::invoke_js('hideid', ns('pheno_url'))
+          golem::invoke_js('showid', ns('pheno_csv_options'))
+          golem::invoke_js('hideid', ns('pheno_brapi_options'))
+          golem::invoke_js('showid', ns('pheno_map'))
+          updateCheckboxInput(session, 'pheno_example', value = FALSE)
+        } else if (input$pheno_input == 'url') {
+          golem::invoke_js('hideid', ns('pheno_file_holder'))
+          golem::invoke_js('showid', ns('pheno_url'))
+          golem::invoke_js('showid', ns('pheno_csv_options'))
+          golem::invoke_js('hideid', ns('pheno_brapi_options'))
+          golem::invoke_js('showid', ns('pheno_map'))
+        } else {
+          golem::invoke_js('hideid', ns('pheno_file_holder'))
+          golem::invoke_js('hideid', ns('pheno_url'))
+          golem::invoke_js('hideid', ns('pheno_csv_options'))
+          golem::invoke_js('showid', ns('pheno_brapi_options'))
+          golem::invoke_js('hideid', ns('pheno_map'))
+          updateCheckboxInput(session, 'pheno_example', value = FALSE)
+        }
       }
+    )
+
+    observeEvent(
+      input$pheno_db_save,
+      {
+        # use grepl and regex to validate the URL
+        if (input$pheno_db_url == '') return(NULL)
+
+        if (input$pheno_db_type == 'ebs') {
+          golem::invoke_js('hideid', ns('pheno_db_user'))
+          golem::invoke_js('hideid', ns('pheno_db_password'))
+          QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'ebs', brapi_ver = 'v2')
+        } else if (input$pheno_db_type == 'bms') {
+          golem::invoke_js('showid', ns('pheno_db_user'))
+          golem::invoke_js('showid', ns('pheno_db_password'))
+          QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'bms', brapi_ver = 'v1')
+        } else if (input$pheno_db_type == 'breedbase') {
+          golem::invoke_js('showid', ns('pheno_db_user'))
+          golem::invoke_js('showid', ns('pheno_db_password'))
+          QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
+        }
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_login,
+      {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+
+        if (input$pheno_db_type == 'ebs') {
+          QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
+                             access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
+                             client_id     = '5crahiqorgj0lppt3n9dkulkst',
+                             client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
+        } else if (input$pheno_db_type == 'bms') {
+          QBMS::login_bms(input$pheno_db_user, input$pheno_db_password)
+          # select the crop first!
+        } else if (input$pheno_db_type == 'breedbase') {
+          # handle the issue when no authentication is required (checkbox)
+          QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
+        }
+
+        pheno_db_programs <- QBMS::list_programs()
+
+        updateSelectInput(session,
+                          inputId = 'pheno_db_program',
+                          label   = 'Breeding Program: ',
+                          choices = pheno_db_programs)
+
+        shinybusy::remove_modal_spinner()
+
+        shinyWidgets::show_alert(title = 'Done!', type = 'success')
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_program,
+      if (input$pheno_db_program != '') {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+
+        QBMS::set_program(input$pheno_db_program)
+
+        pheno_db_trials <- QBMS::list_trials()
+
+        updateSelectInput(session,
+                          inputId = 'pheno_db_trial',
+                          label   = 'Trial/Study: ',
+                          choices = pheno_db_trials)
+
+        shinybusy::remove_modal_spinner()
+
+        shinyWidgets::show_alert(title = 'Done!', type = 'success')
       }
     )
 
