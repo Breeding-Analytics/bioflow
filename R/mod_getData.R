@@ -360,8 +360,13 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_db_save,
       {
-        # use grepl and regex to validate the URL
         if (input$pheno_db_url == '') return(NULL)
+
+        # http://msdn.microsoft.com/en-us/library/ff650303.aspx
+        if (!grepl("^(ht|f)tp(s?)\\:\\/\\/[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,\\'\\/\\\\\\+&amp;%\\$#_]*)?$", input$pheno_db_url)) {
+          shinyWidgets::show_alert(title = 'Invalid URL!', type = 'error')
+          return(NULL)
+        }
 
         if (input$pheno_db_type == 'ebs') {
           golem::invoke_js('hideid', ns('pheno_db_user_holder'))
@@ -402,7 +407,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                              client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
         } else if (input$pheno_db_type == 'bms') {
           QBMS::login_bms(input$pheno_db_user, input$pheno_db_password)
-          # select the crop first!
         } else if (input$pheno_db_type == 'breedbase') {
           # handle the issue when no authentication is required (checkbox)
           QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
