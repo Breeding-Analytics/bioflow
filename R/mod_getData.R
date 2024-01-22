@@ -81,13 +81,17 @@ mod_getData_ui <- function(id){
                   ),
 
                   shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
-                                      textInput(
-                                        inputId = ns('pheno_db_user'),
-                                        label = 'Username:'
+                                      tags$span(id = ns('pheno_db_user_holder'),
+                                                textInput(
+                                                  inputId = ns('pheno_db_user'),
+                                                  label = 'Username:'
+                                                )
                                       ),
-                                      passwordInput(
-                                        inputId = ns('pheno_db_password'),
-                                        label = 'Password:'
+                                      tags$span(id = ns('pheno_db_password_holder'),
+                                                passwordInput(
+                                                  inputId = ns('pheno_db_password'),
+                                                  label = 'Password:'
+                                                )
                                       ),
                                       actionButton(
                                         inputId = ns('pheno_db_login'),
@@ -345,16 +349,16 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         if (input$pheno_db_url == '') return(NULL)
 
         if (input$pheno_db_type == 'ebs') {
-          golem::invoke_js('hideid', ns('pheno_db_user'))
-          golem::invoke_js('hideid', ns('pheno_db_password'))
+          golem::invoke_js('hideid', ns('pheno_db_user_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_password_holder'))
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'ebs', brapi_ver = 'v2')
         } else if (input$pheno_db_type == 'bms') {
-          golem::invoke_js('showid', ns('pheno_db_user'))
-          golem::invoke_js('showid', ns('pheno_db_password'))
+          golem::invoke_js('showid', ns('pheno_db_user_holder'))
+          golem::invoke_js('showid', ns('pheno_db_password_holder'))
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'bms', brapi_ver = 'v1')
         } else if (input$pheno_db_type == 'breedbase') {
-          golem::invoke_js('showid', ns('pheno_db_user'))
-          golem::invoke_js('showid', ns('pheno_db_password'))
+          golem::invoke_js('showid', ns('pheno_db_user_holder'))
+          golem::invoke_js('showid', ns('pheno_db_password_holder'))
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
         }
       }
