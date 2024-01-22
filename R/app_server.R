@@ -5,8 +5,12 @@
 #' @import shiny
 #' @noRd
 options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
+users <- readRDS("users.rds")
 app_server <- function(input, output, session) {
 
+  res_auth <- shinymanager::secure_server(
+    check_credentials = shinymanager::check_credentials( users  )
+  )
   data <- reactiveVal()
   observe({data <- create_getData_object()})
   # Your application server logic
@@ -16,9 +20,9 @@ app_server <- function(input, output, session) {
 
   ## home
   mod_homeApp_server("homeApp_1")
-
+  #
   ## selection tabs
-  mod_getData_server("getData_1", map = required_mapping, data = data)
+  mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
   mod_qaRawApp_server("qaRawApp_1", data = data)
   mod_staApp_server("staApp_1", data = data)
   mod_qaStaApp_server("qaStaApp_1",data = data)
@@ -28,6 +32,9 @@ app_server <- function(input, output, session) {
   mod_ocsApp_server("ocsApp_1", data = data)
   mod_rggApp_server("rggApp_1", data = data)
   mod_pggApp_server("pggApp_1", data = data)
+
+  ## save results tab
+  mod_saveData_server("saveData_1", data = data, res_auth=res_auth)
 
   ## about tabs
   mod_aboutApp_server("aboutApp_1")

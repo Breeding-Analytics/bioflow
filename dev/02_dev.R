@@ -47,6 +47,7 @@ usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analy
 usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
 usethis::use_dev_package("QBMS", type = "Imports", remote = "icarda-git/QBMS")
+usethis::use_package( "shinymanager" )
 
 # remotes::install_github("Breeding-Analytics/cgiarBase")
 # remotes::install_github("Breeding-Analytics/cgiarPipeline")
@@ -70,6 +71,7 @@ golem::add_module(name = "pggApp", with_test = TRUE) # predicted genetic gain
 
 golem::add_module(name = "homeApp", with_test = TRUE) # home
 
+golem::add_module(name = "saveData", with_test = TRUE) # extracting raw data
 golem::add_module(name = "aboutApp", with_test = TRUE) # technology
 golem::add_module(name = "meetTheTeamApp", with_test = TRUE) # home
 golem::add_module(name = "contactUsApp", with_test = TRUE) # home
