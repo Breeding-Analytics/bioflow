@@ -101,6 +101,13 @@ mod_getData_ui <- function(id){
                   ),
 
                   shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
+                                      tags$span(id = ns('pheno_db_crop_holder'),
+                                                selectInput(
+                                                  inputId = ns('pheno_db_crop'),
+                                                  label   = 'Crop: ',
+                                                  choices = list()
+                                                )
+                                      ),
                                       selectInput(
                                         inputId = ns('pheno_db_program'),
                                         label   = 'Breeding Program: ',
@@ -351,14 +358,20 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         if (input$pheno_db_type == 'ebs') {
           golem::invoke_js('hideid', ns('pheno_db_user_holder'))
           golem::invoke_js('hideid', ns('pheno_db_password_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_crop_holder'))
+
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'ebs', brapi_ver = 'v2')
         } else if (input$pheno_db_type == 'bms') {
           golem::invoke_js('showid', ns('pheno_db_user_holder'))
           golem::invoke_js('showid', ns('pheno_db_password_holder'))
+          golem::invoke_js('showid', ns('pheno_db_crop_holder'))
+
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'bms', brapi_ver = 'v1')
         } else if (input$pheno_db_type == 'breedbase') {
           golem::invoke_js('showid', ns('pheno_db_user_holder'))
           golem::invoke_js('showid', ns('pheno_db_password_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_crop_holder'))
+
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
         }
       }
@@ -382,6 +395,35 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
         }
 
+        if (input$pheno_db_type == 'bms') {
+          pheno_db_crops <- QBMS::list_crops()
+
+          updateSelectInput(session,
+                            inputId = 'pheno_db_crop',
+                            label   = 'Crop: ',
+                            choices = pheno_db_crops)
+        } else {
+          pheno_db_programs <- QBMS::list_programs()
+
+          updateSelectInput(session,
+                            inputId = 'pheno_db_program',
+                            label   = 'Breeding Program: ',
+                            choices = pheno_db_programs)
+        }
+
+        shinybusy::remove_modal_spinner()
+
+        shinyWidgets::show_alert(title = 'Done!', type = 'success')
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_crop,
+      if (input$pheno_db_crop != '') {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+
+        QBMS::set_crop(input$pheno_db_crop)
+
         pheno_db_programs <- QBMS::list_programs()
 
         updateSelectInput(session,
@@ -390,8 +432,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                           choices = pheno_db_programs)
 
         shinybusy::remove_modal_spinner()
-
-        shinyWidgets::show_alert(title = 'Done!', type = 'success')
       }
     )
 
@@ -410,8 +450,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                           choices = pheno_db_trials)
 
         shinybusy::remove_modal_spinner()
-
-        shinyWidgets::show_alert(title = 'Done!', type = 'success')
       }
     )
 
