@@ -93,6 +93,14 @@ mod_getData_ui <- function(id){
                                                   label = 'Password:'
                                                 )
                                       ),
+                                      tags$span(id = ns('no_auth_holder'),
+                                                checkboxInput(
+                                                  inputId = ns('no_auth'),
+                                                  label = 'No authentication required',
+                                                  value = TRUE
+                                                )
+                                      ),
+
                                       actionButton(
                                         inputId = ns('pheno_db_login'),
                                         label = 'Login',
@@ -359,18 +367,23 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('pheno_db_user_holder'))
           golem::invoke_js('hideid', ns('pheno_db_password_holder'))
           golem::invoke_js('hideid', ns('pheno_db_crop_holder'))
+          golem::invoke_js('hideid', ns('no_auth_holder'))
 
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'ebs', brapi_ver = 'v2')
         } else if (input$pheno_db_type == 'bms') {
           golem::invoke_js('showid', ns('pheno_db_user_holder'))
           golem::invoke_js('showid', ns('pheno_db_password_holder'))
           golem::invoke_js('showid', ns('pheno_db_crop_holder'))
+          golem::invoke_js('hideid', ns('no_auth_holder'))
 
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'bms', brapi_ver = 'v1')
         } else if (input$pheno_db_type == 'breedbase') {
-          golem::invoke_js('showid', ns('pheno_db_user_holder'))
-          golem::invoke_js('showid', ns('pheno_db_password_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_user_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_password_holder'))
           golem::invoke_js('hideid', ns('pheno_db_crop_holder'))
+          golem::invoke_js('showid', ns('no_auth_holder'))
+
+          updateCheckboxInput(session, 'no_auth', value = TRUE)
 
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
         }
@@ -450,6 +463,19 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                           choices = pheno_db_trials)
 
         shinybusy::remove_modal_spinner()
+      }
+    )
+
+    observeEvent(
+      input$no_auth,
+      if(length(input$no_auth) > 0){
+        if (input$no_auth) {
+          golem::invoke_js('hideid', ns('pheno_db_user_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_password_holder'))
+        } else {
+          golem::invoke_js('showid', ns('pheno_db_user_holder'))
+          golem::invoke_js('showid', ns('pheno_db_password_holder'))
+        }
       }
     )
 
@@ -743,7 +769,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('geno_url'))
         }
       }
-
     )
 
     ### Pedigree tab controls ##################################################
