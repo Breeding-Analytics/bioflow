@@ -398,8 +398,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_db_login,
       {
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-
         if (input$pheno_db_type == 'ebs') {
           QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
                              access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
@@ -415,6 +413,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           }
 
         }
+
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
 
         if (input$pheno_db_type == 'bms') {
           pheno_db_crops <- QBMS::list_crops()
@@ -434,14 +434,14 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         shinybusy::remove_modal_spinner()
 
-        shinyWidgets::show_alert(title = 'Done!', type = 'success')
+        # shinyWidgets::show_alert(title = 'Done!', type = 'success')
       }
     )
 
     observeEvent(
       input$pheno_db_crop,
       if (input$pheno_db_crop != '') {
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Crops...')
 
         QBMS::set_crop(input$pheno_db_crop)
 
@@ -459,7 +459,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_db_program,
       if (input$pheno_db_program != '') {
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Trials...')
 
         QBMS::set_program(input$pheno_db_program)
 
@@ -484,6 +484,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('showid', ns('pheno_db_user_holder'))
           golem::invoke_js('showid', ns('pheno_db_password_holder'))
         }
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_load,
+      {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
+
+        shinybusy::remove_modal_spinner()
+
+        shinyWidgets::show_alert(title = 'Done!', type = 'success')
       }
     )
 
