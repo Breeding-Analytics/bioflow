@@ -16,7 +16,7 @@ run_app <- function(
 ) {
   with_golem_options(
     app = shinyApp(
-      ui = app_ui, # shinymanager::secure_app(app_ui), #
+      ui = shinymanager::secure_app(app_ui), #
       server = app_server,
       onStart = onStart,
       options = options,

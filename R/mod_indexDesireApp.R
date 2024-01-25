@@ -289,7 +289,7 @@ mod_indexDesireApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
-          save(result, file = "./R/outputs/resultIndex.RData")
+          # save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
@@ -424,29 +424,29 @@ mod_indexDesireApp_server <- function(id, data){
         })
       }else{
         output$qaQcIdxBInfo <- renderUI({return(NULL)})
-        resultBaseIndex <- try(cgiarPipeline::baseIndex(
+        result <- try(cgiarPipeline::baseIndex(
           dtBaseIndex,
           input$version2IdxD,
           traitsBaseIndex,
           values),
         silent=TRUE
         )
-        if(!inherits(resultBaseIndex,"try-error")) {
-          data(resultBaseIndex) # update data with results
-          save(resultBaseIndex, file = "./R/outputs/resultIndex.RData")
-          cat(paste("Selection index step with id:",resultBaseIndex$status$analysisId[length(resultBaseIndex$status$analysisId)],"saved."))
+        if(!inherits(result,"try-error")) {
+          data(result) # update data with results
+          # save(result, file = "./R/outputs/resultIndex.RData")
+          cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
-          cat(paste("Analysis failed with the following error message: \n\n",resultBaseIndex[[1]]))
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
       }
       shinybusy::remove_modal_spinner()
-      if(!inherits(resultBaseIndex,"try-error")) {
+      if(!inherits(result,"try-error")) {
         # display table of predictions
         output$predictionsIdxB <-  DT::renderDT({
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-          predictions <- resultBaseIndex$predictions
+          predictions <- result$predictions
           predictions <- predictions[predictions$module=="indexB",]
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
@@ -464,8 +464,8 @@ mod_indexDesireApp_server <- function(id, data){
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-          modeling <- resultBaseIndex$modeling
-          mtas <- resultBaseIndex$status[which(resultBaseIndex$status$module == "indexB"),"analysisId"]; mtaId <- mtas[length(mtas)]
+          modeling <- result$modeling
+          mtas <- result$status[which(result$status$module == "indexB"),"analysisId"]; mtaId <- mtas[length(mtas)]
           modeling <- modeling[which(modeling$analysisId == mtaId),]
           modeling <- subset(modeling, select = -c(module,analysisId))
           DT::datatable(modeling, extensions = 'Buttons',
@@ -475,8 +475,8 @@ mod_indexDesireApp_server <- function(id, data){
           # }
         })
         # Report tab
-        analysisIdBaseIndex <- resultBaseIndex$status[ resultBaseIndex$status$module %in% c("mta","indexB"),"analysisId"]
-        predBaseIndex <- resultBaseIndex$predictions[resultBaseIndex$predictions$analysisId %in% analysisIdBaseIndex,]
+        analysisIdBaseIndex <- result$status[ result$status$module %in% c("mta","indexB"),"analysisId"]
+        predBaseIndex <- result$predictions[result$predictions$analysisId %in% analysisIdBaseIndex,]
 
         predBaseIndexWide <- reshape(
           data=subset(predBaseIndex, select=c(designation,trait,predictedValue)),

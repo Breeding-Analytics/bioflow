@@ -274,7 +274,8 @@ mod_staApp_server <- function(id,data){
           paramsPheno <- data()$metadata$pheno
           paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
           colnames(dtSta$data$pheno) <- cgiarBase::replaceValues(colnames(dtSta$data$pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-          colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          paramsPed <- data()$metadata$pedigree
+          colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPed$value, Replace = paramsPed$parameter )
           ###
           dtSta <- merge(dtSta$data$pheno, dtSta$data$pedigree, by="designation") # merge mother and father info in the pheno data frame
           dtStaList <- split(dtSta, dtSta[,input$feature]) # split info by environment
@@ -388,7 +389,7 @@ mod_staApp_server <- function(id,data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
-          save(result, file = "./R/outputs/resultSta.RData")
+          # save(result, file = "./R/outputs/resultSta.RData")
           cat(paste("Single-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))

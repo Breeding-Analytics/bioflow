@@ -306,7 +306,7 @@ mod_ocsApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
-          save(result, file = "./R/outputs/resultOcs.RData")
+          # save(result, file = "./R/outputs/resultOcs.RData")
           cat(paste("Optimal cross selection step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
