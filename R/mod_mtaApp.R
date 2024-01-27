@@ -507,7 +507,7 @@ mod_mtaApp_server <- function(id, data){
         )
         if(!inherits(resultMta,"try-error")) {
           data(resultMta) # update data with results
-          save(resultMta, file = "./R/outputs/resultMta.RData")
+          # save(resultMta, file = "./R/outputs/resultMta.RData")
           cat(paste("Multi-trial analysis step with id:",resultMta$status$analysisId[length(resultMta$status$analysisId)],"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",resultMta[[1]]))
