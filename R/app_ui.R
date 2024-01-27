@@ -1,3 +1,18 @@
+#' Warning: useShinydashboard has been deprecated and will be removed in a future
+#' release of shinyWidgets. If you want to create value box in shiny, see package
+#' bslib. If you absolutely need to use this function, copy the source code into
+#' your project https://github.com/dreamRs/shinyWidgets/blob/26838f9e9ccdc90a47178b45318d110f5812d6e1/R/useShinydashboard.R
+useShinydashboard <- function() {
+  if (!requireNamespace(package = "shinydashboard"))
+    message("Package 'shinydashboard' is required to run this function")
+  deps <- htmltools::findDependencies(shinydashboard::dashboardPage(
+    header = shinydashboard::dashboardHeader(),
+    sidebar = shinydashboard::dashboardSidebar(),
+    body = shinydashboard::dashboardBody()
+  ))
+  htmltools::attachDependencies(tags$div(class = "main-sidebar", style = "display: none;"), value = deps)
+}
+
 #' The application User-Interface
 #'
 #' @param request Internal parameter for `{shiny}`.
@@ -7,7 +22,7 @@
 app_ui <- function(request) {
   div(
     class = "navbar1",
-    shinyWidgets::useShinydashboard(),
+    useShinydashboard(),
 
     # color the input and output tabs
     tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
