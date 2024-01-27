@@ -24,23 +24,14 @@ app_ui <- function(request) {
     class = "navbar1",
     useShinydashboard(),
 
-    # color the input and output tabs
-    tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
-    tags$style(".input-p {color: #FFA500}"),
-    tags$style(".fa-arrow-right-from-bracket {color:#3CB371}"),
-    tags$style(".output-p {color: #3CB371;}"),
-    tags$style(".fa-book {color:#6495AD}"),
-    tags$style(".info-p {color: #6495AD;}"),
     navbarPage(
 
       id="tabso",
 
-      golem_add_external_resources(),
+      header=golem_add_external_resources(),
 
       title=div(img(src="www/cgiarmini.png"), "",style = "color:#FFFFFF"),
       # title=div(tags$b(""), style = "color:#FFFFFF"),
-
-      tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
 
       tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
@@ -88,13 +79,8 @@ app_ui <- function(request) {
                  tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),
                  tabPanel("Contact us", mod_contactUsApp_ui("contactUsApp_1"), icon = icon("envelope") )
       )
-
-
-
     )
-
   )
-
 }
 
 #' Add external Resources to the Application
@@ -116,8 +102,18 @@ golem_add_external_resources <- function() {
     bundle_resources(
       path = app_sys("app/www"),
       app_title = "frame"
-    )
+    ),
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert()
+    # color the input and output tabs
+
+    tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css"),
+
+    tags$style(".fa-arrow-right-to-bracket {color:#FFA500}"),
+    tags$style(".input-p {color: #FFA500}"),
+    tags$style(".fa-arrow-right-from-bracket {color:#3CB371}"),
+    tags$style(".output-p {color: #3CB371;}"),
+    tags$style(".fa-book {color:#6495AD}"),
+    tags$style(".info-p {color: #6495AD;}"),
   )
 }
