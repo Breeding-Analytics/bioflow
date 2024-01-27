@@ -1,10 +1,15 @@
-Package: frame
-Title: PKG_TITLE
-Version: 0.0.0.9000
-Authors@R: 
-    person("AUTHOR_FIRST", "AUTHOR_LAST", , "AUTHOR@MAIL.COM", role = c("cre", "aut"))
-Description: PKG_DESC.
-License: MIT + file LICENSE
+Package: bioflow
+Title: CGIAR Breeding Analytics Pipeline
+Description: CGIAR Breeding Analytics Pipeline
+Version: 0.9.0
+Authors@R: c(
+    person("Giovanny", "Covarrubias Pazaran", , "g.covarrubias@irri.org", role = c("aut", "cre")),
+    person("Ibnou", "Dieng", , "i.dieng@cgiar.org", role = c("aut", "cre")),
+    person("Khaled", "Al-Shamaa", , "k.el-shamaa@cgiar.org", role = c("aut", "cre"))
+  )
+License: GPL (>= 3)
+URL: https://github.com/Breeding-Analytics/bioflow/
+BugReports: https://github.com/Breeding-Analytics/bioflow/issues
 Imports: 
     cgiarBase (>= 1.0.1),
     cgiarOcs (>= 1.1),
