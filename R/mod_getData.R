@@ -120,15 +120,16 @@ mod_getData_ui <- function(id){
                                                     choices = list()
                                                   )
                                         ),
-                                        selectInput(
+                                        selectizeInput(
                                           inputId = ns('pheno_db_program'),
                                           label   = 'Breeding Program: ',
                                           choices = list()
                                         ),
-                                        selectInput(
+                                        selectizeInput(
                                           inputId = ns('pheno_db_trial'),
                                           label   = 'Trial/Study: ',
-                                          choices = list()
+                                          choices = list(),
+                                          multiple = TRUE
                                         ),
                                         actionButton(
                                           inputId = ns('pheno_db_load'),
@@ -506,7 +507,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         shinybusy::remove_modal_spinner()
 
-        shinyWidgets::show_alert(title = 'Done!', type = 'success')
+        shinyWidgets::show_alert(title = 'Done!', text = input$pheno_db_trial, type = 'success')
       }
     )
 
