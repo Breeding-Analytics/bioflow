@@ -62,75 +62,80 @@ mod_getData_ui <- function(id){
         ),
 
         tags$div(id = ns('pheno_brapi_options'),
-                  shinydashboard::box(width = 4, title = span(icon('screwdriver-wrench'), ' Config Server'), status = 'success', solidHeader = TRUE,
-                                      selectInput(
-                                        inputId = ns('pheno_db_type'),
-                                        label   = 'Database Type: ',
-                                        choices = list('EBS' = 'ebs', 'BMS' = 'bms', 'BreedBase' = 'breedbase')
-                                      ),
-                                      textInput(
-                                        inputId = ns('pheno_db_url'),
-                                        label = 'Server URL:',
-                                        placeholder = 'https://cbbrapi-qa.ebsproject.org'
-                                      ),
-                                      actionButton(
-                                        inputId = ns('pheno_db_save'),
-                                        label = 'Save',
-                                        width = '100%'
-                                      ),
+                 tags$span(id = ns('config_server_holder'),
+                   shinydashboard::box(width = 4, title = span(icon('screwdriver-wrench'), ' Config Server'), status = 'success', solidHeader = TRUE,
+                                        selectInput(
+                                          inputId = ns('pheno_db_type'),
+                                          label   = 'Database Type: ',
+                                          choices = list('EBS' = 'ebs', 'BMS' = 'bms', 'BreedBase' = 'breedbase')
+                                        ),
+                                        textInput(
+                                          inputId = ns('pheno_db_url'),
+                                          label = 'Server URL:',
+                                          placeholder = 'https://cbbrapi-qa.ebsproject.org'
+                                        ),
+                                        actionButton(
+                                          inputId = ns('pheno_db_save'),
+                                          label = 'Save',
+                                          width = '100%'
+                                        ),
+                    )
                   ),
 
-                  shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
-                                      tags$span(id = ns('pheno_db_user_holder'),
-                                                textInput(
-                                                  inputId = ns('pheno_db_user'),
-                                                  label = 'Username:'
-                                                )
-                                      ),
-                                      tags$span(id = ns('pheno_db_password_holder'),
-                                                passwordInput(
-                                                  inputId = ns('pheno_db_password'),
-                                                  label = 'Password:'
-                                                )
-                                      ),
-                                      tags$span(id = ns('no_auth_holder'),
-                                                checkboxInput(
-                                                  inputId = ns('no_auth'),
-                                                  label = 'No authentication required',
-                                                  value = TRUE
-                                                )
-                                      ),
+                 tags$span(id = ns('auth_server_holder'),
+                    shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
+                                        tags$span(id = ns('pheno_db_user_holder'),
+                                                  textInput(
+                                                    inputId = ns('pheno_db_user'),
+                                                    label = 'Username:'
+                                                  )
+                                        ),
+                                        tags$span(id = ns('pheno_db_password_holder'),
+                                                  passwordInput(
+                                                    inputId = ns('pheno_db_password'),
+                                                    label = 'Password:'
+                                                  )
+                                        ),
+                                        tags$span(id = ns('no_auth_holder'),
+                                                  checkboxInput(
+                                                    inputId = ns('no_auth'),
+                                                    label = 'No authentication required',
+                                                    value = TRUE
+                                                  )
+                                        ),
 
-                                      actionButton(
-                                        inputId = ns('pheno_db_login'),
-                                        label = 'Login',
-                                        width = '100%'
-                                      ),
+                                        actionButton(
+                                          inputId = ns('pheno_db_login'),
+                                          label = 'Login',
+                                          width = '100%'
+                    )                      ),
                   ),
 
-                  shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
-                                      tags$span(id = ns('pheno_db_crop_holder'),
-                                                selectInput(
-                                                  inputId = ns('pheno_db_crop'),
-                                                  label   = 'Crop: ',
-                                                  choices = list()
-                                                )
-                                      ),
-                                      selectInput(
-                                        inputId = ns('pheno_db_program'),
-                                        label   = 'Breeding Program: ',
-                                        choices = list()
-                                      ),
-                                      selectInput(
-                                        inputId = ns('pheno_db_trial'),
-                                        label   = 'Trial/Study: ',
-                                        choices = list()
-                                      ),
-                                      actionButton(
-                                        inputId = ns('pheno_db_load'),
-                                        label = 'Load',
-                                        width = '100%'
-                                      ),
+                 tags$span(id = ns('data_server_holder'),
+                    shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
+                                        tags$span(id = ns('pheno_db_crop_holder'),
+                                                  selectInput(
+                                                    inputId = ns('pheno_db_crop'),
+                                                    label   = 'Crop: ',
+                                                    choices = list()
+                                                  )
+                                        ),
+                                        selectInput(
+                                          inputId = ns('pheno_db_program'),
+                                          label   = 'Breeding Program: ',
+                                          choices = list()
+                                        ),
+                                        selectInput(
+                                          inputId = ns('pheno_db_trial'),
+                                          label   = 'Trial/Study: ',
+                                          choices = list()
+                                        ),
+                                        actionButton(
+                                          inputId = ns('pheno_db_load'),
+                                          label = 'Load',
+                                          width = '100%'
+                                        ),
+                    )
                   ),
         ),
 
@@ -351,6 +356,9 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('pheno_url'))
           golem::invoke_js('hideid', ns('pheno_csv_options'))
           golem::invoke_js('showid', ns('pheno_brapi_options'))
+          golem::invoke_js('showid', ns('config_server_holder'))
+          golem::invoke_js('hideid', ns('auth_server_holder'))
+          golem::invoke_js('hideid', ns('data_server_holder'))
           golem::invoke_js('hideid', ns('pheno_map'))
           updateCheckboxInput(session, 'pheno_example', value = FALSE)
         }
@@ -367,6 +375,9 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           shinyWidgets::show_alert(title = 'Invalid URL!', type = 'error')
           return(NULL)
         }
+
+        golem::invoke_js('showid', ns('auth_server_holder'))
+        golem::invoke_js('hideid', ns('data_server_holder'))
 
         if (input$pheno_db_type == 'ebs') {
           golem::invoke_js('hideid', ns('pheno_db_user_holder'))
@@ -398,6 +409,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_db_login,
       {
+        golem::invoke_js('showid', ns('data_server_holder'))
+
         if (input$pheno_db_type == 'ebs') {
           QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
                              access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
@@ -411,7 +424,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           } else {
             QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
           }
-
         }
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
