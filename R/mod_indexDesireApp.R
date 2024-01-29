@@ -81,6 +81,26 @@ mod_indexDesireApp_ui <- function(id){
       ),
       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
+                 tabPanel("Mta-metrics", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                              column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
+                          )
+                 ),
+                 tabPanel("Mta-modeling", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("statusIndex")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
+                 tabPanel("Mta-traits-wide", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
                  tabPanel("Radar plot", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
@@ -91,12 +111,6 @@ mod_indexDesireApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                               plotly::plotlyOutput(ns("plotPotentialResponse"))
-                          )
-                 ),
-                 tabPanel("Traits", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  )
                )
@@ -216,6 +230,40 @@ mod_indexDesireApp_server <- function(id, data){
     })
     #################
     ## render the data to be analyzed (wide format)
+    output$statusIndex <-  DT::renderDT({
+      req(data())
+      req(input$version2IdxD)
+      dtSta <- data() # dtSta<- result
+      ### change column names for mapping
+      paramsPheno <- data()$modeling
+      paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2IdxD),, drop=FALSE]
+      DT::datatable(paramsPheno, extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      )
+    })
+    observeEvent(c(data(),input$version2IdxD), { # update parameter
+      req(data())
+      req(input$version2IdxD)
+      dtMta <- data()
+      dtMta <- dtMta$metrics
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2IdxD),] # only traits that have been QA
+      metricsMtaInput <- unique(dtMta$parameter)
+      updateSelectInput(session, "parameterMetrics", choices = metricsMtaInput)
+    })
+    output$barplotPredictionsMetrics <- plotly::renderPlotly({
+      req(data())
+      req(input$version2IdxD)
+      dtMta <- data()
+      mydata <- dtMta$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2IdxD),]
+      mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
+                            color=mydata[,"trait"]
+      )
+      res = res %>% plotly::add_bars()
+      res
+    })
     output$tablePredictionsTraitsWide <-  DT::renderDT({
       req(data())
       req(input$version2IdxD)

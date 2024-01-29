@@ -241,6 +241,7 @@ mod_qaRawApp_server <- function(id, data){
     outQaRaw <- eventReactive(input$runQaRaw, {
 
       req(data())
+      req(input$traitOutqPheno)
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
       if(mappedColumns == 3){ # all required columns are present
         req(input$outlierCoefOutqFont)

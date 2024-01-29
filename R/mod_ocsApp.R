@@ -80,6 +80,13 @@ mod_ocsApp_ui <- function(id){
                                               column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
                           )
                  ),
+                 tabPanel("Mta-modeling", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("statusOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
                  tabPanel("Data", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
@@ -268,6 +275,19 @@ mod_ocsApp_server <- function(id, data){
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
+    })
+    ## render modeling
+    output$statusOcs <-  DT::renderDT({
+      req(data())
+      req(input$version2Ocs)
+      dtSta <- data() # dtSta<- result
+      ### change column names for mapping
+      paramsPheno <- data()$modeling
+      paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Ocs),, drop=FALSE]
+      DT::datatable(paramsPheno, extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      )
     })
     ## render result of "run" button click
     outOcs <- eventReactive(input$runOcs, {
