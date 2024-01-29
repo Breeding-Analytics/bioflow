@@ -27,7 +27,7 @@ mod_getData_ui <- function(id){
         selectInput(
           inputId = ns('pheno_input'),
           label   = 'Data Source*: ',
-          choices = list('Upload File' = 'file', 'Copy URL' = 'url', 'BrAPI' = 'db'),
+          choices = list('Upload File' = 'file', 'Copy URL' = 'url', 'BrAPI' = 'brapi'),
           width   = '200px'
         ),
 
@@ -446,8 +446,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         }
 
         shinybusy::remove_modal_spinner()
-
-        # shinyWidgets::show_alert(title = 'Done!', type = 'success')
       }
     )
 
@@ -503,46 +501,43 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_db_load,
       {
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
-
-        shinybusy::remove_modal_spinner()
-
-        shinyWidgets::show_alert(title = 'Done!', text = input$pheno_db_trial, type = 'success')
+        # shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
+        #
+        # QBMS::set_trial(input$pheno_db_trial)
+        # data <- QBMS::get_trial_data()
+        #
+        # shinybusy::remove_modal_spinner()
+        #
+        # shinyWidgets::show_alert(title = 'Done!', text = dim(data), type = 'success')
       }
     )
 
     pheno_data <- reactive({
-      if(length(input$pheno_input) > 0){ # added
-      if (input$pheno_input == 'file') {
-        if (is.null(input$pheno_file)) {return(NULL)}else{
-        data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
-                         quote = input$pheno_quote, dec = input$pheno_dec) }
-      } else if (input$pheno_input == 'url') {
-        if (input$pheno_url == ''){return(NULL)} else{
-        data <- read.csv(input$pheno_url, sep = input$pheno_sep,
-                         quote = input$pheno_quote, dec = input$pheno_dec) }
-      } else {
-        # stage       <- NA
-        # pipeline    <- NA
-        # country   **<- get_study_info()$locationDbId, then list_locations()
-        # year        <- get_trial_data()$year
-        # season    * <- get_study_info()$seasons
-        # location  * <- get_study_info()$locationName
-        # trial     * <- get_study_info()$trialName
-        # environment <- get_trial_data()$studyName
-        # rep         <- get_trial_data()$rep
-        # iBlock      <- get_trial_data()$block
-        # row         <- get_trial_data()$positionCoordinateY
-        # col         <- get_trial_data()$positionCoordinateX
-        # designation <- get_trial_data()$germplasmName
-        # gid         <- get_trial_data()$germplasmDbId
-        # entryType * <- get_germplasm_list()$check
-        # trait     * <- get_trial_obs_ontology()$trait$traitName
+      if(length(input$pheno_input) > 0){
+        if (input$pheno_input == 'file') {
+          if (is.null(input$pheno_file)) {return(NULL)}else{
+          data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
+                           quote = input$pheno_quote, dec = input$pheno_dec) }
+        } else if (input$pheno_input == 'url') {
+          if (input$pheno_url == ''){return(NULL)} else{
+          data <- read.csv(input$pheno_url, sep = input$pheno_sep,
+                           quote = input$pheno_quote, dec = input$pheno_dec) }
+        } else if (input$pheno_input == 'brapi') {
+          if (input$pheno_db_load != 1){return(NULL)} else {
+            shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
 
-        return(NULL)
-      }
+            QBMS::set_trial(input$pheno_db_trial)
+            data <- QBMS::get_trial_data()
 
-      return(data)
+            data$trialName <- input$pheno_db_trial
+
+            shinybusy::remove_modal_spinner()
+
+            shinyWidgets::show_alert(title = 'Done!', type = 'success')
+          }
+        }
+
+        return(data)
       }
     })
 
@@ -564,6 +559,97 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           )
 
         })
+
+        if (input$pheno_input == 'brapi') {
+          ### BrAPI auto mapping #############################################
+          if ('year' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'year', 'value'] <- 'year'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'year', value = 'year'))
+          }
+
+          if ('environment' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'environment', 'value'] <- 'studyName'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'environment', value = 'studyName'))
+          }
+
+          if ('rep' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'rep', 'value'] <- 'rep'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'rep', value = 'rep'))
+          }
+
+          if ('iBlock' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'iBlock', 'value'] <- 'block'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'iBlock', value = 'block'))
+          }
+
+          if ('row' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'row', 'value'] <- 'positionCoordinateY'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'row', value = 'positionCoordinateY'))
+          }
+
+          if ('col' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'col', 'value'] <- 'positionCoordinateX'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'col', value = 'positionCoordinateX'))
+          }
+
+          if ('designation' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'designation', 'value'] <- 'germplasmName'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'designation', value = 'germplasmName'))
+          }
+
+          if ('gid' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'gid', 'value'] <- 'germplasmDbId'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'gid', value = 'germplasmDbId'))
+          }
+
+          if ('location' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'location', 'value'] <- 'locationName'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'location', value = 'locationName'))
+          }
+
+          if ('trial' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'trial', 'value'] <- 'trialName'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trial', value = 'trialName'))
+          }
+
+          if ('entryType' %in% temp$metadata$pheno$parameter) {
+            temp$metadata$pheno[temp$metadata$pheno$parameter == 'entryType', 'value'] <- 'entryType'
+          } else {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'entryType', value = 'entryType'))
+          }
+
+          shinybusy::show_modal_spinner('fading-circle', text = 'Loading Ontology...')
+
+          traits <- QBMS::get_trial_obs_ontology()
+
+          temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+
+          for (i in traits$name) {
+            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+          }
+
+          shinybusy::remove_modal_spinner()
+
+          # dummy pedigree table
+          temp$data$pedigree <- data.frame(designation = unique(pheno_data()$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
+
+          # stage       <- NA
+          # pipeline    <- NA
+          # country   **<- get_study_info()$locationDbId, then list_locations()
+          # season    * <- get_study_info()$seasons
+
+          ####################################################################
+        }
         data(temp)
       }
     )
