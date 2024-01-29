@@ -598,6 +598,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
             if (x == 'designation') {
               temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
+              temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
             }
             data(temp)
           }),
@@ -906,6 +907,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     })
 
     output$ped_summary <- renderText({
+      req(input$ped_designation)
       tmp <- data()
       ped <- ped_data()
       if (!is.null(ped) & any(tmp$metadata$pheno$parameter == 'designation')) {

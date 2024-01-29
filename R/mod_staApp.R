@@ -82,12 +82,18 @@ mod_staApp_ui <- function(id){
       ),
       tabPanel(p("Input",class = "input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
+                 tabPanel("QA-modeling", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("statusSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
                  tabPanel("Effects", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
                                               selectInput(ns("feature"), "Check units by:", choices = NULL, multiple = FALSE),
-                                              # selectInput(ns("feature"), "Check units by:", choices = c("environment","year","season","location","trial"), selected = "environment", multiple = FALSE),
                                               column(width=12,DT::DTOutput(ns("summariesSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
@@ -265,9 +271,23 @@ mod_staApp_server <- function(id,data){
     ## render the data to be analyzed
     observeEvent(data(),{
       if(sum(data()$status$module %in% "qaRaw") != 0) {
+        ## render status
+        output$statusSta <-  DT::renderDT({
+          req(data())
+          req(input$version2Sta)
+          dtSta <- data() # dtSta<- result
+          ### change column names for mapping
+          paramsPheno <- data()$modeling
+          paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Sta),, drop=FALSE]
+          DT::datatable(paramsPheno, extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          )
+        })
         ## render summaries
         output$summariesSta <-  DT::renderDT({
           req(data())
+          req(input$version2Sta)
           req(input$feature)
           dtSta <- data() # dtSta<- result
           ### change column names for mapping
@@ -311,6 +331,7 @@ mod_staApp_server <- function(id,data){
         })
         output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
           req(data())
+          req(input$version2Sta)
           req(input$trait3Sta)
           mydata <- data()$data$pheno
           ### change column names for mapping
@@ -336,6 +357,7 @@ mod_staApp_server <- function(id,data){
         output$phenoSta <-  DT::renderDT({
           req(data())
           dtSta <- data()
+          req(input$version2Sta)
           dtSta <- dtSta$data$pheno
           ### change column names for mapping
           paramsPheno <- data()$metadata$pheno

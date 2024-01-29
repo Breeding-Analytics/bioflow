@@ -91,6 +91,21 @@ mod_mtaApp_ui <- function(id){
       ),
       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
+                 tabPanel("Sta-metrics", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                              column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                              column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
+                          )
+                 ),
+                 tabPanel("Sta-modeling", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("statusMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
                  tabPanel("Connectivity", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
@@ -106,14 +121,6 @@ mod_mtaApp_ui <- function(id){
                                               column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(0, 2000))  ),
                                               column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(0, 500))  ),
                                               column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) )
-                          )
-                 ),
-                 tabPanel("Sta metrics", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                              column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                              column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
                           )
                  ),
                  tabPanel("Trait dispersal", icon = icon("magnifying-glass-chart"),
@@ -352,6 +359,19 @@ mod_mtaApp_server <- function(id, data){
     ##############################################################################################
     ##############################################################################################
     ## render the input data to be analyzed
+    output$statusMta <-  DT::renderDT({
+      req(data())
+      req(input$version2Mta)
+      dtSta <- data() # dtSta<- result
+      ### change column names for mapping
+      paramsPheno <- data()$modeling
+      paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Mta),, drop=FALSE]
+      DT::datatable(paramsPheno, extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      )
+    })
+
     output$phenoMta <-  DT::renderDT({
       req(data())
       req(input$version2Mta)
@@ -372,7 +392,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
       entryTypeMtaInput <- unique(dtMta$entryType)
-      updateSelectInput(session, "entryTypeMta", choices = c(entryTypeMtaInput,"None"), selected = "None")
+      updateSelectInput(session, "entryTypeMta", choices = c(entryTypeMtaInput,"Generic"), selected = "Generic")
     })
 
     output$plotPredictionsSparsity <- shiny::renderPlot({
@@ -382,7 +402,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- data()
       mydata <- dtMta$predictions
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
-      if(input$entryTypeMta != "None"){
+      if(input$entryTypeMta != "Generic"){
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
       }
       M <- table(mydata$designation, mydata$environment)
@@ -399,7 +419,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- data()
       mydata <- dtMta$predictions
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
-      if(input$entryTypeMta != "None"){
+      if(input$entryTypeMta != "Generic"){
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
       }
       splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) )
@@ -480,6 +500,7 @@ mod_mtaApp_server <- function(id, data){
     })
     output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
       req(data())
+      req(input$version2Mta)
       req(input$trait3Mta)
       req(input$groupMtaInputPlot)
       mydata <- data()$predictions
