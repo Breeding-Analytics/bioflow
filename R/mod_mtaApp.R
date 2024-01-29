@@ -100,6 +100,14 @@ mod_mtaApp_ui <- function(id){
                                               column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) )
                           )
                  ),
+                 tabPanel("Sparsity", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                              column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(0, 2000))  ),
+                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(0, 500))  ),
+                                              column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) )
+                          )
+                 ),
                  tabPanel("Sta metrics", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
@@ -108,7 +116,7 @@ mod_mtaApp_ui <- function(id){
                                               column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
                           )
                  ),
-                 tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
+                 tabPanel("Trait dispersal", icon = icon("magnifying-glass-chart"),
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                               column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
@@ -366,6 +374,24 @@ mod_mtaApp_server <- function(id, data){
       entryTypeMtaInput <- unique(dtMta$entryType)
       updateSelectInput(session, "entryTypeMta", choices = c(entryTypeMtaInput,"None"), selected = "None")
     })
+
+    output$plotPredictionsSparsity <- shiny::renderPlot({
+      req(data())
+      req(input$version2Mta)
+      req(input$entryTypeMta)
+      dtMta <- data()
+      mydata <- dtMta$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+      if(input$entryTypeMta != "None"){
+        mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
+      }
+      M <- table(mydata$designation, mydata$environment)
+      M2 <- matrix(M, nrow = nrow(M), ncol = ncol(M))
+      M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
+      M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
+      Matrix::image(as(M2, Class = "dgCMatrix"), xlab="Environments", ylab="Genotypes", colorkey=TRUE)
+    })
+
     output$plotPredictionsConnectivity <-  plotly::renderPlotly({
       req(data())
       req(input$version2Mta)
