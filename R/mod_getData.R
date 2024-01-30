@@ -165,7 +165,7 @@ mod_getData_ui <- function(id){
           selectInput(
             inputId = ns('geno_input'),
             label   = 'Genotypic SNPs Source*:',
-            choices = list('Upload File' = 'file', 'Copy URL' = 'url'),
+            choices = list('Upload HMP File' = 'file', 'Upload CSV File' = 'matfile', 'Copy URL' = 'url'),
             width   = '200px'
           ),
           tags$span(id = ns('geno_file_holder'),
@@ -173,7 +173,7 @@ mod_getData_ui <- function(id){
                       inputId = ns('geno_file'),
                       label   = NULL,
                       width   = '400px',
-                      accept  = c('application/gzip', '.gz', '.txt', '.hmp')
+                      accept  = c('application/gzip', '.gz', '.txt', '.hmp', '.csv')
                     )
           ),
           textInput(
@@ -728,7 +728,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$geno_input,
       if(length(input$geno_input) > 0){ # added
-        if (input$geno_input == 'file') {
+        if (input$geno_input %in% c('file','matfile') ) {
           golem::invoke_js('showid', ns('geno_file_holder'))
           golem::invoke_js('hideid', ns('geno_url'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
@@ -742,7 +742,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     geno_data <- reactive({
       if(length(input$geno_input) > 0){ # added
-        if (input$geno_input == 'file') {
+        if (input$geno_input %in% c('file','matfile') ) {
           if (is.null(input$geno_file)) {return(NULL)}else{
           snps_file <- input$geno_file$datapath
           }
@@ -762,6 +762,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
         df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
         shinybusy::remove_modal_spinner()
+
         hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
                              'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode',
                              'rs', 'assembly','panel' # column versions of vcfR
