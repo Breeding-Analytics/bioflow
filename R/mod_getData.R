@@ -628,17 +628,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'entryType', value = 'entryType'))
           }
 
-          shinybusy::show_modal_spinner('fading-circle', text = 'Loading Ontology...')
-
-          traits <- QBMS::get_trial_obs_ontology()
-
-          temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
-
-          for (i in traits$name) {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
-          }
-
-          shinybusy::remove_modal_spinner()
+          # shinybusy::show_modal_spinner('fading-circle', text = 'Loading Ontology...')
+          #
+          # traits <- QBMS::get_trial_obs_ontology()
+          #
+          # temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+          #
+          # for (i in traits$name) {
+          #   temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+          # }
+          #
+          # shinybusy::remove_modal_spinner()
 
           # dummy pedigree table
           temp$data$pedigree <- data.frame(designation = unique(pheno_data()$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
