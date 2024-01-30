@@ -103,7 +103,7 @@ usethis::use_test("app")
 # Documentation
 
 ## Vignette ----
-usethis::use_vignette("frame")
+# usethis::use_vignette("frame")
 devtools::build_vignettes()
 
 ## Code Coverage----
