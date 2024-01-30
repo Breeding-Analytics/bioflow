@@ -23,6 +23,7 @@ Imports:
     magrittr,
     pedigreemm,
     plotly,
+    plyr,
     psych,
     QBMS (>= 0.9.1),
     RColorBrewer,

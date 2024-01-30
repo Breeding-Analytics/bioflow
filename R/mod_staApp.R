@@ -134,7 +134,7 @@ mod_staApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Report", icon = icon("file-image"),

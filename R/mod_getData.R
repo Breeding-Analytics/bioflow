@@ -1,5 +1,5 @@
 pheno_example <- 'www/example/pheno.csv'
-geno_example  <- 'www/example/geno.hmp.gz'
+geno_example  <- 'www/example/geno.hmp.txt'
 ped_example   <- 'www/example/pedigree.csv'
 
 #' getData UI Function
