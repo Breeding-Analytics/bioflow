@@ -151,6 +151,7 @@ mod_getData_ui <- function(id){
         },
 
         hr(),
+        uiOutput(ns('brapi_trait_map')),
         DT::DTOutput(ns('preview_pheno')),
         uiOutput(ns('pheno_map')),
       ),
@@ -507,16 +508,18 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     )
 
     observeEvent(
-      input$pheno_db_load,
+      input$brapi_traits,
       {
-        # shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
-        #
-        # QBMS::set_trial(input$pheno_db_trial)
-        # data <- QBMS::get_trial_data()
-        #
-        # shinybusy::remove_modal_spinner()
-        #
-        # shinyWidgets::show_alert(title = 'Done!', text = dim(data), type = 'success')
+        temp <- data()
+
+        temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+
+        for (i in input[['brapi_traits']]) {
+          temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+          temp$data$pheno[[i]] <- as.numeric(temp$data$pheno[[i]])
+        }
+
+        data(temp)
       }
     )
 
@@ -569,6 +572,15 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         })
 
         if (input$pheno_input == 'brapi') {
+          output$brapi_trait_map <- renderUI({
+            selectInput(
+              inputId  = ns('brapi_traits'),
+              label    = 'Trait(s):',
+              multiple = TRUE,
+              choices  = as.list(c('', colnames(pheno_data()))),
+            )
+          })
+
           ### BrAPI auto mapping #############################################
           if ('year' %in% temp$metadata$pheno$parameter) {
             temp$metadata$pheno[temp$metadata$pheno$parameter == 'year', 'value'] <- 'year'
