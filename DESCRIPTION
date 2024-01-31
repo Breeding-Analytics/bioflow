@@ -17,6 +17,7 @@ Imports:
     config (>= 0.3.2),
     data.table,
     DT,
+    ggplot2,
     golem (>= 0.4.0),
     inline,
     kableExtra,

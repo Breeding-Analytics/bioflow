@@ -166,7 +166,7 @@ mod_getData_ui <- function(id){
           selectInput(
             inputId = ns('geno_input'),
             label   = 'Genotypic SNPs Source*:',
-            choices = list('Upload HMP File' = 'file', 'Upload CSV File' = 'matfile', 'Copy URL' = 'url'),
+            choices = list('Upload HMP File' = 'file', 'Upload CSV File' = 'matfile', 'Copy URL HMP' = 'url'),
             width   = '200px'
           ),
           tags$span(id = ns('geno_file_holder'),
@@ -796,6 +796,58 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         }
       }
 
+    )
+
+    geno_data_table = reactive({ # function to purely just read a csv when we need to match the genotype file
+      if(length(input$geno_input) > 0){ # added
+        if (input$geno_input == 'matfile' ) {
+          if (is.null(input$geno_file)) {return(NULL)}else{
+            snps_file <- input$geno_file$datapath
+          }
+        } else {
+          return(NULL);   # if (input$geno_url == '') {return(NULL)}else{snps_file <- input$geno_url}
+        }
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+        df <- as.data.frame(data.table::fread(snps_file, sep = input$pheno_sep, #quote = input$pheno_quote, dec = input$pheno_dec,
+                                              header = TRUE))
+        shinybusy::remove_modal_spinner()
+        return(df)
+      }else{
+        return(NULL)
+      }
+    })
+    observeEvent(c(geno_data_table()), { # update values for columns in designation and first snp and last snp
+      req(geno_data_table())
+      provGeno <- geno_data_table()
+      updateSelectInput(session, "geno_table_firstsnp", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))])
+      updateSelectInput(session, "geno_table_lastsnp", choices = colnames(provGeno)[max(c(1,ncol(provGeno)-100)):ncol(provGeno)])
+      updateSelectInput(session, "geno_table_designation", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))])
+    })
+    observeEvent(
+      c(geno_data_table(), input$geno_table_firstsnp, input$geno_table_lastsnp, input$geno_table_designation),
+      {
+        req(geno_data_table())
+        req(input$geno_table_firstsnp)
+        req(input$geno_table_lastsnp)
+        req(input$geno_table_designation)
+        temp <- data()
+        tempG <- geno_data_table()
+        rownames(tempG) <- tempG[,which(colnames(tempG)==input$geno_table_designation)]
+        temp$data$geno <- tempG[,which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)]
+
+        shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
+        tempG <- hapMapChar2NumericDouble(tempG)
+        shinybusy::remove_modal_spinner()
+
+        map <- geno_data()[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
+        colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
+        map$refAllele <- substr(map$refAllele, 1, 1)
+        map$altAllele <- substr(map$altAllele, 3, 3)
+
+        temp$metadata$geno <- map
+
+        data(temp)
+      }
     )
 
     geno_data <- reactive({
