@@ -305,6 +305,8 @@ mod_getData_ui <- function(id){
         uiOutput(ns('ped_map')),
 
         verbatimTextOutput(ns('ped_summary')),
+        hr(),
+        DT::DTOutput(ns('preview_ped')),
       ),
       tabPanel(
         title = 'Weather',
@@ -527,12 +529,18 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       if(length(input$pheno_input) > 0){
         if (input$pheno_input == 'file') {
           if (is.null(input$pheno_file)) {return(NULL)}else{
-          data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
-                           quote = input$pheno_quote, dec = input$pheno_dec) }
+            data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
+                                                    quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+          # data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
+          #                  quote = input$pheno_quote, dec = input$pheno_dec)
+          }
         } else if (input$pheno_input == 'url') {
           if (input$pheno_url == ''){return(NULL)} else{
-          data <- read.csv(input$pheno_url, sep = input$pheno_sep,
-                           quote = input$pheno_quote, dec = input$pheno_dec) }
+            data <- as.data.frame(data.table::fread(input$pheno_url, sep = input$pheno_sep,
+                                                    quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+          # data <- read.csv(input$pheno_url, sep = input$pheno_sep,
+          #                  quote = input$pheno_quote, dec = input$pheno_dec)
+          }
         } else if (input$pheno_input == 'brapi') {
           if (input$pheno_db_load != 1){return(NULL)} else {
             shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
@@ -931,12 +939,16 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       if(length(input$ped_input) > 0){ # added
       if (input$ped_input == 'file') {
         if (is.null(input$ped_file)) return(NULL)
-        data <- read.csv(input$ped_file$datapath, sep = input$ped_sep,
-                         quote = input$ped_quote, dec = input$ped_dec)
+        data <- as.data.frame(data.table::fread(input$ped_file$datapath, sep = input$ped_sep,
+                                                quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
+        # data <- read.csv(input$ped_file$datapath, sep = input$ped_sep,
+        #                  quote = input$ped_quote, dec = input$ped_dec)
       } else if (input$ped_input == 'url') {
         if (input$ped_url == '') return(NULL)
-        data <- read.csv(input$ped_url, sep = input$ped_sep,
-                         quote = input$ped_quote, dec = input$ped_dec)
+        data <- as.data.frame(data.table::fread(input$ped_url, sep = input$ped_sep,
+                                                quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
+        # data <- read.csv(input$ped_url, sep = input$ped_sep,
+        #                  quote = input$ped_quote, dec = input$ped_dec)
       } else {
         return(NULL)
       }
@@ -952,6 +964,19 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         # should check file format here!
         temp$data$pedigree <- ped_data()
+
+        output$preview_ped <- DT::renderDT({
+          req(ped_data())
+
+          DT::datatable(ped_data(),
+                        extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+          )
+
+        })
 
         data(temp)
       }

@@ -57,3 +57,11 @@ rsconnect::deployApp(
   lint = FALSE,
   forceUpdate = TRUE
 )
+
+rsconnect::setAccountInfo(name='cgiar-market-intelligence',
+                          token='DB3778031938A406DDB9EA47006FB47D',
+                          secret='OYKpvd/zQUgIXhlzhMau9nJ/OhYeR3oiv0odKDCD')
+
+rsconnect::deployApp(account = "cgiar-market-intelligence")
+
+
