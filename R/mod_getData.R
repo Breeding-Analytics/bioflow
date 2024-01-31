@@ -371,6 +371,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       {
         if (input$pheno_db_url == '') return(NULL)
 
+        # TODO: check if it has a BrAPI endpoints
         # http://msdn.microsoft.com/en-us/library/ff650303.aspx
         if (!grepl("^(ht|f)tp(s?)\\:\\/\\/[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,\\'\\/\\\\\\+&amp;%\\$#_]*)?$", input$pheno_db_url)) {
           shinyWidgets::show_alert(title = 'Invalid URL!', type = 'error')
@@ -410,42 +411,49 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_db_login,
       {
-        golem::invoke_js('showid', ns('data_server_holder'))
+        tryCatch(
+          expr = {
+            if (input$pheno_db_type == 'ebs') {
+              QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
+                                 access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
+                                 client_id     = '5crahiqorgj0lppt3n9dkulkst',
+                                 client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
+            } else if (input$pheno_db_type == 'bms') {
+              QBMS::login_bms(input$pheno_db_user, input$pheno_db_password)
+            } else if (input$pheno_db_type == 'breedbase') {
+              if (input$no_auth) {
+                QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1', no_auth = TRUE)
+              } else {
+                QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
+              }
+            }
 
-        if (input$pheno_db_type == 'ebs') {
-          QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
-                             access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
-                             client_id     = '5crahiqorgj0lppt3n9dkulkst',
-                             client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
-        } else if (input$pheno_db_type == 'bms') {
-          QBMS::login_bms(input$pheno_db_user, input$pheno_db_password)
-        } else if (input$pheno_db_type == 'breedbase') {
-          if (input$no_auth) {
-            QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1', no_auth = TRUE)
-          } else {
-            QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
+            golem::invoke_js('showid', ns('data_server_holder'))
+
+            shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
+
+            if (input$pheno_db_type == 'bms') {
+              pheno_db_crops <- QBMS::list_crops()
+
+              updateSelectInput(session,
+                                inputId = 'pheno_db_crop',
+                                label   = 'Crop: ',
+                                choices = pheno_db_crops)
+            } else {
+              pheno_db_programs <- QBMS::list_programs()
+
+              updateSelectInput(session,
+                                inputId = 'pheno_db_program',
+                                label   = 'Breeding Program: ',
+                                choices = pheno_db_programs)
+            }
+
+            shinybusy::remove_modal_spinner()
+          },
+          error = function(e) {
+            shinyWidgets::show_alert(title = 'Invalid Credentials!', type = 'error')
           }
-        }
-
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
-
-        if (input$pheno_db_type == 'bms') {
-          pheno_db_crops <- QBMS::list_crops()
-
-          updateSelectInput(session,
-                            inputId = 'pheno_db_crop',
-                            label   = 'Crop: ',
-                            choices = pheno_db_crops)
-        } else {
-          pheno_db_programs <- QBMS::list_programs()
-
-          updateSelectInput(session,
-                            inputId = 'pheno_db_program',
-                            label   = 'Breeding Program: ',
-                            choices = pheno_db_programs)
-        }
-
-        shinybusy::remove_modal_spinner()
+        )
       }
     )
 
