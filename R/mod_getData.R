@@ -819,34 +819,36 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(c(geno_data_table()), { # update values for columns in designation and first snp and last snp
       req(geno_data_table())
       provGeno <- geno_data_table()
-      updateSelectInput(session, "geno_table_firstsnp", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))])
-      updateSelectInput(session, "geno_table_lastsnp", choices = colnames(provGeno)[max(c(1,ncol(provGeno)-100)):ncol(provGeno)])
-      updateSelectInput(session, "geno_table_designation", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))])
+      updateSelectizeInput(session, "geno_table_firstsnp", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))
+      updateSelectizeInput(session, "geno_table_lastsnp", choices = colnames(provGeno)[max(c(1,ncol(provGeno)-100)):ncol(provGeno)], selected = character(0))
+      updateSelectizeInput(session, "geno_table_designation", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))
     })
-    observeEvent(
+    observeEvent( # reactive for the csv geno read, active once the user has selected the proper columns
       c(geno_data_table(), input$geno_table_firstsnp, input$geno_table_lastsnp, input$geno_table_designation),
       {
         req(geno_data_table())
         req(input$geno_table_firstsnp)
         req(input$geno_table_lastsnp)
         req(input$geno_table_designation)
-        temp <- data()
-        tempG <- geno_data_table()
-        rownames(tempG) <- tempG[,which(colnames(tempG)==input$geno_table_designation)]
-        temp$data$geno <- tempG[,which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)]
-
-        shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
-        tempG <- hapMapChar2NumericDouble(tempG)
-        shinybusy::remove_modal_spinner()
-
-        map <- geno_data()[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
-        colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
-        map$refAllele <- substr(map$refAllele, 1, 1)
-        map$altAllele <- substr(map$altAllele, 3, 3)
-
-        temp$metadata$geno <- map
-
-        data(temp)
+        if(!is.null(input$geno_table_firstsnp) & !is.null(input$geno_table_lastsnp) & !is.null(input$geno_table_designation) ){
+          temp <- data()
+          tempG <- geno_data_table()
+          rownames(tempG) <- tempG[,which(colnames(tempG)==input$geno_table_designation)]
+          tempG <- tempG[,which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)]
+          missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
+          for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
+          shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
+          tempG <- sommer::atcg1234(tempG, maf = -1)
+          shinybusy::remove_modal_spinner()
+          temp$data$geno <- tempG$M
+          refAlleles <- tempG$ref.alleles
+          map <- data.frame(a=colnames(tempG$M), chrom=1, pos=1:ncol(tempG$M))
+          map$refAllele <- tempG$ref.alleles[2,]
+          map$altAllele <- tempG$ref.alleles[1,]
+          colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
+          temp$metadata$geno <- map
+          data(temp)
+        }else{return(NULL)}
       }
     )
 
@@ -1318,7 +1320,8 @@ hapMapChar2NumericDouble <- function(hapMap) {
 
   # remove the first 11 columns
   hapMap <- hapMap[,-c(1:11)]
-  hapMap[which(hapMap=="NN", arr.ind = TRUE)] <- NA
+  missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
+  hapMap[which(hapMap%in%missingData, arr.ind = TRUE)] <- NA
   # convert the hapMap to numeric
   hapMapNumeric <- sommer::atcg1234(t(hapMap), maf = -1)
 
