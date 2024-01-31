@@ -771,14 +771,12 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           snps_file <- input$geno_url
           }
         }
+
         # library(vcfR)
-        # vcf <- read.vcfR(file.choose())
+        # vcf_data <- vcfR::read.vcfR(snps_file)
         #
-        # SNPs_info <- vcfR2tidy(vcf, info_only = TRUE)$fix
-        # View(SNPs_info)
-        #
-        # gt <- extract.gt(vcf, as.numeric = TRUE)
-        # View(gt[1:100,1:100])
+        # hmp_data <- vcfR::vcfR2hapmap(vcf.data)
+
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
         df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
         shinybusy::remove_modal_spinner()
