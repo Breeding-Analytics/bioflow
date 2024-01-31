@@ -20,7 +20,7 @@ knitr::opts_chunk$set(dependson = knitr::all_labels(),
 options(knitr.kable.NA = '')
 # loading necessary R packages ####
 ## data manipulation
-library(dplyr)    # %>%, data cleaning functions
+# library(dplyr)    # %>%, data cleaning functions
 library(magrittr) # coerce col to factors or numeric
 ## outputs - graphs, tables
 library(ggplot2)  # ggplot(), etc.
