@@ -50,6 +50,7 @@ printTable <- function(DT, pageLength = 7,
 ```{r plot_init, include = FALSE}
 # Init Step to make sure that the dependencies are loaded
 # was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+library(ggplot2)
 htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
 htmltools::tagList(printTable(mtcars))
 # Get the current figure size in pixels:
@@ -66,7 +67,6 @@ get_h <- function() {
 ```
 
 ```{r }
-library(tidyverse)
 
 suppressWarnings(tryCatch({
   if(file.exists("./outputs/resultMta.RData")){
@@ -404,7 +404,7 @@ if (is.null(resultMta)){
 ```
 
 ```{r, results='asis'}
-library(tidyverse)
+
 if (is.null(resultMta)){
   # invisible(NULL)
 } else {
@@ -419,10 +419,12 @@ if (is.null(resultMta)){
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      pred.mta.biplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue)) %>%
-        filter(trait== iTrait) %>% droplevels() %>%
-        pivot_wider(names_from = environment, values_from = predictedValue) %>%
-        select(-trait) %>% column_to_rownames("designation")
+      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait),c("designation","environment","predictedValue")], 
+        direction = "wide", idvar = "designation", timevar = "environment")
+      
+      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
+      pred.mta.biplot <- pred.mta.biplot[,-1]
+      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
       
       # keep only 
       missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
@@ -468,12 +470,13 @@ if (is.null(resultMta)){
   }else{
     
     plotly::renderPlotly({
-      pred.mta.biplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue)) %>%
-        filter(trait==input$traitBiplot) %>% #
-        droplevels() %>%
-        pivot_wider(names_from = environment, values_from = predictedValue) %>%
-        select(-trait) %>%
-        column_to_rownames("designation")
+      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot),c("designation","environment","predictedValue")], 
+        direction = "wide", idvar = "designation", timevar = "environment")
+      
+      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
+      pred.mta.biplot <- pred.mta.biplot[,-1]
+      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
+      
       # keep only 
       missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
       pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
