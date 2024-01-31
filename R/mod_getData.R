@@ -49,95 +49,95 @@ mod_getData_ui <- function(id){
         ),
 
         tags$div(id = ns('pheno_csv_options'),
-          shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-            shinyWidgets::prettyRadioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                             choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+                 shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                     shinyWidgets::prettyRadioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                      choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
-            shinyWidgets::prettyRadioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                             choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+                                     shinyWidgets::prettyRadioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                      choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
 
-            shinyWidgets::prettyRadioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                             choices = c('Dot' = '.', 'Comma' = ',')),
-          ),
+                                     shinyWidgets::prettyRadioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                      choices = c('Dot' = '.', 'Comma' = ',')),
+                 ),
         ),
 
         tags$div(id = ns('pheno_brapi_options'),
                  tags$span(id = ns('config_server_holder'),
-                   shinydashboard::box(width = 4, title = span(icon('screwdriver-wrench'), ' Config Server'), status = 'success', solidHeader = TRUE,
-                                        selectInput(
-                                          inputId = ns('pheno_db_type'),
-                                          label   = 'Database Type: ',
-                                          choices = list('EBS' = 'ebs', 'BMS' = 'bms', 'BreedBase' = 'breedbase')
-                                        ),
-                                        textInput(
-                                          inputId = ns('pheno_db_url'),
-                                          label = 'Server URL:',
-                                          placeholder = 'https://cbbrapi-qa.ebsproject.org'
-                                        ),
-                                        actionButton(
-                                          inputId = ns('pheno_db_save'),
-                                          label = 'Save',
-                                          width = '100%'
-                                        ),
-                    )
-                  ),
+                           shinydashboard::box(width = 4, title = span(icon('screwdriver-wrench'), ' Config Server'), status = 'success', solidHeader = TRUE,
+                                               selectInput(
+                                                 inputId = ns('pheno_db_type'),
+                                                 label   = 'Database Type: ',
+                                                 choices = list('EBS' = 'ebs', 'BMS' = 'bms', 'BreedBase' = 'breedbase')
+                                               ),
+                                               textInput(
+                                                 inputId = ns('pheno_db_url'),
+                                                 label = 'Server URL:',
+                                                 placeholder = 'https://cbbrapi-qa.ebsproject.org'
+                                               ),
+                                               actionButton(
+                                                 inputId = ns('pheno_db_save'),
+                                                 label = 'Save',
+                                                 width = '100%'
+                                               ),
+                           )
+                 ),
 
                  tags$span(id = ns('auth_server_holder'),
-                    shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
-                                        tags$span(id = ns('pheno_db_user_holder'),
-                                                  textInput(
-                                                    inputId = ns('pheno_db_user'),
-                                                    label = 'Username:'
-                                                  )
-                                        ),
-                                        tags$span(id = ns('pheno_db_password_holder'),
-                                                  passwordInput(
-                                                    inputId = ns('pheno_db_password'),
-                                                    label = 'Password:'
-                                                  )
-                                        ),
-                                        tags$span(id = ns('no_auth_holder'),
-                                                  checkboxInput(
-                                                    inputId = ns('no_auth'),
-                                                    label = 'No authentication required',
-                                                    value = TRUE
-                                                  )
-                                        ),
+                           shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
+                                               tags$span(id = ns('pheno_db_user_holder'),
+                                                         textInput(
+                                                           inputId = ns('pheno_db_user'),
+                                                           label = 'Username:'
+                                                         )
+                                               ),
+                                               tags$span(id = ns('pheno_db_password_holder'),
+                                                         passwordInput(
+                                                           inputId = ns('pheno_db_password'),
+                                                           label = 'Password:'
+                                                         )
+                                               ),
+                                               tags$span(id = ns('no_auth_holder'),
+                                                         checkboxInput(
+                                                           inputId = ns('no_auth'),
+                                                           label = 'No authentication required',
+                                                           value = TRUE
+                                                         )
+                                               ),
 
-                                        actionButton(
-                                          inputId = ns('pheno_db_login'),
-                                          label = 'Login',
-                                          width = '100%'
-                    )                      ),
-                  ),
+                                               actionButton(
+                                                 inputId = ns('pheno_db_login'),
+                                                 label = 'Login',
+                                                 width = '100%'
+                                               )                      ),
+                 ),
 
                  tags$span(id = ns('data_server_holder'),
-                    shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
-                                        tags$span(id = ns('pheno_db_crop_holder'),
-                                                  selectInput(
-                                                    inputId = ns('pheno_db_crop'),
-                                                    label   = 'Crop: ',
-                                                    choices = list()
-                                                  )
-                                        ),
-                                        selectizeInput(
-                                          inputId = ns('pheno_db_program'),
-                                          label   = 'Breeding Program: ',
-                                          choices = list()
-                                        ),
-                                        selectizeInput(
-                                          inputId = ns('pheno_db_trial'),
-                                          label   = 'Trial/Study: ',
-                                          choices = list(),
-                                          multiple = TRUE
-                                        ),
-                                        actionButton(
-                                          inputId = ns('pheno_db_load'),
-                                          label = 'Load',
-                                          width = '100%'
-                                        ),
-                    )
-                  ),
+                           shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
+                                               tags$span(id = ns('pheno_db_crop_holder'),
+                                                         selectInput(
+                                                           inputId = ns('pheno_db_crop'),
+                                                           label   = 'Crop: ',
+                                                           choices = list()
+                                                         )
+                                               ),
+                                               selectizeInput(
+                                                 inputId = ns('pheno_db_program'),
+                                                 label   = 'Breeding Program: ',
+                                                 choices = list()
+                                               ),
+                                               selectizeInput(
+                                                 inputId = ns('pheno_db_trial'),
+                                                 label   = 'Trial/Study: ',
+                                                 choices = list(),
+                                                 multiple = TRUE
+                                               ),
+                                               actionButton(
+                                                 inputId = ns('pheno_db_load'),
+                                                 label = 'Load',
+                                                 width = '100%'
+                                               ),
+                           )
+                 ),
         ),
 
         if (!is.null(pheno_example)) {
@@ -183,6 +183,28 @@ mod_getData_ui <- function(id){
             value   = '',
             width   = '400px',
             placeholder = 'https://example.com/path/file.gz'
+          ),
+
+          tags$span(id = ns('geno_table_options'),
+                    column(4,
+                           selectizeInput(
+                             inputId = ns('geno_table_designation'),
+                             label   = 'Designation column: ',
+                             choices = list()
+                           ),    ),
+                    column(4,
+                           selectizeInput(
+                             inputId = ns('geno_table_firstsnp'),
+                             label   = 'First SNP column: ',
+                             choices = list()
+                           ),   ),
+                    column(4,
+                           selectizeInput(
+                             inputId = ns('geno_table_lastsnp'),
+                             label   = 'First SNP column: ',
+                             choices = list()
+                           ),
+                    ),
           ),
 
           if (!is.null(pheno_example)) {
@@ -248,6 +270,7 @@ mod_getData_ui <- function(id){
           verbatimTextOutput(ns('geno_summary')),
         )
       ),
+
       tabPanel(
         title = 'Pedigree',
         value = ns('tab3'),
@@ -355,7 +378,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('showid', ns('pheno_csv_options'))
           golem::invoke_js('hideid', ns('pheno_brapi_options'))
           golem::invoke_js('showid', ns('pheno_map'))
-        } else {
+        } else { # brapi
           golem::invoke_js('hideid', ns('pheno_file_holder'))
           golem::invoke_js('hideid', ns('pheno_url'))
           golem::invoke_js('hideid', ns('pheno_csv_options'))
@@ -531,15 +554,15 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           if (is.null(input$pheno_file)) {return(NULL)}else{
             data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
                                                     quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
-          # data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
-          #                  quote = input$pheno_quote, dec = input$pheno_dec)
+            # data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
+            #                  quote = input$pheno_quote, dec = input$pheno_dec)
           }
         } else if (input$pheno_input == 'url') {
           if (input$pheno_url == ''){return(NULL)} else{
             data <- as.data.frame(data.table::fread(input$pheno_url, sep = input$pheno_sep,
                                                     quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
-          # data <- read.csv(input$pheno_url, sep = input$pheno_sep,
-          #                  quote = input$pheno_quote, dec = input$pheno_dec)
+            # data <- read.csv(input$pheno_url, sep = input$pheno_sep,
+            #                  quote = input$pheno_quote, dec = input$pheno_dec)
           }
         } else if (input$pheno_input == 'brapi') {
           if (input$pheno_db_load != 1){return(NULL)} else {
@@ -686,37 +709,37 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       header <- colnames(pheno_data())
       pheno_map <- lapply(map, function(x) {
         column(3,
-          selectInput(
-            inputId  = ns(paste0('select', x)),
-            label    = x,
-            multiple = ifelse(x == 'trait', TRUE, FALSE),
-            choices  = as.list(c('', header)),
-          ),
+               selectInput(
+                 inputId  = ns(paste0('select', x)),
+                 label    = x,
+                 multiple = ifelse(x == 'trait', TRUE, FALSE),
+                 choices  = as.list(c('', header)),
+               ),
 
-          # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
+               # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
 
-          renderPrint({
-            req(input[[paste0('select', x)]])
-            temp <- data()
-            if (x == 'trait') {
-              temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
-              for (i in input[[paste0('select', x)]]) {
-                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
-              }
-            } else {
-              if (x %in% temp$metadata$pheno$parameter) {
-                temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
-              } else {
-                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
-              }
-            }
+               renderPrint({
+                 req(input[[paste0('select', x)]])
+                 temp <- data()
+                 if (x == 'trait') {
+                   temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+                   for (i in input[[paste0('select', x)]]) {
+                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+                   }
+                 } else {
+                   if (x %in% temp$metadata$pheno$parameter) {
+                     temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
+                   } else {
+                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                   }
+                 }
 
-            if (x == 'designation') {
-              temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
-              temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
-            }
-            data(temp)
-          }),
+                 if (x == 'designation') {
+                   temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
+                   temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
+                 }
+                 data(temp)
+               }),
         )
       })
       fluidRow(do.call(tagList, pheno_map))
@@ -756,13 +779,20 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$geno_input,
       if(length(input$geno_input) > 0){ # added
-        if (input$geno_input %in% c('file','matfile') ) {
+        if (input$geno_input == 'file' ) {
           golem::invoke_js('showid', ns('geno_file_holder'))
           golem::invoke_js('hideid', ns('geno_url'))
+          golem::invoke_js('hideid', ns('geno_table_options'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
         } else if (input$geno_input == 'url') {
           golem::invoke_js('hideid', ns('geno_file_holder'))
+          golem::invoke_js('hideid', ns('geno_table_options'))
           golem::invoke_js('showid', ns('geno_url'))
+        } else if (input$geno_input == 'matfile' ){
+          golem::invoke_js('showid', ns('geno_file_holder'))
+          golem::invoke_js('showid', ns('geno_table_options'))
+          golem::invoke_js('hideid', ns('geno_url'))
+          updateCheckboxInput(session, 'geno_example', value = FALSE)
         }
       }
 
@@ -770,13 +800,13 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     geno_data <- reactive({
       if(length(input$geno_input) > 0){ # added
-        if (input$geno_input %in% c('file','matfile') ) {
+        if (input$geno_input == 'file' ) {
           if (is.null(input$geno_file)) {return(NULL)}else{
-          snps_file <- input$geno_file$datapath
+            snps_file <- input$geno_file$datapath
           }
         } else {
           if (input$geno_url == '') {return(NULL)}else{
-          snps_file <- input$geno_url
+            snps_file <- input$geno_url
           }
         }
 
@@ -922,38 +952,38 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$ped_input,
       if(length(input$ped_input) > 0){ # added
-      if (input$ped_input == 'file') {
-        golem::invoke_js('showid', ns('ped_file_holder'))
-        golem::invoke_js('hideid', ns('ped_url'))
-        golem::invoke_js('showid', ns('ped_csv_options'))
-        updateCheckboxInput(session, 'ped_example', value = FALSE)
-      } else if (input$ped_input == 'url') {
-        golem::invoke_js('hideid', ns('ped_file_holder'))
-        golem::invoke_js('showid', ns('ped_url'))
-        golem::invoke_js('showid', ns('ped_csv_options'))
-      }
+        if (input$ped_input == 'file') {
+          golem::invoke_js('showid', ns('ped_file_holder'))
+          golem::invoke_js('hideid', ns('ped_url'))
+          golem::invoke_js('showid', ns('ped_csv_options'))
+          updateCheckboxInput(session, 'ped_example', value = FALSE)
+        } else if (input$ped_input == 'url') {
+          golem::invoke_js('hideid', ns('ped_file_holder'))
+          golem::invoke_js('showid', ns('ped_url'))
+          golem::invoke_js('showid', ns('ped_csv_options'))
+        }
       }
     )
 
     ped_data <- reactive({
       if(length(input$ped_input) > 0){ # added
-      if (input$ped_input == 'file') {
-        if (is.null(input$ped_file)) return(NULL)
-        data <- as.data.frame(data.table::fread(input$ped_file$datapath, sep = input$ped_sep,
-                                                quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
-        # data <- read.csv(input$ped_file$datapath, sep = input$ped_sep,
-        #                  quote = input$ped_quote, dec = input$ped_dec)
-      } else if (input$ped_input == 'url') {
-        if (input$ped_url == '') return(NULL)
-        data <- as.data.frame(data.table::fread(input$ped_url, sep = input$ped_sep,
-                                                quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
-        # data <- read.csv(input$ped_url, sep = input$ped_sep,
-        #                  quote = input$ped_quote, dec = input$ped_dec)
-      } else {
-        return(NULL)
-      }
+        if (input$ped_input == 'file') {
+          if (is.null(input$ped_file)) return(NULL)
+          data <- as.data.frame(data.table::fread(input$ped_file$datapath, sep = input$ped_sep,
+                                                  quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
+          # data <- read.csv(input$ped_file$datapath, sep = input$ped_sep,
+          #                  quote = input$ped_quote, dec = input$ped_dec)
+        } else if (input$ped_input == 'url') {
+          if (input$ped_url == '') return(NULL)
+          data <- as.data.frame(data.table::fread(input$ped_url, sep = input$ped_sep,
+                                                  quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
+          # data <- read.csv(input$ped_url, sep = input$ped_sep,
+          #                  quote = input$ped_quote, dec = input$ped_dec)
+        } else {
+          return(NULL)
+        }
 
-      return(data)
+        return(data)
       }
     })
 
@@ -1125,17 +1155,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     })
 
     observeEvent(input$prev_tab,
-      {
-       n <- which(tab_list == input$tabset)
-       updateTabsetPanel(session, 'tabset', selected = tab_list[n - 1])
-      }
+                 {
+                   n <- which(tab_list == input$tabset)
+                   updateTabsetPanel(session, 'tabset', selected = tab_list[n - 1])
+                 }
     )
 
     observeEvent(input$next_tab,
-      {
-       n <- which(tab_list == input$tabset)
-       updateTabsetPanel(session, 'tabset', selected = tab_list[n + 1])
-      }
+                 {
+                   n <- which(tab_list == input$tabset)
+                   updateTabsetPanel(session, 'tabset', selected = tab_list[n + 1])
+                 }
     )
   })
 }
@@ -1152,7 +1182,7 @@ hapMapChar2Numeric <- function(hapMap) {
                                                      refAllele="character",
                                                      rowsNum="integer",
                                                      colsNum="integer"),
-  "int i,j;
+                                           "int i,j;
 
   // matrix dimentions
   int r = asInteger(rowsNum);
