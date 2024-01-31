@@ -319,6 +319,34 @@ mod_rggApp_server <- function(id, data){
           # }
         })
 
+        ## Report tab
+        output$reportRgg <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit("./R/reportRgg.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
+
+        output$downloadReportRgg <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            src <- normalizePath('R/reportRgg.Rmd')
+            src2 <- normalizePath('R/outputs/resultRgg.RData')
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmarkdown::html_document()
+            ))
+            file.rename(out, file)
+          }
+        )
+
       } else {
         output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)})
         output$metricsRgg <- DT::renderDT({DT::datatable(NULL)})
@@ -328,34 +356,6 @@ mod_rggApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
-
-    ## Report tab
-    output$reportRgg <- renderUI({
-      HTML(markdown::markdownToHTML(knitr::knit("./R/reportRgg.Rmd", quiet = TRUE), fragment.only=TRUE))
-    })
-
-    output$downloadReportRgg <- downloadHandler(
-      filename = function() {
-        paste('my-report', sep = '.', switch(
-          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-        ))
-      },
-      content = function(file) {
-        src <- normalizePath('R/reportRgg.Rmd')
-        src2 <- normalizePath('R/outputs/resultRgg.RData')
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
-        file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
-        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-          "HTML",
-          HTML = rmarkdown::html_document()
-        ))
-        file.rename(out, file)
-      }
-    )
 
     output$outRgg <- renderPrint({
       outRgg()
