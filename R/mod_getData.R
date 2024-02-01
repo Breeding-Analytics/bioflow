@@ -185,7 +185,7 @@ mod_getData_ui <- function(id){
             placeholder = 'https://example.com/path/file.gz'
           ),
 
-          tags$span(id = ns('geno_table_options'),
+          tags$span(id = ns('geno_table_mapping'),
                     column(4,
                            selectizeInput(
                              inputId = ns('geno_table_designation'),
@@ -205,6 +205,19 @@ mod_getData_ui <- function(id){
                              choices = list()
                            ),
                     ),
+          ),
+
+          tags$div(id = ns('geno_table_options'),
+                   shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                       shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                        choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                       shinyWidgets::prettyRadioButtons(ns('geno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                        choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                       shinyWidgets::prettyRadioButtons(ns('geno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                        choices = c('Dot' = '.', 'Comma' = ',')),
+                   ),
           ),
 
           if (!is.null(pheno_example)) {
@@ -268,6 +281,9 @@ mod_getData_ui <- function(id){
           # Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
           # Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
           verbatimTextOutput(ns('geno_summary')),
+
+          hr(),
+          DT::DTOutput(ns('preview_geno')),
         )
       ),
 
@@ -782,14 +798,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         if (input$geno_input == 'file' ) {
           golem::invoke_js('showid', ns('geno_file_holder'))
           golem::invoke_js('hideid', ns('geno_url'))
+          golem::invoke_js('hideid', ns('geno_table_mapping'))
           golem::invoke_js('hideid', ns('geno_table_options'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
         } else if (input$geno_input == 'url') {
           golem::invoke_js('hideid', ns('geno_file_holder'))
+          golem::invoke_js('hideid', ns('geno_table_mapping'))
           golem::invoke_js('hideid', ns('geno_table_options'))
           golem::invoke_js('showid', ns('geno_url'))
         } else if (input$geno_input == 'matfile' ){
           golem::invoke_js('showid', ns('geno_file_holder'))
+          golem::invoke_js('showid', ns('geno_table_mapping'))
           golem::invoke_js('showid', ns('geno_table_options'))
           golem::invoke_js('hideid', ns('geno_url'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
@@ -808,8 +827,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           return(NULL);   # if (input$geno_url == '') {return(NULL)}else{snps_file <- input$geno_url}
         }
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-        df <- as.data.frame(data.table::fread(snps_file, sep = input$pheno_sep, #quote = input$pheno_quote, dec = input$pheno_dec,
-                                              header = TRUE))
+        df <- as.data.frame(data.table::fread(snps_file, sep = input$geno_sep, quote = input$geno_quote, dec = input$geno_dec, header = TRUE))
         shinybusy::remove_modal_spinner()
         return(df)
       }else{
@@ -819,6 +837,13 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(c(geno_data_table()), { # update values for columns in designation and first snp and last snp
       req(geno_data_table())
       provGeno <- geno_data_table()
+      output$preview_geno <- DT::renderDT({
+        req(geno_data_table())
+        DT::datatable(geno_data_table()[,1:min(c(50,ncol(geno_data_table())))],
+                      extensions = 'Buttons',
+                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+        )
+      })
       updateSelectizeInput(session, "geno_table_firstsnp", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))
       updateSelectizeInput(session, "geno_table_lastsnp", choices = colnames(provGeno)[max(c(1,ncol(provGeno)-100)):ncol(provGeno)], selected = character(0))
       updateSelectizeInput(session, "geno_table_designation", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))
@@ -864,10 +889,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           }
         }
 
-        # library(vcfR)
-        # vcf_data <- vcfR::read.vcfR(snps_file)
-        #
-        # hmp_data <- vcfR::vcfR2hapmap(vcf.data)
+        # library(vcfR); vcf_data <- vcfR::read.vcfR(snps_file); hmp_data <- vcfR::vcfR2hapmap(vcf.data)
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
         df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
@@ -916,7 +938,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
           return(NULL)
         }
-
         return(df)
 
       }else{
@@ -1320,8 +1341,8 @@ hapMapChar2NumericDouble <- function(hapMap) {
 
   # remove the first 11 columns
   hapMap <- hapMap[,-c(1:11)]
-  missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
-  hapMap[which(hapMap%in%missingData, arr.ind = TRUE)] <- NA
+  missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","",-9)
+  for(iMiss in missingData){hapMap[which(hapMap==iMiss, arr.ind = TRUE)] <- NA}
   # convert the hapMap to numeric
   hapMapNumeric <- sommer::atcg1234(t(hapMap), maf = -1)
 
