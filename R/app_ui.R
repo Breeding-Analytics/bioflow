@@ -61,15 +61,15 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
-                 tabPanel(strong("CLUSTERS"),  icon = icon("puzzle-piece")),
+                 tabPanel(strong("GENE FREQUENCIES"),  icon = icon("filter")),
+                 tabPanel(div("GF1. Marker-assisted selection",style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div("GF2. Marker-assisted backcross",style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div("GF3. Hybridity test",style = "color:red")),
+                 tabPanel(div("GF4. Number of founders",style = "color:red")), #  icon = icon("filter")),
+                 tabPanel(strong("DRIFT & FLOW HISTORY"),  icon = icon("puzzle-piece")),
                  tabPanel(div("S1. Population structure",style = "color:red")), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
                  tabPanel(div("S2. Pool formation",style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
-                 tabPanel(div("S3. Pop-subset selection",style = "color:red")), #  icon = icon("puzzle-piece")), # may include STPGA
-                 tabPanel(strong("GENE FREQUENCIES"),  icon = icon("filter")),
-                 tabPanel(div("GF1. MAS",style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div("GF2. MABC",style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div("GF3. Number of founders",style = "color:red")) #  icon = icon("filter"))
-
+                 tabPanel(div("S3. Pop-subset selection",style = "color:red")) # stpga
       ),
 
       tabPanel("Save",  mod_saveData_ui("saveData_1"), icon = icon("floppy-disk") ),

@@ -166,7 +166,7 @@ mod_getData_ui <- function(id){
           selectInput(
             inputId = ns('geno_input'),
             label   = 'Genotypic SNPs Source*:',
-            choices = list('Upload HMP File' = 'file', 'Upload CSV File' = 'matfile', 'Copy URL HMP' = 'url'),
+            choices = list('HapMap Upload' = 'file', 'HapMap URL' = 'url', 'Table Upload' = 'matfile', 'Table URL' = 'matfileurl' ),
             width   = '200px'
           ),
           tags$span(id = ns('geno_file_holder'),
@@ -184,7 +184,18 @@ mod_getData_ui <- function(id){
             width   = '400px',
             placeholder = 'https://example.com/path/file.gz'
           ),
+          tags$div(id = ns('geno_table_options'),
+                   shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                       shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                        choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
+                                       shinyWidgets::prettyRadioButtons(ns('geno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                        choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                       shinyWidgets::prettyRadioButtons(ns('geno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                        choices = c('Dot' = '.', 'Comma' = ',')),
+                   ),
+          ),
           tags$span(id = ns('geno_table_mapping'),
                     column(4,
                            selectizeInput(
@@ -201,25 +212,11 @@ mod_getData_ui <- function(id){
                     column(4,
                            selectizeInput(
                              inputId = ns('geno_table_lastsnp'),
-                             label   = 'First SNP column: ',
+                             label   = 'Last SNP column: ',
                              choices = list()
                            ),
                     ),
           ),
-
-          tags$div(id = ns('geno_table_options'),
-                   shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-                                       shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                                                        choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
-
-                                       shinyWidgets::prettyRadioButtons(ns('geno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                                                        choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
-
-                                       shinyWidgets::prettyRadioButtons(ns('geno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                                                        choices = c('Dot' = '.', 'Comma' = ',')),
-                   ),
-          ),
-
           if (!is.null(pheno_example)) {
             checkboxInput(
               inputId = ns('geno_example'),
@@ -286,7 +283,6 @@ mod_getData_ui <- function(id){
           DT::DTOutput(ns('preview_geno')),
         )
       ),
-
       tabPanel(
         title = 'Pedigree',
         value = ns('tab3'),
@@ -351,6 +347,65 @@ mod_getData_ui <- function(id){
         title = 'Weather',
         value = ns('tab4'),
         tags$p('Comming soon!', style = 'color: red; font-size: 20px; margin-top: 25px;'),
+      ),
+      tabPanel(
+        title = 'QTL profile',
+        value = ns('tab2'),
+        fluidRow(
+          style = 'padding: 30px;',
+          # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
+          # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
+          selectInput(
+            inputId = ns('qtl_input'),
+            label   = 'QTL Source*:',
+            choices = list('Table Upload' = 'qtlfile', 'Table URL' = 'qtlfileurl' ),
+            width   = '200px'
+          ),
+          tags$span(id = ns('qtl_file_holder'),
+                    fileInput(
+                      inputId = ns('qtl_file'),
+                      label   = NULL,
+                      width   = '400px',
+                      accept  = c('application/gzip', '.gz', '.txt', '.hmp', '.csv')
+                    )
+          ),
+          textInput(
+            inputId = ns('qtl_url'),
+            label   = NULL,
+            value   = '',
+            width   = '400px',
+            placeholder = 'https://example.com/path/file.csv'
+          ),
+          tags$span(id = ns('qtl_table_mapping'),
+                    column(4,
+                           selectizeInput(
+                             inputId = ns('qtl_table_designation'),
+                             label   = 'Designation column: ',
+                             choices = list()
+                           ),    ),
+                    column(8,
+                           selectizeInput(
+                             inputId = ns('qtl_table_firstsnp'),
+                             label   = 'QTL columns: ', multiple=TRUE,
+                             choices = list()
+                           ),   ),
+          ),
+
+          tags$div(id = ns('qtl_table_options'),
+                   shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                       shinyWidgets::prettyRadioButtons(ns('qtl_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                        choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                       shinyWidgets::prettyRadioButtons(ns('qtl_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                        choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                       shinyWidgets::prettyRadioButtons(ns('qtl_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                        choices = c('Dot' = '.', 'Comma' = ',')),
+                   ),
+          ),
+          hr(),
+          DT::DTOutput(ns('preview_qtl')),
+        )
       ),
       tabPanel(
         title = 'Stored analyses',
@@ -812,9 +867,13 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('showid', ns('geno_table_options'))
           golem::invoke_js('hideid', ns('geno_url'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
+        } else if (input$geno_input == 'matfileurl' ){
+          golem::invoke_js('hideid', ns('geno_file_holder'))
+          golem::invoke_js('showid', ns('geno_table_mapping'))
+          golem::invoke_js('showid', ns('geno_table_options'))
+          golem::invoke_js('showid', ns('geno_url'))
         }
       }
-
     )
 
     geno_data_table = reactive({ # function to purely just read a csv when we need to match the genotype file
@@ -823,8 +882,12 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           if (is.null(input$geno_file)) {return(NULL)}else{
             snps_file <- input$geno_file$datapath
           }
-        } else {
-          return(NULL);   # if (input$geno_url == '') {return(NULL)}else{snps_file <- input$geno_url}
+        } else if(input$geno_input == 'matfileurl'){
+          if (is.null(input$geno_file)) {return(NULL)}else{
+            snps_file <- input$geno_url
+          }
+        }else {
+          return(NULL);
         }
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
         df <- as.data.frame(data.table::fread(snps_file, sep = input$geno_sep, quote = input$geno_quote, dec = input$geno_dec, header = TRUE))
@@ -1190,6 +1253,139 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     ### Weather tab controls ##################################################
 
+    ### QTL profile tab controls #################################################
+
+    observeEvent(
+      input$qtl_input,
+      if(length(input$qtl_input) > 0){ # added
+        if (input$qtl_input == 'qtlfile' ){
+          golem::invoke_js('showid', ns('qtl_file_holder'))
+          golem::invoke_js('showid', ns('qtl_table_mapping'))
+          golem::invoke_js('showid', ns('qtl_table_options'))
+          golem::invoke_js('hideid', ns('qtl_url'))
+          updateCheckboxInput(session, 'qtl_example', value = FALSE)
+        } else if (input$qtl_input == 'qtlfileurl' ){
+          golem::invoke_js('hideid', ns('qtl_file_holder'))
+          golem::invoke_js('showid', ns('qtl_table_mapping'))
+          golem::invoke_js('showid', ns('qtl_table_options'))
+          golem::invoke_js('showid', ns('qtl_url'))
+        }
+      }
+    )
+
+    qtl_data_table = reactive({ # function to purely just read a csv when we need to match the qtltype file
+      if(length(input$qtl_input) > 0){ # added
+        if (input$qtl_input == 'qtlfile' ) {
+          if (is.null(input$qtl_file)) {return(NULL)}else{
+            qtls_file <- input$qtl_file$datapath
+          }
+        } else if(input$qtl_input == 'qtlfileurl'){
+          if (is.null(input$qtl_file)) {return(NULL)}else{
+            qtls_file <- input$qtl_url
+          }
+        }else {
+          return(NULL);
+        }
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+        df <- as.data.frame(data.table::fread(qtls_file, sep = input$qtl_sep, quote = input$qtl_quote, dec = input$qtl_dec, header = TRUE))
+        shinybusy::remove_modal_spinner()
+        return(df)
+      }else{
+        return(NULL)
+      }
+    })
+    observeEvent(c(qtl_data_table()), { # update values for columns in designation and first snp and last snp
+      req(qtl_data_table())
+      provqtl <- qtl_data_table()
+      output$preview_qtl <- DT::renderDT({
+        req(qtl_data_table())
+        DT::datatable(qtl_data_table()[,1:min(c(50,ncol(qtl_data_table())))],
+                      extensions = 'Buttons',
+                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+        )
+      })
+      updateSelectizeInput(session, "qtl_table_firstsnp", choices = colnames(provqtl),selected = character(0))
+      updateSelectizeInput(session, "qtl_table_designation", choices = colnames(provqtl)[1:min(c(ncol(provqtl),100))], selected = character(0))
+    })
+    observeEvent( # reactive for the csv qtl read, active once the user has selected the proper columns
+      c(qtl_data_table(), input$qtl_table_firstsnp, input$qtl_table_designation),
+      {
+        req(qtl_data_table())
+        req(input$qtl_table_firstsnp)
+        req(input$qtl_table_designation)
+        if(!is.null(input$qtl_table_firstsnp) & !is.null(input$qtl_table_designation) ){
+          temp <- data()
+          temp$metadata$qtl <- data.frame(parameter="designation",value=c(input$qtl_table_designation))
+          temp$data$qtl <- qtl_data_table()[,unique(c(input$qtl_table_designation,input$qtl_table_firstsnp))]
+          data(temp)
+        }else{return(NULL)}
+      }
+    )
+
+    output$geno_summary <- renderText({
+      temp <- data()
+
+      if (!is.null(geno_data()) & any(temp$metadata$pheno$parameter == 'designation')) {
+        designationColumn <- temp$metadata$pheno[which(temp$metadata$pheno$parameter == "designation"),"value"]
+        paste(
+          "Data Integrity Checks:\n",
+
+          sum(colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
+          "Accessions exist in both phenotypic and genotypic files (will be used to train the model)\n",
+
+          sum(!colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
+          "Accessions have genotypic data but no phenotypic (will be predicted, add to pheno data file with NA value)\n",
+
+          sum(!unique(temp$data$pheno[, designationColumn ]) %in% colnames(geno_data()[, -c(1:11)])),
+          'Accessions have phenotypic data but no genotypic (will not contribute to the training model)'
+        )
+      }
+    })
+
+    observeEvent(
+      geno_data(),
+      {
+        temp <- data()
+
+        temp$data$geno <- t(as.matrix(geno_data()[, -c(1:11)])) - 1
+        colnames(temp$data$geno) <- geno_data()$`rs#`
+
+        map <- geno_data()[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
+        colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
+        map$refAllele <- substr(map$refAllele, 1, 1)
+        map$altAllele <- substr(map$altAllele, 3, 3)
+
+        temp$metadata$geno <- map
+
+        data(temp)
+      }
+    )
+
+    observeEvent(
+      input$geno_example,
+      if(length(input$geno_example) > 0){ # added
+        if (input$geno_example) {
+          updateSelectInput(session, 'geno_input', selected = 'url')
+
+          geno_example_url <-  paste0(session$clientData$url_protocol, '//',
+                                      session$clientData$url_hostname, ':',
+                                      session$clientData$url_port,
+                                      session$clientData$url_pathname,
+                                      geno_example)
+
+          updateTextInput(session, 'geno_url', value = geno_example_url)
+
+          golem::invoke_js('hideid', ns('geno_file_holder'))
+          golem::invoke_js('showid', ns('geno_url'))
+        } else {
+          updateSelectInput(session, 'geno_input', selected = 'file')
+          updateTextInput(session, 'geno_url', value = '')
+
+          golem::invoke_js('showid', ns('geno_file_holder'))
+          golem::invoke_js('hideid', ns('geno_url'))
+        }
+      }
+    )
     ### Previous-analyses tab controls ##################################################
     previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
       selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path("R/outputs")), multiple = FALSE)

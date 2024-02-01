@@ -61,6 +61,7 @@ create_getData_object <- function() {
                                   mother = character(),
                                   father = character(),
                                   yearOfOrigin = integer())
+  obj$data$qtl     <- matrix()
 
   obj$metadata$pheno <- data.frame(parameter = character(),
                                    value = character())
@@ -76,6 +77,8 @@ create_getData_object <- function() {
   obj$metadata$weather <- data.frame(environment = character(),
                                      parameter = character(),
                                      value = double())
+
+  obj$metadata$qtl <- data.frame()
 
   obj$modifications$pheno <- data.frame(module = character(),
                                         analysisId = character(),
@@ -97,6 +100,8 @@ create_getData_object <- function() {
                                            row = integer())
 
   obj$modifications$weather <- data.frame()
+
+  obj$modifications$qtl <- data.frame()
 
   obj$predictions <- data.frame(module = character(),
                                 analysisId = character(),
