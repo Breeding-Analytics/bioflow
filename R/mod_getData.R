@@ -1,6 +1,7 @@
 pheno_example <- 'www/example/pheno.csv'
 geno_example  <- 'www/example/geno.hmp.txt'
 ped_example   <- 'www/example/pedigree.csv'
+qtl_example <- 'www/example/qtl.csv'
 
 #' getData UI Function
 #'
@@ -184,18 +185,7 @@ mod_getData_ui <- function(id){
             width   = '400px',
             placeholder = 'https://example.com/path/file.gz'
           ),
-          tags$div(id = ns('geno_table_options'),
-                   shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-                                       shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                                                        choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
-
-                                       shinyWidgets::prettyRadioButtons(ns('geno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                                                        choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
-
-                                       shinyWidgets::prettyRadioButtons(ns('geno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                                                        choices = c('Dot' = '.', 'Comma' = ',')),
-                   ),
-          ),
+          hr(style = "border-top: 1px solid #4c4c4c;"),
           tags$span(id = ns('geno_table_mapping'),
                     column(4,
                            selectizeInput(
@@ -217,7 +207,19 @@ mod_getData_ui <- function(id){
                            ),
                     ),
           ),
-          if (!is.null(pheno_example)) {
+          tags$div(id = ns('geno_table_options'),
+                   shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                       shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                        choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                       shinyWidgets::prettyRadioButtons(ns('geno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                        choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                       shinyWidgets::prettyRadioButtons(ns('geno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                        choices = c('Dot' = '.', 'Comma' = ',')),
+                   ),
+          ),
+          if (!is.null(geno_example)) {
             checkboxInput(
               inputId = ns('geno_example'),
               label = span('Load example ',
@@ -366,7 +368,7 @@ mod_getData_ui <- function(id){
                       inputId = ns('qtl_file'),
                       label   = NULL,
                       width   = '400px',
-                      accept  = c('application/gzip', '.gz', '.txt', '.hmp', '.csv')
+                      accept  = c('.txt', '.csv')
                     )
           ),
           textInput(
@@ -376,6 +378,16 @@ mod_getData_ui <- function(id){
             width   = '400px',
             placeholder = 'https://example.com/path/file.csv'
           ),
+          if (!is.null(qtl_example)) {
+            checkboxInput(
+              inputId = ns('qtl_example'),
+              label = span('Load example ',
+                           a('QTL data', target = '_blank',
+                             href = qtl_example)),
+              value = FALSE
+            )
+          },
+          hr(style = "border-top: 1px solid #4c4c4c;"),
           tags$span(id = ns('qtl_table_mapping'),
                     column(4,
                            selectizeInput(
@@ -390,7 +402,6 @@ mod_getData_ui <- function(id){
                              choices = list()
                            ),   ),
           ),
-
           tags$div(id = ns('qtl_table_options'),
                    shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
                                        shinyWidgets::prettyRadioButtons(ns('qtl_sep'), 'Separator Character', selected = ',', inline = TRUE,
@@ -403,7 +414,7 @@ mod_getData_ui <- function(id){
                                                                         choices = c('Dot' = '.', 'Comma' = ',')),
                    ),
           ),
-          hr(),
+          hr(style = "border-top: 1px solid #4c4c4c;"),
           DT::DTOutput(ns('preview_qtl')),
         )
       ),
@@ -1109,14 +1120,10 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           if (is.null(input$ped_file)) return(NULL)
           data <- as.data.frame(data.table::fread(input$ped_file$datapath, sep = input$ped_sep,
                                                   quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
-          # data <- read.csv(input$ped_file$datapath, sep = input$ped_sep,
-          #                  quote = input$ped_quote, dec = input$ped_dec)
         } else if (input$ped_input == 'url') {
           if (input$ped_url == '') return(NULL)
           data <- as.data.frame(data.table::fread(input$ped_url, sep = input$ped_sep,
                                                   quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
-          # data <- read.csv(input$ped_url, sep = input$ped_sep,
-          #                  quote = input$ped_quote, dec = input$ped_dec)
         } else {
           return(NULL)
         }
@@ -1362,29 +1369,30 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     )
 
     observeEvent(
-      input$geno_example,
-      if(length(input$geno_example) > 0){ # added
-        if (input$geno_example) {
-          updateSelectInput(session, 'geno_input', selected = 'url')
+      input$qtl_example,
+      if(length(input$qtl_example) > 0){ # if user clicked on qtl example
+        if (input$qtl_example) {
+          updateSelectInput(session, 'qtl_input', selected = 'url')
 
-          geno_example_url <-  paste0(session$clientData$url_protocol, '//',
-                                      session$clientData$url_hostname, ':',
-                                      session$clientData$url_port,
-                                      session$clientData$url_pathname,
-                                      geno_example)
+          qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
+                                       session$clientData$url_hostname, ':',
+                                       session$clientData$url_port,
+                                       session$clientData$url_pathname,
+                                       qtl_example)
 
-          updateTextInput(session, 'geno_url', value = geno_example_url)
+          updateTextInput(session, 'qtl_url', value = qtl_example_url)
 
-          golem::invoke_js('hideid', ns('geno_file_holder'))
-          golem::invoke_js('showid', ns('geno_url'))
+          golem::invoke_js('hideid', ns('qtl_file_holder'))
+          golem::invoke_js('showid', ns('qtl_url'))
         } else {
-          updateSelectInput(session, 'geno_input', selected = 'file')
-          updateTextInput(session, 'geno_url', value = '')
+          updateSelectInput(session, 'qtl_input', selected = 'file')
+          updateTextInput(session, 'qtl_url', value = '')
 
-          golem::invoke_js('showid', ns('geno_file_holder'))
-          golem::invoke_js('hideid', ns('geno_url'))
+          golem::invoke_js('showid', ns('qtl_file_holder'))
+          golem::invoke_js('hideid', ns('qtl_url'))
         }
       }
+
     )
     ### Previous-analyses tab controls ##################################################
     previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
