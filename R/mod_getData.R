@@ -774,8 +774,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           # shinybusy::remove_modal_spinner()
 
           # dummy pedigree table
-          temp$data$pedigree <- data.frame(designation = unique(pheno_data()$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
-
+          temp$data$pedigree <- data.frame(germplasmName = unique(pheno_data()$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
+          temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("germplasmName","mother","father","yearOfOrigin") )
           # stage       <- NA
           # pipeline    <- NA
           # country   **<- get_study_info()$locationDbId, then list_locations()
@@ -1218,19 +1218,15 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       tmp <- data()
       ped <- ped_data()
       if (!is.null(ped) & any(tmp$metadata$pheno$parameter == 'designation') & any(tmp$metadata$pedigree$parameter == 'designation') ) {
-        v1 <- which(tmp$metadata$pheno$parameter == "designation")
-        designationColumnInPheno <- ifelse(length(v1)>0, tmp$metadata$pheno[v1,"value"], character(0) )
-        v2 <- which(tmp$metadata$pedigree$parameter == "designation")
-        designationColumnInPed <- ifelse(length(v2)>0, tmp$metadata$pedigree[v2,"value"], character(0) )
+        designationColumnInPheno <- tmp$metadata$pheno[which(tmp$metadata$pheno$parameter == "designation"),"value"]
+        designationColumnInPed <- tmp$metadata$pedigree[which(tmp$metadata$pedigree$parameter == "designation"),"value"]
         paste(
           "Data Integrity Checks:\n",
-          ifelse(length(c(v1,v2)) == 2, sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])), 0),
+          sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])),
           "Accessions exist in both phenotypic and pedigree files\n",
-
-          ifelse(length(c(v1,v2)) == 2, sum(!unique(tmp$data$pheno[, designationColumnInPheno ]) %in% ped[, designationColumnInPed ]),  0),
+          sum(!unique(tmp$data$pheno[, designationColumnInPheno ]) %in% ped[, designationColumnInPed ]),
           "Accessions have phenotypic data but no pedigree data\n",
-
-          ifelse(length(c(v1,v2)) == 2, sum(is.na(ped[ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ]), 'yearOfOrigin'])), 0),
+          ifelse(any(tmp$metadata$pedigree$parameter == 'yearOfOrigin'),  sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])) ,0),
           "Accessions in phenotypic data have no year of origin info\n"
         )
       }

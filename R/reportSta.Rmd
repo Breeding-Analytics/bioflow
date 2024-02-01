@@ -97,11 +97,11 @@ suppressWarnings(tryCatch({
     load("resultSta.RData")
   }
 }, error = function(e) {
-  NULL
+  # NULL
 }))
 
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   pred <- result$predictions
   traits <- unique(pred$trait)
@@ -159,7 +159,7 @@ The following table allows you to verify different quality metrics (KPIs) for th
 
 ```{r }
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   modeling <- result$modeling
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
@@ -182,7 +182,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   pred.traits <- subset(pred, select = c(trait,designation,environment,predictedValue))
   pred.traits <- reshape(
@@ -268,7 +268,7 @@ The following table allows you to check the trait predictions in wide format and
 
 ```{r }
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   modeling <- result$modeling
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
@@ -291,7 +291,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   traits <- unique(pred$trait)
   predictions.designation <- subset(pred, select = c(trait,designation,environment,predictedValue))
@@ -332,7 +332,7 @@ The following boxplot allows you to see the distribution of predicted values by 
 
 ```{r }
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   modeling <- result$modeling
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];

@@ -83,7 +83,7 @@ suppressWarnings(tryCatch({
 }))
 
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   mydata = result$predictions
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
@@ -119,7 +119,7 @@ This plot allows the user to visualize the distance between the population means
 ```{r, results='asis'}
 library(dplyr)
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   if("params" %in% ls()){ # we will download the document
@@ -342,7 +342,7 @@ This plot allows the user to visualize the expected response in the new generati
 
 ```{r}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   if("params" %in% ls()){ # we will download the document
@@ -357,7 +357,7 @@ if (is.null(result)){
 ```{r, results='asis'}
 library(dplyr)
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   dtIdxD <- result$predictions

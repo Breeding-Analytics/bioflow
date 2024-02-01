@@ -24,41 +24,40 @@ NULL
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Yield_Mg_ha </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Fruit length in cm|cycle 2 main plant|COMP:0000490 </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> # of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> NYH3_2021 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 384 </td>
+   <td style="text-align:left;"> 2012 Genomic Selection_ Training Population field 1 Sendusu </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 317 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> NYS1_2021 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:left;"> 2014 Genomic Selection_ Training Population field 2 Sendusu </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 320 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> SCH1_2021 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 423 </td>
+   <td style="text-align:left;"> 2015 Genomic Selection_ Training Population, Mbarara </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 298 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TXH1_2021 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 270 </td>
+   <td style="text-align:left;"> 2017 Genomic Selection_ Validation population trial Sendusu </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 206 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TXH2_2021 </td>
+   <td style="text-align:left;"> 2018 Genomic Selection_ Validation population_ Sendusu </td>
    <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 600 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019 Genomic Selection_ Validation population_ Mbarara </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 249 </td>
+   <td style="text-align:right;"> 600 </td>
   </tr>
 </tbody>
 </table></div>
@@ -74,13 +73,12 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Fruit length in cm|cycle 2 main plant|COMP:0000490" selected>Fruit length in cm|cycle 2 main plant|COMP:0000490</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out343e0f024d67581b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out1a5591fa1645cdca" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -93,17 +91,14 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="NYH3_2021" selected>NYH3_2021</option>
-<option value="TXH2_2021">TXH2_2021</option>
-<option value="SCH1_2021">SCH1_2021</option>
-<option value="TXH1_2021">TXH1_2021</option>
-<option value="NYS1_2021">NYS1_2021</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="2019 Genomic Selection_ Validation population_ Mbarara" selected>2019 Genomic Selection_ Validation population_ Mbarara</option>
+<option value="2018 Genomic Selection_ Validation population_ Sendusu">2018 Genomic Selection_ Validation population_ Sendusu</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outbb7b17c07290b817" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out6440c1fe93d6aa9a" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -116,10 +111,9 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Fruit length in cm|cycle 2 main plant|COMP:0000490" selected>Fruit length in cm|cycle 2 main plant|COMP:0000490</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out6b074f6c62965588" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outc8263807725652c0" style="width:100%;height:400px;"></div><!--/html_preserve-->

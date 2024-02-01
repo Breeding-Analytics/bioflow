@@ -50,11 +50,11 @@ suppressWarnings(tryCatch({
     load("resultPgg.RData")
   }
 }, error = function(e) {
-  NULL
+  # NULL
 }))
 
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   modeling <- result$modeling
   idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
@@ -74,7 +74,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   metrics <- result$metrics

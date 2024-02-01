@@ -75,7 +75,7 @@ suppressWarnings(tryCatch({
     load("resultMta.RData")
   }
 }, error = function(e) {
-  NULL
+  # NULL
 }))
 
 if (is.null(resultMta)){
