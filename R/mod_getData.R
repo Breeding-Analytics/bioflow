@@ -807,6 +807,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                    temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
                    for (i in input[[paste0('select', x)]]) {
                      temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+                     temp$data$pheno[,i] <- as.numeric(temp$data$pheno[,i])
                    }
                  } else {
                    if (x %in% temp$metadata$pheno$parameter) {
@@ -1162,17 +1163,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       fluidRow(
         column(3, selectInput(
           inputId  = ns('ped_designation'),
-          label    = 'Designation',
+          label    = 'designation',
           choices  = as.list(c('', header)),
         )),
         column(3, selectInput(
           inputId  = ns('ped_mother'),
-          label    = 'Female Parent',
+          label    = 'mother',
           choices  = as.list(c('', header)),
         )),
         column(3, selectInput(
           inputId  = ns('ped_father'),
-          label    = 'Male Parent',
+          label    = 'father',
           choices  = as.list(c('', header)),
         )),
         column(3, selectInput(
@@ -1216,19 +1217,20 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       req(input$ped_designation)
       tmp <- data()
       ped <- ped_data()
-      if (!is.null(ped) & any(tmp$metadata$pheno$parameter == 'designation')) {
-        designationColumnInPheno <- tmp$metadata$pheno[which(tmp$metadata$pheno$parameter == "designation"),"value"]
-        designationColumnInPed <- tmp$metadata$pedigree[which(tmp$metadata$pedigree$parameter == "designation"),"value"]
+      if (!is.null(ped) & any(tmp$metadata$pheno$parameter == 'designation') & any(tmp$metadata$pedigree$parameter == 'designation') ) {
+        v1 <- which(tmp$metadata$pheno$parameter == "designation")
+        designationColumnInPheno <- ifelse(length(v1)>0, tmp$metadata$pheno[v1,"value"], character(0) )
+        v2 <- which(tmp$metadata$pedigree$parameter == "designation")
+        designationColumnInPed <- ifelse(length(v2)>0, tmp$metadata$pedigree[v2,"value"], character(0) )
         paste(
           "Data Integrity Checks:\n",
-
-          sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])),
+          ifelse(length(c(v1,v2)) == 2, sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])), 0),
           "Accessions exist in both phenotypic and pedigree files\n",
 
-          sum(!unique(tmp$data$pheno[, designationColumnInPheno ]) %in% ped[, designationColumnInPed ]),
+          ifelse(length(c(v1,v2)) == 2, sum(!unique(tmp$data$pheno[, designationColumnInPheno ]) %in% ped[, designationColumnInPed ]),  0),
           "Accessions have phenotypic data but no pedigree data\n",
 
-          sum(is.na(ped[ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ]), 'yearOfOrigin'])),
+          ifelse(length(c(v1,v2)) == 2, sum(is.na(ped[ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ]), 'yearOfOrigin'])), 0),
           "Accessions in phenotypic data have no year of origin info\n"
         )
       }
