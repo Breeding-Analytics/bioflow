@@ -1274,6 +1274,33 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }
     )
 
+    observeEvent(
+      input$qtl_example,
+      if(length(input$qtl_example) > 0){ # if user clicked on qtl example
+        if (input$qtl_example) {
+          updateSelectInput(session, 'qtl_input', selected = 'qtlfileurl')
+
+          qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
+                                     session$clientData$url_hostname, ':',
+                                     session$clientData$url_port,
+                                     session$clientData$url_pathname,
+                                     qtl_example)
+
+          updateTextInput(session, 'qtl_url', value = qtl_example_url)
+
+          golem::invoke_js('hideid', ns('qtl_file_holder'))
+          golem::invoke_js('showid', ns('qtl_url'))
+        } else {
+          updateSelectInput(session, 'qtl_input', selected = 'qtlfile')
+          updateTextInput(session, 'qtl_url', value = '')
+
+          golem::invoke_js('showid', ns('qtl_file_holder'))
+          golem::invoke_js('hideid', ns('qtl_url'))
+        }
+      }
+
+    )
+
     qtl_data_table = reactive({ # function to purely just read a csv when we need to match the qtltype file
       if(length(input$qtl_input) > 0){ # added
         if (input$qtl_input == 'qtlfile' ) {
@@ -1281,8 +1308,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             qtls_file <- input$qtl_file$datapath
           }
         } else if(input$qtl_input == 'qtlfileurl'){
-          if (is.null(input$qtl_file)) {return(NULL)}else{
-            qtls_file <- input$qtl_url
+          if (input$qtl_url == '') {return(NULL)}else{
+          qtls_file <- input$qtl_url
           }
         }else {
           return(NULL);
@@ -1323,71 +1350,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }
     )
 
-    output$geno_summary <- renderText({
-      temp <- data()
 
-      if (!is.null(geno_data()) & any(temp$metadata$pheno$parameter == 'designation')) {
-        designationColumn <- temp$metadata$pheno[which(temp$metadata$pheno$parameter == "designation"),"value"]
-        paste(
-          "Data Integrity Checks:\n",
-
-          sum(colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
-          "Accessions exist in both phenotypic and genotypic files (will be used to train the model)\n",
-
-          sum(!colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
-          "Accessions have genotypic data but no phenotypic (will be predicted, add to pheno data file with NA value)\n",
-
-          sum(!unique(temp$data$pheno[, designationColumn ]) %in% colnames(geno_data()[, -c(1:11)])),
-          'Accessions have phenotypic data but no genotypic (will not contribute to the training model)'
-        )
-      }
-    })
-
-    observeEvent(
-      geno_data(),
-      {
-        temp <- data()
-
-        temp$data$geno <- t(as.matrix(geno_data()[, -c(1:11)])) - 1
-        colnames(temp$data$geno) <- geno_data()$`rs#`
-
-        map <- geno_data()[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
-        colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
-        map$refAllele <- substr(map$refAllele, 1, 1)
-        map$altAllele <- substr(map$altAllele, 3, 3)
-
-        temp$metadata$geno <- map
-
-        data(temp)
-      }
-    )
-
-    observeEvent(
-      input$qtl_example,
-      if(length(input$qtl_example) > 0){ # if user clicked on qtl example
-        if (input$qtl_example) {
-          updateSelectInput(session, 'qtl_input', selected = 'qtlfileurl')
-
-          qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
-                                       session$clientData$url_hostname, ':',
-                                       session$clientData$url_port,
-                                       session$clientData$url_pathname,
-                                       qtl_example)
-
-          updateTextInput(session, 'qtl_url', value = qtl_example_url)
-
-          golem::invoke_js('hideid', ns('qtl_file_holder'))
-          golem::invoke_js('showid', ns('qtl_url'))
-        } else {
-          updateSelectInput(session, 'qtl_input', selected = 'qtlfile')
-          updateTextInput(session, 'qtl_url', value = '')
-
-          golem::invoke_js('showid', ns('qtl_file_holder'))
-          golem::invoke_js('hideid', ns('qtl_url'))
-        }
-      }
-
-    )
     ### Previous-analyses tab controls ##################################################
     previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
       selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path("R/outputs")), multiple = FALSE)
