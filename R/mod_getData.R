@@ -636,15 +636,11 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           if (is.null(input$pheno_file)) {return(NULL)}else{
             data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
                                                     quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
-            # data <- read.csv(input$pheno_file$datapath, sep = input$pheno_sep,
-            #                  quote = input$pheno_quote, dec = input$pheno_dec)
           }
         } else if (input$pheno_input == 'url') {
           if (input$pheno_url == ''){return(NULL)} else{
             data <- as.data.frame(data.table::fread(input$pheno_url, sep = input$pheno_sep,
                                                     quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
-            # data <- read.csv(input$pheno_url, sep = input$pheno_sep,
-            #                  quote = input$pheno_quote, dec = input$pheno_dec)
           }
         } else if (input$pheno_input == 'brapi') {
           if (input$pheno_db_load != 1){return(NULL)} else {
@@ -1370,7 +1366,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       input$qtl_example,
       if(length(input$qtl_example) > 0){ # if user clicked on qtl example
         if (input$qtl_example) {
-          updateSelectInput(session, 'qtl_input', selected = 'url')
+          updateSelectInput(session, 'qtl_input', selected = 'qtlfileurl')
 
           qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
                                        session$clientData$url_hostname, ':',
@@ -1383,7 +1379,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('qtl_file_holder'))
           golem::invoke_js('showid', ns('qtl_url'))
         } else {
-          updateSelectInput(session, 'qtl_input', selected = 'file')
+          updateSelectInput(session, 'qtl_input', selected = 'qtlfile')
           updateTextInput(session, 'qtl_url', value = '')
 
           golem::invoke_js('showid', ns('qtl_file_holder'))

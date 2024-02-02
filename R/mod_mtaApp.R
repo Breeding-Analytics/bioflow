@@ -263,7 +263,8 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)] # remove factors that do not have more than one level
-      updateSelectInput(session, "fixedTermMta2", choices = traitsMta)
+      start <- setdiff(traitsMta,c("designation","entryType","pipeline"))
+      updateSelectInput(session, "fixedTermMta2", choices = traitsMta, selected = start)
     })
     #################
     ## random effects
@@ -278,7 +279,7 @@ mod_mtaApp_server <- function(id, data){
       traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)]
       traitsMta <- setdiff(traitsMta, input$fixedTermMta2)
-      updateSelectInput(session, "randomTermMta2", choices = traitsMta)
+      updateSelectInput(session, "randomTermMta2", choices = traitsMta, selected = "designation")
     })
     #################
     ## gXe interactions
@@ -504,6 +505,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$trait3Mta)
       req(input$groupMtaInputPlot)
       mydata <- data()$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
       res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, #color = mydata[,input$groupMtaInputPlot],

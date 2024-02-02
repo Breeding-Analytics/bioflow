@@ -23,6 +23,7 @@ mod_saveData_ui <- function(id){
         textInput(ns("fileNameUpload"), label = "Name assigned to the analysis", value = "Enter name..."),
         actionButton(ns("runSave"), "Save analysis", icon = icon("floppy-disk")),
         textOutput(ns("outSave")),
+        downloadButton(ns("downloadRds"), "Download analysis files", icon = icon("floppy-disk")),
         hr(style = "border-top: 1px solid #4c4c4c;"),
         DT::DTOutput(ns("statusTable"))
       )
@@ -63,6 +64,17 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       )
     })
+
+    output$downloadRds <- downloadHandler(
+      filename <- function(){
+        return(file.path(paste0("result",".rds")))
+      },
+
+      content = function(file) {
+        result= data()
+        saveRDS(result, file = file)
+      }
+    )
 
   })
 }
