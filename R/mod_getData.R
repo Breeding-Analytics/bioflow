@@ -419,15 +419,32 @@ mod_getData_ui <- function(id){
         )
       ),
       tabPanel(
-        title = 'Stored analyses',
+        title = 'Stored objects',
         value = ns('tab5'),
         tags$br(),
-        actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve previous analysis"),
-        uiOutput(ns('previous_input2')),
-        hr(style = "border-top: 1px solid #4c4c4c;"),
-        actionButton(ns("runLoadPrevious"), "Load analysis", icon = icon("play-circle")),
-        textOutput(ns("outLoad")),
-        hr(style = "border-top: 1px solid #4c4c4c;")
+
+        selectInput(
+          inputId = ns('previous_object_input'),
+          label   = 'Object Source*: ',
+          choices = list('Upload from PC' = 'pcfile', 'Upload from cloud' = 'cloudfile'),
+          width   = '200px'
+        ),
+
+        tags$span(id = ns('previous_object_file_holder'),
+                  fileInput(
+                    inputId = ns('previous_object_file'),
+                    label   = NULL,
+                    width   = '400px',
+                    accept  = c('.rds','.RData')
+                  ),
+                  textOutput(ns("outLoad2")),
+        ),
+        tags$div(id = ns('previous_object_retrieve'),
+                 actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve previous analysis"),
+                 uiOutput(ns('previous_input2')),
+                 actionButton(ns("runLoadPrevious"), "Load analysis", icon = icon("play-circle")),
+                 textOutput(ns("outLoad")),
+        ),
       ),
     ),
 
@@ -1309,7 +1326,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           }
         } else if(input$qtl_input == 'qtlfileurl'){
           if (input$qtl_url == '') {return(NULL)}else{
-          qtls_file <- input$qtl_url
+            qtls_file <- input$qtl_url
           }
         }else {
           return(NULL);
@@ -1352,31 +1369,77 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
 
     ### Previous-analyses tab controls ##################################################
-    previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
-      selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path("R/outputs")), multiple = FALSE)
-    })
-    output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
-    outLoad <- eventReactive(input$runLoadPrevious, {
-      # req(data())
-      req(input$previous_input)
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      ## replace tables
-      tmp <- data() # current or empty dataset
-      load(file.path(getwd(),res_auth$repository,input$previous_input)) # old dataset
-      tmp$data <- result$data
-      tmp$metadata <- result$metadata
-      tmp$modifications <- result$modifications
-      tmp$predictions <- result$predictions
-      tmp$metrics <- result$metrics
-      tmp$modeling <- result$modeling
-      tmp$status <- result$status
-      data(tmp) # update data with results
-      shinybusy::remove_modal_spinner()
-      cat(paste("Dataset:",input$previous_input,"loaded successfully."))
-    }) ## end eventReactive
-    output$outLoad <- renderPrint({
-      outLoad()
-    })
+
+    observeEvent(
+      input$previous_object_input,
+      if(length(input$previous_object_input) > 0){ # added
+        if (input$previous_object_input == 'pcfile') {
+          golem::invoke_js('showid', ns('previous_object_file_holder'))
+          golem::invoke_js('hideid', ns('previous_object_retrieve'))
+        } else if (input$previous_object_input == 'cloudfile') {
+          golem::invoke_js('hideid', ns('previous_object_file_holder'))
+          golem::invoke_js('showid', ns('previous_object_retrieve'))
+        }
+      }
+    )
+
+
+    output$previous_input2 <- renderUI({}) # this 2 lines avoid issues when displaying an uiOutput
+    outputOptions(output, "previous_input2", suspendWhenHidden = FALSE)
+    observeEvent( # this is the part where we either load the previous analysis from cloud or PC
+      c(input$previous_object_input),
+      {
+        if(input$previous_object_input == 'cloudfile'){ # upload from cloud
+
+          previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
+            selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path("R/outputs")), multiple = FALSE)
+          })
+          output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
+          outLoad <- eventReactive(input$runLoadPrevious, {
+            # req(data())
+            req(input$previous_input)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+            ## replace tables
+            tmp <- data() # current or empty dataset
+            load(file.path(getwd(),res_auth$repository,input$previous_input)) # old dataset
+            tmp$data <- result$data
+            tmp$metadata <- result$metadata
+            tmp$modifications <- result$modifications
+            tmp$predictions <- result$predictions
+            tmp$metrics <- result$metrics
+            tmp$modeling <- result$modeling
+            tmp$status <- result$status
+            data(tmp) # update data with results
+            shinybusy::remove_modal_spinner()
+            cat(paste("Dataset:",input$previous_input,"loaded successfully."))
+          }) ## end eventReactive
+          output$outLoad <- renderPrint({
+            outLoad()
+          })
+        }else if(input$previous_object_input == 'pcfile'){ # upload rds
+          outLoad2 <- eventReactive(input$previous_object_file, {
+            req(input$previous_object_file)
+            load(input$previous_object_file$datapath)
+            tmp <- data()
+            tmp$data <- result$data
+            tmp$metadata <- result$metadata
+            tmp$modifications <- result$modifications
+            tmp$predictions <- result$predictions
+            tmp$metrics <- result$metrics
+            tmp$modeling <- result$modeling
+            tmp$status <- result$status
+            data(tmp) # update data with results
+            cat(paste("Dataset","loaded successfully."))
+          }) ## end eventReactive
+          output$outLoad2 <- renderPrint({
+            outLoad2()
+          })
+        }else{
+
+        }
+      }
+    )
+
     ### Control Nex/Back buttons ###############################################
 
     back_bn  <- actionButton(ns('prev_tab'), 'Back')

@@ -118,8 +118,8 @@ mod_mtaApp_ui <- function(id){
                  tabPanel("Sparsity", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                              column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 2000))  ),
-                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 500))  ),
+                                              column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15))  ),
+                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 5))  ),
                                               column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) )
                           )
                  ),
