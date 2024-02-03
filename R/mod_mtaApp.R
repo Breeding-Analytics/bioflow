@@ -24,6 +24,9 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("modelMet"), label = "Evaluation method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
+      tags$span(id = ns('ismarkermodel'),
+                selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
+      ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
                           column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
@@ -199,6 +202,15 @@ mod_mtaApp_server <- function(id, data){
     #   data <- resultMta
     #   return(data)
     # })
+    ################## marker version to use if marker-based model
+    observeEvent(
+      input$modelMet,
+      if (input$modelMet %in% c('gblup','rrblup','ssgblup') ) {
+        golem::invoke_js('showid', ns('ismarkermodel'))
+      } else {
+        golem::invoke_js('hideid', ns('ismarkermodel'))
+      }
+    )
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -223,14 +235,14 @@ mod_mtaApp_server <- function(id, data){
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
     # ## version qa marker
-    # observeEvent(c(data()), {
-    #   req(data())
-    #   dtMta <- data()
-    #   dtMta <- dtMta$status
-    #   dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
-    #   traitsMta <- unique(dtMta$analysisId)
-    #   updateSelectInput(session, "versionMarker2Mta", choices = traitsMta, selected = traitsMta[length(traitsMta)])
-    # })
+    observeEvent(c(data()), {
+      req(data())
+      dtMta <- data()
+      dtMta <- dtMta$status
+      dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
+      traitsMta <- unique(dtMta$analysisId)
+      updateSelectInput(session, "versionMarker2Mta", choices = traitsMta)
+    })
     #################
     ## traits
     observeEvent(c(data(), input$version2Mta), {
@@ -485,7 +497,7 @@ mod_mtaApp_server <- function(id, data){
       res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
                             color=mydata[,"trait"]
                             # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
-                            )   # , type="scatter", mode   = "markers")
+      )   # , type="scatter", mode   = "markers")
       res = res %>% plotly::add_bars()
       res
     })
@@ -537,11 +549,22 @@ mod_mtaApp_server <- function(id, data){
         })
       }else{
         output$qaQcMtaInfo <- renderUI({return(NULL)})
+        if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
+          if(input$versionMarker2Mta == ''){ # user didn't provide a modifications id
+            if(!is.null(dtMta$data$geno)){ # if user actually has marker data
+              if(length(which(is.na(dtMta$data$geno))) > 0){ # if there is missing data and user didn't impute throw an error
+                shinybusy::remove_modal_spinner() # stop the spinner
+                stop("Markers have missing data and you have not provided a modifications table to impute the genotype data. Please go to the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
+              }else{markerVersionToUse <- NULL} # data is complete, no need to stop although user does NOT have a modification table
+            }else{ # if user does NOT have marker data and wanted a marker-based model
+              stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+            }
+          }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
+        }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
         resultMta <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
-          # analysisIdForGenoModifications = input$versionMarker2Mta,
-          analysisIdForGenoModifications = NULL,
+          analysisIdForGenoModifications = markerVersionToUse, # marker modifications
           fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
           trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
@@ -561,6 +584,7 @@ mod_mtaApp_server <- function(id, data){
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",resultMta[[1]]))
         }
+
       }
       shinybusy::remove_modal_spinner()
 

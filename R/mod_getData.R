@@ -951,7 +951,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
           for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
           shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
-          tempG <- sommer::atcg1234(tempG, maf = -1)
+          tempG <- sommer::atcg1234(tempG, maf = -1, imp = FALSE)
           shinybusy::remove_modal_spinner()
           temp$data$geno <- tempG$M
           refAlleles <- tempG$ref.alleles
@@ -1568,7 +1568,7 @@ hapMapChar2NumericDouble <- function(hapMap) {
   missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","",-9)
   for(iMiss in missingData){hapMap[which(hapMap==iMiss, arr.ind = TRUE)] <- NA}
   # convert the hapMap to numeric
-  hapMapNumeric <- sommer::atcg1234(t(hapMap), maf = -1)
+  hapMapNumeric <- sommer::atcg1234(t(hapMap), maf = -1, imp = FALSE)
 
   # convert to data frame
   refAlleles <- hapMapNumeric$ref.alleles

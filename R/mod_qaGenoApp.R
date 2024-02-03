@@ -233,6 +233,7 @@ mod_qaGenoApp_server <- function(id, data){
         ## write the new status table
         newStatus <- data.frame(module="qaGeno", analysisId= mods$analysisId[nrow(mods)])
         result$status <- rbind(result$status, newStatus)
+        data(result)
         cat(paste("Modifications to genotype information saved with id:",mods$analysisId[nrow(mods)]))
       }else{
         cat("No modifications to add.")
