@@ -155,6 +155,8 @@ mod_getData_ui <- function(id){
         uiOutput(ns('brapi_trait_map')),
         DT::DTOutput(ns('preview_pheno')),
         uiOutput(ns('pheno_map')),
+        actionButton(ns("concatenateEnv"), "Update environments", icon = icon("play-circle")),
+        textOutput(ns("outConcatenateEnv")),
       ),
       tabPanel(
         title = 'Genotypic',
@@ -786,6 +788,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           #
           # shinybusy::remove_modal_spinner()
 
+
           # dummy pedigree table
           temp$data$pedigree <- data.frame(germplasmName = unique(pheno_data()$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
           temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("germplasmName","mother","father","yearOfOrigin") )
@@ -822,7 +825,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                      temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
                      temp$data$pheno[,i] <- as.numeric(temp$data$pheno[,i])
                    }
-                 } else {
+                 } else { # is any other column other than trait
                    if (x %in% temp$metadata$pheno$parameter) {
                      temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
                    } else {
@@ -869,7 +872,30 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }
 
     )
-
+    outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in environment
+      req(data())
+      myObject <- data()
+      environmentColumn <- which(myObject$metadata$pheno$parameter == "environment")
+      if(length(environmentColumn) > 0){ # user has mapped an environment column
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","environment"))
+        if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          data(myObject)
+          cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
+        }else{cat("No additional columns to concatenate to your 'environment' column")}
+      }else{ # user has not mapped an environment column, we will add it
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","environment"))
+        if(length(otherEnvironmentColumn) > 0){ # if user has mapped more than one column
+          myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
+          data(myObject)
+          cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
+        }else{cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'environment' to be able to do a genetic evaluation "))}
+      }
+    })
+    output$outConcatenateEnv <- renderPrint({
+      outConcatenateEnv()
+    })
     ### Genotypic tab controls #################################################
 
     observeEvent(
