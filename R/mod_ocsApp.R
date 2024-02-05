@@ -390,30 +390,8 @@ mod_ocsApp_server <- function(id, data){
         })
         ## Report tab
         output$reportOcs <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit("./R/reportOcs.Rmd", quiet = TRUE), fragment.only=TRUE))
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOcs.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
-        output$downloadReportOcs <- downloadHandler(
-          filename = function() {
-            paste('my-report', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            src <- normalizePath('R/reportOcs.Rmd')
-            src2 <- normalizePath('R/outputs/resultOcs.RData')
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmarkdown::html_document()
-            ))
-            file.rename(out, file)
-          }
-        )
 
       } else {
         output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
@@ -425,6 +403,29 @@ mod_ocsApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
+
+    output$downloadReportOcs <- downloadHandler(
+      filename = function() {
+        paste('my-report', sep = '.', switch(
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
+      },
+      content = function(file) {
+        src <- normalizePath(system.file("rmd","reportOcs.Rmd",package="bioflow"))
+        src2 <- normalizePath('data/resultOcs.RData')
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+          "HTML",
+          HTML = rmarkdown::html_document()
+        ))
+        file.rename(out, file)
+      }
+    )
 
     output$outOcs <- renderPrint({
       outOcs()

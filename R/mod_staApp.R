@@ -481,7 +481,7 @@ mod_staApp_server <- function(id,data){
         })
         ## report
         output$reportSta <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit("./R/reportSta.Rmd", quiet = TRUE), fragment.only=TRUE))
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
         output$downloadReportSta <- downloadHandler(
@@ -491,8 +491,9 @@ mod_staApp_server <- function(id,data){
             ))
           },
           content = function(file) {
-            src <- normalizePath('R/reportSta.Rmd')
-            src2 <- normalizePath('R/outputs/resultSta.RData')
+            src <- normalizePath(system.file("rmd","reportSta.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultSta.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())

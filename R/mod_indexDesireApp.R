@@ -380,31 +380,8 @@ mod_indexDesireApp_server <- function(id, data){
         })
         ## Report tab
         output$reportIndexD <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit("./R/reportIndexD.Rmd", quiet = TRUE), fragment.only=TRUE))
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportIndexD.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
-
-        output$downloadReportIndex <- downloadHandler(
-          filename = function() {
-            paste('my-report', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            src <- normalizePath('R/reportIndexD.Rmd')
-            src2 <- normalizePath('R/outputs/resultIndex.RData')
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultIndex.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmarkdown::html_document()
-            ))
-            file.rename(out, file)
-          }
-        )
 
       } else {
         output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)})
@@ -584,6 +561,29 @@ mod_indexDesireApp_server <- function(id, data){
       # hideAll$clearAll <- FALSE
 
     })
+
+    output$downloadReportIndex <- downloadHandler(
+      filename = function() {
+        paste('my-report', sep = '.', switch(
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
+      },
+      content = function(file) {
+        src <- normalizePath(system.file("rmd","reportIndexD.Rmd",package="bioflow"))
+        src2 <- normalizePath('data/resultIndex.RData')
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultIndex.RData', overwrite = TRUE)
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+          "HTML",
+          HTML = rmarkdown::html_document()
+        ))
+        file.rename(out, file)
+      }
+    )
 
     output$outIdxB <- renderPrint({
       outIdxB()
