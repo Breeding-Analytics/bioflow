@@ -14,8 +14,8 @@ app_server <- function(input, output, session) {
   data <- reactiveVal()
   observe({data <- create_getData_object()})
   # Your application server logic
-  required_mapping <- c("stage", "pipeline", "country", "year", "season",
-                        "location", "trial", "environment", "rep", "iBlock",
+  required_mapping <- c("pipeline", "stage", "year", "season",
+                        "country", "location", "trial", "environment", "rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 
   ## home

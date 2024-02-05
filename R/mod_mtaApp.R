@@ -198,8 +198,8 @@ mod_mtaApp_server <- function(id, data){
     })
     ############################################################################
     # data = reactive({ # provisional dataset for testing
-    #   load(file.path(getwd(),"R/outputs/resultMta.RData"))
-    #   data <- resultMta
+    #   load(file.path(getwd(),"R/outputs/result.RData"))
+    #   data <- result
     #   return(data)
     # })
     ################## marker version to use if marker-based model
@@ -561,7 +561,7 @@ mod_mtaApp_server <- function(id, data){
             }
           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
-        resultMta <- try(cgiarPipeline::metLMM(
+        result <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
           analysisIdForGenoModifications = markerVersionToUse, # marker modifications
@@ -577,24 +577,24 @@ mod_mtaApp_server <- function(id, data){
         ),
         silent=TRUE
         )
-        if(!inherits(resultMta,"try-error")) {
-          data(resultMta) # update data with results
-          # save(resultMta, file = "./R/outputs/resultMta.RData")
-          cat(paste("Multi-trial analysis step with id:",resultMta$status$analysisId[length(resultMta$status$analysisId)],"saved."))
+        if(!inherits(result,"try-error")) {
+          data(result) # update data with results
+          # save(result, file = "./R/outputs/result.RData")
+          cat(paste("Multi-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
-          cat(paste("Analysis failed with the following error message: \n\n",resultMta[[1]]))
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
 
       }
       shinybusy::remove_modal_spinner()
 
-      if(!inherits(resultMta,"try-error")) { # if all goes well in the run
+      if(!inherits(result,"try-error")) { # if all goes well in the run
         ## predictions table
         output$predictionsMta <-  DT::renderDT({
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-          predictions <- resultMta$predictions
+          predictions <- result$predictions
           predictions <- predictions[predictions$module=="mta",]
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
@@ -609,12 +609,12 @@ mod_mtaApp_server <- function(id, data){
         })
         # metrics table
         output$metricsMta <-  DT::renderDT({
-          if(!inherits(resultMta,"try-error") ){
+          if(!inherits(result,"try-error") ){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-            metrics <- resultMta$metrics
-            mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            metrics <- result$metrics
+            mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
             metrics <- metrics[which(metrics$analysisId == mtaId),]
             metrics <- subset(metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
@@ -627,12 +627,12 @@ mod_mtaApp_server <- function(id, data){
         })
         # modeling table
         output$modelingMta <-  DT::renderDT({
-          if(!inherits(resultMta,"try-error") ){
+          if(!inherits(result,"try-error") ){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-            modeling <- resultMta$modeling
-            mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            modeling <- result$modeling
+            mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',
@@ -655,13 +655,13 @@ mod_mtaApp_server <- function(id, data){
           },
           content = function(file) {
             src <- normalizePath('R/reportMta.Rmd')
-            src2 <- normalizePath('R/outputs/resultMta.RData')
+            src2 <- normalizePath('R/outputs/result.RData')
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultMta.RData', overwrite = TRUE)
+            file.copy(src2, 'result.RData', overwrite = TRUE)
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmarkdown::html_document()
@@ -675,7 +675,7 @@ mod_mtaApp_server <- function(id, data){
         output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
         output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
         hideAll$clearAll <- TRUE
-      } ### enf of if(!inherits(resultMta,"try-error"))
+      } ### enf of if(!inherits(result,"try-error"))
 
       hideAll$clearAll <- FALSE
 
