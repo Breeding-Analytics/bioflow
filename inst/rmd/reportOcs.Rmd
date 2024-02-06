@@ -79,11 +79,11 @@ suppressWarnings(tryCatch({
     load("resultOcs.RData")
   }
 }, error = function(e) {
-  NULL
+  # NULL
 }))
 
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   mydata = result$predictions
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
@@ -129,7 +129,7 @@ The following barplot allows you identify the number of times (y-axis) that a pa
 
 ```{r}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   predictions <- result$predictions
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
@@ -149,7 +149,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   if("params" %in% ls()){  # if user will download the report
@@ -235,7 +235,7 @@ This table shows the performance of the parents selected by the OCS algorithm. T
 ```{r}
 
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   mydata = result$predictions
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
@@ -283,7 +283,7 @@ The following table summarizes the trait means for the different OCS runs (numbe
 ```{r}
 
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
@@ -317,7 +317,7 @@ The following boxplot allows you to see the performance of the different crosses
 <p>&nbsp;</p>
 ```{r}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   predictions <- result$predictions
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];

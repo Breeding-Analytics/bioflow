@@ -21,7 +21,7 @@ The following table provides an overview of the performance of the predicted cro
 <p>&nbsp;</p>
 
 NULL
-The trait used for OCS was:  Plant_Height_cm_QTL<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outc6783e4d56f7e8b3" style="width:100%;height:auto;"></div><!--/html_preserve-->
+The trait used for OCS was:  desireIndex<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out038dc1d2815e8503" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -34,12 +34,12 @@ The following barplot allows you identify the number of times (y-axis) that a pa
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="ocsApp_1-environ-label" for="ocsApp_1-environ">Treatment:</label>
 <div>
-<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="Plant_Height_cm_QTL ~ 20 crosses * 30 degrees" selected>Plant_Height_cm_QTL ~ 20 crosses * 30 degrees</option></select>
+<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="desireIndex ~ 20 crosses * 30 degrees" selected>desireIndex ~ 20 crosses * 30 degrees</option></select>
 <script type="application/json" data-for="ocsApp_1-environ">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out79bf8aa6eb901659" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-outfbb08c455de8c1c5" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -49,7 +49,7 @@ This table shows the performance of the parents selected by the OCS algorithm. T
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outde2b2ffcc615f99b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out687eb97d062df0df" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -59,7 +59,7 @@ The following table summarizes the trait means for the different OCS runs (numbe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outeac978f7067e9420" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-oute20e0b77a96a55fc" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -71,13 +71,12 @@ The following boxplot allows you to see the performance of the different crosses
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="ocsApp_1-traitFilterPredictions2D2-label" for="ocsApp_1-traitFilterPredictions2D2">Trait:</label>
 <div>
-<select id="ocsApp_1-traitFilterPredictions2D2" class="shiny-input-select" multiple="multiple"><option value="Plant_Height_cm_QTL" selected>Plant_Height_cm_QTL</option>
-<option value="Yield_Mg_ha_QTL" selected>Yield_Mg_ha_QTL</option></select>
+<select id="ocsApp_1-traitFilterPredictions2D2" class="shiny-input-select" multiple="multiple"><option value="desireIndex" selected>desireIndex</option></select>
 <script type="application/json" data-for="ocsApp_1-traitFilterPredictions2D2">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-outf08e701bbef8c246" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out7d672e8756a7decc" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

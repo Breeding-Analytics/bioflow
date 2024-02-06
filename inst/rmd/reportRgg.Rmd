@@ -81,11 +81,11 @@ suppressWarnings(tryCatch({
     load("resultRgg.RData")
   }
 }, error = function(e) {
-  NULL
+  # NULL
 }))
 
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   pred <- result$predictions %>% filter(module == "mta")
   met <- result$metrics %>% filter(module == "rgg", trait != "desireIndex")
@@ -173,7 +173,7 @@ gg <- function(data, label = NULL, title = NULL, trait, type) {
 
 ```{r, results='asis'}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   if("params" %in% ls()){ # we will download the document
@@ -201,7 +201,7 @@ if (is.null(result)){
 
 ```{r }
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   if("params" %in% ls()){ # we will download the document
@@ -220,7 +220,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-  invisible(NULL)
+  # invisible(NULL)
 } else {
   
   if("params" %in% ls()){ # we will download the document
