@@ -24,6 +24,9 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("modelMet"), label = "Evaluation method", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
+      tags$span(id = ns('ismarkermodel'),
+                selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
+      ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
                           column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
@@ -44,7 +47,8 @@ mod_mtaApp_ui <- function(id){
       actionButton(ns("runMta"), "Run", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       uiOutput(ns("qaQcMtaInfo")),
-      textOutput(ns("outMta"))
+      textOutput(ns("outMta")),
+      hr(style = "border-top: 1px solid #4c4c4c;")
     ), # end sidebarpanel
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -117,8 +121,8 @@ mod_mtaApp_ui <- function(id){
                  tabPanel("Sparsity", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                              column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 2000))  ),
-                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 500))  ),
+                                              column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15))  ),
+                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 5))  ),
                                               column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) )
                           )
                  ),
@@ -194,10 +198,19 @@ mod_mtaApp_server <- function(id, data){
     })
     ############################################################################
     # data = reactive({ # provisional dataset for testing
-    #   load(file.path(getwd(),"R/outputs/resultMta.RData"))
-    #   data <- resultMta
+    #   load(file.path(getwd(),"R/outputs/result.RData"))
+    #   data <- result
     #   return(data)
     # })
+    ################## marker version to use if marker-based model
+    observeEvent(
+      input$modelMet,
+      if (input$modelMet %in% c('gblup','rrblup','ssgblup') ) {
+        golem::invoke_js('showid', ns('ismarkermodel'))
+      } else {
+        golem::invoke_js('hideid', ns('ismarkermodel'))
+      }
+    )
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -222,14 +235,14 @@ mod_mtaApp_server <- function(id, data){
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
     # ## version qa marker
-    # observeEvent(c(data()), {
-    #   req(data())
-    #   dtMta <- data()
-    #   dtMta <- dtMta$status
-    #   dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
-    #   traitsMta <- unique(dtMta$analysisId)
-    #   updateSelectInput(session, "versionMarker2Mta", choices = traitsMta, selected = traitsMta[length(traitsMta)])
-    # })
+    observeEvent(c(data()), {
+      req(data())
+      dtMta <- data()
+      dtMta <- dtMta$status
+      dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
+      traitsMta <- unique(dtMta$analysisId)
+      updateSelectInput(session, "versionMarker2Mta", choices = traitsMta)
+    })
     #################
     ## traits
     observeEvent(c(data(), input$version2Mta), {
@@ -262,7 +275,8 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)] # remove factors that do not have more than one level
-      updateSelectInput(session, "fixedTermMta2", choices = traitsMta)
+      start <- setdiff(traitsMta,c("designation","entryType","pipeline"))
+      updateSelectInput(session, "fixedTermMta2", choices = traitsMta, selected = start)
     })
     #################
     ## random effects
@@ -277,7 +291,7 @@ mod_mtaApp_server <- function(id, data){
       traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)]
       traitsMta <- setdiff(traitsMta, input$fixedTermMta2)
-      updateSelectInput(session, "randomTermMta2", choices = traitsMta)
+      updateSelectInput(session, "randomTermMta2", choices = traitsMta, selected = "designation")
     })
     #################
     ## gXe interactions
@@ -286,7 +300,8 @@ mod_mtaApp_server <- function(id, data){
       req(input$trait2Mta)
       dtMta <- data()
       dtMta <- dtMta$metadata$weather
-      traitsMta <- unique(c("envIndex",unique(dtMta$parameter)))
+      validWeatherVars <- c("AIRMASS","ALLSKY_SFC_LW_UP","PW","CLOUD_AMT","GWETTOP","PS","PRECTOTCORR","WS2M","T2M","T2M_MAX","T2M_MIN","U2M","RH2M")
+      traitsMta <- unique(c("envIndex",intersect(unique(dtMta$parameter), validWeatherVars )))
       updateSelectInput(session, "interactionTermMta2", choices = traitsMta)
     })
     #################
@@ -483,7 +498,7 @@ mod_mtaApp_server <- function(id, data){
       res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
                             color=mydata[,"trait"]
                             # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
-                            )   # , type="scatter", mode   = "markers")
+      )   # , type="scatter", mode   = "markers")
       res = res %>% plotly::add_bars()
       res
     })
@@ -503,6 +518,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$trait3Mta)
       req(input$groupMtaInputPlot)
       mydata <- data()$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
       res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, #color = mydata[,input$groupMtaInputPlot],
@@ -534,11 +550,22 @@ mod_mtaApp_server <- function(id, data){
         })
       }else{
         output$qaQcMtaInfo <- renderUI({return(NULL)})
-        resultMta <- try(cgiarPipeline::metLMM(
+        if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
+          if(input$versionMarker2Mta == ''){ # user didn't provide a modifications id
+            if(!is.null(dtMta$data$geno)){ # if user actually has marker data
+              if(length(which(is.na(dtMta$data$geno))) > 0){ # if there is missing data and user didn't impute throw an error
+                shinybusy::remove_modal_spinner() # stop the spinner
+                stop("Markers have missing data and you have not provided a modifications table to impute the genotype data. Please go to the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
+              }else{markerVersionToUse <- NULL} # data is complete, no need to stop although user does NOT have a modification table
+            }else{ # if user does NOT have marker data and wanted a marker-based model
+              stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+            }
+          }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
+        }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
+        result <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
-          # analysisIdForGenoModifications = input$versionMarker2Mta,
-          analysisIdForGenoModifications = NULL,
+          analysisIdForGenoModifications = markerVersionToUse, # marker modifications
           fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
           trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
@@ -551,23 +578,24 @@ mod_mtaApp_server <- function(id, data){
         ),
         silent=TRUE
         )
-        if(!inherits(resultMta,"try-error")) {
-          data(resultMta) # update data with results
-          # save(resultMta, file = "./R/outputs/resultMta.RData")
-          cat(paste("Multi-trial analysis step with id:",resultMta$status$analysisId[length(resultMta$status$analysisId)],"saved."))
+        if(!inherits(result,"try-error")) {
+          data(result) # update data with results
+          # save(result, file = "./R/outputs/result.RData")
+          cat(paste("Multi-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
         }else{
-          cat(paste("Analysis failed with the following error message: \n\n",resultMta[[1]]))
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
+
       }
       shinybusy::remove_modal_spinner()
 
-      if(!inherits(resultMta,"try-error")) { # if all goes well in the run
+      if(!inherits(result,"try-error")) { # if all goes well in the run
         ## predictions table
         output$predictionsMta <-  DT::renderDT({
           # if ( hideAll$clearAll){
           #   return()
           # }else{
-          predictions <- resultMta$predictions
+          predictions <- result$predictions
           predictions <- predictions[predictions$module=="mta",]
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
@@ -582,12 +610,12 @@ mod_mtaApp_server <- function(id, data){
         })
         # metrics table
         output$metricsMta <-  DT::renderDT({
-          if(!inherits(resultMta,"try-error") ){
+          if(!inherits(result,"try-error") ){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-            metrics <- resultMta$metrics
-            mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            metrics <- result$metrics
+            mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
             metrics <- metrics[which(metrics$analysisId == mtaId),]
             metrics <- subset(metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
@@ -600,12 +628,12 @@ mod_mtaApp_server <- function(id, data){
         })
         # modeling table
         output$modelingMta <-  DT::renderDT({
-          if(!inherits(resultMta,"try-error") ){
+          if(!inherits(result,"try-error") ){
             # if ( hideAll$clearAll){
             #   return()
             # }else{
-            modeling <- resultMta$modeling
-            mtas <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            modeling <- result$modeling
+            mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',
@@ -616,44 +644,44 @@ mod_mtaApp_server <- function(id, data){
           }
         })
         # ## Report tab
-        # output$reportMta <- renderUI({
         output$reportMta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
         })
+
+        output$downloadReportMta <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            src <- normalizePath(system.file("rmd","reportMta.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultMta.RData')
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultMta.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmarkdown::html_document()
+            ))
+            file.rename(out, file)
+          }
+        )
 
       } else {
         output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
         output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
         output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
         hideAll$clearAll <- TRUE
-      } ### enf of if(!inherits(resultMta,"try-error"))
+      } ### enf of if(!inherits(result,"try-error"))
 
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
-
-    output$downloadReportMta <- downloadHandler(
-      filename = function() {
-        paste('my-report', sep = '.', switch(
-          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-        ))
-      },
-      content = function(file) {
-        src <- normalizePath(system.file("rmd","reportMta.Rmd",package="bioflow"))
-        src2 <- normalizePath('data/resultMta.RData')
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
-        file.copy(src2, 'resultMta.RData', overwrite = TRUE)
-        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-          "HTML",
-          HTML = rmarkdown::html_document()
-        ))
-        file.rename(out, file)
-      }
-    )
 
     output$outMta <- renderPrint({
       outMta()

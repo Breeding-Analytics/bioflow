@@ -261,7 +261,7 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Environmental correlations
+### Genetic correlations between environments
 
 The following graph allows to see the genetic correlations of the different environment for each **trait**.
 
@@ -331,7 +331,7 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-## Trait correlations
+## Genetic correlations between traits
 
 The following graph allows to see the genetic correlations among traits using across environment estimates.
 
@@ -351,7 +351,7 @@ if (is.null(result)){
   if(length(nTraits) > 1){
     if("params" %in% ls()){ # we will download the document
       
-      p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+      p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
                                               valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
                                               checkboxAxis= addTextInPlots)
       print(htmltools::tagList(plotly::ggplotly(p.cor.pred.traits)))
@@ -359,7 +359,7 @@ if (is.null(result)){
     }else{
       
       plotly::renderPlotly({
-        p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+        p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
                                                 valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
                                                 checkboxAxis= addTextInPlots)
         plotly::layout(p.cor.pred.traits,font=font.plot_ly)

@@ -69,24 +69,24 @@ get_h <- function() {
 ```{r }
 
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultMta.RData")){
+  if(file.exists("./outputs/result.RData")){
     load("./outputs/resultMta.RData")
   }else{
     load("resultMta.RData")
   }
 }, error = function(e) {
-  NULL
+  # NULL
 }))
 
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  # resultMta$status <- resultMta$status[1:6,]
-  idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
+  # result$status <- result$status[1:6,]
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred <- resultMta$predictions
+  pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
-  traits <- unique(resultMta$modeling[which(resultMta$modeling$analysisId == idMta  & resultMta$modeling$environment == "across"),"trait"]) # unique(pred$trait)
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
 }
 ```
 
@@ -97,7 +97,7 @@ The following boxplot allows to see the distribution of predicted values (y-axis
 <p>&nbsp;</p>
 
 ```{r }
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
   
@@ -115,12 +115,12 @@ if (is.null(resultMta)){
 ```
 
 ```{r, results='asis'}
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  idSta <- resultMta$status[which(resultMta$status$module == "sta"),"analysisId"]
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"]
   idSta <- idSta[length(idSta)]
-  pred.sta <- resultMta$predictions
+  pred.sta <- result$predictions
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   pred.sta.boxplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
   
@@ -157,13 +157,13 @@ if (is.null(resultMta)){
 ### Trait distribution across environment
 
 ```{r }
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  resultMta$status <- resultMta$status[1:6,]
-  idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
+  result$status <- result$status#[1:6,]
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred <- resultMta$predictions
+  pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
   traits <- unique(pred$trait)
   
@@ -179,7 +179,7 @@ if (is.null(resultMta)){
 ```
 
 ```{r, results='asis'}
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
   
@@ -261,21 +261,21 @@ if (is.null(resultMta)){
 
 <p>&nbsp;</p>
 
-### Environmental correlations
+### Genetic correlations between environments
 
 The following graph allows to see the genetic correlations of the different environment for each **trait**.
 
 <p>&nbsp;</p>
 
 ```{r }
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred <- resultMta$predictions
+  pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
-  traits <- unique(resultMta$modeling[which(resultMta$modeling$analysisId == idMta  & resultMta$modeling$environment == "across"),"trait"])# unique(pred$trait)
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"])# unique(pred$trait)
   if("params" %in% ls()){ # we will download the document
     
   }else{
@@ -291,12 +291,12 @@ if (is.null(resultMta)){
 
 
 ```{r, results='asis'}
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  idSta <- resultMta$status[which(resultMta$status$module == "sta"),"analysisId"]
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"]
   idSta <- idSta[length(idSta)]
-  pred.sta <- resultMta$predictions
+  pred.sta <- result$predictions
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   traits <- unique(pred.sta$trait)
   predictions.gcorrE <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
@@ -331,19 +331,19 @@ if (is.null(resultMta)){
 
 <p>&nbsp;</p>
 
-## Trait correlations
+## Genetic correlations between traits
 
 The following graph allows to see the genetic correlations among traits using across environment estimates.
 
 <p>&nbsp;</p>
 
 ```{r, results='asis'}
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred.mta <- resultMta$predictions
+  pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   predictions.gcorrT <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
   nTraits <- unique(predictions.gcorrE[,"trait"])
@@ -351,7 +351,7 @@ if (is.null(resultMta)){
   if(length(nTraits) > 1){
     if("params" %in% ls()){ # we will download the document
       
-      p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+      p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
                                               valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
                                               checkboxAxis= addTextInPlots)
       print(htmltools::tagList(plotly::ggplotly(p.cor.pred.traits)))
@@ -359,7 +359,7 @@ if (is.null(resultMta)){
     }else{
       
       plotly::renderPlotly({
-        p.cor.pred.traits <- corPlotPredictions(predictions.gcorrE, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+        p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
                                                 valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
                                                 checkboxAxis= addTextInPlots)
         plotly::layout(p.cor.pred.traits,font=font.plot_ly)
@@ -382,21 +382,21 @@ The following graph allows to see the performance of the genotypes over the enev
 <p>&nbsp;</p>
 
 ```{r}
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred.mta <- resultMta$predictions
+  pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
-  traits <- unique(resultMta$modeling[which(resultMta$modeling$analysisId == idMta  & resultMta$modeling$environment == "across"),"trait"]) # unique(pred.mta$trait)
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred.mta$trait)
   
   if("params" %in% ls()){ # we will download the document
     
   }else{
     selectInput(ns("traitBiplot"),
                 label = "",
-                choices = unique(pred.mta$trait)
+                choices = traits
     )
   }
 }
@@ -405,12 +405,12 @@ if (is.null(resultMta)){
 
 ```{r, results='asis'}
 
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  idSta <- resultMta$status[which(resultMta$status$module == "sta"),"analysisId"]
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"]
   idSta <- idSta[length(idSta)]
-  pred.sta <- resultMta$predictions
+  pred.sta <- result$predictions
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   
   if("params" %in% ls()){ # we will download the document
@@ -420,7 +420,7 @@ if (is.null(resultMta)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait),c("designation","environment","predictedValue")], 
-        direction = "wide", idvar = "designation", timevar = "environment")
+                                 direction = "wide", idvar = "designation", timevar = "environment")
       
       rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
       pred.mta.biplot <- pred.mta.biplot[,-1]
@@ -471,7 +471,7 @@ if (is.null(resultMta)){
     
     plotly::renderPlotly({
       pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot),c("designation","environment","predictedValue")], 
-        direction = "wide", idvar = "designation", timevar = "environment")
+                                 direction = "wide", idvar = "designation", timevar = "environment")
       
       rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
       pred.mta.biplot <- pred.mta.biplot[,-1]
@@ -537,14 +537,14 @@ The following table allows to check the trait predictions in wide format.
 <p>&nbsp;</p>
 
 ```{r, results='asis'}
-if (is.null(resultMta)){
+if (is.null(result)){
   # invisible(NULL)
 } else {
-  idMta <- resultMta$status[which(resultMta$status$module == "mta"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred.mta <- resultMta$predictions
+  pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
-  traits <- unique(pred$trait)
+  traits <- unique(pred.mta$trait)
   pred.mta <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
   pred.mta.wide <- reshape(
     data=pred.mta, 
@@ -553,6 +553,12 @@ if (is.null(resultMta)){
     direction="wide"
   )
   names(pred.mta.wide) <- c("designation","environment",traits)
+  
+  if(!is.null(result$data$qtl)){ # there's QTL information
+    qtls <- result$data$qtl
+    colnames(qtls) <- cgiarBase::replaceValues(Source = colnames(qtls), Search = result$metadata$qtl$value , Replace = result$metadata$qtl$parameter)
+    pred.mta.wide <- merge(pred.mta.wide, qtls, by="designation", all.x = TRUE)
+  }
   
   if("params" %in% ls()){ # we will download the document
     printTable(pred.mta.wide)

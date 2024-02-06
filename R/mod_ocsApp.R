@@ -25,6 +25,7 @@ mod_ocsApp_ui <- function(id){
       textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                          numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
                           numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
                           selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE),
                           selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
@@ -320,7 +321,8 @@ mod_ocsApp_server <- function(id, data){
           nCross=as.numeric(gsub(" ","",unlist(strsplit(input$nCrossOcs,",")))),
           targetAngle=as.numeric(gsub(" ","",unlist(strsplit(input$targetAngleOcs,",")))), # in radians
           verbose=input$verboseOcs, maxRun = input$maxRun,
-          entryType=input$entryType2Ocs
+          entryType=input$entryType2Ocs,
+          numberBest = input$numberBest
         ),
         silent=TRUE
         )
