@@ -21,6 +21,9 @@ mod_staApp_ui <- function(id){
       # input <- list(version2Sta=)
       selectInput(ns("version2Sta"), "Data QA version(s) to consider", choices = NULL, multiple = TRUE),
       selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE),
+      tags$span(id = ns('geno_unit_holder'), style="color:orange",
+                p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
+      ),
       selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -171,6 +174,16 @@ mod_staApp_server <- function(id,data){
     #   return(data)
     # })
     ############################################################################
+    observeEvent(
+      c(data(),input$version2Sta,input$genoUnitSta),
+      if(length(input$genoUnitSta) > 0){ # added
+        if ('mother' %in% input$genoUnitSta | 'father' %in% input$genoUnitSta | is.null(input$genoUnitSta) ){
+          golem::invoke_js('showid', ns('geno_unit_holder'))
+        }else { #
+          golem::invoke_js('hideid', ns('geno_unit_holder'))
+        }
+      }else{golem::invoke_js('hideid', ns('geno_unit_holder'))}
+    )
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){

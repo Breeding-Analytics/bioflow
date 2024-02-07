@@ -24,6 +24,7 @@ app_server <- function(input, output, session) {
   ## selection tabs
   mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
   mod_qaRawApp_server("qaRawApp_1", data = data)
+  mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
   mod_staApp_server("staApp_1", data = data)
   mod_qaStaApp_server("qaStaApp_1",data = data)
   mod_qaGenoApp_server("qaGenoApp_1",data = data)

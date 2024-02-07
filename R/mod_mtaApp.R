@@ -39,7 +39,7 @@ mod_mtaApp_ui <- function(id){
                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
                           textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
-                          selectInput(ns("scaledDesireMet"), label = "Scale desire file", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 1000),
                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
       ),
@@ -553,11 +553,14 @@ mod_mtaApp_server <- function(id, data){
         if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
           if(input$versionMarker2Mta == ''){ # user didn't provide a modifications id
             if(!is.null(dtMta$data$geno)){ # if user actually has marker data
-              if(length(which(is.na(dtMta$data$geno))) > 0){ # if there is missing data and user didn't impute throw an error
-                shinybusy::remove_modal_spinner() # stop the spinner
-                stop("Markers have missing data and you have not provided a modifications table to impute the genotype data. Please go to the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
-              }else{markerVersionToUse <- NULL} # data is complete, no need to stop although user does NOT have a modification table
+              shinybusy::remove_modal_spinner()
+              stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
+              # if(length(which(is.na(dtMta$data$geno))) > 0){ # if there is missing data and user didn't impute throw an error
+              #   shinybusy::remove_modal_spinner() # stop the spinner
+              #   stop("Markers have missing data and you have not provided a modifications table to impute the genotype data. Please go to the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
+              # }else{markerVersionToUse <- NULL} # data is complete, no need to stop although user does NOT have a modification table
             }else{ # if user does NOT have marker data and wanted a marker-based model
+              shinybusy::remove_modal_spinner()
               stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
             }
           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
@@ -572,6 +575,7 @@ mod_mtaApp_server <- function(id, data){
           heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
           heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
           modelType=input$modelMet, # either "grm", "nrm", or both
+          nMarkersRRBLUP=input$nMarkersRRBLUP,
           deregress=input$deregressMet,  nPC=input$nPC,
           maxIters=input$maxitMet, batchSizeToPredict=500, tolParInv=1e-4,
           verbose=FALSE
