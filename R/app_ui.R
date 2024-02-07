@@ -37,11 +37,14 @@ app_ui <- function(request) {
 
       tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
+      navbarMenu("QA-QC", icon = icon("medal"),
+                 tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1"), icon = icon("medal")),
+                 tabPanel("QC1. Outlier Tagging", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
+                 tabPanel("**** Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
+                 tabPanel("QC2. Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
+      ),
+
       navbarMenu("Selection", icon = icon("lightbulb"),
-                 tabPanel(strong("QUALITY CONTROL"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1"), icon = icon("medal")),
-                 tabPanel("QC1. Raw-Phenotypes QA/QC", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
-                 tabPanel("**** Raw-Phenotypes Filter",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
-                 tabPanel("QC2. Markers QA/QC", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1"), icon = icon("filter")),
                  tabPanel("GE1. Single-Trial Analysis",  mod_staApp_ui("staApp_1"), icon = icon("seedling")),
                  tabPanel("**** Model-Based QA/QC", mod_qaStaApp_ui("qaStaApp_1"), icon = icon("chart-bar") ) ,

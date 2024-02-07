@@ -27,24 +27,24 @@ The following boxplot allows to see the distribution of predicted values (y-axis
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitMta-label" for="mtaApp_1-traitMta"></label>
 <div>
-<select id="mtaApp_1-traitMta" class="shiny-input-select"><option value="GY" selected>GY</option></select>
+<select id="mtaApp_1-traitMta" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
 <script type="application/json" data-for="mtaApp_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outac3d789e8fc9196c" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out4450ca0b0b1c7e13" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Trait distribution across environment
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitMta2-label" for="mtaApp_1-traitMta2"></label>
 <div>
-<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="GY_QTL" selected>GY_QTL</option></select>
+<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="Plant_Height_cm_QTL" selected>Plant_Height_cm_QTL</option></select>
 <script type="application/json" data-for="mtaApp_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out29a344fc750d7fa5" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out7de1b303711203bd" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -58,13 +58,13 @@ The following graph allows to see the genetic correlations of the different envi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitPredictionsCorrelation-label" for="mtaApp_1-traitPredictionsCorrelation"></label>
 <div>
-<select id="mtaApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="GY" selected>GY</option></select>
+<select id="mtaApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
 <script type="application/json" data-for="mtaApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outccab9b9ab54b3ea9" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out650da96e5d0b72fe" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -87,12 +87,12 @@ The following graph allows to see the performance of the genotypes over the enev
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitBiplot-label" for="mtaApp_1-traitBiplot"></label>
 <div>
-<select id="mtaApp_1-traitBiplot" class="shiny-input-select"><option value="GY" selected>GY</option></select>
+<select id="mtaApp_1-traitBiplot" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
 <script type="application/json" data-for="mtaApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outa0d01792b140934a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outb3e8e0be0cb534b5" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -103,7 +103,7 @@ The following table allows to check the trait predictions in wide format.
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-out9ead163c04cc9029" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-outa7f44ed5a6845abc" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 

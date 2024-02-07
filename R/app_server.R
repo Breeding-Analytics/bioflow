@@ -20,14 +20,17 @@ app_server <- function(input, output, session) {
 
   ## home
   mod_homeApp_server("homeApp_1")
-  #
-  ## selection tabs
-  mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
+  ## qa tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
+  mod_qaGenoApp_server("qaGenoApp_1",data = data)
+
+  ## data
+  mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
+
+  ## genetic evaluation
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
   mod_staApp_server("staApp_1", data = data)
   mod_qaStaApp_server("qaStaApp_1",data = data)
-  mod_qaGenoApp_server("qaGenoApp_1",data = data)
   mod_mtaApp_server("mtaApp_1",data = data)
   mod_indexDesireApp_server("indexDesireApp_1", data = data)
   mod_ocsApp_server("ocsApp_1", data = data)
@@ -43,6 +46,7 @@ app_server <- function(input, output, session) {
   mod_contactUsApp_server("contactUsApp_1")
 
   ## info section tabs
+  mod_sectionInfoQAApp_server("sectionInfoQAApp_1")
   mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # infor for genetic evaluation
   mod_sectionInfoSHApp_server("sectionInfoSHApp_1")
 

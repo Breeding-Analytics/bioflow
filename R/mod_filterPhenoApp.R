@@ -50,9 +50,9 @@ mod_filterPhenoApp_ui <- function(id){
                                                            tags$body(
                                                              h2(strong("Details")),
                                                              p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
-                                                             This option aims to allow users to filter (more concretely tag records for exclusion) specific years, seasons, countries, locations, etc. from the posterior analyses.
+                                                             This option allows users to filter (more concretely tag records for exclusion) specific years, seasons, countries, locations, etc. from the posterior analyses. This is just an optional module that most users will not require.
                                 The way arguments are used is the following:"),
-                                                             # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                                             img(src = "www/dataFilter.png", height = 300, width = 500), # add an image
                                                              p(strong("label.-")," the different columns to subset the phenotypic dataset to exclude certain environments for certain traits."),
                                                              h2(strong("References")),
                                                              p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
@@ -296,12 +296,10 @@ mod_filterPhenoApp_server <- function(id, data){
 
     ## display the current outliers
     output$modificationsFilter <-  DT::renderDT({
-      if(!inherits(result,"try-error") ){
-        DT::datatable(newOutliers(), extensions = 'Buttons',
-                                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-        )
-      }
+      DT::datatable(newOutliers(), extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      )
     })
 
     ## save when user clicks

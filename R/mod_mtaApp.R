@@ -70,7 +70,7 @@ mod_mtaApp_ui <- function(id){
                                           p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
                                           p(strong("Random effects.-")," Columns to be fitted as random effects."),
                                           p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
-                                          p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect."),
+                                          p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
                                           p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
                                           p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
                                           p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
