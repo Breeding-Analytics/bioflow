@@ -174,6 +174,7 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- dtOcs$status
       dtOcs <- dtOcs[which(dtOcs$module %in% c("mta","indexD")),]
       traitsOcs <- unique(dtOcs$analysisId)
+      if(length(traitsOcs) > 0){names(traitsOcs) <- as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Ocs", choices = traitsOcs)
     })
     #################

@@ -204,6 +204,7 @@ mod_staApp_server <- function(id,data){
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module == "qaRaw"),]
       traitsMta <- unique(dtMta$analysisId)
+      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Sta", choices = traitsMta)
     })
     # genetic evaluation unit
@@ -321,8 +322,8 @@ mod_staApp_server <- function(id,data){
           colnames(dtSta)[1:2] <- c("geneticUnit", "numberOfUnits")
           dtSta <- dtSta[with(dtSta, order(geneticUnit)), ]; rownames(dtSta) <- NULL
           DT::datatable(dtSta, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
         })
         ## render plot of trait distribution

@@ -232,6 +232,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module == "sta"),]
       traitsMta <- unique(dtMta$analysisId)
+      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
     # ## version qa marker

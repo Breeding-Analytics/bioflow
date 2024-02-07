@@ -147,6 +147,7 @@ mod_pggApp_server <- function(id, data){
       dtPgg <- dtPgg$status
       dtPgg <- dtPgg[which(dtPgg$module %in% c("mta","indexD")),]
       traitsPgg <- unique(dtPgg$analysisId)
+      if(length(traitsPgg) > 0){names(traitsPgg) <- as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Pgg", choices = traitsPgg)
     })
     #################

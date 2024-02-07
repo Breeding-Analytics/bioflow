@@ -215,6 +215,7 @@ mod_indexDesireApp_server <- function(id, data){
       dtIdxD <- dtIdxD$status
       dtIdxD <- dtIdxD[which(dtIdxD$module == "mta"),]
       traitsIdxD <- unique(dtIdxD$analysisId)
+      if(length(traitsIdxD) > 0){names(traitsIdxD) <- as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2IdxD", choices = traitsIdxD)
     })
     #################
