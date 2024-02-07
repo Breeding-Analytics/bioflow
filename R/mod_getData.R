@@ -62,7 +62,7 @@ mod_getData_ui <- function(id){
                  ),
         ),
 
-        tags$div(id = ns('dictionary_box'),
+        fluidRow(tags$div(id = ns('dictionary_box'),
                  shinydashboard::box(width = 6, title = span(icon('bookmark'), ' Dictionary of terms'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
                                      p(strong("pipeline.-"),"The name of the column containing the labels describing the breeding effort to satisfy a market segment (e.g., Direct seeded late maturity irrigated)."),
                                      p(strong("stage.-"),"The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."),
@@ -81,7 +81,7 @@ mod_getData_ui <- function(id){
                                      p(strong("entryType.-"),"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
                                      p(strong("trait.-"),"The name of the column(s) containing the numerical traits to be analyzed."),
                  ),
-        ),
+        )),
 
         tags$div(id = ns('pheno_brapi_options'),
                  tags$span(id = ns('config_server_holder'),
@@ -562,10 +562,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         tryCatch(
           expr = {
             if (input$pheno_db_type == 'ebs') {
-              QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
-                                 access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
-                                 client_id     = '5crahiqorgj0lppt3n9dkulkst',
-                                 client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
+              if (input$pheno_db_url == 'https://cbbrapi-qa.ebsproject.org') {
+                QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
+                                   access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
+                                   client_id     = '5crahiqorgj0lppt3n9dkulkst',
+                                   client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
+              } else {
+                QBMS::login_oauth2(authorize_url = 'https://auth.ebsproject.org/oauth2/authorize',
+                                   access_url    = 'https://auth.ebsproject.org/oauth2/token',
+                                   client_id     = '346lau0avcptntd1ksbmgdi5c',
+                                   client_secret = 'q5vnvakfj800ibh5tvqut73vj8klv1tpt6ugtmuneh6d2jb28i3')
+              }
             } else if (input$pheno_db_type == 'bms') {
               QBMS::login_bms(input$pheno_db_user, input$pheno_db_password)
             } else if (input$pheno_db_type == 'breedbase') {
