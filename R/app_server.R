@@ -23,6 +23,7 @@ app_server <- function(input, output, session) {
   ## qa tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
+  mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
 
   ## data
   mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)

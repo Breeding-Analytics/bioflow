@@ -41,7 +41,11 @@ app_ui <- function(request) {
                  tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1"), icon = icon("medal")),
                  tabPanel("QC1. Outlier Tagging", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
                  tabPanel("**** Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
-                 tabPanel("QC2. Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
+                 tabPanel(div("**** Trait Transformations",style = "color:red")),
+                 tabPanel(div("**** Exp. Design Editing",style = "color:red")),
+                 tabPanel(div("QC2. Pedigree Cleaning",style = "color:red") ),
+                 tabPanel("QC3. Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
+                 tabPanel("**** Single-Cross Markers", mod_singleCrossGenoApp_ui("singleCrossGenoApp_1"), icon = icon("puzzle-piece")  ),
       ),
 
       navbarMenu("Selection", icon = icon("lightbulb"),
