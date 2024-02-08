@@ -557,7 +557,7 @@ if (is.null(result)){
 
 ### Predictions 
 
-The following table allows to check the trait predictions in wide format.
+The following table allows to check the trait predictions in wide format together with the QTL profile in case those are available.
 
 <p>&nbsp;</p>
 

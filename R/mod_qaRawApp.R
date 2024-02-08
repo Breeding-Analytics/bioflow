@@ -18,17 +18,17 @@ mod_qaRawApp_ui <- function(id){
                   <font size='5'>Outlier detection</font>"),
       # div(tags$p( h4(strong("Outlier detection")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-
-      selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE),
+      selectInput(ns("traitOutqPhenoMultiple"), "Trait to QA", choices = NULL, multiple = TRUE),
       numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = 0.01),
-      numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = Inf),
+      numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 100000),
       numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 2.5),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaRaw"), "Save outliers", icon = icon("play-circle")),
+      # checkboxGroupInput(ns("checkboxAllTraits"), label = "", choices = list("Apply same rule to all traits?" = TRUE), selected = FALSE),
+      actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       textOutput(ns("outQaRaw"))
       # uiOutput(ns('navigate')),
@@ -67,6 +67,7 @@ mod_qaRawApp_ui <- function(id){
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green",
                                                                solidHeader = TRUE,
+                                                               selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE),
                                                                plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                            )
@@ -109,76 +110,16 @@ mod_qaRawApp_server <- function(id, data){
       dtQaRaw <- dtQaRaw$metadata$pheno
       traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
       updateSelectInput(session, "traitOutqPheno",choices = traitsQaRaw)
+      updateSelectInput(session, "traitOutqPhenoMultiple",choices = traitsQaRaw, selected = NULL)
       shinyjs::hide(ns("traitOutqPheno"))
-    })
-    ## function to calculate outliers
-    newOutliers <- reactive({ #
-      req(data())
-      req(input$traitOutqPheno)
-      myObject <- data()
-      # save(myObject, file = "./R/outputs/resultQAraw.RData")
-      mydata <- myObject$data$pheno
-      ### change column names for mapping
-      paramsPheno <- data()$metadata$pheno
-      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-      colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-      ###
-      mydata$rowindex <- 1:nrow(mydata)
-      mydata[, "environment"] <- as.factor(mydata[, "environment"])
-      traitClasses <- unlist(lapply(mydata, class))
-      analysisId <- NA#as.numeric(Sys.time())
-      myoutliers <- myObject$modifications$pheno
-      if(!is.null(myoutliers) & !is.null(nrow(myoutliers)) ){ # there's previous outliers for this trait
-        outsItrait <- which(myoutliers$trait == input$traitOutqPheno)
-        myoutliersReduced <- myoutliers[outsItrait,] # outliers for the trait in turn
-      }else{
-        myoutliersReduced <- data.frame(matrix(nrow=0, ncol=6))
-        colnames(myoutliersReduced) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
-      }
-      ## add new outliers
-      outList <- list(); counter=1
-      for (i in 1:nlevels(mydata[, "environment"])) {
-        sampleDT <- mydata[which(mydata[, "environment"] == levels(mydata[, "environment"])[i]), ] # data for the ith environment
-        if(!is.na(input$outlierCoefOutqPheno)){ # input <- list(outlierCoefOutqPheno=2, traitOutqPheno="Root_Lodging_plants")
-          outlier <- grDevices::boxplot.stats(x=sampleDT[, input$traitOutqPheno],coef=input$outlierCoefOutqPheno )$out
-          toSilence <- sampleDT[which(sampleDT[,input$traitOutqPheno] %in% outlier),"rowindex"]
-          typeOut <- rep("outlierIQR",length(toSilence))
-        }else{
-          toSilence <- numeric()
-          typeOut <- character()
-        }
-        outOfBounds <- which((sampleDT[, input$traitOutqPheno] < input$traitLBOutqPheno) | (sampleDT[, input$traitOutqPheno] > input$traitUBOutqPheno ) )
-        if(length(outOfBounds) > 0){toSilence <- c(toSilence, sampleDT[outOfBounds,"rowindex"]); typeOut <- c(typeOut, rep("outlierIQR",length(outOfBounds))) }
-        if(length(toSilence) > 0){
-          outList[[counter]] <- data.frame(module="qaRaw",analysisId=analysisId,trait=input$traitOutqPheno,reason=typeOut,row=toSilence, value=NA);
-          counter=counter+1
-        }
-        # }# end of if enough data
-      }# end for each trial
-      if(length(outList) > 0){ # we found outliers
-        myoutliersReduced2 <- unique(do.call(rbind, outList))
-        if( !is.null(myoutliers) & !is.null(nrow(myoutliers)) ){
-          myoutliersReduced2 <- unique(rbind(myoutliersReduced,myoutliersReduced2))
-        }
-      }else{ # we did not find outliers
-        myoutliersReduced2 <- data.frame(module="qaRaw",analysisId=analysisId,trait=input$traitOutqPheno,reason="none",row=NA, value=NA);
-        if(!is.null(myoutliers)){ # if there was already outliers in the data structure
-          myoutliersReduced2 <- unique(rbind(myoutliersReduced,myoutliersReduced2))
-          # myoutliersReduced2 <- unique(myoutliersReduced)
-        }else{ # if the data structure was fully empty
-          # myoutliersNull <- data.frame(matrix(nrow=0, ncol=6))
-          # colnames(myoutliersNull) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
-          # myoutliersReduced2 <- myoutliersNull
-        }
-      }
-      ## reactive
-      return(myoutliersReduced2)
-
     })
     ## render the expected result
     output$plotPredictionsCleanOut <- plotly::renderPlotly({
       req(data())
       req(input$outlierCoefOutqFont)
+      req(input$outlierCoefOutqPheno)
+      req(input$traitLBOutqPheno)
+      req(input$traitUBOutqPheno)
       req(input$traitOutqPheno)
       mydata <- data()$data$pheno
       ### change column names for mapping
@@ -191,7 +132,8 @@ mod_qaRawApp_server <- function(id, data){
         mydata$rowindex <- 1:nrow(mydata)
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
-        mo <- newOutliers()
+        # mo <- newOutliers()
+        mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno=input$traitLBOutqPheno, traitUBOutqPheno=input$traitUBOutqPheno) # newOutliers()
         mydata$color <- 1
         if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
         mydata$color <- as.factor(mydata$color)
@@ -212,9 +154,12 @@ mod_qaRawApp_server <- function(id, data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){ # all required columns are present
           req(input$outlierCoefOutqFont)
+          req(input$outlierCoefOutqPheno)
+          req(input$traitLBOutqPheno)
+          req(input$traitUBOutqPheno)
           req(input$traitOutqPheno)
           ## get the outlier table
-          outlier <- newOutliers()
+          outlier <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno=input$traitLBOutqPheno, traitUBOutqPheno=input$traitUBOutqPheno) # newOutliers()
           removeCols <- c("module","analysisId","value")
           outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
           colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
@@ -241,14 +186,21 @@ mod_qaRawApp_server <- function(id, data){
     outQaRaw <- eventReactive(input$runQaRaw, {
 
       req(data())
-      req(input$traitOutqPheno)
+      req(input$traitOutqPhenoMultiple)
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
       if(mappedColumns == 3){ # all required columns are present
         req(input$outlierCoefOutqFont)
-        req(input$traitOutqPheno)
+        req(input$traitOutqPhenoMultiple)
+        req(input$outlierCoefOutqPheno)
+        req(input$traitLBOutqPheno)
+        req(input$traitUBOutqPheno)
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         ## get the outlier table
-        outlier <- newOutliers()
+        outlier <- list()
+        for(iTrait in input$traitOutqPhenoMultiple){
+          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno=input$traitLBOutqPheno, traitUBOutqPheno=input$traitUBOutqPheno)#newOutliers()
+        }
+        outlier <- do.call(rbind,outlier)
         if(nrow(outlier) > 0){ # if there's new outliers
           ## get data structure
           result <- data()
@@ -265,16 +217,20 @@ mod_qaRawApp_server <- function(id, data){
           newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
           result$status <- rbind(result$status, newStatus)
           # add modeling table
-          provMet <- data.frame(module="qaRaw",analysisId=analysisId, trait=input$traitOutqPheno, environment=NA,
-                                parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
-                                value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
+          provMet <- list()
+          for(iTrait in input$traitOutqPhenoMultiple){
+            provMet[[iTrait]] <- data.frame(module="qaRaw",analysisId=analysisId, trait=iTrait, environment=NA,
+                                            parameter=c("traitLBOutqPheno","traitUBOutqPheno","outlierCoefOutqPheno"),
+                                            value= c(input$traitLBOutqPheno, input$traitUBOutqPheno, input$outlierCoefOutqPheno) )
+          }
+          provMet <- do.call(rbind,provMet)
           if(is.null(result$modeling)){
             result$modeling <- provMet
           }else{
             result$modeling <- rbind(result$modeling, provMet[,colnames(result$modeling)])
           }
           data(result)
-          cat(paste("QA step with id:",analysisId,"for trait",input$traitOutqPheno,"saved."))
+          cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved."))
         }else{
 
         }

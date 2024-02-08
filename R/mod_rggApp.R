@@ -275,7 +275,7 @@ mod_rggApp_server <- function(id, data){
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultRgg.RData")
-          cat(paste("Realized genetic gain step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
+          cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }

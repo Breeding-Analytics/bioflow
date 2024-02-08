@@ -242,6 +242,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
       traitsMta <- unique(dtMta$analysisId)
+      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "versionMarker2Mta", choices = traitsMta)
     })
     #################
@@ -586,7 +587,7 @@ mod_mtaApp_server <- function(id, data){
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/result.RData")
-          cat(paste("Multi-trial analysis step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
+          cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
