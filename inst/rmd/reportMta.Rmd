@@ -90,7 +90,7 @@ if (is.null(result)){
 }
 ```
 
-### Trait distribution by environment
+### Distribution by environment
 
 The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**.
 
@@ -127,6 +127,7 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
     cat(paste0("### Distribution by environment  {.tabset .tabset-pills}    \n\n  "))
+    
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
@@ -142,19 +143,33 @@ if (is.null(result)){
     
   }else{
     
-    plotly::renderPlotly({
-      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
-      p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
-                            x = ~environment,  type = "box", color = ~environment
-      ) %>%  plotly::layout( font=font.plot_ly,
-                             xaxis=list( title=""), yaxis=list( title="Trait value") )
-    })
+    
+    # plotly::renderPlotly({
+    #   temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
+    #   p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
+    #                         x = ~environment,  type = "box", color = ~environment
+    #   ) %>%  plotly::layout( font=font.plot_ly,
+    #                          xaxis=list( title=""), yaxis=list( title="Trait value") )
+    # })
+    
+    temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
+    p <- temp.pred.box %>% 
+      ggplot() +
+      aes(x=environment, y=predictedValue, fill = environment) +
+      geom_boxplot() +
+      labs(x = "", y = "Trait value") +
+      scale_fill_discrete(name = "") +
+      theme_minimal() +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            text = element_text(family = "Courier New, monospace", size=9)) 
+    p
     
   }
 }
 ```
 
-### Trait distribution across environment
+### Distribution across environment (please see downloaded report)
 
 ```{r }
 if (is.null(result)){
@@ -170,10 +185,10 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
   }else{
-    selectInput(ns("traitMta2"), 
-                label = "", 
-                choices = traits
-    )
+    # selectInput(ns("traitMta2"), 
+    #             label = "", 
+    #             choices = traits
+    # )
   }
 }
 ```
@@ -185,7 +200,9 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     
-    cat(paste0("### Distribution across environments  {.tabset .tabset-pills}    \n\n  "))
+    # cat(paste0("### Distribution across environments  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
@@ -221,63 +238,63 @@ if (is.null(result)){
     
   }else{
     
-    if(length(unique(pred$designation)) > 200){ # go fixed format
-      
-      shiny::renderPlot({
-        
-        temp.pred.box <- pred[pred$trait== input$traitMta2,]
-        p <- ggplot2::ggplot(
-          data = temp.pred.box, 
-          mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
-            col = entryType,
-            text = paste(
-              paste0('<br>', "designation: ", designation),
-              paste0('<br>', "entry type: ", entryType),
-              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-              paste0('<br>', "standard error: ", round(stdError, 4)),
-              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
-              #        round(predictedValue + CI, 2), ")")))) +
-              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
-                     round(predictedValue + stdError, 4), ")")))) +
-          ggplot2::theme_classic() +  ggplot2::geom_point() +
-          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                 width = 0.10) +
-          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
-        p
-        
-      })
-    }else{ # go dynamic
-      plotly::renderPlotly({
-        
-        temp.pred.box <- pred[pred$trait== input$traitMta2,]
-        p <- ggplot2::ggplot(
-          data = temp.pred.box, 
-          mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
-            col = entryType,
-            text = paste(
-              paste0('<br>', "designation: ", designation),
-              paste0('<br>', "entry type: ", entryType),
-              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-              paste0('<br>', "standard error: ", round(stdError, 4)),
-              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
-              #        round(predictedValue + CI, 2), ")")))) +
-              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
-                     round(predictedValue + stdError, 4), ")")))) +
-          ggplot2::theme_classic() +  ggplot2::geom_point() +
-          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                 width = 0.10) +
-          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
-        plotly::ggplotly(p)
-      })
-    }
+    # if(length(unique(pred$designation)) > 200){ # go fixed format
+    #   
+    #   shiny::renderPlot({
+    #     
+    #     temp.pred.box <- pred[pred$trait== input$traitMta2,]
+    #     p <- ggplot2::ggplot(
+    #       data = temp.pred.box, 
+    #       mapping = ggplot2::aes(
+    #         x = reorder(designation, -predictedValue),
+    #         y = predictedValue,
+    #         col = entryType,
+    #         text = paste(
+    #           paste0('<br>', "designation: ", designation),
+    #           paste0('<br>', "entry type: ", entryType),
+    #           paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+    #           paste0('<br>', "standard error: ", round(stdError, 4)),
+    #           # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
+    #           #        round(predictedValue + CI, 2), ")")))) +
+    #           paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
+    #                  round(predictedValue + stdError, 4), ")")))) +
+    #       ggplot2::theme_classic() +  ggplot2::geom_point() +
+    #       ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+    #                                           ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+    #                              width = 0.10) +
+    #       ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+    #       ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+    #     p
+    #     
+    #   })
+    # }else{ # go dynamic
+    #   plotly::renderPlotly({
+    #     
+    #     temp.pred.box <- pred[pred$trait== input$traitMta2,]
+    #     p <- ggplot2::ggplot(
+    #       data = temp.pred.box, 
+    #       mapping = ggplot2::aes(
+    #         x = reorder(designation, -predictedValue),
+    #         y = predictedValue,
+    #         col = entryType,
+    #         text = paste(
+    #           paste0('<br>', "designation: ", designation),
+    #           paste0('<br>', "entry type: ", entryType),
+    #           paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+    #           paste0('<br>', "standard error: ", round(stdError, 4)),
+    #           # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
+    #           #        round(predictedValue + CI, 2), ")")))) +
+    #           paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
+    #                  round(predictedValue + stdError, 4), ")")))) +
+    #       ggplot2::theme_classic() +  ggplot2::geom_point() +
+    #       ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+    #                                           ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+    #                              width = 0.10) +
+    #       ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+    #       ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+    #     plotly::ggplotly(p)
+    #   })
+    # }
     
   }
 }
@@ -329,13 +346,13 @@ if (is.null(result)){
   addTextInPlots <- ifelse(length(envs) > 40, FALSE, TRUE)
   if("params" %in% ls()){ # we will download the document
     
-    cat(paste0("### Correlation  {.tabset .tabset-pills}    \n\n  "))
+    # cat(paste0("### Correlation  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment",
-                                           valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
-                                           checkboxAxis= addTextInPlots)
+      p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment", valueForCorrelation ="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, checkboxAxis= addTextInPlots)
       print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
       
     }
@@ -344,10 +361,11 @@ if (is.null(result)){
     
     plotly::renderPlotly({
       p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-                                           valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
+                                           valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots,
                                            checkboxAxis= addTextInPlots)
       plotly::layout(p.cor.pred.env,font=font.plot_ly)
     })
+    
     
   }
   
@@ -440,7 +458,9 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     
-    cat(paste0("### Correlation  {.tabset .tabset-pills}    \n\n  "))
+    # cat(paste0("### Correlation  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       

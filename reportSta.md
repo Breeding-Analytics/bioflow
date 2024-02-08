@@ -24,136 +24,40 @@ NULL
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> desireIndex </th>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm </th>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Yield_Mg_ha </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm_QTL </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Yield_Mg_ha_QTL </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm_QTL </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> # of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> across </td>
+   <td style="text-align:left;"> NYH3_2021 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> desireIndex ~ 20 crosses * 30 degrees </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> NYH3_2021_NYH3_2021_G2F_2020_21_PHK76 </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:right;"> 384 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> NYS1_2021_NYS1_2021_HIP_Hybrid </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> NYS1_2021 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:right;"> 22 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> SCH1_2021_SCH1_2021_G2F_2020_21_PHZ51 </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> SCH1_2021 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 404 </td>
+   <td style="text-align:right;"> 423 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> SCH1_2021_SCH1_2021_HIP_Hybrid </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> TXH1_2021 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:right;"> 270 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> SCH1_2021_SCH1_2021_YELLOW_STRIPE </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> TXH2_2021 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 25 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TXH1_2021_TXH1_2021_G2F_2020_21_PHZ51 </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 249 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TXH1_2021_TXH1_2021_HIP_Hybrid </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 22 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TXH1_2021_TXH1_2021_YELLOW_STRIPE </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 25 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TXH2_2021_TXH2_2021_G2F_2020_21_PHZ51 </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:right;"> 249 </td>
   </tr>
 </tbody>
@@ -170,12 +74,13 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-oute4787effde7ab67d" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outb80939928df6e6af" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -188,20 +93,17 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="NYH3_2021_NYH3_2021_G2F_2020_21_PHK76" selected>NYH3_2021_NYH3_2021_G2F_2020_21_PHK76</option>
-<option value="SCH1_2021_SCH1_2021_G2F_2020_21_PHZ51">SCH1_2021_SCH1_2021_G2F_2020_21_PHZ51</option>
-<option value="TXH1_2021_TXH1_2021_G2F_2020_21_PHZ51">TXH1_2021_TXH1_2021_G2F_2020_21_PHZ51</option>
-<option value="TXH2_2021_TXH2_2021_G2F_2020_21_PHZ51">TXH2_2021_TXH2_2021_G2F_2020_21_PHZ51</option>
-<option value="SCH1_2021_SCH1_2021_YELLOW_STRIPE">SCH1_2021_SCH1_2021_YELLOW_STRIPE</option>
-<option value="TXH1_2021_TXH1_2021_HIP_Hybrid">TXH1_2021_TXH1_2021_HIP_Hybrid</option>
-<option value="SCH1_2021_SCH1_2021_HIP_Hybrid">SCH1_2021_SCH1_2021_HIP_Hybrid</option>
-<option value="NYS1_2021_NYS1_2021_HIP_Hybrid">NYS1_2021_NYS1_2021_HIP_Hybrid</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="NYH3_2021" selected>NYH3_2021</option>
+<option value="TXH2_2021">TXH2_2021</option>
+<option value="SCH1_2021">SCH1_2021</option>
+<option value="TXH1_2021">TXH1_2021</option>
+<option value="NYS1_2021">NYS1_2021</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out96e4d4be6548a807" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out4fa7e02bbc81f994" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -214,9 +116,13 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out8f340a468b484d4b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<div class="figure">
+<img src="figure/unnamed-chunk-8-1.png" alt="plot of chunk unnamed-chunk-8" width="100%" />
+<p class="caption">plot of chunk unnamed-chunk-8</p>
+</div>
