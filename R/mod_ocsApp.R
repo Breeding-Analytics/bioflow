@@ -162,7 +162,7 @@ mod_ocsApp_server <- function(id, data){
         if(mappedColumns == 3){
           if("mta" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) inspecting the other tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform MTA or a selection index before performing optimal cross selection (OCS).")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -286,6 +286,7 @@ mod_ocsApp_server <- function(id, data){
       ### change column names for mapping
       paramsPheno <- data()$modeling
       paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Ocs),, drop=FALSE]
+      paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))

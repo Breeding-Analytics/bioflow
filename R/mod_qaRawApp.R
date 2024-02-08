@@ -18,7 +18,7 @@ mod_qaRawApp_ui <- function(id){
                   <font size='5'>Outlier detection</font>"),
       # div(tags$p( h4(strong("Outlier detection")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("traitOutqPhenoMultiple"), "Trait to QA", choices = NULL, multiple = TRUE),
+      selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE),
       numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = 0.01),
       numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 100000),
       numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 2.5),

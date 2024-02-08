@@ -109,7 +109,8 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
     output$statusTable <-  DT::renderDT({
       req(data())
       dtMta <- data()
-      DT::datatable(dtMta$status, extensions = 'Buttons',
+      status <- dtMta$status; status$analysisId <- as.POSIXct(status$analysisId, origin="1970-01-01", tz="GMT")
+      DT::datatable(status, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       )

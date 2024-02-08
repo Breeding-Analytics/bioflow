@@ -382,6 +382,7 @@ mod_mtaApp_server <- function(id, data){
       ### change column names for mapping
       paramsPheno <- data()$modeling
       paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Mta),, drop=FALSE]
+      paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
@@ -642,6 +643,7 @@ mod_mtaApp_server <- function(id, data){
             mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
+            # modeling$analysisId <- as.POSIXct(modeling$analysisId, origin="1970-01-01", tz="GMT")
             DT::datatable(modeling, extensions = 'Buttons',
                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))

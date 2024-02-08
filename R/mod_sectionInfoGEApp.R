@@ -23,20 +23,20 @@ mod_sectionInfoGEApp_ui <- function(id){
                                                 p("Genetic evaluation is the process to disect the genetic signal from the phenotypic
                                                   records to estimate surrogates of genetic value [i.e., breeding values (BV), general
                                                   combining ability (GCA), total genetic value(GV)] in oder to use such estimates to apply
-                                                  artifical selection to increase the allele frequencies of genes affecting the
-                                                  expression of the traits of interest for agricultural purposes in a particula target
+                                                  artifical selection and increase the allele frequencies of genes affecting the
+                                                  expression of the traits of interest in a particular target
                                                   population of environments (TPE)."),
                                                 img(src = " www/infoge.png", height = 350, width = 600), # add an image
-                                                p("The approach used in bioflow is the 'two-step'. It starts by cleaning the raw
+                                                p("The approach used in bioflow is the so-called 'two-step'. It starts by cleaning the raw
                                                   phenotypic records from outliers and typos. Then the data is analysed trial by
-                                                  trial to remove the spatial noise and extract genotype BLUEs (step 1). This is
+                                                  trial to remove the spatial noise and extract genotype BLUEs from each trial (step 1). This could be
                                                   followed by an alternative QA step to identify outliers using standardized residuals.
-                                                  The genotype BLUEs (and optionally genetic markers) are used to fit a multi-environment
+                                                  The genotype BLUEs from the first step (and optionally genetic markers) are used to fit a multi-environment
                                                   trial analysis to produce across-environment surrogates of genetic merit for each
-                                                  trait (e.g., BLUPs, GBLUP, etc.)."),
+                                                  trait (e.g., BLUPs, GBLUP, etc.) and stability across environments."),
                                                 p("It is recommended to use the trait-BVs to produce a selection index (net merit) that
                                                   can be used in one of two alternatives; 1) select parents with high net merit for the
-                                                  crossing block, 2) simulate and select crosses  witht he highest net merit using the
+                                                  crossing block, 2) simulate and select crosses  with the highest net merit using the
                                                   optimal cross selection (OCS) procedure based on contribution theory.")
                             )
         ),

@@ -27,11 +27,19 @@ mod_filterPhenoApp_ui <- function(id){
       selectInput(ns("trials"), "Trials to keep", choices = NULL, multiple = TRUE),
       selectInput(ns("environments"), "Environments to keep", choices = NULL, multiple = TRUE),
 
+      # hr(style = "border-top: 1px solid #4c4c4c;"),
+      # shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+      #
+      # ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-
+      # multi trait option
+      # checkboxGroupInput(ns("multiTraitFilter"), label = "",choices = list("Apply same filter to other traits?" = TRUE), selected = NULL),
+      selectInput(ns("multiTraitFilter"), label = "Apply same filter to other trait(s)?", choices = list(TRUE, FALSE), selected = FALSE, multiple=FALSE),
+      tags$span(id = ns('multiTraitFilter_holder'),
+                selectInput(ns("traitFilterPhenoMultiple"), "Trait(s) to apply the same filters", choices = NULL, multiple = TRUE, selected = NULL),
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
+
+      #
       actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       textOutput(ns("outFilterRaw")),
@@ -93,6 +101,14 @@ mod_filterPhenoApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    observeEvent(
+      input$multiTraitFilter,
+      if (input$multiTraitFilter) { # if user wants to apply filter to multiple traits
+        golem::invoke_js('showid', ns('multiTraitFilter_holder'))
+      } else { # if user wants to go trait by trait
+        golem::invoke_js('hideid', ns('multiTraitFilter_holder'))
+      }
+    )
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -110,6 +126,7 @@ mod_filterPhenoApp_server <- function(id, data){
       dtQaRaw <- data(); dtQaRaw <- dtQaRaw$metadata$pheno
       traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
       updateSelectInput(session, "traitFilterPheno",choices = traitsQaRaw)
+      updateSelectInput(session, "traitFilterPhenoMultiple",choices = traitsQaRaw, selected = NULL)
       shinyjs::hide(ns("traitFilterPheno"))
     })
     # create the years
@@ -239,7 +256,7 @@ mod_filterPhenoApp_server <- function(id, data){
       keep <- Reduce(intersect, list(keep1,keep2,keep3,keep4,keep5,keep6) )#which( (mydata[,"year"] %in% input$years) & (mydata[,"season"] %in% input$seasons) & (mydata[,"country"] %in% input$countries) & (mydata[,"location"] %in% input$locations) & (mydata[,"trial"] %in% input$trials) & (mydata[,"environment"] %in% input$environments) )
       toSilence <- setdiff(mydata$rowindex, keep)
       if(length(toSilence) > 0){
-        myoutliersReduced <- data.frame(module="qaRaw",analysisId=NA,trait=input$traitFilterPheno,reason="outlierIQR",row=toSilence, value=NA);
+        myoutliersReduced <- data.frame(module="qaFilter",analysisId=NA,trait=input$traitFilterPheno,reason="outlierIQR",row=toSilence, value=NA);
       }else{
         myoutliersReduced <- data.frame(matrix(nrow=0, ncol=6))
         colnames(myoutliersReduced) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
@@ -248,18 +265,39 @@ mod_filterPhenoApp_server <- function(id, data){
     }) # returns the ones to exclude
     outFilterRaw <- eventReactive(input$runFilterRaw, {
       req(data());  req(input$traitFilterPheno); req(input$years);  req(input$seasons); req(input$countries); req(input$locations); req(input$trials); req(input$environments)
+      req(input$multiTraitFilter)
       myObject <- data()
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      outliers <- newOutliers()
+      if(input$multiTraitFilter){ # if user wants multiple traits at once
+        outliers <- list()
+        if(length(input$traitFilterPhenoMultiple) > 0){
+          prov <- newOutliers()
+          for(iTrait in input$traitFilterPhenoMultiple){
+            if(nrow(prov) > 0){prov$trait <- iTrait}
+            outliers[[iTrait]] <- prov
+          }
+          outliers <- do.call(rbind, outliers)
+        }else{
+          outliers <- data.frame(matrix(nrow=0, ncol=6))
+          colnames(outliers) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
+          cat("No traits selected to filter.")
+        }
+      }else{ # if user only wants to filter one trait
+        outliers <- newOutliers()
+      }
       myoutliers <- myObject$modifications$pheno
       analysisId <- as.numeric(Sys.time())
       myoutliersReduced <- unique(rbind(myoutliers, outliers))
       if(nrow(outliers) == 0){ # no outliers found
         cat("No data to filter.")
       }else{ # we found outliers
-        outliers$analysisId <- analysisId
-        cat(paste("Filtering step with id:",analysisId,"for trait",input$traitFilterPheno,"saved."))
+        myoutliersReduced$analysisId <- analysisId
+        cat(paste("Filtering step with id:",as.POSIXct(analysisId, origin="1970-01-01", tz="GMT"),"for trait",ifelse(input$multiTraitFilter, paste(input$traitFilterPhenoMultiple, collapse = ", "),input$traitFilterPheno),"saved."))
       }
+      # add status table
+      newStatus <- data.frame(module="qaFilter", analysisId=analysisId )
+      myObject$status <- rbind(myObject$status, newStatus)
+      #
       myObject$modifications$pheno <- myoutliersReduced
       data(myObject)
       shinybusy::remove_modal_spinner()

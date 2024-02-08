@@ -202,7 +202,7 @@ mod_staApp_server <- function(id,data){
       req(data())
       dtMta <- data()
       dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module == "qaRaw"),]
+      dtMta <- dtMta[which(dtMta$module %in% c("qaRaw","qaFilter")),]
       traitsMta <- unique(dtMta$analysisId)
       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Sta", choices = traitsMta)
@@ -293,6 +293,7 @@ mod_staApp_server <- function(id,data){
           ### change column names for mapping
           paramsPheno <- data()$modeling
           paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Sta),, drop=FALSE]
+          paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
           DT::datatable(paramsPheno, extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
@@ -486,6 +487,7 @@ mod_staApp_server <- function(id,data){
             modeling <- modeling[!is.na(modeling$analysisId),]
             current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
             current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+            # current.modeling$analysisId <- as.POSIXct(current.modeling$analysisId, origin="1970-01-01", tz="GMT")
             DT::datatable(current.modeling, extensions = 'Buttons',
                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))

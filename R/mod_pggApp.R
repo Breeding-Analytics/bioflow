@@ -132,11 +132,11 @@ mod_pggApp_server <- function(id, data){
     ## warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab and map the 'designation', 'environment' columns and at least one trait.")) )
       }else{ # data is there
         if("mta" %in% data()$status$module){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain inspecting the other tabs.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform MTA before performing a predicted genetic gain analysis.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
       }
     )
     #################
