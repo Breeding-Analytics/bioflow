@@ -33,11 +33,12 @@ mod_indexDesireApp_ui <- function(id){
       ),
       conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
                        selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-                       textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2 ]", value=NULL),
+                       selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                       # textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2. Standard deviations if traits are scaled, otherwise use original-scale values]", value=NULL),
+                       uiOutput(ns("SliderDesireIndex")),
                        hr(style = "border-top: 1px solid #4c4c4c;"),
                        shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                                            numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
-                                           selectInput(ns("scaledIndex"), label = "Scale traits? (only if desire is scaled)", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                            numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
                                            selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                        ),
@@ -229,6 +230,43 @@ mod_indexDesireApp_server <- function(id, data){
       traitsIdxD <- unique(dtIdxD$trait)
       updateSelectInput(session, "trait2IdxD", choices = traitsIdxD)
     })
+    ####################
+    ## desired changes for Desire Index
+    output$SliderDesireIndex <- renderUI({
+      req(data())
+      req(input$version2IdxD)
+      req(input$trait2IdxD)
+      req(input$scaledIndex)
+      trait2IdxD <- input$trait2IdxD # trait2IdxD <- c("Yield_Mg_ha_QTL","Ear_Height_cm") # list(trait2IdxD=c("Yield_Mg_ha","Ear_Height_cm"))
+      dtIdxD <- data()
+      dtIdxD <- dtIdxD$predictions
+      dtIdxD <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),]
+      if(input$scaledIndex){ # if user wants traits scaled
+        lapply(1:length(trait2IdxD), function(i) {
+          sliderInput(
+            session$ns(paste0('SliderDesireIndex',i)),
+            paste0('Desired change (SDs)',": ",trait2IdxD[i]),
+            min = -5,
+            max = 5,
+            value = 1,
+            step = 0.5
+          )
+        })
+      }else{ # if user wants to use original scale
+        lapply(1:length(trait2IdxD), function(i) {
+          traitVals <- dtIdxD[which(dtIdxD$trait == trait2IdxD[i]), "predictedValue"]
+          sliderInput(
+            session$ns(paste0('SliderDesireIndex',i)),
+            paste0('Desired change (original scale)',": ",trait2IdxD[i]),
+            min = -round(sd(traitVals, na.rm=TRUE)*4,3),
+            max = round(sd(traitVals, na.rm=TRUE)*4,3),
+            value = round(sd(traitVals, na.rm=TRUE),3),
+            step = round(0.5*sd(traitVals, na.rm=TRUE),3)
+          )
+        })
+      }
+
+    })
     #################
     ## render the data to be analyzed (wide format)
     output$statusIndex <-  DT::renderDT({
@@ -286,14 +324,26 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$trait2IdxD)
       dtIdxD <- data(); dtIdxD <- dtIdxD$predictions
       mydata <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      if (length(input$trait2IdxD) != 0) {
+        values <- NULL
+        for (i in 1:length(input$trait2IdxD)) {
+          tempval <- reactive({paste0('input$','SliderDesireIndex',i)})
+          values[i] <- tempval()
+          values[i] <- eval(parse(text = values[i]))
+        }
+        values <- t(as.numeric(values))
+        values <- as.data.frame(values)
+        colnames(values) <- input$trait2IdxD
+      }
+      values <- as.numeric(values)
       ## ensure product profile means come sorted
-      if(length(input$trait2IdxD) == length(unlist(strsplit(input$desirev,",")))){
-        dd <- data.frame(trait=input$trait2IdxD, value=unlist(strsplit(input$desirev,",")))
+      if(length(input$trait2IdxD) == length(values) ){
+        dd <- data.frame(trait=input$trait2IdxD, value=values )
         dd <- dd[with(dd, order(as.numeric(as.factor(trait)))), ]
         desireRp <- dd[,"value"]
         traitRp <- dd[,"trait"]
-      }else{desireRp <- input$desirev; traitRp <- input$trait2IdxD}
-      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar=desireRp,
+      }else{desireRp <- values; traitRp <- input$trait2IdxD}
+      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
                              fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
     })
     # render plot for potential responses
@@ -302,17 +352,42 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$version2IdxD)
       req(input$trait2IdxD)
       dtIdxD <- data();
-      plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=input$desirev, proportion=input$proportion,
-                                       analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=input$desirev, scaled=input$scaledIndex)
+      if (length(input$trait2IdxD) != 0) {
+        values <- NULL
+        for (i in 1:length(input$trait2IdxD)) {
+          tempval <- reactive({paste0('input$','SliderDesireIndex',i)})
+          values[i] <- tempval()
+          values[i] <- eval(parse(text = values[i]))
+        }
+        values <- t(as.numeric(values))
+        values <- as.data.frame(values)
+        colnames(values) <- input$trait2IdxD
+      }
+      values <- as.numeric(values)
+      plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
+                                       analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex)
     })
     ## render result of "run" button click
     outIdxD <- eventReactive(input$runIdxD, {
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
-      req(input$desirev)
+      # req(input$desirev)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtIdxD <- data()
+      # define values for slider all traits for base index
+      if (length(input$trait2IdxD) != 0) {
+        values <- NULL
+        for (i in 1:length(input$trait2IdxD)) {
+          tempval <- reactive({paste0('input$','SliderDesireIndex',i)})
+          values[i] <- tempval()
+          values[i] <- eval(parse(text = values[i]))
+        }
+        values <- t(as.numeric(values))
+        values <- as.data.frame(values)
+        colnames(values) <- input$trait2IdxD
+      }
+      values <- as.numeric(values)
       # run the modeling, but before test if mta was done
       if(sum(dtIdxD$status$module %in% "mta") == 0) {
         output$qaQcIdxDInfo <- renderUI({
@@ -330,7 +405,7 @@ mod_indexDesireApp_server <- function(id, data){
           phenoDTfile= dtIdxD, # input data structure
           analysisId=input$version2IdxD, # analysis to be picked from predictions database
           trait= input$trait2IdxD, # traits to include in the index
-          desirev = as.numeric(unlist(strsplit(input$desirev,","))), # vector of desired values
+          desirev = values, # as.numeric(unlist(strsplit(input$desirev,","))), # vector of desired values
           scaled=input$scaledIndex, # whether predicted values should be scaled or not
           verbose=input$verboseIndex # should we print logs or not
         ),
