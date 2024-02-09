@@ -238,63 +238,63 @@ if (is.null(result)){
     
   }else{
     
-    # if(length(unique(pred$designation)) > 200){ # go fixed format
-    #   
-    #   shiny::renderPlot({
-    #     
-    #     temp.pred.box <- pred[pred$trait== input$traitMta2,]
-    #     p <- ggplot2::ggplot(
-    #       data = temp.pred.box, 
-    #       mapping = ggplot2::aes(
-    #         x = reorder(designation, -predictedValue),
-    #         y = predictedValue,
-    #         col = entryType,
-    #         text = paste(
-    #           paste0('<br>', "designation: ", designation),
-    #           paste0('<br>', "entry type: ", entryType),
-    #           paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-    #           paste0('<br>', "standard error: ", round(stdError, 4)),
-    #           # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
-    #           #        round(predictedValue + CI, 2), ")")))) +
-    #           paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
-    #                  round(predictedValue + stdError, 4), ")")))) +
-    #       ggplot2::theme_classic() +  ggplot2::geom_point() +
-    #       ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-    #                                           ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-    #                              width = 0.10) +
-    #       ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-    #       ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
-    #     p
-    #     
-    #   })
-    # }else{ # go dynamic
-    #   plotly::renderPlotly({
-    #     
-    #     temp.pred.box <- pred[pred$trait== input$traitMta2,]
-    #     p <- ggplot2::ggplot(
-    #       data = temp.pred.box, 
-    #       mapping = ggplot2::aes(
-    #         x = reorder(designation, -predictedValue),
-    #         y = predictedValue,
-    #         col = entryType,
-    #         text = paste(
-    #           paste0('<br>', "designation: ", designation),
-    #           paste0('<br>', "entry type: ", entryType),
-    #           paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-    #           paste0('<br>', "standard error: ", round(stdError, 4)),
-    #           # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
-    #           #        round(predictedValue + CI, 2), ")")))) +
-    #           paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
-    #                  round(predictedValue + stdError, 4), ")")))) +
-    #       ggplot2::theme_classic() +  ggplot2::geom_point() +
-    #       ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-    #                                           ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-    #                              width = 0.10) +
-    #       ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-    #       ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
-    #     plotly::ggplotly(p)
-    #   })
-    # }
+    if(length(unique(pred$designation)) > 200){ # go fixed format
+
+      shiny::renderPlot({
+
+        temp.pred.box <- pred[pred$trait== input$traitMta2,]
+        p <- ggplot2::ggplot(
+          data = temp.pred.box,
+          mapping = ggplot2::aes(
+            x = reorder(designation, -predictedValue),
+            y = predictedValue,
+            col = entryType,
+            text = paste(
+              paste0('<br>', "designation: ", designation),
+              paste0('<br>', "entry type: ", entryType),
+              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+              paste0('<br>', "standard error: ", round(stdError, 4)),
+              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+              #        round(predictedValue + CI, 2), ")")))) +
+              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                     round(predictedValue + stdError, 4), ")")))) +
+          ggplot2::theme_classic() +  ggplot2::geom_point() +
+          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                                 width = 0.10) +
+          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+        p
+
+      })
+    }else{ # go dynamic
+      plotly::renderPlotly({
+
+        temp.pred.box <- pred[pred$trait== input$traitMta2,]
+        p <- ggplot2::ggplot(
+          data = temp.pred.box,
+          mapping = ggplot2::aes(
+            x = reorder(designation, -predictedValue),
+            y = predictedValue,
+            col = entryType,
+            text = paste(
+              paste0('<br>', "designation: ", designation),
+              paste0('<br>', "entry type: ", entryType),
+              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+              paste0('<br>', "standard error: ", round(stdError, 4)),
+              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+              #        round(predictedValue + CI, 2), ")")))) +
+              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                     round(predictedValue + stdError, 4), ")")))) +
+          ggplot2::theme_classic() +  ggplot2::geom_point() +
+          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                                 width = 0.10) +
+          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+        plotly::ggplotly(p)
+      })
+    }
     
   }
 }

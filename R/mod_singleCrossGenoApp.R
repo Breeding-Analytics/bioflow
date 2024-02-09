@@ -21,7 +21,8 @@ mod_singleCrossGenoApp_ui <- function(id){
       numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000),
       # selectInput(ns("additive"), label = "Additive matrix? if FALSE dominance assumed", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
       # textInput(ns("separator"), label = "Separator character to add between male and female names to form hybrid name", value = ":"),
-      checkboxGroupInput(ns("checkboxAllHybrids"), label = "", choices = list("Compute all possible hybrids?" = TRUE), selected = FALSE),
+      selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+      # checkboxGroupInput(ns("checkboxAllHybrids"), label = "", choices = list("Compute all possible hybrids?" = TRUE), selected = FALSE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -166,7 +167,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
         colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
         cross <- unique(ped[,c("designation","mother","father")])
         # subset to crosses that can be built
-        possible <- which( (cross$mother %in% rownames(result$data$geno)) & (cross$father %in% rownames(result$data$geno))  )
+        possible <- which( (cross$mother %in% rownames(data()$data$geno)) & (cross$father %in% rownames(data()$data$geno))  )
         if(length(possible) > 0){
           cross <- cross[possible, ]
         }
@@ -174,7 +175,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
         cross$motherN <- as.numeric(as.factor(cross$mother))
         cross$fatherN <- as.numeric(as.factor(cross$father))
         # converts a data.frame into a matrix
-        A <- matrix(NA, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
+        A <- matrix(0, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
         if(length(possible) > 0){
           A[as.matrix(cross[,c("motherN","fatherN")])] = 2
         }
@@ -209,13 +210,13 @@ mod_singleCrossGenoApp_server <- function(id, data){
           fathersG <- intersect(fathers, rownames(gen))
           designationG <- intersect(designation, rownames(gen))
           final <- data.frame(Metric=c("Mother","Father","Designation"),
-                     Phenotyped=c(length(mothers), length(fathers), length(designation)),
-                     Genotyped=c(length(mothersG), length(fathersG), length(designationG))
-                     )
+                              Phenotyped=c(length(mothers), length(fathers), length(designation)),
+                              Genotyped=c(length(mothersG), length(fathersG), length(designationG))
+          )
           DT::datatable(final, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-                          )
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          )
         }
 
       })
@@ -226,34 +227,55 @@ mod_singleCrossGenoApp_server <- function(id, data){
 
     outScr <- eventReactive(input$runScr, {
 
-      # mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-      # if(mappedColumns == 3){ # all required columns are present
-      #
-      #   req(data())
-      #   # req(input$traitOutqPhenoMultiple)
-      #   shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      #
-      # result <- try(cgiarPIPE::scm(markerDTfile=mydata1,markerDTfile2=mydata2,
-      #                              hybridBatch = input$hybridBatch,
-      #                              separator = input$separator,
-      #                              additive=input$additive
-      # ), silent = TRUE)
-      # if(!inherits(result,"try-error") ){
-      #   print(paste("Your results have been stored on the cloud with ID:",result$id))
-      # }else{
-      #   print(result[[1]])
-      # }
-       #   # add status table
-      #   newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
-      #   result$status <- rbind(result$status, newStatus)
-      #
-      #   data(result)
-      #   cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved."))
-      #   shinybusy::remove_modal_spinner()
-      #
-      # }else{
-      #   cat("Please meet the data conditions before you identify and save outliers.")
-      # }      # save(result, file="toTest.RData")
+      if(is.null(data())){
+        cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+      }else{ # data is there
+        ## pheno check
+        if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
+          cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
+        }else{
+          ## ped check
+          ped <- data()$data$pedigree
+          metaPed <- data()$metadata$pedigree
+          if(is.null(ped)){ # no pedigree available
+            cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section.")
+          }else{ # pedigree is there
+            if( length(intersect(metaPed$value , colnames(ped))) != 3){
+              cat("Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data.")
+            }else{
+              colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+              parents <- na.omit(c(unique(ped[,"mother"]), unique(ped[,"father"]) ))
+              if(length(parents) == 0){
+                cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected.")
+              }else{
+                ## marker check
+                geno <- data()$data$geno
+                if(is.null(geno)){ # no markers available
+                  cat("Please retrieve or load your marker data using the 'Data Retrieval' tab.")
+                }else{ # markers are there
+                  shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+                  myObject <- data()
+                  result <- try(cgiarPipeline::singleCrossMat( # single cross matrix function
+                    object= myObject,
+                    hybridBatch=input$hybridBatch,
+                    allHybrids=input$checkboxAllHybrids,
+                    verbose=FALSE
+                  ),
+                  silent=TRUE
+                  )
+                  if(!inherits(result,"try-error")) {
+                    data(result) # update data with results
+                    cat(paste("Single cross marker matrix building with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+                  }else{
+                    cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+                  }
+                  shinybusy::remove_modal_spinner()
+                } # end of if pedigree available
+              } #
+            }
+          } # end of if pedigree available
+        }
+      }
 
     })
     output$outScr <- renderPrint({
