@@ -1,4 +1,4 @@
-#' singleCrossGenoApp UI Function
+#' expDesignEditApp UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_singleCrossGenoApp_ui <- function(id){
+mod_expDesignEditApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
@@ -77,17 +77,18 @@ mod_singleCrossGenoApp_ui <- function(id){
                                   )
                                 ) # end of tabset
                        )# end of output panel
-                     )) # end mainpanel
+                     )
+    ) # end mainpanel
 
 
 
   )
 }
 
-#' singleCrossGenoApp Server Functions
+#' expDesignEditApp Server Functions
 #'
 #' @noRd
-mod_singleCrossGenoApp_server <- function(id, data){
+mod_expDesignEditApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -280,11 +281,12 @@ mod_singleCrossGenoApp_server <- function(id, data){
 
 
 
+
   })
 }
 
 ## To be copied in the UI
-# mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")
+# mod_expDesignEditApp_ui("expDesignEditApp_1")
 
 ## To be copied in the server
-# mod_singleCrossGenoApp_server("singleCrossGenoApp_1")
+# mod_expDesignEditApp_server("expDesignEditApp_1")

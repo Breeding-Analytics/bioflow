@@ -142,8 +142,9 @@ mod_rggApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab and map the 'designation', 'environment' columns and at least one trait.")) )
       }else{ # data is there
-        mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$data$pedigree)))
-        if(mappedColumns == 1){
+        mappedColumns <- setdiff(data()$metadata$pedigree[data()$metadata$pedigree$parameter == "yearOfOrigin","value"],"")
+        # mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$medata$pedigree)))
+        if(length(mappedColumns) == 1){
           if("mta" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain inspecting the other tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
@@ -182,6 +183,8 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
       myYears <- data()$data$pedigree
+      paramsPed <- data()$metadata$pedigree
+      colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
       dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
       traitsRgg <- unique(dtRgg$yearOfOrigin)
       updateSelectInput(session, "yearsToUse", choices = traitsRgg, selected =traitsRgg )
@@ -213,8 +216,16 @@ mod_rggApp_server <- function(id, data){
     output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
       req(data())
       req(input$trait3Rgg)
+      ##
       mydata <- data()$predictions
+      paramsPheno <- data()$metadata$pheno
+      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+      colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+      ##
       myYears <- data()$data$pedigree
+      paramsPed <- data()$metadata$pedigree
+      colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+
       mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
       mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
@@ -320,6 +331,35 @@ mod_rggApp_server <- function(id, data){
           # }
         })
 
+        ## Report tab
+        # output$reportRgg <- renderUI({
+        output$reportRgg <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+        })
+
+        output$downloadReportRgg <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultRgg.RData')
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmarkdown::html_document()
+            ))
+            file.rename(out, file)
+          }
+        )
+
       } else {
         output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)})
         output$metricsRgg <- DT::renderDT({DT::datatable(NULL)})
@@ -329,35 +369,6 @@ mod_rggApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
-
-    ## Report tab
-    # output$reportRgg <- renderUI({
-    output$reportRgg <- renderUI({
-      HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-    })
-
-    output$downloadReportRgg <- downloadHandler(
-      filename = function() {
-        paste('my-report', sep = '.', switch(
-          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-        ))
-      },
-      content = function(file) {
-        src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
-        src2 <- normalizePath('data/resultRgg.RData')
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
-        file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
-        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-          "HTML",
-          HTML = rmarkdown::html_document()
-        ))
-        file.rename(out, file)
-      }
-    )
 
     output$outRgg <- renderPrint({
       outRgg()

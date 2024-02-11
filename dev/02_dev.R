@@ -66,6 +66,7 @@ golem::add_module(name = "getData", with_test = TRUE) # extracting raw data
 
 golem::add_module(name = "qaRawApp", with_test = TRUE) # QA on raw data
 golem::add_module(name = "filterPhenoApp", with_test = TRUE ) # QA on raw data
+golem::add_module(name = "expDesignEditApp", with_test = TRUE ) # QA on raw data
 golem::add_module(name = "qaGenoApp", with_test = TRUE) # QA after sta
 golem::add_module(name = "singleCrossGenoApp", with_test = TRUE) # QA after sta
 

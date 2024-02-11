@@ -91,6 +91,9 @@ if (is.null(result)){
   met <- result$metrics %>% filter(module == "rgg", trait != "desireIndex")
   traits <- unique(met$trait)
   ped <- result$data$pedigree
+  paramsPed <- result$metadata$pedigree
+  colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = paramsPed$value, Replace = paramsPed$parameter )
+  ped <- unique(ped[,c("designation","yearOfOrigin")])
 }
 ```
 
@@ -116,7 +119,7 @@ get_h <- function() {
 
 gg <- function(data, label = NULL, title = NULL, trait, type) {
   
-  data$genoYearOriginBase <- as.numeric(data$yearOfOrigin) - min(as.numeric(data$yearOfOrigin))
+  data$genoYearOriginBase <- as.numeric(data$yearOfOrigin) - min(as.numeric(data$yearOfOrigin), na.rm=TRUE)
   
   # fit the model
   ggfit.lm <- lm(predictedValue ~ genoYearOriginBase, data = data)
@@ -137,13 +140,13 @@ gg <- function(data, label = NULL, title = NULL, trait, type) {
                            abs(round(ggfit.sum$coefficients[2,1],4)), " x Year, ", 
                            round((ggfit.sum$coefficients[2,1]/ggfit.sum$coefficients[1,1])*100,2),"% Gain"))
   
-  labelInterval <- ifelse(max(unique(tmpGGData$yearOfOrigin))- min(unique(tmpGGData$yearOfOrigin)) 
+  labelInterval <- ifelse(max(unique(tmpGGData$yearOfOrigin), na.rm=TRUE)- min(unique(tmpGGData$yearOfOrigin), na.rm=TRUE) 
                           > 10, 5, 2)
   
-  xlabel <- seq(min(unique(tmpGGData$yearOfOrigin)), max(unique(tmpGGData$yearOfOrigin)), 
+  xlabel <- seq(min(unique(tmpGGData$yearOfOrigin), na.rm=TRUE), max(unique(tmpGGData$yearOfOrigin), na.rm=TRUE), 
                 by = labelInterval)
   
-  xbreak <- xlabel - min(xlabel)
+  xbreak <- xlabel - min(xlabel, na.rm=TRUE)
   
   myplot <- ggplot(data = tmpGGData,
                    aes(x = genoYearOriginBase, y = predictedValue,
@@ -151,10 +154,10 @@ gg <- function(data, label = NULL, title = NULL, trait, type) {
                        ymax = predictedValue + stdError)) +
     geom_point(color = 'darkgreen') +
     # geom_errorbar() +
-    geom_segment(aes(x = min(genoYearOriginBase),
-                     xend = max(genoYearOriginBase),
+    geom_segment(aes(x = min(genoYearOriginBase, na.rm=TRUE),
+                     xend = max(genoYearOriginBase, na.rm=TRUE),
                      y = Intercept + Slope,
-                     yend = Intercept + Slope*max(genoYearOriginBase)),
+                     yend = Intercept + Slope*max(genoYearOriginBase, na.rm=TRUE)),
                  color = "red") +
     labs(x = "Year of Origin", y = trait, title = mylabel) + 
     # annotate("text", label=strong(italic(mylabel)), x = min(tmpGGData$genoYearOriginBase) + 1, 
