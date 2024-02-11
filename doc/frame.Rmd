@@ -1,8 +1,8 @@
 ---
-title: "frame"
+title: "bioflow"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{frame}
+  %\VignetteIndexEntry{bioflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,5 +15,5 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-# library(frame)
+# library(bioflow)
 ```
