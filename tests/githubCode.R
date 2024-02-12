@@ -33,6 +33,8 @@
 # # push changes if you are the main branch : git push -u origin main
 #
 #
+# # delete an old branch
+# git branch --delete old-branch
 # # You can now navigate to the repository on your GitHub webpage
 # # https://github.com/Breeding-Analytics/bioflow
 # # and toggle to the branch you pushed to see the changes you have made in-browser.
