@@ -565,7 +565,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         tryCatch(
           expr = {
             if (input$pheno_db_type == 'ebs') {
-
               ebs_instance <- sub('https?://([^\\.]+)\\.([^/]+).*', '\\1', input$pheno_db_url)
               ebs_domain   <- sub('https?://([^\\.]+)\\.([^/]+).*', '\\2', input$pheno_db_url)
 
