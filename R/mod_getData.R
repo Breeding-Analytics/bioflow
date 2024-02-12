@@ -3,7 +3,7 @@ geno_example  <- 'www/example/geno.hmp.txt'
 ped_example   <- 'www/example/pedigree.csv'
 qtl_example <- 'www/example/qtl.csv'
 
-#' getData UI Function
+#' getData UI Function (test forking)
 #'
 #' @description A shiny Module.
 #'
