@@ -144,26 +144,26 @@ if (is.null(result)){
   }else{
     
     
-    # plotly::renderPlotly({
-    #   temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
-    #   p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
-    #                         x = ~environment,  type = "box", color = ~environment
-    #   ) %>%  plotly::layout( font=font.plot_ly,
-    #                          xaxis=list( title=""), yaxis=list( title="Trait value") )
-    # })
+    plotly::renderPlotly({
+      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
+      p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
+                            x = ~environment,  type = "box", color = ~environment
+      ) %>%  plotly::layout( font=font.plot_ly,
+                             xaxis=list( title=""), yaxis=list( title="Trait value") )
+    })
     
-    temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
-    p <- temp.pred.box %>% 
-      ggplot() +
-      aes(x=environment, y=predictedValue, fill = environment) +
-      geom_boxplot() +
-      labs(x = "", y = "Trait value") +
-      scale_fill_discrete(name = "") +
-      theme_minimal() +
-      theme(axis.text.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            text = element_text(family = "Courier New, monospace", size=9)) 
-    p
+    # temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
+    # p <- temp.pred.box %>% 
+    #   ggplot() +
+    #   aes(x=environment, y=predictedValue, fill = environment) +
+    #   geom_boxplot() +
+    #   labs(x = "", y = "Trait value") +
+    #   scale_fill_discrete(name = "") +
+    #   theme_minimal() +
+    #   theme(axis.text.x = element_blank(),
+    #         axis.ticks.x = element_blank(),
+    #         text = element_text(family = "Courier New, monospace", size=9)) 
+    # p
     
   }
 }
