@@ -524,7 +524,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         # TODO: check if it has a BrAPI endpoints
         # http://msdn.microsoft.com/en-us/library/ff650303.aspx
-        if (!grepl("^(ht|f)tp(s?)\\:\\/\\/[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,\\'\\/\\\\\\+&amp;%\\$#_]*)?$", input$pheno_db_url)) {
+        if (!grepl("^(ht|f)tp(s?)\\:\\/\\/[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,\\'\\/\\\\\\+&%\\$#_=]*)?$", input$pheno_db_url)) {
           shinyWidgets::show_alert(title = 'Invalid URL!', type = 'error')
           return(NULL)
         }
