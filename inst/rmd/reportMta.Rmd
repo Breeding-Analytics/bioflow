@@ -169,7 +169,7 @@ if (is.null(result)){
 }
 ```
 
-### Distribution across environment (please see downloaded report)
+### Distribution across environment
 
 ```{r }
 if (is.null(result)){
@@ -185,10 +185,10 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
   }else{
-    # selectInput(ns("traitMta2"), 
-    #             label = "", 
-    #             choices = traits
-    # )
+    selectInput(ns("traitMta2"),
+                label = "",
+                choices = traits
+    )
   }
 }
 ```
