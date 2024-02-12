@@ -313,11 +313,13 @@ mod_mtaApp_server <- function(id, data){
       req(input$version2Mta)
       dtMta <- data()
       dtProv = dtMta$predictions
-      dtProv <- dtProv[which(dtProv$analysisId == input$version2Mta),]
-      dtProvTable=  as.data.frame( do.call( rbind, list (with(dtProv, table(environment,trait)) ) ) )
-      bad <- which(dtProvTable <= 1, arr.ind = TRUE)
-      if(nrow(bad) > 0){dtProvTable[bad] = 0}
-      dtProvTable[which(dtProvTable > 1, arr.ind = TRUE)] = 1
+      if(!is.null(dtProv)){
+        dtProv <- dtProv[which(dtProv$analysisId == input$version2Mta),]
+        dtProvTable=  as.data.frame( do.call( rbind, list (with(dtProv, table(environment,trait)) ) ) )
+        bad <- which(dtProvTable <= 1, arr.ind = TRUE)
+        if(nrow(bad) > 0){dtProvTable[bad] = 0}
+        dtProvTable[which(dtProvTable > 1, arr.ind = TRUE)] = 1
+      }else{dtProvTable <- data.frame()}
       return(dtProvTable)
     })
     x = reactiveValues(df = NULL)

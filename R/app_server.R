@@ -22,7 +22,7 @@ app_server <- function(input, output, session) {
   mod_homeApp_server("homeApp_1")
   ## qa tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
-  # mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
+  mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
   mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
 

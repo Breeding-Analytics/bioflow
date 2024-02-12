@@ -13,19 +13,17 @@ mod_expDesignEditApp_ui <- function(id){
 
 
     shiny::sidebarPanel(#width = 3,
-      width = 3,
+      width = 6,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Single-Cross Marker Building</font>"),
+                  <font size='5'>Edit Experimental Design Information</font>"),
+      column(width = 12,DT::dataTableOutput(ns("transTableC")), style = "height:220px; overflow-y: scroll;overflow-x: scroll;"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000),
-      selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+      actionButton(ns("runFieldClean"), "Filter dataset", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outScr"))
+      textOutput(ns("outExp"))
     ), # end sidebarpanel
-    shiny::mainPanel(width = 9,
+    shiny::mainPanel(width = 6,
                      tabsetPanel( #width=9,
                        type = "tabs",
 
@@ -38,50 +36,35 @@ mod_expDesignEditApp_ui <- function(id){
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
                                                              h2(strong("Details")),
-                                                             p("Hybrid breeding based on single-cross of lines allows the genotyping of only the parental lines and the consequent
-                                                               formation of single-cross marker matrices. The idea is that the user provides the marker information from the parental
-                                                               lines and has uploaded a pedigree of the phenotypic dataset. The marker profiles of the possible cross combinations
-                                                               will be computed based on the availability of the marker information. Some of the parameters required are:"),
+                                                             p("Sometimes is required to set to missing experimental design factors that we are aware that are not correctly saved
+                                                               in the databases. Although the tight solution would be to fix this information in the original database, a pragmatic
+                                                               approach is to set certain factors from an especific environment to missing so it is ignored in the model fitting or
+                                                               or any other analytical module using this information."),
                                                              # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                                             p(strong("Batch size to compute-")," the number of hybrids to build in each batch. Building all hybrids at once can be computationally
-                                                               intensive and unnecesary. The default value is 1000 hybrids per batch."),
-                                                             p(strong("Compute all possible hybrids?-")," an indication if only the hybrids present in the phenotypic dataset should be computed or
-                                                               all possible marker cross combinations should be created."),
-                                                             h2(strong("References")),
-                                                             p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
-                                                             p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
-                                                             h2(strong("Software")),
-                                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-                                Vienna, Austria. URL https://www.R-project.org/."),
-                                                             p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                                             p(strong("Editing table-")," there is not much complexity of how to use this module. There is a table with a column for
+                                                               each experimental design factor and a row for each environment. By default this table is filled with ones wherever this
+                                                               information is available. If the user wants to silence a particular factor it just needs to double click in the cell and
+                                                               set the value to zero."),
                                                            )
                                                     )
                                 )
                        ),
-                       tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                                 tabsetPanel(
-                                  tabPanel("Summaries", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Heatmap", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("summariesScr")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE),
+                                                               selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE),
+                                                               selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE),
+                                                               plotly::plotlyOutput(ns("plotCleaned3Dtraits"))
+
                                            )
                                   ),
-                                  tabPanel("Crosses", icon = icon("magnifying-glass-chart"),
-                                           br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
-                                                               column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
-                                                               column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")) ),
-                                                               column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")) )
-                                           )
-                                  )
                                 ) # end of tabset
                        )# end of output panel
                      )
     ) # end mainpanel
-
-
-
   )
 }
 
@@ -105,124 +88,210 @@ mod_expDesignEditApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         ## pheno check
-        if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")) )
+        available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep"), "value"]
+        available <- setdiff(available,"")
+        if( length(available) == 0 ){
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please map some of your experimental design columns using the 'Data Retrieval' tab in the 'Phenotype' section to use this module.")) )
         }else{
-          ## ped check
-          ped <- data()$data$pedigree
-          metaPed <- data()$metadata$pedigree
-          if(is.null(ped)){ # no pedigree available
-            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section.")) )
-          }else{ # pedigree is there
-            if( length(intersect(metaPed$value , colnames(ped))) != 3){
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data.")) )
-            }else{
-              colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-              parents <- na.omit(c(unique(ped[,"mother"]), unique(ped[,"father"]) ))
-              if(length(parents) == 0){
-                HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected.")) )
-              }else{
-                ## marker check
-                geno <- data()$data$geno
-                if(is.null(geno)){ # no markers available
-                  HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your marker data using the 'Data Retrieval' tab.")) )
-                }else{ # markers are there
-                  HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to inspect the options.")) )
-                } # end of if pedigree available
-              } #
-            }
-          } # end of if pedigree available
+          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to inspect the options.")) )
         }
       }
     )
-    ## render the expected result
-    output$plotPossibleCrosses <- shiny::renderPlot({
+    # update color by
+    observeEvent(c(data()), {
       req(data())
-      if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
-        ped <- data()$data$pedigree
-        metaPed <- data()$metadata$pedigree
-        colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-        cross <- unique(ped[,c("designation","mother","father")])
-        cross$motherN <- as.numeric(as.factor(cross$mother))
-        cross$fatherN <- as.numeric(as.factor(cross$father))
-        # converts a data.frame into a matrix
-        A <- matrix(NA, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
-        A[as.matrix(cross[,c("motherN","fatherN")])] = 1
-        rownames(A) <-  levels(as.factor(cross$mother))
-        colnames(A) <- levels(as.factor(cross$father))
-        A <- A[,(input$slider2[1]):min(c(input$slider2[2], ncol(A) )), drop=FALSE] # environments
-        A <- A[(input$slider1[1]):min(c(input$slider1[2]), nrow(A) ), ,drop=FALSE] # genotypes
-        Matrix::image(as(A, Class = "dgCMatrix"), xlab="Fathers", ylab="Mothers", colorkey=FALSE, main="Available hybrids")
-      }
+      available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep","trait"), "value"]
+      traitsMta <- setdiff(available,"")
+      updateSelectInput(session, "zaxisCleaned3Dtraits", choices = traitsMta)
     })
-
-    output$plotPossibleProfiles <- shiny::renderPlot({
+    # update text by
+    observeEvent(c(data()), {
       req(data())
-      if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
-        ped <- data()$data$pedigree
-        metaPed <- data()$metadata$pedigree
-        colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-        cross <- unique(ped[,c("designation","mother","father")])
-        # subset to crosses that can be built
-        possible <- which( (cross$mother %in% rownames(data()$data$geno)) & (cross$father %in% rownames(data()$data$geno))  )
-        if(length(possible) > 0){
-          cross <- cross[possible, ]
+      available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep","designation"), "value"]
+      traitsMta <- setdiff(available,"")
+      updateSelectInput(session, "textCleaned3Dtraits", choices = traitsMta)
+    })
+    # update environments by
+    observeEvent(c(data()), {
+      req(data())
+      dtSta <- data()$data$pheno
+      paramsPheno <- data()$metadata$pheno
+      if(is.null(paramsPheno)){
+        traitsMta <- NULL
+      }else{
+        paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+        if("environment" %in% paramsPheno$parameter){ # good to go
+          colnames(dtSta) <- cgiarBase::replaceValues(colnames(dtSta), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          traitsMta <- na.omit(unique(dtSta[,"environment"]))
+        }else{
+          traitsMta <- NULL
         }
-        ##
-        cross$motherN <- as.numeric(as.factor(cross$mother))
-        cross$fatherN <- as.numeric(as.factor(cross$father))
-        # converts a data.frame into a matrix
-        A <- matrix(0, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
-        if(length(possible) > 0){
-          A[as.matrix(cross[,c("motherN","fatherN")])] = 2
-        }
-        rownames(A) <-  levels(as.factor(cross$mother))
-        colnames(A) <- levels(as.factor(cross$father))
-        A <- A[,(input$slider2[1]):min(c(input$slider2[2], ncol(A) )), drop=FALSE] # environments
-        A <- A[(input$slider1[1]):min(c(input$slider1[2]), nrow(A) ), ,drop=FALSE] # genotypes
-        Matrix::image(as(A, Class = "dgCMatrix"), xlab="Fathers", ylab="Mothers", colorkey=FALSE, main="Possible to build")
       }
+      updateSelectInput(session, "fieldinstCleaned3Dtraits", choices = traitsMta)
     })
 
-    ## display the current outliers
-    observeEvent(data(),{
+    ##produce the plot
+    output$plotCleaned3Dtraits <- plotly::renderPlotly({
+      req(data())
+      req(input$fieldinstCleaned3Dtraits)
+      req(input$zaxisCleaned3Dtraits)
+      req(input$textCleaned3Dtraits)
+      mydata <- data()$data$pheno
+      paramsPheno <- data()$metadata$pheno
+      envFeature <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+      # paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+      # colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+      mydata <- mydata[which(mydata[,envFeature] %in% input$fieldinstCleaned3Dtraits ),]
+      classesInData <- lapply(mydata,class)
 
-      output$summariesScr <-  DT::renderDT({
+      if(classesInData[input$zaxisCleaned3Dtraits] %in% c("character","factor")){
+        z <- as.numeric(as.factor(mydata[,input$zaxisCleaned3Dtraits]))
+      }else{z <- mydata[,input$zaxisCleaned3Dtraits]}
 
-        req(data())
-        if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
-          ped <- data()$data$pedigree
-          metaPed <- data()$metadata$pedigree
-          colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-          phe <- data()$data$pheno
-          metaPhe <- data()$metadata$pheno
-          colnames(phe) <- cgiarBase::replaceValues(colnames(phe), Search = metaPhe$value, Replace = metaPhe$parameter )
-          gen <- data()$data$geno
-
-          pheped <- merge(phe,ped, by="designation", all.x=TRUE)
-          mothers <- unique(pheped[,"mother"])
-          fathers <- unique(pheped[,"father"])
-          designation <- unique(pheped[,"designation"])
-          mothersG <- intersect(mothers, rownames(gen))
-          fathersG <- intersect(fathers, rownames(gen))
-          designationG <- intersect(designation, rownames(gen))
-          final <- data.frame(Metric=c("Mother","Father","Designation"),
-                              Phenotyped=c(length(mothers), length(fathers), length(designation)),
-                              Genotyped=c(length(mothersG), length(fathersG), length(designationG))
+      if(!is.na( stats::var(z) )){ # if we are good to go
+        rowFeature <- paramsPheno[which(paramsPheno$parameter == "row"),"value"]
+        rowFeature <- setdiff(rowFeature, "")
+        colFeature <- paramsPheno[which(paramsPheno$parameter == "col"),"value"]
+        colFeature <- setdiff(colFeature, "")
+        if(length(c(rowFeature,colFeature)) == 2){
+          fig <- plotly::plot_ly(mydata, x = mydata[,rowFeature], y = mydata[,colFeature],
+                                 z = z, text = mydata[,input$textCleaned3Dtraits]
           )
-          DT::datatable(final, extensions = 'Buttons',
-                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          )
+          fig <- fig %>% plotly::add_heatmap()
+          fig <- fig %>% plotly::layout(scene = list(
+            zaxis = list(title = input$zaxisCleaned3Dtraits)))
+          fig
+        }else{
+          fig <- plotly::plot_ly(x=1,y=1,name="No row and column information available for this field")
         }
+      }
+      # just a test
 
-      })
 
     })
+
+
+    # ## our function to keep track of reps, rows, cols that should be set to NA for a given field
+    # dtFieldTraC = reactive({
+    #   dtProv = dtScatterCleaned3Dtraits()$cleaned
+    #   dtProvNames <- c("rowcoord","colcoord","rep","block")
+    #   fieldNames <- as.character(unique(dtProv[,"fieldinstF"]))
+    #   mm = matrix(1,nrow = length(dtProvNames), ncol = length(fieldNames));
+    #   rownames(mm) <- dtProvNames; colnames(mm) <- fieldNames
+    #   dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- fieldNames
+    #   return(dtProvTable)
+    # })
+    # xx = reactiveValues(df = NULL)
+    # observe({
+    #   df <- dtFieldTraC()
+    #   xx$df <- df
+    # })
+    # output$transTableC = DT::renderDT(xx$df,
+    #                                   selection = 'none',
+    #                                   editable = TRUE,
+    #                                   options = list(paging=FALSE,
+    #                                                  searching=FALSE,
+    #                                                  initComplete = I("function(settings, json) {alert('Done.');}")
+    #                                   )
+    # )
+    # proxy = DT::dataTableProxy('transTableC')
+    # observeEvent(input$transTableC_cell_edit, {
+    #   info = input$transTableC_cell_edit
+    #   utils::str(info)
+    #   i = info$row
+    #   j = info$col
+    #   v = info$value
+    #   xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+    # })
+
+    # render the expected result
+    # output$plotPossibleCrosses <- shiny::renderPlot({
+    #   req(data())
+    #   if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
+    #     ped <- data()$data$pedigree
+    #     metaPed <- data()$metadata$pedigree
+    #     colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+    #     cross <- unique(ped[,c("designation","mother","father")])
+    #     cross$motherN <- as.numeric(as.factor(cross$mother))
+    #     cross$fatherN <- as.numeric(as.factor(cross$father))
+    #     # converts a data.frame into a matrix
+    #     A <- matrix(NA, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
+    #     A[as.matrix(cross[,c("motherN","fatherN")])] = 1
+    #     rownames(A) <-  levels(as.factor(cross$mother))
+    #     colnames(A) <- levels(as.factor(cross$father))
+    #     A <- A[,(input$slider2[1]):min(c(input$slider2[2], ncol(A) )), drop=FALSE] # environments
+    #     A <- A[(input$slider1[1]):min(c(input$slider1[2]), nrow(A) ), ,drop=FALSE] # genotypes
+    #     Matrix::image(as(A, Class = "dgCMatrix"), xlab="Fathers", ylab="Mothers", colorkey=FALSE, main="Available hybrids")
+    #   }
+    # })
+
+    # output$plotPossibleProfiles <- shiny::renderPlot({
+    #   req(data())
+    #   if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
+    #     ped <- data()$data$pedigree
+    #     metaPed <- data()$metadata$pedigree
+    #     colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+    #     cross <- unique(ped[,c("designation","mother","father")])
+    #     # subset to crosses that can be built
+    #     possible <- which( (cross$mother %in% rownames(data()$data$geno)) & (cross$father %in% rownames(data()$data$geno))  )
+    #     if(length(possible) > 0){
+    #       cross <- cross[possible, ]
+    #     }
+    #     ##
+    #     cross$motherN <- as.numeric(as.factor(cross$mother))
+    #     cross$fatherN <- as.numeric(as.factor(cross$father))
+    #     # converts a data.frame into a matrix
+    #     A <- matrix(0, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
+    #     if(length(possible) > 0){
+    #       A[as.matrix(cross[,c("motherN","fatherN")])] = 2
+    #     }
+    #     rownames(A) <-  levels(as.factor(cross$mother))
+    #     colnames(A) <- levels(as.factor(cross$father))
+    #     A <- A[,(input$slider2[1]):min(c(input$slider2[2], ncol(A) )), drop=FALSE] # environments
+    #     A <- A[(input$slider1[1]):min(c(input$slider1[2]), nrow(A) ), ,drop=FALSE] # genotypes
+    #     Matrix::image(as(A, Class = "dgCMatrix"), xlab="Fathers", ylab="Mothers", colorkey=FALSE, main="Possible to build")
+    #   }
+    # })
+    #
+    # ## display the current outliers
+    # observeEvent(data(),{
+    #
+    #   output$summariesScr <-  DT::renderDT({
+    #
+    #     req(data())
+    #     if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
+    #       ped <- data()$data$pedigree
+    #       metaPed <- data()$metadata$pedigree
+    #       colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+    #       phe <- data()$data$pheno
+    #       metaPhe <- data()$metadata$pheno
+    #       colnames(phe) <- cgiarBase::replaceValues(colnames(phe), Search = metaPhe$value, Replace = metaPhe$parameter )
+    #       gen <- data()$data$geno
+    #
+    #       pheped <- merge(phe,ped, by="designation", all.x=TRUE)
+    #       mothers <- unique(pheped[,"mother"])
+    #       fathers <- unique(pheped[,"father"])
+    #       designation <- unique(pheped[,"designation"])
+    #       mothersG <- intersect(mothers, rownames(gen))
+    #       fathersG <- intersect(fathers, rownames(gen))
+    #       designationG <- intersect(designation, rownames(gen))
+    #       final <- data.frame(Metric=c("Mother","Father","Designation"),
+    #                           Phenotyped=c(length(mothers), length(fathers), length(designation)),
+    #                           Genotyped=c(length(mothersG), length(fathersG), length(designationG))
+    #       )
+    #       DT::datatable(final, extensions = 'Buttons',
+    #                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    #                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    #       )
+    #     }
+    #
+    #   })
+    #
+    # })
 
     ## save when user clicks
 
-    outScr <- eventReactive(input$runScr, {
+    outExp <- eventReactive(input$runScr, {
 
       if(is.null(data())){
         cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
@@ -231,52 +300,13 @@ mod_expDesignEditApp_server <- function(id, data){
         if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
           cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
         }else{
-          ## ped check
-          ped <- data()$data$pedigree
-          metaPed <- data()$metadata$pedigree
-          if(is.null(ped)){ # no pedigree available
-            cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section.")
-          }else{ # pedigree is there
-            if( length(intersect(metaPed$value , colnames(ped))) != 3){
-              cat("Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data.")
-            }else{
-              colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-              parents <- na.omit(c(unique(ped[,"mother"]), unique(ped[,"father"]) ))
-              if(length(parents) == 0){
-                cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected.")
-              }else{
-                ## marker check
-                geno <- data()$data$geno
-                if(is.null(geno)){ # no markers available
-                  cat("Please retrieve or load your marker data using the 'Data Retrieval' tab.")
-                }else{ # markers are there
-                  shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-                  myObject <- data()
-                  result <- try(cgiarPipeline::singleCrossMat( # single cross matrix function
-                    object= myObject,
-                    hybridBatch=input$hybridBatch,
-                    allHybrids=input$checkboxAllHybrids,
-                    verbose=FALSE
-                  ),
-                  silent=TRUE
-                  )
-                  if(!inherits(result,"try-error")) {
-                    data(result) # update data with results
-                    cat(paste("Single cross marker matrix building with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
-                  }else{
-                    cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-                  }
-                  shinybusy::remove_modal_spinner()
-                } # end of if pedigree available
-              } #
-            }
-          } # end of if pedigree available
+
         }
       }
 
     })
-    output$outScr <- renderPrint({
-      outScr()
+    output$outExp <- renderPrint({
+      outExp()
     })
 
 

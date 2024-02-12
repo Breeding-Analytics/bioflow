@@ -13,7 +13,7 @@ mod_filterPhenoApp_ui <- function(id){
 
 
     shiny::sidebarPanel(#width = 3,
-      width = 5,
+      width = 6,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Data filtering</font>"),
@@ -44,7 +44,7 @@ mod_filterPhenoApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       textOutput(ns("outFilterRaw")),
     ), # end sidebarpanel
-    shiny::mainPanel(width = 7,
+    shiny::mainPanel(width = 6,
                      tabsetPanel( #width=9,
                        type = "tabs",
 

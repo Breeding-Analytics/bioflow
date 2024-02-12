@@ -42,7 +42,7 @@ app_ui <- function(request) {
                  tabPanel("QC1. Outlier Tagging", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
                  tabPanel("(optional) Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
                  tabPanel(div("(optional) Trait Transformations",style = "color:red")),
-                 # tabPanel(div("(optional) Exp. Design Editing",style = "color:red"), mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
+                 tabPanel(div("(optional) Exp. Design Editing",style = "color:red"), mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
                  tabPanel("QC2. Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
                  tabPanel("(optional) Single-Cross Markers", mod_singleCrossGenoApp_ui("singleCrossGenoApp_1"), icon = icon("puzzle-piece")  ),
                  tabPanel(div("QC3. Pedigree Cleaning",style = "color:red") ),
