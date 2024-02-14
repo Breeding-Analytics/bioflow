@@ -628,7 +628,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               updateSelectInput(session,
                                 inputId = 'pheno_db_program',
                                 label   = 'Breeding Program: ',
-                                choices = pheno_db_programs)
+                                choices = c('', pheno_db_programs))
             }
 
             shinybusy::remove_modal_spinner()
@@ -652,7 +652,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         updateSelectInput(session,
                           inputId = 'pheno_db_program',
                           label   = 'Breeding Program: ',
-                          choices = pheno_db_programs)
+                          choices = c('', pheno_db_programs))
 
         shinybusy::remove_modal_spinner()
       }
