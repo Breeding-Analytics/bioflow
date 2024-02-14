@@ -136,7 +136,7 @@ mod_getData_ui <- function(id){
                  tags$span(id = ns('data_server_holder'),
                            shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
                                                tags$span(id = ns('pheno_db_crop_holder'),
-                                                         selectInput(
+                                                         selectizeInput(
                                                            inputId = ns('pheno_db_crop'),
                                                            label   = 'Crop: ',
                                                            choices = list()
@@ -560,6 +560,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
         }
+
+        output$preview_pheno <- DT::renderDT(NULL)
       }
     )
 
@@ -623,7 +625,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               updateSelectizeInput(session,
                                    inputId = 'pheno_db_crop',
                                    label   = 'Crop: ',
-                                   choices = pheno_db_crops)
+                                   choices = c('', pheno_db_crops))
             } else {
               pheno_db_programs <- QBMS::list_programs()
 
@@ -632,6 +634,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                    label   = 'Breeding Program: ',
                                    choices = c('', pheno_db_programs))
             }
+
+            output$preview_pheno <- DT::renderDT(NULL)
 
             shinybusy::remove_modal_spinner()
           },
@@ -721,7 +725,9 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                                     quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
           }
         } else if (input$pheno_input == 'brapi') {
-          if (input$pheno_db_load != 1){return(NULL)} else {
+          if (input$pheno_db_load != 1){
+            return(NULL)
+          } else {
             shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
 
             QBMS::set_trial(input$pheno_db_trial)
