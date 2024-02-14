@@ -162,25 +162,27 @@ mod_getData_ui <- function(id){
                  ),
         ),
 
-        if (!is.null(pheno_example)) {
-          checkboxInput(
-            inputId = ns('pheno_example'),
-            label = span('Load example ',
-                         a('phenotypic data', target = '_blank',
-                           href = pheno_example)),
-            value = FALSE
-          )
-        },
+        shinydashboard::box(width = 12,
+          if (!is.null(pheno_example)) {
+            checkboxInput(
+              inputId = ns('pheno_example'),
+              label = span('Load example ',
+                           a('phenotypic data', target = '_blank',
+                             href = pheno_example)),
+              value = FALSE
+            )
+          },
 
-        p(span("**If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
+          p(span("**If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
 
+          hr(),
+          uiOutput(ns('brapi_trait_map')),
+          DT::DTOutput(ns('preview_pheno')),
+          uiOutput(ns('pheno_map')),
+          actionButton(ns("concatenateEnv"), "Update environments", icon = icon("play-circle")),
+          textOutput(ns("outConcatenateEnv")),
+        ),
 
-        hr(),
-        uiOutput(ns('brapi_trait_map')),
-        DT::DTOutput(ns('preview_pheno')),
-        uiOutput(ns('pheno_map')),
-        actionButton(ns("concatenateEnv"), "Update environments", icon = icon("play-circle")),
-        textOutput(ns("outConcatenateEnv")),
       ),
       tabPanel(
         title = 'Genotypic',
