@@ -51,12 +51,18 @@
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
 # usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 # usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
+#
+# # https://icarda-git.github.io/QBMS/#boosting-big-queries-performance
+# # https://github.com/gaborcsardi/async/issues/70
+# usethis::use_dev_package("async", type = "Imports", remote = "r-lib/async")
 # usethis::use_dev_package("QBMS", type = "Imports", remote = "icarda-git/QBMS")
+#
 # usethis::use_package( "shinymanager" )
 #
 # # remotes::install_github("Breeding-Analytics/cgiarBase")
 # # remotes::install_github("Breeding-Analytics/cgiarPipeline")
 # # remotes::install_github("Breeding-Analytics/cgiarOcs")
+# # remotes::install_github("r-lib/async")
 # # remotes::install_github("icarda-git/QBMS")
 #
 # ## Add modules ----
