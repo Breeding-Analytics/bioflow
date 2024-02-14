@@ -23,7 +23,11 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
-      selectInput(ns("modelMet"), label = "Genetic evaluation model (if random)", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
+      selectInput(ns("modelMet"), "Genetic evaluation model (if random)", choices = NULL, multiple = FALSE),
+      # selectInput(ns("modelMet"), label = "Genetic evaluation model (if random)", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
+      # tags$span(id = ns('israndommodel'),
+      #           selectInput(ns("modelMet"), label = "Genetic evaluation model (if random)", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
+      # ),
       tags$span(id = ns('ismarkermodel'),
                 selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
       ),
@@ -203,6 +207,14 @@ mod_mtaApp_server <- function(id, data){
     #   return(data)
     # })
     ################## marker version to use if marker-based model
+    # observeEvent(
+    #   input$randomTermMta2,
+    #   if ( c('designation') %in% input$randomTermMta2 ) {
+    #     golem::invoke_js('showid', ns('israndommodel'))
+    #   } else {
+    #     golem::invoke_js('hideid', ns('israndommodel'))
+    #   }
+    # )
     observeEvent(
       input$modelMet,
       if (input$modelMet %in% c('gblup','rrblup','ssgblup') ) {
@@ -273,12 +285,17 @@ mod_mtaApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$trait2Mta)
       dtMta <- data()
+      metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("environment","year","season","country","location","trial")),]
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value])
+      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),] # we do this in case the users didn't define the environment properly
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
-      traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
+      dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)
+      traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)] # remove factors that do not have more than one level
       start <- setdiff(traitsMta,c("designation","entryType","pipeline"))
-      updateSelectInput(session, "fixedTermMta2", choices = traitsMta, selected = start)
+      updateSelectInput(session, "fixedTermMta2", choices = traitsMta, selected = ifelse(length(start)>1,start[1],start))
     })
     #################
     ## random effects
@@ -286,14 +303,32 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
-      # req(input$fixedTermMta2)
       dtMta <- data()
+      metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("environment","year","season","country","location","trial")),]
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value])
+      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),] # we do this in case the users didn't define the environment properly
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
-      traitsMta <- apply(dtMta[,c("environment","designation","entryType","pipeline")],2,function(x){length(unique(x))})
+      dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)
+      traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)]
       traitsMta <- setdiff(traitsMta, input$fixedTermMta2)
       updateSelectInput(session, "randomTermMta2", choices = traitsMta, selected = "designation")
+    })
+    #################
+    ## model types
+    observeEvent(c(data(), input$version2Mta, input$trait2Mta, input$fixedTermMta2), {
+      req(data())
+      req(input$version2Mta)
+      req(input$trait2Mta)
+      req(input$fixedTermMta2)
+      if('designation'%in%input$fixedTermMta2){
+        traitsMta <- list(BLUE="blue")
+      }else{
+        traitsMta <- list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
+      }
+      updateSelectInput(session, "modelMet", choices = traitsMta, selected = traitsMta[1])
     })
     #################
     ## gXe interactions
