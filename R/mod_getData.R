@@ -193,7 +193,9 @@ mod_getData_ui <- function(id){
           selectInput(
             inputId = ns('geno_input'),
             label   = 'Genotypic SNPs Source*:',
-            choices = list('HapMap Upload' = 'file', 'HapMap URL' = 'url', 'Table Upload' = 'matfile', 'Table URL' = 'matfileurl' ),
+            choices = list('HapMap Upload' = 'file', 'HapMap URL' = 'url',
+                           'Table Upload' = 'matfile', 'Table URL' = 'matfileurl',
+                           'VCF Upload' = 'vcf.file', 'VCF URL' = 'vcf.url'),
             width   = '200px'
           ),
           tags$span(id = ns('geno_file_holder'),
@@ -201,7 +203,7 @@ mod_getData_ui <- function(id){
                       inputId = ns('geno_file'),
                       label   = NULL,
                       width   = '400px',
-                      accept  = c('application/gzip', '.gz', '.txt', '.hmp', '.csv')
+                      accept  = c('application/gzip', '.gz', '.txt', '.hmp', '.csv', '.vcf')
                     )
           ),
           textInput(
@@ -955,13 +957,13 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$geno_input,
       if(length(input$geno_input) > 0){ # added
-        if (input$geno_input == 'file' ) {
+        if (input$geno_input %in% c('file', 'vcf.file')) {
           golem::invoke_js('showid', ns('geno_file_holder'))
           golem::invoke_js('hideid', ns('geno_url'))
           golem::invoke_js('hideid', ns('geno_table_mapping'))
           golem::invoke_js('hideid', ns('geno_table_options'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
-        } else if (input$geno_input == 'url') {
+        } else if (input$geno_input %in% c('url', 'vcf.url')) {
           golem::invoke_js('hideid', ns('geno_file_holder'))
           golem::invoke_js('hideid', ns('geno_table_mapping'))
           golem::invoke_js('hideid', ns('geno_table_options'))
@@ -1002,6 +1004,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         return(NULL)
       }
     })
+
     observeEvent(c(geno_data_table()), { # update values for columns in designation and first snp and last snp
       req(geno_data_table())
       provGeno <- geno_data_table()
@@ -1016,6 +1019,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       updateSelectizeInput(session, "geno_table_lastsnp", choices = colnames(provGeno)[max(c(1,ncol(provGeno)-100)):ncol(provGeno)], selected = character(0))
       updateSelectizeInput(session, "geno_table_designation", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))
     })
+
     observeEvent( # reactive for the csv geno read, active once the user has selected the proper columns
       c(geno_data_table(), input$geno_table_firstsnp, input$geno_table_lastsnp, input$geno_table_designation),
       {
@@ -1047,20 +1051,33 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     geno_data <- reactive({
       if(length(input$geno_input) > 0){ # added
-        if (input$geno_input == 'file' ) {
+        if (input$geno_input %in% c('file', 'vcf.file')) {
           if (is.null(input$geno_file)) {return(NULL)}else{
             snps_file <- input$geno_file$datapath
           }
-        } else {
+        } else if (input$geno_input %in% c('url', 'vcf.url')) {
           if (input$geno_url == '') {return(NULL)}else{
             snps_file <- input$geno_url
           }
+        } else {
+          return(NULL)
         }
 
         # library(vcfR); vcf_data <- vcfR::read.vcfR(snps_file); hmp_data <- vcfR::vcfR2hapmap(vcf.data)
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-        df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
+        if (input$geno_input %in% c('file', 'url')) {
+          df <- as.data.frame(data.table::fread(snps_file, sep = '\t', header = TRUE))
+
+        } else if (input$geno_input %in% c('vcf.file', 'vcf.url')) {
+          vcf.data  <- vcfR::read.vcfR(snps_file)
+
+          df <- vcfR::vcfR2hapmap(vcf.data)
+          df <- df[-1,]
+
+          rm(vcf.data)
+        }
+
         shinybusy::remove_modal_spinner()
 
         hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',

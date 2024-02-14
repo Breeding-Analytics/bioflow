@@ -56,6 +56,7 @@
 # # https://github.com/gaborcsardi/async/issues/70
 # usethis::use_dev_package("async", type = "Imports", remote = "r-lib/async")
 # usethis::use_dev_package("QBMS", type = "Imports", remote = "icarda-git/QBMS")
+# usethis::use_package("vcfR")
 #
 # usethis::use_package( "shinymanager" )
 #
