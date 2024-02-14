@@ -1668,8 +1668,17 @@ hapMapChar2NumericDouble <- function(hapMap) {
   missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","",-9)
   for(iMiss in missingData){hapMap[which(hapMap==iMiss, arr.ind = TRUE)] <- NA}
   # convert the hapMap to numeric
-  hapMapNumeric <- sommer::atcg1234(t(hapMap), maf = -1, imp = FALSE)
+  Mprov <- t(hapMap); colnames(Mprov) <- SNPInfo[,1]
+  hapMapNumeric <- sommer::atcg1234(Mprov, maf = -1, imp = FALSE)
 
+  multiAllelic <- setdiff(SNPInfo$`rs#`,colnames(hapMapNumeric$M))
+  if(length(multiAllelic) > 0){
+    addMulti <- matrix(NA,nrow=nrow(hapMapNumeric$M),ncol=length(multiAllelic))
+    addMultiRef <- matrix(NA,nrow=2,ncol=length(multiAllelic))
+    colnames(addMulti) <- colnames(addMultiRef) <- multiAllelic
+    hapMapNumeric$M <- cbind(hapMapNumeric$M, addMulti)
+    hapMapNumeric$ref.alleles <- cbind(hapMapNumeric$ref.alleles, addMultiRef)
+  }
   # convert to data frame
   refAlleles <- hapMapNumeric$ref.alleles
 
