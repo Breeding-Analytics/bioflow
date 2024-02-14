@@ -618,17 +618,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             if (input$pheno_db_type == 'bms') {
               pheno_db_crops <- QBMS::list_crops()
 
-              updateSelectInput(session,
-                                inputId = 'pheno_db_crop',
-                                label   = 'Crop: ',
-                                choices = pheno_db_crops)
+              updateSelectizeInput(session,
+                                   inputId = 'pheno_db_crop',
+                                   label   = 'Crop: ',
+                                   choices = pheno_db_crops)
             } else {
               pheno_db_programs <- QBMS::list_programs()
 
-              updateSelectInput(session,
-                                inputId = 'pheno_db_program',
-                                label   = 'Breeding Program: ',
-                                choices = c('', pheno_db_programs))
+              updateSelectizeInput(session,
+                                   inputId = 'pheno_db_program',
+                                   label   = 'Breeding Program: ',
+                                   choices = c('', pheno_db_programs))
             }
 
             shinybusy::remove_modal_spinner()
@@ -649,10 +649,10 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         pheno_db_programs <- QBMS::list_programs()
 
-        updateSelectInput(session,
-                          inputId = 'pheno_db_program',
-                          label   = 'Breeding Program: ',
-                          choices = c('', pheno_db_programs))
+        updateSelectizeInput(session,
+                             inputId = 'pheno_db_program',
+                             label   = 'Breeding Program: ',
+                             choices = c('', pheno_db_programs))
 
         shinybusy::remove_modal_spinner()
       }
@@ -667,10 +667,11 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         pheno_db_trials <- QBMS::list_trials()
 
-        updateSelectInput(session,
-                          inputId = 'pheno_db_trial',
-                          label   = 'Trial/Study: ',
-                          choices = pheno_db_trials)
+        updateSelectizeInput(session,
+                             inputId  = 'pheno_db_trial',
+                             label    = 'Trial/Study: ',
+                             choices  = pheno_db_trials,
+                             selected = NULL)
 
         shinybusy::remove_modal_spinner()
       }
