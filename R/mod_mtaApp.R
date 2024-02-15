@@ -113,6 +113,13 @@ mod_mtaApp_ui <- function(id){
                                               column(width=12,DT::DTOutput(ns("statusMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
+                 tabPanel("Evaluation units", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
                  tabPanel("Connectivity", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
@@ -295,7 +302,7 @@ mod_mtaApp_server <- function(id, data){
       traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)] # remove factors that do not have more than one level
       start <- setdiff(traitsMta,c("designation","entryType","pipeline"))
-      updateSelectInput(session, "fixedTermMta2", choices = traitsMta, selected = ifelse(length(start)>1,start[1],start))
+      updateSelectInput(session, "fixedTermMta2", choices = traitsMta, selected = ifelse('environment'%in%start, 'environment',  start) )
     })
     #################
     ## random effects
@@ -415,12 +422,40 @@ mod_mtaApp_server <- function(id, data){
     output$statusMta <-  DT::renderDT({
       req(data())
       req(input$version2Mta)
-      dtSta <- data() # dtSta<- result
       ### change column names for mapping
       paramsPheno <- data()$modeling
       paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Mta),, drop=FALSE]
       paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      )
+    })
+
+    output$evaluationUnits <-  DT::renderDT({
+      req(data())
+      req(input$version2Mta)
+      object <- data()
+      # get the total number of individuals possible to estimate
+      metaPed <- object$metadata$pedigree
+      pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+      pedCols <- setdiff(pedCols,"")
+      metaCols <- metaPed[which(metaPed$value %in% pedCols), "parameter"]
+      n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(unique(x))})
+      # check how many have phenotypes
+      dtMta <- object$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
+      nPheno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
+        length(intersect(unique(x) , unique(dtMta$designation)))
+      })
+      # check how many have marker
+      nGeno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
+        length(intersect(unique(x) , rownames(object$data$geno)))
+      })
+      final <- data.frame(cbind(metaCols,n, nPheno, nGeno))
+      colnames(final) <- c("Evaluation unit", "N", "With phenotype", "With markers")
+      rownames(final) <- NULL
+      DT::datatable(final, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       )
