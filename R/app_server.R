@@ -20,17 +20,18 @@ app_server <- function(input, output, session) {
 
   ## home
   mod_homeApp_server("homeApp_1")
+
+  ## data
+  mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
+
   ## qa tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
   mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
   mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
-
-  ## data
-  mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
-
-  ## genetic evaluation
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
+
+  # genetic evaluation
   mod_staApp_server("staApp_1", data = data)
   mod_qaStaApp_server("qaStaApp_1",data = data)
   mod_mtaApp_server("mtaApp_1",data = data)

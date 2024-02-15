@@ -247,9 +247,9 @@ mod_staApp_server <- function(id,data){
     # reactive table for trait family distributions
     dtDistTrait = reactive({
       req(data())
+      req(input$trait2Sta)
       dtSta <- data()
       dtSta <- dtSta$data$pheno
-      req(input$trait2Sta)
       traitNames = input$trait2Sta
       mm = matrix(0,nrow = 8, ncol = length(traitNames));
       rownames(mm) <- c(
@@ -437,6 +437,13 @@ mod_staApp_server <- function(id,data){
       req(data())
       req(input$trait2Sta)
       req(input$genoUnitSta)
+      req(input$version2Sta)
+      req(input$trait2Sta)
+      req(input$fixedTermSta2)
+      req(input$genoAsFixedSta)
+      req(input$genoUnitSta)
+      req(input$verboseSta)
+      req(input$maxitSta)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtSta <- data()
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})

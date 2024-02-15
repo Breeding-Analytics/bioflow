@@ -88,6 +88,7 @@ app_ui <- function(request) {
                  tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),
                  tabPanel("Contact us", mod_contactUsApp_ui("contactUsApp_1"), icon = icon("envelope") )
       )
+
     )
   )
 }
