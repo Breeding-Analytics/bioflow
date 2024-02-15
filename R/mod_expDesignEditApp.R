@@ -230,6 +230,18 @@ mod_expDesignEditApp_server <- function(id, data){
           cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
         }else{
 
+          xx$df
+
+          mydata <- data()$data$pheno
+          for(i in 1:ncol(fieldsToClean)){ # for each fieldinstance
+            for(j in 1:nrow(fieldsToClean)){ # for each experimental design factor
+              if(fieldsToClean[j,i] == 0){
+                fieldI <- which(mydata[,"fieldinstF"] == colnames(fieldsToClean)[i])
+                mydata[fieldI,rownames(fieldsToClean)[j]] = NA
+              }
+            }
+          }
+
         }
       }
 

@@ -435,13 +435,10 @@ mod_staApp_server <- function(id,data){
     ## render result of "run" button click
     outSta <- eventReactive(input$runSta, {
       req(data())
-      req(input$trait2Sta)
-      req(input$genoUnitSta)
       req(input$version2Sta)
       req(input$trait2Sta)
-      req(input$fixedTermSta2)
-      req(input$genoAsFixedSta)
       req(input$genoUnitSta)
+      req(input$genoAsFixedSta)
       req(input$verboseSta)
       req(input$maxitSta)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
