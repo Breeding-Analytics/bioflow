@@ -928,7 +928,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                    temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
                    for (i in input[[paste0('select', x)]]) {
                      temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
-                     temp$data$pheno[,i] <- as.numeric(temp$data$pheno[,i])
+                     if(!is.numeric(temp$data$pheno[,i])){temp$data$pheno[,i] <- as.numeric(gsub(",","",temp$data$pheno[,i]))}
                    }
                  } else { # is any other column other than trait
                    if (x %in% temp$metadata$pheno$parameter) {
