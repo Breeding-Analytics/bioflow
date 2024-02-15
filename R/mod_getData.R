@@ -147,6 +147,7 @@ mod_getData_ui <- function(id){
                                                  label   = 'Breeding Program: ',
                                                  choices = list()
                                                ),
+                                               uiOutput(ns('pheno_db_folder')),
                                                selectizeInput(
                                                  inputId = ns('pheno_db_trial'),
                                                  label   = 'Trial/Study: ',
@@ -667,16 +668,49 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_db_program,
       if (input$pheno_db_program != '') {
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Trials...')
+        if (input$pheno_db_type == 'breedbase') {
+          shinybusy::show_modal_spinner('fading-circle', text = 'Loading Folders...')
+        } else {
+          shinybusy::show_modal_spinner('fading-circle', text = 'Loading Trials...')
+        }
 
         QBMS::set_program(input$pheno_db_program)
 
         pheno_db_trials <- QBMS::list_trials()
 
+        if (input$pheno_db_type == 'breedbase') {
+          output$pheno_db_folder <- renderUI({
+            selectizeInput(
+              inputId = ns('pheno_db_folder'),
+              label   = 'Select Folder: ',
+              choices = c('', pheno_db_trials)
+            )
+          })
+        } else {
+          updateSelectizeInput(session,
+                               inputId  = 'pheno_db_trial',
+                               label    = 'Trial/Study: ',
+                               choices  = pheno_db_trials,
+                               selected = NULL)
+        }
+
+        shinybusy::remove_modal_spinner()
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_folder,
+      if (input$pheno_db_folder != '') {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Trials...')
+
+        QBMS::set_trial(input$pheno_db_folder)
+
+        pheno_db_studies <- QBMS::list_studies()
+
         updateSelectizeInput(session,
                              inputId  = 'pheno_db_trial',
                              label    = 'Trial/Study: ',
-                             choices  = pheno_db_trials,
+                             choices  = pheno_db_studies,
                              selected = NULL)
 
         shinybusy::remove_modal_spinner()
@@ -730,8 +764,13 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           } else {
             shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
 
-            QBMS::set_trial(input$pheno_db_trial)
-            data <- QBMS::get_trial_data()
+            if (input$pheno_db_type == 'breedbase') {
+              QBMS::set_study(input$pheno_db_trial)
+              data <- QBMS::get_study_data()
+            } else {
+              QBMS::set_trial(input$pheno_db_trial)
+              data <- QBMS::get_trial_data()
+            }
 
             data$trialName <- input$pheno_db_trial
 
