@@ -174,67 +174,67 @@ mod_expDesignEditApp_server <- function(id, data){
     })
 
 
-    # ## our function to keep track of reps, rows, cols that should be set to NA for a given field
-    # dtFieldTraC = reactive({
-    #   req(data())
-    #   dtProv = data()$data$pheno
-    #   paramsPheno <- data()$metadata$pheno
-    #   if(!is.null(paramsPheno)){
-    #     paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-    #     colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-    #     dtProvNames <- c("row","col","rep","iBlock")
-    #     envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
-    #     if(length(envCol) > 0){
-    #       fieldNames <- as.character(unique(dtProv[,"environment"]))
-    #       mm = matrix(1,ncol = length(dtProvNames), nrow = length(fieldNames));
-    #       colnames(mm) <- dtProvNames; rownames(mm) <- fieldNames
-    #       dtProvTable = as.data.frame(mm);  rownames(dtProvTable) <- fieldNames
-    #       return(dtProvTable)
-    #     }
-    #   }
-    # })
-    # xx = reactiveValues(df = NULL)
-    # observe({
-    #   df <- dtFieldTraC()
-    #   xx$df <- df
-    # })
-    # output$transTableC = DT::renderDT(xx$df,
-    #                                   selection = 'none',
-    #                                   editable = TRUE,
-    #                                   options = list(paging=FALSE,
-    #                                                  searching=FALSE,
-    #                                                  initComplete = I("function(settings, json) {alert('Done.');}")
-    #                                   )
-    # )
-    # proxy = DT::dataTableProxy('transTableC')
-    # observeEvent(input$transTableC_cell_edit, {
-    #   info = input$transTableC_cell_edit
-    #   utils::str(info)
-    #   i = info$row
-    #   j = info$col
-    #   v = info$value
-    #   xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
-    # })
-    # ## save when user clicks
-    #
-    # outExp <- eventReactive(input$runFieldClean, {
-    #
-    #   if(is.null(data())){
-    #     cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
-    #   }else{ # data is there
-    #     ## pheno check
-    #     if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
-    #       cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
-    #     }else{
-    #
-    #     }
-    #   }
-    #
-    # })
-    # output$outExp <- renderPrint({
-    #   outExp()
-    # })
-# just a test again 2 and 3
+    ## our function to keep track of reps, rows, cols that should be set to NA for a given field
+    dtFieldTraC = reactive({
+      req(data())
+      dtProv = data()$data$pheno
+      paramsPheno <- data()$metadata$pheno
+      if(!is.null(paramsPheno)){
+        paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+        colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+        dtProvNames <- c("row","col","rep","iBlock")
+        envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+        if(length(envCol) > 0){
+          fieldNames <- as.character(unique(dtProv[,"environment"]))
+          mm = matrix(1,ncol = length(dtProvNames), nrow = length(fieldNames));
+          colnames(mm) <- dtProvNames; rownames(mm) <- fieldNames
+          dtProvTable = as.data.frame(mm);  rownames(dtProvTable) <- fieldNames
+          return(dtProvTable)
+        }
+      }
+    })
+    xx = reactiveValues(df = NULL)
+    observe({
+      df <- dtFieldTraC()
+      xx$df <- df
+    })
+    output$transTableC = DT::renderDT(xx$df,
+                                      selection = 'none',
+                                      editable = TRUE,
+                                      options = list(paging=FALSE,
+                                                     searching=FALSE,
+                                                     initComplete = I("function(settings, json) {alert('Done.');}")
+                                      )
+    )
+    proxy = DT::dataTableProxy('transTableC')
+    observeEvent(input$transTableC_cell_edit, {
+      info = input$transTableC_cell_edit
+      utils::str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+    })
+    ## save when user clicks
+
+    outExp <- eventReactive(input$runFieldClean, {
+
+      if(is.null(data())){
+        cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+      }else{ # data is there
+        ## pheno check
+        if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
+          cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
+        }else{
+
+        }
+      }
+
+    })
+    output$outExp <- renderPrint({
+      outExp()
+    })
+
 
 
 
