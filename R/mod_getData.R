@@ -378,7 +378,7 @@ mod_getData_ui <- function(id){
       ),
       tabPanel(
         title = 'QTL profile',
-        value = ns('tab2'),
+        value = ns('tab5'),
         fluidRow(
           style = 'padding: 30px;',
           # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
@@ -446,7 +446,7 @@ mod_getData_ui <- function(id){
       ),
       tabPanel(
         title = 'Stored objects',
-        value = ns('tab5'),
+        value = ns('tab6'),
         tags$br(),
 
         selectInput(
@@ -1590,7 +1590,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     back_bn  <- actionButton(ns('prev_tab'), 'Back')
     next_bn  <- actionButton(ns('next_tab'), 'Next')
-    tab_list <- c(ns('tab1'), ns('tab2'), ns('tab3'), ns('tab4'), ns('tab5'))
+    tab_list <- c(ns('tab1'), ns('tab2'), ns('tab3'), ns('tab4'), ns('tab5'), ns('tab6'))
 
     output$navigate <- renderUI({
       tags$div(align = 'center',
