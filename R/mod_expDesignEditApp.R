@@ -17,7 +17,10 @@ mod_expDesignEditApp_ui <- function(id){
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Edit Experimental Design Information</font>"),
-      column(width = 12,DT::dataTableOutput(ns("transTableC")), style = "height:220px; overflow-y: scroll;overflow-x: scroll;"),
+      tags$h4("Double click in a environment by design factor combination and set to 0 to ignore this factor in coming runs."),
+      shinydashboard::box(width = 12, solidHeader=FALSE,collapsible = FALSE, collapsed = FALSE, title = "",
+                          column(width = 12,DT::dataTableOutput(ns("transTableC")), style = "height:220px; overflow-y: scroll;overflow-x: scroll;"),
+      ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runFieldClean"), "Filter dataset", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -171,152 +174,66 @@ mod_expDesignEditApp_server <- function(id, data){
     })
 
 
-    ## our function to keep track of reps, rows, cols that should be set to NA for a given field
-    dtFieldTraC = reactive({
-      req(data())
-      dtProv = data()$data$pheno
-      paramsPheno <- data()$metadata$pheno
-      if(!is.null(paramsPheno)){
-        paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-        colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-        dtProvNames <- c("row","col","rep","iBlock")
-        envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
-        if(length(envCol) > 0){
-          fieldNames <- as.character(unique(dtProv[,"environment"]))
-          mm = matrix(1,nrow = length(dtProvNames), ncol = length(fieldNames));
-          rownames(mm) <- dtProvNames; colnames(mm) <- fieldNames
-          dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- fieldNames
-          return(dtProvTable)
-        }
-      }
-    })
-    xx = reactiveValues(df = NULL)
-    observe({
-      df <- dtFieldTraC()
-      xx$df <- df
-    })
-    output$transTableC = DT::renderDT(xx$df,
-                                      selection = 'none',
-                                      editable = TRUE,
-                                      options = list(paging=FALSE,
-                                                     searching=FALSE,
-                                                     initComplete = I("function(settings, json) {alert('Done.');}")
-                                      )
-    )
-    proxy = DT::dataTableProxy('transTableC')
-    observeEvent(input$transTableC_cell_edit, {
-      info = input$transTableC_cell_edit
-      utils::str(info)
-      i = info$row
-      j = info$col
-      v = info$value
-      xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
-    })
-
-    # render the expected result
-    # output$plotPossibleCrosses <- shiny::renderPlot({
+    # ## our function to keep track of reps, rows, cols that should be set to NA for a given field
+    # dtFieldTraC = reactive({
     #   req(data())
-    #   if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
-    #     ped <- data()$data$pedigree
-    #     metaPed <- data()$metadata$pedigree
-    #     colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-    #     cross <- unique(ped[,c("designation","mother","father")])
-    #     cross$motherN <- as.numeric(as.factor(cross$mother))
-    #     cross$fatherN <- as.numeric(as.factor(cross$father))
-    #     # converts a data.frame into a matrix
-    #     A <- matrix(NA, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
-    #     A[as.matrix(cross[,c("motherN","fatherN")])] = 1
-    #     rownames(A) <-  levels(as.factor(cross$mother))
-    #     colnames(A) <- levels(as.factor(cross$father))
-    #     A <- A[,(input$slider2[1]):min(c(input$slider2[2], ncol(A) )), drop=FALSE] # environments
-    #     A <- A[(input$slider1[1]):min(c(input$slider1[2]), nrow(A) ), ,drop=FALSE] # genotypes
-    #     Matrix::image(as(A, Class = "dgCMatrix"), xlab="Fathers", ylab="Mothers", colorkey=FALSE, main="Available hybrids")
+    #   dtProv = data()$data$pheno
+    #   paramsPheno <- data()$metadata$pheno
+    #   if(!is.null(paramsPheno)){
+    #     paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+    #     colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+    #     dtProvNames <- c("row","col","rep","iBlock")
+    #     envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+    #     if(length(envCol) > 0){
+    #       fieldNames <- as.character(unique(dtProv[,"environment"]))
+    #       mm = matrix(1,ncol = length(dtProvNames), nrow = length(fieldNames));
+    #       colnames(mm) <- dtProvNames; rownames(mm) <- fieldNames
+    #       dtProvTable = as.data.frame(mm);  rownames(dtProvTable) <- fieldNames
+    #       return(dtProvTable)
+    #     }
     #   }
     # })
-
-    # output$plotPossibleProfiles <- shiny::renderPlot({
-    #   req(data())
-    #   if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
-    #     ped <- data()$data$pedigree
-    #     metaPed <- data()$metadata$pedigree
-    #     colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-    #     cross <- unique(ped[,c("designation","mother","father")])
-    #     # subset to crosses that can be built
-    #     possible <- which( (cross$mother %in% rownames(data()$data$geno)) & (cross$father %in% rownames(data()$data$geno))  )
-    #     if(length(possible) > 0){
-    #       cross <- cross[possible, ]
+    # xx = reactiveValues(df = NULL)
+    # observe({
+    #   df <- dtFieldTraC()
+    #   xx$df <- df
+    # })
+    # output$transTableC = DT::renderDT(xx$df,
+    #                                   selection = 'none',
+    #                                   editable = TRUE,
+    #                                   options = list(paging=FALSE,
+    #                                                  searching=FALSE,
+    #                                                  initComplete = I("function(settings, json) {alert('Done.');}")
+    #                                   )
+    # )
+    # proxy = DT::dataTableProxy('transTableC')
+    # observeEvent(input$transTableC_cell_edit, {
+    #   info = input$transTableC_cell_edit
+    #   utils::str(info)
+    #   i = info$row
+    #   j = info$col
+    #   v = info$value
+    #   xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+    # })
+    # ## save when user clicks
+    #
+    # outExp <- eventReactive(input$runFieldClean, {
+    #
+    #   if(is.null(data())){
+    #     cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+    #   }else{ # data is there
+    #     ## pheno check
+    #     if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
+    #       cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
+    #     }else{
+    #
     #     }
-    #     ##
-    #     cross$motherN <- as.numeric(as.factor(cross$mother))
-    #     cross$fatherN <- as.numeric(as.factor(cross$father))
-    #     # converts a data.frame into a matrix
-    #     A <- matrix(0, nrow=max(cross$motherN, na.rm=TRUE), ncol = max(cross$fatherN, na.rm=TRUE))
-    #     if(length(possible) > 0){
-    #       A[as.matrix(cross[,c("motherN","fatherN")])] = 2
-    #     }
-    #     rownames(A) <-  levels(as.factor(cross$mother))
-    #     colnames(A) <- levels(as.factor(cross$father))
-    #     A <- A[,(input$slider2[1]):min(c(input$slider2[2], ncol(A) )), drop=FALSE] # environments
-    #     A <- A[(input$slider1[1]):min(c(input$slider1[2]), nrow(A) ), ,drop=FALSE] # genotypes
-    #     Matrix::image(as(A, Class = "dgCMatrix"), xlab="Fathers", ylab="Mothers", colorkey=FALSE, main="Possible to build")
     #   }
-    # })
-    #
-    # ## display the current outliers
-    # observeEvent(data(),{
-    #
-    #   output$summariesScr <-  DT::renderDT({
-    #
-    #     req(data())
-    #     if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
-    #       ped <- data()$data$pedigree
-    #       metaPed <- data()$metadata$pedigree
-    #       colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-    #       phe <- data()$data$pheno
-    #       metaPhe <- data()$metadata$pheno
-    #       colnames(phe) <- cgiarBase::replaceValues(colnames(phe), Search = metaPhe$value, Replace = metaPhe$parameter )
-    #       gen <- data()$data$geno
-    #
-    #       pheped <- merge(phe,ped, by="designation", all.x=TRUE)
-    #       mothers <- unique(pheped[,"mother"])
-    #       fathers <- unique(pheped[,"father"])
-    #       designation <- unique(pheped[,"designation"])
-    #       mothersG <- intersect(mothers, rownames(gen))
-    #       fathersG <- intersect(fathers, rownames(gen))
-    #       designationG <- intersect(designation, rownames(gen))
-    #       final <- data.frame(Metric=c("Mother","Father","Designation"),
-    #                           Phenotyped=c(length(mothers), length(fathers), length(designation)),
-    #                           Genotyped=c(length(mothersG), length(fathersG), length(designationG))
-    #       )
-    #       DT::datatable(final, extensions = 'Buttons',
-    #                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-    #                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-    #       )
-    #     }
-    #
-    #   })
     #
     # })
-
-    ## save when user clicks
-
-    outExp <- eventReactive(input$runFieldClean, {
-
-      if(is.null(data())){
-        cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
-      }else{ # data is there
-        ## pheno check
-        if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
-          cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
-        }else{
-
-        }
-      }
-
-    })
-    output$outExp <- renderPrint({
-      outExp()
-    })
+    # output$outExp <- renderPrint({
+    #   outExp()
+    # })
 # just a test again 2 and 3
 
 

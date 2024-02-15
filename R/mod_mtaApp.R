@@ -293,9 +293,9 @@ mod_mtaApp_server <- function(id, data){
       req(input$trait2Mta)
       dtMta <- data()
       metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("environment","year","season","country","location","trial")),]
-      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value])
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
-      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),] # we do this in case the users didn't define the environment properly
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)
@@ -312,9 +312,9 @@ mod_mtaApp_server <- function(id, data){
       req(input$trait2Mta)
       dtMta <- data()
       metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("environment","year","season","country","location","trial")),]
-      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value])
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
-      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),] # we do this in case the users didn't define the environment properly
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)

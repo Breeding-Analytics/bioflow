@@ -234,7 +234,8 @@ mod_staApp_server <- function(id,data){
       dtSta <- dtSta$modifications$pheno # only traits that have been QA
       dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),]
       traitsSta <- unique(dtSta$trait)
-      updateSelectInput(session, "fixedTermSta2", choices = traitsSta[traitsSta!=input$trait2Sta])
+      '%!in%' <- function(x,y)!('%in%'(x,y))
+      updateSelectInput(session, "fixedTermSta2", choices = traitsSta[traitsSta%!in%input$trait2Sta])
     })
     # reactive table for trait family distributions
     dtDistTrait = reactive({
