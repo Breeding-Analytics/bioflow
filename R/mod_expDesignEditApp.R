@@ -17,9 +17,9 @@ mod_expDesignEditApp_ui <- function(id){
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Edit Experimental Design Information</font>"),
-      tags$h4("Double click in a environment by design factor combination and set to 0 to ignore this factor in coming runs."),
+      tags$h4("Double click in a environment by design-factor combination and set to '0' to ignore this factor in coming runs."),
       shinydashboard::box(width = 12, solidHeader=FALSE,collapsible = FALSE, collapsed = FALSE, title = "",
-                          column(width = 12,DT::dataTableOutput(ns("transTableC")), style = "height:220px; overflow-y: scroll;overflow-x: scroll;"),
+                          column(width = 12,DT::dataTableOutput(ns("transTableC")), style = "height:410px; overflow-y: scroll;overflow-x: scroll;"),
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runFieldClean"), "Filter dataset", icon = icon("play-circle")),
@@ -151,7 +151,7 @@ mod_expDesignEditApp_server <- function(id, data){
         z <- as.numeric(as.factor(mydata[,input$zaxisCleaned3Dtraits]))
       }else{z <- mydata[,input$zaxisCleaned3Dtraits]}
 
-      if(!is.na( stats::var(z) )){ # if we are good to go
+      if(!is.na( stats::var(z, na.rm = TRUE) )){ # if we are good to go
         rowFeature <- paramsPheno[which(paramsPheno$parameter == "row"),"value"]
         rowFeature <- setdiff(rowFeature, "")
         colFeature <- paramsPheno[which(paramsPheno$parameter == "col"),"value"]
@@ -169,16 +169,15 @@ mod_expDesignEditApp_server <- function(id, data){
         }
       }
       # just a test
-
-
     })
 
 
     ## our function to keep track of reps, rows, cols that should be set to NA for a given field
     dtFieldTraC = reactive({
       req(data())
-      dtProv = data()$data$pheno
-      paramsPheno <- data()$metadata$pheno
+      object <- data()
+      dtProv = object$data$pheno
+      paramsPheno <- object$metadata$pheno
       if(!is.null(paramsPheno)){
         paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
         colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
@@ -186,9 +185,13 @@ mod_expDesignEditApp_server <- function(id, data){
         envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
         if(length(envCol) > 0){
           fieldNames <- as.character(unique(dtProv[,"environment"]))
-          mm = matrix(1,ncol = length(dtProvNames), nrow = length(fieldNames));
-          colnames(mm) <- dtProvNames; rownames(mm) <- fieldNames
-          dtProvTable = as.data.frame(mm);  rownames(dtProvTable) <- fieldNames
+          spD <- split(dtProv,dtProv[,"environment"])
+          presentFactors <- paramsPheno$parameter[which(paramsPheno$parameter %in% dtProvNames)]
+          presentFactorsPerField <- lapply(spD, function(x){
+            apply(x[,presentFactors, drop=FALSE], 2, function(y){length(unique(y))})
+          })
+          presentFactorsPerField <- do.call(rbind, presentFactorsPerField)
+          dtProvTable = as.data.frame(presentFactorsPerField);  rownames(dtProvTable) <- fieldNames
           return(dtProvTable)
         }
       }

@@ -100,6 +100,13 @@ mod_staApp_ui <- function(id){
                                               column(width=12,DT::DTOutput(ns("summariesSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
+                 tabPanel("Design", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width = 12,DT::dataTableOutput(ns("dtFieldTraC")), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
+                          )
+                 ),
                  tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
@@ -273,6 +280,10 @@ mod_staApp_server <- function(id,data){
                                        )
     )
 
+    ##
+
+    ##
+
     proxy = DT::dataTableProxy('traitDistSta')
 
     observeEvent(input$traitDistSta_cell_edit, {
@@ -327,6 +338,34 @@ mod_staApp_server <- function(id,data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
+        })
+        ## render designs
+        output$dtFieldTraC <-  DT::renderDT({
+          req(data())
+          req(input$version2Sta)
+          object <- data()
+          dtProv = object$data$pheno
+          paramsPheno <- object$metadata$pheno
+          if(!is.null(paramsPheno)){
+            paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+            colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+            dtProvNames <- c("row","col","rep","iBlock")
+            envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+            if(length(envCol) > 0){
+              fieldNames <- as.character(unique(dtProv[,"environment"]))
+              spD <- split(dtProv,dtProv[,"environment"])
+              presentFactors <- paramsPheno$parameter[which(paramsPheno$parameter %in% dtProvNames)]
+              presentFactorsPerField <- lapply(spD, function(x){
+                apply(x[,presentFactors, drop=FALSE], 2, function(y){length(unique(y))})
+              })
+              presentFactorsPerField <- do.call(rbind, presentFactorsPerField)
+              dtProvTable = as.data.frame(presentFactorsPerField);  rownames(dtProvTable) <- fieldNames
+              DT::datatable(dtProvTable, extensions = 'Buttons',
+                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+              )
+            }
+          }
         })
         ## render plot of trait distribution
         observeEvent(c(data(),input$version2Sta), { # update trait
