@@ -148,12 +148,7 @@ mod_getData_ui <- function(id){
                                                  choices = list()
                                                ),
                                                uiOutput(ns('pheno_db_folder')),
-                                               selectizeInput(
-                                                 inputId = ns('pheno_db_trial'),
-                                                 label   = 'Trial/Study: ',
-                                                 choices = list(),
-                                                 multiple = TRUE
-                                               ),
+                                               uiOutput(ns('pheno_db_trial')),
                                                actionButton(
                                                  inputId = ns('pheno_db_load'),
                                                  label = 'Load',
@@ -687,11 +682,14 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             )
           })
         } else {
-          updateSelectizeInput(session,
-                               inputId  = 'pheno_db_trial',
-                               label    = 'Trial/Study: ',
-                               choices  = pheno_db_trials,
-                               selected = NULL)
+          output$pheno_db_trial <- renderUI({
+            selectizeInput(
+              inputId = ns('pheno_db_trial'),
+              label   = 'Trial/Study: ',
+              choices = pheno_db_trials,
+              multiple = TRUE
+            )
+          })
         }
 
         shinybusy::remove_modal_spinner()
@@ -707,11 +705,14 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         pheno_db_studies <- QBMS::list_studies()
 
-        updateSelectizeInput(session,
-                             inputId  = 'pheno_db_trial',
-                             label    = 'Trial/Study: ',
-                             choices  = pheno_db_studies,
-                             selected = NULL)
+        output$pheno_db_trial <- renderUI({
+          selectizeInput(
+            inputId = ns('pheno_db_trial'),
+            label   = 'Trial/Study: ',
+            choices = pheno_db_studies,
+            multiple = TRUE
+          )
+        })
 
         shinybusy::remove_modal_spinner()
       }
