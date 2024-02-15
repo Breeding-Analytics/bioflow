@@ -613,27 +613,31 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
             golem::invoke_js('showid', ns('data_server_holder'))
 
-            shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
-
             if (input$pheno_db_type == 'bms') {
+              shinybusy::show_modal_spinner('fading-circle', text = 'Loading Crops...')
+
               pheno_db_crops <- QBMS::list_crops()
 
               updateSelectizeInput(session,
                                    inputId = 'pheno_db_crop',
                                    label   = 'Crop: ',
                                    choices = c('', pheno_db_crops))
+              shinybusy::remove_modal_spinner()
             } else {
+              shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
+
               pheno_db_programs <- QBMS::list_programs()
 
               updateSelectizeInput(session,
                                    inputId = 'pheno_db_program',
                                    label   = 'Breeding Program: ',
                                    choices = c('', pheno_db_programs))
+
+              shinybusy::remove_modal_spinner()
             }
 
             output$preview_pheno <- DT::renderDT(NULL)
 
-            shinybusy::remove_modal_spinner()
           },
           error = function(e) {
             shinyWidgets::show_alert(title = 'Invalid Credentials!', type = 'error')
