@@ -380,7 +380,7 @@ mod_filterPhenoApp_server <- function(id, data){
 
       traitsQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter%in%c("trial", "year","season","country","location","environment"),"value"]) # column for year
       envsQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter%in%c("environment"),"value"]) # column for year
-      xx <- unique(dtQaRaw[,traitsQaRaw])
+      xx <- unique(dtQaRaw[,traitsQaRaw,drop=FALSE])
       X <- list()
       for(kEffect in traitsQaRaw){
         if(length(table(xx[,kEffect])) > 1){
