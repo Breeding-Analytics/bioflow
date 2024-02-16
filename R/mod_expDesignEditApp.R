@@ -223,29 +223,19 @@ mod_expDesignEditApp_server <- function(id, data){
     outExp <- eventReactive(input$runFieldClean, {
 
       if(is.null(data())){
-        cat("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+        cat( "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
       }else{ # data is there
         ## pheno check
-        if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
-          cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
+        available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep"), "value"]
+        available <- setdiff(available,"")
+        if( length(available) == 0 ){
+          cat( "Please map some of your experimental design columns using the 'Data Retrieval' tab in the 'Phenotype' section to use this module.")
         }else{
-
-          objetc <- result#data()
-
-          xx$df
-
-          data.frame(module="qaRaw",analysisId=analysisId,trait=trait,reason=typeOut,row=toSilence, value=NA);
-
-          mydata <- data()$data$pheno
-          for(i in 1:ncol(fieldsToClean)){ # for each experimental design factor
-            for(j in 1:nrow(fieldsToClean)){ # for each environment
-              if(fieldsToClean[j,i] == 0){
-                fieldI <- which(mydata[,"fieldinstF"] == colnames(fieldsToClean)[i])
-                mydata[fieldI,rownames(fieldsToClean)[j]] = NA
-              }
-            }
-          }
-
+          object <- data()
+          result <- cgiarPipeline::modifExpDesign(object, df=xx$df)
+          data(result)
+          aid <- result$status$analysisId[length(result$status$analysisId)]
+          cat(paste("QA step with id:",as.POSIXct( aid, origin="1970-01-01", tz="GMT"),"saved."))
         }
       }
 
