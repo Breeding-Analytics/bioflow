@@ -54,7 +54,7 @@ mod_mtaApp_ui <- function(id){
       textOutput(ns("outMta")),
       hr(style = "border-top: 1px solid #4c4c4c;")
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
@@ -156,7 +156,7 @@ mod_mtaApp_ui <- function(id){
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),
@@ -441,7 +441,7 @@ mod_mtaApp_server <- function(id, data){
       pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
       pedCols <- setdiff(pedCols,"")
       metaCols <- metaPed[which(metaPed$value %in% pedCols), "parameter"]
-      n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(unique(x))})
+      n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(na.omit(unique(x)))})
       # check how many have phenotypes
       dtMta <- object$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
@@ -661,6 +661,7 @@ mod_mtaApp_server <- function(id, data){
           data(result) # update data with results
           # save(result, file = "./R/outputs/result.RData")
           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }

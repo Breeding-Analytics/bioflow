@@ -48,7 +48,7 @@ mod_indexDesireApp_ui <- function(id){
                        textOutput(ns("outIdxD"))
       )
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
@@ -116,7 +116,7 @@ mod_indexDesireApp_ui <- function(id){
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),
@@ -560,6 +560,7 @@ mod_indexDesireApp_server <- function(id, data){
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
@@ -634,8 +635,7 @@ mod_indexDesireApp_server <- function(id, data){
 
       }
 
-
-      # hideAll$clearAll <- FALSE
+      hideAll$clearAll <- FALSE
 
     })
 

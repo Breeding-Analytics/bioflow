@@ -22,7 +22,7 @@ mod_meetTheTeamApp_ui <- function(id){
                                                 title = "The team behind the scenes:", solidHeader = TRUE,
                                                 img(src = " www/team.jpeg", height = 460, width = 600), # add an image
                                                 p("Inception meeting celebrated in Nairobi Kenya. From left to right; Star (consultant), Khaled (ICARDA), Young-Wha (BMGF),
-                                                  Bert (CIP), Johan (CIAT), Dorcus (GI-BRI), Juan (CIMMYT), Eduardo (IRRI), Keith (CIMMYT), ??? (CIAT),
+                                                  Bert (CIP), Johan (CIAT), Dorcus (GI-BRI), Juan (CIMMYT), Eduardo (IRRI), Keith (CIMMYT), Sergio (CIAT),
                                                   Aubin (AfricaRice), Raul (CIP).")
                             ),
                             shinydashboard::box(status="success", width = 12,

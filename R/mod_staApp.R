@@ -32,7 +32,7 @@ mod_staApp_ui <- function(id){
                           numericInput(ns("maxitSta"),"Number of iterations",value=35),
                           selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
       ),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions (optional)...",
+      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions (optional)...",
                           column(width = 12,DT::DTOutput(ns("traitDistSta")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -41,7 +41,7 @@ mod_staApp_ui <- function(id){
       uiOutput(ns("qaQcStaInfo")),
       textOutput(ns("outSta"))
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel(id=ns("tabsMain"),
       type = "tabs",
 
       tabPanel(p("Information", class="info-p"), icon = icon("book"),
@@ -124,7 +124,7 @@ mod_staApp_ui <- function(id){
                  )
                )# of of tabsetPanel
       ),
-      tabPanel(p("Output",class = "output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output",class = "output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),
@@ -217,8 +217,9 @@ mod_staApp_server <- function(id,data){
     # genetic evaluation unit
     observe({
       req(data())
+      req(input$version2Sta)
       genetic.evaluation <- c("designation", "mother","father")
-      updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation)
+      updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation, selected = "designation")
     })
     # traits
     observeEvent(c(data(),input$version2Sta,input$genoUnitSta), {
@@ -229,7 +230,7 @@ mod_staApp_server <- function(id,data){
       dtSta <- dtSta$modifications$pheno
       dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
       traitsSta <- unique(dtSta$trait)
-      updateSelectInput(session, "trait2Sta", choices = traitsSta)
+      updateSelectInput(session, "trait2Sta", choices = traitsSta, selected = traitsSta)
     })
     # fixed effect covariates
     observeEvent(c(data(),input$version2Sta,input$genoUnitSta, input$trait2Sta), {
@@ -472,6 +473,7 @@ mod_staApp_server <- function(id,data){
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultSta.RData")
           cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
