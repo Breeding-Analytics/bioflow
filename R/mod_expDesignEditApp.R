@@ -223,18 +223,22 @@ mod_expDesignEditApp_server <- function(id, data){
     outExp <- eventReactive(input$runFieldClean, {
 
       if(is.null(data())){
-        cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+        cat("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
       }else{ # data is there
         ## pheno check
         if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
           cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
         }else{
 
+          objetc <- result#data()
+
           xx$df
 
+          data.frame(module="qaRaw",analysisId=analysisId,trait=trait,reason=typeOut,row=toSilence, value=NA);
+
           mydata <- data()$data$pheno
-          for(i in 1:ncol(fieldsToClean)){ # for each fieldinstance
-            for(j in 1:nrow(fieldsToClean)){ # for each experimental design factor
+          for(i in 1:ncol(fieldsToClean)){ # for each experimental design factor
+            for(j in 1:nrow(fieldsToClean)){ # for each environment
               if(fieldsToClean[j,i] == 0){
                 fieldI <- which(mydata[,"fieldinstF"] == colnames(fieldsToClean)[i])
                 mydata[fieldI,rownames(fieldsToClean)[j]] = NA

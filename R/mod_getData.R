@@ -950,6 +950,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                    } else {
                      temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
                    }
+                   if(x %in% c("designation","environment")){temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII") }
                  }
 
                  if (x == 'designation') {

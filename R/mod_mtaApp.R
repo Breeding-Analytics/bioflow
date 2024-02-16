@@ -446,11 +446,11 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- object$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
       nPheno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
-        length(intersect(unique(x) , unique(dtMta$designation)))
+        length(intersect(na.omit(unique(x)) , unique(dtMta$designation)))
       })
       # check how many have marker
       nGeno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
-        length(intersect(unique(x) , rownames(object$data$geno)))
+        length(intersect(na.omit(unique(x)) , rownames(object$data$geno)))
       })
       final <- data.frame(cbind(metaCols,n, nPheno, nGeno))
       colnames(final) <- c("Evaluation unit", "N", "With phenotype", "With markers")
