@@ -27,7 +27,7 @@ mod_saveData_ui <- function(id){
           choices = list('Computer' = 'pcfile', 'Cloud' = 'cloudfile'),
           width   = '200px'
         ),
-        textInput(ns("fileNameUpload"), label = "Name assigned to the analysis", value = "Enter name..."),
+        textInput(ns("fileNameUpload"), label = "Name assigned to the analysis", placeholder = "Enter name..."),
 
         tags$span(id = ns('pcfile_holder'),
                   downloadButton(ns("downloadRds"), "Save", icon = icon("floppy-disk")),
