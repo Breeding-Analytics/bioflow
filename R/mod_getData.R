@@ -752,60 +752,68 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     )
 
     pheno_data <- reactive({
-      if(length(input$pheno_input) > 0){
-        if (input$pheno_input == 'file') {
-          if (is.null(input$pheno_file)) {return(NULL)}else{
-            data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
-                                                    quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
-          }
-        } else if (input$pheno_input == 'url') {
-          if (input$pheno_url == ''){return(NULL)} else{
-            data <- as.data.frame(data.table::fread(input$pheno_url, sep = input$pheno_sep,
-                                                    quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
-          }
-        } else if (input$pheno_input == 'brapi') {
-          if (input$pheno_db_load != 1){
-            return(NULL)
-          } else {
-            shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
+      tryCatch(
+        expr = {
+          if(length(input$pheno_input) > 0){
+            if (input$pheno_input == 'file') {
+              if (is.null(input$pheno_file)) {return(NULL)}else{
+                data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
+                                                        quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+              }
+            } else if (input$pheno_input == 'url') {
+              if (input$pheno_url == ''){return(NULL)} else{
+                data <- as.data.frame(data.table::fread(input$pheno_url, sep = input$pheno_sep,
+                                                        quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+              }
+            } else if (input$pheno_input == 'brapi') {
+              if (input$pheno_db_load != 1){
+                return(NULL)
+              } else {
+                shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
 
-            if (input$pheno_db_type == 'breedbase') {
-              QBMS::set_study(input$pheno_db_trial)
-              data <- QBMS::get_study_data()
-            } else {
-              QBMS::set_trial(input$pheno_db_trial)
-              data <- QBMS::get_trial_data()
+                if (input$pheno_db_type == 'breedbase') {
+                  QBMS::set_study(input$pheno_db_trial)
+                  data <- QBMS::get_study_data()
+                } else {
+                  QBMS::set_trial(input$pheno_db_trial)
+                  data <- QBMS::get_trial_data()
+                }
+
+                data$trialName <- input$pheno_db_trial
+
+                shinybusy::remove_modal_spinner()
+
+                shinyWidgets::show_alert(title = 'Done!', type = 'success')
+              }
             }
 
-            data$trialName <- input$pheno_db_trial
-
-            shinybusy::remove_modal_spinner()
-
-            shinyWidgets::show_alert(title = 'Done!', type = 'success')
+            return(data)
           }
+        },
+        error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(title = 'Error!', type = 'error', text = e)
+          return(NULL)
         }
-
-        return(data)
-      }
+      )
     })
 
     observeEvent(
       pheno_data(),
       {
+        #if (is.null(data())) return(NULL)
+
         temp <- data()
         temp$data$pheno <- pheno_data()
 
         output$preview_pheno <- DT::renderDT({
-          req(pheno_data())
-
-          DT::datatable(pheno_data(),
+          DT::datatable(temp$data$pheno,
                         extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
           )
-
         })
 
         if (input$pheno_input == 'brapi') {
@@ -814,7 +822,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               inputId  = ns('brapi_traits'),
               label    = 'Trait(s):',
               multiple = TRUE,
-              choices  = as.list(c('', colnames(pheno_data()))),
+              choices  = as.list(c('', colnames(temp$data$pheno))),
             )
           })
 
@@ -899,7 +907,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
 
           # dummy pedigree table
-          temp$data$pedigree <- data.frame(germplasmName = unique(pheno_data()$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
+          temp$data$pedigree <- data.frame(germplasmName = unique(temp$data$pheno$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
           temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("germplasmName","mother","father","yearOfOrigin") )
           # stage       <- NA
           # pipeline    <- NA
@@ -913,6 +921,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     )
 
     output$pheno_map <- renderUI({
+      if (is.null(pheno_data())) return(NULL)
+
       header <- colnames(pheno_data())
       pheno_map <- lapply(map, function(x) {
         column(3,
