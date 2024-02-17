@@ -90,7 +90,7 @@ if (is.null(result)){
 }
 ```
 
-### Distribution by environment
+### By environment distribution
 
 The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**.
 
@@ -169,7 +169,7 @@ if (is.null(result)){
 }
 ```
 
-### Distribution across environment
+### Across-environment estimates
 
 ```{r }
 if (is.null(result)){
@@ -239,9 +239,9 @@ if (is.null(result)){
   }else{
     
     if(length(unique(pred$designation)) > 200){ # go fixed format
-
+      
       shiny::renderPlot({
-
+        
         temp.pred.box <- pred[pred$trait== input$traitMta2,]
         p <- ggplot2::ggplot(
           data = temp.pred.box,
@@ -265,11 +265,11 @@ if (is.null(result)){
           ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
           ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
         p
-
+        
       })
     }else{ # go dynamic
       plotly::renderPlotly({
-
+        
         temp.pred.box <- pred[pred$trait== input$traitMta2,]
         p <- ggplot2::ggplot(
           data = temp.pred.box,
@@ -292,6 +292,116 @@ if (is.null(result)){
                                  width = 0.10) +
           ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
           ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+        plotly::ggplotly(p)
+      })
+    }
+    
+  }
+}
+```
+
+
+<p>&nbsp;</p>
+
+### Trait by trait-sensitivity plots
+
+The following plots allow the user to select individual not only based on the scale of the trait but also by the sensitivity of the germplasm to the environmental covariates. These plts are only constructed if the MET model included the GxE in the modeling.
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  result$status <- result$status#[1:6,]
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  pred <- result$predictions
+  pred <- pred[pred$analysisId == idMta,]
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
+  # traits <- unique(pred$trait)
+  traitsInPreds <- unique(pred$trait)
+  covariates <- unique(result$metadata$weather$parameter)
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitMta3"),
+                label = "",
+                choices = traits
+    )
+  }
+}
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    # cat(paste0("### Distribution across environments  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in traits){ # iTrait="Yield_Mg_ha"
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      temp.pred.box <- pred[pred$trait== iTrait,]
+      # for each possible environmental covariate iCovariate = covariates[1]
+      for(iCovariate in covariates){ 
+        stabilityTrait <- paste0(iTrait,"-",iCovariate)
+        if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
+          subPred <- pred[which(pred[,"trait"] %in% c(iTrait, stabilityTrait)),]
+          wide <- reshape(subPred[,c("trait","designation","predictedValue")], 
+                          direction = "wide", idvar = "designation",
+                          timevar = "trait", v.names = "predictedValue", sep= "_")
+          colnames(wide)[2:3] <- c("trait1","trait2")
+          p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
+            geom_point(size=2) + ylab(iTrait) + xlab(stabilityTrait) 
+        }
+      }
+      if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
+        print(p)
+      }else{ # go dynamic
+        print(htmltools::tagList(plotly::ggplotly(p)))
+      }
+    }
+    
+  }else{ # render in screen
+    
+    if(length(unique(pred$designation)) > 200){ # go fixed format
+      
+      shiny::renderPlot({ # regular ggplot
+        
+        for(iCovariate in covariates){ 
+          stabilityTrait <- paste0(input$traitMta3,"-",iCovariate)
+          if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
+            subPred <- pred[which(pred[,"trait"] %in% c(input$traitMta3, stabilityTrait)),]
+            wide <- reshape(subPred[,c("trait","designation","predictedValue")], 
+                            direction = "wide", idvar = "designation",
+                            timevar = "trait", v.names = "predictedValue", sep= "_")
+            colnames(wide)[2:3] <- c("trait1","trait2")
+            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
+              geom_point(size=2) + ylab(input$traitMta3) + xlab(stabilityTrait) 
+          }
+        }
+        p
+        
+      })
+    }else{ # go dynamic
+      plotly::renderPlotly({
+        
+        for(iCovariate in covariates){ 
+          stabilityTrait <- paste0(input$traitMta3,"-",iCovariate)
+          if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
+            subPred <- pred[which(pred[,"trait"] %in% c(input$traitMta3, stabilityTrait)),]
+            wide <- reshape(subPred[,c("trait","designation","predictedValue")], 
+                            direction = "wide", idvar = "designation",
+                            timevar = "trait", v.names = "predictedValue", sep= "_")
+            colnames(wide)[2:3] <- c("trait1","trait2")
+            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
+              geom_point(size=2) + ylab(input$traitMta3) + xlab(stabilityTrait) 
+          }
+        }
         plotly::ggplotly(p)
       })
     }
