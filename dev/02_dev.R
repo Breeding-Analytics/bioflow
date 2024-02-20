@@ -61,6 +61,12 @@
 #
 # usethis::use_package( "shinymanager" )
 #
+# # added for OFT report
+# usethis::use_package("janitor")
+# usethis::use_package("htmltools")
+# usethis::use_package("tidyr")
+# usethis::use_package("textshape")
+#
 # # remotes::install_github("Breeding-Analytics/cgiarBase")
 # # remotes::install_github("Breeding-Analytics/cgiarPipeline")
 # # remotes::install_github("Breeding-Analytics/cgiarOcs")

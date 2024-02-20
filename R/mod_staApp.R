@@ -147,12 +147,19 @@ mod_staApp_ui <- function(id){
                                               column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
-                 tabPanel("Report", icon = icon("file-image"),
+                 tabPanel("Report STA", icon = icon("file-image"),
                           br(),
                           div(tags$p("Please download the report below:") ),
                           downloadButton(ns("downloadReportSta"), "Download report"),
                           br(),
                           uiOutput(ns('reportSta')),
+                 ),
+                 tabPanel("Report OFT", icon = icon("file-image"),
+                          br(),
+                          selectInput(ns("fieldinst"), label = "Environments to Include in the Report", choices = NULL, multiple = TRUE),
+                          br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportOft"), "Download report")
                  )
                ) # of of tabsetPanel
       )# end of output panel
@@ -541,32 +548,66 @@ mod_staApp_server <- function(id,data){
             # }
           }
         })
-        ## report
+        ## report STA
         output$reportSta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
         output$downloadReportSta <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste('my-report-STA', sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle",
+                                          text = "Generating Report...")
             src <- normalizePath(system.file("rmd","reportSta.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultSta.RData')
+            # src2 <- normalizePath('data/resultSta.RData')
 
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultSta.RData', overwrite = TRUE)
+            # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmarkdown::html_document()
             ))
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
+          }
+        )
+
+        ## report OFT
+        updateSelectInput(session, inputId = "fieldinst", choices = result$metrics$environment, selected = result$metrics$environment[1])
+
+        output$downloadReportOft <- downloadHandler(
+          filename = function() {
+            paste('my-report-OFT', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle",
+                                          text = "Generating Report...")
+
+            src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
+            # src2 <- normalizePath('data/resultSta.RData')
+
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report2.Rmd', overwrite = TRUE)
+            # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report2.Rmd', params = list(fieldinst=input$fieldinst, toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmarkdown::html_document()
+            ))
+            file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 
