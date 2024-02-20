@@ -305,7 +305,7 @@ if (is.null(result)){
 
 ### Trait by trait-sensitivity plots
 
-The following plots allow the user to select individual not only based on the scale of the trait but also by the sensitivity of the germplasm to the environmental covariates. These plts are only constructed if the MET model included the GxE in the modeling.
+The following plots allow the user to select individual not only based on the scale of the trait but also by the sensitivity of the germplasm to the environmental covariates. These plots are only constructed if the MET model included the GxE in the modeling.
 
 ```{r }
 if (is.null(result)){
@@ -415,7 +415,7 @@ if (is.null(result)){
 
 ### Genetic correlations between environments
 
-The following graph allows to see the genetic correlations of the different environment for each **trait**.
+The following graph allows to see the genetic correlations among the different environment one **trait** at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates.
 
 <p>&nbsp;</p>
 
