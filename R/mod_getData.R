@@ -1028,7 +1028,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                      scrollX = TRUE,
                                      buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                      lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))) %>%
-          formatStyle(environmentColumnName, backgroundColor = "#009E60")
+          DT::formatStyle(environmentColumnName, backgroundColor = "#009E60")
       })
     })
     ### Genotypic tab controls #################################################
