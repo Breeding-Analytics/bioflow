@@ -19,7 +19,7 @@ mod_staApp_ui <- function(id){
       # div(tags$p( h4(strong("Single Trial Analysis")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       # input <- list(version2Sta=)
-      selectInput(ns("version2Sta"), "Data QA version(s) to consider", choices = NULL, multiple = TRUE),
+      selectInput(ns("version2Sta"), "Data QA version(s) to consider (tagged records will be ignored)", choices = NULL, multiple = TRUE),
       selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE),
       tags$span(id = ns('geno_unit_holder'), style="color:orange",
                 p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
@@ -83,7 +83,7 @@ mod_staApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input",class = "input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals",class = "input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("QA-modeling", icon = icon("table"),
                           br(),
@@ -124,7 +124,7 @@ mod_staApp_ui <- function(id){
                  )
                )# of of tabsetPanel
       ),
-      tabPanel(p("Output",class = "output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class = "output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),

@@ -61,7 +61,7 @@ mod_pggApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("Metrics view", icon = icon("table"),
                           br(),
@@ -80,7 +80,7 @@ mod_pggApp_ui <- function(id){
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class="output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Metrics", icon = icon("table"),
                           br(),

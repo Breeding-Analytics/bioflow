@@ -83,7 +83,7 @@ get_h <- function() {
 }
 ```
 
-### Entries and traits by environment
+### Entries and traits by environment table
 
 The following table allows to see which locations had data for the different traits.
 
@@ -164,7 +164,7 @@ if (is.null(result)){
   modeling <- result$modeling
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
-  modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
+  staTraits <- unique(modeling[which(modeling$analysisId == idSta),"trait"])
   
   if("params" %in% ls()){ # we will download the document
     
@@ -172,7 +172,7 @@ if (is.null(result)){
     shiny::selectInput(ns("traitSta"), 
                        label = "Trait:", 
                        multiple = FALSE,
-                       choices = unique(modeling), 
+                       choices = staTraits, 
     )
   }
   
@@ -258,9 +258,71 @@ if (is.null(result)){
 }
 ```
 
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  metrics <- result$metrics
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
+  if("params" %in% ls()){  # if user will download the report
+    
+  }else{
+    shiny::selectInput(ns("parameterMetrics"), 
+                       label = "Parameter:", 
+                       multiple = FALSE,
+                       selected = unique(parameters),
+                       choices = unique(parameters)
+    )
+  }
+}
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  mydata = result$metrics
+  mydata <- mydata[which(mydata$analysisId %in% idSta),]
+  
+  if("params" %in% ls()){  # if user will download the report
+    
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    counter <- 1
+    # for(iTrait in staTraits){
+    for(iParam in unique(parameters)){
+      cat("\n\n####", iParam, "{.tabset .tabset-pills}       \n\n")
+      
+      mydata2 = mydata[which(mydata$parameter %in% iParam),]
+      p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
+        geom_bar(stat="identity", position=position_dodge())
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      cat("\n")
+    }
+    # }
+    cat("\n")
+  }else{
+    
+    plotly::renderPlotly({
+      mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      # mydata = mydata[which(mydata$trait %in% input$traitSta),]
+      res = plotly::plot_ly(data = mydata2, x = mydata[,"environment"], y = mydata[,"value"],
+                            color=mydata[,"trait"]
+      )   
+      res = res %>% plotly::add_bars()
+      res
+    })
+    
+  }
+  
+}
+```
+
 <p>&nbsp;</p>
 
-### Predictions 
+### Predictions
 
 The following table allows you to check the trait predictions in wide format and filter them by environment.
 
@@ -324,8 +386,6 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Boxplot
-
 The following boxplot allows you to see the distribution of predicted values by trait (y-axis) in the different environments.
 
 <p>&nbsp;</p>
@@ -388,24 +448,12 @@ if("params" %in% ls()){ # we will download the document
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
         ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") #+
       # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
-
+      
       fig2 <-  plotly::ggplotly(p)#, height = get_h()*2); # fig2
       fig2
     }
-
+    
   })
-  
-    # if(length(input$traitStaBox) > 0){
-    #   p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% input$traitStaBox),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
-    #     ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
-    #     # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
-    #     ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-    #                    axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-    #     ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") #+
-    #   # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
-    #   
-    #   p
-    # }
 }
 
 ```

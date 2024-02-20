@@ -32,9 +32,9 @@ mod_mtaApp_ui <- function(id){
                 selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
-                          column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-      ),
+      # shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
+      #                     column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+      # ),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
@@ -96,7 +96,7 @@ mod_mtaApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("Sta-metrics", icon = icon("table"),
                           br(),
@@ -153,10 +153,17 @@ mod_mtaApp_ui <- function(id){
                                                      style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
                                               )
                           )
+                 ),
+                 tabPanel("Fields to include", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              h5("Environments to be included and with phenotypic records available are set to 1. Double click in a cell and place a 0 if you would prefer to ignore that environment for a given trait in the multi-trial analysis."),
+                                              column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                          )
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),
