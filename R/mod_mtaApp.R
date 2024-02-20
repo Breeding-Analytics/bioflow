@@ -24,17 +24,10 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("modelMet"), "Genetic evaluation model (if random)", choices = NULL, multiple = FALSE),
-      # selectInput(ns("modelMet"), label = "Genetic evaluation model (if random)", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
-      # tags$span(id = ns('israndommodel'),
-      #           selectInput(ns("modelMet"), label = "Genetic evaluation model (if random)", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
-      # ),
       tags$span(id = ns('ismarkermodel'),
                 selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      # shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
-      #                     column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-      # ),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
