@@ -87,13 +87,20 @@ suppressWarnings(tryCatch({
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  pred <- result$predictions %>% filter(module == "mta")
-  met <- result$metrics %>% filter(module == "rgg", trait != "desireIndex")
+  
+  rggId <- result$status$analysisId[length(result$status$analysisId)]
+  mod <- result$modeling %>% filter(analysisId==rggId)
+  predsId <- mod[mod$analysisId == rggId & mod$trait == "inputObject","value"]
+  pred <- result$predictions %>% filter(analysisId == rggId) # before we use the predsId but now we store the designation predictions in the rgg functions
+  met <- result$metrics %>% filter(analysisId==rggId)
   traits <- unique(met$trait)
   ped <- result$data$pedigree
   paramsPed <- result$metadata$pedigree
   colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = paramsPed$value, Replace = paramsPed$parameter )
   ped <- unique(ped[,c("designation","yearOfOrigin")])
+  # merge yearOfOrigin
+  myResult <- merge(pred,ped,by="designation")
+  myResult <- myResult[which(!is.na(myResult$yearOfOrigin)),]
 }
 ```
 
@@ -113,66 +120,7 @@ get_h <- function() {
 }
 ```
 
-```{r}
-
-# fxn for generating genetic gain
-
-gg <- function(data, label = NULL, title = NULL, trait, type) {
-  
-  data$genoYearOriginBase <- as.numeric(data$yearOfOrigin) - min(as.numeric(data$yearOfOrigin), na.rm=TRUE)
-  
-  # fit the model
-  ggfit.lm <- lm(predictedValue ~ genoYearOriginBase, data = data)
-  ggfit.sum <- summary(ggfit.lm)
-  
-  tmpGGData <- data.frame(data, 
-                          Intercept = ggfit.sum$coefficients[1,1], 
-                          Slope = ggfit.sum$coefficients[2,1])
-  tmpGGData$yearOfOrigin <- as.numeric(tmpGGData$yearOfOrigin)
-  
-  # graph
-  
-  mylabel <- ifelse(ggfit.sum$coefficients[2,1] > 0, 
-                    paste0("Y = ", round(ggfit.sum$coefficients[1,1],4), " + ",
-                           round(ggfit.sum$coefficients[2,1],4), " x Year, ", 
-                           round((ggfit.sum$coefficients[2,1]/ggfit.sum$coefficients[1,1])*100,2),"% Gain"),
-                    paste0("Y = ", round(ggfit.sum$coefficients[1,1],6), " - ",  
-                           abs(round(ggfit.sum$coefficients[2,1],4)), " x Year, ", 
-                           round((ggfit.sum$coefficients[2,1]/ggfit.sum$coefficients[1,1])*100,2),"% Gain"))
-  
-  labelInterval <- ifelse(max(unique(tmpGGData$yearOfOrigin), na.rm=TRUE)- min(unique(tmpGGData$yearOfOrigin), na.rm=TRUE) 
-                          > 10, 5, 2)
-  
-  xlabel <- seq(min(unique(tmpGGData$yearOfOrigin), na.rm=TRUE), max(unique(tmpGGData$yearOfOrigin), na.rm=TRUE), 
-                by = labelInterval)
-  
-  xbreak <- xlabel - min(xlabel, na.rm=TRUE)
-  
-  myplot <- ggplot(data = tmpGGData,
-                   aes(x = genoYearOriginBase, y = predictedValue,
-                       ymin = predictedValue - stdError ,
-                       ymax = predictedValue + stdError)) +
-    geom_point(color = 'darkgreen') +
-    # geom_errorbar() +
-    geom_segment(aes(x = min(genoYearOriginBase, na.rm=TRUE),
-                     xend = max(genoYearOriginBase, na.rm=TRUE),
-                     y = Intercept + Slope,
-                     yend = Intercept + Slope*max(genoYearOriginBase, na.rm=TRUE)),
-                 color = "red") +
-    labs(x = "Year of Origin", y = trait, title = mylabel) + 
-    # annotate("text", label=strong(italic(mylabel)), x = min(tmpGGData$genoYearOriginBase) + 1, 
-    #          y = max(tmpGGData$predictedValue) + 1,
-    #          color="black", size=4, fontface = "bold.italic") +
-    theme(plot.caption = element_text(hjust = 0, face = "italic")) +
-    scale_x_continuous(breaks = xbreak, labels = xlabel)
-  if(type=="download"){
-    print(htmltools::tagList(ggplotly(myplot)))
-  }else{
-    return(myplot)
-  }
-}
-
-```
+## Summary metrics
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -202,6 +150,8 @@ if (is.null(result)){
 
 ```
 
+## Regression plot
+
 ```{r }
 if (is.null(result)){
   # invisible(NULL)
@@ -229,30 +179,38 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     cat("\n\n## Graph {.tabset .tabset-pills}       \n\n")
     
-    # merge yearOfOrigin
-    myResult <- merge(pred,ped,by="designation")
     
     for (j in 1:length(traits)){
       cat("\n\n###", traits[j], "{.tabset .tabset-pills}       \n\n")
       
       # subset by trait
-      myMETPred <- myResult %>% filter(trait == traits[j])
-      myresult1 <- gg(data = myMETPred, trait = traits[j], type="download")
+      myPreds <- myResult %>% filter(trait == traits[j])
+      myMetrics <- met %>% filter(trait == traits[j])
+      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
+                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
+                        round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+      p <- ggplot(myPreds, aes(x=as.factor(yearOfOrigin), y=predictedValue)) + 
+        geom_violin(trim=FALSE, fill="gray")+
+        labs(title=myLabel,x="Year of origin", y = "Trait performance")+
+        geom_boxplot(width=0.1)#+theme_classic()
+      print(htmltools::tagList(plotly::ggplotly(p)))
       
-      cat("\n")
+      # cat("\n")
     }
     
     cat("\n")
-  }else{
-    h2("Graph")
-    # merge yearOfOrigin
-    myResult <- merge(pred,ped,by="designation")
-    h3(input$traitSta3)
-    
-    # subset by trait
-    myMETPred <- myResult %>% filter(trait == input$traitSta3)
+  }else{ # regular rendering
     plotly::renderPlotly({
-      fig <- ggplotly(gg(data = myMETPred, trait = input$traitSta3, type="other"))
+      myPreds <- myResult %>% filter(trait == input$traitSta3)
+      myMetrics <- met %>% filter(trait == input$traitSta3)
+      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
+                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
+                        round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+      p <- ggplot(myPreds, aes(x=as.factor(yearOfOrigin), y=predictedValue)) + 
+        geom_violin(trim=FALSE, fill="gray")+
+        labs(title=myLabel,x="Year of origin", y = "Trait performance")+
+        geom_boxplot(width=0.1) # + theme_classic()
+      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
       fig
     })
   }

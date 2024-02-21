@@ -1,6 +1,5 @@
-## script tp create a users dataframe for shinymanager
-
-# users <- data.frame(user=NA,
+# # script tp create a users dataframe for shinymanager
+# users <- data.frame(user=NA,   stringsAsFactors = FALSE,
 #            password=NA,
 #            firstName=c("Miguel", "Wende", "Ismail", "Winnyfred", "Jennifer", "Yoseph", "Mark", "Parthiban", "Shalab", "Moctar", "Thiago","Khaled","Ibnou","Eduardo","Bert","Keith","Juan"),
 #            lastName=c("Sanchez-Garcia", "Mengesha", "Rabbi", "Amongi", "Wilker", "Beyene", "Nas", "Prakash", "Dixit", "Kante", "Mendez","","","","","",""),
@@ -14,7 +13,7 @@
 # users$user <- users$email
 # users$start <- NA
 # users$expire <- NA
-# users$stringsAsFactors <- FALSE
+# # users$stringsAsFactors <- FALSE
 # users$repository <- "R/outputs"
 # head(users)
 #
@@ -31,6 +30,19 @@
 # }
 #
 # head(users)
-
 # saveRDS(users, file = "users.rds")
+#
+## adding new users
 
+# users <- readRDS("~/Documents/bioflow/users.rds")
+# toAdd <- data.frame(user=c("r.morantte@irri.org","m.catolos@irri.org", "m.heredia@irri.org"),
+#                     password=apply(data.frame(1:3), 1,function(x){passwordGen(8,8)} ),
+#                     firstName=c("Zhella","Margaret","Cristina"),
+#                     lastName=c("Morantte","Catolos","Heredia"),
+#                     affiliation=c("IRRI","IRRI","IRRI"),
+#                     email=c("r.morantte@irri.org","m.catolos@irri.org", "m.heredia@irri.org"), admin=FALSE,
+#                     start=NA, expire=NA, stringsAsFactors = FALSE, repository="R/outputs"
+# )
+# users <- rbind(users, toAdd)
+# getwd()
+# saveRDS(users, file = "users.rds")

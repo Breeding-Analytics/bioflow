@@ -37,7 +37,7 @@ mod_ocsApp_ui <- function(id){
       uiOutput(ns("qaQcOcsInfo")),
       textOutput(ns("outOcs"))
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
@@ -70,7 +70,7 @@ mod_ocsApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
                           br(),
@@ -88,6 +88,13 @@ mod_ocsApp_ui <- function(id){
                                               column(width=12,DT::DTOutput(ns("statusOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
+                 tabPanel("Evaluation units", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12,
+                                              solidHeader = TRUE,
+                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                          )
+                 ),
                  tabPanel("Data", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
@@ -97,7 +104,7 @@ mod_ocsApp_ui <- function(id){
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),
@@ -222,7 +229,7 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
       dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
       traitsOcs <- unique(dtOcs$entryType)
-      updateSelectInput(session, "entryType2Ocs", choices = traitsOcs)
+      updateSelectInput(session, "entryType2Ocs", choices = traitsOcs, selected = traitsOcs)
     })
     ##############
     ## environment
@@ -264,6 +271,35 @@ mod_ocsApp_server <- function(id, data){
                              x = mydata[,input$groupOcsInputPlot], text=mydata[,"designation"], pointpos = -1.8)
       res = res %>% plotly::layout(showlegend = TRUE,  xaxis = list(titlefont = list(size = input$fontSize), tickfont = list(size = input$fontSize)))
       res
+    })
+    ## render evaluation units
+    output$evaluationUnits <-  DT::renderDT({
+      req(data())
+      req(input$version2Ocs)
+      object <- data()
+      # get the total number of individuals possible to estimate
+      metaPed <- object$metadata$pedigree
+      pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+      pedCols <- setdiff(pedCols,"")
+      metaCols <- metaPed[which(metaPed$value %in% pedCols), "parameter"]
+      n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(na.omit(unique(x)))})
+      # check how many have phenotypes
+      dtMta <- object$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Ocs),] # only traits that have been QA
+      nPheno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
+        length(intersect(na.omit(unique(x)) , unique(dtMta$designation)))
+      })
+      # check how many have marker
+      nGeno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
+        length(intersect(na.omit(unique(x)) , rownames(object$data$geno)))
+      })
+      final <- data.frame(cbind(metaCols,n, nPheno, nGeno))
+      colnames(final) <- c("Evaluation unit", "N", "With phenotype", "With markers")
+      rownames(final) <- NULL
+      DT::datatable(final, extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      )
     })
     ## render the data to be analyzed
     output$phenoOcs <-  DT::renderDT({
@@ -331,7 +367,8 @@ mod_ocsApp_server <- function(id, data){
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultOcs.RData")
-          cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }

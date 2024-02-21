@@ -32,7 +32,7 @@ mod_pggApp_ui <- function(id){
       uiOutput(ns("qaQcPggInfo")),
       textOutput(ns("outPgg"))
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
@@ -61,7 +61,7 @@ mod_pggApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("Metrics view", icon = icon("table"),
                           br(),
@@ -80,7 +80,7 @@ mod_pggApp_ui <- function(id){
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class="output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Metrics", icon = icon("table"),
                           br(),
@@ -279,6 +279,7 @@ mod_pggApp_server <- function(id, data){
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultPgg.RData")
           cat(paste("Predicted genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT") ,"saved."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }

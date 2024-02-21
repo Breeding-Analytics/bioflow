@@ -24,17 +24,10 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("modelMet"), "Genetic evaluation model (if random)", choices = NULL, multiple = FALSE),
-      # selectInput(ns("modelMet"), label = "Genetic evaluation model (if random)", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
-      # tags$span(id = ns('israndommodel'),
-      #           selectInput(ns("modelMet"), label = "Genetic evaluation model (if random)", choices = list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup"), selected = "blup", multiple=FALSE),
-      # ),
       tags$span(id = ns('ismarkermodel'),
                 selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
-                          column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-      ),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
@@ -54,7 +47,7 @@ mod_mtaApp_ui <- function(id){
       textOutput(ns("outMta")),
       hr(style = "border-top: 1px solid #4c4c4c;")
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
@@ -96,7 +89,7 @@ mod_mtaApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("Sta-metrics", icon = icon("table"),
                           br(),
@@ -153,10 +146,17 @@ mod_mtaApp_ui <- function(id){
                                                      style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
                                               )
                           )
+                 ),
+                 tabPanel("Fields to include", icon = icon("table"),
+                          br(),
+                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                              h5("Environments to be included and with phenotypic records available are set to 1. Double click in a cell and place a 0 if you would prefer to ignore that environment for a given trait in the multi-trial analysis."),
+                                              column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                          )
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),
@@ -441,7 +441,7 @@ mod_mtaApp_server <- function(id, data){
       pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
       pedCols <- setdiff(pedCols,"")
       metaCols <- metaPed[which(metaPed$value %in% pedCols), "parameter"]
-      n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(unique(x))})
+      n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(na.omit(unique(x)))})
       # check how many have phenotypes
       dtMta <- object$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
@@ -660,7 +660,8 @@ mod_mtaApp_server <- function(id, data){
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/result.RData")
-          cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }

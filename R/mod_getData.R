@@ -1016,6 +1016,21 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     output$outConcatenateEnv <- renderPrint({
       outConcatenateEnv()
     })
+
+    # change color of updated environment column
+    observeEvent(input$concatenateEnv,{
+      output$preview_pheno <- DT::renderDT({
+        myObject <- data()
+        environmentColumnName <- myObject$metadata$pheno$value[which(myObject$metadata$pheno$parameter == "environment")]
+        DT::datatable(myObject$data$pheno,
+                      extensions = 'Buttons',
+                      options = list(dom = 'Blfrtip',
+                                     scrollX = TRUE,
+                                     buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))) %>%
+          DT::formatStyle(environmentColumnName, backgroundColor = "#009E60")
+      })
+    })
     ### Genotypic tab controls #################################################
 
     observeEvent(

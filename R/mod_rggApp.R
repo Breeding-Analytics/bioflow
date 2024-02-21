@@ -19,15 +19,22 @@ mod_rggApp_ui <- function(id){
                   <font size='5'>Realized Genetic Gain</font>"),
       # div(tags$p( h4(strong("Realized Genetic Gain")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2Rgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE),
+      radioButtons(ns("methodRgg"),"Method",choices=list("Mackay"="mackay","Piepho"="piepho"), selected="mackay"),
+      selectInput(ns("version2Rgg"), "Data version to analyze", choices = NULL, multiple = FALSE),
       selectInput(ns("trait2Rgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE),
       selectInput(ns("entryTypeToUse"), "Entry types to use", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
+                          tags$span(id = ns('mackayOptions'),
+                                    numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
+                                    selectInput(ns("partition"), "Partitioned regression", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                          ),
+                          tags$span(id = ns('piephoOptions'),
+                                    numericInput(ns("sampleN"), label = "Number of entries per environment to sample", value = 50),
+                                    numericInput(ns("bootstrappingN"), label = "Number of bootstrapping per samples", value = 10),
+                          ),
                           selectInput(ns("deregress"), "Should deregress estimates", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-                          selectInput(ns("partition"), "Partitioned regression", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                           selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -36,7 +43,7 @@ mod_rggApp_ui <- function(id){
       uiOutput(ns("qaQcRggInfo")),
       textOutput(ns("outRgg"))
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
                br(),
@@ -69,7 +76,7 @@ mod_rggApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input", class="input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals", class="input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
                           br(),
@@ -87,7 +94,7 @@ mod_rggApp_ui <- function(id){
                  )
                )
       ),
-      tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class="output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Metrics", icon = icon("table"),
                           br(),
@@ -132,11 +139,19 @@ mod_rggApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
-    # data = reactive({
-    #   load("~/Documents/bioflow/dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
+    #
+    observeEvent(
+      input$methodRgg,
+      if(length(input$methodRgg) > 0){ # added
+        if (input$methodRgg == 'piepho') {
+          golem::invoke_js('showid', ns('piephoOptions'))
+          golem::invoke_js('hideid', ns('mackayOptions'))
+        } else if (input$methodRgg == 'mackay') {
+          golem::invoke_js('showid', ns('mackayOptions'))
+          golem::invoke_js('hideid', ns('piephoOptions'))
+        }
+      }
+    )
     ############################################################################
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -153,11 +168,16 @@ mod_rggApp_server <- function(id, data){
     )
     #################
     ## version
-    observeEvent(c(data()), {
+    observeEvent(c(data(), input$methodRgg), {
       req(data())
+      req(input$methodRgg)
       dtRgg <- data()
       dtRgg <- dtRgg$status
-      dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","indexD")),]
+      if(input$methodRgg == "piepho"){
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("sta")),]
+      }else if(input$methodRgg == "mackay"){
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","indexD")),]
+      }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){names(traitsRgg) <- as.POSIXct(traitsRgg, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Rgg", choices = traitsRgg)
@@ -251,6 +271,7 @@ mod_rggApp_server <- function(id, data){
     ## render result of "run" button click
     outRgg <- eventReactive(input$runRgg, {
       req(data())
+      req(input$methodRgg)
       req(input$version2Rgg)
       req(input$trait2Rgg)
       req(input$yearsToUse)
@@ -271,22 +292,38 @@ mod_rggApp_server <- function(id, data){
         })
       }else{
         output$qaQcRggInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipeline::rgg(
-          phenoDTfile= dtRgg,
-          analysisId=input$version2Rgg,
-          trait=input$trait2Rgg, # per trait
-          deregressWeight=input$deregressWeight,
-          deregress=input$deregress,
-          partition=input$partition,
-          yearsToUse=input$yearsToUse,
-          verbose=input$verbose
-        ),
-        silent=TRUE
-        )
+        if(input$methodRgg == "piepho"){
+          result <- try(cgiarPipeline::rggPiepho(
+            phenoDTfile= dtRgg,
+            analysisId=input$version2Rgg,
+            trait=input$trait2Rgg, # per trait
+            deregress=input$deregress,
+            yearsToUse=input$yearsToUse,
+            sampleN = input$sampleN,
+            bootstrappingN = input$bootstrappingN,
+            verbose=input$verbose
+          ),
+          silent=TRUE
+          )
+        }else if(input$methodRgg == "mackay"){
+          result <- try(cgiarPipeline::rggMackay(
+            phenoDTfile= dtRgg,
+            analysisId=input$version2Rgg,
+            trait=input$trait2Rgg, # per trait
+            deregressWeight=input$deregressWeight,
+            deregress=input$deregress,
+            partition=input$partition,
+            yearsToUse=input$yearsToUse,
+            verbose=input$verbose
+          ),
+          silent=TRUE
+          )
+        }
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultRgg.RData")
           cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }

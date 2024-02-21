@@ -20,7 +20,9 @@ Imports:
     DT,
     ggplot2,
     golem (>= 0.4.0),
+    htmltools,
     inline,
+    janitor,
     kableExtra,
     LMMsolver,
     magrittr,
@@ -43,7 +45,9 @@ Imports:
     sommer,
     stats,
     stringi,
+    textshape,
     tibble,
+    tidyr,
     utils,
     vcfR
 Suggests: 

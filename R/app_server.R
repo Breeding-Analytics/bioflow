@@ -83,6 +83,7 @@ create_getData_object <- function() {
   obj$metadata$pedigree <- data.frame()
 
   obj$metadata$weather <- data.frame(environment = character(),
+                                     trait=character(),
                                      parameter = character(),
                                      value = double())
 

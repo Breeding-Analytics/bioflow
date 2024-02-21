@@ -19,7 +19,7 @@ mod_staApp_ui <- function(id){
       # div(tags$p( h4(strong("Single Trial Analysis")))),#, style = "color: #817e7e"
       hr(style = "border-top: 1px solid #4c4c4c;"),
       # input <- list(version2Sta=)
-      selectInput(ns("version2Sta"), "Data QA version(s) to consider", choices = NULL, multiple = TRUE),
+      selectInput(ns("version2Sta"), "Data QA version(s) to consider (tagged records will be ignored)", choices = NULL, multiple = TRUE),
       selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE),
       tags$span(id = ns('geno_unit_holder'), style="color:orange",
                 p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
@@ -32,7 +32,7 @@ mod_staApp_ui <- function(id){
                           numericInput(ns("maxitSta"),"Number of iterations",value=35),
                           selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
       ),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions (optional)...",
+      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions (optional)...",
                           column(width = 12,DT::DTOutput(ns("traitDistSta")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -41,7 +41,7 @@ mod_staApp_ui <- function(id){
       uiOutput(ns("qaQcStaInfo")),
       textOutput(ns("outSta"))
     ), # end sidebarpanel
-    mainPanel(tabsetPanel(
+    mainPanel(tabsetPanel(id=ns("tabsMain"),
       type = "tabs",
 
       tabPanel(p("Information", class="info-p"), icon = icon("book"),
@@ -83,7 +83,7 @@ mod_staApp_ui <- function(id){
                                    )
                )
       ),
-      tabPanel(p("Input",class = "input-p"), icon = icon("arrow-right-to-bracket"),
+      tabPanel(p("Input visuals",class = "input-p"), icon = icon("arrow-right-to-bracket"),
                tabsetPanel(
                  tabPanel("QA-modeling", icon = icon("table"),
                           br(),
@@ -124,7 +124,7 @@ mod_staApp_ui <- function(id){
                  )
                )# of of tabsetPanel
       ),
-      tabPanel(p("Output",class = "output-p"), icon = icon("arrow-right-from-bracket"),
+      tabPanel(p("Output visuals",class = "output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
                tabsetPanel(
                  tabPanel("Predictions", icon = icon("table"),
                           br(),
@@ -147,12 +147,19 @@ mod_staApp_ui <- function(id){
                                               column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
-                 tabPanel("Report", icon = icon("file-image"),
+                 tabPanel("Report STA", icon = icon("file-image"),
                           br(),
                           div(tags$p("Please download the report below:") ),
                           downloadButton(ns("downloadReportSta"), "Download report"),
                           br(),
                           uiOutput(ns('reportSta')),
+                 ),
+                 tabPanel("Report OFT", icon = icon("file-image"),
+                          br(),
+                          selectInput(ns("fieldinst"), label = "Environments to Include in the Report", choices = NULL, multiple = TRUE),
+                          br(),
+                          div(tags$p("Please download the report below:") ),
+                          downloadButton(ns("downloadReportOft"), "Download report")
                  )
                ) # of of tabsetPanel
       )# end of output panel
@@ -217,8 +224,9 @@ mod_staApp_server <- function(id,data){
     # genetic evaluation unit
     observe({
       req(data())
+      req(input$version2Sta)
       genetic.evaluation <- c("designation", "mother","father")
-      updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation)
+      updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation, selected = "designation")
     })
     # traits
     observeEvent(c(data(),input$version2Sta,input$genoUnitSta), {
@@ -229,7 +237,7 @@ mod_staApp_server <- function(id,data){
       dtSta <- dtSta$modifications$pheno
       dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
       traitsSta <- unique(dtSta$trait)
-      updateSelectInput(session, "trait2Sta", choices = traitsSta)
+      updateSelectInput(session, "trait2Sta", choices = traitsSta, selected = traitsSta)
     })
     # fixed effect covariates
     observeEvent(c(data(),input$version2Sta,input$genoUnitSta, input$trait2Sta), {
@@ -471,7 +479,8 @@ mod_staApp_server <- function(id,data){
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultSta.RData")
-          cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
@@ -539,32 +548,66 @@ mod_staApp_server <- function(id,data){
             # }
           }
         })
-        ## report
+        ## report STA
         output$reportSta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
         output$downloadReportSta <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste('my-report-STA', sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle",
+                                          text = "Generating Report...")
             src <- normalizePath(system.file("rmd","reportSta.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultSta.RData')
+            # src2 <- normalizePath('data/resultSta.RData')
 
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultSta.RData', overwrite = TRUE)
+            # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmarkdown::html_document()
             ))
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
+          }
+        )
+
+        ## report OFT
+        updateSelectInput(session, inputId = "fieldinst", choices = result$metrics$environment, selected = result$metrics$environment[1])
+
+        output$downloadReportOft <- downloadHandler(
+          filename = function() {
+            paste('my-report-OFT', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle",
+                                          text = "Generating Report...")
+
+            src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
+            # src2 <- normalizePath('data/resultSta.RData')
+
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report2.Rmd', overwrite = TRUE)
+            # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report2.Rmd', params = list(fieldinst=input$fieldinst, toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmarkdown::html_document()
+            ))
+            file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 
