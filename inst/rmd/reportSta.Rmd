@@ -297,7 +297,10 @@ if (is.null(result)){
       
       mydata2 = mydata[which(mydata$parameter %in% iParam),]
       p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
-        geom_bar(stat="identity", position=position_dodge())
+        ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+      ggplot2::labs(x="Environment", y="Parameter value")
       print(htmltools::tagList(plotly::ggplotly(p)))
       cat("\n")
     }
@@ -308,7 +311,10 @@ if (is.null(result)){
     plotly::renderPlotly({
        mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
-        geom_bar(stat="identity", position=position_dodge())
+        ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+      ggplot2::labs(x="Environment", y="Parameter value")
       res <- plotly::ggplotly(p)
       res
     })
