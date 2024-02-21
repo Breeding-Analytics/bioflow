@@ -241,10 +241,10 @@ if (is.null(result)){
   numeric.output <- c("min","mean","max","H2","CV","r2","Vg","Vr")
   
   if("params" %in% ls()){ # we will download the document
-    printTable(pred.traits.summary)
+    printTable(unique(pred.traits.summary))
   }else{
     DT::renderDT({DT::formatRound(DT::datatable(
-      pred.traits.summary[pred.traits.summary$trait==input$traitSta,],
+      unique(pred.traits.summary[pred.traits.summary$trait==input$traitSta,]),
       rownames = FALSE,
       class = 'cell-border stripe',
       options = list(
@@ -306,12 +306,10 @@ if (is.null(result)){
   }else{
     
     plotly::renderPlotly({
-      mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
-      # mydata = mydata[which(mydata$trait %in% input$traitSta),]
-      res = plotly::plot_ly(data = mydata2, x = mydata[,"environment"], y = mydata[,"value"],
-                            color=mydata[,"trait"]
-      )   
-      res = res %>% plotly::add_bars()
+       mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
+        geom_bar(stat="identity", position=position_dodge())
+      res <- plotly::ggplotly(p)
       res
     })
     
@@ -425,13 +423,17 @@ if("params" %in% ls()){ # we will download the document
   for (j in 1:length(traits)){
     cat("\n\n###", traits[j], "{.tabset .tabset-pills}       \n\n")
     
-    p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% traits[j]),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
+    
+    print(htmltools::tagList(ggplotly(
+      
+      ggplot2::ggplot(predTrait[which(predTrait$trait %in% traits[j]),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
       ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
       # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
       ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                      axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
       ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") 
-    print(htmltools::tagList(ggplotly(p)))
+      
+    )))
     
     cat("\n")
   }
