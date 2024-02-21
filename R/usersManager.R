@@ -32,15 +32,17 @@
 # head(users)
 # saveRDS(users, file = "users.rds")
 #
-# ## adding new users
+## adding new users
+
 # users <- readRDS("~/Documents/bioflow/users.rds")
-# toAdd <- data.frame(user="brian.gardunia@bayer.com",
-#                     password=passwordGen(8,8),
-#                     firstName=c("Brian"),
-#                     lastName=c("Gardunia"),
-#                     affiliation=c("Bayer"),
-#                     email=c("brian.gardunia@bayer.com"), admin=FALSE,
+# toAdd <- data.frame(user=c("r.morantte@irri.org","m.catolos@irri.org", "m.heredia@irri.org"),
+#                     password=apply(data.frame(1:3), 1,function(x){passwordGen(8,8)} ),
+#                     firstName=c("Zhella","Margaret","Cristina"),
+#                     lastName=c("Morantte","Catolos","Heredia"),
+#                     affiliation=c("IRRI","IRRI","IRRI"),
+#                     email=c("r.morantte@irri.org","m.catolos@irri.org", "m.heredia@irri.org"), admin=FALSE,
 #                     start=NA, expire=NA, stringsAsFactors = FALSE, repository="R/outputs"
 # )
 # users <- rbind(users, toAdd)
+# getwd()
 # saveRDS(users, file = "users.rds")
