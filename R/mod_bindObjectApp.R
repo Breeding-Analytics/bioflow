@@ -115,6 +115,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
     )
+    ####################
     ## load the objects
     observeEvent(
       input$previous_object_input,
@@ -138,14 +139,26 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         })
         output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
         outBind <- eventReactive(input$runBind, {
+          shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
           if(input$previous_object_input == 'cloudfile'){ # upload from cloud
             req(input$previous_input)
-            load( file.path( getwd(),res_auth$repository,input$previous_input ) ) # old dataset
+            load( file.path( getwd(),res_auth$repository,input$previous_input[1] ) ) # old dataset
+            if(length(input$previous_input) > 1){
+              for(iFile in 2:length(input$previous_input)){
+                result1 <- result
+                load( file.path( getwd(),res_auth$repository,input$previous_input[iFile] ) ) # old dataset
+                result2 <- result
+                result1 <- try(cgiarBase::bindObjects(object1 = result1,
+                                                      object2 = result2
+                ), silent = TRUE
+                )
+              }
+              result <- result1
+            }else{ }
           }else if(input$previous_object_input == 'pcfile'){ # upload rds
             req(input$previous_object_file)
             load(input$previous_object_file$datapath)
           }
-          shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
           ## replace tables
           tmp <- data()
           tmp$data <- result$data
@@ -158,9 +171,9 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           data(tmp) # update data with results
           shinybusy::remove_modal_spinner()
           if(input$previous_object_input == 'cloudfile'){
-            cat(paste("Dataset:", input$previous_input,"loaded successfully."))
+            cat(paste("Dataset:", paste(input$previous_input, collapse = " and "),"binded successfully."))
           }else{
-            cat(paste("Dataset","loaded successfully."))
+            cat(paste("Dataset","binded successfully."))
           }
         }) ## end eventReactive
         output$outBind <- renderPrint({

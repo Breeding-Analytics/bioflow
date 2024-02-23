@@ -124,8 +124,10 @@ mod_expDesignEditApp_server <- function(id, data){
       }else{
         paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
         if("environment" %in% paramsPheno$parameter){ # good to go
-          colnames(dtSta) <- cgiarBase::replaceValues(colnames(dtSta), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-          traitsMta <- na.omit(unique(dtSta[,"environment"]))
+          if(!is.null(dtSta)){
+            colnames(dtSta) <- cgiarBase::replaceValues(colnames(dtSta), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+            traitsMta <- na.omit(unique(dtSta[,"environment"]))
+          }else{traitsMta <- NULL}
         }else{
           traitsMta <- NULL
         }
@@ -178,7 +180,7 @@ mod_expDesignEditApp_server <- function(id, data){
       object <- data()
       dtProv = object$data$pheno
       paramsPheno <- object$metadata$pheno
-      if(!is.null(paramsPheno)){
+      if(!is.null(paramsPheno) & !is.null(dtProv)){
         paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
         colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
         dtProvNames <- c("row","col","rep","iBlock")

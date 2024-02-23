@@ -128,10 +128,12 @@ mod_filterPhenoApp_server <- function(id, data){
     observeEvent(data(), {
       req(data())
       dtQaRaw <- data(); dtQaRaw <- dtQaRaw$metadata$pheno
-      traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-      updateSelectInput(session, "traitFilterPheno",choices = traitsQaRaw)
-      updateSelectInput(session, "traitFilterPhenoMultiple",choices = traitsQaRaw, selected = NULL)
-      shinyjs::hide(ns("traitFilterPheno"))
+      if(!is.null(dtQaRaw$data$pheno)){
+        traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+        updateSelectInput(session, "traitFilterPheno",choices = traitsQaRaw)
+        updateSelectInput(session, "traitFilterPhenoMultiple",choices = traitsQaRaw, selected = NULL)
+        shinyjs::hide(ns("traitFilterPheno"))
+      }
     })
     # create the years
     observeEvent(c(data(),input$traitFilterPheno), {
@@ -264,7 +266,7 @@ mod_filterPhenoApp_server <- function(id, data){
       req(data()); req(input$years); req(input$seasons);  req(input$countries);req(input$locations);   req(input$trials); req(input$slider1)
       object <- data()
       mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
-      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
+      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2 ){
         envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
         desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
         keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
