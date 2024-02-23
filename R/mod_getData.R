@@ -463,14 +463,15 @@ mod_getData_ui <- function(id){
                     width   = '400px',
                     accept  = c('.rds','.RData')
                   ),
-                  textOutput(ns("outLoad2")),
+                  # textOutput(ns("outLoad2")),
         ),
         tags$div(id = ns('previous_object_retrieve'),
                  actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve previous analysis"),
                  uiOutput(ns('previous_input2')),
-                 actionButton(ns("runLoadPrevious"), "Load analysis", icon = icon("play-circle")),
-                 textOutput(ns("outLoad")),
+
         ),
+        actionButton(ns("runLoadPrevious"), "Load analysis", icon = icon("play-circle")),
+        textOutput(ns("outLoad")),
       ),
     ),
 
@@ -1565,19 +1566,21 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent( # this is the part where we either load the previous analysis from cloud or PC
       c(input$previous_object_input),
       {
-        if(input$previous_object_input == 'cloudfile'){ # upload from cloud
-
           previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
-            selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path("R/outputs")), multiple = FALSE)
+            selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path(res_auth$repository)), multiple = FALSE)
           })
           output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
           outLoad <- eventReactive(input$runLoadPrevious, {
-            # req(data())
-            req(input$previous_input)
+            if(input$previous_object_input == 'cloudfile'){ # upload from cloud
+              req(input$previous_input)
+              load( file.path( getwd(),res_auth$repository,input$previous_input ) ) # old dataset
+            }else if(input$previous_object_input == 'pcfile'){ # upload rds
+              req(input$previous_object_file)
+              load(input$previous_object_file$datapath)
+            }
             shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             ## replace tables
             tmp <- data() # current or empty dataset
-            load(file.path(getwd(),res_auth$repository,input$previous_input)) # old dataset
             tmp$data <- result$data
             tmp$metadata <- result$metadata
             tmp$modifications <- result$modifications
@@ -1587,32 +1590,15 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             tmp$status <- result$status
             data(tmp) # update data with results
             shinybusy::remove_modal_spinner()
-            cat(paste("Dataset:",input$previous_input,"loaded successfully."))
+            if(input$previous_object_input == 'cloudfile'){
+              cat(paste("Dataset:", input$previous_input,"loaded successfully."))
+            }else{
+              cat(paste("Dataset","loaded successfully."))
+            }
           }) ## end eventReactive
           output$outLoad <- renderPrint({
             outLoad()
           })
-        }else if(input$previous_object_input == 'pcfile'){ # upload rds
-          outLoad2 <- eventReactive(input$previous_object_file, {
-            req(input$previous_object_file)
-            load(input$previous_object_file$datapath)
-            tmp <- data()
-            tmp$data <- result$data
-            tmp$metadata <- result$metadata
-            tmp$modifications <- result$modifications
-            tmp$predictions <- result$predictions
-            tmp$metrics <- result$metrics
-            tmp$modeling <- result$modeling
-            tmp$status <- result$status
-            data(tmp) # update data with results
-            cat(paste("Dataset","loaded successfully."))
-          }) ## end eventReactive
-          output$outLoad2 <- renderPrint({
-            outLoad2()
-          })
-        }else{
-
-        }
       }
     )
 
