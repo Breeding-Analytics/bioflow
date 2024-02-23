@@ -37,15 +37,17 @@ app_ui <- function(request) {
 
       tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
-      navbarMenu("QA-QC", icon = icon("medal"),
+      navbarMenu("QC & Transform", icon = icon("medal"),
                  tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1"), icon = icon("medal")),
                  tabPanel("QC1. Outlier Tagging", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
                  tabPanel("(optional) Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
-                 tabPanel(div("(optional) Trait Transformations",style = "color:red")),
-                 tabPanel("(optional) Exp. Design Editing", mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
-                 tabPanel("QC2. Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
-                 tabPanel("(optional) Single-Cross Markers", mod_singleCrossGenoApp_ui("singleCrossGenoApp_1"), icon = icon("puzzle-piece")  ),
+                 tabPanel("(optional) Exp. Design Edition", mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
+                 tabPanel("QC2. Genetic Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
                  tabPanel(div("QC3. Pedigree Cleaning",style = "color:red") ),
+                 tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_server("sectionInfoTransformApp_1"), icon = icon("arrows-split-up-and-left") ),
+                 tabPanel(div("(optional) Trait Transformations",style = "color:red")),
+                 tabPanel("(optional) Data binding", mod_bindObjectApp_ui("bindObjectApp_1"), icon = icon("bandage") ),
+                 tabPanel("(optional) Single-Cross Marker Matrix", mod_singleCrossGenoApp_ui("singleCrossGenoApp_1"), icon = icon("puzzle-piece")  ),
       ),
 
       navbarMenu("Selection", icon = icon("lightbulb"),
