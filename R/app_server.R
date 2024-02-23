@@ -53,7 +53,7 @@ app_server <- function(input, output, session) {
 
   ## info section tabs
   mod_sectionInfoQAApp_server("sectionInfoQAApp_1") # info for quality assurance
-  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") # info for data transformations
+  mod_sectionInfoTransformApp_server("sectionInfoTransformApp_1") # info for data transformations
   mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # info for genetic evaluation
   mod_sectionInfoSHApp_server("sectionInfoSHApp_1") # info for selection history
 
