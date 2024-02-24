@@ -1110,11 +1110,21 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         if(!is.null(input$geno_table_firstsnp) & !is.null(input$geno_table_lastsnp) & !is.null(input$geno_table_designation) ){
           temp <- data()
           tempG <- geno_data_table()
-          rownames(tempG) <- tempG[,which(colnames(tempG)==input$geno_table_designation)]
-          tempG <- tempG[,which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)]
+          tempG <- tempG[which(!duplicated(tempG[,which(colnames(tempG)==input$geno_table_designation)[1]])),]
+          rownames(tempG) <- tempG[,which(colnames(tempG)==input$geno_table_designation)[1] ]
           missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
-          for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
           shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
+          for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
+          ## check if the data is in single letter format
+          markersToSample <- sample(which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp),  min(c(ncol(tempG),20)) )
+          nCharList <- list()
+          for(iMark in 1:length(markersToSample)){nCharList[[iMark]] <- na.omit(unique(nchar(tempG[,markersToSample[iMark]])))}
+          singleLetter <- which(unique(unlist(nCharList)) == 1)
+          if(length(singleLetter) > 0){
+            tempG <- cgiarBase::transMarkerSingle( markerDTfile= tempG, badCall=NULL,genoColumn=input$geno_table_designation,firstColum= input$geno_table_firstsnp,lastColumn=input$geno_table_lastsnp,verbose=FALSE)
+          }
+          tempG <- tempG[,which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)]
+          ##
           tempG <- sommer::atcg1234(tempG, maf = -1, imp = FALSE)
           shinybusy::remove_modal_spinner()
           temp$data$geno <- tempG$M
