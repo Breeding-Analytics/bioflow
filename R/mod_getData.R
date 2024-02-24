@@ -1111,7 +1111,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           temp <- data()
           tempG <- geno_data_table()
           tempG <- tempG[which(!duplicated(tempG[,which(colnames(tempG)==input$geno_table_designation)[1]])),]
-          rownames(tempG) <- tempG[,which(colnames(tempG)==input$geno_table_designation)[1] ]
+          rownamestempG <- tempG[,which(colnames(tempG)==input$geno_table_designation)[1] ]
           missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
           shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
           for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
@@ -1126,6 +1126,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           tempG <- tempG[,which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)]
           ##
           tempG <- sommer::atcg1234(tempG, maf = -1, imp = FALSE)
+          rownames(tempG) <- rownamestempG
           shinybusy::remove_modal_spinner()
           temp$data$geno <- tempG$M
           refAlleles <- tempG$ref.alleles
