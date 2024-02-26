@@ -232,7 +232,7 @@ mod_qaPedApp_server <- function(id, data){
             c2=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[-c(1:11)]
             objP<-as.vector(data()$metadata$pedigree$value[1:3])
             hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
-                               'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode','assembly','rs')
+                               'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode','assembly','rs','panel')
             if(length(intersect(hapmap_snp_attr, c1)) != 11){
                 HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data in hapmap format using the 'Data Retrieval' tab." )) )
             }else{
