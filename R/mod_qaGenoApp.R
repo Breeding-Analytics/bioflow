@@ -21,8 +21,8 @@ mod_qaGenoApp_ui <- function(id){
                   <font size='5'>Quality Assurance for Genetic Markers</font>"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
-      numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .2, step = .05, max = 1, min = 0),
-      numericInput(ns("propNaUpperThreshForInds"), label = "Upper threshold for missing data in individuals(> will be removed)", value = .2, step = .05, max = 1, min = 0),
+      numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0),
+      numericInput(ns("propNaUpperThreshForInds"), label = "Upper threshold for missing data in individuals(> will be removed)", value = .4, step = .05, max = 1, min = 0),
       numericInput(ns("maf"), label = "Upper threshold for minor allele frequency (< will be removed)", value = 0, step = .05, max = 1, min = 0),
       numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0),
       numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0),

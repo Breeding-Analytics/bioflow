@@ -1126,7 +1126,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           tempG <- tempG[,which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)]
           ##
           tempG <- sommer::atcg1234(tempG, maf = -1, imp = FALSE)
-          rownames(tempG) <- rownamestempG
+          rownames(tempG$M) <- rownamestempG
           shinybusy::remove_modal_spinner()
           temp$data$geno <- tempG$M
           refAlleles <- tempG$ref.alleles
