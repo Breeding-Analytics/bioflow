@@ -43,7 +43,7 @@ app_ui <- function(request) {
                  tabPanel("(optional) Pheno-Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
                  tabPanel("(optional) Pheno-Exp. Design Edition", mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
                  tabPanel("QC2. Geno-Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
-                 tabPanel(div("QC3. Pedigree-Correction",style = "color:red") ),
+                 tabPanel("QC3. Pedigree Filtering", mod_qaPedApp_ui("qaPedApp_1"), icon = icon("dna") ),
                  tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1"), icon = icon("arrows-split-up-and-left") ),
                  tabPanel(div("(optional) Pheno-Trait Transformations",style = "color:red")),
                  tabPanel("(optional) Data binding", mod_bindObjectApp_ui("bindObjectApp_1"), icon = icon("bandage") ),
