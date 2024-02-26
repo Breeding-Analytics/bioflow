@@ -1224,7 +1224,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     output$geno_summary <- renderText({
       temp <- data()
-      gd <- genod_data()[[1]]
+      gd <- geno_data()[[1]]
       if (!is.null(gd) & any(temp$metadata$pheno$parameter == 'designation')) {
         designationColumn <- temp$metadata$pheno[which(temp$metadata$pheno$parameter == "designation"),"value"]
         paste(
