@@ -18,40 +18,44 @@ app_server <- function(input, output, session) {
                         "country", "location", "trial", "environment", "rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 
-  ## home
+  ## HOME
   mod_homeApp_server("homeApp_1")
 
-  ## data
+  ## DATA extraction
   mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
 
-  ## qa tabs
+  ## QUALITY ASSURANCE tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
   mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
-  mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
+  ## DATA TRANSFORMATIONS
+  mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
+  mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
 
-  # genetic evaluation
-  mod_staApp_server("staApp_1", data = data)
-  mod_qaStaApp_server("qaStaApp_1",data = data)
-  mod_mtaApp_server("mtaApp_1",data = data)
-  mod_indexDesireApp_server("indexDesireApp_1", data = data)
-  mod_ocsApp_server("ocsApp_1", data = data)
-  mod_rggApp_server("rggApp_1", data = data)
-  mod_pggApp_server("pggApp_1", data = data)
+  # SELECTION - genetic evaluation
+  mod_staApp_server("staApp_1", data = data) # single trial analysis
+  mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
+  mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
+  mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices
+  mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
+  # SELECTION - selection history
+  mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
+  mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
 
-  ## save results tab
+  ## SAVE results tab
   mod_saveData_server("saveData_1", data = data, res_auth=res_auth)
 
   ## about tabs
-  mod_aboutApp_server("aboutApp_1")
-  mod_meetTheTeamApp_server("meetTheTeamApp_1")
-  mod_contactUsApp_server("contactUsApp_1")
+  mod_aboutApp_server("aboutApp_1") # about the application
+  mod_meetTheTeamApp_server("meetTheTeamApp_1") # about the team
+  mod_contactUsApp_server("contactUsApp_1") # link to contact us
 
   ## info section tabs
-  mod_sectionInfoQAApp_server("sectionInfoQAApp_1")
-  mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # infor for genetic evaluation
-  mod_sectionInfoSHApp_server("sectionInfoSHApp_1")
+  mod_sectionInfoQAApp_server("sectionInfoQAApp_1") # info for quality assurance
+  mod_sectionInfoTransformApp_server("sectionInfoTransformApp_1") # info for data transformations
+  mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # info for genetic evaluation
+  mod_sectionInfoSHApp_server("sectionInfoSHApp_1") # info for selection history
 
 }
 

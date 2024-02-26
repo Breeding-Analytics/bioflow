@@ -709,7 +709,7 @@ if (is.null(result)){
   )
   names(pred.mta.wide) <- c("designation","environment",traits)
   
-  if(!is.null(result$data$qtl)){ # there's QTL information
+  if(!is.null(result$data$qtl) & (nrow(result$data$qtl)>0) ){ # there's QTL information
     qtls <- result$data$qtl
     colnames(qtls) <- cgiarBase::replaceValues(Source = colnames(qtls), Search = result$metadata$qtl$value , Replace = result$metadata$qtl$parameter)
     pred.mta.wide <- merge(pred.mta.wide, qtls, by="designation", all.x = TRUE)

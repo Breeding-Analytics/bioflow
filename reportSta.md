@@ -24,41 +24,329 @@ NULL
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> FLW50 </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> ZN_AVG </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> HT_AVG </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> PERCENT_HEAD_RICE </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLD_TON </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> # of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> NYH3_2021 </td>
+   <td style="text-align:left;"> BD-CG-CM-BRRI_2022_WET </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 384 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 215 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> NYS1_2021 </td>
+   <td style="text-align:left;"> BD-DA-GZ-BSMRAU_2022_WET </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 256 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> SCH1_2021 </td>
+   <td style="text-align:left;"> BD-RS-RS-BRRI_2022_WET </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 423 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 256 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TXH1_2021 </td>
+   <td style="text-align:left;"> BI-BB-GI_2022 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 270 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 216 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TXH2_2021 </td>
+   <td style="text-align:left;"> BI-BB-GI_2023 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 258 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BI-RT-BK_2022 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 216 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BI-RU_2023 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 216 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BI-RU-GT_2022 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 216 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BI-RU-GT_2023 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 44 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-AD-KR-ANGRAU_2022_WET </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 249 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-AD-KR-ANGRAU-IRR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-CT-RP-IGKV_2022_WET </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 392 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-CT-RP-IGKV-IRR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-CT-RP-IGKV-NON_2022_WS </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 52 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-CT-RP-IGKV-STR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 52 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-OR-CU-NRRI_2022_WET </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-OR-CU-NRRI-IRR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-TG-HY-IIRR_2022_WET </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-TG-HY-IIRR-IRR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-TG-NA-PJTSAU_2022_WET </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-TG-NA-PJTSAU-IRR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-UP-PY-NON_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 52 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-UP-PY-SHUATS_2022_WET </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-UP-PY-STR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 52 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-UP-VA-BHU_2022_WET </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-UP-VA-BHU-IRR_2022_WS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> IN-WB-PU-ZDRPRS_2022_WET </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 234 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> KE-KU-AH_2022 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 194 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> KE-KY-MW_2022 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 195 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> MZ-GA-CK </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> MZ-GA-CK_2023 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 216 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> MZ-MP-MT </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 50 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> MZ-MP-MT_2023 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 216 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> TZ-MO-DK_2023 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 254 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> TZ-MZ-MI-UK_2023 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 212 </td>
   </tr>
 </tbody>
 </table></div>
@@ -74,13 +362,16 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option>
+<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option>
+<option value="ZN_AVG">ZN_AVG</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out3b7ec9ac8a39eb4b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out7d6823ff2aeef015" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-parameterMetrics-label" for="staApp_1-parameterMetrics">Parameter:</label>
@@ -94,7 +385,7 @@ The following table allows you to verify different quality metrics (KPIs) for th
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out35c7c7ed45dd9517" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out375b0f318222155b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -107,17 +398,46 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="NYH3_2021" selected>NYH3_2021</option>
-<option value="SCH1_2021">SCH1_2021</option>
-<option value="TXH2_2021">TXH2_2021</option>
-<option value="TXH1_2021">TXH1_2021</option>
-<option value="NYS1_2021">NYS1_2021</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="KE-KY-MW_2022" selected>KE-KY-MW_2022</option>
+<option value="KE-KU-AH_2022">KE-KU-AH_2022</option>
+<option value="BD-RS-RS-BRRI_2022_WET">BD-RS-RS-BRRI_2022_WET</option>
+<option value="BD-DA-GZ-BSMRAU_2022_WET">BD-DA-GZ-BSMRAU_2022_WET</option>
+<option value="BD-CG-CM-BRRI_2022_WET">BD-CG-CM-BRRI_2022_WET</option>
+<option value="IN-CT-RP-IGKV_2022_WET">IN-CT-RP-IGKV_2022_WET</option>
+<option value="IN-OR-CU-NRRI_2022_WET">IN-OR-CU-NRRI_2022_WET</option>
+<option value="IN-TG-HY-IIRR_2022_WET">IN-TG-HY-IIRR_2022_WET</option>
+<option value="IN-AD-KR-ANGRAU_2022_WET">IN-AD-KR-ANGRAU_2022_WET</option>
+<option value="IN-UP-VA-BHU_2022_WET">IN-UP-VA-BHU_2022_WET</option>
+<option value="IN-TG-NA-PJTSAU_2022_WET">IN-TG-NA-PJTSAU_2022_WET</option>
+<option value="IN-TG-HY-IIRR-IRR_2022_WS">IN-TG-HY-IIRR-IRR_2022_WS</option>
+<option value="IN-UP-PY-SHUATS_2022_WET">IN-UP-PY-SHUATS_2022_WET</option>
+<option value="IN-WB-PU-ZDRPRS_2022_WET">IN-WB-PU-ZDRPRS_2022_WET</option>
+<option value="IN-UP-PY-STR_2022_WS">IN-UP-PY-STR_2022_WS</option>
+<option value="IN-UP-PY-NON_2022_WS">IN-UP-PY-NON_2022_WS</option>
+<option value="IN-UP-VA-BHU-IRR_2022_WS">IN-UP-VA-BHU-IRR_2022_WS</option>
+<option value="IN-CT-RP-IGKV-STR_2022_WS">IN-CT-RP-IGKV-STR_2022_WS</option>
+<option value="IN-CT-RP-IGKV-NON_2022_WS">IN-CT-RP-IGKV-NON_2022_WS</option>
+<option value="IN-OR-CU-NRRI-IRR_2022_WS">IN-OR-CU-NRRI-IRR_2022_WS</option>
+<option value="IN-CT-RP-IGKV-IRR_2022_WS">IN-CT-RP-IGKV-IRR_2022_WS</option>
+<option value="IN-TG-NA-PJTSAU-IRR_2022_WS">IN-TG-NA-PJTSAU-IRR_2022_WS</option>
+<option value="IN-AD-KR-ANGRAU-IRR_2022_WS">IN-AD-KR-ANGRAU-IRR_2022_WS</option>
+<option value="BI-RU_2023">BI-RU_2023</option>
+<option value="MZ-GA-CK_2023">MZ-GA-CK_2023</option>
+<option value="MZ-MP-MT">MZ-MP-MT</option>
+<option value="TZ-MZ-MI-UK_2023">TZ-MZ-MI-UK_2023</option>
+<option value="BI-BB-GI_2023">BI-BB-GI_2023</option>
+<option value="MZ-GA-CK">MZ-GA-CK</option>
+<option value="TZ-MO-DK_2023">TZ-MO-DK_2023</option>
+<option value="BI-RU-GT_2022">BI-RU-GT_2022</option>
+<option value="BI-RT-BK_2022">BI-RT-BK_2022</option>
+<option value="BI-BB-GI_2022">BI-BB-GI_2022</option>
+<option value="BI-RU-GT_2023">BI-RU-GT_2023</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out7ecd1b6bb368d2f8" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out9db140be7434f8b2" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -128,10 +448,13 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
-<option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLD_TON" selected>YLD_TON</option>
+<option value="PERCENT_HEAD_RICE" selected>PERCENT_HEAD_RICE</option>
+<option value="ZN_AVG" selected>ZN_AVG</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outfe7d8bb64a7624eb" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out9b4390da2b31d79b" style="width:100%;height:400px;"></div><!--/html_preserve-->

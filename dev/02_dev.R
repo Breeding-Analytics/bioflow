@@ -75,33 +75,35 @@
 #
 # ## Add modules ----
 # ## Create a module infrastructure in R/
-# # golem::add_module(name = "input_file_sta", with_test = TRUE) # Name of the module
-# golem::add_module(name = "getData", with_test = TRUE) # extracting raw data
+# # golem::add_module(name = "input_file_sta", with_test = FALSE) # Name of the module
+# golem::add_module(name = "getData", with_test = FALSE) # extracting raw data
 #
-# golem::add_module(name = "qaRawApp", with_test = TRUE) # QA on raw data
-# golem::add_module(name = "filterPhenoApp", with_test = TRUE ) # QA on raw data
-# golem::add_module(name = "expDesignEditApp", with_test = TRUE ) # QA on raw data
-# golem::add_module(name = "qaGenoApp", with_test = TRUE) # QA after sta
-# golem::add_module(name = "singleCrossGenoApp", with_test = TRUE) # QA after sta
+# golem::add_module(name = "qaRawApp", with_test = FALSE) # QA on raw data
+# golem::add_module(name = "filterPhenoApp", with_test = FALSE ) # QA on raw data
+# golem::add_module(name = "expDesignEditApp", with_test = FALSE ) # QA on raw data
+# golem::add_module(name = "qaGenoApp", with_test = FALSE) # QA after sta
+# golem::add_module(name = "bindObjectApp", with_test = FALSE) # QA after sta
+# golem::add_module(name = "singleCrossGenoApp", with_test = FALSE) # QA after sta
 #
-# golem::add_module(name = "staApp", with_test = TRUE) # single trial analysis
-# golem::add_module(name = "qaStaApp", with_test = TRUE) # QA after sta
-# golem::add_module(name = "mtaApp", with_test = TRUE) # multi trial analysis
-# golem::add_module(name = "indexDesireApp", with_test = TRUE) # desire selection index
-# golem::add_module(name = "ocsApp", with_test = TRUE) # optimal cross selection
-# golem::add_module(name = "rggApp", with_test = TRUE) # realized genetic gain
-# golem::add_module(name = "pggApp", with_test = TRUE) # predicted genetic gain
+# golem::add_module(name = "staApp", with_test = FALSE) # single trial analysis
+# golem::add_module(name = "qaStaApp", with_test = FALSE) # QA after sta
+# golem::add_module(name = "mtaApp", with_test = FALSE) # multi trial analysis
+# golem::add_module(name = "indexDesireApp", with_test = FALSE) # desire selection index
+# golem::add_module(name = "ocsApp", with_test = FALSE) # optimal cross selection
+# golem::add_module(name = "rggApp", with_test = FALSE) # realized genetic gain
+# golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
 #
-# golem::add_module(name = "homeApp", with_test = TRUE) # home
+# golem::add_module(name = "homeApp", with_test = FALSE) # home
 #
-# golem::add_module(name = "saveData", with_test = TRUE) # extracting raw data
-# golem::add_module(name = "aboutApp", with_test = TRUE) # technology
-# golem::add_module(name = "meetTheTeamApp", with_test = TRUE) # home
-# golem::add_module(name = "contactUsApp", with_test = TRUE) # home
+# golem::add_module(name = "saveData", with_test = FALSE) # extracting raw data
+# golem::add_module(name = "aboutApp", with_test = FALSE) # technology
+# golem::add_module(name = "meetTheTeamApp", with_test = FALSE) # home
+# golem::add_module(name = "contactUsApp", with_test = FALSE) # home
 #
-# golem::add_module(name = "sectionInfoQAApp", with_test = TRUE) # for quality assurance
-# golem::add_module(name = "sectionInfoGEApp", with_test = TRUE) # for genetic evaluation
-# golem::add_module(name = "sectionInfoSHApp", with_test = TRUE) # for selection history
+# golem::add_module(name = "sectionInfoQAApp", with_test = FALSE) # for quality assurance
+# golem::add_module(name = "sectionInfoTransformApp", with_test = FALSE) # for transformations
+# golem::add_module(name = "sectionInfoGEApp", with_test = FALSE) # for genetic evaluation
+# golem::add_module(name = "sectionInfoSHApp", with_test = FALSE) # for selection history
 #
 # ## Add helper functions ----
 # ## Creates fct_* and utils_*
