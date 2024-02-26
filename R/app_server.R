@@ -28,6 +28,7 @@ app_server <- function(input, output, session) {
   mod_qaRawApp_server("qaRawApp_1", data = data)
   mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
+  mod_qaPedApp_server("qaPedApp_1",data = data)
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
   ## DATA TRANSFORMATIONS
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
