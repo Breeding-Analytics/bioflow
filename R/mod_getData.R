@@ -810,7 +810,12 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         },
         error = function(e) {
           shinybusy::remove_modal_spinner()
-          shinyWidgets::show_alert(title = 'Error!', type = 'error', text = e)
+          if (input$pheno_db_type == 'ebs') {
+            shinyWidgets::show_alert(title = 'Access Denied!', type = 'error', text = 'You do not have permission to access this trial.')
+          } else {
+            shinyWidgets::show_alert(title = 'Error!', type = 'error', text = e)
+          }
+
           return(NULL)
         }
       )
