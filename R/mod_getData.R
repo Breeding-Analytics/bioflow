@@ -710,7 +710,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         tryCatch(
           expr = {
-            pheno_db_studies <- QBMS::list_studies()
+            pheno_db_studies <- QBMS::list_studies()$studyName
 
             output$pheno_db_trial <- renderUI({
               selectizeInput(
