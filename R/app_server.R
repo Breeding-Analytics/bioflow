@@ -31,6 +31,7 @@ app_server <- function(input, output, session) {
   mod_qaPedApp_server("qaPedApp_1",data = data)
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
   ## DATA TRANSFORMATIONS
+  mod_traitTransformApp_server("traitTransformApp_1", data = data)
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
   mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
 

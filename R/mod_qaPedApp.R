@@ -22,7 +22,7 @@ mod_qaPedApp_ui <- function(id){
       hr(style = "border-top: 1px solid #4c4c4c;"),
       actionButton(ns("runQaPed"), "Add QC", icon = icon("play-circle")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outQaPed"))
+      textOutput(ns("outQaPed")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
       wellPanel(
