@@ -12,7 +12,7 @@ mod_singleCrossGenoApp_ui <- function(id){
   tagList(
 
 
-    shiny::sidebarPanel(#width = 3,
+    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -33,7 +33,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -63,7 +63,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                   tabPanel("Summaries", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("summariesScr")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,DT::DTOutput(ns("summariesScr")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   ),
                                   tabPanel("Crosses", icon = icon("magnifying-glass-chart"),
@@ -71,8 +71,8 @@ mod_singleCrossGenoApp_ui <- function(id){
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
                                                                column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
-                                                               column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")) ),
-                                                               column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")) )
+                                                               column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
+                                                               column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
                                            )
                                   )
                                 ) # end of tabset

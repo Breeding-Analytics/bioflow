@@ -12,7 +12,7 @@ mod_expDesignEditApp_ui <- function(id){
   tagList(
 
 
-    shiny::sidebarPanel(#width = 3,
+    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       width = 6,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -34,7 +34,7 @@ mod_expDesignEditApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -60,8 +60,7 @@ mod_expDesignEditApp_ui <- function(id){
                                                                selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE),
                                                                selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE),
                                                                selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE),
-                                                               plotly::plotlyOutput(ns("plotCleaned3Dtraits"))
-
+                                                               column(width=12, plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
                                            )
                                   ),
                                 ) # end of tabset

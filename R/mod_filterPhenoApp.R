@@ -12,13 +12,12 @@ mod_filterPhenoApp_ui <- function(id){
   tagList(
 
 
-    shiny::sidebarPanel(#width = 3,
+    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       width = 6,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Data filtering</font>"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-
       selectInput(ns("traitFilterPheno"), "Trait to filter", choices = NULL, multiple = FALSE),
       selectInput(ns("years"), "Years to keep", choices = NULL, multiple = TRUE),
       selectInput(ns("seasons"), "Seasons to keep", choices = NULL, multiple = TRUE),
@@ -26,14 +25,11 @@ mod_filterPhenoApp_ui <- function(id){
       selectInput(ns("locations"), "Locations to keep", choices = NULL, multiple = TRUE),
       selectInput(ns("trials"), "Trials to keep", choices = NULL, multiple = TRUE),
       selectInput(ns("environments"), "Environments to keep", choices = NULL, multiple = TRUE),
-
-      # hr(style = "border-top: 1px solid #4c4c4c;"),
-      # shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-      #
-      # ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      # multi trait option
-      # checkboxGroupInput(ns("multiTraitFilter"), label = "",choices = list("Apply same filter to other traits?" = TRUE), selected = NULL),
+      actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      textOutput(ns("outFilterRaw")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(ns("multiTraitFilter"), label = "Apply same filter to other trait(s)?", choices = list(TRUE, FALSE), selected = FALSE, multiple=FALSE),
       tags$span(id = ns('multiTraitFilter_holder'),
                 selectInput(ns("traitFilterPhenoMultiple"), "Trait(s) to apply the same filters", choices = NULL, multiple = TRUE, selected = NULL),
@@ -42,10 +38,6 @@ mod_filterPhenoApp_ui <- function(id){
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           sliderInput(ns("slider1"), label = "Maximum #of genotypes allowed (trials with more will be removed)", min = 0,max = 5000, value = 500)
       ),
-      #
-      actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outFilterRaw")),
     ), # end sidebarpanel
     shiny::mainPanel(width = 6,
                      tabsetPanel( #width=9,
@@ -55,7 +47,7 @@ mod_filterPhenoApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -78,8 +70,9 @@ mod_filterPhenoApp_ui <- function(id){
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green",
                                                                solidHeader = TRUE,
-                                                               column(width=12, shiny::plotOutput(ns("plotFilterOut")) ),
-                                                               column(width=12,DT::DTOutput(ns("modificationsFilter")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,
+                                                                      shiny::plotOutput(ns("plotFilterOut")),
+                                                                      DT::DTOutput(ns("modificationsFilter")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   )
                                 ) # end of tabset
