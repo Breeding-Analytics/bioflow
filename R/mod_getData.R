@@ -844,71 +844,57 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             )
           })
 
-          ### BrAPI auto mapping #############################################
-          if ('year' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'year', 'value'] <- 'year'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'year', value = 'year'))
-          }
+          ### BrAPI auto mapping ###############################################
+          mapping <- list(
+            ebs = list(
+              year = 'year',
+              environment = 'studyName',
+              rep = 'rep',
+              iBlock = 'block',
+              row = 'positionCoordinateY',
+              col = 'positionCoordinateX',
+              designation = 'germplasmName',
+              gid = 'germplasmDbId',
+              location = 'locationName',
+              trial = 'trialName',
+              entryType = 'entryType'
+            ),
+            bms = list(
+              year = 'year',
+              environment = 'studyName',
+              rep = 'rep',
+              iBlock = 'block',
+              row = 'positionCoordinateY',
+              col = 'positionCoordinateX',
+              designation = 'germplasmName',
+              gid = 'germplasmDbId',
+              location = 'studyName',
+              trial = 'trialName',
+              entryType = 'entryType'
+            ),
+            breedbase = list(
+              year = 'studyYear',
+              environment = 'studyName',
+              rep = 'replicate',
+              iBlock = 'blockNumber',
+              row = 'rowNumber',
+              col = 'colNumber',
+              designation = 'germplasmName',
+              gid = 'germplasmDbId',
+              location = 'locationName',
+              trial = 'trialName',
+              entryType = 'entryType'
+            )
+          )
 
-          if ('environment' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'environment', 'value'] <- 'studyName'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'environment', value = 'studyName'))
-          }
-
-          if ('rep' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'rep', 'value'] <- 'rep'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'rep', value = 'rep'))
-          }
-
-          if ('iBlock' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'iBlock', 'value'] <- 'block'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'iBlock', value = 'block'))
-          }
-
-          if ('row' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'row', 'value'] <- 'positionCoordinateY'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'row', value = 'positionCoordinateY'))
-          }
-
-          if ('col' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'col', 'value'] <- 'positionCoordinateX'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'col', value = 'positionCoordinateX'))
-          }
-
-          if ('designation' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'designation', 'value'] <- 'germplasmName'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'designation', value = 'germplasmName'))
-          }
-
-          if ('gid' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'gid', 'value'] <- 'germplasmDbId'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'gid', value = 'germplasmDbId'))
-          }
-
-          if ('location' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'location', 'value'] <- 'locationName'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'location', value = 'locationName'))
-          }
-
-          if ('trial' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'trial', 'value'] <- 'trialName'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trial', value = 'trialName'))
-          }
-
-          if ('entryType' %in% temp$metadata$pheno$parameter) {
-            temp$metadata$pheno[temp$metadata$pheno$parameter == 'entryType', 'value'] <- 'entryType'
-          } else {
-            temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'entryType', value = 'entryType'))
+          for (field in c('year', 'environment', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
+            if (mapping[[input$pheno_db_type]][[field]] %in% colnames(temp$data$pheno)) {
+              if (field %in% temp$metadata$pheno$parameter) {
+                temp$metadata$pheno[temp$metadata$pheno$parameter == field, 'value'] <- mapping[[input$pheno_db_type]][[field]]
+              } else {
+                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = field, value = mapping[[input$pheno_db_type]][[field]]))
+              }
+            }
           }
 
           # shinybusy::show_modal_spinner('fading-circle', text = 'Loading Ontology...')
