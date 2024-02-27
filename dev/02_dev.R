@@ -82,8 +82,10 @@
 # golem::add_module(name = "filterPhenoApp", with_test = FALSE ) # QA on raw data
 # golem::add_module(name = "expDesignEditApp", with_test = FALSE ) # QA on raw data
 # golem::add_module(name = "qaGenoApp", with_test = FALSE) # QA after sta
+#
 # golem::add_module(name = "bindObjectApp", with_test = FALSE) # QA after sta
 # golem::add_module(name = "singleCrossGenoApp", with_test = FALSE) # QA after sta
+# golem::add_module(name = "traitTransformApp", with_test = TRUE) # QA after sta
 #
 # golem::add_module(name = "staApp", with_test = FALSE) # single trial analysis
 # golem::add_module(name = "qaStaApp", with_test = FALSE) # QA after sta

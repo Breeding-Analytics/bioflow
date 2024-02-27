@@ -12,7 +12,7 @@ mod_qaStaApp_ui <- function(id){
   tagList(
 
     # input <- list(traitOutqPheno="YLD_TON-residual",traitLBOutqPheno=-4,traitUBOutqPheno=4,outlierCoefOutqPheno=2.5, outlierCoefOutqFont=12 )
-    shiny::sidebarPanel(#width = 3,
+    shiny::sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       # div(tags$p( h4(strong("Model-based outlier detection")))),#, style = "color: #817e7e"
@@ -25,14 +25,13 @@ mod_qaStaApp_ui <- function(id){
       numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 4),
       numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5),
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runQaMb"), "Save outliers", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      textOutput(ns("outQaMb")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaMb"), "Save outliers", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outQaMb"))
-      # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
@@ -41,7 +40,7 @@ mod_qaStaApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
@@ -68,8 +67,10 @@ mod_qaStaApp_ui <- function(id){
                                            br(),
                                            shinydashboard::box(status="success",width = 12,
                                                                solidHeader = TRUE,
-                                                               plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                               column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,
+                                                                      plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      DT::DTOutput(ns("modificationsQa")),
+                                                                      style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   )
                                 ) # end of tabset

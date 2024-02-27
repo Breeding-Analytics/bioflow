@@ -13,12 +13,16 @@ mod_qaPedApp_ui <- function(id){
 
 
     # input <- list(propNaUpperThreshForMarker=0.3,propNaUpperThreshForInds=0.3,maf=0.5,imputationMethod="median", ploidy=2 )
-    shiny::sidebarPanel(#width = 3,
+    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       # div(tags$p( h4(strong("Quality Assurance for Genetic Markers")))),#, style = "color: #817e7e"
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Quality Assurance for Pedigree</font>"),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runQaPed"), "Add QC", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      textOutput(ns("outQaPed")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
 
       wellPanel(
@@ -65,10 +69,6 @@ mod_qaPedApp_ui <- function(id){
                   min = 0, max = 2, step=0.1,value = 0.2)
       ),
 
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaPed"), "Add QC", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outQaPed"))
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
@@ -77,7 +77,7 @@ mod_qaPedApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
@@ -182,7 +182,7 @@ mod_qaPedApp_ui <- function(id){
                                   br(),
                                   shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,DT::DTOutput(ns("modificationsQaPed")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                    column(width=12,DT::DTOutput(ns("modificationsQaPed")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                 )
                                 ),
                                 tabPanel("Plot classification", icon = icon("magnifying-glass-chart"),
@@ -190,7 +190,8 @@ mod_qaPedApp_ui <- function(id){
                                          shinydashboard::box(status="success",width = 12,
                                                              solidHeader = TRUE,
                                                              selectInput(ns("traitOutqPed"), "", choices = NULL, multiple = FALSE),
-                                                             plotly::plotlyOutput(ns("plotClassPed"))
+                                                             column(width=12,plotly::plotlyOutput(ns("plotClassPed")) ,style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
+
                                          )
                                 )
                                 )

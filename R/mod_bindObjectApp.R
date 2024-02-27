@@ -12,7 +12,7 @@ mod_bindObjectApp_ui <- function(id){
   tagList(
 
 
-    sidebarPanel(
+    sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       # input <- list(version2Bind="1699508839.68847",trait2Bind="desireIndex",entryType2Bind= "TGV_EST004D#TEST_tested",nCrossBind="20", targetAngleBind="30",maxRun=40, relType="grm", env2Bind="across",verboseBind=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -47,7 +47,7 @@ mod_bindObjectApp_ui <- function(id){
                                     br(),
                                     shinydashboard::box(status="success",width = 12,
                                                         solidHeader = TRUE,
-                                                        column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                        column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                h2(strong("Status:")),
                                                                uiOutput(ns("warningMessage")),
                                                                h2(strong("Details")),

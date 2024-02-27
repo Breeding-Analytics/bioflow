@@ -12,7 +12,7 @@ mod_indexDesireApp_ui <- function(id){
   tagList(
 
 
-    sidebarPanel(
+    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -37,15 +37,16 @@ mod_indexDesireApp_ui <- function(id){
                        # textInput(ns("desirev"), label = "Desired change in traits [Enter a numeric vector (comma delimited): e.g: 0,100,2. Standard deviations if traits are scaled, otherwise use original-scale values]", value=NULL),
                        uiOutput(ns("SliderDesireIndex")),
                        hr(style = "border-top: 1px solid #4c4c4c;"),
+                       actionButton(ns("runIdxD"), "Run", icon = icon("play-circle")),
+                       hr(style = "border-top: 1px solid #4c4c4c;"),
+                       uiOutput(ns("qaQcIdxDInfo")),
+                       textOutput(ns("outIdxD")),
+                       hr(style = "border-top: 1px solid #4c4c4c;"),
                        shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                                            numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
                                            numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
                                            selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                        ),
-                       actionButton(ns("runIdxD"), "Run", icon = icon("play-circle")),
-                       hr(style = "border-top: 1px solid #4c4c4c;"),
-                       uiOutput(ns("qaQcIdxDInfo")),
-                       textOutput(ns("outIdxD"))
       )
     ), # end sidebarpanel
     mainPanel(tabsetPanel( id=ns("tabsMain"),
@@ -54,7 +55,7 @@ mod_indexDesireApp_ui <- function(id){
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
@@ -86,32 +87,32 @@ mod_indexDesireApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                               column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
+                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")), style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
                  tabPanel("Mta-modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("statusIndex")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("statusIndex")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Mta-traits-wide", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Radar plot", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                              plotly::plotlyOutput(ns("plotPredictionsRadar"))
+                                              column(width=12,plotly::plotlyOutput(ns("plotPredictionsRadar")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
                           )
                  ),
                  tabPanel("Expected response", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                              plotly::plotlyOutput(ns("plotPotentialResponse"))
+                                              column(width=12, plotly::plotlyOutput(ns("plotPotentialResponse")) ,style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
                           )
                  )
                )
@@ -130,7 +131,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
                                                                  DT::DTOutput(ns("predictionsIdxB"))
                                                 ),
-                                                style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
+                                                style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
                                                 )
                           )
                  ),
@@ -146,7 +147,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
                                                                  DT::DTOutput(ns("modelingIdxB"))
                                                 ),
-                                                style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
+                                                style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
                                                 )
                           )
                  ),

@@ -13,28 +13,26 @@ mod_qaGenoApp_ui <- function(id){
 
 
     # input <- list(propNaUpperThreshForMarker=0.3,propNaUpperThreshForInds=0.3,maf=0.5,imputationMethod="median", ploidy=2 )
-    shiny::sidebarPanel(#width = 3,
+    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      # div(tags$p( h4(strong("Quality Assurance for Genetic Markers")))),#, style = "color: #817e7e"
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Quality Assurance for Genetic Markers</font>"),
+                  <font size='5'>QA for Markers</font>"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-
       numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0),
       numericInput(ns("propNaUpperThreshForInds"), label = "Upper threshold for missing data in individuals(> will be removed)", value = .4, step = .05, max = 1, min = 0),
       numericInput(ns("maf"), label = "Upper threshold for minor allele frequency (< will be removed)", value = 0, step = .05, max = 1, min = 0),
       numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0),
       numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0),
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runQaMb"), "Save modifications", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      textOutput(ns("outQaMb")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
                           numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaMb"), "Save modifications", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outQaMb"))
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
@@ -43,7 +41,7 @@ mod_qaGenoApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
@@ -73,14 +71,14 @@ mod_qaGenoApp_ui <- function(id){
                                            br(),
                                            shinydashboard::box(status="success",width = 12,
                                                                solidHeader = TRUE,
-                                                               plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker"))
+                                                               column(width=12,plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker")) ,style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
                                            )
                                   ),
                                   tabPanel("Modifications", icon = icon("table"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12,
                                                                solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,DT::DTOutput(ns("modificationsQaMarker")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   )
                                 ) # end of tabset

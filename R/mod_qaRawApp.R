@@ -11,7 +11,7 @@ mod_qaRawApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    shiny::sidebarPanel(#width = 3,
+    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       width = 3,
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -23,15 +23,13 @@ mod_qaRawApp_ui <- function(id){
       numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 100000),
       numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 2.5),
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      textOutput(ns("outQaRaw")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      # checkboxGroupInput(ns("checkboxAllTraits"), label = "", choices = list("Apply same rule to all traits?" = TRUE), selected = FALSE),
-      actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outQaRaw"))
-      # uiOutput(ns('navigate')),
     ), # end sidebarpanel
     shiny::mainPanel(width = 9,
                      tabsetPanel( #width=9,
@@ -41,7 +39,7 @@ mod_qaRawApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -68,8 +66,9 @@ mod_qaRawApp_ui <- function(id){
                                            shinydashboard::box(status="success",width = 12, #background = "green",
                                                                solidHeader = TRUE,
                                                                selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE),
-                                                               plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                               column(width=12,DT::DTOutput(ns("modificationsQa")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,
+                                                                      plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      DT::DTOutput(ns("modificationsQa")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   )
                                 ) # end of tabset

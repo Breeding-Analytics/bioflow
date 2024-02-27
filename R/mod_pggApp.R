@@ -11,7 +11,7 @@ mod_pggApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    sidebarPanel(
+    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       # input <- list(version2Pgg="1699508839.68847",trait2Pgg="desireIndex",entryType2Pgg= "TGV_EST004D#TEST_tested",nCrossPgg="20", targetAnglePgg="30",maxRun=40, relType="grm", env2Pgg="across",verbosePgg=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -22,15 +22,15 @@ mod_pggApp_ui <- function(id){
       selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("environmentToUse"), "Environments to use", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runPgg"), "Run", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      uiOutput(ns("qaQcPggInfo")),
+      textOutput(ns("outPgg")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
                           selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runPgg"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcPggInfo")),
-      textOutput(ns("outPgg"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
@@ -38,7 +38,7 @@ mod_pggApp_ui <- function(id){
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
@@ -68,14 +68,14 @@ mod_pggApp_ui <- function(id){
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                               column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
                                               column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
+                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")), style = "height:450px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
                  tabPanel("Data", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("phenoPgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  )
                )
@@ -86,14 +86,14 @@ mod_pggApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Report", icon = icon("file-image"),

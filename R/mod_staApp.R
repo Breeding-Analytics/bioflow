@@ -10,9 +10,7 @@
 mod_staApp_ui <- function(id){
   ns <- NS(id)
   tagList(
-    sidebarPanel(
-
-
+    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Single Trial Analysis</font>"),
@@ -27,6 +25,11 @@ mod_staApp_ui <- function(id){
       selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
       selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE),
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      uiOutput(ns("qaQcStaInfo")),
+      textOutput(ns("outSta")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           selectInput(ns("genoAsFixedSta"),"Predictions",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
                           numericInput(ns("maxitSta"),"Number of iterations",value=35),
@@ -35,11 +38,6 @@ mod_staApp_ui <- function(id){
       shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions (optional)...",
                           column(width = 12,DT::DTOutput(ns("traitDistSta")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcStaInfo")),
-      textOutput(ns("outSta"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel(id=ns("tabsMain"),
       type = "tabs",
@@ -48,7 +46,7 @@ mod_staApp_ui <- function(id){
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
@@ -89,7 +87,7 @@ mod_staApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("statusSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("statusSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Effects", icon = icon("table"),
@@ -97,14 +95,14 @@ mod_staApp_ui <- function(id){
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
                                               selectInput(ns("feature"), "Check units by:", choices = NULL, multiple = FALSE),
-                                              column(width=12,DT::DTOutput(ns("summariesSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("summariesSta")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Design", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width = 12,DT::dataTableOutput(ns("dtFieldTraC")), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
+                                              column(width = 12,DT::dataTableOutput(ns("dtFieldTraC")), style = "height:520px; overflow-y: scroll;overflow-x: scroll;"),
                           )
                  ),
                  tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
@@ -112,14 +110,14 @@ mod_staApp_ui <- function(id){
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
                                               selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                              plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
+                                              column(width=12,plotly::plotlyOutput(ns("plotPredictionsCleanOut")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
                           )
                  ),
                  tabPanel("Data", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  )
                )# of of tabsetPanel
@@ -130,21 +128,21 @@ mod_staApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Metrics", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,br(),DT::DTOutput(ns("metricsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Report STA", icon = icon("file-image"),
