@@ -11,7 +11,7 @@ mod_ocsApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    sidebarPanel(
+    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       # input <- list(version2Ocs="1699508839.68847",trait2Ocs="desireIndex",entryType2Ocs= "TGV_EST004D#TEST_tested",nCrossOcs="20", targetAngleOcs="30",maxRun=40, relType="grm", env2Ocs="across",verboseOcs=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       # div(tags$p( h4(strong("Optimal Cross Selection")))),#, style = "color: #817e7e"
@@ -24,6 +24,11 @@ mod_ocsApp_ui <- function(id){
       textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20"),
       textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runOcs"), "Run", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      uiOutput(ns("qaQcOcsInfo")),
+      textOutput(ns("outOcs")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
                           numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
@@ -31,11 +36,6 @@ mod_ocsApp_ui <- function(id){
                           selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
                           selectInput(ns("verboseOcs"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runOcs"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcOcsInfo")),
-      textOutput(ns("outOcs"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
@@ -43,7 +43,7 @@ mod_ocsApp_ui <- function(id){
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
@@ -78,28 +78,28 @@ mod_ocsApp_ui <- function(id){
                                               column(width=5, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                               column(width=5, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
                                               column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1)),
-                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")), style = "height:450px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
                  tabPanel("Mta-modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("statusOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("statusOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Evaluation units", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Data", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  )
                )
@@ -110,21 +110,21 @@ mod_ocsApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("predictionsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("predictionsOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Metrics", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,br(),DT::DTOutput(ns("metricsOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingOcs")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("modelingOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Report", icon = icon("file-image"),

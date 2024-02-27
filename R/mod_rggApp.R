@@ -12,7 +12,7 @@ mod_rggApp_ui <- function(id){
   tagList(
 
 
-    sidebarPanel(
+    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
       # input <- list(version2Rgg="1699508839.68847",trait2Rgg="desireIndex",entryType2Rgg= "TGV_EST004D#TEST_tested",nCrossRgg="20", targetAngleRgg="30",maxRun=40, relType="grm", env2Rgg="across",verboseRgg=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -24,6 +24,11 @@ mod_rggApp_ui <- function(id){
       selectInput(ns("trait2Rgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
       selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE),
       selectInput(ns("entryTypeToUse"), "Entry types to use", choices = NULL, multiple = TRUE),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runRgg"), "Run", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      uiOutput(ns("qaQcRggInfo")),
+      textOutput(ns("outRgg")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                           tags$span(id = ns('mackayOptions'),
@@ -37,11 +42,6 @@ mod_rggApp_ui <- function(id){
                           selectInput(ns("deregress"), "Should deregress estimates", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                           selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
       ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runRgg"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcRggInfo")),
-      textOutput(ns("outRgg"))
     ), # end sidebarpanel
     mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
@@ -49,7 +49,7 @@ mod_rggApp_ui <- function(id){
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
@@ -82,14 +82,14 @@ mod_rggApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                               column(width=12, selectInput(ns("trait3Rgg"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")), style = "height:450px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Data", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("phenoRgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  )
                )
@@ -100,16 +100,14 @@ mod_rggApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                              downloadButton(ns('downloadMetrics'), 'Download metrics')
+                                              column(width=12,br(),DT::DTOutput(ns("metricsRgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
                           )
                  ),
                  tabPanel("Modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingRgg")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;"),
-                                              downloadButton(ns('downloadModeling'), 'Download modeling')
+                                              column(width=12,DT::DTOutput(ns("modelingRgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
                           )
                  ),
                  tabPanel("Report", icon = icon("file-image"),

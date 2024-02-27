@@ -11,7 +11,7 @@ mod_mtaApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    sidebarPanel(
+    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
 
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
@@ -28,6 +28,11 @@ mod_mtaApp_ui <- function(id){
                 selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
+      actionButton(ns("runMta"), "Run", icon = icon("play-circle")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
+      uiOutput(ns("qaQcMtaInfo")),
+      textOutput(ns("outMta")),
+      hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
                           column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
       ),
@@ -41,11 +46,6 @@ mod_mtaApp_ui <- function(id){
                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
       ),
       hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runMta"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcMtaInfo")),
-      textOutput(ns("outMta")),
-      hr(style = "border-top: 1px solid #4c4c4c;")
     ), # end sidebarpanel
     mainPanel(tabsetPanel( id=ns("tabsMain"),
       type = "tabs",
@@ -53,7 +53,7 @@ mod_mtaApp_ui <- function(id){
                br(),
                shinydashboard::box(status="success",width = 12,
                                    solidHeader = TRUE,
-                                   column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                           h2(strong("Status:")),
                                           uiOutput(ns("warningMessage")),
                                           h2(strong("Details")),
@@ -96,21 +96,21 @@ mod_mtaApp_ui <- function(id){
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                               column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
                                               column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) )
+                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")), style = "height:420px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
                  tabPanel("Sta-modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("statusMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("statusMta")),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Evaluation units", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Connectivity", icon = icon("table"),
@@ -119,7 +119,7 @@ mod_mtaApp_ui <- function(id){
                                               column(width=12,selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
                                               column(width = 6, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
                                               column(width = 6, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) )
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")), style = "height:360px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
                  tabPanel("Sparsity", icon = icon("table"),
@@ -127,7 +127,7 @@ mod_mtaApp_ui <- function(id){
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                               column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15))  ),
                                               column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 5))  ),
-                                              column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) )
+                                              column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
                  tabPanel("Trait dispersal", icon = icon("magnifying-glass-chart"),
@@ -135,7 +135,7 @@ mod_mtaApp_ui <- function(id){
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                               column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                               column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")))
+                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")), style = "height:410px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
                  tabPanel("Data", icon = icon("table"),
@@ -143,7 +143,7 @@ mod_mtaApp_ui <- function(id){
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                               column(width=12,
                                                      DT::DTOutput(ns("phenoMta")),
-                                                     style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
+                                                     style = "height:500px; overflow-y: scroll;overflow-x: scroll;"
                                               )
                           )
                  ),
@@ -151,7 +151,7 @@ mod_mtaApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                               h5("Environments to be included and with phenotypic records available are set to 1. Double click in a cell and place a 0 if you would prefer to ignore that environment for a given trait in the multi-trial analysis."),
-                                              column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:430px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  )
                )
@@ -162,21 +162,21 @@ mod_mtaApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Metrics", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Modeling", icon = icon("table"),
                           br(),
                           shinydashboard::box(status="success",width = 12,
                                               solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                              column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                           )
                  ),
                  tabPanel("Report", icon = icon("file-image"),
