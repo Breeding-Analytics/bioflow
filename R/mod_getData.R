@@ -708,16 +708,33 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         QBMS::set_trial(input$pheno_db_folder)
 
-        pheno_db_studies <- QBMS::list_studies()
+        tryCatch(
+          expr = {
+            pheno_db_studies <- QBMS::list_studies()
 
-        output$pheno_db_trial <- renderUI({
-          selectizeInput(
-            inputId = ns('pheno_db_trial'),
-            label   = 'Trial/Study: ',
-            choices = pheno_db_studies,
-            multiple = TRUE
-          )
-        })
+            output$pheno_db_trial <- renderUI({
+              selectizeInput(
+                inputId = ns('pheno_db_trial'),
+                label   = 'Trial/Study: ',
+                choices = pheno_db_studies,
+                multiple = TRUE
+              )
+            })
+          },
+          error = function(e) {
+            if (input$pheno_db_type == 'breedbase') {
+              shinyWidgets::show_alert(title = 'Empty Folder!',
+                                       text = 'No trials found in the selected folder! Please choose the last/final folder that contains your trials in any nested folder structure.',
+                                       type = 'warning')
+            } else {
+              shinyWidgets::show_alert(title = e, type = 'error')
+            }
+
+            output$pheno_db_trial <- NULL
+
+            return(NULL)
+          }
+        )
 
         shinybusy::remove_modal_spinner()
       }
