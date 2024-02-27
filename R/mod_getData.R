@@ -792,6 +792,23 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 if (input$pheno_db_type == 'breedbase') {
                   QBMS::set_study(input$pheno_db_trial)
                   data <- QBMS::get_study_data()
+
+                  # get breedbase trait ontology
+                  ontology <- QBMS::get_trial_obs_ontology()
+                  fields   <- colnames(data)
+
+                  # replace long trait names with short ones from the ontology
+                  for (i in 1:length(fields)) {
+                    j <- which(ontology$name %in% fields[i])
+                    if (length(j) > 0) {
+                      if(!is.na(ontology$synonyms[[j]][1])) {
+                        fields[i] <- ontology$synonyms[[j]][1]
+                      }
+                    }
+                  }
+
+                  colnames(data) <- fields
+
                 } else {
                   QBMS::set_trial(input$pheno_db_trial)
                   data <- QBMS::get_trial_data()
