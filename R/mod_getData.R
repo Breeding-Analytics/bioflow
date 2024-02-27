@@ -1214,7 +1214,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           shinyWidgets::show_alert(title = 'Error !!', text = 'Not a valid HapMap file format :-(', type = 'error')
           return(NULL)
         }
-        return(df)
+        return(list(df,snps_file))
 
       }else{
         return(NULL)
@@ -1224,30 +1224,31 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     output$chrom_summary <- renderTable({
       if (!is.null(geno_data())) {
+        gd<-geno_data()[[1]]
         data.frame(
-          chrom = unique(geno_data()[,'chrom']),
-          min_pos = aggregate(pos ~ chrom, data = geno_data(), FUN = min)[,2],
-          max_pos = aggregate(pos ~ chrom, data = geno_data(), FUN = max)[,2],
-          snps_count = aggregate(pos ~ chrom, data = geno_data(), FUN = length)[,2]
+          chrom = unique(gd[,'chrom']),
+          min_pos = aggregate(pos ~ chrom, data = gd, FUN = min)[,2],
+          max_pos = aggregate(pos ~ chrom, data = gd, FUN = max)[,2],
+          snps_count = aggregate(pos ~ chrom, data = gd, FUN = length)[,2]
         )
       }
     })
 
     output$geno_summary <- renderText({
       temp <- data()
-
-      if (!is.null(geno_data()) & any(temp$metadata$pheno$parameter == 'designation')) {
+      gd <- geno_data()[[1]]
+      if (!is.null(gd) & any(temp$metadata$pheno$parameter == 'designation')) {
         designationColumn <- temp$metadata$pheno[which(temp$metadata$pheno$parameter == "designation"),"value"]
         paste(
           "Data Integrity Checks:\n",
 
-          sum(colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
+          sum(colnames(gd[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
           "Accessions exist in both phenotypic and genotypic files (will be used to train the model)\n",
 
-          sum(!colnames(geno_data()[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
+          sum(!colnames(gd[, -c(1:11)]) %in% unique(temp$data$pheno[, designationColumn ])),
           "Accessions have genotypic data but no phenotypic (will be predicted, add to pheno data file with NA value)\n",
 
-          sum(!unique(temp$data$pheno[, designationColumn ]) %in% colnames(geno_data()[, -c(1:11)])),
+          sum(!unique(temp$data$pheno[, designationColumn ]) %in% colnames(gd[, -c(1:11)])),
           'Accessions have phenotypic data but no genotypic (will not contribute to the training model)'
         )
       }
@@ -1257,17 +1258,17 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       geno_data(),
       {
         temp <- data()
+        gd<-geno_data()[[1]]
+        temp$data$geno <- t(as.matrix(gd[, -c(1:11)])) - 1
+        colnames(temp$data$geno) <- gd$`rs#`
 
-        temp$data$geno <- t(as.matrix(geno_data()[, -c(1:11)])) - 1
-        colnames(temp$data$geno) <- geno_data()$`rs#`
-
-        map <- geno_data()[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
+        map <- gd[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
         colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
         map$refAllele <- substr(map$refAllele, 1, 1)
         map$altAllele <- substr(map$altAllele, 3, 3)
 
         temp$metadata$geno <- map
-
+        temp$data$genodir<-geno_data()[[2]]
         data(temp)
       }
     )
