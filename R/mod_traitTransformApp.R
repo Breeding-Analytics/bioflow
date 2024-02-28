@@ -29,7 +29,7 @@ mod_traitTransformApp_ui <- function(id){
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel(p("Information",class="info-p"), icon = icon("book"),
+                       tabPanel("Information", icon = icon("book"),
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
@@ -52,35 +52,59 @@ mod_traitTransformApp_ui <- function(id){
                                                     )
                                 )
                        ),
-                       tabPanel(p("Conversion", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel("Conversion", icon = icon("rocket"),
                                 tabsetPanel(
-                                  tabPanel("Input", icon = icon("magnifying-glass-chart"),
+                                  tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("summariesScr1")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
+                                                               actionButton(ns("runTra"), "Apply conversions", icon = icon("play-circle")),
+                                                               textOutput(ns("outTraC")),
+                                                               hr(style = "border-top: 1px solid #4c4c4c;"),
+                                                               column(width=12,DT::DTOutput(ns("transTableC")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
+                                           ),
                                   ),
-                                ) # end of tabset
+                                  tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
+                                                               column(width=12,DT::DTOutput(ns("rawPheno")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
+                                           ),
+                                  ),
+                                ),
                        ), # end of output panel
-                       tabPanel(p("Equalizing", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel("Equalizing", icon = icon("equals"),
                                 tabsetPanel(
-                                  tabPanel("Input", icon = icon("magnifying-glass-chart"),
+                                  tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("summariesScr2")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
+                                                               selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
+                                                               actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
+                                                               textOutput(ns("outEqual")),
+                                                               hr(style = "border-top: 1px solid #4c4c4c;"),
+                                           ),
                                   ),
-                                ) # end of tabset
+                                  tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
+                                                               column(width=12,DT::DTOutput(ns("rawPheno2")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
+                                           ),
+                                  ),
+                                ),
                        ), # end of output panel
-                       tabPanel(p("Balancing", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel("Balancing", icon = icon("scale-balanced"),
                                 tabsetPanel(
-                                  tabPanel("Input", icon = icon("magnifying-glass-chart"),
+                                  tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("summariesScr3")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
+
+                                           ),
                                   ),
-                                ) # end of tabset
+                                  tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
+
+                                           ),
+                                  ),
+                                ),
                        ), # end of output panel
 
                      )) # end mainpanel
@@ -109,40 +133,141 @@ mod_traitTransformApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
-        ## pheno check
-        if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")) )
-        }else{
-          ## ped check
-          ped <- data()$data$pedigree
-          metaPed <- data()$metadata$pedigree
-          if(is.null(ped)){ # no pedigree available
-            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section.")) )
-          }else{ # pedigree is there
-            if( length(intersect(metaPed$value , colnames(ped))) != 3){
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data.")) )
-            }else{
-              colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-              parents <- na.omit(c(unique(ped[,"mother"]), unique(ped[,"father"]) ))
-              if(length(parents) == 0){
-                HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected.")) )
-              }else{
-                ## marker check
-                geno <- data()$data$geno
-                if(is.null(geno)){ # no markers available
-                  HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your marker data using the 'Data Retrieval' tab.")) )
-                }else{ # markers are there
-                  HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to inspect the options.")) )
-                } # end of if pedigree available
-              } #
-            }
-          } # end of if pedigree available
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to compute your transformations.")) )
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )
         }
       }
     )
+    ## function to create the table of possibilities
+    dtFieldTraC = reactive({
+      dtProv = data()$metadata$pheno
+      traitNames = dtProv[dtProv$parameter == "trait","value"]
+      mm = matrix(0,nrow = 3, ncol = length(traitNames)); rownames(mm) <- c("log","sqrt","cbrt"); colnames(mm) <- traitNames
+      dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
+      return(dtProvTable)
+    })
+    xx = reactiveValues(df = NULL)
+    observe({
+      df <- dtFieldTraC()
+      xx$df <- df
+    })
+    output$transTableC = DT::renderDT(xx$df,
+                                      selection = 'none',
+                                      editable = TRUE,
+                                      options = list(paging=FALSE,
+                                                     searching=FALSE,
+                                                     initComplete = I("function(settings, json) {alert('Done.');}")
+                                      )
+    )
+    proxy = DT::dataTableProxy('transTableC')
+    observeEvent(input$transTableC_cell_edit, {
+      info = input$transTableC_cell_edit
+      utils::str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+    })
+    ## render result of "run" button click
+    outTraC <- eventReactive(input$runTra, {
+      req(data())
+      mydata <- data()
+      if(!is.null(mydata$data$pheno)){
+        myTransformation = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
+        myTransformation = myTransformation[which(!is.na(myTransformation))]
+        result <- try(cgiarPipeline::traitTransformation(object = mydata, # input data
+                                                         trait=names(myTransformation), # selected trait
+                                                         transformation = as.vector(myTransformation)), # transformation for that trait
+                      silent=TRUE
+        )
+        if(!inherits(result,"try-error")) {
+          data(result) # update data with results
+          cat(paste("Additional traits added to the phenotypic dataset."))
+        }else{
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        }
+      }
+    })
+    output$outTraC <- renderPrint({
+      outTraC()
+    })
 
+    ## render raw data
+    output$rawPheno <-  output$rawPheno2 <- DT::renderDT({
+      req(data())
+      dtSta <- data()
+      dtSta <- dtSta$data$pheno
+      ### change column names for mapping
+      paramsPheno <- data()$metadata$pheno
+      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+      colnames(dtSta) <- cgiarBase::replaceValues(colnames(dtSta), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+      ###
+      traitTypes <- unlist(lapply(dtSta,class))
+      numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
+      DT::formatRound(DT::datatable(dtSta, extensions = 'Buttons',
+                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      ), numeric.output)
+    })
 
+    ################################################################################################
+    ## EQUALIZE MODULE
+    # traits
+    observeEvent(c(data(),input$version2Sta,input$genoUnitSta), {
+      req(data())
+      dtProv = data()$metadata$pheno
+      traitNames = dtProv[dtProv$parameter == "trait","value"]
+      updateSelectInput(session, "traitEqualPheno", choices = traitNames, selected = NULL)
+    })
 
+    outEqual <- eventReactive(input$runEqual, {
+      req(input$trait2EqualPheno)
+
+      if(length(input$trait2EqualPheno) >1 ){
+
+        mydatax <- data()$data$pheno
+        metaMydatax = data()$metadata$pheno
+        allTraits = metaMydatax[metaMydatax$parameter == "trait","value"]
+        traitsOfNoInterest <- setdiff(allTraits,input$trait2EqualPheno )
+        ## we create n datasets for the n different traits and only the first one has the traits of NO interest
+        dataList <- list()
+        for(iTrait in 1:length(input$trait2EqualPheno)){
+          if(iTrait == 1){
+            res0 <- mydatax[,c(baseNpresent,traitsOfNoInterest,input$trait2EqualPheno[iTrait])]
+            colnames(res0)[ncol(res0)] <- input$trait2EqualPheno[1]
+          }else{
+            res0 <- mydatax[,c(baseNpresent,input$trait2EqualPheno[iTrait])]
+            colnames(res0)[ncol(res0)] <- input$trait2EqualPheno[1]
+            goodRecords <- which(!is.na(res0[,input$trait2EqualPheno[1]]))
+            if(length(goodRecords) > 0){res0 <- res0[goodRecords,]}
+          }
+          myNewData <- dtEqual2(); # the same dataset
+          myNewData$cleaned <- res0 # change the cleaned dataset
+          dataList[[iTrait]] <- myNewData
+        }
+        ## now we take that list and bind them as independent datasets
+        dtBind <- dataList[[1]]
+        for(iFile in 2:length(input$trait2EqualPheno)){
+          dtBind <- try(cgiarPipeline::rbindp(phenoDTfile = dtBind,
+                                          phenoDTfile2 = dataList[[iFile]]
+          ), silent = TRUE
+          )
+        }
+        result <- dtBind # final result
+        if(!inherits(result,"try-error")) {
+          data(result) # update data with results
+          cat(paste("Traits equalized."))
+        }else{
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        }
+      }else{
+        print("You need to provide more than one trait")
+      }
+    })
+    output$outEqual <- renderPrint({
+      outEqual()
+    })
 
 
   })

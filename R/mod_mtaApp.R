@@ -13,180 +13,180 @@ mod_mtaApp_ui <- function(id){
 
     sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
 
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+                  tags$style(".well {background-color:grey; color: #FFFFFF;}"),
+                  HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
                   <font size='5'>Multi Trial Analysis</font>"),
-      # div(tags$p( h4(strong("Multi Trial Analysis")))),#, style = "color: #817e7e"
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2Mta"), "STA version to analyze", choices = NULL, multiple = FALSE),
-      selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-      selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE),
-      selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
-      selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
-      selectInput(ns("modelMet"), "Genetic evaluation model", choices = NULL, multiple = FALSE),
-      tags$span(id = ns('ismarkermodel'),
-                selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
-      ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runMta"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcMtaInfo")),
-      textOutput(ns("outMta")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
-                          column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-      ),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-                          textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
-                          textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
-                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
-                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 1000),
-                          selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
-                          numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
-      ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
+                  # div(tags$p( h4(strong("Multi Trial Analysis")))),#, style = "color: #817e7e"
+                  hr(style = "border-top: 1px solid #4c4c4c;"),
+                  selectInput(ns("version2Mta"), "STA version to analyze", choices = NULL, multiple = FALSE),
+                  selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
+                  selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE),
+                  selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
+                  selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
+                  selectInput(ns("modelMet"), "Genetic evaluation model", choices = NULL, multiple = FALSE),
+                  tags$span(id = ns('ismarkermodel'),
+                            selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
+                  ),
+                  hr(style = "border-top: 1px solid #4c4c4c;"),
+                  actionButton(ns("runMta"), "Run", icon = icon("play-circle")),
+                  hr(style = "border-top: 1px solid #4c4c4c;"),
+                  uiOutput(ns("qaQcMtaInfo")),
+                  textOutput(ns("outMta")),
+                  hr(style = "border-top: 1px solid #4c4c4c;"),
+                  shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions...",
+                                      column(width = 12,DT::DTOutput(ns("traitDistMet")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                  ),
+                  shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                      selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                      textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
+                                      textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
+                                      numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
+                                      numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 1000),
+                                      selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                      numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
+                  ),
+                  hr(style = "border-top: 1px solid #4c4c4c;"),
     ), # end sidebarpanel
     mainPanel(tabsetPanel( id=ns("tabsMain"),
-      type = "tabs",
-      tabPanel(p("Information",class="info-p"),  icon = icon("book"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                          h2(strong("Status:")),
-                                          uiOutput(ns("warningMessage")),
-                                          h2(strong("Details")),
-                                          p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
+                           type = "tabs",
+                           tabPanel(p("Information",class="info-p"),  icon = icon("book"),
+                                    br(),
+                                    shinydashboard::box(status="success",width = 12,
+                                                        solidHeader = TRUE,
+                                                        column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                               h2(strong("Status:")),
+                                                               uiOutput(ns("warningMessage")),
+                                                               h2(strong("Details")),
+                                                               p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
                               analysis and optionally a relationship matrix between individuals.
                                 The way the arguments are used is the following:"),
-                                          img(src = "www/mta.png", height = 300, width = 600), # add an image
-                                          p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
-                                          p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
-                                          p(strong("Random effects.-")," Columns to be fitted as random effects."),
-                                          # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
-                                          p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
-                                          p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
-                                          p(strong("Additional settings:")),
-                                          p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
-                                          p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
-                                          p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
-                                          p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                          p(strong("Maximum number of markers if rrBLUP.-")," Maximum number of markers that should be used if an rrBLUP genetic evaluation method is selected. Under high density marker SNP panels the user may want to reduce the complexity of the marker-based model, the default is 1000. The markers will be randomly sampled without replacement."),
-                                          p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
-                                          p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
-                                          h2(strong("References:")),
-                                          p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
-                                          p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
-                                          p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
-                                          h2(strong("Software used:")),
-                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                                               img(src = "www/mta.png", height = 300, width = 600), # add an image
+                                                               p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                                               p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
+                                                               p(strong("Random effects.-")," Columns to be fitted as random effects."),
+                                                               # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
+                                                               p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
+                                                               p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
+                                                               p(strong("Additional settings:")),
+                                                               p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
+                                                               p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
+                                                               p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
+                                                               p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
+                                                               p(strong("Maximum number of markers if rrBLUP.-")," Maximum number of markers that should be used if an rrBLUP genetic evaluation method is selected. Under high density marker SNP panels the user may want to reduce the complexity of the marker-based model, the default is 1000. The markers will be randomly sampled without replacement."),
+                                                               p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
+                                                               p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
+                                                               h2(strong("References:")),
+                                                               p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
+                                                               p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
+                                                               p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
+                                                               h2(strong("Software used:")),
+                                                               p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                          p(" Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
-                                          p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
-                                   )
-               )
-      ),
-      tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
-               tabsetPanel(
-                 tabPanel("Sta-metrics", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                              column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                              column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")), style = "height:420px; overflow-y: scroll;overflow-x: scroll;" )
-                          )
-                 ),
-                 tabPanel("Sta-modeling", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("statusMta")),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Evaluation units", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Connectivity", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                              column(width=12,selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
-                                              column(width = 6, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
-                                              column(width = 6, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")), style = "height:360px; overflow-y: scroll;overflow-x: scroll;" )
-                          )
-                 ),
-                 tabPanel("Sparsity", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                              column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15))  ),
-                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25))  ),
-                                              column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;" )
-                          )
-                 ),
-                 tabPanel("Trait dispersal", icon = icon("magnifying-glass-chart"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                              column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")), style = "height:410px; overflow-y: scroll;overflow-x: scroll;" )
-                          )
-                 ),
-                 tabPanel("Data", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                              column(width=12,
-                                                     DT::DTOutput(ns("phenoMta")),
-                                                     style = "height:500px; overflow-y: scroll;overflow-x: scroll;"
-                                              )
-                          )
-                 ),
-                 tabPanel("Fields to include", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                              h5("Environments to be included and with phenotypic records available are set to 1. Double click in a cell and place a 0 if you would prefer to ignore that environment for a given trait in the multi-trial analysis."),
-                                              column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:430px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 )
-               )
-      ),
-      tabPanel(p("Output visuals",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
-               tabsetPanel(
-                 tabPanel("Predictions", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Metrics", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Modeling", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Report", icon = icon("file-image"),
-                          br(),
-                          div(tags$p("Please download the report below:") ),
-                          downloadButton(ns("downloadReportMta"), "Download report"),
-                          br(),
-                          uiOutput(ns('reportMta'))
-                 )
-               ) # end of tabset
-      )# end of output panel
+                                                               p(" Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
+                                                               p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                                        )
+                                    )
+                           ),
+                           tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
+                                    tabsetPanel(
+                                      tabPanel("Sta-metrics", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                                   column(width=6,selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                                   column(width=6,selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                   column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")), style = "height:420px; overflow-y: scroll;overflow-x: scroll;" )
+                                               )
+                                      ),
+                                      tabPanel("Sta-modeling", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,DT::DTOutput(ns("statusMta")),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Evaluation units", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Connectivity", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                                   column(width=12,selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
+                                                                   column(width = 6, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
+                                                                   column(width = 6, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                   column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")), style = "height:360px; overflow-y: scroll;overflow-x: scroll;" )
+                                               )
+                                      ),
+                                      tabPanel("Sparsity", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                                   column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15))  ),
+                                                                   column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25))  ),
+                                                                   column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;" )
+                                               )
+                                      ),
+                                      tabPanel("Trait dispersal", icon = icon("magnifying-glass-chart"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                   column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                                                   column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")), style = "height:410px; overflow-y: scroll;overflow-x: scroll;" )
+                                               )
+                                      ),
+                                      tabPanel("Data", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   column(width=12,
+                                                                          DT::DTOutput(ns("phenoMta")),
+                                                                          style = "height:500px; overflow-y: scroll;overflow-x: scroll;"
+                                                                   )
+                                               )
+                                      ),
+                                      tabPanel("Fields to include", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   h5("Environments to be included and with phenotypic records available are set to 1. Double click in a cell and place a 0 if you would prefer to ignore that environment for a given trait in the multi-trial analysis."),
+                                                                   column(width = 12,DT::dataTableOutput(ns("fieldsMet")), style = "height:430px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      )
+                                    )
+                           ),
+                           tabPanel(p("Output visuals",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
+                                    tabsetPanel(
+                                      tabPanel("Predictions", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Metrics", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Modeling", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Report", icon = icon("file-image"),
+                                               br(),
+                                               div(tags$p("Please download the report below:") ),
+                                               downloadButton(ns("downloadReportMta"), "Download report"),
+                                               br(),
+                                               uiOutput(ns('reportMta'))
+                                      )
+                                    ) # end of tabset
+                           )# end of output panel
     )) # end mainpanel
 
 
@@ -639,12 +639,11 @@ mod_mtaApp_server <- function(id, data){
             }
           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
-        if(is.null(input$fixedTermMta2)){myFixed <- "environment"}else{myFixed <- input$fixedTermMta2}
         result <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
           analysisIdForGenoModifications = markerVersionToUse, # marker modifications
-          fixedTerm= myFixed,  randomTerm=input$randomTermMta2,  residualBy=NULL,
+          fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
           trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
           heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
