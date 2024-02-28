@@ -56,7 +56,7 @@ mod_filterPhenoApp_ui <- function(id){
                                                              This option allows users to filter (more concretely tag records for exclusion) specific years, seasons, countries, locations, etc. from the posterior analyses. This is just an optional module that most users will not require.
                                 The way arguments are used is the following:"),
                                                              img(src = "www/dataFilter.png", height = 300, width = 500), # add an image
-                                                             p(strong("label.-")," the different columns to subset the phenotypic dataset to exclude certain environments for certain traits."),
+                                                             p(strong("label.-")," the different columns to subset the phenotypic dataset to exclude certain years, seasons, countries, locations, trials, or environments for certain traits."),
                                                              h2(strong("References")),
                                                              p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
                                                              p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
@@ -64,7 +64,7 @@ mod_filterPhenoApp_ui <- function(id){
                                                     )
                                 )
                        ),
-                       tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel(p("Preview", class="output-p"), icon = icon("arrow-right-from-bracket"),
                                 tabsetPanel(
                                   tabPanel("Phenotype filter", icon = icon("magnifying-glass-chart"),
                                            br(),

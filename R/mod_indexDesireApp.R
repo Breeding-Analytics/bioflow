@@ -43,7 +43,7 @@ mod_indexDesireApp_ui <- function(id){
                        textOutput(ns("outIdxD")),
                        hr(style = "border-top: 1px solid #4c4c4c;"),
                        shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                                           numericInput(ns("proportion"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
+                                           numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
                                            numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
                                            selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                        ),
@@ -66,12 +66,13 @@ mod_indexDesireApp_ui <- function(id){
                               for selection.
                                 The way the options are used is the following:"),
                                           img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
-                                          p(strong("Traits to analyze.-")," Traits to be considered in the index."),
-                                          p(strong("Desire vector.-")," Vector of values indicating the desired change in traits."),
-                                          p(strong("Scale predictions.-")," A TRUE or FALSE value indicating if the table of traits should be
+                                          p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
+                                          p(strong("Traits to include in the index-")," Traits to be considered in the index."),
+                                          p(strong("Desire or base values.-")," Vector of values indicating the desired change in traits."),
+                                          p(strong("Scale traits.-")," A TRUE or FALSE value indicating if the table of traits should be
                                 scaled or not. If TRUE is selected, the values of the desire vector are expected to be expressed in
                                 standard deviations. If FALSE, the values of the desire vector are expected to be expressed in
-                                original units."),
+                                original-scale units."),
                                           h2(strong("References:")),
                                           p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
                                           p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),

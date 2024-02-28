@@ -52,7 +52,7 @@ mod_expDesignEditApp_ui <- function(id){
                                                     )
                                 )
                        ),
-                       tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+                       tabPanel(p("Preview",class="input-p"), icon = icon("arrow-right-to-bracket"),
                                 tabsetPanel(
                                   tabPanel("Heatmap", icon = icon("magnifying-glass-chart"),
                                            br(),

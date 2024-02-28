@@ -31,7 +31,7 @@ mod_staApp_ui <- function(id){
       textOutput(ns("outSta")),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          selectInput(ns("genoAsFixedSta"),"Predictions",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
+                          selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
                           numericInput(ns("maxitSta"),"Number of iterations",value=35),
                           selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
       ),
@@ -58,9 +58,13 @@ mod_staApp_ui <- function(id){
                               By default genotype (designation column) predictions and their standard errors are returned.
                                 The way the options are used is the following:"),
                                           img(src = "www/sta.png", height = 200, width = 300), # add an image
-                                          p(strong("Fixed effects.-"),"Columns to be fitted as fixed effects in each trial."),
+                                          p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
                                           p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                          p(strong("Covariates.-"),"Columns to be fitted as as additional fixed effect covariates in each trial."),
+                                          p(strong("Additional settings.-")),
+                                          p(strong("Type of estimate.-")," Whether BLUEs or BLUPs should be stored for the second stage."),
                                           p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trial-trait combination."),
+                                          p(strong("Print logs.-")," Whether the logs of the run should be printed in the screen or not."),
                                           p(strong("Note.-")," A design-agnostic spatial design is carried. That means, all the spatial-related factors will be fitted if pertinent.
                                 For example, if a trial has rowcoord information it will be fitted, if not it will be ignored. A two-dimensional spline kernel is only
                                 fitted when the trial size exceeds 5 rows and 5 columns. In addition the following rules are followed: 1) Rows or columns are fitted if

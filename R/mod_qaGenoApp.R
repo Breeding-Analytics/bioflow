@@ -55,6 +55,7 @@ mod_qaGenoApp_ui <- function(id){
                                                              p(strong("Minor allele frequency.-")," this sets a lower threshold for what is the minimum allele frequency allowed in the dataset. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
                                                              p(strong("Threshold for heterozygosity in markers.-")," this sets an upper threshold for what is the maximum level of heterozygosity allowed in the markers. If greater than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1. For example, a line dataset should not have markers with high heterozigosity."),
                                                              p(strong("Threshold for inbreeding in markers.-")," this sets an upper threshold for what is the maximum level of inbreeding allowed in the markers. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                             p(strong("Additional settings:")),
                                                              p(strong("Imputation method.-")," method to impute missing cells. Median is the only method currently available."),
                                                              p(strong("Ploidy.-")," number of chromosome copies. This value is important to compute some of the paramters. Default is 2 or diploid."),
                                                              h2(strong("References")),
@@ -65,7 +66,7 @@ mod_qaGenoApp_ui <- function(id){
 
                                 )
                        ),
-                       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel(p("Preview",class="output-p"), icon = icon("arrow-right-from-bracket"),
                                 tabsetPanel(
                                   tabPanel("Outlier detection", icon = icon("magnifying-glass-chart"),
                                            br(),

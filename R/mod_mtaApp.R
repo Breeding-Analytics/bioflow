@@ -23,7 +23,7 @@ mod_mtaApp_ui <- function(id){
       selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE),
       selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
-      selectInput(ns("modelMet"), "Genetic evaluation model (if random)", choices = NULL, multiple = FALSE),
+      selectInput(ns("modelMet"), "Genetic evaluation model", choices = NULL, multiple = FALSE),
       tags$span(id = ns('ismarkermodel'),
                 selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
       ),
@@ -62,20 +62,20 @@ mod_mtaApp_ui <- function(id){
                               analysis and optionally a relationship matrix between individuals.
                                 The way the arguments are used is the following:"),
                                           img(src = "www/mta.png", height = 300, width = 600), # add an image
-                                          p(strong("Model type (optional).-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
                                           p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
                                           p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
                                           p(strong("Random effects.-")," Columns to be fitted as random effects."),
-                                          p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
+                                          # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
                                           p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
+                                          p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
+                                          p(strong("Additional settings:")),
                                           p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
                                           p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
                                           p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
                                           p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                          p(strong("Scale desire file.-")," A TRUE or FALSE value to decide if the DESIRE (software) input file to be created should assume scaled traits or in their original units (scaled is recommended)."),
-                                          p(strong("Use rrBLUP method.-")," A TRUE or FALSE value to decide if the MET should use the rrBLUP approach using either a certain number of principal components or the full matrix using the nPC argument."),
+                                          p(strong("Maximum number of markers if rrBLUP.-")," Maximum number of markers that should be used if an rrBLUP genetic evaluation method is selected. Under high density marker SNP panels the user may want to reduce the complexity of the marker-based model, the default is 1000. The markers will be randomly sampled without replacement."),
+                                          p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
                                           p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
-                                          p(strong("Some details.-")," If genotypes are fitted as fixed effects the reliability cannot be properly computed and the surrogate of genetic variance is the variance of BLUEs. If STA predictions were BLUPs the deregress option can be used."),
                                           h2(strong("References:")),
                                           p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
                                           p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
@@ -84,8 +84,7 @@ mod_mtaApp_ui <- function(id){
                                           p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                           p(" Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
-                                          p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.")
-                                          # img(src = "www/met.png", height = 400, width = 700) # add an image
+                                          p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
                                    )
                )
       ),

@@ -47,11 +47,9 @@ mod_pggApp_ui <- function(id){
                               R = i*r*s being R the response to selection, i the selection intensity, r the selection accuracy, s the genetic standard deviation.
                                 The way the options are used is the following:"),
                                           img(src = "www/pgg.png", height = 250, width = 500), # add an image
-                                          p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
-                                          p(strong("Year to analyze.-")," Year of data to be used from the input file."),
-                                          p(strong("Fieldinst.-")," Field instance of data to be used from the input file."),
-                                          p(strong("Percentage selected.-")," Percentage of parents to be selected to be used to calculate the selection intensity."),
-                                          p(strong("Cycle time (idealized).-")," Idealized cycle time to be used as denominator to calculate the rate of response to selection."),
+                                          p(strong("Trait(s) to use.-")," Trait to be be used for calculating the predicted genetic gain parameters."),
+                                          p(strong("Environment(s) to use.-")," Environments-data to be used from the input file."),
+                                          p(strong("Proportion selected.-")," Proportion of parents to be selected in order to calculate the selection intensity."),
                                           h2(strong("References:")),
                                           p("Lush, J. L. (2013). Animal breeding plans. Read Books Ltd."),
                                           p("Mrode, R. A. (2014). Linear models for the prediction of animal breeding values. Cabi."),

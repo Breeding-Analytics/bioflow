@@ -59,11 +59,13 @@ mod_rggApp_ui <- function(id){
                               to then fit a regression of the form means~year.of.origin. In case the means used are BLUPs these can be
                               deregressed.
                                 The way the options are used is the following:"),
-                                          p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
-                                          p(strong("Fixed effects.-")," Fixed effects to add to the regression means~year.of.origin."),
-                                          p(strong("Deregress data?.-")," A TRUE/FALSE value indicating if predicted values should be deregressed (to be set to TRUE when BLUPs are used)."),
-                                          p(strong("Partition the data?.-")," When very few years of data are present this option will allow the user to calculate the gain for all 2 year combinations and then average these rates."),
-                                          p(strong("Deregress weight.-")," Should any weight be applied to the deregressed value (not recommended to be used but available)."),
+                                          p(strong("Method.-")," One of the following; Mackay et al. (2011) or Laidig et al. (2014)."),
+                                          p(strong("Trait(s) to use.-")," Trait to be be used for realized genetic gain estimation (an index is suggested)."),
+                                          p(strong("Years of origin to use.-")," Selection of the years of origin associated to the tested material to use in the calculation."),
+                                          p(strong("Entry types to use.-")," A selection of entry types to use for the realized genetic gain calculation."),
+                                          p(strong("Deregress weight.-")," Should any weight be applied to the deregressed value (not recommended but available)."),
+                                          p(strong("Partition the data?.-")," When very few years of data are present this option will allow the user to calculate the gain for all 2-year combinations and then average these rates."),
+                                          p(strong("Deregress estimates-")," Should we deregress the estimates by dividing over the reliability before performing the realized genetic gain calculation."),
                                           h2(strong("References:")),
                                           p("Mackay, I., Horwell, A., Garner, J., White, J., McKee, J., & Philpott, H. (2011). Reanalyses of the historical series of UK variety trials
                                 to quantify the contributions of genetic and environmental factors to trends and variability in yield over time. Theoretical and Applied
