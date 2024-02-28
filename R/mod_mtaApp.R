@@ -329,7 +329,7 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
-      req(input$fixedTermMta2)
+      # req(input$fixedTermMta2)
       if('designation'%in%input$fixedTermMta2){
         traitsMta <- list(BLUE="blue")
       }else{
@@ -640,11 +640,12 @@ mod_mtaApp_server <- function(id, data){
             }
           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
+        if(is.null(input$fixedTermMta2)){myFixed <- "environment"}else{myFixed <- input$fixedTermMta2}
         result <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
           analysisIdForGenoModifications = markerVersionToUse, # marker modifications
-          fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
+          fixedTerm= myFixed,  randomTerm=input$randomTermMta2,  residualBy=NULL,
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
           trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
           heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
