@@ -37,19 +37,6 @@ app_ui <- function(request) {
 
       tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
-      navbarMenu("QC & Transform", icon = icon("medal"),
-                 tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1"), icon = icon("medal")),
-                 tabPanel("QC1. Pheno-Outlier Tagging", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
-                 tabPanel("(optional) Pheno-Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
-                 tabPanel("(optional) Pheno-Exp. Design Edition", mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
-                 tabPanel("QC2. Geno-Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
-                 tabPanel("QC3. Pedigree Filtering", mod_qaPedApp_ui("qaPedApp_1"), icon = icon("diagram-project") ),
-                 tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1"), icon = icon("arrows-split-up-and-left") ),
-                 tabPanel("(optional) Pheno-Trait Transformations",  mod_traitTransformApp_ui("traitTransformApp_1"), icon = icon("shuffle") ),
-                 tabPanel("(optional) Data binding", mod_bindObjectApp_ui("bindObjectApp_1"), icon = icon("bandage") ),
-                 tabPanel("(optional) Geno-Single-Cross Markers", mod_singleCrossGenoApp_ui("singleCrossGenoApp_1"), icon = icon("puzzle-piece")  ),
-      ),
-
       navbarMenu("Selection", icon = icon("lightbulb"),
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1"), icon = icon("filter")),
                  tabPanel("GE1. Single-Trial Analysis",  mod_staApp_ui("staApp_1"), icon = icon("seedling")),
@@ -81,6 +68,19 @@ app_ui <- function(request) {
                  tabPanel(div("S1. Population structure",style = "color:red")), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
                  tabPanel(div("S2. Pool formation",style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div("S3. Pop-subset selection",style = "color:red")) # stpga
+      ),
+
+      navbarMenu("QC & Transform", icon = icon("medal"),
+                 tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1"), icon = icon("medal")),
+                 tabPanel("(optional) Pheno-Outlier Filtering", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
+                 tabPanel("(optional) Genetic-Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
+                 tabPanel("(optional) Pheno-Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
+                 tabPanel("(optional) Pheno-Exp. Design Filering", mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
+                 tabPanel("(optional) Pedigree Filtering", mod_qaPedApp_ui("qaPedApp_1"), icon = icon("diagram-project") ),
+                 tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1"), icon = icon("arrows-split-up-and-left") ),
+                 tabPanel("(optional) Data binding", mod_bindObjectApp_ui("bindObjectApp_1"), icon = icon("bandage") ),
+                 tabPanel("(optional) Pheno-Trait Transformations",  mod_traitTransformApp_ui("traitTransformApp_1"), icon = icon("shuffle") ),
+                 tabPanel("(optional) Geno-Single-Cross Markers", mod_singleCrossGenoApp_ui("singleCrossGenoApp_1"), icon = icon("puzzle-piece")  ),
       ),
 
       tabPanel("Save",  mod_saveData_ui("saveData_1"), icon = icon("floppy-disk") ),
