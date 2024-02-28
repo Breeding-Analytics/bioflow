@@ -126,7 +126,7 @@ mod_mtaApp_ui <- function(id){
                           br(),
                           shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                               column(width = 6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15))  ),
-                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 5))  ),
+                                              column(width = 6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25))  ),
                                               column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;" )
                           )
                  ),
