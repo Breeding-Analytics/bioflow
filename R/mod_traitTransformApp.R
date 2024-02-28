@@ -102,6 +102,7 @@ mod_traitTransformApp_ui <- function(id){
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
 
+
                                            ),
                                   ),
                                 ),
@@ -212,7 +213,10 @@ mod_traitTransformApp_server <- function(id, data){
     })
 
     ################################################################################################
+    ################################################################################################
     ## EQUALIZE MODULE
+    ################################################################################################
+    ################################################################################################
     # traits
     observeEvent(c(data(),input$version2Sta,input$genoUnitSta), {
       req(data())
@@ -222,42 +226,18 @@ mod_traitTransformApp_server <- function(id, data){
     })
 
     outEqual <- eventReactive(input$runEqual, {
-      req(input$trait2EqualPheno)
+      req(input$traitEqualPheno)
 
-      if(length(input$trait2EqualPheno) >1 ){
+      if(length(input$traitEqualPheno) >1 ){
 
-        mydatax <- data()$data$pheno
-        metaMydatax = data()$metadata$pheno
-        allTraits = metaMydatax[metaMydatax$parameter == "trait","value"]
-        traitsOfNoInterest <- setdiff(allTraits,input$trait2EqualPheno )
-        ## we create n datasets for the n different traits and only the first one has the traits of NO interest
-        dataList <- list()
-        for(iTrait in 1:length(input$trait2EqualPheno)){
-          if(iTrait == 1){
-            res0 <- mydatax[,c(baseNpresent,traitsOfNoInterest,input$trait2EqualPheno[iTrait])]
-            colnames(res0)[ncol(res0)] <- input$trait2EqualPheno[1]
-          }else{
-            res0 <- mydatax[,c(baseNpresent,input$trait2EqualPheno[iTrait])]
-            colnames(res0)[ncol(res0)] <- input$trait2EqualPheno[1]
-            goodRecords <- which(!is.na(res0[,input$trait2EqualPheno[1]]))
-            if(length(goodRecords) > 0){res0 <- res0[goodRecords,]}
-          }
-          myNewData <- dtEqual2(); # the same dataset
-          myNewData$cleaned <- res0 # change the cleaned dataset
-          dataList[[iTrait]] <- myNewData
-        }
+        mydatax <- data()
         ## now we take that list and bind them as independent datasets
-        dtBind <- dataList[[1]]
-        for(iFile in 2:length(input$trait2EqualPheno)){
-          dtBind <- try(cgiarPipeline::rbindp(phenoDTfile = dtBind,
-                                          phenoDTfile2 = dataList[[iFile]]
-          ), silent = TRUE
-          )
-        }
-        result <- dtBind # final result
+        result <- try(cgiarPipeline::equalizeTraits(object = mydatax, traits=input$traitEqualPheno
+        ), silent = TRUE
+        )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
-          cat(paste("Traits equalized."))
+          cat(paste("Traits", paste(input$traitEqualPheno, collapse = ", "),"equalized. New trait created in the phenotypic dataset."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
