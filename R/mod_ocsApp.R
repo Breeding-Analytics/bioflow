@@ -57,7 +57,7 @@ mod_ocsApp_ui <- function(id){
                                           p(strong("Number of crosses.-")," Number of top crosses to be selected."),
                                           p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity. Zero degrees is weighting strongly towards performance. Ninety degrees is weighting strongly towards diversity."),
                                           p(strong("Additional settings.-")),
-                                          p(strong("Maximum number of top individuals to use.-")," The coplexity and computation time of the algorithm scales up with greater number of individuals used for predicted crosses. This arguments applies a filter to only use the top N individuals for the trait of interest."),
+                                          p(strong("Maximum number of top individuals to use.-")," The complexity and computation time of the algorithm scales up with greater number of individuals used for predicted crosses. This arguments applies a filter to only use the top N individuals for the trait of interest."),
                                           p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
                                           p(strong("Relationship to use.-")," One of the following; GRM, NRM single-step relationship matrix."),
                                           p(strong("Environment to use.-")," If the user wants to use predictions from an specific environment. In NULL all are used."),

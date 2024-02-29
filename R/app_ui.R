@@ -38,9 +38,11 @@ app_ui <- function(request) {
       tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
       navbarMenu("Selection", icon = icon("lightbulb"),
+                 tabPanel("(optional) Pheno-Outlier Filtering", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1"), icon = icon("filter")),
                  tabPanel("GE1. Single-Trial Analysis",  mod_staApp_ui("staApp_1"), icon = icon("seedling")),
                  tabPanel("(optional) Model-Based QA/QC", mod_qaStaApp_ui("qaStaApp_1"), icon = icon("chart-bar") ) ,
+                 tabPanel("(optional) Genetic-Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
                  tabPanel("GE2. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1"), icon = icon("circle-nodes") ), # biplot is part of the report in MET
                  tabPanel("GE3. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1"), icon = icon("sort") ) ,
                  tabPanel("GE4. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1"), icon = icon("shuffle") ),
@@ -70,10 +72,8 @@ app_ui <- function(request) {
                  tabPanel(div("S3. Pop-subset selection",style = "color:red")) # stpga
       ),
 
-      navbarMenu("QC & Transform", icon = icon("medal"),
+      navbarMenu("Other QC & Transform", icon = icon("medal"),
                  tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1"), icon = icon("medal")),
-                 tabPanel("(optional) Pheno-Outlier Filtering", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
-                 tabPanel("(optional) Genetic-Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
                  tabPanel("(optional) Pheno-Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
                  tabPanel("(optional) Pheno-Exp. Design Filering", mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
                  tabPanel("(optional) Pedigree Filtering", mod_qaPedApp_ui("qaPedApp_1"), icon = icon("diagram-project") ),
