@@ -37,50 +37,50 @@ app_ui <- function(request) {
 
       tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
-      navbarMenu("Selection", icon = icon("lightbulb"),
-                 tabPanel("(optional) Pheno-Outlier Filtering", mod_qaRawApp_ui("qaRawApp_1"), icon = icon("soap") ),
-                 tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1"), icon = icon("filter")),
-                 tabPanel("GE1. Single-Trial Analysis",  mod_staApp_ui("staApp_1"), icon = icon("seedling")),
-                 tabPanel("(optional) Model-Based QA/QC", mod_qaStaApp_ui("qaStaApp_1"), icon = icon("chart-bar") ) ,
-                 tabPanel("(optional) Genetic-Marker Filtering", mod_qaGenoApp_ui("qaGenoApp_1"), icon = icon("dna")  ),
-                 tabPanel("GE2. Multi-Trial Analysis", mod_mtaApp_ui("mtaApp_1"), icon = icon("circle-nodes") ), # biplot is part of the report in MET
-                 tabPanel("GE3. Selection Indices", mod_indexDesireApp_ui("indexDesireApp_1"), icon = icon("sort") ) ,
-                 tabPanel("GE4. Optimal Cross Selection", mod_ocsApp_ui("ocsApp_1"), icon = icon("shuffle") ),
-                 tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1"),  icon = icon("timeline")),
-                 tabPanel("SH1a. Realized Genetic Gain", mod_rggApp_ui("rggApp_1"), icon = icon("chart-line") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
-                 tabPanel("SH1b. Predicted Genetic Gain", mod_pggApp_ui("pggApp_1"), icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div("SH2. Selection signatures",style = "color:red"))#  , icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
+      navbarMenu("Selection", icon = icon("bullseye"),
+                 tabPanel(div(icon("filter-circle-xmark"), "Pheno-Outlier QA/QC (", icon("seedling"),")" ), mod_qaRawApp_ui("qaRawApp_1") ),
+                 tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
+                 tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ) ,
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Genetic-Marker QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1")  ),
+                 tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-bolt") ,")"), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
+                 tabPanel(div(icon("calculator"), icon("dice-three"), "Selection Indices (",icon("seedling"),")" ), mod_indexDesireApp_ui("indexDesireApp_1") ) ,
+                 tabPanel(div(icon("calculator"), icon("dice-four"), "Optimal Cross Selection (", icon("seedling"), ")" ), mod_ocsApp_ui("ocsApp_1") ),
+                 tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
+                 tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("chart-line"), "Predicted Genetic Gain (", icon("seedling"),  icon("network-wired"),")"), mod_pggApp_ui("pggApp_1")),# user needs to perfor m a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("chart-line"), "Selection signatures (", icon("dna"),")", style = "color:red") )#  , icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
       ),
 
-      navbarMenu("Mutation", icon = icon("dna"),
-                 tabPanel(strong("DISCOVERY"),  icon = icon("timeline")),
-                 tabPanel(div("D1. Genome wide association",style = "color:red")), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
-                 tabPanel(div("D2. Variant calling",style = "color:red")), #  icon = icon("chart-simple")), #
-                 tabPanel(strong("MUTATION HISTORY"),  icon = icon("timeline")),
-                 tabPanel(div("MH1. Mutation rate",style = "color:red")) #  icon = icon("disease")) # may include
+      navbarMenu("Mutation", icon = icon("disease"),
+                 tabPanel(strong("DISCOVERY")),
+                 tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")", style = "color:red")), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
+                 tabPanel(div(icon("fire"), "Variant calling (", icon("dna"),")",style = "color:red")), #  icon = icon("chart-simple")), #
+                 tabPanel(strong("MUTATION HISTORY") ),
+                 tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red")) #  icon = icon("disease")) # may include
       ),
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
-                 tabPanel(strong("GENE FREQUENCIES"),  icon = icon("filter")),
-                 tabPanel(div("GF1. Marker-assisted selection",style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div("GF2. Marker-assisted backcross",style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div("GF3. Hybridity test",style = "color:red")),
-                 tabPanel(div("GF4. Number of founders",style = "color:red")), #  icon = icon("filter")),
-                 tabPanel(strong("DRIFT & FLOW HISTORY"),  icon = icon("puzzle-piece")),
-                 tabPanel(div("S1. Population structure",style = "color:red")), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
-                 tabPanel(div("S2. Pool formation",style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
-                 tabPanel(div("S3. Pop-subset selection",style = "color:red")) # stpga
+                 tabPanel(strong("GENE FREQUENCIES")), # plus, shuffle, barcode, people-group
+                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("plus-minus"),")", style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("barcode"), "Marker-assisted backcross (", icon("plus-minus"), ")", style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("barcode"), "Hybridity test (", icon("dna"), ")", style = "color:red")),
+                 tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")", style = "color:red")), #  icon = icon("filter")),
+                 tabPanel(strong("DRIFT & FLOW HISTORY") ),
+                 tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")", style = "color:red")), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
+                 tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
+                 tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red")) # stpga
       ),
 
       navbarMenu("Other QC & Transform", icon = icon("medal"),
-                 tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1"), icon = icon("medal")),
-                 tabPanel("(optional) Pheno-Trial Filtering",mod_filterPhenoApp_ui("filterPhenoApp_1"), icon = icon("filter") ),
-                 tabPanel("(optional) Pheno-Exp. Design Filering", mod_expDesignEditApp_ui("expDesignEditApp_1"), icon = icon("pen-to-square")  ),
-                 tabPanel("(optional) Pedigree Filtering", mod_qaPedApp_ui("qaPedApp_1"), icon = icon("diagram-project") ),
-                 tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1"), icon = icon("arrows-split-up-and-left") ),
-                 tabPanel("(optional) Data binding", mod_bindObjectApp_ui("bindObjectApp_1"), icon = icon("bandage") ),
-                 tabPanel("(optional) Pheno-Trait Transformations",  mod_traitTransformApp_ui("traitTransformApp_1"), icon = icon("shuffle") ),
-                 tabPanel("(optional) Geno-Single-Cross Markers", mod_singleCrossGenoApp_ui("singleCrossGenoApp_1"), icon = icon("puzzle-piece")  ),
+                 tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Pedigree Filtering (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
+                 tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
+                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Data Binding (", icon("database"), ")"), mod_bindObjectApp_ui("bindObjectApp_1") ),
+                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
+                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
       ),
 
       tabPanel("Save",  mod_saveData_ui("saveData_1"), icon = icon("floppy-disk") ),
