@@ -232,7 +232,7 @@ mod_qaRawApp_server <- function(id, data){
             result$modeling <- rbind(result$modeling, provMet[,colnames(result$modeling)])
           }
           data(result)
-          cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved."))
+          cat(paste("Modifications table saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),". Please use this tag to exclude these outliers in the single trial analysis. "))
         }else{
 
         }

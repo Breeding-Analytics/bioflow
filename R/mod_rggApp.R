@@ -155,7 +155,7 @@ mod_rggApp_server <- function(id, data){
     ############################################################################
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab and map the 'designation', 'environment' columns and at least one trait.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab, compute the 'environment' column, map the 'designation' and at least one trait.")) )
       }else{ # data is there
         mappedColumns <- setdiff(data()$metadata$pedigree[data()$metadata$pedigree$parameter == "yearOfOrigin","value"],"")
         # mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$medata$pedigree)))

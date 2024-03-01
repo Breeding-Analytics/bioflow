@@ -239,7 +239,7 @@ mod_mtaApp_server <- function(id, data){
           if("sta" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the MTA inspecting the other tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform STA before performing an MTA.")) ) }
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
     #################
@@ -292,6 +292,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$trait2Mta)
       dtMta <- data()
       metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("environment","year","season","country","location","trial")),]
+      metaPheno <- metaPheno[which(!duplicated(metaPheno$value)),] # avoid error when user maps columns twice
       otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
@@ -311,6 +312,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$trait2Mta)
       dtMta <- data()
       metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("environment","year","season","country","location","trial")),]
+      metaPheno <- metaPheno[which(!duplicated(metaPheno$value)),] # avoid error when user maps columns twice
       otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly

@@ -71,11 +71,11 @@ mod_getData_ui <- function(id){
                                               p(strong("country.-"),"The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."),
                                               p(strong("location-"),"The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."),
                                               p(strong("trial.-"),"The name of the column containing the labels listing the trial of experiment randomized."),
-                                              p(strong("environment.-"),"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location. If not available, compute it using the button available."),
-                                              p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an environment (year-season-country-location-trial concatenation)."),
-                                              p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an environment."),
-                                              p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an environment."),
-                                              p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an environment."),
+                                              p(strong("study.-"),"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location. If not available, compute it using the button available."),
+                                              p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
+                                              p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an study."),
+                                              p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study."),
+                                              p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study."),
                                               p(strong("designation.-"),"The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."),
                                               p(strong("gid.-"),"The name of the column containing the labels with the unique numerical identifier used within the database management system."),
                                               p(strong("entryType.-"),"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
@@ -175,7 +175,7 @@ mod_getData_ui <- function(id){
           uiOutput(ns('brapi_trait_map')),
           DT::DTOutput(ns('preview_pheno')),
           uiOutput(ns('pheno_map')),
-          actionButton(ns("concatenateEnv"), "Update environments", icon = icon("play-circle")),
+          actionButton(ns("concatenateEnv"), "Compute Environments (Required)", icon = icon("play-circle")),
           textOutput(ns("outConcatenateEnv")),
         ),
 
@@ -263,10 +263,10 @@ mod_getData_ui <- function(id){
               solidHeader = TRUE,
               status = 'success',
               tags$ul(
-                tags$li('Accept HapMap format (tab-delimited text file with a header row).
-                         The file list SNPs in rows and Accessions (individual samples)
-                         in columns. The first 11 columns describe attributes of the SNP,
-                         but only the first 4 columns data are required for processing:
+                tags$li('Accept HapMap, VCF, CSV formats (tab-delimited text file with a header row).
+                         The HapMap and VCF files list SNPs in rows and Accessions (individual samples)
+                         in columns, and viceversa in the case of the CSV. The first 11 columns of the HapMap
+                         describe attributes of the SNP, but only the first 4 columns data are required for processing:
                          rs# (SNP id), alleles (e.g., C/G), chrom (chromosome), and pos (position).'),
 
                 tags$li(
@@ -276,7 +276,7 @@ mod_getData_ui <- function(id){
                     tags$a('IUPAC single-letter', target = '_blank', href = 'https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation'),
                     'code (ref. ',
                     tags$a('https://doi.org/10.1093/nar/13.9.3021', target = '_blank', href = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC341218/'),
-                    ').'
+                    '),', 'and double-letter code.'
                   )
                 ),
 
@@ -870,7 +870,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           mapping <- list(
             ebs = list(
               year = 'year',
-              environment = 'studyName',
+              study = 'studyName',
               rep = 'rep',
               iBlock = 'block',
               row = 'positionCoordinateY',
@@ -883,7 +883,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             ),
             bms = list(
               year = 'year',
-              environment = 'studyName',
+              study = 'studyName',
               rep = 'rep',
               iBlock = 'block',
               row = 'positionCoordinateY',
@@ -896,7 +896,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             ),
             breedbase = list(
               year = 'studyYear',
-              environment = 'studyName',
+              study = 'studyName',
               rep = 'replicate',
               iBlock = 'blockNumber',
               row = 'rowNumber',
@@ -909,7 +909,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             )
           )
 
-          for (field in c('year', 'environment', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
+          for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
             if (mapping[[input$pheno_db_type]][[field]] %in% colnames(temp$data$pheno)) {
               if (field %in% temp$metadata$pheno$parameter) {
                 temp$metadata$pheno[temp$metadata$pheno$parameter == field, 'value'] <- mapping[[input$pheno_db_type]][[field]]
@@ -976,7 +976,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                    } else {
                      temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
                    }
-                   if(x %in% c("designation","environment")){temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII") }
+                   if(x %in% c("designation","study")){temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII") }
                  }
 
                  if (x == 'designation') {
@@ -1018,32 +1018,32 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }
 
     )
-    outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in environment
+    outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in study
       req(data())
       myObject <- data()
       environmentColumn <- which(myObject$metadata$pheno$parameter == "environment")
-      if(length(environmentColumn) > 0){ # user has mapped an environment column
-        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","environment"))
+      if(length(environmentColumn) > 0){ # user has mapped an study column
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
           myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
           data(myObject)
           cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
-        }else{cat("No additional columns to concatenate to your 'environment' column")}
-      }else{ # user has not mapped an environment column, we will add it
-        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","environment"))
+        }else{cat("No additional columns to concatenate to your 'study' column")}
+      }else{ # user has not mapped an study column, we will add it
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
         if(length(otherEnvironmentColumn) > 0){ # if user has mapped more than one column
           myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
           data(myObject)
           cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
-        }else{cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'environment' to be able to do a genetic evaluation "))}
+        }else{cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))}
       }
     })
     output$outConcatenateEnv <- renderPrint({
       outConcatenateEnv()
     })
 
-    # change color of updated environment column
+    # change color of updated study column
     observeEvent(input$concatenateEnv,{
       output$preview_pheno <- DT::renderDT({
         myObject <- data()

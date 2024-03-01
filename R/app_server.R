@@ -15,7 +15,7 @@ app_server <- function(input, output, session) {
   observe({data <- create_getData_object()})
   # Your application server logic
   required_mapping <- c("pipeline", "stage", "year", "season",
-                        "country", "location", "trial", "environment", "rep", "iBlock",
+                        "country", "location", "trial","study", "rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 
   ## HOME

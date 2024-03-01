@@ -210,7 +210,7 @@ mod_staApp_server <- function(id,data){
           if("qaRaw" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis inspecting the other tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
     # QA versions to use
@@ -329,7 +329,7 @@ mod_staApp_server <- function(id,data){
           dtSta <- data() # dtSta<- result
           ### change column names for mapping
           paramsPheno <- data()$metadata$pheno
-          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          paramsPheno <- paramsPheno[which(!duplicated(paramsPheno$value)),]
           colnames(dtSta$data$pheno) <- cgiarBase::replaceValues(colnames(dtSta$data$pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
           paramsPed <- data()$metadata$pedigree
           colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPed$value, Replace = paramsPed$parameter )
@@ -381,8 +381,10 @@ mod_staApp_server <- function(id,data){
         observeEvent(c(data(),input$version2Sta), { # update trait
           req(data())
           req(input$version2Sta)
-          dtSta <- data()$metadata$pheno$parameter
-          traitsSta <- setdiff(dtSta, c("trait","designation"))
+          paramsPheno <- data()$metadata$pheno
+          paramsPheno <- paramsPheno[which(!duplicated(paramsPheno$value)),]
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          traitsSta <- setdiff(paramsPheno$parameter, c("trait","designation"))
           updateSelectInput(session, "feature", choices = traitsSta)
         })
         observeEvent(c(data(),input$version2Sta), { # update trait

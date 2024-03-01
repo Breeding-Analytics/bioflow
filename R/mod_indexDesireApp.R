@@ -201,7 +201,7 @@ mod_indexDesireApp_server <- function(id, data){
           if("mta" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index inspecting the other tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the columns: 'environment', 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
     ######################################################################################
@@ -561,7 +561,7 @@ mod_indexDesireApp_server <- function(id, data){
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultIndex.RData")
-          cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved."))
+          cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved. Please proceed to use this time stamp in the optimal cross selection."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))

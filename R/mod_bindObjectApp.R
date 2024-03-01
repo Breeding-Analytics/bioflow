@@ -16,7 +16,7 @@ mod_bindObjectApp_ui <- function(id){
       # input <- list(version2Bind="1699508839.68847",trait2Bind="desireIndex",entryType2Bind= "TGV_EST004D#TEST_tested",nCrossBind="20", targetAngleBind="30",maxRun=40, relType="grm", env2Bind="across",verboseBind=TRUE )
       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Data binding</font>"),
+                  <font size='5'>Data binding (bioflow objects)</font>"),
       hr(style = "border-top: 1px solid #4c4c4c;"),
       selectInput(
         inputId = ns('previous_object_input'),
