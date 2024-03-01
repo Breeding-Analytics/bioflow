@@ -957,6 +957,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                  label    = x,
                  multiple = ifelse(x == 'trait', TRUE, FALSE),
                  choices  = as.list(c('', header)),
+                 selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
                ),
 
                # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),

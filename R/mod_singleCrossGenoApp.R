@@ -101,7 +101,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab. We will need it to know which single crosses from all the possible ones should be computed.")) )
       }else{ # data is there
         ## pheno check
         if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
