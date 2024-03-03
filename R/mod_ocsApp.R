@@ -11,136 +11,149 @@ mod_ocsApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      # input <- list(version2Ocs="1699508839.68847",trait2Ocs="desireIndex",entryType2Ocs= "TGV_EST004D#TEST_tested",nCrossOcs="20", targetAngleOcs="30",maxRun=40, relType="grm", env2Ocs="across",verboseOcs=TRUE )
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      # div(tags$p( h4(strong("Optimal Cross Selection")))),#, style = "color: #817e7e"
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Optimal Cross Selection</font>"),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("version2Ocs"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE),
-      selectInput(ns("trait2Ocs"), "Trait to use", choices = NULL, multiple = FALSE),
-      selectInput(ns("entryType2Ocs"), "Entry types to use", choices = NULL, multiple = TRUE),
-      textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20"),
-      textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30"),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runOcs"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcOcsInfo")),
-      textOutput(ns("outOcs")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
-                          numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
-                          selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE),
-                          selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
-                          selectInput(ns("verboseOcs"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
-      ),
-    ), # end sidebarpanel
-    mainPanel(tabsetPanel( id=ns("tabsMain"),
-      type = "tabs",
-      tabPanel(p("Information",class="info-p"),  icon = icon("book"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                          h2(strong("Status:")),
-                                          uiOutput(ns("warningMessage")),
-                                          h2(strong("Details")),
-                                          p("A new generation of individuals with higher genetic merit can be produced selecting the top individuals or
+    mainPanel(width = 12,
+              tabsetPanel( id=ns("tabsMain"),
+                           type = "tabs",
+                           tabPanel( div(icon("book"), "Information-OCS") ,
+                                     br(),
+                                     shinydashboard::box(status="success",width = 12,
+                                                         solidHeader = TRUE,
+                                                         column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                                h1(strong(span("Optimal Cross Selection", style="color:green"))),
+                                                                h2(strong("Status:")),
+                                                                uiOutput(ns("warningMessage")),
+                                                                h2(strong("Details")),
+                                                                p("A new generation of individuals with higher genetic merit can be produced selecting the top individuals or
                                           selecting directly the best crosses. This option aims to optimize the new crosses given a desired trade-off between
                                           short-term gain(performance) and long-term gain (genetic variance).
                                 The way the options are used is the following:"),
-                                          img(src = "www/ocs.png", height = 400, width = 250), # add an image
-                                          p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
-                                          p(strong("Entry types to use.-")," Which entry types should be used in the algorithm."),
-                                          p(strong("Number of crosses.-")," Number of top crosses to be selected."),
-                                          p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity. Zero degrees is weighting strongly towards performance. Ninety degrees is weighting strongly towards diversity."),
-                                          p(strong("Additional settings.-")),
-                                          p(strong("Maximum number of top individuals to use.-")," The complexity and computation time of the algorithm scales up with greater number of individuals used for predicted crosses. This arguments applies a filter to only use the top N individuals for the trait of interest."),
-                                          p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
-                                          p(strong("Relationship to use.-")," One of the following; GRM, NRM single-step relationship matrix."),
-                                          p(strong("Environment to use.-")," If the user wants to use predictions from an specific environment. In NULL all are used."),
-                                          p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
+                                                                img(src = "www/ocs.png", height = 400, width = 250), # add an image
+                                                                p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
+                                                                p(strong("Entry types to use.-")," Which entry types should be used in the algorithm."),
+                                                                p(strong("Number of crosses.-")," Number of top crosses to be selected."),
+                                                                p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity. Zero degrees is weighting strongly towards performance. Ninety degrees is weighting strongly towards diversity."),
+                                                                p(strong("Additional settings.-")),
+                                                                p(strong("Maximum number of top individuals to use.-")," The complexity and computation time of the algorithm scales up with greater number of individuals used for predicted crosses. This arguments applies a filter to only use the top N individuals for the trait of interest."),
+                                                                p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
+                                                                p(strong("Relationship to use.-")," One of the following; GRM, NRM single-step relationship matrix."),
+                                                                p(strong("Environment to use.-")," If the user wants to use predictions from an specific environment. In NULL all are used."),
+                                                                p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
                                 the expected value of the cross, 'stdError' is the average inbreeding of the cross, and 'rel' has the genetic algorithm value (lower the better)."),
-                                          h2(strong("References:")),
-                                          p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
-                                          p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
-                                          p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
-                                          h2(strong("Software used:")),
-                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                                                h2(strong("References:")),
+                                                                p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
+                                                                p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
+                                                                p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
+                                                                h2(strong("Software used:")),
+                                                                p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                          p("https://github.com/gaynorr/QuantGenResources")
-                                   )
-               )
-      ),
-      tabPanel(p("Input visuals",class="input-p"), icon = icon("arrow-right-to-bracket"),
-               tabsetPanel(
-                 tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                              column(width=5, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                              column(width=5, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
-                                              column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1)),
-                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")), style = "height:450px; overflow-y: scroll;overflow-x: scroll;" )
-                          )
-                 ),
-                 tabPanel("Mta-modeling", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("statusOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Evaluation units", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("evaluationUnits")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Data", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("phenoOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 )
-               )
-      ),
-      tabPanel(p("Output visuals",class="output-p"),value = "outputTabs", icon = icon("arrow-right-from-bracket"),
-               tabsetPanel(
-                 tabPanel("Predictions", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("predictionsOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Metrics", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Modeling", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("modelingOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Report", icon = icon("file-image"),
-                          br(),
-                          div(tags$p("Please download the report below:") ),
-                          downloadButton(ns("downloadReportOcs"), "Download report"),
-                          br(),
-                          uiOutput(ns('reportOcs'))
-                 )
-               )
-      )
-    )) # end mainpanel
+                                                                p("https://github.com/gaynorr/QuantGenResources")
+                                                         )
+                                     )
+                           ),
+                           tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                    tabsetPanel(
+                                      tabPanel("Index-stamp", icon = icon("table"),
+                                               br(),
+                                               column(width=12, selectInput(ns("version2Ocs"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
+                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,
+                                                                          p(span("Current analyses available.", style="color:black")),
+                                                                          shiny::plotOutput(ns("plotTimeStamps")),
+                                                                          p(span("Modeling parameters from Index stamp selected.", style="color:black")),
+                                                                          DT::DTOutput(ns("statusOcs")),
+                                                                          p(span("Index predictions table.", style="color:black")),
+                                                                          DT::DTOutput(ns("phenoOcs")),
+                                                                   )
+                                               )
+                                      ),
+                                      tabPanel("Trait", icon = icon("magnifying-glass-chart"),
+                                               br(),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=6, selectInput(ns("trait2Ocs"), "Trait to optimize", choices = NULL, multiple = FALSE) ),
+                                                      column(width=6, selectInput(ns("entryType2Ocs"), "Entry types to use", choices = NULL, multiple = TRUE) ),
+                                               ),
+                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   column(width=12, style = "height:430px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          p(span("Dispersion of trait values.", style="color:black")),
+                                                                          selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ,
+                                                                          selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType"),
+                                                                          plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
+                                                                                              numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1),
+                                                                          ),
+                                                                   ),
+                                               )
+                                      ),
+
+                                      tabPanel("Contribution", icon = icon("table"),
+                                               br(),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=4,textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20") ),
+                                                      column(width=4, textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30") ),
+                                                      column(width=4, selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE) ),
+                                               ),
+                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          p(span("Summary of selection units and features.", style="color:black")),
+                                                                          DT::DTOutput(ns("evaluationUnits")),
+                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                                              numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
+                                                                                              numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
+                                                                                              selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
+                                                                                              selectInput(ns("verboseOcs"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                                          ),
+                                                                   )
+                                               )
+                                      ),
+                                      tabPanel("Run", icon = icon("play"),
+                                               br(),
+                                               actionButton(ns("runOcs"), "Run", icon = icon("play-circle")),
+                                               uiOutput(ns("qaQcOcsInfo")),
+                                               textOutput(ns("outOcs")),
+                                      ),
+                                    )
+                           ),
+                           tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                    tabsetPanel(
+                                      tabPanel("Predictions", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,DT::DTOutput(ns("predictionsOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Metrics", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,br(),DT::DTOutput(ns("metricsOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Modeling", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,DT::DTOutput(ns("modelingOcs")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Report", icon = icon("file-image"),
+                                               br(),
+                                               div(tags$p("Please download the report below:") ),
+                                               downloadButton(ns("downloadReportOcs"), "Download report"),
+                                               br(),
+                                               uiOutput(ns('reportOcs'))
+                                      )
+                                    )
+                           )
+              )) # end mainpanel
 
 
   )
@@ -159,11 +172,6 @@ mod_ocsApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-    # data = reactive({
-    #   load("~/Documents/bioflow/dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -317,6 +325,36 @@ mod_ocsApp_server <- function(id, data){
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
+    })
+    ## render timestamps flow
+    output$plotTimeStamps <- shiny::renderPlot({
+      req(data()) # req(input$version2Sta)
+      xx <- data()$status;  yy <- data()$modeling
+      v <- which(yy$parameter == "analysisId")
+      if(length(v) > 0){
+        yy <- yy[v,c("analysisId","value")]
+        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
+      }else{ zz <- xx; zz$value <- NA}
+      colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+      zz$outputId <-as.POSIXct(zz$outputId, origin="1970-01-01", tz="GMT")
+      zz$inputId <-as.POSIXct(as.numeric(zz$inputId), origin="1970-01-01", tz="GMT")
+      nLevelsCheck <- length(na.omit(unique(c(zz$outputId, zz$inputId))))
+      if(nLevelsCheck > 1){ X <- with(zz, sommer::overlay(outputId, inputId)) }else{
+        X <- matrix(1,1,1); colnames(X) <- as.character(na.omit(unique(c(zz$outputId, zz$inputId))))
+      };  rownames(X) <- as.character(zz$outputId)
+      # make the network plot
+      n <- network::network(X, directed = FALSE)
+      network::set.vertex.attribute(n,"family",zz$module)
+      network::set.vertex.attribute(n,"importance",1)
+      e <- network::network.edgecount(n)
+      network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
+      network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+      ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+        ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
+        ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+        ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
+                                        fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
+        ggnetwork::theme_blank()
     })
     ## render modeling
     output$statusOcs <-  DT::renderDT({

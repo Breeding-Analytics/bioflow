@@ -12,36 +12,30 @@ mod_qaStaApp_ui <- function(id){
   tagList(
 
     # input <- list(traitOutqPheno="YLD_TON-residual",traitLBOutqPheno=-4,traitUBOutqPheno=4,outlierCoefOutqPheno=2.5, outlierCoefOutqFont=12 )
-    shiny::sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      width = 3,
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      # div(tags$p( h4(strong("Model-based outlier detection")))),#, style = "color: #817e7e"
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Model-based outlier detection</font>"),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-
-      selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE),
-      numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = -4),
-      numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 4),
-      numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaMb"), "Save outliers", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outQaMb")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
-      ),
-    ), # end sidebarpanel
-    shiny::mainPanel(width = 9,
+    # shiny::sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
+    #   width = 3,
+    #   tags$style(".well {background-color:grey; color: #FFFFFF;}"),
+    #   # div(tags$p( h4(strong("Model-based outlier detection")))),#, style = "color: #817e7e"
+    #   HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
+    #               <font size='5'>Model-based outlier detection</font>"),
+    #   hr(style = "border-top: 1px solid #4c4c4c;"),
+    #
+    #
+    #   hr(style = "border-top: 1px solid #4c4c4c;"),
+    #
+    #   hr(style = "border-top: 1px solid #4c4c4c;"),
+    #
+    # ), # end sidebarpanel
+    shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
-                       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
+                       tabPanel(div(icon("book"), "Information-QA-MB") ,
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
+                                                             h1(strong(span("Model-based outlier detection", style="color:green"))),
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
                                                              h2(strong("Details")),
@@ -61,18 +55,35 @@ mod_qaStaApp_ui <- function(id){
 
                                 )
                        ),
-                       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Outlier detection", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Trait(s)", icon = icon("magnifying-glass-chart"),
                                            br(),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=6, selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE) ),
+                                                  column(width=2, numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = -4) ),
+                                                  column(width=2, numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 4) ),
+                                                  column(width=2, numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5) ),
+                                                  ),
+                                           p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12,
                                                                solidHeader = TRUE,
-                                                               column(width=12,
+                                                               column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                                      p(span("Preview of outliers to be tagged with current input parameters for trait selected.", style="color:black")),
                                                                       plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
+                                                                                          numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
+                                                                      ),
                                                                       DT::DTOutput(ns("modificationsQa")),
-                                                                      style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                                                      )
                                            )
-                                  )
+                                  ),
+                                  tabPanel("Run", icon = icon("play"),
+                                           br(),
+                                           actionButton(ns("runQaMb"), "Save outliers", icon = icon("play-circle")),
+                                           textOutput(ns("outQaMb")),
+                                  ),
                                 ) # end of tabset
                        )# end of output panel
                      )) # end mainpanel

@@ -47,6 +47,8 @@
 # usethis::use_package("kableExtra")
 # usethis::use_package("ggplot2")
 # usethis::use_package("stringi")
+# usethis::use_package("network")
+# usethis::use_package("ggnetwork")
 # # usethis::use_package("tidyverse")
 # usethis::use_pipe()
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")

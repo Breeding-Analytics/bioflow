@@ -10,164 +10,167 @@
 mod_staApp_ui <- function(id){
   ns <- NS(id)
   tagList(
-    sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Single Trial Analysis</font>"),
-      # div(tags$p( h4(strong("Single Trial Analysis")))),#, style = "color: #817e7e"
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      # input <- list(version2Sta=)
-      selectInput(ns("version2Sta"), "Data QA version(s) to consider (tagged records will be ignored)", choices = NULL, multiple = TRUE),
-      selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE),
-      tags$span(id = ns('geno_unit_holder'), style="color:orange",
-                p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
-      ),
-      selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-      selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      uiOutput(ns("qaQcStaInfo")),
-      textOutput(ns("outSta")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
-                          numericInput(ns("maxitSta"),"Number of iterations",value=35),
-                          selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
-      ),
-      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Trait distributions (optional)...",
-                          column(width = 12,DT::DTOutput(ns("traitDistSta")), style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-      ),
-    ), # end sidebarpanel
-    mainPanel(tabsetPanel(id=ns("tabsMain"),
-      type = "tabs",
 
-      tabPanel(p("Information", class="info-p"), icon = icon("book"),
-               br(),
-               shinydashboard::box(status="success",width = 12,
-                                   solidHeader = TRUE,
-                                   column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                          h2(strong("Status:")),
-                                          uiOutput(ns("warningMessage")),
-                                          h2(strong("Details")),
-                                          p("The genetic evaluation approach we use known as 'two-step' first analyze trait by trait and trial by trial
+    mainPanel( width = 12,
+               tabsetPanel(id=ns("tabsMain"),
+                           type = "tabs",
+
+                           tabPanel(div(icon("book"), "Information-STA") ,
+                                    br(),
+                                    shinydashboard::box(status="success",width = 12,
+                                                        solidHeader = TRUE,
+                                                        column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                               h1(strong(span("Single Trial Analysis", style="color:green"))),
+                                                               h2(strong("Status:")),
+                                                               uiOutput(ns("warningMessage")),
+                                                               h2(strong("Details")),
+                                                               p("The genetic evaluation approach we use known as 'two-step' first analyze trait by trait and trial by trial
                                           to remove the spatial noise from experiments using experimental factors like blocking and spatial coordinates.
                                           Each trial is one level of the environment
                               column (defined when the user matches the expected columns to columns present in the initial phenotypic input file).
                               Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
                               By default genotype (designation column) predictions and their standard errors are returned.
                                 The way the options are used is the following:"),
-                                          img(src = "www/sta.png", height = 200, width = 300), # add an image
-                                          p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
-                                          p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
-                                          p(strong("Covariates.-"),"Columns to be fitted as as additional fixed effect covariates in each trial."),
-                                          p(strong("Additional settings.-")),
-                                          p(strong("Type of estimate.-")," Whether BLUEs or BLUPs should be stored for the second stage."),
-                                          p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trial-trait combination."),
-                                          p(strong("Print logs.-")," Whether the logs of the run should be printed in the screen or not."),
-                                          p(strong("Note.-")," A design-agnostic spatial design is carried. That means, all the spatial-related factors will be fitted if pertinent.
+                                                               img(src = "www/sta.png", height = 200, width = 300), # add an image
+                                                               p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
+                                                               p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                                               p(strong("Covariates.-"),"Columns to be fitted as as additional fixed effect covariates in each trial."),
+                                                               p(strong("Additional settings.-")),
+                                                               p(strong("Type of estimate.-")," Whether BLUEs or BLUPs should be stored for the second stage."),
+                                                               p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trial-trait combination."),
+                                                               p(strong("Print logs.-")," Whether the logs of the run should be printed in the screen or not."),
+                                                               p(strong("Note.-")," A design-agnostic spatial design is carried. That means, all the spatial-related factors will be fitted if pertinent.
                                 For example, if a trial has rowcoord information it will be fitted, if not it will be ignored. A two-dimensional spline kernel is only
                                 fitted when the trial size exceeds 5 rows and 5 columns. In addition the following rules are followed: 1) Rows or columns are fitted if
                                 you have equal or more than 3 levels, 2) Reps are fitted if you have equal or more than 2 levels, 3) Block (Sub-block) are fitted if you
                                 have equal or more than 4 levels. "),
-                                          h2(strong("References:")),
-                                          p("Velazco, J. G., Rodriguez-Alvarez, M. X., Boer, M. P., Jordan, D. R., Eilers, P. H., Malosetti, M., & Van Eeuwijk, F. A. (2017).
+                                                               h2(strong("References:")),
+                                                               p("Velazco, J. G., Rodriguez-Alvarez, M. X., Boer, M. P., Jordan, D. R., Eilers, P. H., Malosetti, M., & Van Eeuwijk, F. A. (2017).
                                 Modelling spatial trends in sorghum breeding field trials using a two-dimensional P-spline mixed model. Theoretical and Applied
                                 Genetics, 130, 1375-1392."),
-                                          p("Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., & Eilers, P. H. (2018). Correcting for spatial heterogeneity in plant
+                                                               p("Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., & Eilers, P. H. (2018). Correcting for spatial heterogeneity in plant
                                 breeding experiments with P-splines. Spatial Statistics, 23, 52-71."),
-                                          h2(strong("Software used:")),
-                                          p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                                               h2(strong("Software used:")),
+                                                               p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                          p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
+                                                               p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
 
 
-                                   )
-               )
-      ),
-      tabPanel(p("Input visuals",class = "input-p"), icon = icon("arrow-right-to-bracket"),
-               tabsetPanel(
-                 tabPanel("QA-modeling", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("statusSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Effects", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              selectInput(ns("feature"), "Check units by:", choices = NULL, multiple = FALSE),
-                                              column(width=12,DT::DTOutput(ns("summariesSta")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Design", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width = 12,DT::dataTableOutput(ns("dtFieldTraC")), style = "height:520px; overflow-y: scroll;overflow-x: scroll;"),
-                          )
-                 ),
-                 tabPanel("Trait distribution", icon = icon("magnifying-glass-chart"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                              column(width=12,plotly::plotlyOutput(ns("plotPredictionsCleanOut")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
-                          )
-                 ),
-                 tabPanel("Data", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("phenoSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 )
-               )# of of tabsetPanel
-      ),
-      tabPanel(p("Output visuals",class = "output-p"), value = "outputTabs", icon = icon("arrow-right-from-bracket"),
-               tabsetPanel(
-                 tabPanel("Predictions", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Metrics", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("metricsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Modeling", icon = icon("table"),
-                          br(),
-                          shinydashboard::box(status="success",width = 12,
-                                              solidHeader = TRUE,
-                                              column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                          )
-                 ),
-                 tabPanel("Report STA", icon = icon("file-image"),
-                          br(),
-                          div(tags$p("Please download the report below:") ),
-                          downloadButton(ns("downloadReportSta"), "Download report"),
-                          br(),
-                          uiOutput(ns('reportSta')),
-                 ),
-                 tabPanel("Report OFT", icon = icon("file-image"),
-                          br(),
-                          selectInput(ns("fieldinst"), label = "Environments to Include in the Report", choices = NULL, multiple = TRUE),
-                          br(),
-                          div(tags$p("Please download the report below:") ),
-                          downloadButton(ns("downloadReportOft"), "Download report")
-                 )
-               ) # of of tabsetPanel
-      )# end of output panel
+                                                        )
+                                    )
+                           ),
+                           tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                    tabsetPanel(
+                                      tabPanel("QA-stamps", icon = icon("table"),
+                                               br(),
+                                               column(width=12, selectInput(ns("version2Sta"), "Data QA version(s) to consider (tagged records will be ignored)", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
+                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   column(width=12,style = "height:430px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          p(span("Current analyses available.", style="color:black")),
+                                                                          shiny::plotOutput(ns("plotTimeStamps")),
+                                                                          p(span("Modeling parameters from QA stamp selected.", style="color:black")),
+                                                                          DT::DTOutput(ns("statusSta")), # modeling table
+                                                                          p(span("Raw phenotypic data.", style="color:black")),
+                                                                          DT::DTOutput(ns("phenoSta")), # data input
+                                                                   )
+                                               )
+                                      ),
+                                      tabPanel("Trait(s)", icon = icon("magnifying-glass-chart"),
+                                               br(),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=6, selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE) ),
+                                                      column(width=6,selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE) ),
+                                               ),
+                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          p(span("Trait family", style="color:black"), span("(double click in the cells if you would like to model the traits with a different trait distribution).", style="color:black")), # table of families to assume
+                                                                          DT::DTOutput(ns("traitDistSta")),
+                                                                          p(" "),
+                                                                          p(span("Trait distribution by environment", style="color:black")),
+                                                                          selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                          plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                                                                              selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
+                                                                                              numericInput(ns("maxitSta"),"Number of iterations",value=35),
+                                                                                              selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
+                                                                          ),
+                                                                   ),
+                                               )
+                                      ),
+                                      tabPanel("Effects", icon = icon("table"),
+                                               br(),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF" ,
+                                                      column(width=6, selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE) ),
+                                                      column(width=6,tags$span(id = ns('geno_unit_holder'), #style="color:orange",
+                                                                p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
+                                                      )),
+                                               ),
+                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          p(span("Number of individuals, mothers and fathers mapped", style="color:black")),
+                                                                          selectInput(ns("feature"), "Check units by:", choices = NULL, multiple = FALSE),
+                                                                          DT::DTOutput(ns("summariesSta")), # genetic evaluation units
+                                                                          p(span("Experimental design present per environment", style="color:black")),
+                                                                          DT::dataTableOutput(ns("dtFieldTraC")), # design units
+                                                                   )
+                                               )
+                                      ),
+                                      tabPanel("Run", icon = icon("play"),
+                                               br(),
+                                               actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
+                                               uiOutput(ns("qaQcStaInfo")),
+                                               textOutput(ns("outSta")),
+                                      ),
+                                    )# of of tabsetPanel
+                           ),
+                           tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                    tabsetPanel(
+                                      tabPanel("Predictions", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Metrics", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,br(),DT::DTOutput(ns("metricsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Modeling", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               )
+                                      ),
+                                      tabPanel("Report STA", icon = icon("file-image"),
+                                               br(),
+                                               div(tags$p("Please download the report below:") ),
+                                               downloadButton(ns("downloadReportSta"), "Download report"),
+                                               br(),
+                                               uiOutput(ns('reportSta')),
+                                      ),
+                                      tabPanel("Report OFT", icon = icon("file-image"),
+                                               br(),
+                                               selectInput(ns("fieldinst"), label = "Environments to Include in the Report", choices = NULL, multiple = TRUE),
+                                               br(),
+                                               div(tags$p("Please download the report below:") ),
+                                               downloadButton(ns("downloadReportOft"), "Download report")
+                                      )
+                                    ) # of of tabsetPanel
+                           )# end of output panel
 
 
-    )) # end mainpanel
+               )) # end mainpanel
 
   )
 }
@@ -303,6 +306,36 @@ mod_staApp_server <- function(id,data){
       j = info$col
       v = info$value
       xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+    })
+    ## render timestamps flow
+    output$plotTimeStamps <- shiny::renderPlot({
+      req(data()) # req(input$version2Sta)
+      xx <- data()$status;  yy <- data()$modeling
+      v <- which(yy$parameter == "analysisId")
+      if(length(v) > 0){
+        yy <- yy[v,c("analysisId","value")]
+        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
+      }else{ zz <- xx; zz$value <- NA}
+      colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+      zz$outputId <-as.POSIXct(zz$outputId, origin="1970-01-01", tz="GMT")
+      zz$inputId <-as.POSIXct(as.numeric(zz$inputId), origin="1970-01-01", tz="GMT")
+      nLevelsCheck <- length(na.omit(unique(c(zz$outputId, zz$inputId))))
+      if(nLevelsCheck > 1){ X <- with(zz, sommer::overlay(outputId, inputId)) }else{
+        X <- matrix(1,1,1); colnames(X) <- as.character(na.omit(unique(c(zz$outputId, zz$inputId))))
+      };  rownames(X) <- as.character(zz$outputId)
+      # make the network plot
+      n <- network::network(X, directed = FALSE)
+      network::set.vertex.attribute(n,"family",zz$module)
+      network::set.vertex.attribute(n,"importance",1)
+      e <- network::network.edgecount(n)
+      network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
+      network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+      ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+        ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
+        ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+        ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
+                                        fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
+        ggnetwork::theme_blank()
     })
     ## render the data to be analyzed
     observeEvent(data(),{

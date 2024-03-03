@@ -366,6 +366,8 @@ mod_getData_ui <- function(id){
         },
 
         uiOutput(ns('ped_map')),
+        p(span("**Unknown mothers or fathers should be set as missing data in your file.", style="color:orange")),
+
 
         verbatimTextOutput(ns('ped_summary')),
         hr(),
