@@ -50,13 +50,13 @@ mod_rggApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
-                                       tabPanel("Index-stamp", icon = icon("table"),
+                                       tabPanel("Pick Index-stamp", icon = icon("table"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=6, selectInput(ns("version2Rgg"), "Data version to analyze", choices = NULL, multiple = FALSE) ),
                                                        column(width=6, radioButtons(ns("methodRgg"),"Method",choices=list("Mackay"="mackay","Piepho"="piepho"), selected="mackay") ),
                                                        ),
-                                                p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
                                                                     solidHeader = TRUE,
@@ -68,48 +68,45 @@ mod_rggApp_ui <- function(id){
                                                                     )
                                                 )
                                        ),
-                                       tabPanel("Trait(s)", icon = icon("magnifying-glass-chart"),
+                                       tabPanel("Select trait(s)", icon = icon("magnifying-glass-chart"),
                                                 br(),
                                                 column(width=12, selectInput(ns("trait2Rgg"), "Trait(s) to use", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
-                                                p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           p(span("Current analyses available.", style="color:black")),
-                                                                           selectInput(ns("trait3Rgg"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                           p(span("View of current analyses available.", style="color:black")),
+                                                                           selectInput(ns("trait3Rgg"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
                                                                            plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                     ),
                                                 )
                                        ),
-                                       tabPanel("Units", icon = icon("table"),
+                                       tabPanel("Select years & units", icon = icon("table"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=6, selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE) ),
                                                        column(width=6, selectInput(ns("entryTypeToUse"), "Entry types to use", choices = NULL, multiple = TRUE) ),
                                                        ),
-                                                p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
-                                                hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                                               tags$span(id = ns('mackayOptions'),
-                                                                                                         numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
-                                                                                                         selectInput(ns("partition"), "Partitioned regression", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-                                                                                               ),
-                                                                                               tags$span(id = ns('piephoOptions'),
-                                                                                                         numericInput(ns("sampleN"), label = "Number of entries per environment to sample", value = 50),
-                                                                                                         numericInput(ns("bootstrappingN"), label = "Number of bootstrapping per samples", value = 10),
-                                                                                               ),
-                                                                                               selectInput(ns("deregress"), "Should deregress estimates", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-                                                                                               selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                           tags$span(id = ns('mackayOptions'),
+                                                                                     numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
+                                                                                     selectInput(ns("partition"), "Partitioned regression", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                            ),
-                                                                    )
-                                                )
+                                                                           tags$span(id = ns('piephoOptions'),
+                                                                                     numericInput(ns("sampleN"), label = "Number of entries per environment to sample", value = 50),
+                                                                                     numericInput(ns("bootstrappingN"), label = "Number of bootstrapping per samples", value = 10),
+                                                                           ),
+                                                                           selectInput(ns("deregress"), "Should deregress estimates", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                                                           selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                       ),
+                                                ),
+                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                        ),
-                                       tabPanel("Run", icon = icon("play"),
+                                       tabPanel("Run analysis", icon = icon("play"),
                                                 br(),
-                                                actionButton(ns("runRgg"), "Run", icon = icon("play-circle")),
+                                                actionButton(ns("runRgg"), "Run RGG", icon = icon("play-circle")),
                                                 uiOutput(ns("qaQcRggInfo")),
                                                 textOutput(ns("outRgg")),
                                        ),
@@ -180,7 +177,7 @@ mod_rggApp_server <- function(id, data){
         # mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$medata$pedigree)))
         if(length(mappedColumns) == 1){
           if("mta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain inspecting the other tabs.")) )
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
@@ -284,12 +281,24 @@ mod_rggApp_server <- function(id, data){
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
       colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-      zz$outputId <-as.POSIXct(zz$outputId, origin="1970-01-01", tz="GMT")
-      zz$inputId <-as.POSIXct(as.numeric(zz$inputId), origin="1970-01-01", tz="GMT")
-      nLevelsCheck <- length(na.omit(unique(c(zz$outputId, zz$inputId))))
-      if(nLevelsCheck > 1){ X <- with(zz, sommer::overlay(outputId, inputId)) }else{
-        X <- matrix(1,1,1); colnames(X) <- as.character(na.omit(unique(c(zz$outputId, zz$inputId))))
+      nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+      nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+      if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+        X <- with(zz, sommer::overlay(outputId, inputId))
+      }else{
+        if(nLevelsCheck1 == 1){
+          X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+        }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+        if(nLevelsCheck2 == 1){
+          X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+        }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+        mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+        X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+        X[,colnames(X1)] <- X1
+        X[,colnames(X2)] <- X2
       };  rownames(X) <- as.character(zz$outputId)
+      rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+      colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
       # make the network plot
       n <- network::network(X, directed = FALSE)
       network::set.vertex.attribute(n,"family",zz$module)

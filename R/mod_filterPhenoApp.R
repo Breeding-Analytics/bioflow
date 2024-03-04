@@ -11,43 +11,16 @@ mod_filterPhenoApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-
-    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      width = 6,
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Data filtering</font>"),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("traitFilterPheno"), "Trait to filter", choices = NULL, multiple = FALSE),
-      selectInput(ns("years"), "Years to keep", choices = NULL, multiple = TRUE),
-      selectInput(ns("seasons"), "Seasons to keep", choices = NULL, multiple = TRUE),
-      selectInput(ns("countries"), "Countries to keep", choices = NULL, multiple = TRUE),
-      selectInput(ns("locations"), "Locations to keep", choices = NULL, multiple = TRUE),
-      selectInput(ns("trials"), "Trials to keep", choices = NULL, multiple = TRUE),
-      selectInput(ns("environments"), "Environments to keep", choices = NULL, multiple = TRUE),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outFilterRaw")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(ns("multiTraitFilter"), label = "Apply same filter to other trait(s)?", choices = list(TRUE, FALSE), selected = FALSE, multiple=FALSE),
-      tags$span(id = ns('multiTraitFilter_holder'),
-                selectInput(ns("traitFilterPhenoMultiple"), "Trait(s) to apply the same filters", choices = NULL, multiple = TRUE, selected = NULL),
-      ),
-
-      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                          sliderInput(ns("slider1"), label = "Maximum #of genotypes allowed (trials with more will be removed)", min = 0,max = 5000, value = 500)
-      ),
-    ), # end sidebarpanel
-    shiny::mainPanel(width = 6,
+    shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel(p("Information",class="info-p"), icon = icon("book"),
+                       tabPanel(div(icon("book"), "Information-Filter-Pheno") ,
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                           h1(strong(span("Filter of environments", style="color:green"))),
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -64,17 +37,46 @@ mod_filterPhenoApp_ui <- function(id){
                                                     )
                                 )
                        ),
-                       tabPanel(p("Preview", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Phenotype filter", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Set filters", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green",
-                                                               solidHeader = TRUE,
-                                                               column(width=12,
-                                                                      shiny::plotOutput(ns("plotFilterOut")),
-                                                                      DT::DTOutput(ns("modificationsFilter")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;")
+                                           column(width=6, style = "height:580px; overflow-y: scroll;overflow-x: scroll; background-color:grey; color: #FFFFFF",
+                                                  selectInput(ns("traitFilterPheno"), "Trait to filter", choices = NULL, multiple = FALSE),
+                                                  selectInput(ns("years"), "Years to keep", choices = NULL, multiple = TRUE),
+                                                  selectInput(ns("seasons"), "Seasons to keep", choices = NULL, multiple = TRUE),
+                                                  selectInput(ns("countries"), "Countries to keep", choices = NULL, multiple = TRUE),
+                                                  selectInput(ns("locations"), "Locations to keep", choices = NULL, multiple = TRUE),
+                                                  selectInput(ns("trials"), "Trials to keep", choices = NULL, multiple = TRUE),
+                                                  selectInput(ns("environments"), "Environments to keep", choices = NULL, multiple = TRUE),
+                                                  shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                                                      sliderInput(ns("slider1"), label = "Maximum #of genotypes allowed (trials with more will be removed)", min = 0,max = 5000, value = 500)
+                                                  ),
+                                           ),
+                                           column(width=6, style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                  h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                                  p(span("Network plot showing the dependencies between years, seasons, locations, trials, etc.", style="color:black")),
+                                                  shiny::plotOutput(ns("plotFilterOut")),
+                                                  DT::DTOutput(ns("modificationsFilter")),
                                            )
-                                  )
+
+                                  ),
+                                  tabPanel("Pick trait(s)", icon = icon("table"),
+                                           br(),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, selectInput(ns("multiTraitFilter"), label = "Apply same filter to other trait(s)?", choices = list(TRUE, FALSE), selected = FALSE, multiple=FALSE) ),
+                                                  column(width=9,
+                                                         tags$span(id = ns('multiTraitFilter_holder'),
+                                                                   selectInput(ns("traitFilterPhenoMultiple"), "Trait(s) to apply the same filters", choices = NULL, multiple = TRUE, selected = NULL),
+                                                         )
+                                                  ),
+                                           ),
+                                  ),
+                                  tabPanel("Run analysis", icon = icon("play"),
+                                           br(),
+                                           actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
+                                           textOutput(ns("outFilterRaw")),
+                                  ),
                                 ) # end of tabset
                        )# end of output panel
                      )) # end mainpanel

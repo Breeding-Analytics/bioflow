@@ -11,30 +11,16 @@ mod_expDesignEditApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-
-    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      width = 6,
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Edit Experimental Design Information</font>"),
-      tags$h4("Double click in a environment by design-factor combination and set to '0' to ignore this factor in coming runs."),
-      shinydashboard::box(width = 12, solidHeader=FALSE,collapsible = FALSE, collapsed = FALSE, title = "",
-                          column(width = 12,DT::dataTableOutput(ns("transTableC")), style = "height:410px; overflow-y: scroll;overflow-x: scroll;"),
-      ),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runFieldClean"), "Filter dataset", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outExp"))
-    ), # end sidebarpanel
-    shiny::mainPanel(width = 6,
+    shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel(p("Information",class="info-p"), icon = icon("book"),
+                       tabPanel(div(icon("book"), "Information-Filter-Design") ,
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                           h1(strong(span("Experimental Design Factor Filtering", style="color:green"))),
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -52,16 +38,25 @@ mod_expDesignEditApp_ui <- function(id){
                                                     )
                                 )
                        ),
-                       tabPanel(p("Preview",class="input-p"), icon = icon("arrow-right-to-bracket"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Heatmap", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Pick factors", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE),
-                                                               selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE),
-                                                               selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE),
-                                                               column(width=12, plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
+                                           column(width = 12, DT::dataTableOutput(ns("transTableC")), style = "height:300px; overflow-y: scroll;overflow-x: scroll; background-color:grey; color: #FFFFFF"),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
+                                                               p(span("Heatmap to explore the spatial distribution of factors and traits. Row and column information need to be mapped for this visualization to properly display.", style="color:black")),
+                                                               column(width = 4, selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE) ),
+                                                               column(width = 4, selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE) ),
+                                                               column(width = 4, selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE) ),
+                                                               column(width=12, plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,style = "height:300px; overflow-y: scroll;overflow-x: scroll;"),
                                            )
+                                  ),
+                                  tabPanel("Run analysis", icon = icon("play"),
+                                           br(),
+                                           actionButton(ns("runFieldClean"), "Tag factors", icon = icon("play-circle")),
+                                           textOutput(ns("outExp"))
                                   ),
                                 ) # end of tabset
                        )# end of output panel

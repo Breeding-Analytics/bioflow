@@ -61,39 +61,42 @@ mod_staApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
-                                      tabPanel("QA-stamps", icon = icon("table"),
+                                      tabPanel("Pick QA-stamp(s)", icon = icon("table"),
                                                br(),
                                                column(width=12, selectInput(ns("version2Sta"), "Data QA version(s) to consider (tagged records will be ignored)", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                    column(width=12,style = "height:430px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Modeling parameters from QA stamp selected.", style="color:black")),
+                                                                          p(span("Past modeling parameters from QA stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusSta")), # modeling table
-                                                                          p(span("Raw phenotypic data.", style="color:black")),
+                                                                          p(span("Raw phenotypic data to be used as input.", style="color:black")),
                                                                           DT::DTOutput(ns("phenoSta")), # data input
                                                                    )
                                                )
                                       ),
-                                      tabPanel("Trait(s)", icon = icon("magnifying-glass-chart"),
+                                      tabPanel("Pick trait(s)", icon = icon("magnifying-glass-chart"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=6, selectInput(ns("trait2Sta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE) ),
                                                       column(width=6,selectInput(ns("fixedTermSta2"), "Covariable(s)", choices = NULL, multiple = TRUE) ),
+                                                      column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                             shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                                                 p(span("Family of response variable to be fitted.", style="color:black"), span("(double click in the cells if you would like to model a trait with a different distribution other than normal).", style="color:black")), # table of families to assume
+                                                                                 DT::DTOutput(ns("traitDistSta")),
+                                                             ),
+                                                      ),
                                                ),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                    column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Trait family", style="color:black"), span("(double click in the cells if you would like to model the traits with a different trait distribution).", style="color:black")), # table of families to assume
-                                                                          DT::DTOutput(ns("traitDistSta")),
-                                                                          p(" "),
-                                                                          p(span("Trait distribution by environment", style="color:black")),
+                                                                          p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                                           selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
                                                                           plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                               selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
                                                                                               numericInput(ns("maxitSta"),"Number of iterations",value=35),
                                                                                               selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
@@ -101,29 +104,29 @@ mod_staApp_ui <- function(id){
                                                                    ),
                                                )
                                       ),
-                                      tabPanel("Effects", icon = icon("table"),
+                                      tabPanel("Pick effects", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF" ,
                                                       column(width=6, selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE) ),
                                                       column(width=6,tags$span(id = ns('geno_unit_holder'), #style="color:orange",
-                                                                p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
+                                                                               p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
                                                       )),
                                                ),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                    column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Number of individuals, mothers and fathers mapped", style="color:black")),
-                                                                          selectInput(ns("feature"), "Check units by:", choices = NULL, multiple = FALSE),
+                                                                          p(span("Summary of number of individuals, mothers and fathers available in the dataset.", style="color:black")),
+                                                                          selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
                                                                           DT::DTOutput(ns("summariesSta")), # genetic evaluation units
-                                                                          p(span("Experimental design present per environment", style="color:black")),
+                                                                          p(span("Experimental design factos present per environment", style="color:black")),
                                                                           DT::dataTableOutput(ns("dtFieldTraC")), # design units
                                                                    )
                                                )
                                       ),
-                                      tabPanel("Run", icon = icon("play"),
+                                      tabPanel("Run analysis", icon = icon("play"),
                                                br(),
-                                               actionButton(ns("runSta"), "Run", icon = icon("play-circle")),
+                                               actionButton(ns("runSta"), "Run STA", icon = icon("play-circle")),
                                                uiOutput(ns("qaQcStaInfo")),
                                                textOutput(ns("outSta")),
                                       ),
@@ -211,7 +214,7 @@ mod_staApp_server <- function(id,data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
           if("qaRaw" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis inspecting the other tabs.")) )
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis specifying your input parameters under the 'Input' tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
@@ -317,12 +320,24 @@ mod_staApp_server <- function(id,data){
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
       colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-      zz$outputId <-as.POSIXct(zz$outputId, origin="1970-01-01", tz="GMT")
-      zz$inputId <-as.POSIXct(as.numeric(zz$inputId), origin="1970-01-01", tz="GMT")
-      nLevelsCheck <- length(na.omit(unique(c(zz$outputId, zz$inputId))))
-      if(nLevelsCheck > 1){ X <- with(zz, sommer::overlay(outputId, inputId)) }else{
-        X <- matrix(1,1,1); colnames(X) <- as.character(na.omit(unique(c(zz$outputId, zz$inputId))))
+      nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+      nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+      if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+        X <- with(zz, sommer::overlay(outputId, inputId))
+      }else{
+        if(nLevelsCheck1 <= 1){
+          X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+        }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+        if(nLevelsCheck2 <= 1){
+          X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+        }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+        mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+        X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+        if(!is.null(X1)){X[,colnames(X1)] <- X1}
+        if(!is.null(X2)){X[,colnames(X2)] <- X2}
       };  rownames(X) <- as.character(zz$outputId)
+      rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+      colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
       # make the network plot
       n <- network::network(X, directed = FALSE)
       network::set.vertex.attribute(n,"family",zz$module)

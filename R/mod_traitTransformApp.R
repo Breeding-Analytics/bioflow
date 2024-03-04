@@ -11,25 +11,11 @@ mod_traitTransformApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-
-    # shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-    #                       width = 3,
-    #                       tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-    #                       HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-    #               <font size='5'>Single-Cross Marker Building</font>"),
-    #                       hr(style = "border-top: 1px solid #4c4c4c;"),
-    #                       numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000),
-    #                       selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-    #                       hr(style = "border-top: 1px solid #4c4c4c;"),
-    #                       actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
-    #                       hr(style = "border-top: 1px solid #4c4c4c;"),
-    #                       textOutput(ns("outScr"))
-    # ), # end sidebarpanel
-    shiny::mainPanel(width = 9,
+    shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel("Information", icon = icon("book"),
+                       tabPanel(div(icon("book"), "Information-Transform") ,
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
@@ -54,7 +40,7 @@ mod_traitTransformApp_ui <- function(id){
                        ),
                        tabPanel("Conversion", icon = icon("rocket"),
                                 tabsetPanel(
-                                  tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                actionButton(ns("runTra"), "Apply conversions", icon = icon("play-circle")),
@@ -63,7 +49,7 @@ mod_traitTransformApp_ui <- function(id){
                                                                column(width=12,DT::DTOutput(ns("transTableC")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
                                            ),
                                   ),
-                                  tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                column(width=12,DT::DTOutput(ns("rawPheno")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
@@ -73,7 +59,7 @@ mod_traitTransformApp_ui <- function(id){
                        ), # end of output panel
                        tabPanel("Equalizing", icon = icon("equals"),
                                 tabsetPanel(
-                                  tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
@@ -82,7 +68,7 @@ mod_traitTransformApp_ui <- function(id){
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
                                            ),
                                   ),
-                                  tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                column(width=12,DT::DTOutput(ns("rawPheno2")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
@@ -92,13 +78,13 @@ mod_traitTransformApp_ui <- function(id){
                        ), # end of output panel
                        tabPanel("Balancing", icon = icon("scale-balanced"),
                                 tabsetPanel(
-                                  tabPanel(p("Input",class="input-p"), icon = icon("arrow-right-to-bracket"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
 
                                            ),
                                   ),
-                                  tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
 
@@ -120,7 +106,6 @@ mod_traitTransformApp_ui <- function(id){
 mod_traitTransformApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-
 
 
     ############################################################################ clear the console

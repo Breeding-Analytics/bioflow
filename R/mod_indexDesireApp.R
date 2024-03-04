@@ -48,24 +48,24 @@ mod_indexDesireApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
-                                       tabPanel("Mta-stamps", icon = icon("table"),
+                                       tabPanel("Pick MTA-stamp", icon = icon("table"),
                                                 br(),
                                                 column(width=12, selectInput(ns("version2IdxD"), "MTA version to analyze", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
-                                                p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 shinydashboard::box(status="success",width = 12,
                                                                     solidHeader = TRUE,
                                                                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            p(span("Current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
-                                                                           p(span("Modeling parameters from MTA stamp selected.", style="color:black")),
+                                                                           p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
                                                                            DT::DTOutput(ns("statusIndex")),
-                                                                           p(span("MTA predictions.", style="color:black")),
+                                                                           p(span("MTA predictions to be used as input.", style="color:black")),
                                                                            DT::DTOutput(ns("tablePredictionsTraitsWide")),
                                                                     )
                                                 )
                                        ),
-                                       tabPanel("Traits", icon = icon("table"),
+                                       tabPanel("Pick traits", icon = icon("table"),
                                                 br(),
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
                                                        radioButtons(ns("rbSelectionIndices"),"Selection Index",choices=c("Desire","Base"), selected="Desire"),
@@ -84,9 +84,9 @@ mod_indexDesireApp_ui <- function(id){
                                                                            p(span("Metrics associated to the MTA stamp selected.", style="color:black")),
                                                                            selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
                                                                            plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
-                                                                           p(span("Radar plot.", style="color:black")),
+                                                                           p(span("Radar plot to inspect population values versus target values.", style="color:black")),
                                                                            plotly::plotlyOutput(ns("plotPredictionsRadar")),
-                                                                           p(span("Expected response to selection.", style="color:black")),
+                                                                           p(span("Expected response to selection using current desire changes.", style="color:black")),
                                                                            plotly::plotlyOutput(ns("plotPotentialResponse")),
                                                                            shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
                                                                                                numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
@@ -96,15 +96,15 @@ mod_indexDesireApp_ui <- function(id){
                                                                     ),
                                                 )
                                        ),
-                                       tabPanel("Run", icon = icon("play"),
+                                       tabPanel("Run analysis", icon = icon("play"),
                                                 br(),
                                                 conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                 actionButton(ns("runIdxB"), "Run", icon = icon("play-circle")),
+                                                                 actionButton(ns("runIdxB"), "Calculate index", icon = icon("play-circle")),
                                                                  uiOutput(ns("qaQcIdxBInfo")),
                                                                  textOutput(ns("outIdxB"))
                                                 ),
                                                 conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                 actionButton(ns("runIdxD"), "Run", icon = icon("play-circle")),
+                                                                 actionButton(ns("runIdxD"), "Calculate index", icon = icon("play-circle")),
                                                                  uiOutput(ns("qaQcIdxDInfo")),
                                                                  textOutput(ns("outIdxD")),
                                                 ),
@@ -192,7 +192,7 @@ mod_indexDesireApp_server <- function(id, data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
           if("mta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index inspecting the other tabs.")) )
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
@@ -273,12 +273,24 @@ mod_indexDesireApp_server <- function(id, data){
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
       colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-      zz$outputId <-as.POSIXct(zz$outputId, origin="1970-01-01", tz="GMT")
-      zz$inputId <-as.POSIXct(as.numeric(zz$inputId), origin="1970-01-01", tz="GMT")
-      nLevelsCheck <- length(na.omit(unique(c(zz$outputId, zz$inputId))))
-      if(nLevelsCheck > 1){ X <- with(zz, sommer::overlay(outputId, inputId)) }else{
-        X <- matrix(1,1,1); colnames(X) <- as.character(na.omit(unique(c(zz$outputId, zz$inputId))))
+      nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+      nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+      if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+        X <- with(zz, sommer::overlay(outputId, inputId))
+      }else{
+        if(nLevelsCheck1 == 1){
+          X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+        }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+        if(nLevelsCheck2 == 1){
+          X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+        }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+        mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+        X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+        X[,colnames(X1)] <- X1
+        X[,colnames(X2)] <- X2
       };  rownames(X) <- as.character(zz$outputId)
+      rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+      colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
       # make the network plot
       n <- network::network(X, directed = FALSE)
       network::set.vertex.attribute(n,"family",zz$module)

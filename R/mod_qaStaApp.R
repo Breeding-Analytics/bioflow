@@ -57,7 +57,7 @@ mod_qaStaApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Trait(s)", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Set traits & thresholds", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=6, selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE) ),
@@ -65,12 +65,12 @@ mod_qaStaApp_ui <- function(id){
                                                   column(width=2, numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 4) ),
                                                   column(width=2, numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5) ),
                                                   ),
-                                           p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12,
                                                                solidHeader = TRUE,
                                                                column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                      p(span("Preview of outliers to be tagged with current input parameters for trait selected.", style="color:black")),
+                                                                      p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
                                                                       plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
                                                                                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
@@ -79,9 +79,9 @@ mod_qaStaApp_ui <- function(id){
                                                                       )
                                            )
                                   ),
-                                  tabPanel("Run", icon = icon("play"),
+                                  tabPanel("Run analysis", icon = icon("play"),
                                            br(),
-                                           actionButton(ns("runQaMb"), "Save outliers", icon = icon("play-circle")),
+                                           actionButton(ns("runQaMb"), "Tag outliers", icon = icon("play-circle")),
                                            textOutput(ns("outQaMb")),
                                   ),
                                 ) # end of tabset
@@ -113,7 +113,7 @@ mod_qaStaApp_server <- function(id, data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
           if("sta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers using the 'Outlier detection' tab.")) )
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers specifying your input parameters under the 'Input' tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single trial analysis before performing the QA model-based outlier detection.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }

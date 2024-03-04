@@ -46,7 +46,7 @@ mod_qaGenoApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Features", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Set thresholds", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=4, numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
@@ -55,26 +55,24 @@ mod_qaGenoApp_ui <- function(id){
                                                   column(width=4, numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
                                                   column(width=4, numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
                                                   ),
-
-                                           p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12,
                                                                solidHeader = TRUE,
                                                                column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
-                                                                      p(span("Preview of the proportion of markers identified for the different parameters.", style="color:black")),
+                                                                      p(span("Preview of the proportion of markers or individuals tagged for the different QA parameters.", style="color:black")),
                                                                       plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker")) ,
-                                                                      p(span("Preview of modifications to be tagged with current input parameters selected.", style="color:black")),
                                                                       DT::DTOutput(ns("modificationsQaMarker")),
-                                                                      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
+                                                                      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                           selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
                                                                                           numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
                                                                       ),
                                                                       ),
                                            )
                                   ),
-                                  tabPanel("Run", icon = icon("play"),
+                                  tabPanel("Run analysis", icon = icon("play"),
                                            br(),
-                                           actionButton(ns("runQaMb"), "Save modifications", icon = icon("play-circle")),
+                                           actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),
                                            textOutput(ns("outQaMb")),
                                   ),
                                 ) # end of tabset
@@ -99,19 +97,13 @@ mod_qaGenoApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
       }else{ # data is there
         if(!is.null(data()$data$geno)){
-          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the marker QA inspecting the other tabs.")) )
+          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the marker QA specifying your input parameters under the Input tabs.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
       }
     )

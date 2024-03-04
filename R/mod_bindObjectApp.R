@@ -11,43 +11,15 @@ mod_bindObjectApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-
-    sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      # input <- list(version2Bind="1699508839.68847",trait2Bind="desireIndex",entryType2Bind= "TGV_EST004D#TEST_tested",nCrossBind="20", targetAngleBind="30",maxRun=40, relType="grm", env2Bind="across",verboseBind=TRUE )
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Data binding (bioflow objects)</font>"),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      selectInput(
-        inputId = ns('previous_object_input'),
-        label   = 'Object Source*: ',
-        choices = list('Upload from PC' = 'pcfile', 'Upload from cloud' = 'cloudfile'),
-        width   = '200px'
-      ),
-      tags$span(id = ns('previous_object_file_holder'), # from PC
-                fileInput(
-                  inputId = ns('previous_object_file'),
-                  multiple = TRUE,
-                  label   = NULL,
-                  width   = '400px',
-                  accept  = c('.rds','.RData')
-                ),
-      ),
-      tags$div(id = ns('previous_object_retrieve'), # from cloud
-               actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve data objects"),
-               uiOutput(ns('previous_input2')),
-      ),
-      actionButton(ns("runBind"), "Bind objects", icon = icon("play-circle")),
-      textOutput(ns("outBind")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-    ), # end sidebarpanel
-    mainPanel(tabsetPanel( id=ns("tabsMain"),
+    mainPanel( width = 12,
+      tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
-                           tabPanel(p("Information",class="info-p"),  icon = icon("book"),
+                           tabPanel( div(icon("book"), "Information-Bind") ,
                                     br(),
                                     shinydashboard::box(status="success",width = 12,
                                                         solidHeader = TRUE,
                                                         column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                               h1(strong(span("Object Binding", style="color:green"))),
                                                                h2(strong("Status:")),
                                                                uiOutput(ns("warningMessage")),
                                                                h2(strong("Details")),
@@ -60,6 +32,55 @@ mod_bindObjectApp_ui <- function(id){
                                                         )
                                     )
                            ),
+                           tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                    tabsetPanel(
+                                      tabPanel("Pick objects", icon = icon("table"),
+                                               br(),
+                                               selectInput(
+                                                 inputId = ns('previous_object_input'),
+                                                 label   = 'Object Source*: ',
+                                                 choices = list('Upload from PC' = 'pcfile', 'Upload from cloud' = 'cloudfile'),
+                                                 width   = '200px'
+                                               ),
+                                               tags$span(id = ns('previous_object_file_holder'), # from PC
+                                                         fileInput(
+                                                           inputId = ns('previous_object_file'),
+                                                           multiple = TRUE,
+                                                           label   = NULL,
+                                                           width   = '400px',
+                                                           accept  = c('.rds','.RData')
+                                                         ),
+                                               ),
+                                               tags$div(id = ns('previous_object_retrieve'), # from cloud
+                                                        actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve data objects"),
+                                                        uiOutput(ns('previous_input2')),
+                                               ),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          # DT::DTOutput(ns("predictionsSta")),
+                                                                          ),
+                                               ),
+                                      ),
+                                      tabPanel("Run binding", icon = icon("play"),
+                                               br(),
+                                               actionButton(ns("runBind"), "Bind objects", icon = icon("play-circle")),
+                                               textOutput(ns("outBind")),
+                                      ),
+                                    ) # of of tabsetPanel
+                           ), # end of output panel
+                           tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                    tabsetPanel(
+                                      tabPanel("Status", icon = icon("table"),
+                                               br(),
+                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+
+                                               )
+                                      ),
+                                    ) # of of tabsetPanel
+                           ),# end of output panel
     )) # end mainpanel
 
   )

@@ -12,7 +12,7 @@ mod_mtaApp_ui <- function(id){
   tagList(
 
     mainPanel(width = 12,
-      tabsetPanel( id=ns("tabsMain"),
+              tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
                            tabPanel(div(icon("book"), "Information-MTA") ,
                                     br(),
@@ -56,87 +56,56 @@ mod_mtaApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
-                                      tabPanel("STA-stamps", icon = icon("table"),
+                                      tabPanel("Pick STA-stamp", icon = icon("table"),
                                                br(),
                                                column(width=12, selectInput(ns("version2Mta"), "STA version to analyze", choices = NULL, multiple = FALSE),  style = "background-color:grey; color: #FFFFFF"),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                    column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Current analyses available.", style="color:black")),
+                                                                          p(span("View of analyses performed until now.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Modeling parameters from STA stamp selected.", style="color:black")),
+                                                                          p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusMta")), # modeling table
-                                                                          p(span("STA predictions table to be input.", style="color:black")),
+                                                                          p(span("STA predictions table to be used as input.", style="color:black")),
                                                                           DT::DTOutput(ns("phenoMta")), # predictions data table
                                                                    )
                                                )
                                       ),
-                                      tabPanel("Traits", icon = icon("table"),
+                                      tabPanel("Select traits", icon = icon("table"),
                                                br(),
                                                column(width=12, selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                      shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                                          p(span("Trait distributions (double click in the cells if you would like to model the traits with a different trait distribution).", style="color:black")),
+                                                                          DT::DTOutput(ns("traitDistMet")),
+                                                      ),
+                                               ),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                                    column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Metrics associated to the STA stamp selected.", style="color:black")),
-                                                                          selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE),
-                                                                          selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
-                                                                          plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
+                                                                          column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
                                                                           p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
-                                                                          selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                          selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment"),
-                                                                          plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                          p(span("Trait distributions (double click in the cells if you would like to model the traits with a different trait distribution).", style="color:black")),
-                                                                          DT::DTOutput(ns("traitDistMet")),
+                                                                          column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                          column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                                                          column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")) ),
                                                                    ),
                                                )
                                       ),
 
-                                      tabPanel("Effects", icon = icon("table"),
+                                      tabPanel("Pick the model", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=6, selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE) ),
-                                                      column(width=6, selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE) ),
-                                                      ),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
-                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Metrics associated to the STA stamp selected.", style="color:black")),
-                                                                          DT::DTOutput(ns("evaluationUnits")),
-                                                                          p(span("Fields to include in the analysis.", style="color:black")),
-                                                                          DT::dataTableOutput(ns("fieldsMet")),
-                                                                   )
-                                               )
-                                      ),
-                                      tabPanel("GxE", icon = icon("table"),
-                                               br(),
-                                               column(width=12, selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
-                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                   column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Connectivity between environments.", style="color:black")),
-                                                                          selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE),
-                                                                          checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
-                                                                          checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
-                                                                          plotly::plotlyOutput(ns("plotPredictionsConnectivity")),
-                                                                          p(span("Sparsity between environments.", style="color:black")),
-                                                                          sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)),
-                                                                          sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)),
-                                                                          shiny::plotOutput(ns("plotPredictionsSparsity")),
-                                                                   ),
-                                               )
-                                      ),
-                                      tabPanel("Model", icon = icon("table"),
-                                               br(),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=6, selectInput(ns("modelMet"), "Genetic evaluation model", choices = NULL, multiple = FALSE) ),
-                                                      column(width=6, tags$span(id = ns('ismarkermodel'), selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE), ),  ),
+                                                      column(width=3, selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE) ),
+                                                      column(width=3, selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE) ),
+                                                      column(width=3, selectInput(ns("modelMet"), "Genetic evaluation model", choices = NULL, multiple = FALSE) ),
+                                                      column(width=3, tags$span(id = ns('ismarkermodel'), selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE), ),  ),
                                                ),
-                                               column(width=12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
                                                                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
@@ -147,10 +116,46 @@ mod_mtaApp_ui <- function(id){
                                                                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
                                                       ),
                                                ),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12,
+                                                                   solidHeader = TRUE,
+                                                                   column(width=12, style = "height:380px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          p(span("Metrics associated to the STA stamp selected.", style="color:black")),
+                                                                          DT::DTOutput(ns("evaluationUnits")),
+                                                                   )
+                                               )
                                       ),
-                                      tabPanel("Run", icon = icon("play"),
+                                      tabPanel("Specify GxE", icon = icon("table"),
                                                br(),
-                                               actionButton(ns("runMta"), "Run", icon = icon("play-circle")),
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=4, selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE) ),
+                                                      column(width = 8,
+                                                             shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
+                                                                                 p(span("Fields to include in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                                                                 DT::dataTableOutput(ns("fieldsMet")),
+                                                             ),
+                                                      ),
+                                               ),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                                   column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                                                          column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
+                                                                          column(width=4, selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=4, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=4, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) ),
+                                                                          column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
+                                                                          column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
+                                                                          column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
+                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
+                                                                   ),
+                                               )
+                                      ),
+                                      tabPanel("Run analysis", icon = icon("play"),
+                                               br(),
+                                               actionButton(ns("runMta"), "Run MTA", icon = icon("play-circle")),
                                                uiOutput(ns("qaQcMtaInfo")),
                                                textOutput(ns("outMta")),
                                       ),
@@ -188,7 +193,7 @@ mod_mtaApp_ui <- function(id){
                                       )
                                     ) # end of tabset
                            )# end of output panel
-    )) # end mainpanel
+              )) # end mainpanel
 
 
   )
@@ -208,20 +213,6 @@ mod_mtaApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-    # data = reactive({ # provisional dataset for testing
-    #   load(file.path(getwd(),"R/outputs/result.RData"))
-    #   data <- result
-    #   return(data)
-    # })
-    ################## marker version to use if marker-based model
-    # observeEvent(
-    #   input$randomTermMta2,
-    #   if ( c('designation') %in% input$randomTermMta2 ) {
-    #     golem::invoke_js('showid', ns('israndommodel'))
-    #   } else {
-    #     golem::invoke_js('hideid', ns('israndommodel'))
-    #   }
-    # )
     observeEvent(
       input$modelMet,
       if (input$modelMet %in% c('gblup','rrblup','ssgblup') ) {
@@ -238,8 +229,8 @@ mod_mtaApp_server <- function(id, data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
           if("sta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the MTA inspecting the other tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform STA before performing an MTA.")) ) }
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -435,16 +426,16 @@ mod_mtaApp_server <- function(id, data){
       if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
         X <- with(zz, sommer::overlay(outputId, inputId))
       }else{
-        if(nLevelsCheck1 == 1){
+        if(nLevelsCheck1 <= 1){
           X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
         }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-        if(nLevelsCheck2 == 1){
+        if(nLevelsCheck2 <= 1){
           X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
         }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
         mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
         X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-        X[,colnames(X1)] <- X1
-        X[,colnames(X2)] <- X2
+        if(!is.null(X1)){X[,colnames(X1)] <- X1}
+        if(!is.null(X2)){X[,colnames(X2)] <- X2}
       };  rownames(X) <- as.character(zz$outputId)
       rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
       colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))

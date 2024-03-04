@@ -52,57 +52,56 @@ mod_ocsApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
-                                      tabPanel("Index-stamp", icon = icon("table"),
+                                      tabPanel("Pick Index-stamp", icon = icon("table"),
                                                br(),
                                                column(width=12, selectInput(ns("version2Ocs"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
                                                                    solidHeader = TRUE,
                                                                    column(width=12,
                                                                           p(span("Current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Modeling parameters from Index stamp selected.", style="color:black")),
+                                                                          p(span("Past modeling parameters from Index stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusOcs")),
-                                                                          p(span("Index predictions table.", style="color:black")),
+                                                                          p(span("Index predictions table to be used as input.", style="color:black")),
                                                                           DT::DTOutput(ns("phenoOcs")),
                                                                    )
                                                )
                                       ),
-                                      tabPanel("Trait", icon = icon("magnifying-glass-chart"),
+                                      tabPanel("Pick trait", icon = icon("magnifying-glass-chart"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=6, selectInput(ns("trait2Ocs"), "Trait to optimize", choices = NULL, multiple = FALSE) ),
-                                                      column(width=6, selectInput(ns("entryType2Ocs"), "Entry types to use", choices = NULL, multiple = TRUE) ),
+                                                      column(width=6, selectInput(ns("entryType2Ocs"), "Entry types to use in optimization", choices = NULL, multiple = TRUE) ),
                                                ),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                    column(width=12, style = "height:430px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Dispersion of trait values.", style="color:black")),
-                                                                          selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ,
-                                                                          selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType"),
-                                                                          plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                          p(span("Boxplot of trait dispersion by entry type.", style="color:black")),
+                                                                          column(width=6, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ) ,
+                                                                          column(width=6, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
+                                                                          column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")) ),
                                                                           shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
                                                                                               numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1),
                                                                           ),
                                                                    ),
                                                )
                                       ),
-
-                                      tabPanel("Contribution", icon = icon("table"),
+                                      tabPanel("Set contribution", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4,textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20") ),
                                                       column(width=4, textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30") ),
                                                       column(width=4, selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE) ),
                                                ),
-                                               p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                               h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12,
                                                                    solidHeader = TRUE,
                                                                    column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Summary of selection units and features.", style="color:black")),
+                                                                          p(span("Summary of selection units and marker availability.", style="color:black")),
                                                                           DT::DTOutput(ns("evaluationUnits")),
                                                                           shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                               numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
@@ -113,9 +112,9 @@ mod_ocsApp_ui <- function(id){
                                                                    )
                                                )
                                       ),
-                                      tabPanel("Run", icon = icon("play"),
+                                      tabPanel("Run analysis", icon = icon("play"),
                                                br(),
-                                               actionButton(ns("runOcs"), "Run", icon = icon("play-circle")),
+                                               actionButton(ns("runOcs"), "Run OCS", icon = icon("play-circle")),
                                                uiOutput(ns("qaQcOcsInfo")),
                                                textOutput(ns("outOcs")),
                                       ),
@@ -180,7 +179,7 @@ mod_ocsApp_server <- function(id, data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
           if("mta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) inspecting the other tabs.")) )
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
@@ -191,7 +190,7 @@ mod_ocsApp_server <- function(id, data){
       req(data())
       dtOcs <- data()
       dtOcs <- dtOcs$status
-      dtOcs <- dtOcs[which(dtOcs$module %in% c("mta","indexD")),]
+      dtOcs <- dtOcs[which(dtOcs$module %in% c("indexD")),]
       traitsOcs <- unique(dtOcs$analysisId)
       if(length(traitsOcs) > 0){names(traitsOcs) <- as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Ocs", choices = traitsOcs)
@@ -336,12 +335,24 @@ mod_ocsApp_server <- function(id, data){
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
       colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-      zz$outputId <-as.POSIXct(zz$outputId, origin="1970-01-01", tz="GMT")
-      zz$inputId <-as.POSIXct(as.numeric(zz$inputId), origin="1970-01-01", tz="GMT")
-      nLevelsCheck <- length(na.omit(unique(c(zz$outputId, zz$inputId))))
-      if(nLevelsCheck > 1){ X <- with(zz, sommer::overlay(outputId, inputId)) }else{
-        X <- matrix(1,1,1); colnames(X) <- as.character(na.omit(unique(c(zz$outputId, zz$inputId))))
+      nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+      nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+      if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+        X <- with(zz, sommer::overlay(outputId, inputId))
+      }else{
+        if(nLevelsCheck1 == 1){
+          X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+        }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+        if(nLevelsCheck2 == 1){
+          X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+        }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+        mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+        X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+        X[,colnames(X1)] <- X1
+        X[,colnames(X2)] <- X2
       };  rownames(X) <- as.character(zz$outputId)
+      rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+      colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
       # make the network plot
       n <- network::network(X, directed = FALSE)
       network::set.vertex.attribute(n,"family",zz$module)

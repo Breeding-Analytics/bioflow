@@ -43,7 +43,7 @@ mod_qaRawApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Traits", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Set traits & thresholds", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
@@ -51,22 +51,22 @@ mod_qaRawApp_ui <- function(id){
                                                   column(width=2, numericInput(ns("traitUBOutqPheno"), label = "Upper bound", value = 100000) ),
                                                   column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 2.5) ),
                                                   ),
-                                           p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                                                      p(span("Preview of outliers to be tagged with current input parameters for trait selected.", style="color:black")),
+                                                                      p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                       selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE),
                                                                       plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
                                                                                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
                                                                       ),
-                                                                      p(span("Table of outliers to be tagged in the original dataset.", style="color:black")),
+                                                                      p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                       DT::DTOutput(ns("modificationsQa")),
                                                                ),
                                            )
                                   ),
-                                  tabPanel("Run", icon = icon("play"),
+                                  tabPanel("Run analysis", icon = icon("play"),
                                            br(),
                                            actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
                                            textOutput(ns("outQaRaw")),
@@ -97,7 +97,7 @@ mod_qaRawApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers.")) )
+        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers specifying your input parameters under the 'Input' tabs.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )
         }
       }

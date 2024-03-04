@@ -11,74 +11,16 @@ mod_qaPedApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-
-    # input <- list(propNaUpperThreshForMarker=0.3,propNaUpperThreshForInds=0.3,maf=0.5,imputationMethod="median", ploidy=2 )
-    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      width = 3,
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      # div(tags$p( h4(strong("Quality Assurance for Genetic Markers")))),#, style = "color: #817e7e"
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Quality Assurance for Pedigree</font>"),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runQaPed"), "Add QC", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outQaPed")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-
-      wellPanel(
-      h3("Imputed data"),
-      sliderInput(ns("inSlider1"), "Designation:",
-                  min = 10000, max = 20000, step=500,value = c(14000, 17000)),
-      sliderInput(ns("inSlider2"), "Mother:",
-                  min = 10000, max = 20000, step=500,value = 16000),
-      sliderInput(ns("inSlider3"), "Father:",
-                  min = 10000, max = 20000, step=500,value = 16000)
-      ),
-
-      wellPanel(
-        h3("Coincidence"),
-        sliderInput(ns("inSlider4"), "QC%:",
-                    min = 0, max = 3, step=0.1,value = c(1.2, 2)),
-        sliderInput(ns("inSlider41"), "QC counts fail:",
-                    min = 100, max = 2000, step=100,value = 1000),
-        sliderInput(ns("inSlider42"), "QC counts fail G1:",
-                    min = 100, max = 2000, step=100,value = 1400),
-        sliderInput(ns("inSlider43"), "QC counts fail G2:",
-                    min = 100, max = 2000, step=100,value = 1200)
-      ),
-
-      wellPanel(
-        h3("Heterozygosity"),
-        sliderInput(ns("inSlider5"), "Designation:",
-                    min = 0, max = 10, step=1,value = 5),
-        sliderInput(ns("inSlider6"), "Mother:",
-                    min = 0, max = 10, step=1,value = 5),
-        sliderInput(ns("inSlider7"), "Father:",
-                    min = 0, max = 10, step=1,value = 5)
-      ),
-
-      wellPanel(
-      h3("G matrix values comparison"),
-      sliderInput(ns("inSlider8"), "Mother-Designation:",
-                  min = 0, max = 1.6, step=0.1,value = c(0.2,0.7)),
-      sliderInput(ns("inSlider81"), "Mother-Designation Hight:",
-                  min = 1.5, max = 3, step=0.1,value = 1.6),
-      sliderInput(ns("inSlider9"), "Father-Designation:",
-                  min = 0, max = 1.5, step=0.1,value = c(0.2,0.7)),
-      sliderInput(ns("inSlider10"), "diag(Designation)-(Mother-Designation):",
-                  min = 0, max = 2, step=0.1,value = 0.2)
-      ),
-
-    ), # end sidebarpanel
-    shiny::mainPanel(width = 9,
+    shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
-                       tabPanel(p("Information",class="info-p"),  icon = icon("book"),
+                       tabPanel(div(icon("book"), "Information-QA-ped") ,
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
+                                                             h1(strong(span("QA/QC for Pedigree", style="color:green"))),
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
                                                              h2(strong("Details")),
@@ -88,86 +30,86 @@ mod_qaPedApp_ui <- function(id){
 
                                                              p(h4(strong("Imputed data"))," this sets a threshold for how much missing data in a marker information is allowed for each individual in the triplet of the pedigree information and the classification for each one is:"),
                                                              tags$ul(
-                                                             tags$li(strong("Designation imputed")),
-                                                             tags$ul(
-                                                              tags$li("<14000 is good designation"),
-                                                              tags$li("1400-17000 is sample_poor designation"),
-                                                              tags$li(">17000 is sample_fail designation")
-                                                             ),
-                                                             tags$li(strong("Mother imputed")),
-                                                             tags$ul(
-                                                              tags$li(">16000 poor mother"),
-                                                              tags$li("<16000 correct mother")
-                                                             ),
-                                                             tags$li(strong("Father imputed")),
-                                                             tags$ul(
-                                                              tags$li(">16000 poor father"),
-                                                              tags$li("<16000 correct father")
-                                                             )
+                                                               tags$li(strong("Designation imputed")),
+                                                               tags$ul(
+                                                                 tags$li("<14000 is good designation"),
+                                                                 tags$li("1400-17000 is sample_poor designation"),
+                                                                 tags$li(">17000 is sample_fail designation")
+                                                               ),
+                                                               tags$li(strong("Mother imputed")),
+                                                               tags$ul(
+                                                                 tags$li(">16000 poor mother"),
+                                                                 tags$li("<16000 correct mother")
+                                                               ),
+                                                               tags$li(strong("Father imputed")),
+                                                               tags$ul(
+                                                                 tags$li(">16000 poor father"),
+                                                                 tags$li("<16000 correct father")
+                                                               )
                                                              ),
 
                                                              p(h4(strong("Coincidence")),"  this sets a threshold for allele quality control."),
                                                              tags$ul(
-                                                              tags$li(strong("Allele QC%")),
-                                                              tags$ul(
-                                                                tags$li("0-1.2% QC pass"),
-                                                                tags$li("1.2-2% QC borderline"),
-                                                                tags$li(">2 QC fail")
-                                                             ),
-                                                             tags$li(strong("QC count fail"),"QC fail when have less than 1000 ocurrences, we can create the following groups accord imputed information limits"),
-                                                             tags$ul(
-                                                              tags$li(strong("QC count fail G1")),
-                                                              tags$ul(
-                                                              tags$li("Designation imputed > Qc G1 No assessment-designation sample too poor")
-                                                              ),
-                                                              tags$li(strong("QC count fail G2")),
-                                                              tags$ul(
-                                                                tags$li("Designation imputed <= Qc G1 & Designation mother>Qc G2 & Designation father>Qc G2 No assessment mother and father samples too poor"),
-                                                                tags$li("Mother imputed>Father imputed No QC test, no mother assessment - mother sample too poor"),
-                                                                tags$li("Mother imputed<Father imputed No QC test, no father assessment - father sample too poor")
-                                                             ))),
+                                                               tags$li(strong("Allele QC%")),
+                                                               tags$ul(
+                                                                 tags$li("0-1.2% QC pass"),
+                                                                 tags$li("1.2-2% QC borderline"),
+                                                                 tags$li(">2 QC fail")
+                                                               ),
+                                                               tags$li(strong("QC count fail"),"QC fail when have less than 1000 ocurrences, we can create the following groups accord imputed information limits"),
+                                                               tags$ul(
+                                                                 tags$li(strong("QC count fail G1")),
+                                                                 tags$ul(
+                                                                   tags$li("Designation imputed > Qc G1 No assessment-designation sample too poor")
+                                                                 ),
+                                                                 tags$li(strong("QC count fail G2")),
+                                                                 tags$ul(
+                                                                   tags$li("Designation imputed <= Qc G1 & Designation mother>Qc G2 & Designation father>Qc G2 No assessment mother and father samples too poor"),
+                                                                   tags$li("Mother imputed>Father imputed No QC test, no mother assessment - mother sample too poor"),
+                                                                   tags$li("Mother imputed<Father imputed No QC test, no father assessment - father sample too poor")
+                                                                 ))),
                                                              p(h4(strong("Heterozigocity"))," this sets a threshold for what is the heterozygosity allowed for each individual in the triplet of the pedigree information and the classification for each one is:"),
                                                              tags$ul(
-                                                             tags$li(strong("Heterozygosity Designation")),
-                                                             tags$ul(
-                                                              tags$li(">5% designation excess heterozygosity"),
-                                                              tags$li("<5% correct designation")
-                                                             ),
-                                                             tags$li(strong("Heterozygosity Mother")),
-                                                             tags$ul(
-                                                              tags$li(">5% mother excess heterozygosity"),
-                                                              tags$li("<5% correct mother")
-                                                             ),
-                                                             tags$li(strong("Heterozygosity Father")),
-                                                             tags$ul(
-                                                             tags$li(">5% father excess heterozygosity"),
-                                                             tags$li("<5% correct father")
-                                                              )
+                                                               tags$li(strong("Heterozygosity Designation")),
+                                                               tags$ul(
+                                                                 tags$li(">5% designation excess heterozygosity"),
+                                                                 tags$li("<5% correct designation")
+                                                               ),
+                                                               tags$li(strong("Heterozygosity Mother")),
+                                                               tags$ul(
+                                                                 tags$li(">5% mother excess heterozygosity"),
+                                                                 tags$li("<5% correct mother")
+                                                               ),
+                                                               tags$li(strong("Heterozygosity Father")),
+                                                               tags$ul(
+                                                                 tags$li(">5% father excess heterozygosity"),
+                                                                 tags$li("<5% correct father")
+                                                               )
                                                              ),
                                                              p(h4(strong("G matrix values comparison"))," this sets a threshold for G matrix values comparisons."),
                                                              tags$ul(
-                                                             tags$li(strong("Gmat Mother-Designation.-")),
-                                                             tags$ul(
-                                                              tags$li("<0.2 mother wrong"),
-                                                              tags$li("0.2-0.7 mother borderline"),
-                                                              tags$li("0.7-1.6 correct mother")
+                                                               tags$li(strong("Gmat Mother-Designation.-")),
+                                                               tags$ul(
+                                                                 tags$li("<0.2 mother wrong"),
+                                                                 tags$li("0.2-0.7 mother borderline"),
+                                                                 tags$li("0.7-1.6 correct mother")
+                                                               ),
+                                                               tags$li(strong("Gmat Mother-Designation higth")),
+                                                               tags$ul(
+                                                                 tags$li(">1.6 mother hight")
+                                                               ),
+                                                               tags$li(strong("Gmat Father-Designation")),
+                                                               tags$ul(
+                                                                 tags$li("<0.2 male wrong"),
+                                                                 tags$li("0.2-0.7 male boderline"),
+                                                                 tags$li("0.7-1.5 correct father")
+                                                               ),
+                                                               tags$li(strong("(Gmat diag Designation)-(Gmat Mother-Designation).-")),
+                                                               tags$ul(
+                                                                 tags$li("<0.2 probable self"),
+                                                                 tags$li(">0.2 correct")
+                                                               )
                                                              ),
-                                                             tags$li(strong("Gmat Mother-Designation higth")),
-                                                             tags$ul(
-                                                              tags$li(">1.6 mother hight")
-                                                             ),
-                                                             tags$li(strong("Gmat Father-Designation")),
-                                                             tags$ul(
-                                                              tags$li("<0.2 male wrong"),
-                                                              tags$li("0.2-0.7 male boderline"),
-                                                              tags$li("0.7-1.5 correct father")
-                                                             ),
-                                                             tags$li(strong("(Gmat diag Designation)-(Gmat Mother-Designation).-")),
-                                                             tags$ul(
-                                                              tags$li("<0.2 probable self"),
-                                                              tags$li(">0.2 correct")
-                                                             )
-                                                              ),
 
                                                              h2(strong("References")),
                                                              p("")
@@ -176,24 +118,96 @@ mod_qaPedApp_ui <- function(id){
 
                                 )
                        ),
-                       tabPanel(p("Output",class="output-p"), icon = icon("arrow-right-from-bracket"),
-                                tabsetPanel(
-                                  tabPanel("Classification", icon = icon("table"),
-                                  br(),
-                                  shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,DT::DTOutput(ns("modificationsQaPed")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                )
-                                ),
-                                tabPanel("Plot classification", icon = icon("magnifying-glass-chart"),
-                                         br(),
-                                         shinydashboard::box(status="success",width = 12,
-                                                             solidHeader = TRUE,
-                                                             selectInput(ns("traitOutqPed"), "", choices = NULL, multiple = FALSE),
-                                                             column(width=12,plotly::plotlyOutput(ns("plotClassPed")) ,style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
 
-                                         )
-                                )
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                tabsetPanel(
+                                  tabPanel("Set imputed data", icon = icon("table"),
+                                           br(),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=4, sliderInput(ns("inSlider1"), "Designation:", min = 10000, max = 20000, step=500,value = c(14000, 17000)) ),
+                                                  column(width=4, sliderInput(ns("inSlider2"), "Mother:", min = 10000, max = 20000, step=500,value = 16000) ),
+                                                  column(width=4, sliderInput(ns("inSlider3"), "Father:", min = 10000, max = 20000, step=500,value = 16000) ),
+                                           ),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+
+                                                               ),
+                                           ),
+                                  ),
+                                  tabPanel("Set coincidence", icon = icon("table"),
+                                           br(),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, sliderInput(ns("inSlider4"), "QC%:", min = 0, max = 3, step=0.1,value = c(1.2, 2)) ),
+                                                  column(width=3, sliderInput(ns("inSlider41"), "QC counts fail:", min = 100, max = 2000, step=100,value = 1000) ),
+                                                  column(width=3, sliderInput(ns("inSlider42"), "QC counts fail G1:", min = 100, max = 2000, step=100,value = 1400) ),
+                                                  column(width=3, sliderInput(ns("inSlider43"), "QC counts fail G2:", min = 100, max = 2000, step=100,value = 1200) ),
+                                           ),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+
+                                                               ),
+                                           ),
+                                  ),
+                                  tabPanel("Specify heterozygozity", icon = icon("table"),
+                                           br(),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=4, sliderInput(ns("inSlider5"), "Designation:", min = 0, max = 10, step=1,value = 5) ),
+                                                  column(width=4, sliderInput(ns("inSlider6"), "Mother:", min = 0, max = 10, step=1,value = 5) ),
+                                                  column(width=4, sliderInput(ns("inSlider7"), "Father:", min = 0, max = 10, step=1,value = 5) ),
+                                           ),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+
+                                                               ),
+                                           ),
+                                  ),
+                                  tabPanel("Specify G-matrix values", icon = icon("table"),
+                                           br(),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, sliderInput(ns("inSlider8"), "Mother-Designation:", min = 0, max = 1.6, step=0.1,value = c(0.2,0.7)) ),
+                                                  column(width=3, sliderInput(ns("inSlider81"), "Mother-Designation Hight:", min = 1.5, max = 3, step=0.1,value = 1.6) ),
+                                                  column(width=3, sliderInput(ns("inSlider9"), "Father-Designation:", min = 0, max = 1.5, step=0.1,value = c(0.2,0.7)) ),
+                                                  column(width=3, sliderInput(ns("inSlider10"), "diag(Designation)-(Mother-Designation):",min = 0, max = 2, step=0.1,value = 0.2) ),
+                                           ),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+
+                                                               ),
+                                           ),
+                                  ),
+                                  tabPanel("Run analysis", icon = icon("play"),
+                                           br(),
+                                           actionButton(ns("runQaPed"), "Compute QC", icon = icon("play-circle")),
+                                           textOutput(ns("outQaPed")),
+                                  ),
+                                ),
+                       ),
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                tabsetPanel(
+                                  tabPanel("Classification Table", icon = icon("table"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12,
+                                                               solidHeader = TRUE,
+                                                               column(width=12,DT::DTOutput(ns("modificationsQaPed")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                           )
+                                  ),
+                                  tabPanel("Classification Plots", icon = icon("magnifying-glass-chart"),
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12,
+                                                               solidHeader = TRUE,
+                                                               selectInput(ns("traitOutqPed"), "", choices = NULL, multiple = FALSE),
+                                                               column(width=12,plotly::plotlyOutput(ns("plotClassPed")) ,style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
+
+                                           )
+                                  )
                                 )
                        )# end of output panel
                      )) # end mainpanel
@@ -216,12 +230,6 @@ mod_qaPedApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
     # warning message
     output$warningMessage <- renderUI({
 
@@ -229,31 +237,31 @@ mod_qaPedApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data Retrieval' tab." )) )
       }else{
         if(!is.null(data()$data$geno) & !is.null(data()$data$pedigree)){
-            c1=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[1:11]
-            c2=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[-c(1:11)]
-            objP<-as.vector(data()$metadata$pedigree$value[1:3])
-            hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
+          c1=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[1:11]
+          c2=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[-c(1:11)]
+          objP<-as.vector(data()$metadata$pedigree$value[1:3])
+          hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
                                'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode','assembly','rs','panel')
-            if(length(intersect(hapmap_snp_attr, c1)) != 11){
-                HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data in hapmap format using the 'Data Retrieval' tab." )) )
+          if(length(intersect(hapmap_snp_attr, c1)) != 11){
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data in hapmap format using the 'Data Retrieval' tab." )) )
+          }else{
+            if(length(which(unique(unlist(data()$data$pedigree[,objP]))%in%c2==F))!=0){
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Please review your data, some pedigree individuals were not found in the genotype data" )) )
             }else{
-              if(length(which(unique(unlist(data()$data$pedigree[,objP]))%in%c2==F))!=0){
-                HTML( as.character(div(style="color: red; font-size: 20px;", "Please review your data, some pedigree individuals were not found in the genotype data" )) )
-              }else{
-                HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the pedigree QA inspecting the other tabs.")) )
+              HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the pedigree QA inspecting the other tabs.")) )
             }
-            }
+          }
         }else{
-        if(is.null(data()$data$geno) & !is.null(data()$data$pedigree)){
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data in hapmap format using the 'Data Retrieval' tab. ")) )
-      }else{
-      if(!is.null(data()$data$geno) & is.null(data()$data$pedigree)){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab. ")) )
-      }
-      }
+          if(is.null(data()$data$geno) & !is.null(data()$data$pedigree)){
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data in hapmap format using the 'Data Retrieval' tab. ")) )
+          }else{
+            if(!is.null(data()$data$geno) & is.null(data()$data$pedigree)){
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab. ")) )
+            }
+          }
         }
       }
-   })
+    })
     ##
     newModificationsPed <- reactive({ # p('File to be analyzed')
       req(data())
@@ -321,7 +329,7 @@ mod_qaPedApp_server <- function(id, data){
                              'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode','assembly','rs')
         c2=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[-c(1:11)]
         objP<-as.vector(data()$metadata$pedigree$value[1:3])
-#& (length(intersect(hapmap_snp_attr, c1))==11) & (length(which(unique(unlist(data()$data$pedigree[,objP]))%in%c2==F))==0)
+        #& (length(intersect(hapmap_snp_attr, c1))==11) & (length(which(unique(unlist(data()$data$pedigree[,objP]))%in%c2==F))==0)
         if(!is.null(data()$data$pedigree) && !is.null(data()$data$geno) && (length(intersect(hapmap_snp_attr, c1))==11) && (length(which(unique(unlist(data()$data$pedigree[,objP]))%in%c2==F))==0)){
           mo <- newModificationsPed()
         }else{

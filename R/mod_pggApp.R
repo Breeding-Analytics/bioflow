@@ -42,32 +42,32 @@ mod_pggApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
-                                       tabPanel("Index-stamp", icon = icon("table"),
+                                       tabPanel("Pick Index-stamp", icon = icon("table"),
                                                 br(),
                                                 column(width=12, selectInput(ns("version2Pgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
-                                                p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
                                                                     solidHeader = TRUE,
                                                                     column(width=12,
-                                                                           p(span("Current analyses available.", style="color:black")),
+                                                                           p(span("View of current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
-                                                                           p(span("Predictions table.", style="color:black")),
+                                                                           p(span("Predictions table to be used as input.", style="color:black")),
                                                                            DT::DTOutput(ns("phenoPgg")),
                                                                     )
                                                 )
                                        ),
-                                       tabPanel("Trait(s)", icon = icon("table"),
+                                       tabPanel("Select trait(s)", icon = icon("table"),
                                                 br(),
                                                 column(width=12, selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),  style = "background-color:grey; color: #FFFFFF"),
-                                                p(strong(span("Visual aid below:", style="color:blue")), span("some of these visualizations may help you decide your input paramters.", style="color:blue")),
+                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            p(span("Metrics available for analysis stamp selected.", style="color:black")),
-                                                                           selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ,
-                                                                           selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
-                                                                           plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
+                                                                           column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
+                                                                           column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                           column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
                                                                            shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                                selectInput(ns("environmentToUse"), "Environments to use", choices = NULL, multiple = TRUE),
                                                                                                numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
@@ -76,9 +76,9 @@ mod_pggApp_ui <- function(id){
                                                                     ),
                                                 )
                                        ),
-                                       tabPanel("Run", icon = icon("play"),
+                                       tabPanel("Run analysis", icon = icon("play"),
                                                 br(),
-                                                actionButton(ns("runPgg"), "Run", icon = icon("play-circle")),
+                                                actionButton(ns("runPgg"), "Run PGG", icon = icon("play-circle")),
                                                 uiOutput(ns("qaQcPggInfo")),
                                                 textOutput(ns("outPgg")),
                                        ),
@@ -134,7 +134,7 @@ mod_pggApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab, compute the 'environment' column, map the 'designation' and at least one trait.")) )
       }else{ # data is there
         if("mta" %in% data()$status$module){
-          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain inspecting the other tabs.")) )
+          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain analysis specifying your input parameters under the Input tabs.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
       }
     )
@@ -238,12 +238,24 @@ mod_pggApp_server <- function(id, data){
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
       colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-      zz$outputId <-as.POSIXct(zz$outputId, origin="1970-01-01", tz="GMT")
-      zz$inputId <-as.POSIXct(as.numeric(zz$inputId), origin="1970-01-01", tz="GMT")
-      nLevelsCheck <- length(na.omit(unique(c(zz$outputId, zz$inputId))))
-      if(nLevelsCheck > 1){ X <- with(zz, sommer::overlay(outputId, inputId)) }else{
-        X <- matrix(1,1,1); colnames(X) <- as.character(na.omit(unique(c(zz$outputId, zz$inputId))))
+      nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+      nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+      if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+        X <- with(zz, sommer::overlay(outputId, inputId))
+      }else{
+        if(nLevelsCheck1 == 1){
+          X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+        }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+        if(nLevelsCheck2 == 1){
+          X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+        }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+        mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+        X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+        X[,colnames(X1)] <- X1
+        X[,colnames(X2)] <- X2
       };  rownames(X) <- as.character(zz$outputId)
+      rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+      colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
       # make the network plot
       n <- network::network(X, directed = FALSE)
       network::set.vertex.attribute(n,"family",zz$module)

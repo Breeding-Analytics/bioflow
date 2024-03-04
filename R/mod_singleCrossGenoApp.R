@@ -11,29 +11,16 @@ mod_singleCrossGenoApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-
-    shiny::sidebarPanel(  style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-      width = 3,
-      tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-      HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-                  <font size='5'>Single-Cross Marker Building</font>"),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000),
-      selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
-      hr(style = "border-top: 1px solid #4c4c4c;"),
-      textOutput(ns("outScr"))
-    ), # end sidebarpanel
-    shiny::mainPanel(width = 9,
+    shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel(p("Information",class="info-p"), icon = icon("book"),
+                       tabPanel( div(icon("book"), "Information-SCM") ,
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                           h1(strong(span("Single Cross Marker Matrix Build", style="color:green"))),
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -58,27 +45,39 @@ mod_singleCrossGenoApp_ui <- function(id){
                                                     )
                                 )
                        ),
-                       tabPanel(p("Output", class="output-p"), icon = icon("arrow-right-from-bracket"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Summaries", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Pick batch size", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("summariesScr")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                           column(width=12, numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000), style = "background-color:grey; color: #FFFFFF"),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
+                                                               column(width=12, style = "height:530px; overflow-y: scroll;overflow-x: scroll;",
+                                                                      DT::DTOutput(ns("summariesScr")),
+                                                                      )
                                            )
                                   ),
-                                  tabPanel("Crosses", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Pick crosses", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
+                                           column(width=12, selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE), style = "background-color:grey; color: #FFFFFF"),
+                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
+                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           shinydashboard::box(status="success",width = 12,  solidHeader = TRUE, #background = "green",
                                                                column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
                                                                column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
                                                                column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
                                                                column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
                                            )
-                                  )
-                                ) # end of tabset
-                       )# end of output panel
+                                  ),
+                                  tabPanel("Run analysis", icon = icon("play"),
+                                           br(),
+                                           actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
+                                           textOutput(ns("outScr"))
+                                  ),
+                                ), # end of tabset
+                       ),# end of output panel
                      )) # end mainpanel
-
 
 
   )
