@@ -658,20 +658,18 @@ mod_mtaApp_server <- function(id, data){
                                 "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
           )
         })
-      }else{
+      }else{ # sta is available
         output$qaQcMtaInfo <- renderUI({return(NULL)})
         if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
-          if(input$versionMarker2Mta == ''){ # user didn't provide a modifications id
+          if(input$versionMarker2Mta == '' | is.null(input$versionMarker2Mta) ){ # user didn't provide a modifications id
             if(!is.null(dtMta$data$geno)){ # if user actually has marker data
               shinybusy::remove_modal_spinner()
-              stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
-              # if(length(which(is.na(dtMta$data$geno))) > 0){ # if there is missing data and user didn't impute throw an error
-              #   shinybusy::remove_modal_spinner() # stop the spinner
-              #   stop("Markers have missing data and you have not provided a modifications table to impute the genotype data. Please go to the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
-              # }else{markerVersionToUse <- NULL} # data is complete, no need to stop although user does NOT have a modification table
+              cat("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.")
+              # stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
             }else{ # if user does NOT have marker data and wanted a marker-based model
               shinybusy::remove_modal_spinner()
-              stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+              cat("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+              # stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
             }
           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
@@ -694,7 +692,6 @@ mod_mtaApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
-          # save(result, file = "./R/outputs/result.RData")
           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
