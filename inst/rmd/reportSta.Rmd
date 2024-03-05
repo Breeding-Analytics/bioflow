@@ -367,7 +367,7 @@ if (is.null(result)){
     idvar = c("environment","designation"), 
     direction="wide"
   )
-  names(predictions.designation) <- c("deignation","environment",traits)
+  names(predictions.designation) <- c("designation","environment",traits)
   
   if("params" %in% ls()){ # we will download the document
     printTable(predictions.designation)

@@ -338,7 +338,9 @@ if (is.null(result)){
   # traits <- unique(pred$trait)
   traitsInPreds <- unique(pred$trait)
   covariates <- unique(result$metadata$weather$parameter)
-  
+  modelUsed <- result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$parameter == "randomFormula"),"value"]
+isRRBLUP <- ifelse(length(grep("QTL",modelUsed)) > 0, TRUE, FALSE)
+
   if("params" %in% ls()){ # we will download the document
     
   }else{
@@ -366,12 +368,12 @@ if (is.null(result)){
       for(iTrait in traits){ # iTrait="Yield_Mg_ha"
         cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
         
-        temp.pred.box <- pred[pred$trait== iTrait,]
+        temp.pred.box <- pred[pred$trait== ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait),]
         # for each possible environmental covariate iCovariate = covariates[1]
         for(iCovariate in covariates){ 
-          stabilityTrait <- paste0(iTrait,"-",iCovariate)
+          stabilityTrait <- ifelse(isRRBLUP, paste0(iTrait,"_QTL", iCovariate), paste0(iTrait,"-", iCovariate) ) # paste0(ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait),"-",iCovariate)
           if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-            subPred <- pred[which(pred[,"trait"] %in% c(iTrait, stabilityTrait)),]
+            subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait), stabilityTrait)),]
             wide <- reshape(subPred[,c("trait","designation","predictedValue")], 
                             direction = "wide", idvar = "designation",
                             timevar = "trait", v.names = "predictedValue", sep= "_")
@@ -394,9 +396,9 @@ if (is.null(result)){
         shiny::renderPlot({ # regular ggplot
           
           for(iCovariate in covariates){ 
-            stabilityTrait <- paste0(input$traitMta3,"-",iCovariate)
+            stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", iCovariate), paste0(input$traitMta3,"-", iCovariate) ) # # paste0(input$traitMta3,"-",iCovariate)
             if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-              subPred <- pred[which(pred[,"trait"] %in% c(input$traitMta3, stabilityTrait)),]
+              subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
               wide <- reshape(subPred[,c("trait","designation","predictedValue")], 
                               direction = "wide", idvar = "designation",
                               timevar = "trait", v.names = "predictedValue", sep= "_")
@@ -412,9 +414,9 @@ if (is.null(result)){
         plotly::renderPlotly({
           
           for(iCovariate in covariates){ 
-            stabilityTrait <- paste0(input$traitMta3,"-",iCovariate)
+            stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", iCovariate), paste0(input$traitMta3,"-", iCovariate) ) # paste0(input$traitMta3,"-",iCovariate)
             if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-              subPred <- pred[which(pred[,"trait"] %in% c(input$traitMta3, stabilityTrait)),]
+              subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
               wide <- reshape(subPred[,c("trait","designation","predictedValue")], 
                               direction = "wide", idvar = "designation",
                               timevar = "trait", v.names = "predictedValue", sep= "_")
@@ -471,7 +473,7 @@ if (is.null(result)){
   idSta <- idSta[length(idSta)]
   pred.sta <- result$predictions
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
-  traits <- unique(pred.sta$trait)
+  # traits <- unique(pred.sta$trait)
   predictions.gcorrE <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
   envs <- unique(predictions.gcorrE[,"environment"])
   addTextInPlots <- ifelse(length(envs) > 40, FALSE, TRUE)

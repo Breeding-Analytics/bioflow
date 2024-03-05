@@ -131,7 +131,7 @@ mod_mtaApp_ui <- function(id){
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4, selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE) ),
                                                       column(width = 8,
-                                                             shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include...",
+                                                             shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include (optional)...",
                                                                                  p(span("Fields to include in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
                                                                                  DT::dataTableOutput(ns("fieldsMet")),
                                                              ),
@@ -673,6 +673,9 @@ mod_mtaApp_server <- function(id, data){
             }
           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
+        getOption("spam.cholsymmetrycheck")
+        options(spam.cholsymmetrycheck=FALSE)
+        getOption("spam.cholsymmetrycheck")
         result <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
