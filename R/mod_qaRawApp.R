@@ -72,7 +72,18 @@ mod_qaRawApp_ui <- function(id){
                                            textOutput(ns("outQaRaw")),
                                   ),
                                 ) # end of tabset
-                       )# end of output panel
+                       ),# end of input panel
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                tabsetPanel(
+                                  tabPanel("Report", icon = icon("file-image"),
+                                           br(),
+                                           div(tags$p("Please download the report below:") ),
+                                           downloadButton(ns("downloadReportQaPheno"), "Download report"),
+                                           br(),
+                                           uiOutput(ns('reportQaPheno'))
+                                  ),
+                                ),
+                       ),
                      )) # end mainpanel
 
   )
@@ -234,14 +245,52 @@ mod_qaRawApp_server <- function(id, data){
 
         }
         shinybusy::remove_modal_spinner()
+
+        if(!inherits(result,"try-error")) { # if all goes well in the run
+          # ## Report tab
+          output$reportQaPheno <- renderUI({
+            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          })
+
+          output$downloadReportQaPheno <- downloadHandler(
+            filename = function() {
+              paste('my-report', sep = '.', switch(
+                "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+              ))
+            },
+            content = function(file) {
+              src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+              src2 <- normalizePath('data/resultQaPheno.RData')
+              # temporarily switch to the temp dir, in case you do not have write
+              # permission to the current working directory
+              owd <- setwd(tempdir())
+              on.exit(setwd(owd))
+              file.copy(src, 'report.Rmd', overwrite = TRUE)
+              file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+                "HTML",
+                HTML = rmarkdown::html_document()
+              ))
+              file.rename(out, file)
+            }
+          )
+
+        }else{ hideAll$clearAll <- TRUE}
+
+        hideAll$clearAll <- FALSE
+
       }else{
         cat("Please meet the data conditions before you identify and save outliers.")
       }      # save(result, file="toTest.RData")
 
     })
+
     output$outQaRaw <- renderPrint({
       outQaRaw()
     })
+
+
+
 
   })
 }

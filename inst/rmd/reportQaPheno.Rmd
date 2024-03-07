@@ -7,33 +7,84 @@ params:
  toDownload: FALSE
 ---
 
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
-get_h <- function() {
-  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
-       fig.height*dpi/fig.retina)
-}
-library(dplyr)
+
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+
+# loading necessary R packages ####
+## data manipulation
+library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(grafify)
+library(data.table)
+library(shiny)
 ```
 
-```{r plot_init, include = FALSE}
-# Init Step to make sure that the dependencies are loaded
-# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
-htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+```{r printfxn, include=FALSE}
 
-# Get the current figure size in pixels:
-get_w <- function() {
-  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
-       fig.width*dpi/fig.retina)
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
 }
+```
 
-get_h <- function() {
-  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
-       fig.height*dpi/fig.retina)
-}
+```{r }
+
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/result.RData")){
+    load("./outputs/resultQaPheno.RData")
+  }else{
+    load("resultQaPheno.RData")
+  }
+}, error = function(e) {
+  # NULL
+}))
 
 ```
+
 
 ### Modifications table
 <p>&nbsp;</p>
@@ -41,6 +92,7 @@ get_h <- function() {
 The following table shows the modifications saved to be applied for the raw phenotypic data when is used in one of the analytical modules.
 
 ```{r }
+
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -67,7 +119,7 @@ if (is.null(result)){
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  traits <- c("value","row") 
+  numericalColumns <- c("value","row") 
   
   if("params" %in% ls()){ # we will download the document
     printTable(modifications)
@@ -80,7 +132,7 @@ if (is.null(result)){
         scrollY = "400px",
         scrollX = "400px",
         paging = F)
-    ),traits)
+    ),numericalColumns)
     })
   }
   
@@ -88,99 +140,80 @@ if (is.null(result)){
 
 ```
 
+
+
 <p>&nbsp;</p>
 
 ### Modifications plot
 
-The following density plot allows you to see the expected change in the next generation compared to the current generation given the current genetic gain parameters (accuracy, intensity, genetic variance) obtained in a particular MET for the selected traits.
+The following plot allows you to visualize which records were tagged as outliers and will be ignored in posterior analyses if this QA time stamp is added to the posterior analyses.
 
 <p>&nbsp;</p>
-
-```{r }
-
-suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultPgg.RData")){
-    load("./outputs/resultPgg.RData")
-  }else{
-    load("resultPgg.RData")
-  }
-}, error = function(e) {
-  # NULL
-}))
-
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  modeling <- result$modeling
-  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
-  idPgg <- idPgg[length(idPgg)]
-  modeling <- modeling[which(modeling$analysisId == idPgg & modeling$environment == "across"),"trait"]
-  if("params" %in% ls()){
-    
-  }else{
-    shiny::selectInput(ns("traitFilterPredictions2D2"),
-                       label = "Trait:",
-                       choices = unique(modeling),
-    )
-  }
-}
-
-```
 
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  metrics <- result$metrics
-  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
-  idPgg <- idPgg[length(idPgg)]
-  current.metrics <- metrics[which(metrics$analysisId %in% c(idPgg)),]
-  
-  if("params" %in% ls()){
-    cat(paste0("## Selection differentials and expected response  {.tabset .tabset-pills}    \n\n  "))
-    # l <- htmltools::tagList()
-    # counter <- 1
-    for(iTrait in unique(modeling)){
+  # object <- result
+  mydata <- result$data$pheno
+  ### change column names for mapping
+  paramsPheno <- result$metadata$pheno
+  paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+  colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), 
+                                               Search = paramsPheno$value, 
+                                               Replace = paramsPheno$parameter )
+  ###
+  mydata$rowindex <- 1:nrow(mydata)
+  mydata[, "environment"] <- as.factor(mydata[, "environment"])
+  mydata[, "designation"] <- as.factor(mydata[, "designation"])
+  mo <-result$modifications$pheno
+  analysisIds <- unique(mo$analysisId)
+  analysisIds <- analysisIds[length(analysisIds)]
+  mo <- mo[which(mo$analysisId == analysisIds),]
+  mydata$color <- "valid"
+  if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+  mydata$color <- as.factor(mydata$color)
+ 
+  if("params" %in% ls()){ # we will download the document
+    
+       cat(paste0("##   {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in traits){
       cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
-      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"]
-      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"]
-      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"]
-      vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-      vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == iTrait ),"value"]
-      p <- plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-      print(htmltools::tagList(plotly::ggplotly(p)))
-      # l[[counter]] <- tagList(HTML(markdown::mark(text=paste0("\n\n#### ", iTrait, "\n"))),
-      # 
-      #                        plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-      # 
-      # )
-      # counter <- counter + 1
+      
+      mydata$predictedValue <- mydata[,iTrait]
+      
+      p <- ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
+        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+        theme_classic()+
+        geom_jitter(aes(colour = color), alpha = 0.4) +
+        xlab("Environment") + ylab("Trait value") +
+        theme(axis.text.x = element_text(angle = 45))
+      print(p)
     }
+    
   }else{
-    plotly::renderPlotly({
-      fig <- plotly::plot_ly(alpha = 0.6)
-      ## plot for the general population
-      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
-      ## plot for the expected new population
-      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
-      ## add line for the selected population
-      vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-      vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      # overlay the histograms
-      i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-      fig
+    
+    shiny::renderPlot({
+       mydata$predictedValue <- mydata[,input$traitQa]
+      
+      ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
+        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+        theme_classic()+
+        geom_jitter(aes(colour = color), alpha = 0.4) +
+        xlab("Environment") + ylab("Trait value") +
+        theme(axis.text.x = element_text(angle = 45))
+      
     })
+    
   }
+  
 }
 ```
+
+
+
 
 
 
