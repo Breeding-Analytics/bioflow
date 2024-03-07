@@ -42,7 +42,7 @@ mod_expDesignEditApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Pick factors", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           column(width = 12, DT::dataTableOutput(ns("transTableC")), style = "height:300px; overflow-y: scroll;overflow-x: scroll; background-color:grey; color: #FFFFFF"),
+                                           column(width = 12, DT::dataTableOutput(ns("transTableC")), style = "height:300px; overflow-y: scroll;overflow-x: scroll;"),
                                            h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
@@ -59,7 +59,18 @@ mod_expDesignEditApp_ui <- function(id){
                                            textOutput(ns("outExp"))
                                   ),
                                 ) # end of tabset
-                       )# end of output panel
+                       ),# end of input panel
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                tabsetPanel(
+                                  tabPanel("Report", icon = icon("file-image"),
+                                           br(),
+                                           div(tags$p("Please download the report below:") ),
+                                           downloadButton(ns("downloadReportQaPheno"), "Download report"),
+                                           br(),
+                                           uiOutput(ns('reportQaPheno'))
+                                  ),
+                                ),
+                       ), # end of output panel# end of output panel
                      )
     ) # end mainpanel
   )
@@ -222,6 +233,7 @@ mod_expDesignEditApp_server <- function(id, data){
         cat( "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
       }else{ # data is there
         ## pheno check
+        shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep"), "value"]
         available <- setdiff(available,"")
         if( length(available) == 0 ){
@@ -229,10 +241,45 @@ mod_expDesignEditApp_server <- function(id, data){
         }else{
           object <- data()
           result <- cgiarPipeline::modifExpDesign(object, df=xx$df)
-          data(result)
           aid <- result$status$analysisId[length(result$status$analysisId)]
+          # result$modifications$pheno[result$modifications$pheno$analysisId == aid,"module"]
+          data(result)
           cat(paste("QA step with id:",as.POSIXct( aid, origin="1970-01-01", tz="GMT"),"saved."))
         }
+        shinybusy::remove_modal_spinner()
+
+        if(!inherits(result,"try-error")) { # if all goes well in the run
+          # ## Report tab
+          output$reportQaPheno <- renderUI({
+            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          })
+
+          output$downloadReportQaPheno <- downloadHandler(
+            filename = function() {
+              paste('my-report', sep = '.', switch(
+                "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+              ))
+            },
+            content = function(file) {
+              src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+              src2 <- normalizePath('data/resultQaPheno.RData')
+              # temporarily switch to the temp dir, in case you do not have write
+              # permission to the current working directory
+              owd <- setwd(tempdir())
+              on.exit(setwd(owd))
+              file.copy(src, 'report.Rmd', overwrite = TRUE)
+              file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+                "HTML",
+                HTML = rmarkdown::html_document()
+              ))
+              file.rename(out, file)
+            }
+          )
+
+        }else{ hideAll$clearAll <- TRUE}
+
+        hideAll$clearAll <- FALSE
       }
 
     })
