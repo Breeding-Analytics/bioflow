@@ -85,7 +85,18 @@ mod_qaStaApp_ui <- function(id){
                                            textOutput(ns("outQaMb")),
                                   ),
                                 ) # end of tabset
-                       )# end of output panel
+                       ),# end of input panel
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                tabsetPanel(
+                                  tabPanel("Report", icon = icon("file-image"),
+                                           br(),
+                                           div(tags$p("Please download the report below:") ),
+                                           downloadButton(ns("downloadReportQaPheno"), "Download report"),
+                                           br(),
+                                           uiOutput(ns('reportQaPheno'))
+                                  ),
+                                ),
+                       ), # end of output panel
                      )) # end mainpanel
 
 
@@ -280,9 +291,9 @@ mod_qaStaApp_server <- function(id, data){
           result <- data()
           ## update analsisId in the outliers table
           analysisId <- as.numeric(Sys.time())
-          outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
+          outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId # [which(is.na(outlier$analysisId)),"analysisId"]
           # ## bind new parameters
-          result$modifications$pheno <- rbind(result$modifications$pheno, outlier[, colnames(result$modifications)])
+          result$modifications$pheno <- rbind(result$modifications$pheno, outlier[, colnames(result$modifications$pheno)])
           newStatus <- data.frame(module="qaMb", analysisId=analysisId )
           result$status <- rbind(result$status, newStatus)
           data(result)
@@ -291,6 +302,40 @@ mod_qaStaApp_server <- function(id, data){
           cat("No modifications to add")
         }
         shinybusy::remove_modal_spinner()
+
+        if(!inherits(result,"try-error")) { # if all goes well in the run
+          # ## Report tab
+          output$reportQaPheno <- renderUI({
+            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          })
+
+          output$downloadReportQaPheno <- downloadHandler(
+            filename = function() {
+              paste('my-report', sep = '.', switch(
+                "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+              ))
+            },
+            content = function(file) {
+              src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+              src2 <- normalizePath('data/resultQaPheno.RData')
+              # temporarily switch to the temp dir, in case you do not have write
+              # permission to the current working directory
+              owd <- setwd(tempdir())
+              on.exit(setwd(owd))
+              file.copy(src, 'report.Rmd', overwrite = TRUE)
+              file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+                "HTML",
+                HTML = rmarkdown::html_document()
+              ))
+              file.rename(out, file)
+            }
+          )
+
+        }else{ hideAll$clearAll <- TRUE}
+
+        hideAll$clearAll <- FALSE
+
       }
     })
     output$outQaMb <- renderPrint({

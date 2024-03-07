@@ -99,14 +99,17 @@ if (is.null(result)){
   modifications <- result$modifications$pheno
   idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb")),"analysisId"];
   idQa <- idQa[length(idQa)]
-  traits <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
+  idQaType <- result$status[result$status$analysisId == idQa, "module"]
+  modifications <- modifications[which( modifications$analysisId == idQa & modifications$module == idQaType),]
+  traitsTable <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
+  
   
   if("params" %in% ls()){ # we will download the document
     
   }else{
     shiny::selectInput(ns("traitQa"), 
                        label = "Trait:", 
-                       choices = traits, 
+                       choices = traitsTable, 
     )
   }
   
@@ -150,6 +153,28 @@ The following plot allows you to visualize which records were tagged as outliers
 
 <p>&nbsp;</p>
 
+```{r }
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  traitsBoxplot <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
+  if(idQaType == "qaMb"){traitsBoxplot <- paste0(traitsBoxplot,"-residual")}
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    shiny::selectInput(ns("traitQaBox"), 
+                       label = "Trait:", 
+                       choices = traitsBoxplot, 
+    )
+  }
+  
+}
+
+```
+
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
@@ -179,7 +204,7 @@ if (is.null(result)){
     
        cat(paste0("##   {.tabset .tabset-pills}    \n\n  "))
     
-    for(iTrait in traits){
+    for(iTrait in traitsBoxplot){
       cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       mydata$predictedValue <- mydata[,iTrait]
@@ -196,7 +221,7 @@ if (is.null(result)){
   }else{
     
     shiny::renderPlot({
-       mydata$predictedValue <- mydata[,input$traitQa]
+       mydata$predictedValue <- mydata[,input$traitQaBox]
       
       ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
         geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
