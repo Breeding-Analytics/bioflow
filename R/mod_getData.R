@@ -1050,6 +1050,9 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(input$concatenateEnv,{
       output$preview_pheno <- DT::renderDT({
         myObject <- data()
+        phenoColnames <- colnames(myObject$data$pheno)
+        newPhenoColnames <- c("environment", setdiff(phenoColnames, "environment"))
+        myObject$data$pheno <- myObject$data$pheno[, newPhenoColnames]
         environmentColumnName <- myObject$metadata$pheno$value[which(myObject$metadata$pheno$parameter == "environment")]
         DT::datatable(myObject$data$pheno,
                       extensions = 'Buttons',
