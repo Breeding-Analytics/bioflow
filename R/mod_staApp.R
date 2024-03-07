@@ -95,7 +95,7 @@ mod_staApp_ui <- function(id){
                                                                    column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                                           selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                          plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                          shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                           shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                               selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
                                                                                               numericInput(ns("maxitSta"),"Number of iterations",value=35),
@@ -444,7 +444,7 @@ mod_staApp_server <- function(id,data){
           traitsSta <- unique(dtSta$trait)
           updateSelectInput(session, "trait3Sta", choices = traitsSta)
         })
-        output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
+        output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
           req(data())
           req(input$version2Sta)
           req(input$trait3Sta)
@@ -460,12 +460,21 @@ mod_staApp_server <- function(id,data){
             mydata[, "environment"] <- as.factor(mydata[, "environment"]);mydata[, "designation"] <- as.factor(mydata[, "designation"])
             mo <- data()$modifications$pheno
             mo <- mo[which(mo[,"trait"] %in% input$trait3Sta),]
-            mydata$color <- 1
-            if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
-            mydata$color <- as.factor(mydata$color)
-            res <- plotly::plot_ly(y = mydata[,input$trait3Sta], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
-                                   x = mydata[,"environment"], text=mydata[,"designation"], pointpos = -1.8)
-            res = res %>% plotly::layout(showlegend = FALSE); res
+            # mydata$color <- 1
+            # if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
+            # mydata$color <- as.factor(mydata$color)
+            # res <- plotly::plot_ly(y = mydata[,input$trait3Sta], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
+            #                        x = mydata[,"environment"], text=mydata[,"designation"], pointpos = -1.8)
+            # res = res %>% plotly::layout(showlegend = FALSE); res
+            mydata$color <- "valid"
+            if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+            mydata$predictedValue <- mydata[,input$trait3Sta]
+            ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+              ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+              ggplot2::theme_classic()+
+              ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
+              ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
+              ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
           }else{}
         })
         ## render raw data

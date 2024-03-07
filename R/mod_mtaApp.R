@@ -92,7 +92,7 @@ mod_mtaApp_ui <- function(id){
                                                                           p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
                                                                           column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                           column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                                                          column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")) ),
+                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
                                                                    ),
                                                )
                                       ),
@@ -622,7 +622,7 @@ mod_mtaApp_server <- function(id, data){
       traitMtaInput <- unique(dtMta$trait)
       updateSelectInput(session, "trait3Mta", choices = traitMtaInput)
     })
-    output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
+    output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
       req(data())
       req(input$version2Mta)
       req(input$trait3Mta)
@@ -631,9 +631,15 @@ mod_mtaApp_server <- function(id, data){
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, #color = mydata[,input$groupMtaInputPlot],
-                             x = mydata[,input$groupMtaInputPlot], text=mydata[,"designation"], pointpos = -1.8)
-      res = res %>% plotly::layout(showlegend = FALSE); res
+      # res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, #color = mydata[,input$groupMtaInputPlot],
+      #                        x = mydata[,input$groupMtaInputPlot], text=mydata[,"designation"], pointpos = -1.8)
+      # res = res %>% plotly::layout(showlegend = FALSE); res
+      ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+        ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+        ggplot2::theme_classic()+
+        ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
+        ggplot2::xlab("Environment") + ggplot2::ylab("Predicted value") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
     })
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {

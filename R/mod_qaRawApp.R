@@ -57,7 +57,7 @@ mod_qaRawApp_ui <- function(id){
                                                                column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                       selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE),
-                                                                      plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
                                                                                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
                                                                       ),
@@ -124,7 +124,7 @@ mod_qaRawApp_server <- function(id, data){
       shinyjs::hide(ns("traitOutqPheno"))
     })
     ## render the expected result
-    output$plotPredictionsCleanOut <- plotly::renderPlotly({
+    output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
       req(data())
       req(input$outlierCoefOutqFont)
       req(input$outlierCoefOutqPheno)
@@ -144,14 +144,24 @@ mod_qaRawApp_server <- function(id, data){
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
         # mo <- newOutliers()
         mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno=input$traitLBOutqPheno, traitUBOutqPheno=input$traitUBOutqPheno) # newOutliers()
-        mydata$color <- 1
-        if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
-        mydata$color <- as.factor(mydata$color)
-        res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
-                               x = mydata[,"environment"], text=mydata[,"designation"],
-                               pointpos = -1.8)
-        res = res %>% plotly::layout(showlegend = FALSE,  xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont)))
-        res
+        # mydata$color <- 1
+        # if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
+        # mydata$color <- as.factor(mydata$color)
+        # res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
+        #                        x = mydata[,"environment"], text=mydata[,"designation"],
+        #                        pointpos = -1.8)
+        # res = res %>% plotly::layout(showlegend = FALSE,  xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont)))
+        # res
+        mydata$color <- "valid"
+        if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+        mydata$predictedValue <- mydata[,input$traitOutqPheno]
+        ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+          ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+          ggplot2::theme_classic()+
+          ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
+          ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
+
       }else{}
     })
 

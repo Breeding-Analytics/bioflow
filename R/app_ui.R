@@ -54,7 +54,7 @@ app_ui <- function(request) {
 
       navbarMenu("Selection", icon = icon("bullseye"),
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
-                 tabPanel(div(icon("filter-circle-xmark"), "QA/QC"),
+                 tabPanel(div(icon("filter-circle-xmark"), "Quality Assurance"),
                           tabsetPanel(
                             tabPanel(div("Pheno-Outlier QA/QC (", icon("seedling"),")" ), mod_qaRawApp_ui("qaRawApp_1") ),
                             tabPanel(div("(optional) Genetic-Marker QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") )

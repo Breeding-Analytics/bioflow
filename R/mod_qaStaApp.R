@@ -61,8 +61,8 @@ mod_qaStaApp_ui <- function(id){
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=6, selectInput(ns("traitOutqPheno"), "Trait to QA", choices = NULL, multiple = FALSE) ),
-                                                  column(width=2, numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound", value = -4) ),
-                                                  column(width=2, numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound", value = 4) ),
+                                                  column(width=2, numericInput(ns("traitLBOutqPheno"), label = "Trait lower bound (STD)", value = -4) ),
+                                                  column(width=2, numericInput(ns("traitUBOutqPheno"), label = "Trait upper bound (STD)", value = 4) ),
                                                   column(width=2, numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5) ),
                                                   ),
                                            h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
@@ -71,7 +71,7 @@ mod_qaStaApp_ui <- function(id){
                                                                solidHeader = TRUE,
                                                                column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
-                                                                      plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
                                                                                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
                                                                       ),
@@ -203,7 +203,7 @@ mod_qaStaApp_server <- function(id, data){
 
     ## render the expected result
 
-    output$plotPredictionsCleanOut <- plotly::renderPlotly({
+    output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
       req(data())
       req(input$outlierCoefOutqFont)
       req(input$traitOutqPheno)
@@ -218,24 +218,34 @@ mod_qaStaApp_server <- function(id, data){
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
         mo <- newOutliers()
-        mydata$color <- 1
-        if(nrow(mo) > 0){
-          mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2
-        }
-        mydata$color <- as.factor(mydata$color)
+        mydata$color <- "valid"
+        if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+        # mydata$color <- 1
+        # if(nrow(mo) > 0){
+        #   mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2
+        # }
+        # mydata$color <- as.factor(mydata$color)
         mydata$environment <- cgiarBase::cleanCharField(mydata$environment)#
         fields <- as.character(unique(mydata$environment))
         for(uField in fields){ # scale the residuals by field
           vf <- which(mydata$environment == uField)
           mydata[vf,input$traitOutqPheno2] <- scale(mydata[vf,input$traitOutqPheno2])
         }
-        res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
-                               x = mydata[,"environment"], text=mydata[,"designation"],
-                               pointpos = -1.8)
-        res = res %>% plotly::layout(showlegend = FALSE,
-                                     xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont))
-        )
-        res
+        # res <- plotly::plot_ly(y = mydata[,input$traitOutqPheno], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
+        #                        x = mydata[,"environment"], text=mydata[,"designation"],
+        #                        pointpos = -1.8)
+        # res = res %>% plotly::layout(showlegend = FALSE,
+        #                              xaxis = list(titlefont = list(size = input$outlierCoefOutqFont), tickfont = list(size = input$outlierCoefOutqFont))
+        # )
+        # res
+        mydata$predictedValue <- mydata[,input$traitOutqPheno]
+        ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+          ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+          ggplot2::theme_classic()+
+          ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
+          ggplot2::xlab("Environment") + ggplot2::ylab("Standardized residual") +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
+
       }
     })
 
