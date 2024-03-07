@@ -55,14 +55,15 @@ app_ui <- function(request) {
       navbarMenu("Selection", icon = icon("bullseye"),
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "Quality Assurance"),
-                          tabsetPanel(
-                            tabPanel(div("Pheno-Outlier QA/QC (", icon("seedling"),")" ), mod_qaRawApp_ui("qaRawApp_1") ),
-                            tabPanel(div("(optional) Genetic-Marker QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") )
+                          navlistPanel( widths = c(1, 11),
+                            tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaRawApp_ui("qaRawApp_1") ),
+                            tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
+                            tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                           )
                  ),
 
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),
-                          tabsetPanel(
+                          navlistPanel( widths = c(1, 11),
                             tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
                             tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") )
                           )
@@ -97,10 +98,9 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Other QC & Transform", icon = icon("medal"),
-                 tabPanel(strong("QUALITY CONTROL"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
+                 tabPanel(strong("FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Pedigree Filtering (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                  tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Data Binding (", icon("database"), ")"), mod_bindObjectApp_ui("bindObjectApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
