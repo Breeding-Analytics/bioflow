@@ -78,18 +78,7 @@ mod_filterPhenoApp_ui <- function(id){
                                            textOutput(ns("outFilterRaw")),
                                   ),
                                 ) # end of tabset
-                       ),# end of input panel
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
-                                tabsetPanel(
-                                  tabPanel("Report", icon = icon("file-image"),
-                                           br(),
-                                           div(tags$p("Please download the report below:") ),
-                                           downloadButton(ns("downloadReportQaPheno"), "Download report"),
-                                           br(),
-                                           uiOutput(ns('reportQaPheno'))
-                                  ),
-                                ),
-                       ), # end of output panel
+                       )# end of output panel
                      )) # end mainpanel
 
 
@@ -133,9 +122,8 @@ mod_filterPhenoApp_server <- function(id, data){
     # Create the traits
     observeEvent(data(), {
       req(data())
-      dtQaRaw <- data();
-      dtQaRaw <- dtQaRaw$metadata$pheno
-      if(!is.null(data()$data$pheno)){
+      dtQaRaw <- data(); dtQaRaw <- dtQaRaw$metadata$pheno
+      if(!is.null(dtQaRaw$data$pheno)){
         traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
         updateSelectInput(session, "traitFilterPheno",choices = traitsQaRaw)
         updateSelectInput(session, "traitFilterPhenoMultiple",choices = traitsQaRaw, selected = NULL)
@@ -302,7 +290,7 @@ mod_filterPhenoApp_server <- function(id, data){
     ## function to calculate outliers
     newOutliers <- reactive({ #
       req(data());  req(input$traitFilterPheno); req(input$years);  req(input$seasons); req(input$countries); req(input$locations); req(input$trials); req(input$environments); req(input$slider1)
-      result <- data()
+      myObject <- data()
       mydata <- data()$data$pheno
 
       ### change column names for mapping
@@ -337,7 +325,7 @@ mod_filterPhenoApp_server <- function(id, data){
     outFilterRaw <- eventReactive(input$runFilterRaw, {
       req(data());  req(input$traitFilterPheno); req(input$years);  req(input$seasons); req(input$countries); req(input$locations); req(input$trials); req(input$environments)
       req(input$multiTraitFilter)
-      result <- data()
+      myObject <- data()
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       if(input$multiTraitFilter){ # if user wants multiple traits at once
         outliers <- list()
@@ -356,57 +344,22 @@ mod_filterPhenoApp_server <- function(id, data){
       }else{ # if user only wants to filter one trait
         outliers <- newOutliers()
       }
-      myoutliers <- result$modifications$pheno
+      myoutliers <- myObject$modifications$pheno
       analysisId <- as.numeric(Sys.time())
+      myoutliersReduced <- unique(rbind(myoutliers, outliers))
       if(nrow(outliers) == 0){ # no outliers found
         cat("No data to filter.")
       }else{ # we found outliers
-        # outliers$analysisId <- analysisId
-        outliers[,"analysisId"] <- analysisId
-        outliers[,"module"] <- "qaFilter"
+        myoutliersReduced$analysisId <- analysisId
         cat(paste("Filtering step with id:",as.POSIXct(analysisId, origin="1970-01-01", tz="GMT"),"for trait",ifelse(input$multiTraitFilter, paste(input$traitFilterPhenoMultiple, collapse = ", "),input$traitFilterPheno),"saved."))
       }
-      myoutliersReduced <- unique(rbind(myoutliers, outliers))
-
       # add status table
       newStatus <- data.frame(module="qaFilter", analysisId=analysisId )
-      result$status <- rbind(result$status, newStatus)
+      myObject$status <- rbind(myObject$status, newStatus)
       #
-      result$modifications$pheno <- myoutliersReduced
-      data(result)
+      myObject$modifications$pheno <- myoutliersReduced
+      data(myObject)
       shinybusy::remove_modal_spinner()
-      if(!inherits(result,"try-error")) { # if all goes well in the run
-        # ## Report tab
-        output$reportQaPheno <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        output$downloadReportQaPheno <- downloadHandler(
-          filename = function() {
-            paste('my-report', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultQaPheno.RData')
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmarkdown::html_document()
-            ))
-            file.rename(out, file)
-          }
-        )
-
-      }else{ hideAll$clearAll <- TRUE}
-
-      hideAll$clearAll <- FALSE
     })
     output$outFilterRaw <- renderPrint({
       outFilterRaw()
