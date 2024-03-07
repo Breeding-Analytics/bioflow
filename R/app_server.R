@@ -45,6 +45,8 @@ app_server <- function(input, output, session) {
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
   mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
 
+  mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
+  
   ## SAVE results tab
   mod_saveData_server("saveData_1", data = data, res_auth=res_auth)
 
