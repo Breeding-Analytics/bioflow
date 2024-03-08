@@ -132,7 +132,8 @@ mod_qaPedApp_ui <- function(id){
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-
+                                                                      #grafico boxplot Imputed Data
+                                                                      div(plotly::plotlyOutput(ns("plotImputedD")),align="center")
                                                                ),
                                            ),
                                   ),
@@ -148,7 +149,8 @@ mod_qaPedApp_ui <- function(id){
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-
+                                                                      #grafico boxplot Imputed Data
+                                                                      div(plotly::plotlyOutput(ns("plotQCp")),align="center")
                                                                ),
                                            ),
                                   ),
@@ -163,7 +165,7 @@ mod_qaPedApp_ui <- function(id){
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-
+                                                                      div(plotly::plotlyOutput(ns("plotHetLFM")),align="center")
                                                                ),
                                            ),
                                   ),
@@ -179,7 +181,7 @@ mod_qaPedApp_ui <- function(id){
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-
+                                                                      div(plotly::plotlyOutput(ns("plotGmat")),align="center")
                                                                ),
                                            ),
                                   ),
@@ -262,13 +264,46 @@ mod_qaPedApp_server <- function(id, data){
         }
       }
     })
+
+    follow<-reactive({
+      if(is.null(data())){
+        runifa=FALSE
+      }else{
+        if(!is.null(data()$data$geno) & !is.null(data()$data$pedigree)){
+          c1=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[1:11]
+          c2=as.data.frame(data.table::fread(data()$data$genodir, sep = '\t', header = F,nrows=1))[-c(1:11)]
+          objP<-as.vector(data()$metadata$pedigree$value[1:3])
+          hapmap_snp_attr <- c('rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
+                               'center', 'protLSID', 'assayLSID', 'panelLSID', 'QCcode','assembly','rs','panel')
+          if(length(intersect(hapmap_snp_attr, c1)) != 11){
+            runifa=FALSE
+          }else{
+            if(length(which(unique(unlist(data()$data$pedigree[,objP]))%in%c2==F))!=0){
+              runifa=FALSE
+            }else{
+              runifa=TRUE
+            }
+          }
+        }else{
+          if(is.null(data()$data$geno) & !is.null(data()$data$pedigree)){
+            runifa=FALSE
+          }else{
+            if(!is.null(data()$data$geno) & is.null(data()$data$pedigree)){
+              runifa=FALSE
+            }
+          }
+        }
+      }
+      return(runifa)
+    })
+
     ##
     newModificationsPed <- reactive({ # p('File to be analyzed')
       req(data())
       myObject <- data()
       objP<-as.vector(myObject$metadata$pedigree$value[1:3])
-      shinybusy::show_modal_spinner('fading-circle', text = 'Do classification...')
-      res <- computePedModifications(
+      shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
+      res <- cgiarBase::computePedModifications(
         M = myObject$data$geno,
         Tb1=myObject$data$pedigree[,objP],
         Tb2=myObject$data$genodir,
@@ -298,6 +333,98 @@ mod_qaPedApp_server <- function(id, data){
       return(res)
     })
 
+
+    output$plotImputedD <- plotly::renderPlotly({
+        req(data())
+        flag=follow()
+      if(flag){
+        Impt <- newModificationsPed()
+        ver2<-c("LineImputed","Imputed_Female","Imputed_Male")
+        ### change column names for mapping
+        ver=data.frame(Impt[,ver2])
+        ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
+        colnames(ver)[1]="rows"
+        ver[,1]=as.factor(ver[,1])
+        library(reshape2)
+        ver=melt(ver, id="rows")
+        colnames(ver)=c("rows","Class","Imputed")
+        figS <- plotly::plot_ly(ver,y= ~Imputed,color=~Class,type = 'box')
+        figS
+        }else{
+          fig = plotly::plot_ly()
+          fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
+          fig
+        }
+    })
+
+
+    output$plotQCp <- plotly::renderPlotly({
+      req(data())
+      flag=follow()
+      if(flag){
+      Impt <- newModificationsPed()
+      ver2<-c("QCPer_wrong")
+      ### change column names for mapping
+      ver=data.frame(Impt[,ver2])
+      ver=as.data.frame(cbind(1:dim(ver)[1],rep("QC_wrong",dim(ver)[1]),apply(ver,2,function(x) as.numeric(x))))
+      ver[,1]=as.factor(ver[,1])
+      ver[,2]=as.factor(ver[,2])
+      colnames(ver)=c("rows","Class","QCwrong")
+      figS <- plotly::plot_ly(ver,y= ~QCwrong,color=~Class,type = 'box')
+      figS
+      }else{
+        fig = plotly::plot_ly()
+        fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
+        fig
+      }
+    })
+
+    output$plotHetLFM <- plotly::renderPlotly({
+      req(data())
+      flag=follow()
+      if(flag){
+      Impt <- newModificationsPed()
+      ver2<-c("Hets_Line","Hets_Female","Hets_Male")
+      ### change column names for mapping
+      ver=data.frame(Impt[,ver2])
+      ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
+      colnames(ver)[1]="rows"
+      ver[,1]=as.factor(ver[,1])
+      library(reshape2)
+      ver=melt(ver, id="rows")
+      colnames(ver)=c("rows","Class","Heterozygozity")
+      figS <- plotly::plot_ly(ver,y= ~Heterozygozity,color=~Class,type = 'box')
+      figS
+      }else{
+        fig = plotly::plot_ly()
+        fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
+        fig
+      }
+    })
+
+    output$plotGmat <- plotly::renderPlotly({
+      req(data())
+      flag=follow()
+      if(flag){
+      Impt <- newModificationsPed()
+      ver2<-c("G_matrix_Line_Female","G_matrix_Line_Male","Diagonal_minus_Female_G_matrix")
+      ### change column names for mapping
+      ver=data.frame(Impt[,ver2])
+      ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
+      colnames(ver)[1]="rows"
+      ver[,1]=as.factor(ver[,1])
+      library(reshape2)
+      ver=melt(ver, id="rows")
+      colnames(ver)=c("rows","Class","Gmat")
+      figS <- plotly::plot_ly(ver,y= ~Gmat,color=~Class,type = 'box')
+      figS
+      }else{
+        fig = plotly::plot_ly()
+        fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
+        fig
+      }
+    })
+
     PlotSelected<-reactive({
       req(data())
       req(input$traitOutqPed)
@@ -314,7 +441,14 @@ mod_qaPedApp_server <- function(id, data){
     })
 
     output$plotClassPed <- plotly::renderPlotly({
-      PlotSelected()
+        flag=follow()
+        if(flag){
+          PlotSelected()
+        }else{
+          fig = plotly::plot_ly()
+          fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
+          fig
+        }
     })
 
     ## display the current outliers
@@ -365,7 +499,6 @@ mod_qaPedApp_server <- function(id, data){
       if(nrow(mods) > 0){
         ## store the new modifications table
         result <- data()
-        #save(mods, file = "./R/outputs/resultQaGeno.RData")
         result$modifications$geno <- rbind(result$modifications$geno, mods )
         ## write the new status table
         newStatus <- data.frame(module="qaPed", analysisId= mods$analysisId[nrow(mods)])

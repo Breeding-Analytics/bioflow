@@ -92,7 +92,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("barcode"), "Hybridity test (", icon("dna"), ")", style = "color:red")),
                  tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")", style = "color:red")), #  icon = icon("filter")),
                  tabPanel(strong("DRIFT & FLOW HISTORY") ),
-                 tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")", style = "color:red")), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
+                 tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
                  tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red")) # stpga
       ),
