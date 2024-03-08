@@ -41,6 +41,7 @@ Imports:
     shinybusy,
     shinycssloaders,
     shinydashboard,
+    shinydashboardPlus,
     shinyjs,
     shinymanager,
     shinyWidgets,
