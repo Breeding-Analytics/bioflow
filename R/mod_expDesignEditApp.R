@@ -108,36 +108,43 @@ mod_expDesignEditApp_server <- function(id, data){
     # update color by
     observeEvent(c(data()), {
       req(data())
-      available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep","trait"), "value"]
-      traitsMta <- setdiff(available,"")
-      updateSelectInput(session, "zaxisCleaned3Dtraits", choices = traitsMta)
+      if("environment" %in% colnames(data()$data$pheno)){
+        available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep","trait"), "value"]
+        traitsMta <- setdiff(available,"")
+        updateSelectInput(session, "zaxisCleaned3Dtraits", choices = traitsMta)
+      }
+
     })
     # update text by
     observeEvent(c(data()), {
       req(data())
-      available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep","designation"), "value"]
-      traitsMta <- setdiff(available,"")
-      updateSelectInput(session, "textCleaned3Dtraits", choices = traitsMta)
+      if("environment" %in% colnames(data()$data$pheno)){
+        available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep","designation"), "value"]
+        traitsMta <- setdiff(available,"")
+        updateSelectInput(session, "textCleaned3Dtraits", choices = traitsMta)
+      }
     })
     # update environments by
     observeEvent(c(data()), {
       req(data())
       dtSta <- data()$data$pheno
       paramsPheno <- data()$metadata$pheno
-      if(is.null(paramsPheno)){
-        traitsMta <- NULL
-      }else{
-        paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-        if("environment" %in% paramsPheno$parameter){ # good to go
-          if(!is.null(dtSta)){
-            colnames(dtSta) <- cgiarBase::replaceValues(colnames(dtSta), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-            traitsMta <- na.omit(unique(dtSta[,"environment"]))
-          }else{traitsMta <- NULL}
-        }else{
+      if("environment" %in% colnames(data()$data$pheno)){
+        if(is.null(paramsPheno)){
           traitsMta <- NULL
+        }else{
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          if("environment" %in% paramsPheno$parameter){ # good to go
+            if(!is.null(dtSta)){
+              colnames(dtSta) <- cgiarBase::replaceValues(colnames(dtSta), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+              traitsMta <- na.omit(unique(dtSta[,"environment"]))
+            }else{traitsMta <- NULL}
+          }else{
+            traitsMta <- NULL
+          }
         }
+        updateSelectInput(session, "fieldinstCleaned3Dtraits", choices = traitsMta)
       }
-      updateSelectInput(session, "fieldinstCleaned3Dtraits", choices = traitsMta)
     })
 
     ##produce the plot
@@ -185,21 +192,23 @@ mod_expDesignEditApp_server <- function(id, data){
       object <- data()
       dtProv = object$data$pheno
       paramsPheno <- object$metadata$pheno
-      if(!is.null(paramsPheno) & !is.null(dtProv)){
-        paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-        colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-        dtProvNames <- c("row","col","rep","iBlock")
-        envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
-        if(length(envCol) > 0){
-          fieldNames <- as.character(unique(dtProv[,"environment"]))
-          spD <- split(dtProv,dtProv[,"environment"])
-          presentFactors <- paramsPheno$parameter[which(paramsPheno$parameter %in% dtProvNames)]
-          presentFactorsPerField <- lapply(spD, function(x){
-            apply(x[,presentFactors, drop=FALSE], 2, function(y){length(unique(y))})
-          })
-          presentFactorsPerField <- do.call(rbind, presentFactorsPerField)
-          dtProvTable = as.data.frame(presentFactorsPerField);  rownames(dtProvTable) <- fieldNames
-          return(dtProvTable)
+      if("environment" %in% colnames(dtProv)){ # if environment was computed
+        if(!is.null(paramsPheno) & !is.null(dtProv)){
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          dtProvNames <- c("row","col","rep","iBlock")
+          envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+          if(length(envCol) > 0){
+            fieldNames <- as.character(unique(dtProv[,"environment"]))
+            spD <- split(dtProv,dtProv[,"environment"])
+            presentFactors <- paramsPheno$parameter[which(paramsPheno$parameter %in% dtProvNames)]
+            presentFactorsPerField <- lapply(spD, function(x){
+              apply(x[,presentFactors, drop=FALSE], 2, function(y){length(unique(y))})
+            })
+            presentFactorsPerField <- do.call(rbind, presentFactorsPerField)
+            dtProvTable = as.data.frame(presentFactorsPerField);  rownames(dtProvTable) <- fieldNames
+            return(dtProvTable)
+          }
         }
       }
     })

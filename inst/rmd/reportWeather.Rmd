@@ -1,0 +1,225 @@
+---
+title: "Weather Data Extraction Report"
+author: ""
+date: "December 2023"
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+
+# loading necessary R packages ####
+## data manipulation
+library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(grafify)
+library(data.table)
+library(shiny)
+```
+
+```{r printfxn, include=FALSE}
+
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r }
+
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/result.RData")){
+    load("./outputs/resultWeather.RData")
+  }else{
+    load("resultWeather.RData")
+  }
+}, error = function(e) {
+  # NULL
+}))
+
+```
+
+
+### Weather data table
+<p>&nbsp;</p>
+
+The following table shows the modifications saved to be applied for the raw phenotypic data when is used in one of the analytical modules.
+
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  numericalColumns1 <- c("RH2M","T2M","PRECTOTCORR") 
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(result$data$weather)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      result$data$weather,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      options = list(
+        scrollY = "400px",
+        scrollX = "400px",
+        paging = F)
+    ),numericalColumns1)
+    })
+  }
+  
+}
+
+```
+
+
+### Weather data summary
+<p>&nbsp;</p>
+
+The following table shows the modifications saved to be applied for the raw phenotypic data when is used in one of the analytical modules.
+
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  numericalColumns2 <- c("value") 
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(result$metadata$weather)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      result$metadata$weather,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      options = list(
+        scrollY = "400px",
+        scrollX = "400px",
+        paging = F)
+    ),numericalColumns2)
+    })
+  }
+  
+}
+
+```
+
+<p>&nbsp;</p>
+
+### Coordinates map
+
+The following plot allows you to visualize which records were tagged as outliers and will be ignored in posterior analyses if this QA time stamp is added to the posterior analyses.
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  xx <- result$metadata$weather
+  xx <- xx[which(xx$trait %in% c("latitude","longitude")),c("environment","trait","value")]
+  xx <- reshape(xx, direction = "wide", idvar = "environment",
+                timevar = "trait", v.names = "value", sep= "_")
+  colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    world <- ggplot2::map_data("world")
+    p <- ggplot2::ggplot() + # + 
+      ggplot2::theme(legend.position="bottom", legend.text = ggplot2::element_text(size=4), legend.title = ggplot2::element_text(size=0)) +
+      ggplot2::geom_map(
+        data = world, map = world,
+        ggplot2::aes(long, lat, map_id = region),
+        color = "black", fill = "lightgray", linewidth=0.1
+      )  + ggplot2::ylab(" Latitude") + ggplot2::xlab("Longitude") +
+      ggplot2::geom_point(
+        data = xx,
+        ggplot2::aes(longitude, latitude, color = environment),
+        alpha = 0.7
+      ) 
+    print(p)
+    
+  }else{
+    
+    plotly::renderPlotly({
+      
+      fig <- xx
+      fig <- fig %>%
+        plotly::plot_ly(
+          lat = ~latitude,
+          lon = ~longitude,
+          type = "scattermapbox",
+          hovertext = ~environment, #us_cities[,"City"],
+          marker = list(color = "fuchsia"))
+      fig <- fig %>%
+        plotly::layout(
+          mapbox = list(
+            style = 'open-street-map',
+            zoom =1,
+            center = list(lon = 0, lat = 0)
+          )
+        )
+      # }
+      fig
+      
+    })
+    
+  }
+  
+}
+```
+
+
+
+
+
+
+
+
+

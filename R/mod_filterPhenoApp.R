@@ -135,168 +135,182 @@ mod_filterPhenoApp_server <- function(id, data){
       req(data())
       dtQaRaw <- data();
       dtQaRaw <- dtQaRaw$metadata$pheno
-      if(!is.null(data()$data$pheno)){
-        traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-        updateSelectInput(session, "traitFilterPheno",choices = traitsQaRaw)
-        updateSelectInput(session, "traitFilterPhenoMultiple",choices = traitsQaRaw, selected = NULL)
-        shinyjs::hide(ns("traitFilterPheno"))
+      if("environment" %in% colnames(data()$data$pheno)){
+        if(!is.null(data()$data$pheno)){
+          traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
+          updateSelectInput(session, "traitFilterPheno",choices = traitsQaRaw)
+          updateSelectInput(session, "traitFilterPhenoMultiple",choices = traitsQaRaw, selected = NULL)
+          shinyjs::hide(ns("traitFilterPheno"))
+        }
       }
     })
     # create the years
     observeEvent(c(data(),input$traitFilterPheno), {
       req(data()); req(input$traitFilterPheno); req(input$slider1)
-      object <- data()
-      mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
-      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
-        envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
-        desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
-        ll <- split(dtQaRaw, dtQaRaw[,envCol])
-        keepEnvs <- names(which( unlist(lapply(ll, function(x){length(unique(x[,desCol]))})) < input$slider1))
-        dtQaRaw <- droplevels(dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),])
+      if("environment" %in% colnames(data()$data$pheno)){
+        object <- data()
+        mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
+        if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
+          envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
+          desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
+          ll <- split(dtQaRaw, dtQaRaw[,envCol])
+          keepEnvs <- names(which( unlist(lapply(ll, function(x){length(unique(x[,desCol]))})) < input$slider1))
+          dtQaRaw <- droplevels(dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),])
 
-        traitsQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
-        if(length(traitsQaRaw)>0){
-          newLevels <- na.omit(unique(dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),traitsQaRaw]))
-          if(length(newLevels)==0){newLevels <- "all"}
-        }else{newLevels <- "all"}
-        updateSelectInput(session, "years",choices = newLevels, selected = newLevels)
-        shinyjs::hide(ns("years"))
+          traitsQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
+          if(length(traitsQaRaw)>0){
+            newLevels <- na.omit(unique(dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),traitsQaRaw]))
+            if(length(newLevels)==0){newLevels <- "all"}
+          }else{newLevels <- "all"}
+          updateSelectInput(session, "years",choices = newLevels, selected = newLevels)
+          shinyjs::hide(ns("years"))
+        }
       }
 
     })
     # create the seasons
     observeEvent(c(data(), input$traitFilterPheno, input$years ), {
       req(data()); req(input$years); req(input$slider1)
-      object <- data()
-      mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
-      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
-        envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
-        desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
-        keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
-        dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
+      if("environment" %in% colnames(data()$data$pheno)){
+        object <- data()
+        mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
+        if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
+          envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
+          desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
+          keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
+          dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
 
-        yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
-        seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
-        if(length(seasonQaQaRaw)>0){
-          reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-          if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-          newLevels <- na.omit(unique(reduced2[,seasonQaQaRaw]))
-          if(length(newLevels)==0){newLevels <- "all"}
-        }else{newLevels <- "all"}
-        updateSelectInput(session, "seasons",choices = newLevels, selected = newLevels)
-        shinyjs::hide(ns("seasons"))
+          yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
+          seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
+          if(length(seasonQaQaRaw)>0){
+            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+            newLevels <- na.omit(unique(reduced2[,seasonQaQaRaw]))
+            if(length(newLevels)==0){newLevels <- "all"}
+          }else{newLevels <- "all"}
+          updateSelectInput(session, "seasons",choices = newLevels, selected = newLevels)
+          shinyjs::hide(ns("seasons"))
+        }
       }
     })
     # create the countries
     observeEvent(c(data(),input$traitFilterPheno, input$years, input$seasons), {
       req(data()); req(input$years); req(input$seasons); req(input$slider1)
-      object <- data()
-      mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
-      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
-        envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
-        desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
-        keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
-        dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
+      if("environment" %in% colnames(data()$data$pheno)){
+        object <- data()
+        mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
+        if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
+          envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
+          desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
+          keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
+          dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
 
-        yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
-        seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
-        countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
-        if(length(countryQaRaw)>0){
-          reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-          if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-          if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-          newLevels <- na.omit(unique(reduced3[,countryQaRaw]))
-          if(length(newLevels)==0){newLevels <- "all"}
-        }else{newLevels <- "all"}
-        updateSelectInput(session, "countries",choices = newLevels, selected = newLevels)
-        shinyjs::hide(ns("countries"))
+          yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
+          seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
+          countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
+          if(length(countryQaRaw)>0){
+            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+            newLevels <- na.omit(unique(reduced3[,countryQaRaw]))
+            if(length(newLevels)==0){newLevels <- "all"}
+          }else{newLevels <- "all"}
+          updateSelectInput(session, "countries",choices = newLevels, selected = newLevels)
+          shinyjs::hide(ns("countries"))
+        }
       }
     })
     # create the locations
     observeEvent(c(data(), input$traitFilterPheno, input$years, input$seasons, input$countries), {
       req(data()); req(input$years); req(input$seasons);  req(input$countries); req(input$slider1)
-      object <- data()
-      mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
-      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
-        envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
-        desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
-        keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
-        dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
+      if("environment" %in% colnames(data()$data$pheno)){
+        object <- data()
+        mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
+        if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
+          envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
+          desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
+          keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
+          dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
 
-        yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
-        seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
-        countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
-        locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
-        if(length(locationQaRaw)>0){
-          reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-          if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-          if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-          if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
-          newLevels <- na.omit(unique(reduced4[,locationQaRaw]))
-          if(length(newLevels)==0){newLevels <- "all"}
-        }else{newLevels <- "all"}
-        updateSelectInput(session, "locations",choices = newLevels, selected = newLevels)
-        shinyjs::hide(ns("locations"))
+          yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
+          seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
+          countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
+          locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
+          if(length(locationQaRaw)>0){
+            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+            if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
+            newLevels <- na.omit(unique(reduced4[,locationQaRaw]))
+            if(length(newLevels)==0){newLevels <- "all"}
+          }else{newLevels <- "all"}
+          updateSelectInput(session, "locations",choices = newLevels, selected = newLevels)
+          shinyjs::hide(ns("locations"))
+        }
       }
     })
     # create the trials
     observeEvent(c(data(), input$traitFilterPheno, input$years, input$seasons, input$countries, input$locations), {
       req(data()); req(input$years); req(input$seasons);  req(input$countries);req(input$locations);  req(input$slider1)
-      object <- data()
-      mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
-      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
-        envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
-        desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
-        keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
-        dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
+      if("environment" %in% colnames(data()$data$pheno)){
+        object <- data()
+        mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
+        if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2){
+          envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
+          desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
+          keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
+          dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
 
-        yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
-        seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
-        countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
-        locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
-        trialQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="trial","value"]) # column for year
-        if(length(trialQaRaw)>0){
-          reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-          if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-          if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-          if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
-          if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
-          newLevels <- na.omit(unique(reduced5[,trialQaRaw]))
-          if(length(newLevels)==0){newLevels <- "all"}
-        }else{newLevels <- "all"}
-        updateSelectInput(session, "trials",choices = newLevels, selected = newLevels)
-        shinyjs::hide(ns("trials"))
+          yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
+          seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
+          countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
+          locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
+          trialQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="trial","value"]) # column for year
+          if(length(trialQaRaw)>0){
+            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+            if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
+            if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
+            newLevels <- na.omit(unique(reduced5[,trialQaRaw]))
+            if(length(newLevels)==0){newLevels <- "all"}
+          }else{newLevels <- "all"}
+          updateSelectInput(session, "trials",choices = newLevels, selected = newLevels)
+          shinyjs::hide(ns("trials"))
+        }
       }
     })
     # create the environments
     observeEvent(c(data(), input$traitFilterPheno, input$years, input$seasons, input$countries, input$locations, input$trials ), {
       req(data()); req(input$years); req(input$seasons);  req(input$countries);req(input$locations);   req(input$trials); req(input$slider1)
-      object <- data()
-      mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
-      if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2 ){
-        envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
-        desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
-        keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
-        dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
+      if("environment" %in% colnames(data()$data$pheno)){
+        object <- data()
+        mtdtQaRaw <- object$metadata$pheno; dtQaRaw <- object$data$pheno
+        if(length(which(mtdtQaRaw$parameter %in% c("environment","designation"))) == 2 ){
+          envCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"])
+          desCol <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="designation","value"])
+          keepEnvs <- names(which( unlist(lapply(split(dtQaRaw, dtQaRaw[,envCol]), function(x){length(unique(x[,desCol]))})) < input$slider1))
+          dtQaRaw <- dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),]
 
-        yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
-        seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
-        countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
-        locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
-        trialQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="trial","value"]) # column for year
-        environmentQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"]) # column for year
-        if(length(environmentQaRaw)>0){
-          reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-          if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-          if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-          if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
-          if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
-          if("all" %in%  input$trials){reduced6 <- reduced5}else{reduced6 <- reduced5[which(reduced5[,trialQaRaw] %in% input$trials),]}
-          newLevels <- na.omit(unique(reduced6[,environmentQaRaw]))
-          if(length(newLevels)==0){newLevels <- "all"}
-        }else{newLevels <- "all"}
-        updateSelectInput(session, "environments",choices = newLevels, selected = newLevels)
-        shinyjs::hide(ns("environments"))
+          yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
+          seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
+          countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
+          locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
+          trialQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="trial","value"]) # column for year
+          environmentQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"]) # column for year
+          if(length(environmentQaRaw)>0){
+            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+            if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
+            if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
+            if("all" %in%  input$trials){reduced6 <- reduced5}else{reduced6 <- reduced5[which(reduced5[,trialQaRaw] %in% input$trials),]}
+            newLevels <- na.omit(unique(reduced6[,environmentQaRaw]))
+            if(length(newLevels)==0){newLevels <- "all"}
+          }else{newLevels <- "all"}
+          updateSelectInput(session, "environments",choices = newLevels, selected = newLevels)
+          shinyjs::hide(ns("environments"))
+        }
       }
     })
     ## function to calculate outliers
@@ -305,33 +319,35 @@ mod_filterPhenoApp_server <- function(id, data){
       result <- data()
       mydata <- data()$data$pheno
 
-      ### change column names for mapping
-      paramsPheno <- data()$metadata$pheno
+      if("environment" %in% colnames(data()$data$pheno)){
+        ### change column names for mapping
+        paramsPheno <- data()$metadata$pheno
 
-      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-      colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-      mydata$rowindex <- 1:nrow(mydata)
+        paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+        colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+        mydata$rowindex <- 1:nrow(mydata)
 
-      # start
-      if("all" %in%  input$years){keep1 <- 1:nrow(mydata)}else{keep1 <- which(mydata[,"year"] %in% input$years) }
-      if("all" %in%  input$seasons){keep2 <- 1:nrow(mydata)}else{keep2 <- which(mydata[,"season"] %in% input$seasons) }
-      if("all" %in%  input$countries){keep3 <- 1:nrow(mydata)}else{keep3 <- which(mydata[,"country"] %in% input$countries) }
-      if("all" %in%  input$locations){keep4 <- 1:nrow(mydata)}else{keep4 <- which(mydata[,"location"] %in% input$locations) }
-      if("all" %in%  input$trials){keep5 <- 1:nrow(mydata)}else{keep5 <- which(mydata[,"trial"] %in% input$trials) }
-      if("all" %in%  input$environments){keep6 <- 1:nrow(mydata)}else{keep6 <- which(mydata[,"environment"] %in% input$environments) }
-      keepEnvs <- names(which( unlist(lapply(split(mydata, mydata[,"environment"]), function(x){length(unique(x[,"designation"]))})) < input$slider1))
-      keep7 <- which(mydata[,"environment"] %in% keepEnvs)
-      # records to keep
-      keep <- Reduce(intersect, list(keep1,keep2,keep3,keep4,keep5,keep6, keep7) )#which( (mydata[,"year"] %in% input$years) & (mydata[,"season"] %in% input$seasons) & (mydata[,"country"] %in% input$countries) & (mydata[,"location"] %in% input$locations) & (mydata[,"trial"] %in% input$trials) & (mydata[,"environment"] %in% input$environments) )
-      toSilence <- setdiff(mydata$rowindex, keep)
+        # start
+        if("all" %in%  input$years){keep1 <- 1:nrow(mydata)}else{keep1 <- which(mydata[,"year"] %in% input$years) }
+        if("all" %in%  input$seasons){keep2 <- 1:nrow(mydata)}else{keep2 <- which(mydata[,"season"] %in% input$seasons) }
+        if("all" %in%  input$countries){keep3 <- 1:nrow(mydata)}else{keep3 <- which(mydata[,"country"] %in% input$countries) }
+        if("all" %in%  input$locations){keep4 <- 1:nrow(mydata)}else{keep4 <- which(mydata[,"location"] %in% input$locations) }
+        if("all" %in%  input$trials){keep5 <- 1:nrow(mydata)}else{keep5 <- which(mydata[,"trial"] %in% input$trials) }
+        if("all" %in%  input$environments){keep6 <- 1:nrow(mydata)}else{keep6 <- which(mydata[,"environment"] %in% input$environments) }
+        keepEnvs <- names(which( unlist(lapply(split(mydata, mydata[,"environment"]), function(x){length(unique(x[,"designation"]))})) < input$slider1))
+        keep7 <- which(mydata[,"environment"] %in% keepEnvs)
+        # records to keep
+        keep <- Reduce(intersect, list(keep1,keep2,keep3,keep4,keep5,keep6, keep7) )#which( (mydata[,"year"] %in% input$years) & (mydata[,"season"] %in% input$seasons) & (mydata[,"country"] %in% input$countries) & (mydata[,"location"] %in% input$locations) & (mydata[,"trial"] %in% input$trials) & (mydata[,"environment"] %in% input$environments) )
+        toSilence <- setdiff(mydata$rowindex, keep)
 
-      if(length(toSilence) > 0){
-        myoutliersReduced <- data.frame(module="qaFilter",analysisId=NA,trait=input$traitFilterPheno,reason="outlierIQR",row=toSilence, value=NA);
-      }else{
-        myoutliersReduced <- data.frame(matrix(nrow=0, ncol=6))
-        colnames(myoutliersReduced) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
+        if(length(toSilence) > 0){
+          myoutliersReduced <- data.frame(module="qaFilter",analysisId=NA,trait=input$traitFilterPheno,reason="outlierIQR",row=toSilence, value=NA);
+        }else{
+          myoutliersReduced <- data.frame(matrix(nrow=0, ncol=6))
+          colnames(myoutliersReduced) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
+        }
+        return(myoutliersReduced)
       }
-      return(myoutliersReduced)
     })
     # returns the ones to exclude
     outFilterRaw <- eventReactive(input$runFilterRaw, {

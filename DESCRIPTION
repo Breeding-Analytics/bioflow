@@ -28,6 +28,7 @@ Imports:
     LMMsolver,
     magrittr,
     markdown,
+    nasapower,
     network,
     pedigreemm,
     plotly,

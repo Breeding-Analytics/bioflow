@@ -23,6 +23,7 @@ app_server <- function(input, output, session) {
 
   ## DATA extraction
   mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
+  mod_getDataWeather_server("getDataWeather_1", data = data)
 
   ## QUALITY ASSURANCE tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
@@ -46,7 +47,7 @@ app_server <- function(input, output, session) {
   mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
 
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
-  
+
   ## SAVE results tab
   mod_saveData_server("saveData_1", data = data, res_auth=res_auth)
 

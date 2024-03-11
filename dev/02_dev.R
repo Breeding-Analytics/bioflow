@@ -50,6 +50,7 @@
 # usethis::use_package("network")
 # usethis::use_package("ggnetwork")
 # usethis::use_package("shinydashboardPlus")
+# usethis::use_package("nasapower")
 # # usethis::use_package("tidyverse")
 # usethis::use_pipe()
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
@@ -80,6 +81,7 @@
 # ## Create a module infrastructure in R/
 # # golem::add_module(name = "input_file_sta", with_test = FALSE) # Name of the module
 # golem::add_module(name = "getData", with_test = FALSE) # extracting raw data
+# golem::add_module(name = "getDataWeather", with_test = FALSE) # extracting raw data
 #
 # golem::add_module(name = "qaRawApp", with_test = FALSE) # QA on raw data
 # golem::add_module(name = "filterPhenoApp", with_test = FALSE ) # QA on raw data

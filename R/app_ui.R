@@ -37,6 +37,15 @@ app_ui <- function(request) {
 
       tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
+      # tabPanel(div(icon("upload"), "Data Retrieval"),
+      #          tabsetPanel(
+      #            tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
+      #            tabPanel("Weather ", mod_getDataWeather_ui("getDataWeather_1"), icon = icon("upload") ),
+      #          ),
+      # ),
+
+      # tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
+
       # navbarMenu("Selection", icon = icon("bullseye"),
       #            tabPanel(div(icon("filter-circle-xmark"), "Pheno-Outlier QA/QC (", icon("seedling"),")" ), mod_qaRawApp_ui("qaRawApp_1") ),
       #            tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
@@ -56,16 +65,16 @@ app_ui <- function(request) {
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "Quality Assurance"),
                           navlistPanel( widths = c(1, 11),
-                            tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaRawApp_ui("qaRawApp_1") ),
-                            tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
-                            tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
+                                        tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaRawApp_ui("qaRawApp_1") ),
+                                        tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
+                                        tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                           )
                  ),
 
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),
                           navlistPanel( widths = c(1, 11),
-                            tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
-                            tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") )
+                                        tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
+                                        tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") )
                           )
                  ),
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-bolt") ,")"), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
