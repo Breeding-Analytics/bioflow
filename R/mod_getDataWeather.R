@@ -296,7 +296,7 @@ mod_getDataWeather_server <- function(id, data){
         ## pheno check
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         xx <- dataWeather()
-        save(xx, file="xx.RData")
+        # save(xx, file="xx.RData")
         howManyProvidede <- apply(xx,1,function(x){length(which(is.na(x)))/length(x)})
         if( length(which(howManyProvidede != 0)) > 0  ){ # the user has not provided any full information for any field
           cat( "Please fill the 4 fields required for at least one environment to extract weather data.")
