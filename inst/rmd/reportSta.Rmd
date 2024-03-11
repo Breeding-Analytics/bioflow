@@ -390,7 +390,7 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-The following boxplot allows you to see the distribution of predicted values by trait (y-axis) in the different environments.
+The following plot allows you to see the distribution of predicted values by trait (y-axis) in the different environments.
 
 <p>&nbsp;</p>
 
@@ -402,6 +402,7 @@ if (is.null(result)){
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
   modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
+  modeling <- setdiff(modeling, "inputObject")
   
   if("params" %in% ls()){ # we will download the document
     

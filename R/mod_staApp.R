@@ -104,7 +104,7 @@ mod_staApp_ui <- function(id){
                                                                    ),
                                                )
                                       ),
-                                      tabPanel("Pick effects", icon = icon("table"),
+                                      tabPanel("Pick effect(s)", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF" ,
                                                       column(width=6, selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s)", choices = NULL, multiple = TRUE) ),
