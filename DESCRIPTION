@@ -17,6 +17,7 @@ Imports:
     cgiarPipeline (>= 1.0.2),
     config (>= 0.3.2),
     data.table,
+    dendextend,
     DT,
     ggnetwork,
     ggplot2,

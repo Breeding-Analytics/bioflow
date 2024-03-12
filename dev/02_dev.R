@@ -51,6 +51,7 @@
 # usethis::use_package("ggnetwork")
 # usethis::use_package("shinydashboardPlus")
 # usethis::use_package("nasapower")
+# usethis::use_package("dendextend")
 # # usethis::use_package("tidyverse")
 # usethis::use_pipe()
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")

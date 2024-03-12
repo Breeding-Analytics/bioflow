@@ -162,13 +162,13 @@ mod_staApp_ui <- function(id){
                                                br(),
                                                uiOutput(ns('reportSta')),
                                       ),
-                                      tabPanel("Report OFT", icon = icon("file-image"),
-                                               br(),
-                                               selectInput(ns("fieldinst"), label = "Environments to Include in the Report", choices = NULL, multiple = TRUE),
-                                               br(),
-                                               div(tags$p("Please download the report below:") ),
-                                               downloadButton(ns("downloadReportOft"), "Download report")
-                                      )
+                                      # tabPanel("Report OFT", icon = icon("file-image"),
+                                      #          br(),
+                                      #          selectInput(ns("fieldinst"), label = "Environments to Include in the Report", choices = NULL, multiple = TRUE),
+                                      #          br(),
+                                      #          div(tags$p("Please download the report below:") ),
+                                      #          downloadButton(ns("downloadReportOft"), "Download report")
+                                      # )
                                     ) # of of tabsetPanel
                            )# end of output panel
 

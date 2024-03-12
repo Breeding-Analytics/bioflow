@@ -177,7 +177,12 @@ mod_rggApp_server <- function(id, data){
         # mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$medata$pedigree)))
         if(length(mappedColumns) == 1){
           if("mta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
+            myYearOfOrigin <- result$metadata$pedigree[result$metadata$pedigree$parameter=="yearOfOrigin","value"]
+            if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
+              HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
+            }else{
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure to map the column 'yearOfOrigin' in the 'Pedigree data' extraction section under the 'Data Retrieval' to perform the realized genetic gain analysis.")) )
+            }
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
