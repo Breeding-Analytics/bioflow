@@ -31,6 +31,15 @@ mod_meetTheTeamApp_ui <- function(id){
                                                 p(" "),
                                                 p("All CGIAR centers with Biometrics capacity have contributed to the design of the breeding analytics platform
                                                   and currently work in developing analytical modules. Want to contribute? Contact us.")
+                            ),
+                            shinydashboard::box(status="success", width = 12,
+                                                title = "Team Activities:", solidHeader = TRUE,
+                                                slickR::slickROutput(ns("teamPhoto")),
+                                                br(),
+                                                br(),
+                                                br(),
+                                                br(),
+                                                br()
                             )
         ),
         class = "tab-content"
@@ -47,6 +56,12 @@ mod_meetTheTeamApp_ui <- function(id){
 mod_meetTheTeamApp_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
+    output$teamPhoto <- slickR::renderSlickR({
+      imgs <- list.files(paste0(getwd(),"/inst/app/www/activities"), pattern=".jpg", full.names = TRUE)
+      slickR::slickR(imgs) + slickR::settings(dots = TRUE, infinite = TRUE, speed = 500,
+                                              fade = TRUE, cssEase = "linear", arrows = FALSE)
+    })
 
   })
 }

@@ -176,6 +176,7 @@ mod_getData_ui <- function(id){
           DT::DTOutput(ns('preview_pheno')),
           uiOutput(ns('pheno_map')),
           actionButton(ns("concatenateEnv"), "Compute Environments (Required)", icon = icon("play-circle")),
+          p(span("**Compute environment will concatenate 'year', 'season', 'location', 'trial' and 'study' information", style="color:orange")),
           textOutput(ns("outConcatenateEnv")),
         ),
 
@@ -1024,22 +1025,31 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in study
       req(data())
       myObject <- data()
+      # myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = c("year","season","location","trial","study")))
       environmentColumn <- which(myObject$metadata$pheno$parameter == "environment")
       if(length(environmentColumn) > 0){ # user has mapped an study column
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
           myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
           data(myObject)
-          cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
-        }else{cat("No additional columns to concatenate to your 'study' column")}
+          shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"), type = "success")
+          # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
+        }else{
+          shinyalert::shinyalert(title = "Warning!", text = "No additional columns to concatenate to your 'study' column", type = "warning")
+          # cat("No additional columns to concatenate to your 'study' column")
+        }
       }else{ # user has not mapped an study column, we will add it
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
         if(length(otherEnvironmentColumn) > 0){ # if user has mapped more than one column
           myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
           data(myObject)
-          cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
-        }else{cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))}
+          shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "), type = "success")
+          # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
+        }else{
+          shinyalert::shinyalert(title = "Warning!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "), type = "warning")
+          # cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))
+        }
       }
     })
     output$outConcatenateEnv <- renderPrint({

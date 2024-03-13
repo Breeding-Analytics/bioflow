@@ -95,6 +95,7 @@
 #
 # golem::add_module(name = "staApp", with_test = FALSE) # single trial analysis
 # golem::add_module(name = "qaStaApp", with_test = FALSE) # QA after sta
+# golem::add_module(name = "oftStaApp", with_test = FALSE) # OFT after sta
 # golem::add_module(name = "mtaApp", with_test = FALSE) # multi trial analysis
 # golem::add_module(name = "indexDesireApp", with_test = FALSE) # desire selection index
 # golem::add_module(name = "ocsApp", with_test = FALSE) # optimal cross selection

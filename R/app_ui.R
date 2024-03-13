@@ -74,7 +74,8 @@ app_ui <- function(request) {
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),
                           navlistPanel( widths = c(1, 11),
                                         tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
-                                        tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") )
+                                        tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
+                                        tabPanel(div("(optional) On Farm Trial Decision (", icon("seedling"), ")" ), mod_oftStaApp_ui("oftStaApp_1") ),
                           )
                  ),
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-bolt") ,")"), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
