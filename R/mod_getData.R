@@ -1025,7 +1025,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in study
       req(data())
       myObject <- data()
-      myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = c("year","season","location","trial","study")))
+      # myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = c("year","season","location","trial","study")))
       environmentColumn <- which(myObject$metadata$pheno$parameter == "environment")
       if(length(environmentColumn) > 0){ # user has mapped an study column
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
