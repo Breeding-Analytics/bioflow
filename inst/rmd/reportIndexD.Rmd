@@ -366,7 +366,9 @@ if (is.null(result)){
   idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
   mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
-  uTraits <- unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
+  uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
+uTraits <- gsub("_scaled","",uTraits)
+  # uTraits <- unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
   
   object=result
   environmentPredictionsRadar2="across"
