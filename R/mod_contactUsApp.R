@@ -17,7 +17,7 @@ mod_contactUsApp_ui <- function(id){
         shinydashboard::box(width = 12, status = "success", collapsible = FALSE,
 
                             h3(strong("Contact us")),
-                            p("Please use the following link", tags$a(href="https://riceinfo.atlassian.net/servicedesk/customer/portal/6", "(Help Desk)", target="_blank") ,
+                            p("Please use the following link", tags$a(href="https://brservices.atlassian.net/servicedesk/customer/portal/3", "(BIOFLOW Support Desk)", target="_blank") ,
                               "to reach our Help Desk and send us your question or request."),
 
                             h3(strong("How to contribute?")),
