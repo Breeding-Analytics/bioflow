@@ -39,6 +39,7 @@ app_server <- function(input, output, session) {
   # SELECTION - genetic evaluation
   mod_staApp_server("staApp_1", data = data) # single trial analysis
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
+  mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
