@@ -957,7 +957,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         column(3,
                selectInput(
                  inputId  = ns(paste0('select', x)),
-                 label    = x,
+                 label    = ifelse(x %in% c('trait','designation'), paste(x,'(required)'), x),
                  multiple = ifelse(x == 'trait', TRUE, FALSE),
                  choices  = as.list(c('', header)),
                  selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
@@ -1646,7 +1646,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             if(input$previous_object_input == 'cloudfile'){
               cat(paste("Dataset:", input$previous_input,"loaded successfully."))
             }else{
-              cat(paste("Dataset","loaded successfully."))
+              cat(paste("Dataset",input$previous_object_file$name,"loaded successfully."))
             }
           }) ## end eventReactive
           output$outLoad <- renderPrint({

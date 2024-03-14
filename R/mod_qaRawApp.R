@@ -127,9 +127,9 @@ mod_qaRawApp_server <- function(id, data){
     output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
       req(data())
       req(input$outlierCoefOutqFont)
-      req(input$outlierCoefOutqPheno)
-      req(input$traitLBOutqPheno)
-      req(input$traitUBOutqPheno)
+      # req(input$outlierCoefOutqPheno)
+      # req(input$traitLBOutqPheno)
+      # req(input$traitUBOutqPheno)
       req(input$traitOutqPheno)
       mydata <- data()$data$pheno
       ### change column names for mapping
@@ -174,9 +174,9 @@ mod_qaRawApp_server <- function(id, data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){ # all required columns are present
           req(input$outlierCoefOutqFont)
-          req(input$outlierCoefOutqPheno)
-          req(input$traitLBOutqPheno)
-          req(input$traitUBOutqPheno)
+          # req(input$outlierCoefOutqPheno)
+          # req(input$traitLBOutqPheno)
+          # req(input$traitUBOutqPheno)
           req(input$traitOutqPheno)
           ## get the outlier table
           outlier <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno=input$traitLBOutqPheno, traitUBOutqPheno=input$traitUBOutqPheno) # newOutliers()
@@ -211,9 +211,9 @@ mod_qaRawApp_server <- function(id, data){
       if(mappedColumns == 3){ # all required columns are present
         req(input$outlierCoefOutqFont)
         req(input$traitOutqPhenoMultiple)
-        req(input$outlierCoefOutqPheno)
-        req(input$traitLBOutqPheno)
-        req(input$traitUBOutqPheno)
+        # req(input$outlierCoefOutqPheno)
+        # req(input$traitLBOutqPheno)
+        # req(input$traitUBOutqPheno)
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         ## get the outlier table
         outlier <- list()

@@ -133,7 +133,7 @@ if (is.null(result)){
   pheno.env <- pheno[,c('environment','designation')]
   pheno.env<- unique(pheno.env[c('designation','environment')]) 
   pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
-  colnames(pheno.env.designation)[2] <- "# of entries"
+  colnames(pheno.env.designation)[2] <- "Number of entries"
   summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
   
   if("params" %in% ls()){ # we will download the document

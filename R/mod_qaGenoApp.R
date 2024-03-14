@@ -62,6 +62,9 @@ mod_qaGenoApp_ui <- function(id){
                                                                column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of the proportion of markers or individuals tagged for the different QA parameters.", style="color:black")),
                                                                       plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker")) ,
+                                                                      p(span("Number of individuals and markers available in the dataset.", style="color:black")),
+                                                                      DT::DTOutput(ns("summariesGeno")),
+                                                                      p(span("Preview of potential modifications to add.", style="color:black")),
                                                                       DT::DTOutput(ns("modificationsQaMarker")),
                                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                           selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
@@ -172,6 +175,21 @@ mod_qaGenoApp_server <- function(id, data){
 
     })
 
+    ## summaries geno
+    output$summariesGeno <-  DT::renderDT({
+      req(data())
+
+      if(!is.null(data()$data$geno)){
+        mo <- data.frame(nInds=nrow(data()$data$geno), nMarkers=ncol(data()$data$geno)); rownames(mo) <- "summary"
+      }else{
+        mo <- data.frame(warningText="Genetic marker data not available")
+      }
+      DT::datatable(mo, extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+      )
+
+    })
     ## display the current outliers
     observeEvent(data(),{
 
