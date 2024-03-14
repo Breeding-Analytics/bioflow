@@ -345,8 +345,8 @@ mod_qaPedApp_server <- function(id, data){
         ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
         colnames(ver)[1]="rows"
         ver[,1]=as.factor(ver[,1])
-        library(reshape2)
-        ver=melt(ver, id="rows")
+        # library(reshape2)
+        ver=reshape2::melt(ver, id="rows")
         colnames(ver)=c("rows","Class","Imputed")
         figS <- plotly::plot_ly(ver,y= ~Imputed,color=~Class,type = 'box')
         figS
@@ -390,8 +390,8 @@ mod_qaPedApp_server <- function(id, data){
       ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
       colnames(ver)[1]="rows"
       ver[,1]=as.factor(ver[,1])
-      library(reshape2)
-      ver=melt(ver, id="rows")
+      # library(reshape2)
+      ver=reshape2::melt(ver, id="rows")
       colnames(ver)=c("rows","Class","Heterozygozity")
       figS <- plotly::plot_ly(ver,y= ~Heterozygozity,color=~Class,type = 'box')
       figS
@@ -413,8 +413,8 @@ mod_qaPedApp_server <- function(id, data){
       ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
       colnames(ver)[1]="rows"
       ver[,1]=as.factor(ver[,1])
-      library(reshape2)
-      ver=melt(ver, id="rows")
+      # library(reshape2)
+      ver=reshape2::melt(ver, id="rows")
       colnames(ver)=c("rows","Class","Gmat")
       figS <- plotly::plot_ly(ver,y= ~Gmat,color=~Class,type = 'box')
       figS

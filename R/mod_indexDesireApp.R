@@ -87,7 +87,7 @@ mod_indexDesireApp_ui <- function(id){
                                                                            p(span("Radar plot to inspect population values versus target values.", style="color:black")),
                                                                            plotly::plotlyOutput(ns("plotPredictionsRadar")),
                                                                            p(span("Expected response to selection using current desire changes.", style="color:black")),
-                                                                           plotly::plotlyOutput(ns("plotPotentialResponse")),
+                                                                           shiny::plotOutput(ns("plotPotentialResponse")),
                                                                            shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
                                                                                                numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
                                                                                                numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
@@ -385,7 +385,7 @@ mod_indexDesireApp_server <- function(id, data){
                 fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
     })
     # render plot for potential responses
-    output$plotPotentialResponse <-  plotly::renderPlotly({
+    output$plotPotentialResponse <-  shiny::renderPlot({
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)

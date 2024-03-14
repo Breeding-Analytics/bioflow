@@ -440,7 +440,7 @@ uTraits <- gsub("_scaled","",uTraits)
     
   }else{
     
-    plotly::renderPlotly({
+   shiny::renderPlot({ # plotly::renderPlotly({
       ## if user provides threshold values let them know the selection differentials
       if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
         ## add product profile means'
@@ -481,8 +481,9 @@ uTraits <- gsub("_scaled","",uTraits)
           ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
           ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red")
       }
-      fig2 <-  plotly::ggplotly(p)
-      fig2
+      # fig2 <-  plotly::ggplotly(p)
+      # fig2
+     p
     })
     
   }
