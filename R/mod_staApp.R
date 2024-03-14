@@ -96,11 +96,6 @@ mod_staApp_ui <- function(id){
                                                                           p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                                           selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
                                                                           shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                                              selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
-                                                                                              numericInput(ns("maxitSta"),"Number of iterations",value=35),
-                                                                                              selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
-                                                                          ),
                                                                    ),
                                                )
                                       ),
@@ -129,6 +124,12 @@ mod_staApp_ui <- function(id){
                                                actionButton(ns("runSta"), "Run STA", icon = icon("play-circle")),
                                                uiOutput(ns("qaQcStaInfo")),
                                                textOutput(ns("outSta")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                   selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
+                                                                   numericInput(ns("maxitSta"),"Number of iterations",value=35),
+                                                                   selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
+                                               ),
                                       ),
                                     )# of of tabsetPanel
                            ),
