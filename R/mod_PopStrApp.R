@@ -1,3 +1,4 @@
+geno_group<- 'www/example/Groupgeno.csv'
 #' PopStrApp UI Function
 #'
 #' @description A shiny Module.
@@ -43,12 +44,19 @@ mod_PopStrApp_ui <- function(id){
                                                           ),
                                                     )
                                 ),
-
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
-                                tabsetPanel(
-                                  tabPanel("Groups data", icon = icon("table"),
+                                
+                                tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                    tabsetPanel(
+                                         tabPanel("Run analysis", icon = icon("play"),
+                                                  br(),
+                                                  actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
+                                                  uiOutput(ns("outPopStr")),
+                                                  
+                                         ),
+                                         tabPanel("Additional settings...", icon = icon("table"),
                                            br(),
-                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                           br(),
+                                           column(width=12, style = "background-color:#d6d4d4; color: black",
                                                   HTML("<font size='3'>Add external information for groups in csv format</font>"),
                                                   tags$span(id = ns('fileenvbio_holder'),
                                                             fileInput(
@@ -58,26 +66,80 @@ mod_PopStrApp_ui <- function(id){
                                                               accept  = c('.csv')
                                                             )
                                                   ),
-                                                  checkboxInput(ns("quitomono"),"Remove monomorphic markers",value=FALSE),
+                                                    checkboxInput(
+                                                      inputId = ns('geno_group'),
+                                                      label = span('Load example ',
+                                                                   a('group data', target = '_blank',
+                                                                     href = geno_group)),
+                                                      value = FALSE
+                                                    ),
+                                                  hr(),
+                                                  checkboxInput(ns("quitomono"),"Remove monomorphic markers from groups",value=FALSE),
                                                   textInput(ns('nclust'),'No. Clusters',value='3'),
                                                   radioButtons(ns("distk"), "Genetic distance to be calculate",choices = c(Rogers = "Rogers", Nei = "Nei"))
                                            )
-                                  ),
-                                  tabPanel("Run analysis", icon = icon("play"),
-                                           br(),
-                                           actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
-                                           uiOutput(ns("outPopStr")),
                                   )
+                                  
                                 )
                        ),
 
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                 tabsetPanel(
-                                  tabPanel("MDS-2D-Plot", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Statistics", icon = icon("table"),
+                                           br(),
+                                           shinydashboard::box(title="By Genotypes",status="success",width = 12, collapsible = TRUE, solidHeader = TRUE,
+                                                               column(width=12,DT::DTOutput(ns("seeDataStatGeno")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           ),shinydashboard::box(title="By Markers",status="success",width = 12,solidHeader = TRUE,
+                                                                 column(width=12,DT::DTOutput(ns("seeDataStatMark")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           )
+                                  ),
+                                  #Termina statistics
+                                  #inicia heatmap
+                                  tabPanel("General diversity", icon = icon("magnifying-glass-chart"),
+                                           br(),
+                                           shinydashboardPlus::box(title="Heatmap Distance Matrix",closable = FALSE, width=12, solidHeader = TRUE, collapsible = TRUE, status="success",
+                                                                   sidebar = shinydashboardPlus::boxSidebar(id="Heatmap",width = 25,
+                                                                                                            selectInput(ns('colorheat'), 'Scale color',choices =c("Reds","Jet","Blues","Viridis"), selected="Reds")
+                                                                   ),
+                                                                   #grafico heatmap
+                                                                   div(plotly::plotlyOutput(ns("heat"),height = "750px",width = "950px"),align="center")
+                                           ),
+                                           shinydashboard::box(title="Statiscs of diversity",status="success",width = 12,solidHeader = TRUE,
+                                                               column(width=12,DT::DTOutput(ns("seeDataDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           )
+                                  ),
+                                  #termina heatmap
+                                  tabPanel("Population structure", icon = icon("table"),
+                                           br(),
+                                           shinydashboard::box(title="Fst",status="success",width = 12,solidHeader = TRUE, collapsible = TRUE,
+                                                               column(width=12,DT::DTOutput(ns("seeDataGDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           ),
+                                           #shinydashboard::box(title="AMOVA", status="success",width = 12, solidHeader = TRUE,
+                                           #                    column(width=12,DT::DTOutput(ns("seeDataGAmova")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           #)
+                                           shinydashboardPlus::box(title = "Dendogram",closable = FALSE, width=12, solidHeader = FALSE, collapsible = FALSE, status="success",
+                                                                   sidebar = shinydashboardPlus::boxSidebar(id="dendogram",width = 25,
+                                                                                                            sliderInput(ns('sizeline'),'Size cluster line',min=0.1,max=2,value=0.9),
+                                                                                                            sliderInput(ns('sizelab'),'Size labels',min=0.5,max=5,value=3),
+                                                                                                            sliderInput(ns('space'),'Spaces',min=0.1,max=2,value=0.2),
+                                                                                                            tags$hr(),
+                                                                                                            selectInput(ns('poslen'),'Position legend',choices=c('left','top','bottom','right'),selected='left'),
+                                                                                                            tags$hr(),
+                                                                                                            selectInput(ns('typeclust'),'Type',choices=c('circular','rectangular'), selected='rectangular'),
+                                                                                                            selectInput(ns('catvdend'),'Group',choices = '',selected=NULL),
+                                                                                                            #Creacion de color para cambiar el color de los puntos del grafico de acuerdo a una lista de colores generada
+                                                                                                            selectInput(ns('colordend'),'Choose a color',choices = '',selected="",multiple=T)
+                                                                   ),
+                                                                   div(plotOutput(ns("dend"),height = "750px",width = "950px"),align="center")
+                                                                   
+                                           )
+                                  ),
+                                  #termina structure
+                                  tabPanel("MDS", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            #shinydashboard::box(
 
-                                           shinydashboardPlus::box(title = "",closable = FALSE, width=12, solidHeader = FALSE, collapsible = FALSE,
+                                           shinydashboardPlus::box(title = "2D-Plot",closable = FALSE, width=12, solidHeader = TRUE, collapsible = TRUE,status="success",
                                                                    sidebar = shinydashboardPlus::boxSidebar(id="mdsplot2d",width = 25,
                                                                                                             #useShinyalert(),
                                                                                                             selectInput(ns('xcol'), 'X Variable',choices =""),
@@ -127,86 +189,26 @@ mod_PopStrApp_ui <- function(id){
                                                                    div(plotly::plotlyOutput(ns("try"),height = "750px",width = "950px"),align="center")
                                            ),
 
+                                           br(),
+                                                    shinydashboard::box(title="Factors and Groups", status="success",width = 12, solidHeader = TRUE,
+                                                                        column(width=12,DT::DTOutput(ns("seeDataMDS")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                    )
                                            #)
                                   ),
 
                                   #inicia dend
-                                  tabPanel("Dendogram", icon = icon("magnifying-glass-chart"),
-                                           br(),
-                                           shinydashboardPlus::box(title = "",closable = FALSE, width=12, solidHeader = FALSE, collapsible = FALSE,
-                                                                   sidebar = shinydashboardPlus::boxSidebar(id="dendogram",width = 25,
-                                                                                                            sliderInput(ns('sizeline'),'Size cluster line',min=0.1,max=2,value=0.9),
-                                                                                                            sliderInput(ns('sizelab'),'Size labels',min=0.5,max=5,value=3),
-                                                                                                            sliderInput(ns('space'),'Spaces',min=0.1,max=2,value=0.2),
-                                                                                                            tags$hr(),
-                                                                                                            selectInput(ns('poslen'),'Position legend',choices=c('left','top','bottom','right'),selected='left'),
-                                                                                                            tags$hr(),
-                                                                                                            selectInput(ns('typeclust'),'Type',choices=c('circular','rectangular'), selected='rectangular'),
-                                                                                                            selectInput(ns('catvdend'),'Group',choices = '',selected=NULL),
-                                                                                                            #Creacion de color para cambiar el color de los puntos del grafico de acuerdo a una lista de colores generada
-                                                                                                            selectInput(ns('colordend'),'Choose a color',choices = '',selected="",multiple=T)
-                                                                   ),
-                                                                   div(plotOutput(ns("dend"),height = "750px",width = "950px"),align="center")
-
-                                           )
-                                  ),
+                                  #tabPanel("Dendogram", icon = icon("magnifying-glass-chart"),
+                                  #         br(),
+                                  #         
+                                  #),
                                   #termina dend
-
-                                  #inicia heatmap
-                                  tabPanel("Heatmap", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Report", icon = icon("file-image"),
                                            br(),
-                                           shinydashboardPlus::box(title = "",closable = FALSE, width=12, solidHeader = FALSE, collapsible = FALSE,
-                                                                   sidebar = shinydashboardPlus::boxSidebar(id="Heatmap",width = 25,
-                                                                                                            selectInput(ns('colorheat'), 'Scale color',choices =c("Reds","Jet","Blues","Viridis"), selected="Reds")
-                                                                   ),
-                                                                   #grafico heatmap
-                                                                   div(plotly::plotlyOutput(ns("heat"),height = "750px",width = "950px"),align="center")
-                                           )
-                                  ),
-                                  #termina heatmap
-                                  tabPanel("Summary Diversity", icon = icon("table"),
-                                           br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
-                                  ),
-                                  tabPanel("Fst", icon = icon("table"),
-                                           br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataGDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
-                                  ),
-                                  tabPanel("AMOVA", icon = icon("table"),
-                                           br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataGAmova")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
-                                  ),
-                                  tabPanel("Stat Genotypes", icon = icon("table"),
-                                           br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataStatGeno")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
-                                  ),
-                                  tabPanel("Stat Markers", icon = icon("table"),
-                                           br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataStatMark")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
-                                  ),
-                                  tabPanel("MDSTable", icon = icon("table"),
-                                           br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataMDS")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
+                                           div(tags$p("Please download the report below:") ),
+                                           downloadButton(ns("downloadReportPopStr"), "Download report"),
+                                           uiOutput(ns('reportPopStr'))
                                   )
-
+                                  #termina report
                                 )
                        )# end of output panel
                      )) # end mainpanel
@@ -251,14 +253,33 @@ mod_PopStrApp_server <- function(id, data){
       }
    })
     ##
-    outPopStr <- eventReactive(input$runPopStr, {
-	    req(data())
-      HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
-    })
+    #outPopStr <- eventReactive(input$runPopStr, {
+	   # req(data())
+    #  HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
+    #})
     output$outPopStr <- renderUI({
       outPopStr()
     })
 
+    outPopStr <- eventReactive(input$runPopStr, {
+        result <- data()
+        uno=DoforDiv()
+        result$PopStr<-uno[[8]]
+        ## write the new status table
+        newStatus <- data.frame(module="PopStr", analysisId= as.numeric(Sys.time()))
+        result$status <- rbind(result$status, newStatus)
+        data(result)
+        save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
+        
+        HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
+    })
+    
+    output$reportPopStr <- renderUI({
+      shinybusy::show_modal_spinner('fading-circle', text = 'Creating report...')
+      HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+      shinybusy::remove_modal_spinner()
+    })
+    
     DoforDiv<-reactive({
       library(stringr)
       req(data())
@@ -330,33 +351,35 @@ mod_PopStrApp_server <- function(id, data){
 	    return(biodata)
   })
 
+
  observeEvent(data(),{
   #Ver datos en tabla dinamica Summary Diversity
   output$seeDataDiver<-DT::renderDT({
-    allInfo=DoforDiv()[[8]]
-    markfile=allInfo[[1]]
-    genfile=allInfo[[2]]
-    if (is.null(markfile)==F && is.null(genfile)==F){
-      shinyalert::shinyalert(title = "Important message",
-                 text="Repeated sequence of markers and genotypes information were found!",
-                 type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
-      )
-    }
-    if (is.null(markfile)==F && is.null(genfile)==T){
-      shinyalert::shinyalert(title = "Important message",
-                 text="Repeated sequence of markers information were found!",
-                 type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
-      )
-    }
-    if (is.null(markfile)==T && is.null(genfile)==F){
-      shinyalert::shinyalert(title = "Important message",
-                 text="Repeated sequence of genotypes information were found!",
-                 type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
-      )
-    }
-    seedatos<-as.data.frame(DoforDiv()[[1]])
-    colnames(seedatos)=c("Parameter","Value")
-    DT::datatable(seedatos, extensions = 'Buttons',
+    allInfo=data()[["PopStr"]]#DoforDiv()[[8]]
+    #markfile=allInfo[[1]]
+    #genfile=allInfo[[2]]
+    #if (is.null(markfile)==F && is.null(genfile)==F){
+    #  shinyalert::shinyalert(title = "Important message",
+    #             text="Repeated sequence of markers and genotypes information were found!",
+    #             type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
+    #  )
+    #}
+    #if (is.null(markfile)==F && is.null(genfile)==T){
+    #  shinyalert::shinyalert(title = "Important message",
+    #             text="Repeated sequence of markers information were found!",
+    #             type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
+    #  )
+    #}
+    #if (is.null(markfile)==T && is.null(genfile)==F){
+    #  shinyalert::shinyalert(title = "Important message",
+    #             text="Repeated sequence of genotypes information were found!",
+    #             type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
+    #  )
+    #}
+    seedatosum<-as.data.frame(allInfo[["SummaryDiversityAnalysis"]])#as.data.frame(DoforDiv()[[1]])
+    colnames(seedatosum)=c("Parameter","Value")
+    seedatosum[,2]=round(as.numeric(seedatosum[,2]),3)
+    DT::datatable(seedatosum, extensions = 'Buttons',
                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                  lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
                   )
@@ -369,10 +392,11 @@ mod_PopStrApp_server <- function(id, data){
   output$seeDataGDiver<-DT::renderDT({
     datos<-as.data.frame(DoforDiv()[[5]])
     datos1<-as.data.frame(mdata1()[[1]])
-	  seedatos=cgiarBase::gdiv(datos,datos1,as.character(input$catv),as.character(input$quitomono),as.data.frame(DoforDiv()[[6]]))
-    #write.csv(seedatos,file.path(DoforDiv()[[3]],"Population Structure.csv"))
-    seedatos1=as.data.frame(seedatos[[1]])
+	  seedatosFst=cgiarBase::gdiv(datos,datos1,as.character(input$catv),as.character(input$quitomono),as.data.frame(DoforDiv()[[6]]))
+    
+    seedatos1<-as.data.frame(seedatosFst[[1]])
     names(seedatos1)=c("Parameter","Groups","Fst","NumMark_UsedForCalculated")
+    seedatos1$Fst=round(as.numeric(seedatos1$Fst),4)
 	  DT::datatable(seedatos1, extensions = 'Buttons',
                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                  lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
@@ -392,13 +416,14 @@ mod_PopStrApp_server <- function(id, data){
 	  agc.env$Pop<-as.factor(agc.env$Pop)
 
 	  shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-	  seedatos=cgiarBase::forAMOVA(as.data.frame(DoforDiv()[[6]]),agc.env)
+	  seedatosAmova<-cgiarBase::forAMOVA(as.data.frame(DoforDiv()[[6]]),agc.env)
 	  shinybusy::remove_modal_spinner()
 
-	  rownames(seedatos)=seedatos[,1]
-	  seedatos=seedatos[,-1]
+	  rownames(seedatosAmova)=seedatosAmova[,1]
+	  seedatosAmova=seedatosAmova[,-1]
+	  seedatosAmova[,2:8]=apply(seedatosAmova[,2:8],2,function(x){round(as.numeric(x),4)})
 	  #if(input$typedata=="DistMat"){write.csv(seedatos,file.path(DoforDiv()[[3]],"AMOVA.csv"))}
-	  DT::datatable(seedatos, extensions = 'Buttons',
+	  DT::datatable(seedatosAmova, extensions = 'Buttons',
 	                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
 	                               lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 	  )
@@ -408,10 +433,13 @@ mod_PopStrApp_server <- function(id, data){
  observeEvent(data(),{
    #Ver datos en tabla dinamica %NA, He, Ho by marker
    output$seeDataStatMark<-DT::renderDT({
-     seedatos<-DoforDiv()[[8]]
-     seedatos<-as.data.frame(seedatos[[4]])
-     seedatos[,1]=rownames(seedatos)
-     DT::datatable(seedatos, extensions = 'Buttons',
+     seedatos<-data()[["PopStr"]]
+     seedatosStaM<-as.data.frame(seedatos[[4]])
+     seedatosStaM[,1]=rownames(seedatosStaM)
+     
+     seedatosStaM[,2:7]=apply(seedatosStaM[,2:7],2,function(x){round(as.numeric(x),4)})
+     
+     DT::datatable(seedatosStaM, extensions = 'Buttons',
                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
      )
@@ -421,9 +449,10 @@ mod_PopStrApp_server <- function(id, data){
  observeEvent(data(),{
    #Ver datos en tabla dinamica %NA,He,Ho by genotype
    output$seeDataStatGeno<-DT::renderDT({
-     seedatos<-DoforDiv()[[8]]
-     seedatos<-as.data.frame(seedatos[[5]])
-     DT::datatable(seedatos, extensions = 'Buttons',
+     seedatos<-data()[["PopStr"]]
+     seedatosStaG<-as.data.frame(seedatos[[5]])
+     seedatosStaG[,2:6]=apply(seedatosStaG[,2:6],2,function(x){round(as.numeric(x),4)})
+     DT::datatable(seedatosStaG, extensions = 'Buttons',
                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
      )
@@ -433,9 +462,10 @@ mod_PopStrApp_server <- function(id, data){
  observeEvent(data(),{
    #Ver datos en tabla dinamica MDS
    output$seeDataMDS<-DT::renderDT({
-     seedatos<-as.data.frame(mdata1()[[1]])
+     seedatosMDS<-as.data.frame(mdata1()[[1]])
      #seedatos<-as.data.frame(seedatos[[8]])
-     DT::datatable(seedatos, extensions = 'Buttons',
+     seedatosMDS[,2:4]=apply(seedatosMDS[,2:4],2,function(x){round(as.numeric(x),4)})
+     DT::datatable(seedatosMDS, extensions = 'Buttons',
                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
      )
@@ -445,6 +475,19 @@ mod_PopStrApp_server <- function(id, data){
   #Transformacion de los datos, para el uso posterior en los graficos
   #shinyFiles::shinyFileChoose(input, ns('fileenvbio'), roots = shinyFiles::getVolumes(),filetypes=c('', 'csv'))
 
+ DataG <- reactiveVal(NULL)
+ 
+ observeEvent(input[["input$fileenvbio"]], {
+   dat <- read.csv(input[["input$fileenvbio"]][["datapath"]])
+   DataG(dat)
+ })
+ 
+ observeEvent(input[["geno_group"]], {
+   src <- normalizePath("inst/app/www/example/Groupgeno.csv")
+   dat <- read.csv(src)
+   DataG(dat)
+ })
+ 
   mdata1=reactive({
     library(ape)
     #Cada que se actualice nclust
@@ -459,9 +502,11 @@ mod_PopStrApp_server <- function(id, data){
     data1$Factor3=as.numeric(as.character(data1$Factor3))
     data1$GroupClust=as.factor(as.character(data1$GroupClust))
     #Cuando se agrega un archivo para grupos externos
-    if (!is.null(input$fileenvbio)){
-      inFileenvbio<-input$fileenvbio$datapath
-      dfenvbio <- read.csv(as.character(inFileenvbio),header = TRUE,sep = ",")
+    #if (!is.null(input$fileenvbio)){
+    #  inFileenvbio<-input$fileenvbio$datapath
+    #  dfenvbio <- read.csv(as.character(inFileenvbio),header = TRUE,sep = ",")
+    if (!is.null(DataG())){
+      dfenvbio <-DataG()
   	  dfenvbio[,1]<-dfenvbio[,1]
 	    indexCOV <- match(data1$Gen,as.character(dfenvbio[,1]))
       if(length(indexCOV)>0)	dfenvbio <- dfenvbio[indexCOV,]
@@ -489,7 +534,6 @@ mod_PopStrApp_server <- function(id, data){
     updateSelectInput(session,'catvdend', 'Group',choices = vars,selected=vars[5])
 
     result=list(data1,TFArx)
-	  #write.csv(data1,file.path(DoforDiv()[[3]],"GroupsCluster.csv"),row.names=F)
     return(result)
   })
   #Actualiza la variable catv (grupos) en conjunto con la seleccion de colores
@@ -503,15 +547,6 @@ mod_PopStrApp_server <- function(id, data){
     var=as.factor(mdata1()[[1]][,input$catv])
     grupos=nlevels(var)
     updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
-  })
-  observeEvent(input$catv3D,{
-    set.seed(7)
-    colores=colors()[-c(1,3:12,13:25,24,37:46,57:67,80,82,83,85:89,101:106,108:113,126:127,138,140:141,152:253,260:366,377:392,
-                        394:447,449,478:489,492,513:534,536:546,557:561,579:583,589:609,620:629,418,436,646:651)]
-    d=sample(colores,100)
-    var=as.factor(mdata1()[[1]][,input$catv3D])
-    grupos=nlevels(var)
-    updateSelectInput(session,'color3D','Choose a color', choices=d,selected=d[1:grupos])
   })
   observeEvent(input$catvdend,{
     set.seed(7)
@@ -549,43 +584,26 @@ mod_PopStrApp_server <- function(id, data){
   #Cuadro de texto que muestra la direccion en la que se guardo el grafico.
   output$default1=renderText({paste('You can find results and edited plots files in:',as.character(DoforDiv()[[3]]))})
 
-  #grafico 3d
-  output$try3d=plotly::renderPlotly({
-    mydata<-data()$data$geno
-    if(!is.null(mydata)){
-    p=plotly::plot_ly(data=mdata1()[[1]],x=mdata1()[[1]][,input$xcol3D],y=mdata1()[[1]][,input$ycol3D],z=mdata1()[[1]][,input$zcol3D],color=mdata1()[[1]][,input$catv3D],
-              type = 'scatter3d' ,mode="markers",colors = input$color3D,
-              text=mdata1()[[1]][,input$eti3D],marker=list(size=input$size3D))
-      #Nombre de los ejes del grafico
-      p=p %>% plotly::layout(scene=list(xaxis = list(title = input$tx3D,titlefont=list(size=input$szl3D,color=input$ac3D)),
-                        yaxis = list(title = input$ty3D,titlefont=list(size=input$szl3D,color=input$ac3D)),
-                        zaxis = list(title = input$tz3D,titlefont=list(size=input$szl3D,color=input$ac3D))),
-             paper_bgcolor=input$bkgp3D,
-             title=input$tp3D,titlefont=list(size=input$ts3D,color=input$pnc3D))
-
-    #el siguiente codigo, cambia temporalmente el directorio de trabajo para guardar el grafico 3d
-    #primero se especifica la direccion en la que se guardara y luego la accion (guardar el grafico)
-    #withr::with_dir(file.path(DoforDiv()[[3]]),saveWidget(p,paste0('MDS3d',input$catv3D,'.html'), selfcontained = F))
-    p
-    }else{
-      fig = plotly::plot_ly()
-      fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
-      fig
-    }
-  })
-
-
+#Plot heatmap
   output$heat=plotly::renderPlotly({
-    mydata<-data()$data$geno
-    if(!is.null(mydata)){
-      use=as.data.frame(mdata1()[[1]])
-      group=as.character(input$catv)
-      use=use[order(use[,group]),]
-      useorder=match(use$Gen,rownames(DoforDiv()[[6]]))
-      distplot=plotly::plot_ly(x=rownames(DoforDiv()[[6]])[useorder],y=rownames(DoforDiv()[[6]])[useorder],z = DoforDiv()[[6]][useorder,useorder], colorscale=input$colorheat,type = "heatmap")
-      distplot=distplot %>% plotly::layout(xaxis = list(showticklabels = F), yaxis = list(showticklabels = F))
-      #withr::with_dir(file.path(DoforDiv()[[3]]),saveWidget(distplot,'DistancesPlotEdited.html', selfcontained = F))
-      distplot
+    distMat=data()[["PopStr"]][["Distance_Matrix"]]
+    if(!is.null(distMat)){
+    names=as.character(distMat[,2])
+    distMat=as.matrix(distMat[,-c(1,2)])
+    distplot=plotly::plot_ly(x=names,y=names,z = distMat, colorscale="viridis",type = "heatmap")
+    distplot=distplot %>% plotly::layout(xaxis = list(showticklabels = F), yaxis = list(showticklabels = F))
+    distplot
+    #mydata<-data()$data$geno
+    #if(!is.null(mydata)){
+    #  use=as.data.frame(mdata1()[[1]])
+    #  groupheat=as.character(input$catv)
+    #  use=use[order(use[,groupheat]),]
+    #  useorder=match(use$Gen,rownames(DoforDiv()[[6]]))
+    #  heatxy<-rownames(DoforDiv()[[6]])[useorder]
+    #  heatz<-DoforDiv()[[6]][useorder,useorder]
+    #  distplot=plotly::plot_ly(x=rownames(DoforDiv()[[6]])[useorder],y=rownames(DoforDiv()[[6]])[useorder],z = DoforDiv()[[6]][useorder,useorder], colorscale=input$colorheat,type = "heatmap")
+    #  distplot=distplot %>% plotly::layout(xaxis = list(showticklabels = F), yaxis = list(showticklabels = F))
+    #  distplot
     }else{
       fig = plotly::plot_ly()
       fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
@@ -613,6 +631,30 @@ mod_PopStrApp_server <- function(id, data){
 
   })
 
+  ## Report tab
+  output$downloadReportPopStr <- downloadHandler(
+    filename = function() {
+      paste('my-report', sep = '.', switch(
+        "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+      ))
+    },
+    content = function(file) {
+      src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
+      src2 <- normalizePath('R/outputs/resultPopStr.RData')
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
+      out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+        "HTML",
+        HTML = rmarkdown::html_document()
+      ))
+      file.rename(out, file)
+    }
+  )
+  
 
   })
 }
