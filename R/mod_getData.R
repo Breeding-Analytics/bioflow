@@ -1727,7 +1727,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }else{ # data is there
         mappedColumns <- length(which(c("environment") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 1){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify the location of your environments.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column using the 'Data Retrieval' tab.")) )
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column in 'Data Retrieval' tab for Phenotypes.")) )
         }
       }
     )
