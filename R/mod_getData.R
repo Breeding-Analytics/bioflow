@@ -1065,7 +1065,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("No additional columns to concatenate. 'environment' column is equal to", myObject$metadata$pheno[otherEnvironmentColumn, " value"]), type = "success")
         }else{
-          shinyalert::shinyalert(title = "Warning!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
           # cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))
         }
       }
