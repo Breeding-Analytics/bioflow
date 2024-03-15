@@ -131,9 +131,9 @@ mod_getDataWeather_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
-        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers specifying your input parameters under the 'Input' tabs.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )
+        mappedColumns <- length(which(c("environment") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 1){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify the location of your environments.")) )
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column using the 'Data Retrieval' tab.")) )
         }
       }
     )
@@ -256,9 +256,9 @@ mod_getDataWeather_server <- function(id, data){
         values3 <- as.Date(as.numeric( as.data.frame(t(as.numeric(values3))) ), origin="1970-01-01", tz="GMT")
         values4 <- as.Date(as.numeric( as.data.frame(t(as.numeric(values4))) ), origin="1970-01-01", tz="GMT")
         values5 <- as.character(as.data.frame(t(as.character(values5))) )
+        xx <- data.frame(latitude=values, longitude=values2, plantingDate=values3, harvestingDate=values4, environment=values5)
+        return(xx)
       }
-      xx <- data.frame(latitude=values, longitude=values2, plantingDate=values3, harvestingDate=values4, environment=values5)
-      return(xx)
     })
     ##produce the map plot
     output$plotMeteo <-  plotly::renderPlotly({

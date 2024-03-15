@@ -129,12 +129,11 @@ mod_mtaApp_ui <- function(id){
                                       tabPanel("Specify GxE", icon = icon("table"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=4, selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE) ),
-                                                      column(width = 8,
-                                                             shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include (optional)...",
-                                                                                 p(span("Fields to include in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
-                                                                                 DT::dataTableOutput(ns("fieldsMet")),
+                                                      column(width=4,
+                                                             selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
                                                              ),
+                                                      column(width = 8,
+                                                             numericInput(ns("minimumNumberEnvsFW"), label = "Minimum number of environments for Finlay-Wilkinson regression", value = 6),
                                                       ),
                                                ),
                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
@@ -158,6 +157,11 @@ mod_mtaApp_ui <- function(id){
                                                actionButton(ns("runMta"), "Run MTA", icon = icon("play-circle")),
                                                uiOutput(ns("qaQcMtaInfo")),
                                                textOutput(ns("outMta")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include (OPTIONAL)...",
+                                                                   p(span("Fields to include in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                                                   DT::dataTableOutput(ns("fieldsMet")),
+                                               ),
                                       ),
                                     )
                            ),
@@ -335,10 +339,10 @@ mod_mtaApp_server <- function(id, data){
     observeEvent(c(data(), input$trait2Mta), {
       req(data())
       req(input$trait2Mta)
-      dtMta <- data()
+      dtMta <- data() # dtMta <- result
       dtMta <- dtMta$metadata$weather
-      validWeatherVars <- c("AIRMASS","ALLSKY_SFC_LW_UP","PW","CLOUD_AMT","GWETTOP","PS","PRECTOTCORR","WS2M","T2M","T2M_MAX","T2M_MIN","U2M","RH2M")
-      traitsMta <- unique(c("envIndex",intersect(unique(dtMta$parameter), validWeatherVars )))
+      validWeatherVars <- c("RH2M","T2M","PRECTOTCORR", "latitude", "longitude", "plantingDate", "harvestingDate" )
+      traitsMta <- unique(c("envIndex",intersect(unique(dtMta$trait), validWeatherVars )))
       updateSelectInput(session, "interactionTermMta2", choices = traitsMta)
     })
     #################
@@ -695,7 +699,7 @@ mod_mtaApp_server <- function(id, data){
           nMarkersRRBLUP=input$nMarkersRRBLUP,
           deregress=input$deregressMet,  nPC=input$nPC,
           maxIters=input$maxitMet, batchSizeToPredict=500, tolParInv=1e-4,
-          verbose=FALSE
+          minimumNumberEnvsFW =input$minimumNumberEnvsFW,verbose=FALSE
         ),
         silent=TRUE
         )

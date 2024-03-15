@@ -23,7 +23,7 @@ app_server <- function(input, output, session) {
 
   ## DATA extraction
   mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
-  mod_getDataWeather_server("getDataWeather_1", data = data)
+  # mod_getDataWeather_server("getDataWeather_1", data = data)
 
   ## QUALITY ASSURANCE tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
