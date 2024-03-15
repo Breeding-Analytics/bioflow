@@ -169,14 +169,14 @@ mod_getData_ui <- function(id){
             )
           },
 
-          p(span("**If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
+          p(span("Note: If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
 
           hr(),
           uiOutput(ns('brapi_trait_map')),
           DT::DTOutput(ns('preview_pheno')),
           uiOutput(ns('pheno_map')),
-          actionButton(ns("concatenateEnv"), "Compute Environments (Required)", icon = icon("play-circle")),
-          p(span("**Compute environment will concatenate 'year', 'season', 'location', 'trial' and 'study' information", style="color:orange")),
+          actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
+          p(span("Note: Compute environment will concatenate 'year', 'season', 'location', 'trial' and 'study' information", style="color:orange")),
           textOutput(ns("outConcatenateEnv")),
         ),
 
@@ -957,7 +957,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         column(3,
                selectInput(
                  inputId  = ns(paste0('select', x)),
-                 label    = ifelse(x %in% c('trait','designation'), paste(x,'(required)'), x),
+                 label    = HTML(ifelse(x == 'designation',as.character(p('designation', span('(*required)',style="color:red"))),ifelse(x == 'trait',as.character(p('trait', span('(*required)',style="color:red"))),x))),
                  multiple = ifelse(x == 'trait', TRUE, FALSE),
                  choices  = as.list(c('', header)),
                  selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
@@ -966,7 +966,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
 
                renderPrint({
-                 req(input[[paste0('select', x)]])
+                 # req(input[[paste0('select', x)]])
                  temp <- data()
                  if (x == 'trait') {
                    temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
@@ -975,17 +975,23 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                      if(!is.numeric(temp$data$pheno[,i])){temp$data$pheno[,i] <- as.numeric(gsub(",","",temp$data$pheno[,i]))}
                    }
                  } else { # is any other column other than trait
-                   if (x %in% temp$metadata$pheno$parameter) {
+                   if (x %in% temp$metadata$pheno$parameter & input[[paste0('select', x)]] != '') {
                      temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
                    } else {
                      temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
                    }
-                   if(x %in% c("designation","study")){temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII") }
+                   if(x %in% c("designation","study") & input[[paste0('select', x)]] != ''){
+                     temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII")
+                   }
+                   if(input[[paste0('select', x)]] == ''){
+                     temp$metadata$pheno <- temp$metadata$pheno[-which(temp$metadata$pheno$parameter == x), ]
+                   }
                  }
-
                  if (x == 'designation') {
-                   temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
-                   temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
+                   if(input[[paste0('select', x)]] != ''){
+                     temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
+                     temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
+                   }
                  }
                  data(temp)
                }),
@@ -1025,7 +1031,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in study
       req(data())
       myObject <- data()
-      # myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = c("year","season","location","trial","study")))
+      myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = c("year","season","location","trial","study")))
       environmentColumn <- which(myObject$metadata$pheno$parameter == "environment")
       if(length(environmentColumn) > 0){ # user has mapped an study column
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
@@ -1034,20 +1040,32 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"), type = "success")
           # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
-        }else{
-          shinyalert::shinyalert(title = "Warning!", text = "No additional columns to concatenate to your 'study' column", type = "warning")
+        }else if(length(otherEnvironmentColumn) == 1){
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          data(myObject)
+          shinyalert::shinyalert(title = "Success!", text = paste0("No additional columns to concatenate. '", myObject$metadata$pheno[environmentColumn, "value"], "' column is equal to ", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")
           # cat("No additional columns to concatenate to your 'study' column")
+        }else {
+          myObject$metadata$pheno <- myObject$metadata$pheno[-which(myObject$metadata$pheno$parameter == "environment"), ]
+          myObject$data$pheno <- myObject$data$pheno [,!(names(myObject$data$pheno) %in% c("environment"))]
+          data(myObject)
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to compute the environments and perform a genetic evaluation "), type = "error")
         }
       }else{ # user has not mapped an study column, we will add it
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
-        if(length(otherEnvironmentColumn) > 0){ # if user has mapped more than one column
+        if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
           myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "), type = "success")
           # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
+        }else if(length(otherEnvironmentColumn) == 1){
+          myObject$data$pheno[,"environment"] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
+          data(myObject)
+          shinyalert::shinyalert(title = "Success!", text = paste("No additional columns to concatenate. 'environment' column is equal to", myObject$metadata$pheno[otherEnvironmentColumn, " value"]), type = "success")
         }else{
-          shinyalert::shinyalert(title = "Warning!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "), type = "warning")
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
           # cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))
         }
       }
@@ -1061,16 +1079,25 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       output$preview_pheno <- DT::renderDT({
         myObject <- data()
         phenoColnames <- colnames(myObject$data$pheno)
-        newPhenoColnames <- c("environment", setdiff(phenoColnames, "environment"))
-        myObject$data$pheno <- myObject$data$pheno[, newPhenoColnames]
-        environmentColumnName <- myObject$metadata$pheno$value[which(myObject$metadata$pheno$parameter == "environment")]
-        DT::datatable(myObject$data$pheno,
-                      extensions = 'Buttons',
-                      options = list(dom = 'Blfrtip',
-                                     scrollX = TRUE,
-                                     buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                     lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))) %>%
-          DT::formatStyle(environmentColumnName, backgroundColor = "#009E60")
+        if("environment" %in% phenoColnames){
+          newPhenoColnames <- c("environment", setdiff(phenoColnames, "environment"))
+          myObject$data$pheno <- myObject$data$pheno[, newPhenoColnames]
+          environmentColumnName <- myObject$metadata$pheno$value[which(myObject$metadata$pheno$parameter == "environment")]
+          DT::datatable(myObject$data$pheno,
+                        extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))) %>%
+            DT::formatStyle(environmentColumnName, backgroundColor = "#009E60")
+        } else{
+          DT::datatable(myObject$data$pheno,
+                        extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))))
+        }
       })
     })
     ### Genotypic tab controls #################################################
@@ -1644,9 +1671,11 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             data(tmp) # update data with results
             shinybusy::remove_modal_spinner()
             if(input$previous_object_input == 'cloudfile'){
-              cat(paste("Dataset:", input$previous_input,"loaded successfully."))
+              shinyalert::shinyalert(title = "Success!", text = paste("Dataset:", input$previous_input,"loaded successfully."), type = "success")
+              # cat(paste("Dataset:", input$previous_input,"loaded successfully."))
             }else{
-              cat(paste("Dataset",input$previous_object_file$name,"loaded successfully."))
+              shinyalert::shinyalert(title = "Success!", text = paste("Dataset",input$previous_object_file$name,"loaded successfully."), type = "success")
+              # cat(paste("Dataset",input$previous_object_file$name,"loaded successfully."))
             }
           }) ## end eventReactive
           output$outLoad <- renderPrint({
