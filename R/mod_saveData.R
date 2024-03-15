@@ -82,7 +82,8 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
             result <- data() # current or empty dataset
             save(result, file=file.path(getwd(),res_auth$repository, paste0(input$fileNameUpload,".RData") ) ) # old dataset
             shinybusy::remove_modal_spinner()
-            cat(paste("Analysis named: '",input$fileNameUpload,"' saved successfully."))
+            shinyalert::shinyalert(title = "Success!", text = paste("Analysis named: '",input$fileNameUpload,"' saved successfully."), type = "success")
+            # cat(paste("Analysis named: '",input$fileNameUpload,"' saved successfully."))
           }) ## end eventReactive
           output$outSave <- renderPrint({
             outSave()
