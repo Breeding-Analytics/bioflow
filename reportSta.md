@@ -24,65 +24,55 @@ NULL
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
-   <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> # of entries </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> GYKGPHA </th>
+   <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> 2021_NYH3_G2F_2020_21_PHK76 </td>
+   <td style="text-align:left;"> 2018_Fanaye </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 384 </td>
+   <td style="text-align:right;"> 40 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_NYS1_HIP_Hybrid </td>
+   <td style="text-align:left;"> 2018_Kogoni </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:right;"> 40 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_SCH1_G2F_2020_21_PHZ51 </td>
+   <td style="text-align:left;"> 2018_Niono </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 404 </td>
+   <td style="text-align:right;"> 40 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_SCH1_HIP_Hybrid </td>
+   <td style="text-align:left;"> 2018_VDK </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:right;"> 40 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_SCH1_YELLOW_STRIPE </td>
+   <td style="text-align:left;"> 2020_Fanaye </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 25 </td>
+   <td style="text-align:right;"> 45 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH1_G2F_2020_21_PHZ51 </td>
+   <td style="text-align:left;"> 2020_Mbe </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 249 </td>
+   <td style="text-align:right;"> 45 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH1_HIP_Hybrid </td>
+   <td style="text-align:left;"> 2020_Ndiaye </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:right;"> 45 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH1_YELLOW_STRIPE </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 25 </td>
+   <td style="text-align:left;"> 2021_Fanaye </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 45 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH2_G2F_2020_21_PHZ51 </td>
+   <td style="text-align:left;"> 2021_Ndiaye </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 249 </td>
+   <td style="text-align:right;"> 66 </td>
   </tr>
 </tbody>
 </table></div>
@@ -98,14 +88,12 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="inputObject">inputObject</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out6b27c7cc9490a7d7" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outed15a6bbbe450661" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-parameterMetrics-label" for="staApp_1-parameterMetrics">Parameter:</label>
@@ -119,7 +107,7 @@ The following table allows you to verify different quality metrics (KPIs) for th
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out490770762f662d02" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outfd29d4ab595e3b7f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -132,35 +120,34 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="2021_NYH3_G2F_2020_21_PHK76" selected>2021_NYH3_G2F_2020_21_PHK76</option>
-<option value="2021_SCH1_G2F_2020_21_PHZ51">2021_SCH1_G2F_2020_21_PHZ51</option>
-<option value="2021_TXH2_G2F_2020_21_PHZ51">2021_TXH2_G2F_2020_21_PHZ51</option>
-<option value="2021_TXH1_G2F_2020_21_PHZ51">2021_TXH1_G2F_2020_21_PHZ51</option>
-<option value="2021_SCH1_YELLOW_STRIPE">2021_SCH1_YELLOW_STRIPE</option>
-<option value="2021_TXH1_HIP_Hybrid">2021_TXH1_HIP_Hybrid</option>
-<option value="2021_SCH1_HIP_Hybrid">2021_SCH1_HIP_Hybrid</option>
-<option value="2021_NYS1_HIP_Hybrid">2021_NYS1_HIP_Hybrid</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="2018_Kogoni" selected>2018_Kogoni</option>
+<option value="2018_Niono">2018_Niono</option>
+<option value="2018_VDK">2018_VDK</option>
+<option value="2018_Fanaye">2018_Fanaye</option>
+<option value="2021_Ndiaye">2021_Ndiaye</option>
+<option value="2020_Mbe">2020_Mbe</option>
+<option value="2021_Fanaye">2021_Fanaye</option>
+<option value="2020_Fanaye">2020_Fanaye</option>
+<option value="2020_Ndiaye">2020_Ndiaye</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outc96c3741a8cfd4e0" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out984e82857166c9c9" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
-The following boxplot allows you to see the distribution of predicted values by trait (y-axis) in the different environments.
+The following plot allows you to see the distribution of predicted values by trait (y-axis) in the different environments.
 
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
-<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="inputObject" selected>inputObject</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outf8774a313b25597e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out0dd902d9387c2bb9" style="width:100%;height:400px;"></div><!--/html_preserve-->
