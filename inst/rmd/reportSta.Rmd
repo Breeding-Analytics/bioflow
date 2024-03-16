@@ -164,7 +164,7 @@ if (is.null(result)){
   modeling <- result$modeling
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
-  staTraits <- unique(modeling[which(modeling$analysisId == idSta),"trait"])
+  staTraits <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
   
   if("params" %in% ls()){ # we will download the document
     
@@ -179,6 +179,8 @@ if (is.null(result)){
 }
 
 ```
+
+Table of statistics:
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -258,6 +260,86 @@ if (is.null(result)){
 }
 ```
 
+Variance components ratios per environment 
+
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  modeling <- result$modeling
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  staTraits2 <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    shiny::selectInput(ns("traitSta0"), 
+                       label = "Trait:", 
+                       multiple = FALSE,
+                       choices = staTraits2, 
+    )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  df2 <- result$metrics
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  df2 <- df2[df2$analysisId==idSta,]
+  df2 <- df2[df2$parameter %in% c("Vg","Vr"), ]
+  total <- aggregate(value~environment+trait, FUN = sum, data=df2); 
+  colnames(total)[3] <- "totalVar"
+  df3 <- merge(df2,total, by=c("environment","trait") )
+  df3$valueProp <- df3$value/df3$totalVar
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat("\n\n###  {.tabset .tabset-pills}       \n\n")
+    
+    for (j in 1:length(staTraits2)){
+      cat("\n\n####", staTraits2[j], "{.tabset .tabset-pills}       \n\n")
+      df4 <- df3[df3$trait == staTraits2[j],]
+      p <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
+        ggplot2::geom_bar(stat="identity") +
+        ggplot2::xlab("Environment") + ggplot2::ylab("Proportion of variance") +
+        scale_fill_brewer(palette="Accent") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+        ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
+      print(p)
+      
+      cat("\n")
+    }
+    
+    cat("\n")
+    
+  }else{
+    
+    shiny::renderPlot({
+      df3 <- df3[df3$trait == input$traitSta0,]
+      ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
+        ggplot2::geom_bar(stat="identity") +
+        ggplot2::xlab("Environment") + ggplot2::ylab("Proportion of variance") +
+        scale_fill_brewer(palette="Accent") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+        ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
+    })
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
 ```{r}
 if (is.null(result)){
   # invisible(NULL)
@@ -279,6 +361,8 @@ if (is.null(result)){
 }
 ```
 
+Barplot for parameter values
+
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
@@ -298,25 +382,29 @@ if (is.null(result)){
       mydata2 = mydata[which(mydata$parameter %in% iParam),]
       p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-      ggplot2::labs(x="Environment", y="Parameter value")
-      print(htmltools::tagList(plotly::ggplotly(p)))
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="Environment", y="Parameter value")
+      # print(htmltools::tagList(plotly::ggplotly(p)))
+      print(p)
       cat("\n")
     }
     # }
     cat("\n")
-  }else{
+  }else{ # display in website
     
-    plotly::renderPlotly({
-       mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
-      p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
+    # plotly::renderPlotly({})
+    
+    shiny::renderPlot({
+      mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-      ggplot2::labs(x="Environment", y="Parameter value")
-      res <- plotly::ggplotly(p)
-      res
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="Environment", y="Parameter value")
+      p
+      # res <- plotly::ggplotly(p)
+      # res
     })
     
   }
@@ -424,23 +512,20 @@ predTrait <- result$predictions
 
 if("params" %in% ls()){ # we will download the document
   traits <- unique(modeling)
-  cat("\n\n## Trait view {.tabset .tabset-pills}       \n\n")
+  cat("\n\n##  {.tabset .tabset-pills}       \n\n")
   cat("\n\n The following boxplot allows you to see the distribution of predicted values by trait in the different environments.       \n\n")
   
-  for (j in 1:length(traits)){
+  for (j in 1:length(traits)){ # 
     cat("\n\n###", traits[j], "{.tabset .tabset-pills}       \n\n")
     
-    
-    print(htmltools::tagList(ggplotly(
-      
-      ggplot2::ggplot(predTrait[which(predTrait$trait %in% traits[j]),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
-      ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
-      # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
+    p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% traits[j]),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
+      # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
+      ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
       ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                      axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
       ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") 
-      
-    )))
+    print(p) # static
+    # print(htmltools::tagList(ggplotly(  p  ))) # dynamic
     
     cat("\n")
   }
@@ -448,21 +533,35 @@ if("params" %in% ls()){ # we will download the document
   cat("\n")
   
 }else{
-  plotly::renderPlotly({
+  
+  
+  
+  shiny::renderPlot({
     if(length(input$traitStaBox) > 0){
-      p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% input$traitStaBox),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) +
-        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
-        # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
+      dd <- predTrait[which(predTrait$trait %in% input$traitStaBox),]
+      ggplot2::ggplot(dd, ggplot2::aes(x=environment, y=predictedValue, label=designation) ) +
+        # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"),
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") #+
-      # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
-      
-      fig2 <-  plotly::ggplotly(p)#, height = get_h()*2); # fig2
-      fig2
+        ggplot2::labs(x="", y="Trait value")
     }
-    
   })
+  # plotly::renderPlotly({
+  #   if(length(input$traitStaBox) > 0){
+  #     p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% input$traitStaBox),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) +
+  #       ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
+  #       # ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
+  #       ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"),
+  #                      axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+  #       ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") #+
+  #     # ggplot2::guides(color=ggplot2::guide_legend("Environment"))
+  #     
+  #     fig2 <-  plotly::ggplotly(p)#, height = get_h()*2); # fig2
+  #     fig2
+  #   }
+  #   
+  # })
 }
 
 ```
