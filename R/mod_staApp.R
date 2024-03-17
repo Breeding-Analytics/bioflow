@@ -19,7 +19,7 @@ mod_staApp_ui <- function(id){
                                     br(),
                                     shinydashboard::box(status="success",width = 12,
                                                         solidHeader = TRUE,
-                                                        column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                                        column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
                                                                h1(strong(span("Single Trial Analysis", style="color:green"))),
                                                                h2(strong("Status:")),
                                                                uiOutput(ns("warningMessage")),
@@ -54,8 +54,6 @@ mod_staApp_ui <- function(id){
                                                                p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                                                p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
-
-
                                                         )
                                     )
                            ),
@@ -67,7 +65,7 @@ mod_staApp_ui <- function(id){
                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12,style = "height:430px; overflow-y: scroll;overflow-x: scroll;",
+                                                                   column(width=12,style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
                                                                           p(span("Past modeling parameters from QA stamp selected.", style="color:black")),
@@ -92,10 +90,15 @@ mod_staApp_ui <- function(id){
                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;",
+                                                                   column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;", # height:420px;
                                                                           p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                                           selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
                                                                           shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                                              selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
+                                                                                              numericInput(ns("maxitSta"),"Number of iterations",value=35),
+                                                                                              selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
+                                                                          ),
                                                                    ),
                                                )
                                       ),
@@ -110,7 +113,7 @@ mod_staApp_ui <- function(id){
                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                                                   column(width=12, style = "height:480px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Summary of number of individuals, mothers and fathers available in the dataset.", style="color:black")),
                                                                           selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
                                                                           DT::DTOutput(ns("summariesSta")), # genetic evaluation units
@@ -124,12 +127,6 @@ mod_staApp_ui <- function(id){
                                                actionButton(ns("runSta"), "Run STA", icon = icon("play-circle")),
                                                uiOutput(ns("qaQcStaInfo")),
                                                textOutput(ns("outSta")),
-                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                   selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
-                                                                   numericInput(ns("maxitSta"),"Number of iterations",value=35),
-                                                                   selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
-                                               ),
                                       ),
                                     )# of of tabsetPanel
                            ),
@@ -172,10 +169,7 @@ mod_staApp_ui <- function(id){
                                       # )
                                     ) # of of tabsetPanel
                            )# end of output panel
-
-
                )) # end mainpanel
-
   )
 }
 
@@ -225,7 +219,7 @@ mod_staApp_server <- function(id,data){
       req(data())
       dtMta <- data()
       dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module %in% c("qaRaw","qaFilter")),]
+      dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
       traitsMta <- unique(dtMta$analysisId)
       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Sta", choices = traitsMta)
@@ -298,9 +292,6 @@ mod_staApp_server <- function(id,data){
     )
 
     ##
-
-    ##
-
     proxy = DT::dataTableProxy('traitDistSta')
 
     observeEvent(input$traitDistSta_cell_edit, {
@@ -355,7 +346,7 @@ mod_staApp_server <- function(id,data){
     })
     ## render the data to be analyzed
     observeEvent(data(),{
-      if(sum(data()$status$module %in% "qaRaw") != 0) {
+      if(sum(data()$status$module %in% c("qaRaw", "qaMb")) != 0) {
         ## render status
         output$statusSta <-  DT::renderDT({
           req(data())
@@ -461,21 +452,16 @@ mod_staApp_server <- function(id,data){
             mydata[, "environment"] <- as.factor(mydata[, "environment"]);mydata[, "designation"] <- as.factor(mydata[, "designation"])
             mo <- data()$modifications$pheno
             mo <- mo[which(mo[,"trait"] %in% input$trait3Sta),]
-            # mydata$color <- 1
-            # if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]=2}
-            # mydata$color <- as.factor(mydata$color)
-            # res <- plotly::plot_ly(y = mydata[,input$trait3Sta], type = "box", boxpoints = "all", jitter = 0.3,color=mydata[,"color"],
-            #                        x = mydata[,"environment"], text=mydata[,"designation"], pointpos = -1.8)
-            # res = res %>% plotly::layout(showlegend = FALSE); res
             mydata$color <- "valid"
             if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
             mydata$predictedValue <- mydata[,input$trait3Sta]
             ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
-              ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+              ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
               ggplot2::theme_classic()+
               ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
               ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
-              ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
+              ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+              ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
           }else{}
         })
         ## render raw data
@@ -672,7 +658,6 @@ mod_staApp_server <- function(id,data){
             shinybusy::remove_modal_spinner()
           }
         )
-
       } else {
         output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})
         output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
@@ -686,9 +671,6 @@ mod_staApp_server <- function(id,data){
     output$outSta <- renderPrint({
       outSta()
     })
-
-
-
   }) ## end moduleserver
 }
 
