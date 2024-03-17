@@ -144,15 +144,16 @@ mod_mtaApp_ui <- function(id){
                                                shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                                    column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                           column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
-                                                                          column(width=4, selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
-                                                                          column(width=4, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=4, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                                                          # column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) ),
+                                                                          column(width=3, selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
                                                                           column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
                                                                           column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
-                                                                          column(width=4, selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=4, checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=4, checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6) ),
                                                                           column(width=12, shiny::plotOutput(ns("plotPredictionsCor")) ),
                                                                           column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
                                                                           column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
@@ -537,13 +538,14 @@ mod_mtaApp_server <- function(id, data){
       M2 <- matrix(M, nrow = nrow(M), ncol = ncol(M))
       M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
       M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
-      Matrix::image(as(M2, Class = "dgCMatrix"), xlab="Environments", ylab="Genotypes", colorkey=TRUE)
+      Matrix::image(as(t(M2), Class = "dgCMatrix"), xlab="Environments", ylab="Genotypes", colorkey=TRUE)
     })
     # render correlation plot
     output$plotPredictionsCor <-  shiny::renderPlot({
       req(data())
       req(input$version2Mta)
       req(input$traitCor)
+      req(input$heatmapFontSizeCor)
       dtMta <- data()
       mydata <- dtMta$predictions
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
@@ -564,12 +566,12 @@ mod_mtaApp_server <- function(id, data){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
-      if(!is.null(input$checkboxTextCor)){
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 5)
+      if(!is.null(input$checkboxTextCor)){ # if user wants to fill cell values
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = max(c(input$heatmapFontSizeCor-3, 1)))
       }
-      if(!is.null(input$checkboxAxisCor)){
-        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
-          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))
+      if(!is.null(input$checkboxAxisCor)){ # if user wants to add axis labels
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1))
       }else{
         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
       }
@@ -581,60 +583,38 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       req(input$entryTypeMta)
+      req(input$heatmapFontSize)
       dtMta <- data()
-      mydata <- dtMta$predictions
+      mydata <- dtMta$predictions # extract predictions
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
-      if(input$entryTypeMta != "Generic"){
+      if(input$entryTypeMta != "Generic"){ # use an specific type of entries
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
       }
-      splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) )
-      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate)
-      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate)
-      for(i in 1:length(splitAggregate)){
+      splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) ) # split by environment
+      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
         for(j in 1:i){
           nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
         }
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
-      # mydata4 <- as.data.frame(as.table(nagm)); mydata4$mytext <- paste(mydata4$Var1, mydata4$Var2,sep=".")
-      # mydata4$X1 <- as.numeric(as.factor(mydata4$Var1))
-      # mydata4$X2 <- as.numeric(as.factor(mydata4$Var2))
-      ## make the plot
-      # fig <-  plotly::plot_ly(mydata4, x = mydata4[,"X1"], y = mydata4[,"X2"],
-      #                         z = mydata4[,"Freq"], color = mydata4[,"Freq"],
-      #                         text=mydata4[,"mytext"], colors = c('#BF382A', '#0C4B8E'))
-      # fig <- fig %>%  plotly::add_heatmap()
-      # ## add text inside the corplot?
-      # if(!is.null(input$checkboxText)){
-      #   fig <- fig %>%  plotly::add_annotations(text =mydata4[,"Freq"],x = mydata4[,"X1"],y = mydata4[,"X2"],
-      #                                           xref = 'x', yref = 'y',showarrow = FALSE, font=list(color='white')) #
-      # }
-      # ## add axis labels to the plot?
-      # if(!is.null(input$checkboxAxis)){
-      #   fig <- fig %>%
-      #     plotly::layout(yaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var1"]), tickmode="array", tickvals = unique(mydata4[,"X1"]) ),
-      #                    xaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var2"]), tickmode="array", tickvals = unique(mydata4[,"X2"]) )
-      #
-      #     )
-      # }
-      # fig
-      # diag(nagm) <- NA
-      mydata4 <- cgiarBase::matToTab(nagm)
-      maxVal <- max(nagm, na.rm = TRUE)
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                      midpoint = 100, limit = c(0,maxVal), space = "Lab",
+                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
                                       name="Connectivity") +
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
-      if(!is.null(input$checkboxText)){
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 5)
+      if(!is.null(input$checkboxText)){ # if user wants to add text to the cells
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = max(c(input$heatmapFontSize-3,1)))
       }
-      if(!is.null(input$checkboxAxis)){
-        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
-          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))
+      if(!is.null(input$checkboxAxis)){ # if user wants to add labels to the axis
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSize, hjust = 1))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSize, hjust = 1))
       }else{
         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
       }
