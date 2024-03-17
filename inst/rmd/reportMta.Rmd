@@ -134,10 +134,15 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait== iTrait,]
-      
-      p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue, x = ~environment,
-                            type = "box", color = ~environment
-      ) %>%  plotly::layout(font=font.plot_ly, xaxis=list( title=""), yaxis=list( title="Trait value")  )
+      p <- temp.pred.box %>%
+        ggplot2::ggplot() +
+        ggplot2::aes(x=environment, y=predictedValue, fill = environment) +
+        ggplot2::geom_boxplot() +
+        ggplot2::labs(x = "", y = "Trait value") +
+        ggplot2::scale_fill_discrete(name = "") +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                       axis.ticks.x = ggplot2::element_blank())
       
       if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
         print(p)
