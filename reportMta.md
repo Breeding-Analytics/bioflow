@@ -32,40 +32,30 @@ The following boxplot allows to see the distribution of predicted values (y-axis
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out0424ee500366c091" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out1a7b31fe87730273" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Across-environment merit estimates
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitMta2-label" for="mtaApp_1-traitMta2"></label>
 <div>
-<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Plant_Height_cm-envIndex">Plant_Height_cm-envIndex</option></select>
+<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
 <script type="application/json" data-for="mtaApp_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-oute5af4faeb41dbc55" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out891d46f4bc376318" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
 
 
 
-### Trait by trait-sensitivity plots
-
-The following plots allow the user to select individual not only based on the scale of the trait but also by the sensitivity of the germplasm to the environmental covariates. These plots are only constructed if the MET model included the GxE in the modeling.
 
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaApp_1-traitMta3-label" for="mtaApp_1-traitMta3"></label>
-<div>
-<select id="mtaApp_1-traitMta3" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
-<script type="application/json" data-for="mtaApp_1-traitMta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outed4b435827e600da" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+
 
 
 <p>&nbsp;</p>
@@ -85,7 +75,7 @@ The following graph allows to see the genetic correlations among the different e
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out5dcaa65aac1f07d0" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outd3590239ec0f5bbf" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -106,7 +96,7 @@ The following graph allows to see the proportion of variance going to different 
 <p>&nbsp;</p>
 
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outa70a1a02ea3a7a60" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out71d80aee0ca7d109" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -124,7 +114,7 @@ The following graph allows to see the performance of the genotypes over the enev
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outb0985802b8d3db43" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out49235ded5d77df43" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -135,7 +125,7 @@ The following table allows to check the trait predictions in wide format togethe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-outa4210ecf592c1f95" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-out636e14cd8d5395ee" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 

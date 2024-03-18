@@ -1,10 +1,10 @@
-# passwordGen <- function(nLetters, nNumbers){
-#   step1 <- sample(0:9, nNumbers, replace=TRUE)
-#   step2 <- sample(c(letters,LETTERS), nLetters, replace=TRUE)
-#   step3 <- sample(c(as.character(step1), step2), nLetters+nNumbers)
-#   pass <- paste(step3,collapse = "")
-#   return(pass)
-# }
+passwordGen <- function(nLetters, nNumbers){
+  step1 <- sample(0:9, nNumbers, replace=TRUE)
+  step2 <- sample(c(letters,LETTERS), nLetters, replace=TRUE)
+  step3 <- sample(c(as.character(step1), step2), nLetters+nNumbers)
+  pass <- paste(step3,collapse = "")
+  return(pass)
+}
 #
 # # script tp create a users dataframe for shinymanager
 # users <- data.frame(user=NA,   stringsAsFactors = FALSE,
