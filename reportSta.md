@@ -24,41 +24,47 @@ NULL
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLD_TON </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> FLW50 </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> HT_AVG </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> 2021_NYH3 </td>
+   <td style="text-align:left;"> IN-CT-RP-IGKV </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 384 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_NYS1 </td>
+   <td style="text-align:left;"> IN-JH-HZ-CRURRS </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_SCH1 </td>
+   <td style="text-align:left;"> IN-JH-RN-BAU </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 423 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 187 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH1 </td>
+   <td style="text-align:left;"> IN-UP-PY-SHUATS </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 270 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH2 </td>
+   <td style="text-align:left;"> IN-WB-PU-ZDRPRS </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 249 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
   </tr>
 </tbody>
 </table></div>
@@ -74,15 +80,16 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option>
+<option value="FLW50">FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 Table of statistics:
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out857ae133d39b84aa" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outbde500f6b3673606" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 Variance components ratios per environment 
 
@@ -91,13 +98,14 @@ Variance components ratios per environment
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta0-label" for="staApp_1-traitSta0">Trait:</label>
 <div>
-<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
+<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option>
+<option value="FLW50">FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-outf558e9b5b36f762e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out81eaf679080a7ca2" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -115,7 +123,7 @@ Variance components ratios per environment
 
 Barplot for parameter values
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-outdbd61fe1bb171f0b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out3d667d61d81a96d3" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -128,17 +136,17 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="2021_NYH3" selected>2021_NYH3</option>
-<option value="2021_TXH2">2021_TXH2</option>
-<option value="2021_SCH1">2021_SCH1</option>
-<option value="2021_TXH1">2021_TXH1</option>
-<option value="2021_NYS1">2021_NYS1</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="IN-JH-HZ-CRURRS" selected>IN-JH-HZ-CRURRS</option>
+<option value="IN-JH-RN-BAU">IN-JH-RN-BAU</option>
+<option value="IN-WB-PU-ZDRPRS">IN-WB-PU-ZDRPRS</option>
+<option value="IN-UP-PY-SHUATS">IN-UP-PY-SHUATS</option>
+<option value="IN-CT-RP-IGKV">IN-CT-RP-IGKV</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outb9a9396c991e63f0" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out21327a8c24aa383b" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -149,13 +157,14 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLD_TON" selected>YLD_TON</option>
+<option value="FLW50" selected>FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out136cbd515e963fdc" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out09e9a79f6e9d9270" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -168,11 +177,12 @@ The following plot aims to show the correlation between BLUEs or BLUPs (genotypi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCor-label" for="staApp_1-traitStaCor">Trait:</label>
 <div>
-<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
+<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLD_TON" selected>YLD_TON</option>
+<option value="FLW50" selected>FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-outeb9926e49fe9efee" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out2e9d134f7e7c6f99" style="width:100%;height:400px;"></div><!--/html_preserve-->

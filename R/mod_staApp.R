@@ -369,11 +369,15 @@ mod_staApp_server <- function(id,data){
           dtSta <- data() # dtSta<- result
           ### change column names for mapping
           paramsPheno <- data()$metadata$pheno
+          paramsPheno <- paramsPheno[paramsPheno$parameter != "trait",]
           paramsPheno <- paramsPheno[which(!duplicated(paramsPheno$value)),]
           colnames(dtSta$data$pheno) <- cgiarBase::replaceValues(colnames(dtSta$data$pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
           paramsPed <- data()$metadata$pedigree
           colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPed$value, Replace = paramsPed$parameter )
-          ###
+          ### avoid columns mother and father in the pehnotype file
+          '%!in%' <- function(x,y)!('%in%'(x,y))
+          dtSta$data$pheno <- dtSta$data$pheno[,which(colnames(dtSta$data$pheno) %!in% c("mother","father") )]
+          ## merge data
           dtSta <- merge(dtSta$data$pheno, dtSta$data$pedigree, by="designation") # merge mother and father info in the pheno data frame
           dtStaList <- split(dtSta, dtSta[,input$feature]) # split info by environment
           dtStaListRes <- list()
