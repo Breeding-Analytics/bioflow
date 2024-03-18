@@ -87,6 +87,8 @@ if (is.null(result)){
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
   traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
+  modeling <- result$modeling
+  modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
 }
 ```
 
@@ -132,17 +134,17 @@ if (is.null(result)){
     
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-      
-      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait== iTrait,]
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
+      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==iTrait & pred.sta.boxplot$environment %in% goodFields,]
+      meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+      temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
       p <- temp.pred.box %>%
         ggplot2::ggplot() +
-        ggplot2::aes(x=environment, y=predictedValue, fill = environment) +
+        ggplot2::aes(x=envMean, y=predictedValue, fill = environment) +
         ggplot2::geom_boxplot() +
-        ggplot2::labs(x = "", y = "Trait value") +
+        ggplot2::labs(x = "Environmental mean", y = "Trait value") +
         ggplot2::scale_fill_discrete(name = "") +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(),
-                       axis.ticks.x = ggplot2::element_blank())
+        ggplot2::theme(legend.position = "bottom") 
       
       if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
         print(p)
@@ -156,26 +158,29 @@ if (is.null(result)){
     
     if(length(unique(pred$designation)) > 200){ # go fixed format
       shiny::renderPlot({
-        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
+        goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMta, "environment"]
+        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% goodFields,]
+        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+        temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
         p <- temp.pred.box %>%
           ggplot() +
-          aes(x=environment, y=predictedValue, fill = environment) +
+          aes(x=envMean, y=predictedValue, fill = environment) +
           geom_boxplot() +
-          labs(x = "", y = "Trait value") +
+          labs(x = "Environmental mean", y = "Trait value") +
           scale_fill_discrete(name = "") +
-          theme_minimal() +
-          theme(axis.text.x = element_blank(),
-                axis.ticks.x = element_blank(),
-                text = element_text(family = "Courier New, monospace", size=9))
+          theme(legend.position = "bottom") 
         p
       })
     } else { # go dynamic
       plotly::renderPlotly({
-        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta,]
+        goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMta, "environment"]
+        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% goodFields,]
+        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+        temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
         p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
-                              x = ~environment,  type = "box", color = ~environment
+                              x = ~envMean,  type = "box", color = ~environment
         ) %>%  plotly::layout( font=font.plot_ly,
-                               xaxis=list( title=""), yaxis=list( title="Trait value") )
+                               xaxis=list( title="Environmental mean"), yaxis=list( title="Trait value") )
         p
       })
       
@@ -243,7 +248,7 @@ if (is.null(result)){
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
         ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+        ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom")
       if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
         print(p)
       }else{ # go dynamic
@@ -278,7 +283,7 @@ if (is.null(result)){
                                               ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                  width = 0.10) +
           ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom")
         p
         
       })
@@ -306,7 +311,7 @@ if (is.null(result)){
                                               ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                  width = 0.10) +
           ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7))
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom")
         plotly::ggplotly(p)
       })
     }
@@ -490,18 +495,56 @@ if (is.null(result)){
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment", valueForCorrelation ="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, checkboxAxis= addTextInPlots)
-      print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
+      # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment", valueForCorrelation ="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, checkboxAxis= addTextInPlots)
+      # print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait & predictions.gcorrE$environment %in% goodFields , ]
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      mydata4 <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      print(p)
       
     }
     
   }else{
     
-    plotly::renderPlotly({
-      p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-                                           valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots,
-                                           checkboxAxis= addTextInPlots)
-      plotly::layout(p.cor.pred.env,font=font.plot_ly)
+    # plotly::renderPlotly({
+    # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
+    #                                      valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots,
+    #                                      checkboxAxis= addTextInPlots)
+    # plotly::layout(p.cor.pred.env,font=font.plot_ly)
+    shiny::renderPlot({
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitPredictionsCorrelation, "environment"]
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitPredictionsCorrelation & predictions.gcorrE$environment %in% goodFields , ]
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      mydata4 <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      p
+      # plotly::ggplotly(p)
     })
     
     
@@ -670,7 +713,8 @@ if (is.null(result)){
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait),c("designation","environment","predictedValue")], 
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
+      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
                                  direction = "wide", idvar = "designation", timevar = "environment")
       
       rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
@@ -721,7 +765,8 @@ if (is.null(result)){
   }else{
     
     plotly::renderPlotly({
-      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot),c("designation","environment","predictedValue")], 
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitBiplot, "environment"]
+      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
                                  direction = "wide", idvar = "designation", timevar = "environment")
       
       rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
@@ -775,7 +820,6 @@ if (is.null(result)){
   }
   
 }
-
 ```
 
 

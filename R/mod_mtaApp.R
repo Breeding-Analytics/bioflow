@@ -168,7 +168,7 @@ mod_mtaApp_ui <- function(id){
                                                uiOutput(ns("qaQcMtaInfo")),
                                                textOutput(ns("outMta")),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include (OPTIONAL)...",
+                                               shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (OPTIONAL)...",
                                                                    p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
                                                                    DT::dataTableOutput(ns("fieldsMet")),
                                                ),
