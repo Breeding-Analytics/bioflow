@@ -263,8 +263,8 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))+
-        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
+        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
       if(nrow(nagm) < 20){ # if user wants to add text to the cells
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
@@ -300,8 +300,8 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))+
-        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
+        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
       if(nrow(nagm) < 20){ # if user wants to add text to the cells
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
@@ -381,7 +381,7 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45))
       if(nrow(corr) < 20){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
@@ -415,7 +415,7 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45) )
       if(nrow(corr) < 20){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
@@ -633,7 +633,7 @@ if (is.null(result)){
       mydata2 = myMetrics2[which(myMetrics2$parameter %in% iParam),]
       p <- ggplot(data=mydata2, ggplot2::aes(x=trait, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge()) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "bottom") +
         ggplot2::labs(x="Trait", y="Parameter value")
       # print(p)
@@ -646,7 +646,7 @@ if (is.null(result)){
       mydata2 = myMetrics2[which(myMetrics2$parameter %in% input$parameterMetrics2),]
       p <- ggplot2::ggplot(data=mydata2, ggplot2::aes(x=trait, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge()) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "bottom") +
         ggplot2::labs(x="Trait", y="Parameter value") 
       p
