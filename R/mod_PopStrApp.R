@@ -111,14 +111,11 @@ mod_PopStrApp_ui <- function(id){
                                   #termina heatmap
                                   tabPanel("Population structure", icon = icon("table"),
                                            br(),
-                                           shinydashboard::box(title="Fst",status="success",width = 12,solidHeader = TRUE, collapsible = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataGDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           ),
                                            #shinydashboard::box(title="AMOVA", status="success",width = 12, solidHeader = TRUE,
                                            #                    column(width=12,DT::DTOutput(ns("seeDataGAmova")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                            #)
-                                           shinydashboardPlus::box(title = "Dendogram",closable = FALSE, width=12, solidHeader = FALSE, collapsible = FALSE, status="success",
-                                                                   sidebar = shinydashboardPlus::boxSidebar(id="dendogram",width = 25,
+                                           shinydashboardPlus::box(title = "Dendogram",closable = FALSE, width=12, solidHeader = TRUE, collapsible = TRUE, status="success",
+                                                                   sidebar = shinydashboardPlus::boxSidebar(id="dend",width = 25,
                                                                                                             sliderInput(ns('sizeline'),'Size cluster line',min=0.1,max=2,value=0.9),
                                                                                                             sliderInput(ns('sizelab'),'Size labels',min=0.5,max=5,value=3),
                                                                                                             sliderInput(ns('space'),'Spaces',min=0.1,max=2,value=0.2),
@@ -132,6 +129,9 @@ mod_PopStrApp_ui <- function(id){
                                                                    ),
                                                                    div(plotOutput(ns("dend"),height = "750px",width = "950px"),align="center")
                                                                    
+                                           ),
+                                           shinydashboard::box(title="Fst",status="success",width = 12,solidHeader = TRUE, collapsible = FALSE,
+                                                               column(width=12,DT::DTOutput(ns("seeDataGDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   ),
                                   #termina structure
@@ -270,14 +270,10 @@ mod_PopStrApp_server <- function(id, data){
         result$status <- rbind(result$status, newStatus)
         data(result)
         save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
-        
+        output$reportPopStr <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+        })
         HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
-    })
-    
-    output$reportPopStr <- renderUI({
-      shinybusy::show_modal_spinner('fading-circle', text = 'Creating report...')
-      HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-      shinybusy::remove_modal_spinner()
     })
     
     DoforDiv<-reactive({
