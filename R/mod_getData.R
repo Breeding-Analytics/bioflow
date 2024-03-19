@@ -176,7 +176,7 @@ mod_getData_ui <- function(id){
           DT::DTOutput(ns('preview_pheno')),
           uiOutput(ns('pheno_map')),
           actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-          p(span("Note: Compute environment will concatenate 'year', 'season', 'location', 'trial' and 'study' information", style="color:orange")),
+          p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'location', 'trial' and 'study' ", style="color:orange")),
           textOutput(ns("outConcatenateEnv")),
         ),
 
@@ -992,7 +992,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         column(3,
                selectInput(
                  inputId  = ns(paste0('select', x)),
-                 label    = HTML(ifelse(x == 'designation',as.character(p('designation', span('(*required)',style="color:red"))),ifelse(x == 'trait',as.character(p('trait', span('(*required)',style="color:red"))),x))),
+                 label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
                  multiple = ifelse(x == 'trait', TRUE, FALSE),
                  choices  = as.list(c('', header)),
                  selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')

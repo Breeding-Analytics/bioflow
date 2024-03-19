@@ -121,6 +121,7 @@ mod_oftStaApp_server <- function(id, data){
     ## years
     observeEvent(data(), {
       req(data())
+      req(input$trait2Oft)
       dtOft <- data()
       traitsOft <- dtOft$metadata$pedigree[dtOft$metadata$pedigree$parameter=="yearOfOrigin","value"]
       if(!is.null(traitsOft)){
@@ -132,6 +133,8 @@ mod_oftStaApp_server <- function(id, data){
     ## entry type
     observeEvent(data(), {
       req(data())
+      req(input$trait2Oft)
+      req(input$yearsToUse)
       dtOft <- data()
       traitsOft <- dtOft$metadata$pheno[dtOft$metadata$pheno$parameter=="entryType","value"]
       updateSelectInput(session, "entryTypeToUse", choices = traitsOft, selected =traitsOft )
@@ -139,6 +142,9 @@ mod_oftStaApp_server <- function(id, data){
     ## environment
     observeEvent(data(), {
       req(data())
+      req(input$trait2Oft)
+      req(input$yearsToUse)
+      req(entryTypeToUse)
       dtOft <- data()
       traitsOft <- dtOft$metadata$pheno[dtOft$metadata$pheno$parameter=="environment","value"]
       updateSelectInput(session, "env2Oft", choices = traitsOft, selected =traitsOft )

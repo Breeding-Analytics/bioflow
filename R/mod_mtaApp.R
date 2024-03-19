@@ -74,13 +74,16 @@ mod_mtaApp_ui <- function(id){
                                       ),
                                       tabPanel("Select traits", icon = icon("table"),
                                                br(),
-                                               column(width=12, selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
-                                               column(width = 12, style = "background-color:grey; color: #FFFFFF",
-                                                      shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
-                                                                          p(span("Trait distributions (double click in the cells if you would like to model the traits with a different trait distribution).", style="color:black")),
-                                                                          DT::DTOutput(ns("traitDistMet")),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=4, selectInput(ns("trait2Mta"), "Trait(s) to analyze", choices = NULL, multiple = TRUE) ),
+                                                      column(width = 8, style = "background-color:grey; color: #FFFFFF",
+                                                             shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                                                 p(span("Trait distributions (double click in the cells if you would like to model the traits with a different trait distribution).", style="color:black")),
+                                                                                 DT::DTOutput(ns("traitDistMet")),
+                                                             ),
                                                       ),
                                                ),
+
                                                h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
@@ -131,7 +134,7 @@ mod_mtaApp_ui <- function(id){
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4,
                                                              selectInput(ns("interactionTermMta2"), "GxE term(s)", choices = NULL, multiple = TRUE),
-                                                             ),
+                                                      ),
                                                       column(width = 8,
                                                              numericInput(ns("minimumNumberEnvsFW"), label = "Minimum number of environments for Finlay-Wilkinson regression", value = 6),
                                                       ),
@@ -141,10 +144,17 @@ mod_mtaApp_ui <- function(id){
                                                shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                                    column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                           column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
-                                                                          column(width=4, selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
-                                                                          column(width=4, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=4, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=12, plotly::plotlyOutput(ns("plotPredictionsConnectivity")) ),
+                                                                          column(width=3, selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
+                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
+                                                                          column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
+                                                                          column(width=3, selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=3, numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6) ),
+                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCor")) ),
                                                                           column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
                                                                           column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
                                                                           column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
@@ -158,8 +168,8 @@ mod_mtaApp_ui <- function(id){
                                                uiOutput(ns("qaQcMtaInfo")),
                                                textOutput(ns("outMta")),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to include (OPTIONAL)...",
-                                                                   p(span("Fields to include in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                               shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (OPTIONAL)...",
+                                                                   p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
                                                                    DT::dataTableOutput(ns("fieldsMet")),
                                                ),
                                       ),
@@ -269,16 +279,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
       traitsMta <- unique(dtMta$trait)
       updateSelectInput(session, "trait2Mta", choices = traitsMta)
-    })
-    ## traits for plot
-    observeEvent(c(data(), input$version2Mta), {
-      req(data())
-      req(input$version2Mta)
-      dtMta <- data()
-      dtMta <- dtMta$predictions
-      dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
-      traitsMta <- unique(dtMta$trait)
-      updateSelectInput(session, "traitPredictionsCorrelation", choices = traitsMta)
+      updateSelectInput(session, "traitCor", choices = traitsMta)
     })
     #################
     ## fixed effects
@@ -537,50 +538,87 @@ mod_mtaApp_server <- function(id, data){
       M2 <- matrix(M, nrow = nrow(M), ncol = ncol(M))
       M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
       M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
-      Matrix::image(as(M2, Class = "dgCMatrix"), xlab="Environments", ylab="Genotypes", colorkey=TRUE)
+      Matrix::image(as(t(M2), Class = "dgCMatrix"), xlab="Environments", ylab="Genotypes", colorkey=TRUE)
     })
-
-    output$plotPredictionsConnectivity <-  plotly::renderPlotly({
+    # render correlation plot
+    output$plotPredictionsCor <-  shiny::renderPlot({
       req(data())
       req(input$version2Mta)
-      req(input$entryTypeMta)
+      req(input$traitCor)
+      req(input$heatmapFontSizeCor)
       dtMta <- data()
       mydata <- dtMta$predictions
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
-      if(input$entryTypeMta != "Generic"){
+      predictions.gcorrE <- subset(mydata, select = c(trait,designation,environment,predictedValue))
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitCor, ]
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      mydata4 <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      if(!is.null(input$checkboxTextCor)){ # if user wants to fill cell values
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = max(c(input$heatmapFontSizeCor-3, 1)))
+      }
+      if(!is.null(input$checkboxAxisCor)){ # if user wants to add axis labels
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1))
+      }else{
+        p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
+      }
+      p
+
+    })
+    # render connectivity plot
+    output$plotPredictionsConnectivity <-  shiny::renderPlot({ # plotly::renderPlotly({
+      req(data())
+      req(input$version2Mta)
+      req(input$entryTypeMta)
+      req(input$heatmapFontSize)
+      dtMta <- data()
+      mydata <- dtMta$predictions # extract predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+      if(input$entryTypeMta != "Generic"){ # use an specific type of entries
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
       }
-      splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) )
-      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate)
-      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate)
-      for(i in 1:length(splitAggregate)){
+      splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) ) # split by environment
+      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
         for(j in 1:i){
           nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
         }
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
-      mydata4 <- as.data.frame(as.table(nagm)); mydata4$mytext <- paste(mydata4$Var1, mydata4$Var2,sep=".")
-      mydata4$X1 <- as.numeric(as.factor(mydata4$Var1))
-      mydata4$X2 <- as.numeric(as.factor(mydata4$Var2))
-      ## make the plot
-      fig <-  plotly::plot_ly(mydata4, x = mydata4[,"X1"], y = mydata4[,"X2"],
-                              z = mydata4[,"Freq"], color = mydata4[,"Freq"],
-                              text=mydata4[,"mytext"], colors = c('#BF382A', '#0C4B8E'))
-      fig <- fig %>%  plotly::add_heatmap()
-      ## add text inside the corplot?
-      if(!is.null(input$checkboxText)){
-        fig <- fig %>%  plotly::add_annotations(text =mydata4[,"Freq"],x = mydata4[,"X1"],y = mydata4[,"X2"],
-                                                xref = 'x', yref = 'y',showarrow = FALSE, font=list(color='white')) #
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      if(!is.null(input$checkboxText)){ # if user wants to add text to the cells
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = max(c(input$heatmapFontSize-3,1)))
       }
-      ## add axis labels to the plot?
-      if(!is.null(input$checkboxAxis)){
-        fig <- fig %>%
-          plotly::layout(yaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var1"]), tickmode="array", tickvals = unique(mydata4[,"X1"]) ),
-                         xaxis = list(dtick = 1, ticktext = unique(mydata4[,"Var2"]), tickmode="array", tickvals = unique(mydata4[,"X2"]) )
-
-          )
+      if(!is.null(input$checkboxAxis)){ # if user wants to add labels to the axis
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSize, hjust = 1))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSize, hjust = 1))
+      }else{
+        p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
       }
-      fig
+      p
     })
     ## render metrics barplot
     observeEvent(c(data(),input$version2Mta), { # update trait

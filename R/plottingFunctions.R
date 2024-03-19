@@ -184,7 +184,8 @@ corPlotPredictions <- function(predictions, traitPredictionsCorrelation=NULL, un
     }
 
     fig <-  plotly::plot_ly(mydata4, x = mydata4[,"X1"], y = mydata4[,"X2"], z = mydata4[,"Freq"],
-                            color = mydata4[,"Freq"], text=mydata4[,"mytext"], colors = c('#BF382A', '#0C4B8E'))
+                            color = mydata4[,"Freq"], #text=mydata4[,"mytext"],
+                            colors = c('#BF382A', '#0C4B8E'))
     fig <- fig %>%  plotly::add_heatmap()
     ## add text inside the corplot
     if(checkboxText){
