@@ -117,9 +117,9 @@ suppressWarnings(tryCatch({
       NAmark=result[["PopStr"]][["CalculusPerMarker"]][["%NA"]]
       NAgen=result[["PopStr"]][["CalculusPerGenotype"]][["%NA"]]
 
-      fig <- plot_ly(y = ~NAmark, type = "box", name="missing values in markers")
-      fig <- fig %>% add_trace(y = ~NAgen, name="missing values in genotypes")
-      fig <- fig %>% layout(yaxis = list(title = 'Percent'))
+      fig <- plotly::plot_ly(y = ~NAmark, type = "box", name="missing values in markers")
+      fig <- fig %>% plotly::add_trace(y = ~NAgen, name="missing values in genotypes")
+      fig <- fig %>% plotly::layout(yaxis = list(title = 'Percent'))
       fig
 
 ```
