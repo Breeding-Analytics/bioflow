@@ -94,7 +94,7 @@ if (is.null(result)){
 
 ### By environment merit distribution
 
-The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**.
+The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**. Within each boxplot the reliability (r2) for that environment by trait combination can be reviewed.
 
 <p>&nbsp;</p>
 
@@ -132,7 +132,7 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     
-    cat(paste0("### Distribution by environment  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
     
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
@@ -200,6 +200,396 @@ if (is.null(result)){
 }
 ```
 
+### Connectivity between environments
+
+The following heatmap allows the user to review the connectivity (gennotypes in common) between different environments.
+
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitMtaConnect"), 
+                label = "", 
+                choices = traits
+    )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  mydata <- result$predictions # extract predictions
+  
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in traits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
+      mydata2 <- mydata[which(mydata$trait == iTrait & mydata$environment %in% goodFields), ]
+      splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
+      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      
+      # nagm2 <- nagm[goodFields,goodFields]
+      
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed() + 
+        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
+      if(nrow(nagm) < 20){ # if user wants to add text to the cells
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+      }
+      print(p)
+      
+    }
+    
+  } else{ # display in website
+    
+    shiny::renderPlot({
+      
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMtaConnect, "environment"]
+      mydata2 <- mydata[which(mydata$trait == input$traitMtaConnect & mydata$environment %in% goodFields), ]
+      splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
+      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      
+      # nagm2 <- nagm[goodFields,goodFields]
+      
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed() + 
+        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
+      if(nrow(nagm) < 20){ # if user wants to add text to the cells
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+      }
+      p
+    })
+    
+  }
+  
+}
+```
+
+### Genetic correlations between environments
+
+The following graph allows to see the genetic correlations among the different environment one **trait** at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates.
+
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  pred <- result$predictions
+  pred <- pred[pred$analysisId == idMta,]
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"])# unique(pred$trait)
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitPredictionsCorrelation"),
+                label = "",
+                choices = traits
+    )
+  }
+  
+}
+
+```
+
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject","value"]
+  pred.sta <- result$predictions
+  pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
+  # traits <- unique(pred.sta$trait)
+  predictions.gcorrE <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
+  envs <- unique(predictions.gcorrE[,"environment"])
+  addTextInPlots <- ifelse(length(envs) > 30, FALSE, TRUE)
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in traits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment", valueForCorrelation ="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, checkboxAxis= addTextInPlots)
+      # print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait & predictions.gcorrE$environment %in% goodFields , ]
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      mydata4 <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed() + 
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45))
+      if(nrow(corr) < 20){ # if user wants to fill cell values
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+      }
+      print(p)
+      
+    }
+    
+  }else{
+    
+    # plotly::renderPlotly({
+    # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
+    #                                      valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots,
+    #                                      checkboxAxis= addTextInPlots)
+    # plotly::layout(p.cor.pred.env,font=font.plot_ly)
+    shiny::renderPlot({
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitPredictionsCorrelation, "environment"]
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitPredictionsCorrelation & predictions.gcorrE$environment %in% goodFields , ]
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      mydata4 <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed() +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45) )
+      if(nrow(corr) < 20){ # if user wants to fill cell values
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+      }
+      p
+      # plotly::ggplotly(p)
+    })
+    
+    
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
+### Biplot by trait
+
+The following graph allows to see the performance of the genotypes over the enevironments for each **trait**.
+
+<p>&nbsp;</p>
+
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  pred.mta <- result$predictions
+  pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred.mta$trait)
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitBiplot"),
+                label = "",
+                choices = traits
+    )
+  }
+}
+
+```
+
+```{r, results='asis'}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject","value"]
+  pred.sta <- result$predictions
+  pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in traits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
+      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
+                                 direction = "wide", idvar = "designation", timevar = "environment")
+      
+      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
+      pred.mta.biplot <- pred.mta.biplot[,-1]
+      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
+      
+      # keep only 
+      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
+      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
+      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
+      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+      components <- prin_comp[["x"]]
+      components <- data.frame(components)
+      components$PC2 <- -components$PC2
+      
+      explained_variance <- summary(prin_comp)[["sdev"]]
+      explained_variance <- explained_variance[1:2]
+      comp <- prin_comp[["rotation"]]
+      comp[,'PC2'] <- - comp[,'PC2']
+      loadings <- comp
+      for (i in seq(explained_variance) ){
+        loadings[,i] <- comp[,i] * explained_variance[i]
+      }
+      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                        x=components$PC1,
+                                        y=components$PC2,
+                                        text=rownames(components),
+                                        marker=list(color="blue"),
+                                        hoverinfo='text',
+                                        showlegend=FALSE
+      )
+      for (i in 1:ncol(pred.mta.biplot)){
+        p.mta.biplot <- p.mta.biplot %>%
+          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+        if(ncol(pred.mta.biplot) < 20){
+          p.mta.biplot <- p.mta.biplot %>%
+            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+        }
+      }
+      print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+      
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitBiplot, "environment"]
+      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
+                                 direction = "wide", idvar = "designation", timevar = "environment")
+      
+      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
+      pred.mta.biplot <- pred.mta.biplot[,-1]
+      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
+      
+      # keep only 
+      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
+      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
+      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
+      
+      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+      components <- prin_comp[["x"]]
+      components <- data.frame(components)
+      components$PC2 <- -components$PC2
+      
+      explained_variance <- summary(prin_comp)[["sdev"]]
+      explained_variance <- explained_variance[1:2]
+      comp <- prin_comp[["rotation"]]
+      comp[,'PC2'] <- - comp[,'PC2']
+      loadings <- comp
+      for (i in seq(explained_variance) ){
+        loadings[,i] <- comp[,i] * explained_variance[i]
+      }
+      
+      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                        x=components$PC1,
+                                        y=components$PC2,
+                                        text=rownames(components),
+                                        marker=list(color="blue"),
+                                        hoverinfo='text',
+                                        showlegend=FALSE
+      )
+      
+      
+      for (i in 1:ncol(pred.mta.biplot)){
+        p.mta.biplot <- p.mta.biplot %>%
+          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+        if(ncol(pred.mta.biplot) < 20){
+          p.mta.biplot <- p.mta.biplot %>%
+            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+        }
+      }
+      plotly::layout(p.mta.biplot,font=font.plot_ly)
+    })
+    
+  }
+  
+}
+```
+
+
+<p>&nbsp;</p>
+
 ### Across-environment metrics
 
 The following barplot aims to help you check the across environment estimates for multiple parameters from the multi-trial analysis.
@@ -262,6 +652,75 @@ if (is.null(result)){
       p
     })
     
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
+
+### Variance component proportions (across environments)
+
+The following graph allows to see the proportion of variance going to different components.
+
+<p>&nbsp;</p>
+
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  idMtaVC <- result$status[which(result$status$module == "mta"),"analysisId"]
+  idMtaVC <- idMtaVC[length(idMtaVC)]
+  traitsvc <- unique(result$modeling[which(result$modeling$analysisId == idMtaVC  & result$modeling$environment == "across"),"trait"])
+  covariatesvc <- unique(result$metadata$weather$trait)
+  df2 <- result$metrics
+  idMta <- result$status[which(result$status$module == "mta"),"analysisId"];
+  idMta <- idMta[length(idMta)]
+  df2 <- df2[df2$analysisId==idMta,]
+  df2 <- df2[df2$parameter %in% c("Vg","Vr","Vp"), ]
+  df2$traitOriginal <-  df2$trait
+  for(iCov in covariatesvc){
+    df2$traitOriginal <- gsub(paste0("-",iCov),"",df2$traitOriginal)
+    df2$traitOriginal <- gsub(paste0(iCov),"",df2$traitOriginal)
+  }
+  df2$parameterOriginal <- df2$trait
+  for(iCov in traitsvc){ df2$parameterOriginal <- gsub(iCov,"",df2$parameterOriginal)}
+  df2$parameterOriginal <- paste0(df2$parameter, df2$parameterOriginal)
+  
+  total <- aggregate(value~traitOriginal, FUN = sum, data=df2); 
+  colnames(total)[2] <- "totalVar"
+  df3 <- merge(df2,total, by=c("traitOriginal") )
+  df3$valueProp <- df3$value/df3$totalVar
+  
+  if("params" %in% ls()){ # we will download the document
+    cat("\n\n###  {.tabset .tabset-pills}       \n\n")
+    # for (j in 1:length(traitsvc)){
+    #   cat("\n\n####", traitsvc[j], "{.tabset .tabset-pills}       \n\n")
+    # df4 <- df3[df3$traitOriginal == traitsvc[j],]
+    p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=traitOriginal, y=valueProp, fill=parameterOriginal)) +
+      ggplot2::geom_bar(stat="identity") +
+      ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
+      scale_fill_brewer(palette="Accent") +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+      ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
+    print(p)
+    # cat("\n")
+    # }
+    cat("\n")
+  }else{
+    
+    shiny::renderPlot({
+      # df3 <- df3[df3$traitOriginal == input$traitPredictionsVC,]
+      ggplot2::ggplot(data=df3, ggplot2::aes(x=traitOriginal, y=valueProp, fill=parameterOriginal)) +
+        ggplot2::geom_bar(stat="identity") +
+        ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
+        scale_fill_brewer(palette="Accent") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+        ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
+    })
   }
   
 }
@@ -526,120 +985,7 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Genetic correlations between environments
-
-The following graph allows to see the genetic correlations among the different environment one **trait** at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates.
-
-<p>&nbsp;</p>
-
-```{r }
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
-  idMta <- idMta[length(idMta)]
-  pred <- result$predictions
-  pred <- pred[pred$analysisId == idMta,]
-  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"])# unique(pred$trait)
-  if("params" %in% ls()){ # we will download the document
-    
-  }else{
-    selectInput(ns("traitPredictionsCorrelation"),
-                label = "",
-                choices = traits
-    )
-  }
-  
-}
-
-```
-
-
-```{r, results='asis'}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
-  idMta <- idMta[length(idMta)]
-  idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject","value"]
-  pred.sta <- result$predictions
-  pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
-  # traits <- unique(pred.sta$trait)
-  predictions.gcorrE <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
-  envs <- unique(predictions.gcorrE[,"environment"])
-  addTextInPlots <- ifelse(length(envs) > 30, FALSE, TRUE)
-  if("params" %in% ls()){ # we will download the document
-    
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    
-    for(iTrait in traits){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-      
-      # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment", valueForCorrelation ="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, checkboxAxis= addTextInPlots)
-      # print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
-      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait & predictions.gcorrE$environment %in% goodFields , ]
-      wide <- stats::reshape(predictions.gcorrE2,
-                             direction = "wide", idvar = "designation",
-                             timevar = "environment", v.names = "predictedValue", sep= "")
-      colnames(wide) <- gsub("predictedValue","",colnames(wide))
-      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
-      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
-      mydata4 <- cgiarBase::matToTab(corr)
-      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
-                                      midpoint = 0, limit = c(-1,1), space = "Lab",
-                                      name="Pearson\nCorrelation") +
-        ggplot2::theme_minimal()+
-        ggplot2::ylab("") + ggplot2::xlab("") +
-        ggplot2::coord_fixed() + 
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "bottom")
-      print(p)
-      
-    }
-    
-  }else{
-    
-    # plotly::renderPlotly({
-    # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-    #                                      valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots,
-    #                                      checkboxAxis= addTextInPlots)
-    # plotly::layout(p.cor.pred.env,font=font.plot_ly)
-    shiny::renderPlot({
-      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitPredictionsCorrelation, "environment"]
-      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitPredictionsCorrelation & predictions.gcorrE$environment %in% goodFields , ]
-      wide <- stats::reshape(predictions.gcorrE2,
-                             direction = "wide", idvar = "designation",
-                             timevar = "environment", v.names = "predictedValue", sep= "")
-      colnames(wide) <- gsub("predictedValue","",colnames(wide))
-      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
-      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
-      mydata4 <- cgiarBase::matToTab(corr)
-      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
-                                      midpoint = 0, limit = c(-1,1), space = "Lab",
-                                      name="Pearson\nCorrelation") +
-        ggplot2::theme_minimal()+
-        ggplot2::ylab("") + ggplot2::xlab("") +
-        ggplot2::coord_fixed() +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "bottom")
-      p
-      # plotly::ggplotly(p)
-    })
-    
-    
-  }
-  
-}
-```
-
-<p>&nbsp;</p>
-
-## Genetic correlations between traits
+### Genetic correlations between traits
 
 The following graph allows to see the genetic correlations among traits using across environment estimates.
 
@@ -680,232 +1026,6 @@ if (is.null(result)){
   
 }
 ```
-
-<p>&nbsp;</p>
-
-## Variance component proportions
-
-The following graph allows to see the proportion of variance going to different components.
-
-<p>&nbsp;</p>
-
-
-```{r, results='asis'}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  
-  idMtaVC <- result$status[which(result$status$module == "mta"),"analysisId"]
-  idMtaVC <- idMtaVC[length(idMtaVC)]
-  traitsvc <- unique(result$modeling[which(result$modeling$analysisId == idMtaVC  & result$modeling$environment == "across"),"trait"])
-  covariatesvc <- unique(result$metadata$weather$trait)
-  df2 <- result$metrics
-  idMta <- result$status[which(result$status$module == "mta"),"analysisId"];
-  idMta <- idMta[length(idMta)]
-  df2 <- df2[df2$analysisId==idMta,]
-  df2 <- df2[df2$parameter %in% c("Vg","Vr","Vp"), ]
-  df2$traitOriginal <-  df2$trait
-  for(iCov in covariatesvc){
-    df2$traitOriginal <- gsub(paste0("-",iCov),"",df2$traitOriginal)
-    df2$traitOriginal <- gsub(paste0(iCov),"",df2$traitOriginal)
-  }
-  df2$parameterOriginal <- df2$trait
-  for(iCov in traitsvc){ df2$parameterOriginal <- gsub(iCov,"",df2$parameterOriginal)}
-  df2$parameterOriginal <- paste0(df2$parameter, df2$parameterOriginal)
-  
-  total <- aggregate(value~traitOriginal, FUN = sum, data=df2); 
-  colnames(total)[2] <- "totalVar"
-  df3 <- merge(df2,total, by=c("traitOriginal") )
-  df3$valueProp <- df3$value/df3$totalVar
-  
-  if("params" %in% ls()){ # we will download the document
-    cat("\n\n###  {.tabset .tabset-pills}       \n\n")
-    # for (j in 1:length(traitsvc)){
-    #   cat("\n\n####", traitsvc[j], "{.tabset .tabset-pills}       \n\n")
-    # df4 <- df3[df3$traitOriginal == traitsvc[j],]
-    p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=traitOriginal, y=valueProp, fill=parameterOriginal)) +
-      ggplot2::geom_bar(stat="identity") +
-      ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
-      scale_fill_brewer(palette="Accent") +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
-      ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
-    print(p)
-    # cat("\n")
-    # }
-    cat("\n")
-  }else{
-    
-    shiny::renderPlot({
-      # df3 <- df3[df3$traitOriginal == input$traitPredictionsVC,]
-      ggplot2::ggplot(data=df3, ggplot2::aes(x=traitOriginal, y=valueProp, fill=parameterOriginal)) +
-        ggplot2::geom_bar(stat="identity") +
-        ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
-        scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
-        ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
-    })
-  }
-  
-}
-```
-
-<p>&nbsp;</p>
-
-## Biplot by trait
-
-The following graph allows to see the performance of the genotypes over the enevironments for each **trait**.
-
-<p>&nbsp;</p>
-
-```{r}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
-  idMta <- idMta[length(idMta)]
-  pred.mta <- result$predictions
-  pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
-  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred.mta$trait)
-  
-  if("params" %in% ls()){ # we will download the document
-    
-  }else{
-    selectInput(ns("traitBiplot"),
-                label = "",
-                choices = traits
-    )
-  }
-}
-
-```
-
-```{r, results='asis'}
-
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
-  idMta <- idMta[length(idMta)]
-  idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject","value"]
-  pred.sta <- result$predictions
-  pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
-  
-  if("params" %in% ls()){ # we will download the document
-    
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    
-    for(iTrait in traits){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-      
-      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
-                                 direction = "wide", idvar = "designation", timevar = "environment")
-      
-      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
-      pred.mta.biplot <- pred.mta.biplot[,-1]
-      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
-      
-      # keep only 
-      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
-      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
-      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
-      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-      components <- prin_comp[["x"]]
-      components <- data.frame(components)
-      components$PC2 <- -components$PC2
-      
-      explained_variance <- summary(prin_comp)[["sdev"]]
-      explained_variance <- explained_variance[1:2]
-      comp <- prin_comp[["rotation"]]
-      comp[,'PC2'] <- - comp[,'PC2']
-      loadings <- comp
-      for (i in seq(explained_variance) ){
-        loadings[,i] <- comp[,i] * explained_variance[i]
-      }
-      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                        x=components$PC1,
-                                        y=components$PC2,
-                                        text=rownames(components),
-                                        marker=list(color="blue"),
-                                        hoverinfo='text',
-                                        showlegend=FALSE
-      )
-      for (i in 1:ncol(pred.mta.biplot)){
-        p.mta.biplot <- p.mta.biplot %>%
-          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-        if(ncol(pred.mta.biplot) < 20){
-          p.mta.biplot <- p.mta.biplot %>%
-            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
-        }
-      }
-      print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
-      
-    }
-    
-  }else{
-    
-    plotly::renderPlotly({
-      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitBiplot, "environment"]
-      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
-                                 direction = "wide", idvar = "designation", timevar = "environment")
-      
-      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
-      pred.mta.biplot <- pred.mta.biplot[,-1]
-      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
-      
-      # keep only 
-      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
-      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
-      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
-      
-      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-      components <- prin_comp[["x"]]
-      components <- data.frame(components)
-      components$PC2 <- -components$PC2
-      
-      explained_variance <- summary(prin_comp)[["sdev"]]
-      explained_variance <- explained_variance[1:2]
-      comp <- prin_comp[["rotation"]]
-      comp[,'PC2'] <- - comp[,'PC2']
-      loadings <- comp
-      for (i in seq(explained_variance) ){
-        loadings[,i] <- comp[,i] * explained_variance[i]
-      }
-      
-      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                        x=components$PC1,
-                                        y=components$PC2,
-                                        text=rownames(components),
-                                        marker=list(color="blue"),
-                                        hoverinfo='text',
-                                        showlegend=FALSE
-      )
-      
-      
-      for (i in 1:ncol(pred.mta.biplot)){
-        p.mta.biplot <- p.mta.biplot %>%
-          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-        if(ncol(pred.mta.biplot) < 20){
-          p.mta.biplot <- p.mta.biplot %>%
-            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
-        }
-      }
-      plotly::layout(p.mta.biplot,font=font.plot_ly)
-    })
-    
-  }
-  
-}
-```
-
 
 <p>&nbsp;</p>
 

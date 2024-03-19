@@ -20,21 +20,81 @@ params:
 
 ### By environment merit distribution
 
-The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**.
+The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**. Within each boxplot the reliability (r2) for that environment by trait combination can be reviewed.
 
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitMta-label" for="mtaApp_1-traitMta"></label>
 <div>
-<select id="mtaApp_1-traitMta" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="FLW50">FLW50</option>
-<option value="HT_AVG">HT_AVG</option></select>
+<select id="mtaApp_1-traitMta" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option></select>
 <script type="application/json" data-for="mtaApp_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out8ece6b6e416091af" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out12d5d7da8c07e412" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+### Connectivity between environments
+
+The following heatmap allows the user to review the connectivity (gennotypes in common) between different environments.
+
+<p>&nbsp;</p>
+
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="mtaApp_1-traitMtaConnect-label" for="mtaApp_1-traitMtaConnect"></label>
+<div>
+<select id="mtaApp_1-traitMtaConnect" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option></select>
+<script type="application/json" data-for="mtaApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
+
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outf8581e567a04de53" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+### Genetic correlations between environments
+
+The following graph allows to see the genetic correlations among the different environment one **trait** at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates.
+
+<p>&nbsp;</p>
+
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="mtaApp_1-traitPredictionsCorrelation-label" for="mtaApp_1-traitPredictionsCorrelation"></label>
+<div>
+<select id="mtaApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option></select>
+<script type="application/json" data-for="mtaApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
+
+
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outdd782cea009a6de6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+<p>&nbsp;</p>
+
+### Biplot by trait
+
+The following graph allows to see the performance of the genotypes over the enevironments for each **trait**.
+
+<p>&nbsp;</p>
+
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="mtaApp_1-traitBiplot-label" for="mtaApp_1-traitBiplot"></label>
+<div>
+<select id="mtaApp_1-traitBiplot" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option></select>
+<script type="application/json" data-for="mtaApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out8b2686c0d00ed3d5" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+
+<p>&nbsp;</p>
 
 ### Across-environment metrics
 
@@ -51,7 +111,19 @@ The following barplot aims to help you check the across environment estimates fo
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out29d4dbe1fe584fb9" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out751f9e2509f005a8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+<p>&nbsp;</p>
+
+
+### Variance component proportions (across environments)
+
+The following graph allows to see the proportion of variance going to different components.
+
+<p>&nbsp;</p>
+
+
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outca15bc0414fceb4b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -60,17 +132,17 @@ The following barplot aims to help you check the across environment estimates fo
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitMta2-label" for="mtaApp_1-traitMta2"></label>
 <div>
-<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
 <option value="FLW50-envIndex">FLW50-envIndex</option>
-<option value="HT_AVG-envIndex">HT_AVG-envIndex</option>
+<option value="YLD_TON">YLD_TON</option>
 <option value="HT_AVG">HT_AVG</option>
-<option value="FLW50">FLW50</option>
-<option value="YLD_TON-envIndex">YLD_TON-envIndex</option></select>
+<option value="YLD_TON-envIndex">YLD_TON-envIndex</option>
+<option value="HT_AVG-envIndex">HT_AVG-envIndex</option></select>
 <script type="application/json" data-for="mtaApp_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outa410e1ab898e0007" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out8f6748af45c14b90" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -85,78 +157,25 @@ The following plots allow the user to select individual not only based on the sc
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaApp_1-traitMta3-label" for="mtaApp_1-traitMta3"></label>
 <div>
-<select id="mtaApp_1-traitMta3" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="FLW50">FLW50</option>
-<option value="HT_AVG">HT_AVG</option></select>
+<select id="mtaApp_1-traitMta3" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLD_TON">YLD_TON</option></select>
 <script type="application/json" data-for="mtaApp_1-traitMta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out1f3268f929a18314" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out9c3e0fa7de0210dc" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
 
-### Genetic correlations between environments
-
-The following graph allows to see the genetic correlations among the different environment one **trait** at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates.
-
-<p>&nbsp;</p>
-
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaApp_1-traitPredictionsCorrelation-label" for="mtaApp_1-traitPredictionsCorrelation"></label>
-<div>
-<select id="mtaApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="FLW50">FLW50</option>
-<option value="HT_AVG">HT_AVG</option></select>
-<script type="application/json" data-for="mtaApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
-
-
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outfecd5cd2e3c64df4" style="width:100%;height:400px;"></div><!--/html_preserve-->
-
-<p>&nbsp;</p>
-
-## Genetic correlations between traits
+### Genetic correlations between traits
 
 The following graph allows to see the genetic correlations among traits using across environment estimates.
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outbe4e9c5faf32261d" style="width:100%;height:400px;"></div><!--/html_preserve-->
-
-<p>&nbsp;</p>
-
-## Variance component proportions
-
-The following graph allows to see the proportion of variance going to different components.
-
-<p>&nbsp;</p>
-
-
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outf4866729c0482c9c" style="width:100%;height:400px;"></div><!--/html_preserve-->
-
-<p>&nbsp;</p>
-
-## Biplot by trait
-
-The following graph allows to see the performance of the genotypes over the enevironments for each **trait**.
-
-<p>&nbsp;</p>
-
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaApp_1-traitBiplot-label" for="mtaApp_1-traitBiplot"></label>
-<div>
-<select id="mtaApp_1-traitBiplot" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="FLW50">FLW50</option>
-<option value="HT_AVG">HT_AVG</option></select>
-<script type="application/json" data-for="mtaApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
-
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out0f326bb708e63651" style="width:100%;height:400px;"></div><!--/html_preserve-->
-
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out0fa3ff9038d38994" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -166,7 +185,7 @@ The following table allows to check the trait predictions in wide format togethe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-out6b13452aa82a49be" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-out9f92e604f9ebe8ed" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
