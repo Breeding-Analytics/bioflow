@@ -1,5 +1,5 @@
 ---
-title: "Population structure Report"
+title: "Population structure report"
 author: ""
 date: "2024"
 output: html_document
@@ -73,8 +73,8 @@ The following table allows you to inspect the principal statistics for the diver
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultPopStr.RData")){
-    load("./outputs/resultPopStr.RData")
+  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
+    load(normalizePath("R/outputs/resultPopStr.RData"))
   }else{
     load("resultPopStr.RData")
   }
@@ -98,29 +98,29 @@ suppressWarnings(tryCatch({
 
 <p>&nbsp;</p>
 
-### Heatmap Plot
+### Percent of missing values
   
-  This plot allows the user to visualize the distance between the genotypes.
+  This plot allows the user to visualize the distribution of percent of missing values for genotypes and for markers.
 
 <p>&nbsp;</p>
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultPopStr.RData")){
-    load("./outputs/resultPopStr.RData")
+  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
+    load(normalizePath("R/outputs/resultPopStr.RData"))
   }else{
     load("resultPopStr.RData")
   }
 }, error = function(e) {
   
 }))
-      distMat=result[["PopStr"]][["Distance_Matrix"]]
-      names=as.character(distMat[,2])
-      distMat=as.matrix(distMat[,-c(1,2)])
-      distplot=plotly::plot_ly(x=names,y=names,z = distMat, colorscale="viridis",type = "heatmap")
-      distplot=distplot %>% plotly::layout(xaxis = list(showticklabels = F), yaxis = list(showticklabels = F))
-      distplot
-      #print(htmltools::tagList(plotly::ggplotly(distplot)))
-  
+
+      NAmark=result[["PopStr"]][["CalculusPerMarker"]][["%NA"]]
+      NAgen=result[["PopStr"]][["CalculusPerGenotype"]][["%NA"]]
+
+      fig <- plot_ly(y = ~NAmark, type = "box", name="missing values in markers")
+      fig <- fig %>% add_trace(y = ~NAgen, name="missing values in genotypes")
+      fig <- fig %>% layout(yaxis = list(title = 'Percent'))
+      fig
 
 ```
 
