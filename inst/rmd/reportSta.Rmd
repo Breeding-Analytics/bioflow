@@ -318,8 +318,13 @@ if (is.null(result)){
         scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
         ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
-      print(p)
-      
+      # print(p)
+      p2 <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
+        ggplot2::geom_bar(stat="identity") +
+        ggplot2::xlab("Environment") + ggplot2::ylab("Value of variance") +
+        scale_fill_brewer(palette="Accent") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) 
+      print(gridExtra::grid.arrange(p,p2))
       cat("\n")
     }
     
@@ -329,12 +334,18 @@ if (is.null(result)){
     
     shiny::renderPlot({
       df3 <- df3[df3$trait == input$traitSta0,]
-      ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
+      p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Proportion of variance") +
         scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
         ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
+      p2 <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=value, fill=parameter)) +
+        ggplot2::geom_bar(stat="identity") +
+        ggplot2::xlab("Environment") + ggplot2::ylab("Value of variance") +
+        scale_fill_brewer(palette="Accent") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
+      gridExtra::grid.arrange(p,p2)
     })
   }
   
@@ -357,8 +368,8 @@ if (is.null(result)){
     shiny::selectInput(ns("parameterMetrics"), 
                        label = "Parameter:", 
                        multiple = FALSE,
-                       selected = unique(parameters),
-                       choices = unique(parameters)
+                       selected = setdiff( unique(parameters), c("Vg","Vr") ),
+                       choices = setdiff( unique(parameters), c("Vg","Vr") )
     )
   }
 }
@@ -552,9 +563,9 @@ if("params" %in% ls()){ # we will download the document
 
 <p>&nbsp;</p>
 
-### Genotypic correlation between environments
+### Correlation between environments
 
-The following plot aims to show the correlation between BLUEs or BLUPs (genotypic correlations) in the different environments when the correlation can be computed.
+The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments.
 
 <p>&nbsp;</p>
 

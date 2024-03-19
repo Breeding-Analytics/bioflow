@@ -53,6 +53,7 @@
 # usethis::use_package("nasapower")
 # usethis::use_package("dendextend")
 # usethis::use_package("slickR")
+# usethis::use_package("gridExtra")
 # # usethis::use_package("tidyverse")
 # usethis::use_pipe()
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
