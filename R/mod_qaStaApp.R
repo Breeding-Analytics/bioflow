@@ -62,8 +62,11 @@ mod_qaStaApp_ui <- function(id){
                                                   column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait to QA", choices = NULL, multiple = TRUE) ),
                                                   column(width=2, numericInput(ns("outlierCoefOutqPheno"), label = "Outlier coefficient", value = 5) ),
                                            ),
-                                           h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
-                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           column(width=12,
+                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           ),
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:470px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
@@ -157,15 +160,16 @@ mod_qaStaApp_server <- function(id, data){
         mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno2, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         mydata$color <- "valid"
         if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+        mydata$predictedValue <- mydata[,input$traitOutqPheno2]
+        ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+          ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
+          ggplot2::theme_classic()+
+          ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
+          ggplot2::xlab("Environment") + ggplot2::ylab("Residual value") +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+          ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
+
       }
-      mydata$predictedValue <- mydata[,input$traitOutqPheno2]
-      ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
-        ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
-        ggplot2::theme_classic()+
-        ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
-        ggplot2::xlab("Environment") + ggplot2::ylab("Residual value") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
-        ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
 
     })
 

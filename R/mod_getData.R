@@ -159,26 +159,28 @@ mod_getData_ui <- function(id){
         ),
 
         shinydashboard::box(width = 12,
-          if (!is.null(pheno_example)) {
-            checkboxInput(
-              inputId = ns('pheno_example'),
-              label = span('Load example ',
-                           a('phenotypic data', target = '_blank',
-                             href = pheno_example)),
-              value = FALSE
-            )
-          },
+                            if (!is.null(pheno_example)) {
+                              checkboxInput(
+                                inputId = ns('pheno_example'),
+                                label = span('Load example ',
+                                             a('phenotypic data', target = '_blank',
+                                               href = pheno_example)),
+                                value = FALSE
+                              )
+                            },
 
-          p(span("Note: If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
+                            p(span("Note: If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
 
-          hr(),
-          uiOutput(ns('brapi_trait_map')),
-          DT::DTOutput(ns('preview_pheno')),
-          uiOutput(ns('pheno_map')),
-          actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-          p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'location', 'trial' and 'study' ", style="color:orange")),
-          textOutput(ns("outConcatenateEnv")),
+                            hr(),
+                            uiOutput(ns('brapi_trait_map')),
+                            DT::DTOutput(ns('preview_pheno')),
+                            uiOutput(ns('pheno_map')),
+                            actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
+                            p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'location', 'trial' and 'study' ", style="color:orange")),
+                            textOutput(ns("outConcatenateEnv")),
         ),
+
+        shiny::plotOutput(ns("plotDataDependencies1")),
 
       ),
       tabPanel(
@@ -310,7 +312,10 @@ mod_getData_ui <- function(id){
 
           hr(),
           DT::DTOutput(ns('preview_geno')),
-        )
+        ),
+
+        shiny::plotOutput(ns("plotDataDependencies2")),
+
       ),
       tabPanel(
         title = 'Pedigree',
@@ -373,6 +378,9 @@ mod_getData_ui <- function(id){
         verbatimTextOutput(ns('ped_summary')),
         hr(),
         DT::DTOutput(ns('preview_ped')),
+
+        shiny::plotOutput(ns("plotDataDependencies3")),
+
       ),
       tabPanel(
         title = 'Weather',
@@ -411,8 +419,11 @@ mod_getData_ui <- function(id){
                    actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
                    textOutput(ns("outgetWeather")),
           ),
-        ) # end of tabset
+        ), # end of tabset
         # tags$p('Comming soon!', style = 'color: red; font-size: 20px; margin-top: 25px;'),
+
+        shiny::plotOutput(ns("plotDataDependencies4")),
+
       ),
       tabPanel(
         title = 'QTL profile',
@@ -480,10 +491,13 @@ mod_getData_ui <- function(id){
           ),
           hr(style = "border-top: 1px solid #4c4c4c;"),
           DT::DTOutput(ns('preview_qtl')),
-        )
+        ),
+
+        shiny::plotOutput(ns("plotDataDependencies5")),
+
       ),
       tabPanel(
-        title = 'Stored objects',
+        title = 'Upload old analysis',
         value = ns('tab6'),
         tags$br(),
 
@@ -510,6 +524,9 @@ mod_getData_ui <- function(id){
         ),
         actionButton(ns("runLoadPrevious"), "Load analysis", icon = icon("play-circle")),
         textOutput(ns("outLoad")),
+
+        shiny::plotOutput(ns("plotDataDependencies6")),
+
       ),
     ),
 
@@ -523,6 +540,12 @@ mod_getData_ui <- function(id){
 mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
   moduleServer(id , function(input, output, session){
     ns <- session$ns
+
+    ## dependencie plot
+
+    output$plotDataDependencies1 <- output$plotDataDependencies2 <- output$plotDataDependencies3 <- output$plotDataDependencies4 <- output$plotDataDependencies5 <- output$plotDataDependencies6 <- shiny::renderPlot({ # plotly::renderPlotly({
+      dependencyPlot()
+    })
 
     ### Phenotypic tab controls ################################################
 
@@ -618,7 +641,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                    client_id     = '5crahiqorgj0lppt3n9dkulkst',
                                    client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
 
-              # IRRI production instance (https://prod-cb.ebs.irri.org/)
+                # IRRI production instance (https://prod-cb.ebs.irri.org/)
               } else if (ebs_domain == 'ebs.irri.org') {
                 ebs_brapi <- sub('(.+)//prod-cb\\.(.+)', '\\1//prod-cbbrapi.\\2', input$pheno_db_url)
                 QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
@@ -627,8 +650,8 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                    client_id     = '7s4mb2tu4884679rmbucsuopk1',
                                    client_secret = 'nf4m8qobpj8eplpg0a9bbo63g69vh0r3p8rbovtfb0udd28rnk9')
 
-              # CIMMYT instances (https://cb-maize.ebs.cimmyt.org, https://cb-staging.ebs.cimmyt.org/)
-              # or evaluation instances (https://cb-mee.ebsproject.org, https://cb-ree.ebsproject.org, and https://cb-wee.ebsproject.org)
+                # CIMMYT instances (https://cb-maize.ebs.cimmyt.org, https://cb-staging.ebs.cimmyt.org/)
+                # or evaluation instances (https://cb-mee.ebsproject.org, https://cb-ree.ebsproject.org, and https://cb-wee.ebsproject.org)
               } else if (ebs_domain == 'ebs.cimmyt.org' || ebs_instance %in% c('cb-mee', 'cb-ree', 'cb-wee')) {
                 ebs_brapi <- sub('(.+)//cb-(.+)', '\\1//cbbrapi-\\2', input$pheno_db_url)
                 QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
@@ -1681,41 +1704,41 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent( # this is the part where we either load the previous analysis from cloud or PC
       c(input$previous_object_input),
       {
-          previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
-            selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path(res_auth$repository)), multiple = FALSE)
-          })
-          output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
-          outLoad <- eventReactive(input$runLoadPrevious, {
-            if(input$previous_object_input == 'cloudfile'){ # upload from cloud
-              req(input$previous_input)
-              load( file.path( getwd(),res_auth$repository,input$previous_input ) ) # old dataset
-            }else if(input$previous_object_input == 'pcfile'){ # upload rds
-              req(input$previous_object_file)
-              load(input$previous_object_file$datapath)
-            }
-            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-            ## replace tables
-            tmp <- data() # current or empty dataset
-            tmp$data <- result$data
-            tmp$metadata <- result$metadata
-            tmp$modifications <- result$modifications
-            tmp$predictions <- result$predictions
-            tmp$metrics <- result$metrics
-            tmp$modeling <- result$modeling
-            tmp$status <- result$status
-            data(tmp) # update data with results
-            shinybusy::remove_modal_spinner()
-            if(input$previous_object_input == 'cloudfile'){
-              shinyalert::shinyalert(title = "Success!", text = paste("Dataset:", input$previous_input,"loaded successfully."), type = "success")
-              # cat(paste("Dataset:", input$previous_input,"loaded successfully."))
-            }else{
-              shinyalert::shinyalert(title = "Success!", text = paste("Dataset",input$previous_object_file$name,"loaded successfully."), type = "success")
-              # cat(paste("Dataset",input$previous_object_file$name,"loaded successfully."))
-            }
-          }) ## end eventReactive
-          output$outLoad <- renderPrint({
-            outLoad()
-          })
+        previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
+          selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path(res_auth$repository)), multiple = FALSE)
+        })
+        output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
+        outLoad <- eventReactive(input$runLoadPrevious, {
+          if(input$previous_object_input == 'cloudfile'){ # upload from cloud
+            req(input$previous_input)
+            load( file.path( getwd(),res_auth$repository,input$previous_input ) ) # old dataset
+          }else if(input$previous_object_input == 'pcfile'){ # upload rds
+            req(input$previous_object_file)
+            load(input$previous_object_file$datapath)
+          }
+          shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+          ## replace tables
+          tmp <- data() # current or empty dataset
+          tmp$data <- result$data
+          tmp$metadata <- result$metadata
+          tmp$modifications <- result$modifications
+          tmp$predictions <- result$predictions
+          tmp$metrics <- result$metrics
+          tmp$modeling <- result$modeling
+          tmp$status <- result$status
+          data(tmp) # update data with results
+          shinybusy::remove_modal_spinner()
+          if(input$previous_object_input == 'cloudfile'){
+            shinyalert::shinyalert(title = "Success!", text = paste("Dataset:", input$previous_input,"loaded successfully."), type = "success")
+            # cat(paste("Dataset:", input$previous_input,"loaded successfully."))
+          }else{
+            shinyalert::shinyalert(title = "Success!", text = paste("Dataset",input$previous_object_file$name,"loaded successfully."), type = "success")
+            # cat(paste("Dataset",input$previous_object_file$name,"loaded successfully."))
+          }
+        }) ## end eventReactive
+        output$outLoad <- renderPrint({
+          outLoad()
+        })
       }
     )
 

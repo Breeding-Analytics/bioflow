@@ -1,4 +1,43 @@
 
+dependencyPlot <- function(){
+  mm <- matrix(
+    NA, nrow = 5, ncol = 7
+  )
+  # colnames(mm) <- c("QA","STA","MTA","INDEX","OCS","RGG","PGG")
+  colnames(mm) <- c("Quality Assurance","Single Trial Analysis","Multi Trial Analysis","Selection Index","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain")
+  rownames(mm) <- c("QTL", "Weather","Pedigree", "Genotype", "Phenotype")
+  mm[5,] = c(2,2,2,2,2,2,2)
+  mm[4,] = c(2,0,1,0,2,0,0)
+  mm[3,] = c(2,0,1,0,2,2,2)
+  mm[2,] = c(0,0,1,0,0,0,0)
+  mm[1,] = c(0,0,1,0,0,0,0)
+  mydata4 <- cgiarBase::matToTab(mm, symmetric = FALSE)
+  mydata4$label <- ifelse( mydata4$Freq == 0, "-", ifelse(mydata4$Freq == 2, "Required", "Optional" ) )
+
+  p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+    ggplot2::geom_tile(color = "black")+
+    ggplot2::scale_fill_gradient2(high = "#038542", mid = "aquamarine3", low = "white",
+                                  midpoint = 1, limit = c(0,2), space = "Lab",
+                                  name="Pearson\nCorrelation") +
+    ggplot2::theme_minimal()+
+    ggplot2::ylab("") + ggplot2::xlab("") +
+    ggplot2::coord_fixed() +
+    ggplot2::theme(strip.text.x = ggplot2::element_text(size=10, color="black"),
+                   axis.text.x = ggplot2::element_text(angle = 45, size=12, vjust=0.5,
+                                                       hjust=0.1, # this one control the top labels position
+                                                       lineheight=0.75 ),
+                   axis.text.y = ggplot2::element_text(size=12),
+                   legend.position = "none",
+                   plot.title = ggplot2::element_text(color="grey32", size=18, face="bold.italic") )  +
+    ggplot2::geom_text(ggplot2::aes(label = label ), color = "grey18", size = 4) +
+    ggplot2::ggtitle("Data dependencies across analytical modules") +
+    ggplot2::scale_x_discrete(
+      position = "bottom",
+      guide = ggplot2::guide_axis(position = "top")
+    )
+  return(p)
+}
+
 plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilterPredictionsRadar2, meanGroupPredictionsRadar, proportion=0.2,
                                  analysisId, trait, desirev, scaled){
 
