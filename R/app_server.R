@@ -52,6 +52,9 @@ app_server <- function(input, output, session) {
   ## SAVE results tab
   mod_saveData_server("saveData_1", data = data, res_auth=res_auth)
 
+  ## DASHBOARDS
+  mod_abiDashboard_server("abiDashboard_1", data = data)
+
   ## about tabs
   mod_aboutApp_server("aboutApp_1") # about the application
   mod_meetTheTeamApp_server("meetTheTeamApp_1") # about the team

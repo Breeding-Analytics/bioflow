@@ -86,3 +86,21 @@ passwordGen <- function(nLetters, nNumbers){
 # getwd()
 # saveRDS(users, file = "users.rds")
 #
+# #####################################
+# #####################################
+# # adding new users again (20.03.2024)
+#
+# users <- readRDS("~/Documents/bioflow/users.rds")
+# toAdd <- data.frame(user=c("shainas059@gmail.com", "c.venkateshwarlu@irri.org", "b.pahi@irri.org", "ajaybogati97@gmail.com","manojpushkarnath.irri@gmail.com","ebalaraju.irri@gmail.com"),
+#                     password=apply(data.frame(1:6), 1,function(x){passwordGen(8,8)} ),
+#                     firstName=c("Shainas", "Challa", "Bandana","Ajay","Manoj","ebalaraju"),
+#                     lastName=c("","Venkateshwarlu", "Pahi","Bogati","Pushkarnath","ebalaraju"),
+#                     affiliation=c(rep("IRRI",6)),
+#                     email=c("shainas059@gmail.com", "c.venkateshwarlu@irri.org", "b.pahi@irri.org","ajaybogati97@gmail.com","manojpushkarnath.irri@gmail.com","ebalaraju.irri@gmail.com"),
+#                     admin=FALSE, start="03.20.2024", expire=NA, stringsAsFactors = FALSE, repository="R/outputs"
+# )
+# users <- rbind(users, toAdd)
+# tail(users)
+# getwd()
+# saveRDS(users, file = "users.rds")
+

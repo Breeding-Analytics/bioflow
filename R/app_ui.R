@@ -95,7 +95,7 @@ app_ui <- function(request) {
       tabPanel("Save",  mod_saveData_ui("saveData_1"), icon = icon("floppy-disk") ),
 
       navbarMenu("Dashboards", icon = icon("table"),
-                 tabPanel("ABI", icon = icon("puzzle-piece") ),
+                 tabPanel("ABI", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
       ),
 
       navbarMenu("About", icon = icon("question"),

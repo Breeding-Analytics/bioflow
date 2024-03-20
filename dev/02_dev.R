@@ -116,6 +116,8 @@
 # golem::add_module(name = "sectionInfoGEApp", with_test = FALSE) # for genetic evaluation
 # golem::add_module(name = "sectionInfoSHApp", with_test = FALSE) # for selection history
 #
+# golem::add_module(name = "abiDashboard", with_test = FALSE) # abi dashboard
+#
 # ## Add helper functions ----
 # ## Creates fct_* and utils_*
 # golem::add_fct("helpers", with_test = TRUE)
