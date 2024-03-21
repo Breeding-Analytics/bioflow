@@ -150,7 +150,7 @@ if (is.null(result)){
         ggplot2::scale_fill_discrete(name = "") +
         ggplot2::theme(legend.position = "bottom")  +
         ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) +
-        ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 5, vjust = 0.5,colour="black") 
+        ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 3, vjust = 0.5,colour="black") 
       
       # if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
       print(p)
@@ -620,6 +620,7 @@ if (is.null(result)){
 } else {
   
   myMetrics2 <- myMetrics[which(myMetrics$analysisId %in% idMta),]
+  myMetrics2$value <- ifelse( myMetrics2$value < 0, 0,  myMetrics2$value )
   
   if("params" %in% ls()){  # if user will download the report
     

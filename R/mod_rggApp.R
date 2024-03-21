@@ -111,6 +111,11 @@ mod_rggApp_ui <- function(id){
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                       column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                              p(span("View of current analyses available.", style="color:black")),
+                                                              selectInput(ns("trait3Rgg2"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
+                                                              plotly::plotlyOutput(ns("plotPredictionsCleanOut2")),
+                                                       ),
                                                 ),
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
@@ -262,6 +267,7 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- dtRgg[which(dtRgg$analysisId %in% input$version2Rgg),] # only traits that have been QA
       traitRggInput <- unique(dtRgg$trait)
       updateSelectInput(session, "trait3Rgg", choices = traitRggInput)
+      updateSelectInput(session, "trait3Rgg2", choices = traitRggInput)
     })
     output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
       req(data())
@@ -278,6 +284,28 @@ mod_rggApp_server <- function(id, data){
 
       mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
+      mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
+      mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
+                             x = mydata[,"yearOfOrigin"], text=mydata[,"designation"], pointpos = -1.8)
+      # res = res %>% plotly::layout(showlegend = TRUE,  xaxis = list(titlefont = list(size = input$fontSize), tickfont = list(size = input$fontSize)))
+      res
+    })
+    output$plotPredictionsCleanOut2 <- plotly::renderPlotly({ # update plot
+      req(data())
+      req(input$trait3Rgg2)
+      ##
+      mydata <- data()$predictions
+      paramsPheno <- data()$metadata$pheno
+      paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+      colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+      ##
+      myYears <- data()$data$pedigree
+      paramsPed <- data()$metadata$pedigree
+      colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+
+      mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+      mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg2),]
       mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
       res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],

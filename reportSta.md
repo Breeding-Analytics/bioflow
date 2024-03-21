@@ -1,5 +1,5 @@
 ---
-title: "STA Report"
+title: "Single Trial Analysis Report"
 author: ""
 date: "2023-11-03"
 output: html_document
@@ -24,89 +24,209 @@ NULL
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> FLW50 </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> HT_AVG </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLDTONHA </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> DH </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Grain yield </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> TSW </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> PL </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> DM </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> UGPP </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> PH </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> FGPP </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> 2023_BD-CG-CM-BRRI </td>
+   <td style="text-align:left;"> 2019_Abobo </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 192 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_BD-DA-GZ-BRRI </td>
+   <td style="text-align:left;"> 2019_Assosa </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 192 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_BD-DA-GZ-BSMRAU </td>
+   <td style="text-align:left;"> 2019_Bako </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 192 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_BD-KH-ST-BINA </td>
+   <td style="text-align:left;"> 2019_Fogera </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 192 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_BD-RP-RP-BRRI </td>
+   <td style="text-align:left;"> 2019_Jimma </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 192 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_IN-CT-RP-IGKV </td>
+   <td style="text-align:left;"> 2019_Metema </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 188 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_IN-MH-RG-KJ-DBSKKV </td>
+   <td style="text-align:left;"> 2019_Mytsebri </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 188 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_IN-OR-CU-NRRI </td>
+   <td style="text-align:left;"> 2019_Pawe </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 188 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_IN-TG-HY-IIRR </td>
+   <td style="text-align:left;"> 2020_Arbaminch </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 188 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_IN-TG-HY-PJTSAU </td>
+   <td style="text-align:left;"> 2020_Assosa </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 188 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2023_IN-UP-VA-BHU </td>
+   <td style="text-align:left;"> 2020_Bako </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 188 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_Dembia </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_Fogera </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_Jimma </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_Metema </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_Pawe </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 28 </td>
   </tr>
 </tbody>
 </table></div>
@@ -122,16 +242,21 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="YLDTONHA">YLDTONHA</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="DH" selected>DH</option>
+<option value="Grain yield">Grain yield</option>
+<option value="TSW">TSW</option>
+<option value="UGPP">UGPP</option>
+<option value="FGPP">FGPP</option>
+<option value="PL">PL</option>
+<option value="PH">PH</option>
+<option value="DM">DM</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 Table of statistics:
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out2e8dd5f237d0fe2e" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out11ff506aa25f010e" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 Variance components ratios per environment 
 
@@ -140,14 +265,19 @@ Variance components ratios per environment
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta0-label" for="staApp_1-traitSta0">Trait:</label>
 <div>
-<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="YLDTONHA">YLDTONHA</option></select>
+<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="DH" selected>DH</option>
+<option value="Grain yield">Grain yield</option>
+<option value="TSW">TSW</option>
+<option value="UGPP">UGPP</option>
+<option value="FGPP">FGPP</option>
+<option value="PL">PL</option>
+<option value="PH">PH</option>
+<option value="DM">DM</option></select>
 <script type="application/json" data-for="staApp_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out14c98ecf9601f563" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out496e577d65ad721a" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -163,7 +293,7 @@ Variance components ratios per environment
 
 Barplot for parameter values
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-outd99dbae47e593c53" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out05ee752af86c1e90" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -176,23 +306,28 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="2023_BD-CG-CM-BRRI" selected>2023_BD-CG-CM-BRRI</option>
-<option value="2023_BD-DA-GZ-BSMRAU">2023_BD-DA-GZ-BSMRAU</option>
-<option value="2023_BD-RP-RP-BRRI">2023_BD-RP-RP-BRRI</option>
-<option value="2023_BD-KH-ST-BINA">2023_BD-KH-ST-BINA</option>
-<option value="2023_BD-DA-GZ-BRRI">2023_BD-DA-GZ-BRRI</option>
-<option value="2023_IN-CT-RP-IGKV">2023_IN-CT-RP-IGKV</option>
-<option value="2023_IN-OR-CU-NRRI">2023_IN-OR-CU-NRRI</option>
-<option value="2023_IN-MH-RG-KJ-DBSKKV">2023_IN-MH-RG-KJ-DBSKKV</option>
-<option value="2023_IN-TG-HY-IIRR">2023_IN-TG-HY-IIRR</option>
-<option value="2023_IN-TG-HY-PJTSAU">2023_IN-TG-HY-PJTSAU</option>
-<option value="2023_IN-UP-VA-BHU">2023_IN-UP-VA-BHU</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="2019_Fogera" selected>2019_Fogera</option>
+<option value="2019_Mytsebri">2019_Mytsebri</option>
+<option value="2020_Assosa">2020_Assosa</option>
+<option value="2019_Bako">2019_Bako</option>
+<option value="2020_Metema">2020_Metema</option>
+<option value="2019_Pawe">2019_Pawe</option>
+<option value="2020_Fogera">2020_Fogera</option>
+<option value="2020_Bako">2020_Bako</option>
+<option value="2020_Jimma">2020_Jimma</option>
+<option value="2019_Metema">2019_Metema</option>
+<option value="2020_Dembia">2020_Dembia</option>
+<option value="2019_Assosa">2019_Assosa</option>
+<option value="2020_Pawe">2020_Pawe</option>
+<option value="2019_Jimma">2019_Jimma</option>
+<option value="2020_Arbaminch">2020_Arbaminch</option>
+<option value="2019_Abobo">2019_Abobo</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out3ae6a2938407cc81" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out9b08d039bc44a6b9" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -203,14 +338,19 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
-<option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLDTONHA" selected>YLDTONHA</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="DH" selected>DH</option>
+<option value="Grain yield" selected>Grain yield</option>
+<option value="TSW" selected>TSW</option>
+<option value="UGPP" selected>UGPP</option>
+<option value="FGPP" selected>FGPP</option>
+<option value="PL" selected>PL</option>
+<option value="PH" selected>PH</option>
+<option value="DM" selected>DM</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-outefd0fd635b82333e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out26ca21e701c2bf00" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -223,12 +363,17 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCor-label" for="staApp_1-traitStaCor">Trait:</label>
 <div>
-<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
-<option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLDTONHA" selected>YLDTONHA</option></select>
+<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="DH" selected>DH</option>
+<option value="Grain yield" selected>Grain yield</option>
+<option value="TSW" selected>TSW</option>
+<option value="UGPP" selected>UGPP</option>
+<option value="FGPP" selected>FGPP</option>
+<option value="PL" selected>PL</option>
+<option value="PH" selected>PH</option>
+<option value="DM" selected>DM</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out09aef3483999f994" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out73d9d51ced0a273a" style="width:100%;height:400px;"></div><!--/html_preserve-->
