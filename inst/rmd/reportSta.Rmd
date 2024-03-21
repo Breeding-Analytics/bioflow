@@ -1,5 +1,5 @@
 ---
-title: "STA Report"
+title: "Single Trial Analysis Report"
 author: ""
 date: "2023-11-03"
 output: html_document

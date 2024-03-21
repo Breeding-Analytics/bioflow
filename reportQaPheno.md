@@ -25,13 +25,17 @@ The following table shows the modifications that have been saved in your analysi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQa-label" for="qaRawApp_1-traitQa">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
+<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="ZINC">ZINC</option>
+<option value="YLDTONHA">YLDTONHA</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-outb02fb10ed4d1e85e" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-outa11367c498201b69" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -46,12 +50,16 @@ The following boxplot allows you to visualize which records were tagged as outli
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQaBox-label" for="qaRawApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
+<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="ZINC">ZINC</option>
+<option value="YLDTONHA">YLDTONHA</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-outf7946bcb352af575" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out199de1af475a8888" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

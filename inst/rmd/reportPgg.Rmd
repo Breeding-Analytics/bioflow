@@ -1,5 +1,5 @@
 ---
-title: "Predicted Genetic Report"
+title: "Predicted Genetic Gain Report"
 author: ""
 date: "December 2023"
 output: html_document

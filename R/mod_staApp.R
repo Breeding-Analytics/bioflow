@@ -390,10 +390,20 @@ mod_staApp_server <- function(id,data){
           dtStaList <- split(dtSta, dtSta[,input$feature]) # split info by environment
           dtStaListRes <- list()
           for(i in 1:length(dtStaList)){
-            dtStaListRes[[i]] <- as.data.frame(as.table(apply(dtStaList[[i]][,c("designation","mother","father")],2, function(x){length(na.omit(unique(x)))})))
+            dtStaListRes[[i]] <- as.data.frame(as.table(apply(dtStaList[[i]][,intersect( c("designation","mother","father"), colnames(dtSta) ), drop= FALSE],2, function(x){length(na.omit(unique(x)))})))
             dtStaListRes[[i]][,input$feature] <- names(dtStaList)[i]
+            if("mother" %!in% dtStaListRes[[i]]$Var1){
+              prov <- dtStaListRes[[i]]
+              prov$Var1 <- "mother"; prov$Freq <- 0
+            }else{prov <- NULL}
+            if("father" %!in% dtStaListRes[[i]]$Var1){
+              prov2 <- dtStaListRes[[i]]
+              prov2$Var1 <- "father"; prov2$Freq <- 0
+            }else{prov2 <- NULL}
+            if(!is.null(prov) | !is.null(prov2)){dtStaListRes[[i]] <- rbind(dtStaListRes[[i]], prov,prov2)}
           }
           dtSta <- do.call(rbind, dtStaListRes)
+
           colnames(dtSta)[1:2] <- c("geneticUnit", "numberOfUnits")
           dtSta <- dtSta[with(dtSta, order(geneticUnit)), ]; rownames(dtSta) <- NULL
           DT::datatable(dtSta, extensions = 'Buttons',

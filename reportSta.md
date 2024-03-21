@@ -24,43 +24,85 @@ NULL
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLD_TON </th>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> FLW50 </th>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> HT_AVG </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLDTONHA </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> IN-CT-RP-IGKV </td>
+   <td style="text-align:left;"> 2023_BD-CG-CM-BRRI </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 192 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023_BD-DA-GZ-BRRI </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 192 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023_BD-DA-GZ-BSMRAU </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 192 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023_BD-KH-ST-BINA </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 192 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023_BD-RP-RP-BRRI </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 192 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023_IN-CT-RP-IGKV </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:right;"> 188 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> IN-JH-HZ-CRURRS </td>
+   <td style="text-align:left;"> 2023_IN-MH-RG-KJ-DBSKKV </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:right;"> 188 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> IN-JH-RN-BAU </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 187 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> IN-UP-PY-SHUATS </td>
+   <td style="text-align:left;"> 2023_IN-OR-CU-NRRI </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:right;"> 188 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> IN-WB-PU-ZDRPRS </td>
+   <td style="text-align:left;"> 2023_IN-TG-HY-IIRR </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023_IN-TG-HY-PJTSAU </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023_IN-UP-VA-BHU </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
@@ -80,16 +122,16 @@ The following table allows you to verify different quality metrics (KPIs) for th
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLD_TON">YLD_TON</option>
-<option value="FLW50">FLW50</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLDTONHA">YLDTONHA</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 Table of statistics:
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out9a815892349c9403" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out2e8dd5f237d0fe2e" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 Variance components ratios per environment 
 
@@ -98,14 +140,14 @@ Variance components ratios per environment
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta0-label" for="staApp_1-traitSta0">Trait:</label>
 <div>
-<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLD_TON">YLD_TON</option>
-<option value="FLW50">FLW50</option></select>
+<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="YLDTONHA">YLDTONHA</option></select>
 <script type="application/json" data-for="staApp_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out42d965e70c101183" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out14c98ecf9601f563" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -121,7 +163,7 @@ Variance components ratios per environment
 
 Barplot for parameter values
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out7bf1d4b2995be0bb" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-outd99dbae47e593c53" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -134,17 +176,23 @@ The following table allows you to check the trait predictions in wide format and
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="IN-JH-HZ-CRURRS" selected>IN-JH-HZ-CRURRS</option>
-<option value="IN-JH-RN-BAU">IN-JH-RN-BAU</option>
-<option value="IN-WB-PU-ZDRPRS">IN-WB-PU-ZDRPRS</option>
-<option value="IN-UP-PY-SHUATS">IN-UP-PY-SHUATS</option>
-<option value="IN-CT-RP-IGKV">IN-CT-RP-IGKV</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="2023_BD-CG-CM-BRRI" selected>2023_BD-CG-CM-BRRI</option>
+<option value="2023_BD-DA-GZ-BSMRAU">2023_BD-DA-GZ-BSMRAU</option>
+<option value="2023_BD-RP-RP-BRRI">2023_BD-RP-RP-BRRI</option>
+<option value="2023_BD-KH-ST-BINA">2023_BD-KH-ST-BINA</option>
+<option value="2023_BD-DA-GZ-BRRI">2023_BD-DA-GZ-BRRI</option>
+<option value="2023_IN-CT-RP-IGKV">2023_IN-CT-RP-IGKV</option>
+<option value="2023_IN-OR-CU-NRRI">2023_IN-OR-CU-NRRI</option>
+<option value="2023_IN-MH-RG-KJ-DBSKKV">2023_IN-MH-RG-KJ-DBSKKV</option>
+<option value="2023_IN-TG-HY-IIRR">2023_IN-TG-HY-IIRR</option>
+<option value="2023_IN-TG-HY-PJTSAU">2023_IN-TG-HY-PJTSAU</option>
+<option value="2023_IN-UP-VA-BHU">2023_IN-UP-VA-BHU</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outb612bf0858ff22da" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out3ae6a2938407cc81" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -155,14 +203,14 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLD_TON" selected>YLD_TON</option>
-<option value="FLW50" selected>FLW50</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLDTONHA" selected>YLDTONHA</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out0e981c459bc45a30" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-outefd0fd635b82333e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -175,12 +223,12 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCor-label" for="staApp_1-traitStaCor">Trait:</label>
 <div>
-<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
-<option value="YLD_TON" selected>YLD_TON</option>
-<option value="FLW50" selected>FLW50</option></select>
+<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="FLW50" selected>FLW50</option>
+<option value="HT_AVG" selected>HT_AVG</option>
+<option value="YLDTONHA" selected>YLDTONHA</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out8542fb21b0d2dd90" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="staApp_1-out09aef3483999f994" style="width:100%;height:400px;"></div><!--/html_preserve-->

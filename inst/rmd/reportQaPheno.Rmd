@@ -1,5 +1,5 @@
 ---
-title: "Quality Assurance Pheno Report"
+title: "Quality Assurance Phenotypic Report"
 author: ""
 date: "December 2023"
 output: html_document

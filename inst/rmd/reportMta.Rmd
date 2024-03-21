@@ -1,5 +1,5 @@
 ---
-title: "MTA Report"
+title: "Multi-Trial Analysis Report"
 author: ""
 date: "2023-11-03"
 output: html_document
@@ -94,7 +94,7 @@ if (is.null(result)){
 
 ### By environment merit distribution
 
-The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**. Within each boxplot the reliability (r2) for that environment by trait combination can be reviewed.
+The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**. At the top of each boxplot the reliability (r2) for that environment by trait combination can be reviewed.
 
 <p>&nbsp;</p>
 
@@ -150,7 +150,7 @@ if (is.null(result)){
         ggplot2::scale_fill_discrete(name = "") +
         ggplot2::theme(legend.position = "bottom")  +
         ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) +
-        ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = envMean , label =round(value,2) ), position=position_dodge(width = 0.8),size = 3, vjust = -0.5,colour="black") 
+        ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 5, vjust = 0.5,colour="black") 
       
       # if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
       print(p)
@@ -178,7 +178,7 @@ if (is.null(result)){
           scale_fill_discrete(name = "") +
           theme(legend.position = "bottom") +
           guides(fill=guide_legend(nrow=3,byrow=TRUE)) +
-          ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = envMean , label =round(value,2) ), position=position_dodge(width = 0.8),size = 3, vjust = -0.5,colour="black")
+          ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 5, vjust = 0.5,colour="black")
         p
       })
     } else { # go dynamic
@@ -251,8 +251,6 @@ if (is.null(result)){
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       
-      # nagm2 <- nagm[goodFields,goodFields]
-      
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -288,8 +286,6 @@ if (is.null(result)){
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       
-      # nagm2 <- nagm[goodFields,goodFields]
-      
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -300,12 +296,12 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
-        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
+        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face = "bold"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
       if(nrow(nagm) < 20){ # if user wants to add text to the cells
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
-      p
+      print(p)
     })
     
   }
@@ -382,7 +378,7 @@ if (is.null(result)){
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-                       axis.text.x = ggplot2::element_text(angle = 45))
+                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
       if(nrow(corr) < 20){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
       }
@@ -416,7 +412,7 @@ if (is.null(result)){
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-                       axis.text.x = ggplot2::element_text(angle = 45) )
+                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
       if(nrow(corr) < 20){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
       }
@@ -603,14 +599,16 @@ if (is.null(result)){
   idMta <- result$status[which(result$status$module == "mta"),"analysisId"];
   idMta <- idMta[length(idMta)]
   parameters <- myMetrics[which(myMetrics$analysisId == idMta),"parameter"]
+  parameters <- setdiff(unique(parameters),"CV")
+  
   if("params" %in% ls()){  # if user will download the report
     
   }else{
     shiny::selectInput(ns("parameterMetrics2"), 
                        label = "Parameter:", 
                        multiple = FALSE,
-                       selected = setdiff(unique(parameters),"CV"),
-                       choices = setdiff(unique(parameters),"CV")
+                       selected = parameters,
+                       choices = parameters
     )
   }
 }
@@ -627,7 +625,7 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     counter <- 1
-    for(iParam in unique(parameters)){
+    for(iParam in parameters){
       cat("\n\n####", iParam, "{.tabset .tabset-pills}       \n\n")
       
       mydata2 = myMetrics2[which(myMetrics2$parameter %in% iParam),]
@@ -636,7 +634,7 @@ if (is.null(result)){
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "bottom") +
         ggplot2::labs(x="Trait", y="Parameter value")
-      # print(p)
+      print(p)
       cat("\n")
     }
     cat("\n")
@@ -660,7 +658,7 @@ if (is.null(result)){
 <p>&nbsp;</p>
 
 
-### Variance component proportions (across environments)
+### Variance component proportions for traits (across environments)
 
 The following graph allows to see the proportion of variance going to different components. Above the bars you can see the value of the variance component for each factor.
 
@@ -685,14 +683,17 @@ if (is.null(result)){
   for(iCov in covariatesvc){
     df2$traitOriginal <- gsub(paste0("-",iCov),"",df2$traitOriginal)
     df2$traitOriginal <- gsub(paste0(iCov),"",df2$traitOriginal)
+    df2$traitOriginal <- gsub("_QTL","",df2$traitOriginal) # remove the QTL legend in this particular case
   }
   df2$parameterOriginal <- df2$trait
   for(iCov in traitsvc){ df2$parameterOriginal <- gsub(iCov,"",df2$parameterOriginal)}
   df2$parameterOriginal <- paste0(df2$parameter, df2$parameterOriginal)
   df2$value[which(df2$value < 0)]=0
-  total <- aggregate(value~traitOriginal, FUN = sum, data=df2); 
-  colnames(total)[2] <- "totalVar"
-  df3 <- merge(df2,total, by=c("traitOriginal") )
+  total <- try( aggregate(value~traitOriginal, FUN = sum, data=df2), silent = TRUE)
+  if(!inherits(total, "try-error")){
+    colnames(total)[2] <- "totalVar"
+    df3 <- merge(df2,total, by=c("traitOriginal") )
+  }else{df3 <- df2; df3$totalVar <- NA}
   df3$valueProp <- df3$value/df3$totalVar
   df3$valuePropCum <- NA; 
   for(iRow in nrow(df3):1){
@@ -807,7 +808,7 @@ if (is.null(result)){
     
   }else{
     
-    if(length(unique(pred$designation)) > 200){ # go fixed format
+    # if(length(unique(pred$designation)) > 200){ # go fixed format
       
       shiny::renderPlot({
         
@@ -832,38 +833,38 @@ if (is.null(result)){
                                               ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                  width = 0.10) +
           ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
         p
         
       })
-    }else{ # go dynamic
-      plotly::renderPlotly({
-        
-        temp.pred.box <- pred[pred$trait== input$traitMta2,]
-        p <- ggplot2::ggplot(
-          data = temp.pred.box,
-          mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
-            col = entryType,
-            text = paste(
-              paste0('<br>', "designation: ", designation),
-              paste0('<br>', "entry type: ", entryType),
-              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-              paste0('<br>', "standard error: ", round(stdError, 4)),
-              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
-              #        round(predictedValue + CI, 2), ")")))) +
-              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                     round(predictedValue + stdError, 4), ")")))) +
-          ggplot2::theme_classic() +  ggplot2::geom_point() +
-          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                 width = 0.10) +
-          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
-        plotly::ggplotly(p)
-      })
-    }
+    # }else{ # go dynamic
+    #   plotly::renderPlotly({
+    #     
+    #     temp.pred.box <- pred[pred$trait== input$traitMta2,]
+    #     p <- ggplot2::ggplot(
+    #       data = temp.pred.box,
+    #       mapping = ggplot2::aes(
+    #         x = reorder(designation, -predictedValue),
+    #         y = predictedValue,
+    #         col = entryType,
+    #         text = paste(
+    #           paste0('<br>', "designation: ", designation),
+    #           paste0('<br>', "entry type: ", entryType),
+    #           paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+    #           paste0('<br>', "standard error: ", round(stdError, 4)),
+    #           # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+    #           #        round(predictedValue + CI, 2), ")")))) +
+    #           paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+    #                  round(predictedValue + stdError, 4), ")")))) +
+    #       ggplot2::theme_classic() +  ggplot2::geom_point() +
+    #       ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+    #                                           ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+    #                              width = 0.10) +
+    #       ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+    #       ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+    #     plotly::ggplotly(p)
+    #   })
+    # }
     
   }
 }
@@ -1005,28 +1006,67 @@ The following graph allows to see the genetic correlations among traits using ac
 if (is.null(result)){
   # invisible(NULL)
 } else {
+  
+  
   idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   predictions.gcorrT <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
-  nTraits <- unique(predictions.gcorrE[,"trait"])
-  addTextInPlots <- ifelse(length(nTraits) > 40, FALSE, TRUE)
-  if(length(nTraits) > 1){
+  # nTraits <- unique(predictions.gcorrE[,"trait"])
+  # addTextInPlots <- ifelse(length(nTraits) > 40, FALSE, TRUE)
+  
+  wide <- stats::reshape(predictions.gcorrT,
+                         direction = "wide", idvar = "designation",
+                         timevar = "trait", v.names = "predictedValue", sep= "")
+  colnames(wide) <- gsub("predictedValue","",colnames(wide))
+  wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+  corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+  mydata4 <- cgiarBase::matToTab(corr)
+  if(nrow(corr) > 1){
     if("params" %in% ls()){ # we will download the document
       
-      p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-                                              valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
-                                              checkboxAxis= addTextInPlots)
-      print(htmltools::tagList(plotly::ggplotly(p.cor.pred.traits)))
+      # p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+      #                                         valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
+      #                                         checkboxAxis= addTextInPlots)
+      # print(htmltools::tagList(plotly::ggplotly(p.cor.pred.traits)))
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed() + 
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+      if(nrow(corr) < 20){ # if user wants to fill cell values
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+      }
+      print(p)
       
     }else{
       
-      plotly::renderPlotly({
-        p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-                                                valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
-                                                checkboxAxis= addTextInPlots)
-        plotly::layout(p.cor.pred.traits,font=font.plot_ly)
+      # plotly::renderPlotly({
+      shiny::renderPlot({
+        # p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
+        #                                         valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
+        #                                         checkboxAxis= addTextInPlots)
+        # plotly::layout(p.cor.pred.traits,font=font.plot_ly)
+        p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                        midpoint = 0, limit = c(-1,1), space = "Lab",
+                                        name="Pearson\nCorrelation") +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("") + ggplot2::xlab("") +
+          ggplot2::coord_fixed() + 
+          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+                         axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+        if(nrow(corr) < 20){ # if user wants to fill cell values
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+        }
+        print(p)
       })
       
     }
