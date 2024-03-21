@@ -86,10 +86,10 @@ suppressWarnings(tryCatch({
 ```
 
 
-### Modifications table
+### Table of modifications
 <p>&nbsp;</p>
 
-The following table shows the modifications saved to be applied for the raw phenotypic data when is used in one of the analytical modules.
+The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw phenotypic data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., single trial analysis module).
 
 ```{r }
 
@@ -147,9 +147,9 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Modifications plot
+### Boxplot of modifications
 
-The following plot allows you to visualize which records were tagged as outliers and will be ignored in posterior analyses if this QA time stamp is added to the posterior analyses.
+The following boxplot allows you to visualize which records were tagged as outliers and will be ignored in posterior analyses if this QA time stamp is selected in the posterior analyses.
 
 <p>&nbsp;</p>
 

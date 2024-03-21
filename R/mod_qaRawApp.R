@@ -12,7 +12,7 @@ mod_qaRawApp_ui <- function(id){
   tagList(
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel( id=ns("tabsMain"),
                        type = "tabs",
 
                        tabPanel(div(icon("book"), "Information-QA") ,
@@ -55,13 +55,14 @@ mod_qaRawApp_ui <- function(id){
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
-                                                                      selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE),
-                                                                      shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
-                                                                                          numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
-                                                                      ),
+                                                                      column(width=4, selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE) ),
+                                                                      column(width=4, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
+                                                                      column(width=4, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
+                                                                      column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      column(width=12,
                                                                       p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                       DT::DTOutput(ns("modificationsQa")),
+                                                                      )
                                                                )
                                            ),
                                   ),
@@ -147,7 +148,7 @@ mod_qaRawApp_server <- function(id, data){
         ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
           ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
           ggplot2::theme_classic()+
-          ggplot2::geom_jitter(ggplot2::aes(color = color), alpha = 0.4) +
+          ggplot2::geom_jitter(ggplot2::aes(color = color), alpha = input$transparency) +
           ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
           ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
           ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
@@ -331,7 +332,9 @@ mod_qaRawApp_server <- function(id, data){
           result$modeling <- rbind(result$modeling, provMet[,colnames(result$modeling)])
         }
         data(result)
-        cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved."))
+        # cat(crayon::green(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis.")))
+        cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis."))
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         shinybusy::remove_modal_spinner()
 
         if(!inherits(result,"try-error")) { # if all goes well in the run

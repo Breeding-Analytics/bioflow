@@ -63,7 +63,7 @@ mod_ocsApp_ui <- function(id){
                                                shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
                                                                    solidHeader = TRUE,
                                                                    column(width=12,
-                                                                          p(span("Current analyses available.", style="color:black")),
+                                                                          p(span("Network plot of current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
                                                                           p(span("Past modeling parameters from Index stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusOcs")),
@@ -347,38 +347,40 @@ mod_ocsApp_server <- function(id, data){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
-      colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-      nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-      nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-      if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-        X <- with(zz, sommer::overlay(outputId, inputId))
-      }else{
-        if(nLevelsCheck1 == 1){
-          X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-        }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-        if(nLevelsCheck2 == 1){
-          X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-        }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-        mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-        X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-        X[,colnames(X1)] <- X1
-        X[,colnames(X2)] <- X2
-      };  rownames(X) <- as.character(zz$outputId)
-      rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-      colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-      # make the network plot
-      n <- network::network(X, directed = FALSE)
-      network::set.vertex.attribute(n,"family",zz$module)
-      network::set.vertex.attribute(n,"importance",1)
-      e <- network::network.edgecount(n)
-      network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-      network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-      ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-        ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-        ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-        ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                        fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-        ggnetwork::theme_blank()
+      if(!is.null(xx)){
+        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+          X <- with(zz, sommer::overlay(outputId, inputId))
+        }else{
+          if(nLevelsCheck1 == 1){
+            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+          if(nLevelsCheck2 == 1){
+            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+          X[,colnames(X1)] <- X1
+          X[,colnames(X2)] <- X2
+        };  rownames(X) <- as.character(zz$outputId)
+        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        # make the network plot
+        n <- network::network(X, directed = FALSE)
+        network::set.vertex.attribute(n,"family",zz$module)
+        network::set.vertex.attribute(n,"importance",1)
+        e <- network::network.edgecount(n)
+        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
+        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
+                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
+          ggnetwork::theme_blank()
+      }
     })
     ## render modeling
     output$statusOcs <-  DT::renderDT({

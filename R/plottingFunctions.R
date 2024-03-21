@@ -1,16 +1,16 @@
 
 dependencyPlot <- function(){
   mm <- matrix(
-    NA, nrow = 5, ncol = 7
+    NA, nrow = 5, ncol = 8
   )
   # colnames(mm) <- c("QA","STA","MTA","INDEX","OCS","RGG","PGG")
-  colnames(mm) <- c("Quality Assurance","Single Trial Analysis","Multi Trial Analysis","Selection Index","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain")
+  colnames(mm) <- c("Quality Assurance","Single Trial Analysis","Multi Trial Analysis","Selection Index","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain", "Population Structure")
   rownames(mm) <- c("QTL", "Weather","Pedigree", "Genotype", "Phenotype")
-  mm[5,] = c(2,2,2,2,2,2,2)
-  mm[4,] = c(2,0,1,0,2,0,0)
-  mm[3,] = c(2,0,1,0,2,2,2)
-  mm[2,] = c(0,0,1,0,0,0,0)
-  mm[1,] = c(0,0,1,0,0,0,0)
+  mm[5,] = c(2,2,2,2,2,2,2,0)
+  mm[4,] = c(2,0,1,0,2,0,0,2)
+  mm[3,] = c(2,0,1,0,2,2,2,0)
+  mm[2,] = c(0,0,1,0,0,0,0,0)
+  mm[1,] = c(0,0,1,0,0,0,0,0)
   mydata4 <- cgiarBase::matToTab(mm, symmetric = FALSE)
   mydata4$label <- ifelse( mydata4$Freq == 0, "-", ifelse(mydata4$Freq == 2, "Required", "Optional" ) )
 
@@ -29,7 +29,7 @@ dependencyPlot <- function(){
                    axis.text.y = ggplot2::element_text(size=12),
                    legend.position = "none",
                    plot.title = ggplot2::element_text(color="grey32", size=18, face="bold.italic") )  +
-    ggplot2::geom_text(ggplot2::aes(label = label ), color = "grey18", size = 4) +
+    ggplot2::geom_text(ggplot2::aes(label = label ), color = "grey18", size = 3) +
     ggplot2::ggtitle("Data dependencies across analytical modules") +
     ggplot2::scale_x_discrete(
       position = "bottom",
