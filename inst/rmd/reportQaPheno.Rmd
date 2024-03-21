@@ -212,7 +212,7 @@ if (is.null(result)){
       p <- ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
         geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
         theme_classic()+
-        geom_jitter(aes(colour = color), alpha = 0.4) +
+        geom_jitter(aes(colour = color), alpha = 0.6) +
         xlab("Environment") + ylab("Trait value") +
         theme(axis.text.x = element_text(angle = 45)) +
         scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
@@ -227,7 +227,7 @@ if (is.null(result)){
       ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
         geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
         theme_classic()+
-        geom_jitter(aes(colour = color), alpha = 0.4) +
+        geom_jitter(aes(colour = color), alpha = 0.6) +
         xlab("Environment") + ylab("Trait value") +
         theme(axis.text.x = element_text(angle = 45)) +
         scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))

@@ -236,7 +236,7 @@ mod_rggApp_server <- function(id, data){
       paramsPed <- data()$metadata$pedigree
       colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
       dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
-      traitsRgg <- unique(dtRgg$yearOfOrigin)
+      traitsRgg <- sort(unique(dtRgg$yearOfOrigin), decreasing = FALSE)
       updateSelectInput(session, "yearsToUse", choices = traitsRgg, selected =traitsRgg )
     })
     ## entry type
