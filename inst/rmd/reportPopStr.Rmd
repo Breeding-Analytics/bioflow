@@ -1,0 +1,126 @@
+---
+title: "Population structure report"
+author: ""
+date: "2024"
+output: html_document
+params:
+toDownload: FALSE
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+```{r printfxn, include=FALSE}
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+htmltools::tagList(printTable(mtcars))
+#htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+```
+
+### Summary diversity
+
+The following table allows you to inspect the principal statistics for the diversity analysis.
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+suppressWarnings(tryCatch({
+  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
+    load(normalizePath("R/outputs/resultPopStr.RData"))
+  }else{
+    load("resultPopStr.RData")
+  }
+}, error = function(e) {
+  
+}))
+
+    seedatosum<-as.data.frame(result[["PopStr"]][["SummaryDiversityAnalysis"]])
+    colnames(seedatosum)=c("Parameter","Value")
+    seedatosum[,2]=as.numeric(seedatosum[,2])
+    #if("params" %in% ls()){ 
+      printTable(seedatosum)
+    #}else{
+    #  DT::renderDT(DT::datatable(seedatosum, extensions = 'Buttons',
+    #                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv','excel', 'pdf', 'print'),
+    #                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))))
+    #              )
+    #}
+
+```
+
+<p>&nbsp;</p>
+
+### Percent of missing values
+  
+  This plot allows the user to visualize the distribution of percent of missing values for genotypes and for markers.
+
+<p>&nbsp;</p>
+```{r, results='asis'}
+suppressWarnings(tryCatch({
+  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
+    load(normalizePath("R/outputs/resultPopStr.RData"))
+  }else{
+    load("resultPopStr.RData")
+  }
+}, error = function(e) {
+  
+}))
+
+      NAmark=result[["PopStr"]][["CalculusPerMarker"]][["%NA"]]
+      NAgen=result[["PopStr"]][["CalculusPerGenotype"]][["%NA"]]
+
+      fig <- plotly::plot_ly(y = ~NAmark, type = "box", name="missing values in markers")
+      fig <- fig %>% plotly::add_trace(y = ~NAgen, name="missing values in genotypes")
+      fig <- fig %>% plotly::layout(yaxis = list(title = 'Percent'))
+      fig
+
+```
+
