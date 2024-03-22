@@ -85,6 +85,7 @@
 # # golem::add_module(name = "input_file_sta", with_test = FALSE) # Name of the module
 # golem::add_module(name = "getData", with_test = FALSE) # extracting raw data
 # golem::add_module(name = "getDataWeather", with_test = FALSE) # extracting raw data
+# golem::add_module(name = "getOldAnalysis", with_test = FALSE) # extracting raw data
 #
 # golem::add_module(name = "qaRawApp", with_test = FALSE) # QA on raw data
 # golem::add_module(name = "filterPhenoApp", with_test = FALSE ) # QA on raw data

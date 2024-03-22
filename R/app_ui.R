@@ -34,7 +34,21 @@ app_ui <- function(request) {
 
       tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
-      tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
+      # tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
+
+      navbarMenu("Data Retrieval ", icon = icon("upload"),
+                 tabPanel(div(icon("table"), "New Data"),
+                          navlistPanel( widths = c(1, 11),
+                                        tabPanel(div("All (", icon("seedling"),")" ), mod_getData_ui("getData_1") ),
+                          )
+                 ),
+                 tabPanel(div(icon("database"), "Old Analysis"),
+                          navlistPanel( widths = c(1, 11),
+                                        tabPanel(div("Single Objects (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
+                                        tabPanel(div("Multiple Objects (", icon("cubes"), ")"),  mod_bindObjectApp_ui("bindObjectApp_1")  ),
+                          )
+                 ),
+      ),
 
       navbarMenu("Selection", icon = icon("bullseye"),
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
@@ -87,7 +101,6 @@ app_ui <- function(request) {
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
                  tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
-                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Data Binding (", icon("database"), ")"), mod_bindObjectApp_ui("bindObjectApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
       ),

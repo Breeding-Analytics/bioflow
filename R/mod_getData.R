@@ -496,38 +496,6 @@ mod_getData_ui <- function(id){
         shiny::plotOutput(ns("plotDataDependencies5")),
 
       ),
-      tabPanel(
-        title = 'Upload old analysis',
-        value = ns('tab6'),
-        tags$br(),
-
-        selectInput(
-          inputId = ns('previous_object_input'),
-          label   = 'Object Source*: ',
-          choices = list('Upload from PC' = 'pcfile', 'Upload from cloud' = 'cloudfile'),
-          width   = '200px'
-        ),
-
-        tags$span(id = ns('previous_object_file_holder'),
-                  fileInput(
-                    inputId = ns('previous_object_file'),
-                    label   = NULL,
-                    width   = '400px',
-                    accept  = c('.rds','.RData')
-                  ),
-                  # textOutput(ns("outLoad2")),
-        ),
-        tags$div(id = ns('previous_object_retrieve'),
-                 actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve previous analysis"),
-                 uiOutput(ns('previous_input2')),
-
-        ),
-        actionButton(ns("runLoadPrevious"), "Load analysis", icon = icon("play-circle")),
-        textOutput(ns("outLoad")),
-
-        shiny::plotOutput(ns("plotDataDependencies6")),
-
-      ),
     ),
 
     uiOutput(ns('navigate')),
@@ -543,7 +511,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     ## dependencie plot
 
-    output$plotDataDependencies1 <- output$plotDataDependencies2 <- output$plotDataDependencies3 <- output$plotDataDependencies4 <- output$plotDataDependencies5 <- output$plotDataDependencies6 <- shiny::renderPlot({ # plotly::renderPlotly({
+    output$plotDataDependencies1 <- output$plotDataDependencies2 <- output$plotDataDependencies3 <- output$plotDataDependencies4 <- output$plotDataDependencies5 <- shiny::renderPlot({ # plotly::renderPlotly({
       dependencyPlot()
     })
 
@@ -1683,65 +1651,6 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     )
 
 
-    ### Previous-analyses tab controls ##################################################
-
-    observeEvent(
-      input$previous_object_input,
-      if(length(input$previous_object_input) > 0){ # added
-        if (input$previous_object_input == 'pcfile') {
-          golem::invoke_js('showid', ns('previous_object_file_holder'))
-          golem::invoke_js('hideid', ns('previous_object_retrieve'))
-        } else if (input$previous_object_input == 'cloudfile') {
-          golem::invoke_js('hideid', ns('previous_object_file_holder'))
-          golem::invoke_js('showid', ns('previous_object_retrieve'))
-        }
-      }
-    )
-
-
-    output$previous_input2 <- renderUI({}) # this 2 lines avoid issues when displaying an uiOutput
-    outputOptions(output, "previous_input2", suspendWhenHidden = FALSE)
-    observeEvent( # this is the part where we either load the previous analysis from cloud or PC
-      c(input$previous_object_input),
-      {
-        previousFilesAvailable <- eventReactive(input$refreshPreviousAnalysis, { #
-          selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path(res_auth$repository)), multiple = FALSE)
-        })
-        output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
-        outLoad <- eventReactive(input$runLoadPrevious, {
-          if(input$previous_object_input == 'cloudfile'){ # upload from cloud
-            req(input$previous_input)
-            load( file.path( getwd(),res_auth$repository,input$previous_input ) ) # old dataset
-          }else if(input$previous_object_input == 'pcfile'){ # upload rds
-            req(input$previous_object_file)
-            load(input$previous_object_file$datapath)
-          }
-          shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-          ## replace tables
-          tmp <- data() # current or empty dataset
-          tmp$data <- result$data
-          tmp$metadata <- result$metadata
-          tmp$modifications <- result$modifications
-          tmp$predictions <- result$predictions
-          tmp$metrics <- result$metrics
-          tmp$modeling <- result$modeling
-          tmp$status <- result$status
-          data(tmp) # update data with results
-          shinybusy::remove_modal_spinner()
-          if(input$previous_object_input == 'cloudfile'){
-            shinyalert::shinyalert(title = "Success!", text = paste("Dataset:", input$previous_input,"loaded successfully."), type = "success")
-            # cat(paste("Dataset:", input$previous_input,"loaded successfully."))
-          }else{
-            shinyalert::shinyalert(title = "Success!", text = paste("Dataset",input$previous_object_file$name,"loaded successfully."), type = "success")
-            # cat(paste("Dataset",input$previous_object_file$name,"loaded successfully."))
-          }
-        }) ## end eventReactive
-        output$outLoad <- renderPrint({
-          outLoad()
-        })
-      }
-    )
-
     ### Weather data server ####################################################
     # warning message
     output$warningMessage <- renderUI(
@@ -1941,7 +1850,7 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     back_bn  <- actionButton(ns('prev_tab'), 'Back')
     next_bn  <- actionButton(ns('next_tab'), 'Next')
-    tab_list <- c(ns('tab1'), ns('tab2'), ns('tab3'), ns('tab4'), ns('tab5'), ns('tab6'))
+    tab_list <- c(ns('tab1'), ns('tab2'), ns('tab3'), ns('tab4'), ns('tab5'))
 
     output$navigate <- renderUI({
       tags$div(align = 'center',
