@@ -20,40 +20,45 @@ mod_staApp_ui <- function(id){
                                     shinydashboard::box(status="success",width = 12,
                                                         solidHeader = TRUE,
                                                         column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
-                                                               h1(strong(span("Single Trial Analysis", style="color:green"))),
-                                                               h2(strong("Status:")),
-                                                               uiOutput(ns("warningMessage")),
-                                                               h2(strong("Details")),
-                                                               p("The genetic evaluation approach we use known as 'two-step' first analyze trait by trait and trial by trial
+                                                               column(width = 6,
+                                                                      h1(strong(span("Single Trial Analysis", style="color:green"))),
+                                                                      h2(strong("Status:")),
+                                                                      uiOutput(ns("warningMessage")),
+                                                                      img(src = "www/sta.png", height = 200, width = 300), # add an image
+                                                               ),
+                                                               column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                                               column(width = 12,
+                                                                      h2(strong("Details")),
+                                                                      p("The genetic evaluation approach we use known as 'two-step' first analyze trait by trait and trial by trial
                                           to remove the spatial noise from experiments using experimental factors like blocking and spatial coordinates.
                                           Each trial is one level of the environment
                               column (defined when the user matches the expected columns to columns present in the initial phenotypic input file).
                               Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
                               By default genotype (designation column) predictions and their standard errors are returned.
                                 The way the options are used is the following:"),
-                                                               img(src = "www/sta.png", height = 200, width = 300), # add an image
-                                                               p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
-                                                               p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
-                                                               p(strong("Covariates.-"),"Columns to be fitted as as additional fixed effect covariates in each trial."),
-                                                               p(strong("Additional settings.-")),
-                                                               p(strong("Type of estimate.-")," Whether BLUEs or BLUPs should be stored for the second stage."),
-                                                               p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trial-trait combination."),
-                                                               p(strong("Print logs.-")," Whether the logs of the run should be printed in the screen or not."),
-                                                               p(strong("Note.-")," A design-agnostic spatial design is carried. That means, all the spatial-related factors will be fitted if pertinent.
+                                                                      p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
+                                                                      p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                                                      p(strong("Covariates.-"),"Columns to be fitted as as additional fixed effect covariates in each trial."),
+                                                                      p(strong("Additional settings.-")),
+                                                                      p(strong("Type of estimate.-")," Whether BLUEs or BLUPs should be stored for the second stage."),
+                                                                      p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trial-trait combination."),
+                                                                      p(strong("Print logs.-")," Whether the logs of the run should be printed in the screen or not."),
+                                                                      p(strong("Note.-")," A design-agnostic spatial design is carried. That means, all the spatial-related factors will be fitted if pertinent.
                                 For example, if a trial has rowcoord information it will be fitted, if not it will be ignored. A two-dimensional spline kernel is only
                                 fitted when the trial size exceeds 5 rows and 5 columns. In addition the following rules are followed: 1) Rows or columns are fitted if
                                 you have equal or more than 3 levels, 2) Reps are fitted if you have equal or more than 2 levels, 3) Block (Sub-block) are fitted if you
                                 have equal or more than 4 levels. "),
-                                                               h2(strong("References:")),
-                                                               p("Velazco, J. G., Rodriguez-Alvarez, M. X., Boer, M. P., Jordan, D. R., Eilers, P. H., Malosetti, M., & Van Eeuwijk, F. A. (2017).
+                                                                      h2(strong("References:")),
+                                                                      p("Velazco, J. G., Rodriguez-Alvarez, M. X., Boer, M. P., Jordan, D. R., Eilers, P. H., Malosetti, M., & Van Eeuwijk, F. A. (2017).
                                 Modelling spatial trends in sorghum breeding field trials using a two-dimensional P-spline mixed model. Theoretical and Applied
                                 Genetics, 130, 1375-1392."),
-                                                               p("Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., & Eilers, P. H. (2018). Correcting for spatial heterogeneity in plant
+                                                                      p("Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., & Eilers, P. H. (2018). Correcting for spatial heterogeneity in plant
                                 breeding experiments with P-splines. Spatial Statistics, 23, 52-71."),
-                                                               h2(strong("Software used:")),
-                                                               p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                                                      h2(strong("Software used:")),
+                                                                      p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                               p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
+                                                                      p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
+                                                               ),
                                                         )
                                     )
                            ),
@@ -186,6 +191,7 @@ mod_staApp_server <- function(id,data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
