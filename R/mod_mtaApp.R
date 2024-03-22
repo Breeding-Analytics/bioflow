@@ -49,7 +49,7 @@ mod_mtaApp_ui <- function(id){
                                                                h2(strong("Software used:")),
                                                                p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                               p(" Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
+                                                               p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
                                                                p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
                                                         )
                                     )
@@ -118,6 +118,8 @@ mod_mtaApp_ui <- function(id){
                                                                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
                                                                           textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
+                                                                          textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
+                                                                          textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
                                                                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
                                                                           numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 1000),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
@@ -155,10 +157,11 @@ mod_mtaApp_ui <- function(id){
                                                shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                                    column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                           column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
+                                                                          column(width=3, selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                           column(width=3, selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
-                                                                          column(width=3, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=3, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=3, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
+                                                                          column(width=2, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=2, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                          column(width=2, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
                                                                           column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
                                                                           column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
                                                                           column(width=3, selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
@@ -291,6 +294,7 @@ mod_mtaApp_server <- function(id, data){
       traitsMta <- unique(dtMta$trait)
       updateSelectInput(session, "trait2Mta", choices = traitsMta)
       updateSelectInput(session, "traitCor", choices = traitsMta)
+      updateSelectInput(session, "traitConnect", choices = traitsMta)
     })
     #################
     ## fixed effects
@@ -583,8 +587,8 @@ mod_mtaApp_server <- function(id, data){
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = max(c(input$heatmapFontSizeCor-3, 1)))
       }
       if(!is.null(input$checkboxAxisCor)){ # if user wants to add axis labels
-        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1))+
-          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1))
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face="bold"))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face = "bold"))
       }else{
         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
       }
@@ -595,11 +599,13 @@ mod_mtaApp_server <- function(id, data){
     output$plotPredictionsConnectivity <-  shiny::renderPlot({ # plotly::renderPlotly({
       req(data())
       req(input$version2Mta)
+      req(input$traitConnect)
       req(input$entryTypeMta)
       req(input$heatmapFontSize)
       dtMta <- data()
       mydata <- dtMta$predictions # extract predictions
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$trait %in% input$traitConnect),] # only PREDICTIONS FROM Trait selected
       if(input$entryTypeMta != "Generic"){ # use an specific type of entries
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
       }
@@ -626,8 +632,8 @@ mod_mtaApp_server <- function(id, data){
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = max(c(input$heatmapFontSize-3,1)))
       }
       if(!is.null(input$checkboxAxis)){ # if user wants to add labels to the axis
-        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSize, hjust = 1))+
-          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSize, hjust = 1))
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))
       }else{
         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
       }
@@ -746,6 +752,8 @@ mod_mtaApp_server <- function(id, data){
           trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
           heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
           heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
+          meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
+          meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
           modelType=input$modelMet, # either "grm", "nrm", or both
           nMarkersRRBLUP=input$nMarkersRRBLUP,
           deregress=input$deregressMet,  nPC=input$nPC,

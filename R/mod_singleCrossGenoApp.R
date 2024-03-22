@@ -104,28 +104,28 @@ mod_singleCrossGenoApp_server <- function(id, data){
       }else{ # data is there
         ## pheno check
         if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")) )
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section. We need this information to know which hybrids have been tested.")) )
         }else{
           ## ped check
           ped <- data()$data$pedigree
           metaPed <- data()$metadata$pedigree
           if(is.null(ped)){ # no pedigree available
-            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section.")) )
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section. We need this information to know which hybrid combinations are available and which ones need to be built.")) )
           }else{ # pedigree is there
             if( length(intersect(metaPed$value , colnames(ped))) != 3){
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data.")) )
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data. We need this information to know which hybrid combinations are available and which ones need to be built.")) )
             }else{
               colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
               parents <- na.omit(c(unique(ped[,"mother"]), unique(ped[,"father"]) ))
               if(length(parents) == 0){
-                HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected.")) )
+                HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected. We need this information to know which hybrid combinations are available and which ones need to be built.")) )
               }else{
                 ## marker check
                 geno <- data()$data$geno
                 if(is.null(geno)){ # no markers available
                   HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your marker data using the 'Data Retrieval' tab.")) )
                 }else{ # markers are there
-                  HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to inspect the options.")) )
+                  HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform your analysis.")) )
                 } # end of if pedigree available
               } #
             }

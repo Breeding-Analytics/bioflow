@@ -219,6 +219,13 @@ if (is.null(result)){
 
 
 
+### References of methods used
+
+Sparks A (2023). nasapower: NASA-POWER Data from R. doi:10.5281/zenodo.1040727 <https://doi.org/10.5281/zenodo.1040727>, R package version 4.0.11
+
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+<p>&nbsp;</p>
 
 
 

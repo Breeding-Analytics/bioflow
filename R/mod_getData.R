@@ -1550,11 +1550,11 @@ mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         designationColumnInPed <- tmp$metadata$pedigree[which(tmp$metadata$pedigree$parameter == "designation"),"value"]
         paste(
           "Data Integrity Checks:\n",
-          sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])),
+          ifelse( (length(designationColumnInPed)+length(designationColumnInPheno) ) == 2, sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ]) ) , 0),
           "Accessions exist in both phenotypic and pedigree files\n",
-          sum(!unique(tmp$data$pheno[, designationColumnInPheno ]) %in% ped[, designationColumnInPed ]),
+          ifelse( length(designationColumnInPheno) > 0 , sum(!unique(tmp$data$pheno[, designationColumnInPheno ]) %in% ped[, designationColumnInPed ]), 0),
           "Accessions have phenotypic data but no pedigree data\n",
-          ifelse(any(tmp$metadata$pedigree$parameter == 'yearOfOrigin'),  sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])) ,0),
+          ifelse(any(tmp$metadata$pedigree$parameter == 'yearOfOrigin') & (length(designationColumnInPed)+length(designationColumnInPheno) ) == 2,  sum(ped[, designationColumnInPed ] %in% unique(tmp$data$pheno[, designationColumnInPheno ])) ,0),
           "Accessions in phenotypic data have no year of origin info\n"
         )
       }

@@ -204,5 +204,14 @@ cat(".")
 
 
 
+### References of methods used
+
+Lush, J. L. (2013). Animal breeding plans. Read Books Ltd.
+
+Mrode, R. A. (2014). Linear models for the prediction of animal breeding values. Cabi.
+
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+<p>&nbsp;</p>
 
 
