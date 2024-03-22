@@ -37,14 +37,14 @@ app_ui <- function(request) {
       # tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
 
       navbarMenu("Data Retrieval ", icon = icon("upload"),
-                 tabPanel(div(icon("table"), "New Data"),
+                 tabPanel(div(icon("folder"), "New Data"),
                           navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("All (", icon("seedling"),")" ), mod_getData_ui("getData_1") ),
+                                        tabPanel(div("All (", icon("file"),")" ), mod_getData_ui("getData_1") ),
                           )
                  ),
-                 tabPanel(div(icon("database"), "Old Analysis"),
+                 tabPanel(div(icon("folder-open"), "Old Analysis"),
                           navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("Single Objects (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
+                                        tabPanel(div("Single Object (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
                                         tabPanel(div("Multiple Objects (", icon("cubes"), ")"),  mod_bindObjectApp_ui("bindObjectApp_1")  ),
                           )
                  ),
