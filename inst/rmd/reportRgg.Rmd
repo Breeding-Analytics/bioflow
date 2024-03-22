@@ -122,6 +122,8 @@ get_h <- function() {
 
 ## Summary metrics
 
+The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
+
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)

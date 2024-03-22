@@ -112,12 +112,6 @@ mod_ocsApp_ui <- function(id){
                                                                    column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Summary of selection units and marker availability.", style="color:black")),
                                                                           DT::DTOutput(ns("evaluationUnits")),
-                                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                                              numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
-                                                                                              numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
-                                                                                              selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
-                                                                                              selectInput(ns("verboseOcs"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
-                                                                          ),
                                                                    )
                                                )
                                       ),
@@ -126,6 +120,13 @@ mod_ocsApp_ui <- function(id){
                                                actionButton(ns("runOcs"), "Run OCS", icon = icon("play-circle")),
                                                uiOutput(ns("qaQcOcsInfo")),
                                                textOutput(ns("outOcs")),
+                                               hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                   numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
+                                                                   numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
+                                                                   selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
+                                                                   selectInput(ns("verboseOcs"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                               ),
                                       ),
                                     )
                            ),

@@ -103,13 +103,13 @@ suppressWarnings(tryCatch({
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  
+  ###############################################################################
+  ## This tell us where to pick the IDs for the dashboard
   idAbi <- result$status[which(result$status$module == "abiDash"),"analysisId"];
   idAbi <- idAbi[length(idAbi)]
   modelingAbi <- result$modeling[result$modeling$analysisId == idAbi, ]
-  
+  ###############################################################################
   idSta <- modelingAbi[modelingAbi$parameter == "forMetrics", "value"]
-  
   pred <- result$predictions
   pred <- pred[pred$analysisId == idSta,]
   traits <- unique(pred$trait)

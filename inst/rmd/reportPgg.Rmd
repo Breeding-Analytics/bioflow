@@ -35,6 +35,80 @@ get_h <- function() {
 
 ```
 
+```{r printfxn, include=FALSE}
+
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+### Summary metrics
+
+The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
+
+```{r, results='asis'}
+if (is.null(result)){
+  cat(".")
+} else {
+  
+  pggId <- result$status$analysisId[length(result$status$analysisId)]
+  mod <- result$modeling %>% filter(analysisId==pggId)
+  predsId <- mod[mod$analysisId == pggId & mod$trait == "inputObject","value"]
+  pred <- result$predictions %>% filter(analysisId == pggId) # before we use the predsId but now we store the designation predictions in the rgg functions
+  met2 <- result$metrics %>% filter(analysisId==pggId)
+  
+  if("params" %in% ls()){ # we will download the document
+    # cat("\n\n## Table       \n\n")
+    printTable(met2)
+    # cat("\n")
+  }else{
+    h2("Table")
+    
+    numeric.output <- c("value", "stdError")
+    DT::renderDT({DT::formatRound(DT::datatable(met2,
+                                                rownames = FALSE,
+                                                class = 'cell-border stripe',
+                                                options = list(
+                                                  scrollY = "400px",
+                                                  scrollX = "400px",
+                                                  paging = F)
+    ),numeric.output)
+    })
+  }
+  
+}
+
+```
+
 ### Predicted genetic gain
 
 The following density plot allows you to see the expected change in the next generation compared to the current generation given the current genetic gain parameters (accuracy, intensity, genetic variance) obtained in a particular MET for the selected traits.
@@ -50,11 +124,11 @@ suppressWarnings(tryCatch({
     load("resultPgg.RData")
   }
 }, error = function(e) {
-  # NULL
+  cat(".")
 }))
 
 if (is.null(result)){
-  # invisible(NULL)
+  cat(".")
 } else {
   modeling <- result$modeling
   idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
@@ -74,7 +148,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-  # invisible(NULL)
+cat(".")
 } else {
   
   metrics <- result$metrics

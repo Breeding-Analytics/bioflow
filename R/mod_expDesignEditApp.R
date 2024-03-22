@@ -42,7 +42,10 @@ mod_expDesignEditApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Pick factors", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           column(width = 12, DT::dataTableOutput(ns("transTableC")), style = "height:300px; overflow-y: scroll;overflow-x: scroll;"),
+                                           column(width = 12,
+                                                  p(span("The experimental design factors (columns) present in a particular environment (rows) are displayed in the table below. Please double click in any cell (environment by factor combination) that you would like to silence by setting the value to zero. Then run the analysis to save those modifications for posterior analyses.", style="color:black")),
+                                                  DT::dataTableOutput(ns("transTableC")),
+                                                  style = "height:300px; overflow-y: scroll;overflow-x: scroll;"),
                                            column(width=12,
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
                                                   h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),

@@ -99,12 +99,13 @@ if (is.null(result)){
                                              timevar = "trait", v.names = c("predictedValue"), sep= "_")
     wideList[[iTreatment]]$treatment <- iTreatment
     colnames(wideList[[iTreatment]]) <- gsub("predictedValue_","",colnames(wideList[[iTreatment]]))
-    numeric.output <- colnames(wideList[[iTreatment]])[-c(1)]
   }
   wide <- do.call(rbind, wideList)
   rownames(wide) <- NULL
+  myTypes <- unlist(lapply(wide, class))
+  numeric.output0 <- names(myTypes[which( myTypes %in% c("numeric","integer") )])
   
-  cat("The trait used for OCS was: ",ocsTrait)
+  # cat("The trait used for OCS was: ",ocsTrait)
   
   if("params" %in% ls()){ # we will download the document
     printTable(wide)
@@ -112,7 +113,7 @@ if (is.null(result)){
     DT::renderDT(DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
                                                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                               lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-    ), numeric.output)
+    ), numeric.output0)
     )
   }
   
@@ -154,7 +155,7 @@ if (is.null(result)){
   
   if("params" %in% ls()){  # if user will download the report
     
-    cat(paste0("### A  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
     counter <- 1
     for(iEnv in unique(myEnvs)){
       cat("\n\n####", iEnv, "{.tabset .tabset-pills}       \n\n")
@@ -349,7 +350,7 @@ if (is.null(result)){
   
   if("params" %in% ls()){  # if user will download the report
     
-    cat(paste0("## B  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("##  {.tabset .tabset-pills}    \n\n  "))
     for(iTrait in unique(myTraits)){
       cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
       mydata = result$predictions
