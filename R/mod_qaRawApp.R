@@ -55,7 +55,7 @@ mod_qaRawApp_ui <- function(id){
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
-                                                                      column(width=4, selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE) ),
+                                                                      column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                       column(width=4, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
                                                                       column(width=4, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
                                                                       column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
@@ -127,6 +127,7 @@ mod_qaRawApp_server <- function(id, data){
     ## render the expected result
     output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
       req(data())
+      req(input$transparency)
       req(input$outlierCoefOutqFont)
       req(input$outlierCoefOutqPheno)
       req(input$traitOutqPheno)
@@ -141,7 +142,7 @@ mod_qaRawApp_server <- function(id, data){
         mydata$rowindex <- 1:nrow(mydata)
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
-        mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+        mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
         mydata$color <- "valid"
         if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
         mydata$predictedValue <- mydata[,input$traitOutqPheno]
@@ -150,7 +151,11 @@ mod_qaRawApp_server <- function(id, data){
           ggplot2::theme_classic()+
           ggplot2::geom_jitter(ggplot2::aes(color = color), alpha = input$transparency) +
           ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
-          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45),
+                         axis.text = ggplot2::element_text(size = input$outlierCoefOutqFont),
+                         axis.title = ggplot2::element_text(size = input$outlierCoefOutqFont + 3),
+                         legend.text = ggplot2::element_text(size = input$outlierCoefOutqFont),
+                         legend.title = ggplot2::element_text(size = input$outlierCoefOutqFont + 3)) +
           ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
 
       }else{}
@@ -168,7 +173,7 @@ mod_qaRawApp_server <- function(id, data){
           ## get the outlier table
           outlier <- list()
           for(iTrait in input$traitOutqPhenoMultiple){
-            outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+            outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
           }
           outlier <- do.call(rbind,outlier)
           removeCols <- c("module","analysisId","value")
@@ -182,7 +187,7 @@ mod_qaRawApp_server <- function(id, data){
           dtQaRaw <- dtQaRaw[,unique(c("outlierRow",setdiff(colnames(dtQaRaw), removeCols)))]
           ## merge
           myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
-          myTable <- myTable[!duplicated(myTable$record),]
+          #myTable <- myTable[!duplicated(myTable$record),]
           DT::datatable(myTable, filter = "top", # extensions = 'Buttons',
                         caption = htmltools::tags$caption(
                           style = 'color:orange', #caption-side: bottom; text-align: center;
@@ -202,7 +207,7 @@ mod_qaRawApp_server <- function(id, data){
         # get the outlier table
         outlier <- list()
         for(iTrait in input$traitOutqPhenoMultiple){
-          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
         }
         outlier <- do.call(rbind,outlier)
         removeCols <- c("module","analysisId","value")
@@ -230,7 +235,7 @@ mod_qaRawApp_server <- function(id, data){
         ## get the outlier table
         outlier <- list()
         for(iTrait in input$traitOutqPhenoMultiple){
-          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
         }
         outlier <- do.call(rbind,outlier)
         removeCols <- c("module","analysisId","value")
@@ -258,7 +263,7 @@ mod_qaRawApp_server <- function(id, data){
         ## get the outlier table
         outlier <- list()
         for(iTrait in input$traitOutqPhenoMultiple){
-          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
         }
         outlier <- do.call(rbind,outlier)
         removeCols <- c("module","analysisId","value")
@@ -289,7 +294,7 @@ mod_qaRawApp_server <- function(id, data){
         outlier <- list()
         analysisId <- as.numeric(Sys.time())
         for(iTrait in input$traitOutqPhenoMultiple){
-          outliers <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+          outliers <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
           removeCols <- c("module","analysisId","value")
           outliers <- outliers[, setdiff(colnames(outliers),removeCols)]
           colnames(outliers) <- cgiarBase::replaceValues(Source = colnames(outliers), Search = "row", Replace = "record")
