@@ -27,7 +27,7 @@ mod_qaStaApp_ui <- function(id){
     #
     # ), # end sidebarpanel
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel(id=ns("tabsMain"),
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-QA-MB") ,
                                 br(),
@@ -70,14 +70,17 @@ mod_qaStaApp_ui <- function(id){
                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12, style = "height:470px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
-                                                                      selectInput(ns("traitOutqPheno2"), "", choices = NULL, multiple = FALSE),
-                                                                      shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
-                                                                                          numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
-                                                                      ),
-                                                                      DT::DTOutput(ns("modificationsQa"))
-                                                               ),
-                                           )
+                                                                      column(width=4, selectInput(ns("traitOutqPheno2"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                      column(width=4, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
+                                                                      column(width=4, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
+                                                                      column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      column(width=12,
+                                                                             column(width=12,
+                                                                                    p(span("Table preview of outliers that would be tagged using current input parameters above for the trait residual selected.", style="color:black")),
+                                                                                    DT::DTOutput(ns("modificationsQa")))
+                                                                             )
+                                                               )
+                                           ),
                                   ),
                                   tabPanel("Run analysis", icon = icon("play"),
                                            br(),
@@ -91,9 +94,9 @@ mod_qaStaApp_ui <- function(id){
                                   tabPanel("Report", icon = icon("file-image"),
                                            br(),
                                            div(tags$p("Please download the report below:") ),
-                                           downloadButton(ns("downloadReportQaPheno"), "Download report"),
+                                           downloadButton(ns("downloadReportQaMb"), "Download report"),
                                            br(),
-                                           uiOutput(ns('reportQaPheno'))
+                                           uiOutput(ns('reportQaMb'))
                                   ),
                                 ),
                        ), # end of output panel
@@ -142,10 +145,10 @@ mod_qaStaApp_server <- function(id, data){
     })
 
     ## render the expected result
-
     output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
       if("sta" %in% data()$status$module){
         req(data())
+        req(input$transparency)
         req(input$outlierCoefOutqFont)
         req(input$traitOutqPheno2)
         mydata <- data()$data$pheno
@@ -157,20 +160,22 @@ mod_qaStaApp_server <- function(id, data){
         mydata$rowindex <- 1:nrow(mydata)
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
-        mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno2, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+        mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno2, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
         mydata$color <- "valid"
         if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
         mydata$predictedValue <- mydata[,input$traitOutqPheno2]
         ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
           ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
           ggplot2::theme_classic()+
-          ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
+          ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = input$transparency) +
           ggplot2::xlab("Environment") + ggplot2::ylab("Residual value") +
-          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45),
+                         axis.text = ggplot2::element_text(size = input$outlierCoefOutqFont),
+                         axis.title = ggplot2::element_text(size = input$outlierCoefOutqFont + 3),
+                         legend.text = ggplot2::element_text(size = input$outlierCoefOutqFont),
+                         legend.title = ggplot2::element_text(size = input$outlierCoefOutqFont + 3)) +
           ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
-
       }
-
     })
 
     ## display the current outliers
@@ -183,7 +188,7 @@ mod_qaStaApp_server <- function(id, data){
           ## get the outlier table
           outlier <- list()
           for(iTrait in input$traitOutqPhenoMultiple){
-            outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+            outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
           }
           outlier <- do.call(rbind,outlier)
           outlier$reason <- "outlierResidual"
@@ -226,7 +231,7 @@ mod_qaStaApp_server <- function(id, data){
         outlier <- list()
         newParamsPheno <- list()
         for(iTrait in input$traitOutqPhenoMultiple){
-          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+          outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno, traitLBOutqPheno = NULL, traitUBOutqPheno = NULL)
           newParamsPheno[[iTrait]] <- data.frame(module="qaMb",analysisId=NA, trait=iTrait, environment=NA, parameter= "outlierCoefOutqPheno", value= input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
@@ -255,45 +260,51 @@ mod_qaStaApp_server <- function(id, data){
             result$status <- rbind(result$status, newStatus)
             data(result)
             cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
-          }else{cat("No modifications to add")}
-        }
+            #updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+          }else{
+            cat("No modifications to add")
+            #updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+            }
 
+        }
+        #data(result)
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         shinybusy::remove_modal_spinner()
 
         if(!inherits(result,"try-error")) { # if all goes well in the run
           # ## Report tab
-          output$reportQaPheno <- renderUI({
-            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          output$reportQaMb <- renderUI({
+            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaMb.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
           })
 
-          output$downloadReportQaPheno <- downloadHandler(
+          output$downloadReportQaMb <- downloadHandler(
             filename = function() {
               paste('my-report', sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },
             content = function(file) {
-              src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
-              src2 <- normalizePath('data/resultQaPheno.RData')
+              src <- normalizePath(system.file("rmd","reportQaMb.Rmd",package="bioflow"))
+              src2 <- normalizePath('data/resultQaMb.RData')
               # temporarily switch to the temp dir, in case you do not have write
               # permission to the current working directory
               owd <- setwd(tempdir())
               on.exit(setwd(owd))
               file.copy(src, 'report.Rmd', overwrite = TRUE)
-              file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+              file.copy(src2, 'resultQaMb.RData', overwrite = TRUE)
               out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
                 "HTML",
                 HTML = rmarkdown::html_document()
               ))
               file.rename(out, file)
+              #shinybusy::remove_modal_spinner()
             }
           )
 
-        }else{ hideAll$clearAll <- TRUE}
-
+        }else{hideAll$clearAll <- TRUE} #
         hideAll$clearAll <- FALSE
+      } ####
 
-      }
     })
     output$outQaMb <- renderPrint({
       outQaMb()
