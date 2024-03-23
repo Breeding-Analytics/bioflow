@@ -13,21 +13,27 @@ mod_qaRawApp_ui <- function(id){
 
     shiny::mainPanel(width = 12,
                      tabsetPanel( id=ns("tabsMain"),
-                       type = "tabs",
+                                  type = "tabs",
 
-                       tabPanel(div(icon("book"), "Information-QA") ,
-                                br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
-                                                           h1(strong(span("Outlier detection", style="color:green"))),
-                                                           h2(strong("Status:")),
-                                                           uiOutput(ns("warningMessage")),
-                                                           tags$body(
-                                                             h2(strong("Details")),
-                                                             p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
+                                  tabPanel(div(icon("book"), "Information-QA") ,
+                                           br(),
+                                           shinydashboard::box(status="success",width = 12,
+                                                               solidHeader = TRUE,
+                                                               column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
+                                                                      column(width = 6,
+                                                                             h1(strong(span("Outlier detection", style="color:green"))),
+                                                                             h2(strong("Status:")),
+                                                                             uiOutput(ns("warningMessage")),
+                                                                             img(src = "www/qaRaw.png", height = 300, width = 700), # add an image
+                                                                      ),
+                                                                      column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                                                      column(width = 12,
+                                                                             tags$body(
+                                                                               h2(strong("Details")),
+                                                                               p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
                                                              This option aims to allow users to select outliers based on plot whiskers and absolute values.
                                 The way arguments are used is the following:"),
+<<<<<<< HEAD
                                                              img(src = "www/qaRaw.png", height = 300, width = 700), # add an image
                                                              p(strong("Trait(s) to QA.-")," Trait(s) to apply jointly the parameter values in the grey box."),
                                                              p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
@@ -63,27 +69,64 @@ mod_qaRawApp_ui <- function(id){
                                                                       p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                       DT::DTOutput(ns("modificationsQa")),
                                                                       )
+=======
+                                                                               p(strong("Trait(s) to QA.-")," Trait(s) to apply jointly the parameter values in the grey box."),
+                                                                               p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
+                                                                               h2(strong("References")),
+                                                                               p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                                                               p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
+                                                                               p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
+                                                                             )
+                                                                      ),
+>>>>>>> 4b6d9809a1356d14a5b60367fc939e46bfc369d2
                                                                )
+                                           )
+                                  ),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                           tabsetPanel(
+                                             tabPanel("Set traits & thresholds", icon = icon("magnifying-glass-chart"),
+                                                      br(),
+                                                      column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                             column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
+                                                             column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 2.5) ),
+                                                      ),
+                                                      column(width=12,
+                                                             hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                             h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                             hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                      ),
+                                                      shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                          column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
+                                                                                 p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
+                                                                                 column(width=4, selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE) ),
+                                                                                 column(width=4, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
+                                                                                 column(width=4, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
+                                                                                 column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                                 column(width=12,
+                                                                                        p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
+                                                                                        DT::DTOutput(ns("modificationsQa")),
+                                                                                 )
+                                                                          )
+                                                      ),
+                                             ),
+                                             tabPanel("Run analysis", icon = icon("play"),
+                                                      br(),
+                                                      actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
+                                                      textOutput(ns("outQaRaw")),
+                                             ),
+                                           ) # end of tabset
+                                  ),# end of input panel
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                           tabsetPanel(
+                                             tabPanel("Report", icon = icon("file-image"),
+                                                      br(),
+                                                      div(tags$p("Please download the report below:") ),
+                                                      downloadButton(ns("downloadReportQaPheno"), "Download report"),
+                                                      br(),
+                                                      uiOutput(ns('reportQaPheno'))
+                                             ),
                                            ),
                                   ),
-                                  tabPanel("Run analysis", icon = icon("play"),
-                                           br(),
-                                           actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
-                                           textOutput(ns("outQaRaw")),
-                                  ),
-                                ) # end of tabset
-                       ),# end of input panel
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
-                                tabsetPanel(
-                                  tabPanel("Report", icon = icon("file-image"),
-                                           br(),
-                                           div(tags$p("Please download the report below:") ),
-                                           downloadButton(ns("downloadReportQaPheno"), "Download report"),
-                                           br(),
-                                           uiOutput(ns('reportQaPheno'))
-                                  ),
-                                ),
-                       ),
                      )) # end mainpanel
 
   )
@@ -96,6 +139,7 @@ mod_qaRawApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
