@@ -97,7 +97,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modifications <- result$modifications$pheno
-  idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign")),"analysisId"];
+  idQa <- result$status[which(result$status$module %in% c("qaRaw","qaFilter","qaDesign")),"analysisId"];
   idQa <- idQa[length(idQa)]
   idQaType <- result$status[result$status$analysisId == idQa, "module"]
   modifications <- modifications[which( modifications$analysisId == idQa & modifications$module == idQaType),]
@@ -160,7 +160,7 @@ if (is.null(result)){
 } else {
 
 traitsBoxplot <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
-if(idQaType == "qaMb"){traitsBoxplot <- paste0(traitsBoxplot,"-residual")}
+# if(idQaType == "qaMb"){traitsBoxplot <- paste0(traitsBoxplot,"-residual")}
 
 if("params" %in% ls()){ # we will download the document
 
@@ -197,8 +197,8 @@ if (is.null(result)){
   analysisIds <- analysisIds[length(analysisIds)]
   mo <- mo[which(mo$analysisId == analysisIds),]
   mydata$color <- "valid"
-  if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
-  mydata$color <- as.factor(mydata$color)
+  #if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+  #mydata$color <- as.factor(mydata$color)
   
   if("params" %in% ls()){ # we will download the document
     
@@ -207,14 +207,22 @@ if (is.null(result)){
     for(iTrait in traitsBoxplot){
       cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
       
+      moTrait <- mo[which(mo$trait == iTrait),"row"] # mo by trait
+      if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(moTrait))]="tagged"}
+      mydata$color <- as.factor(mydata$color)
+      
       mydata$predictedValue <- mydata[,iTrait]
       
       p <- ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
-        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
+        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE) + 
         theme_classic()+
-        geom_jitter(aes(colour = color), alpha = 0.6) +
+        geom_jitter(aes(colour = color), alpha = 0.5) +
         xlab("Environment") + ylab("Trait value") +
-        theme(axis.text.x = element_text(angle = 45)) +
+        theme(axis.text.x = element_text(angle = 45),
+              axis.text = element_text(size = 12),
+              axis.title = element_text(size = 15),
+              legend.text = element_text(size = 12),
+              legend.title = element_text(size = 15)) +
         scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
       print(p)
     }
@@ -222,23 +230,27 @@ if (is.null(result)){
   }else{
     
     shiny::renderPlot({
+      
+      moTrait <- mo[which(mo$trait == input$traitQaBox),"row"] # mo by trait
+      if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(moTrait))]="tagged"}
+      mydata$color <- as.factor(mydata$color)
       mydata$predictedValue <- mydata[,input$traitQaBox]
 
       ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
-        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
+        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE) + 
         theme_classic()+
-        geom_jitter(aes(colour = color), alpha = 0.6) +
+        geom_jitter(aes(colour = color), alpha = 0.5) +
         xlab("Environment") + ylab("Trait value") +
-        theme(axis.text.x = element_text(angle = 45)) +
+        theme(axis.text.x = element_text(angle = 45),
+              axis.text = element_text(size = 12),
+              axis.title = element_text(size = 15),
+              legend.text = element_text(size = 12),
+              legend.title = element_text(size = 15)) +
         scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))
-
     })
-    
   }
-  
 }
 ```
-
 
 
 ### References on methods used
@@ -251,8 +263,3 @@ Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of
 
 
 <p>&nbsp;</p>
-
-
-
-
-

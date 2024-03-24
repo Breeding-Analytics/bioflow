@@ -19,37 +19,32 @@ mod_rggApp_ui <- function(id){
                                      shinydashboard::box(status="success",width = 12,
                                                          solidHeader = TRUE,
                                                          column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                                column(width = 6,
-                                                                       h1(strong(span("Realized Genetic Gain", style="color:green"))),
-                                                                       h2(strong("Status:")),
-                                                                       uiOutput(ns("warningMessage")),
-                                                                ),
-                                                                column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                                column(width = 12,
-                                                                       h2(strong("Details")),
-                                                                       p("In order to monitor the efficacy of genetic evaluation across cycles of selection, the realized genetic gain is the preferred process.
+                                                                h1(strong(span("Realized Genetic Gain", style="color:green"))),
+                                                                h2(strong("Status:")),
+                                                                uiOutput(ns("warningMessage")),
+                                                                h2(strong("Details")),
+                                                                p("In order to monitor the efficacy of genetic evaluation across cycles of selection, the realized genetic gain is the preferred process.
                                           This option aims to calculate the realized genetic gain using the methods from Mackay et al. (2011). The
                               method uses across-environment means from multiple years of data that have been adjusted based on a good connectivity
                               to then fit a regression of the form means~year.of.origin. In case the means used are BLUPs these can be
                               deregressed.
                                 The way the options are used is the following:"),
-                                                                       p(strong("Method.-")," One of the following; Mackay et al. (2011) or Laidig et al. (2014)."),
-                                                                       p(strong("Trait(s) to use.-")," Trait to be be used for realized genetic gain estimation (an index is suggested)."),
-                                                                       p(strong("Years of origin to use.-")," Selection of the years of origin associated to the tested material to use in the calculation."),
-                                                                       p(strong("Entry types to use.-")," A selection of entry types to use for the realized genetic gain calculation."),
-                                                                       p(strong("Deregress weight.-")," Should any weight be applied to the deregressed value (not recommended but available)."),
-                                                                       p(strong("Partition the data?.-")," When very few years of data are present this option will allow the user to calculate the gain for all 2-year combinations and then average these rates."),
-                                                                       p(strong("Deregress estimates-")," Should we deregress the estimates by dividing over the reliability before performing the realized genetic gain calculation."),
-                                                                       h2(strong("References:")),
-                                                                       p("Mackay, I., Horwell, A., Garner, J., White, J., McKee, J., & Philpott, H. (2011). Reanalyses of the historical series of UK variety trials
+                                                                p(strong("Method.-")," One of the following; Mackay et al. (2011) or Laidig et al. (2014)."),
+                                                                p(strong("Trait(s) to use.-")," Trait to be be used for realized genetic gain estimation (an index is suggested)."),
+                                                                p(strong("Years of origin to use.-")," Selection of the years of origin associated to the tested material to use in the calculation."),
+                                                                p(strong("Entry types to use.-")," A selection of entry types to use for the realized genetic gain calculation."),
+                                                                p(strong("Deregress weight.-")," Should any weight be applied to the deregressed value (not recommended but available)."),
+                                                                p(strong("Partition the data?.-")," When very few years of data are present this option will allow the user to calculate the gain for all 2-year combinations and then average these rates."),
+                                                                p(strong("Deregress estimates-")," Should we deregress the estimates by dividing over the reliability before performing the realized genetic gain calculation."),
+                                                                h2(strong("References:")),
+                                                                p("Mackay, I., Horwell, A., Garner, J., White, J., McKee, J., & Philpott, H. (2011). Reanalyses of the historical series of UK variety trials
                                 to quantify the contributions of genetic and environmental factors to trends and variability in yield over time. Theoretical and Applied
                                 Genetics, 122, 225-238."),
-                                                                       p("Laidig, F., Piepho, H. P., Drobek, T., & Meyer, U. (2014). Genetic and non-genetic long-term trends of 12 different crops in German
+                                                                p("Laidig, F., Piepho, H. P., Drobek, T., & Meyer, U. (2014). Genetic and non-genetic long-term trends of 12 different crops in German
                                 official variety performance trials and on-farm yield trends. Theoretical and Applied Genetics, 127, 2599-2617."),
-                                                                       h2(strong("Software used:")),
-                                                                       p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-                                Vienna, Austria. URL https://www.R-project.org/."),
-                                                                ),
+                                                                h2(strong("Software used:")),
+                                                                p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/.")
                                                          )
                                      )
                             ),
@@ -170,7 +165,6 @@ mod_rggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

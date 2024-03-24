@@ -19,36 +19,30 @@ mod_indexDesireApp_ui <- function(id){
                                      shinydashboard::box(status="success",width = 12,
                                                          solidHeader = TRUE,
                                                          column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                                column(width = 6,
-                                                                       h1(strong(span("Selection indices", style="color:green"))),
-                                                                       h2(strong("Status:")),
-                                                                       uiOutput(ns("warningMessage")),
-                                                                       img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
-                                                                ),
-                                                                column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                                column(width = 12,
-                                                                       h2(strong("Details")),
-                                                                       p("Genetic evaluation has as final purpose to select the individuals with highest genetic merit across
+                                                                h1(strong(span("Selection indices", style="color:green"))),
+                                                                h2(strong("Status:")),
+                                                                uiOutput(ns("warningMessage")),
+                                                                h2(strong("Details")),
+                                                                p("Genetic evaluation has as final purpose to select the individuals with highest genetic merit across
                                           all traits of interest. In order to select for multiple traits at the same time a selection index is preferred.
                                           This option aims to calculate a selection index using across-environment predictions from multiple
                               traits based on user's desired change (used to calculate weights) and return a table of predictions with the index and the traits used
                               for selection.
                                 The way the options are used is the following:"),
-
-                                                                       p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
-                                                                       p(strong("Traits to include in the index-")," Traits to be considered in the index."),
-                                                                       p(strong("Desire or base values.-")," Vector of values indicating the desired change in traits."),
-                                                                       p(strong("Scale traits.-")," A TRUE or FALSE value indicating if the table of traits should be
+                                                                img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
+                                                                p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
+                                                                p(strong("Traits to include in the index-")," Traits to be considered in the index."),
+                                                                p(strong("Desire or base values.-")," Vector of values indicating the desired change in traits."),
+                                                                p(strong("Scale traits.-")," A TRUE or FALSE value indicating if the table of traits should be
                                 scaled or not. If TRUE is selected, the values of the desire vector are expected to be expressed in
                                 standard deviations. If FALSE, the values of the desire vector are expected to be expressed in
                                 original-scale units."),
-                                                                       h2(strong("References:")),
-                                                                       p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
-                                                                       p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
-                                                                       h2(strong("Software used:")),
-                                                                       p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-                                Vienna, Austria. URL https://www.R-project.org/."),
-                                                                ),
+                                                                h2(strong("References:")),
+                                                                p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
+                                                                p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
+                                                                h2(strong("Software used:")),
+                                                                p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/.")
                                                          )
                                      )
                             ),
@@ -182,7 +176,6 @@ mod_indexDesireApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

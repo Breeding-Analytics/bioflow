@@ -19,44 +19,38 @@ mod_mtaApp_ui <- function(id){
                                     shinydashboard::box(status="success",width = 12,
                                                         solidHeader = TRUE,
                                                         column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                               column(width = 6,
-                                                                      h1(strong(span("Multi Trial Analysis", style="color:green"))),
-                                                                      h2(strong("Status:")),
-                                                                      uiOutput(ns("warningMessage")),
-                                                                      img(src = "www/mta.png", height = 300, width = 600), # add an image
-                                                               ),
-                                                               column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                               column(width = 12,
-                                                                      h2(strong("Details")),
-                                                                      p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
+                                                               h1(strong(span("Multi Trial Analysis", style="color:green"))),
+                                                               h2(strong("Status:")),
+                                                               uiOutput(ns("warningMessage")),
+                                                               h2(strong("Details")),
+                                                               p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
                               analysis and optionally a relationship matrix between individuals.
                                 The way the arguments are used is the following:"),
-
-                                                                      p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
-                                                                      p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
-                                                                      p(strong("Random effects.-")," Columns to be fitted as random effects."),
-                                                                      # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
-                                                                      p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
-                                                                      p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
-                                                                      p(strong("Additional settings:")),
-                                                                      p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
-                                                                      p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
-                                                                      p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
-                                                                      p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                                                      p(strong("Maximum number of markers if rrBLUP.-")," Maximum number of markers that should be used if an rrBLUP genetic evaluation method is selected. Under high density marker SNP panels the user may want to reduce the complexity of the marker-based model, the default is 1000. The markers will be randomly sampled without replacement."),
-                                                                      p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
-                                                                      p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
-                                                                      h2(strong("References:")),
-                                                                      p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
-                                                                      p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
-                                                                      p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
-                                                                      h2(strong("Software used:")),
-                                                                      p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                                               img(src = "www/mta.png", height = 300, width = 600), # add an image
+                                                               p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                                               p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
+                                                               p(strong("Random effects.-")," Columns to be fitted as random effects."),
+                                                               # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
+                                                               p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
+                                                               p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
+                                                               p(strong("Additional settings:")),
+                                                               p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
+                                                               p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
+                                                               p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
+                                                               p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
+                                                               p(strong("Maximum number of markers if rrBLUP.-")," Maximum number of markers that should be used if an rrBLUP genetic evaluation method is selected. Under high density marker SNP panels the user may want to reduce the complexity of the marker-based model, the default is 1000. The markers will be randomly sampled without replacement."),
+                                                               p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
+                                                               p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
+                                                               h2(strong("References:")),
+                                                               p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
+                                                               p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
+                                                               p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
+                                                               h2(strong("Software used:")),
+                                                               p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                                      p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
-                                                                      p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
-                                                               ),
+                                                               p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
+                                                               p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
                                                         )
                                     )
                            ),
@@ -240,7 +234,7 @@ mod_mtaApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

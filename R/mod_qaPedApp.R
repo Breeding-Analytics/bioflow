@@ -20,104 +20,99 @@ mod_qaPedApp_ui <- function(id){
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
-                                                             column(width = 6,
-                                                                    h1(strong(span("QA/QC for Pedigree", style="color:green"))),
-                                                                    h2(strong("Status:")),
-                                                                    uiOutput(ns("warningMessage")),
-                                                             ),
-                                                             column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                             column(width = 12,
-                                                                    h2(strong("Details")),
-                                                                    p("When pedigree information will be use for do analysis, we need to ensure the quality of relation of genetic markers for each triplet of individuals.
+                                                             h1(strong(span("QA/QC for Pedigree", style="color:green"))),
+                                                             h2(strong("Status:")),
+                                                             uiOutput(ns("warningMessage")),
+                                                             h2(strong("Details")),
+                                                             p("When pedigree information will be use for do analysis, we need to ensure the quality of relation of genetic markers for each triplet of individuals.
                                                              This option aims to allow users to identify bad individuals given certain QA parameters. The",strong(style="color: red; font-size: 15px;","RECOMENDATION is to keep the limits of arguments based in genetic theory"), "but if the user decide change
                                                             the way arguments are used is the following:"),
 
-                                                                    p(h4(strong("Imputed data"))," this sets a threshold for how much missing data in a marker information is allowed for each individual in the triplet of the pedigree information and the classification for each one is:"),
-                                                                    tags$ul(
-                                                                      tags$li(strong("Designation imputed")),
-                                                                      tags$ul(
-                                                                        tags$li("<14000 is good designation"),
-                                                                        tags$li("1400-17000 is sample_poor designation"),
-                                                                        tags$li(">17000 is sample_fail designation")
-                                                                      ),
-                                                                      tags$li(strong("Mother imputed")),
-                                                                      tags$ul(
-                                                                        tags$li(">16000 poor mother"),
-                                                                        tags$li("<16000 correct mother")
-                                                                      ),
-                                                                      tags$li(strong("Father imputed")),
-                                                                      tags$ul(
-                                                                        tags$li(">16000 poor father"),
-                                                                        tags$li("<16000 correct father")
-                                                                      )
-                                                                    ),
-
-                                                                    p(h4(strong("Coincidence")),"  this sets a threshold for allele quality control."),
-                                                                    tags$ul(
-                                                                      tags$li(strong("Allele QC%")),
-                                                                      tags$ul(
-                                                                        tags$li("0-1.2% QC pass"),
-                                                                        tags$li("1.2-2% QC borderline"),
-                                                                        tags$li(">2 QC fail")
-                                                                      ),
-                                                                      tags$li(strong("QC count fail"),"QC fail when have less than 1000 ocurrences, we can create the following groups accord imputed information limits"),
-                                                                      tags$ul(
-                                                                        tags$li(strong("QC count fail G1")),
-                                                                        tags$ul(
-                                                                          tags$li("Designation imputed > Qc G1 No assessment-designation sample too poor")
-                                                                        ),
-                                                                        tags$li(strong("QC count fail G2")),
-                                                                        tags$ul(
-                                                                          tags$li("Designation imputed <= Qc G1 & Designation mother>Qc G2 & Designation father>Qc G2 No assessment mother and father samples too poor"),
-                                                                          tags$li("Mother imputed>Father imputed No QC test, no mother assessment - mother sample too poor"),
-                                                                          tags$li("Mother imputed<Father imputed No QC test, no father assessment - father sample too poor")
-                                                                        ))),
-                                                                    p(h4(strong("Heterozigocity"))," this sets a threshold for what is the heterozygosity allowed for each individual in the triplet of the pedigree information and the classification for each one is:"),
-                                                                    tags$ul(
-                                                                      tags$li(strong("Heterozygosity Designation")),
-                                                                      tags$ul(
-                                                                        tags$li(">5% designation excess heterozygosity"),
-                                                                        tags$li("<5% correct designation")
-                                                                      ),
-                                                                      tags$li(strong("Heterozygosity Mother")),
-                                                                      tags$ul(
-                                                                        tags$li(">5% mother excess heterozygosity"),
-                                                                        tags$li("<5% correct mother")
-                                                                      ),
-                                                                      tags$li(strong("Heterozygosity Father")),
-                                                                      tags$ul(
-                                                                        tags$li(">5% father excess heterozygosity"),
-                                                                        tags$li("<5% correct father")
-                                                                      )
-                                                                    ),
-                                                                    p(h4(strong("G matrix values comparison"))," this sets a threshold for G matrix values comparisons."),
-                                                                    tags$ul(
-                                                                      tags$li(strong("Gmat Mother-Designation.-")),
-                                                                      tags$ul(
-                                                                        tags$li("<0.2 mother wrong"),
-                                                                        tags$li("0.2-0.7 mother borderline"),
-                                                                        tags$li("0.7-1.6 correct mother")
-                                                                      ),
-                                                                      tags$li(strong("Gmat Mother-Designation higth")),
-                                                                      tags$ul(
-                                                                        tags$li(">1.6 mother hight")
-                                                                      ),
-                                                                      tags$li(strong("Gmat Father-Designation")),
-                                                                      tags$ul(
-                                                                        tags$li("<0.2 male wrong"),
-                                                                        tags$li("0.2-0.7 male boderline"),
-                                                                        tags$li("0.7-1.5 correct father")
-                                                                      ),
-                                                                      tags$li(strong("(Gmat diag Designation)-(Gmat Mother-Designation).-")),
-                                                                      tags$ul(
-                                                                        tags$li("<0.2 probable self"),
-                                                                        tags$li(">0.2 correct")
-                                                                      )
-                                                                    ),
-
-                                                                    h2(strong("References")),
-                                                                    p("")
+                                                             p(h4(strong("Imputed data"))," this sets a threshold for how much missing data in a marker information is allowed for each individual in the triplet of the pedigree information and the classification for each one is:"),
+                                                             tags$ul(
+                                                               tags$li(strong("Designation imputed")),
+                                                               tags$ul(
+                                                                 tags$li("<14000 is good designation"),
+                                                                 tags$li("1400-17000 is sample_poor designation"),
+                                                                 tags$li(">17000 is sample_fail designation")
+                                                               ),
+                                                               tags$li(strong("Mother imputed")),
+                                                               tags$ul(
+                                                                 tags$li(">16000 poor mother"),
+                                                                 tags$li("<16000 correct mother")
+                                                               ),
+                                                               tags$li(strong("Father imputed")),
+                                                               tags$ul(
+                                                                 tags$li(">16000 poor father"),
+                                                                 tags$li("<16000 correct father")
+                                                               )
                                                              ),
+
+                                                             p(h4(strong("Coincidence")),"  this sets a threshold for allele quality control."),
+                                                             tags$ul(
+                                                               tags$li(strong("Allele QC%")),
+                                                               tags$ul(
+                                                                 tags$li("0-1.2% QC pass"),
+                                                                 tags$li("1.2-2% QC borderline"),
+                                                                 tags$li(">2 QC fail")
+                                                               ),
+                                                               tags$li(strong("QC count fail"),"QC fail when have less than 1000 ocurrences, we can create the following groups accord imputed information limits"),
+                                                               tags$ul(
+                                                                 tags$li(strong("QC count fail G1")),
+                                                                 tags$ul(
+                                                                   tags$li("Designation imputed > Qc G1 No assessment-designation sample too poor")
+                                                                 ),
+                                                                 tags$li(strong("QC count fail G2")),
+                                                                 tags$ul(
+                                                                   tags$li("Designation imputed <= Qc G1 & Designation mother>Qc G2 & Designation father>Qc G2 No assessment mother and father samples too poor"),
+                                                                   tags$li("Mother imputed>Father imputed No QC test, no mother assessment - mother sample too poor"),
+                                                                   tags$li("Mother imputed<Father imputed No QC test, no father assessment - father sample too poor")
+                                                                 ))),
+                                                             p(h4(strong("Heterozigocity"))," this sets a threshold for what is the heterozygosity allowed for each individual in the triplet of the pedigree information and the classification for each one is:"),
+                                                             tags$ul(
+                                                               tags$li(strong("Heterozygosity Designation")),
+                                                               tags$ul(
+                                                                 tags$li(">5% designation excess heterozygosity"),
+                                                                 tags$li("<5% correct designation")
+                                                               ),
+                                                               tags$li(strong("Heterozygosity Mother")),
+                                                               tags$ul(
+                                                                 tags$li(">5% mother excess heterozygosity"),
+                                                                 tags$li("<5% correct mother")
+                                                               ),
+                                                               tags$li(strong("Heterozygosity Father")),
+                                                               tags$ul(
+                                                                 tags$li(">5% father excess heterozygosity"),
+                                                                 tags$li("<5% correct father")
+                                                               )
+                                                             ),
+                                                             p(h4(strong("G matrix values comparison"))," this sets a threshold for G matrix values comparisons."),
+                                                             tags$ul(
+                                                               tags$li(strong("Gmat Mother-Designation.-")),
+                                                               tags$ul(
+                                                                 tags$li("<0.2 mother wrong"),
+                                                                 tags$li("0.2-0.7 mother borderline"),
+                                                                 tags$li("0.7-1.6 correct mother")
+                                                               ),
+                                                               tags$li(strong("Gmat Mother-Designation higth")),
+                                                               tags$ul(
+                                                                 tags$li(">1.6 mother hight")
+                                                               ),
+                                                               tags$li(strong("Gmat Father-Designation")),
+                                                               tags$ul(
+                                                                 tags$li("<0.2 male wrong"),
+                                                                 tags$li("0.2-0.7 male boderline"),
+                                                                 tags$li("0.7-1.5 correct father")
+                                                               ),
+                                                               tags$li(strong("(Gmat diag Designation)-(Gmat Mother-Designation).-")),
+                                                               tags$ul(
+                                                                 tags$li("<0.2 probable self"),
+                                                                 tags$li(">0.2 correct")
+                                                               )
+                                                             ),
+
+                                                             h2(strong("References")),
+                                                             p("")
                                                            )
                                                     ),
 
@@ -230,7 +225,7 @@ mod_qaPedApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
@@ -340,8 +335,8 @@ mod_qaPedApp_server <- function(id, data){
 
 
     output$plotImputedD <- plotly::renderPlotly({
-      req(data())
-      flag=follow()
+        req(data())
+        flag=follow()
       if(flag){
         Impt <- newModificationsPed()
         ver2<-c("LineImputed","Imputed_Female","Imputed_Male")
@@ -355,11 +350,11 @@ mod_qaPedApp_server <- function(id, data){
         colnames(ver)=c("rows","Class","Imputed")
         figS <- plotly::plot_ly(ver,y= ~Imputed,color=~Class,type = 'box')
         figS
-      }else{
-        fig = plotly::plot_ly()
-        fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
-        fig
-      }
+        }else{
+          fig = plotly::plot_ly()
+          fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
+          fig
+        }
     })
 
 
@@ -367,16 +362,16 @@ mod_qaPedApp_server <- function(id, data){
       req(data())
       flag=follow()
       if(flag){
-        Impt <- newModificationsPed()
-        ver2<-c("QCPer_wrong")
-        ### change column names for mapping
-        ver=data.frame(Impt[,ver2])
-        ver=as.data.frame(cbind(1:dim(ver)[1],rep("QC_wrong",dim(ver)[1]),apply(ver,2,function(x) as.numeric(x))))
-        ver[,1]=as.factor(ver[,1])
-        ver[,2]=as.factor(ver[,2])
-        colnames(ver)=c("rows","Class","QCwrong")
-        figS <- plotly::plot_ly(ver,y= ~QCwrong,color=~Class,type = 'box')
-        figS
+      Impt <- newModificationsPed()
+      ver2<-c("QCPer_wrong")
+      ### change column names for mapping
+      ver=data.frame(Impt[,ver2])
+      ver=as.data.frame(cbind(1:dim(ver)[1],rep("QC_wrong",dim(ver)[1]),apply(ver,2,function(x) as.numeric(x))))
+      ver[,1]=as.factor(ver[,1])
+      ver[,2]=as.factor(ver[,2])
+      colnames(ver)=c("rows","Class","QCwrong")
+      figS <- plotly::plot_ly(ver,y= ~QCwrong,color=~Class,type = 'box')
+      figS
       }else{
         fig = plotly::plot_ly()
         fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
@@ -388,18 +383,18 @@ mod_qaPedApp_server <- function(id, data){
       req(data())
       flag=follow()
       if(flag){
-        Impt <- newModificationsPed()
-        ver2<-c("Hets_Line","Hets_Female","Hets_Male")
-        ### change column names for mapping
-        ver=data.frame(Impt[,ver2])
-        ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
-        colnames(ver)[1]="rows"
-        ver[,1]=as.factor(ver[,1])
-        # library(reshape2)
-        ver=reshape2::melt(ver, id="rows")
-        colnames(ver)=c("rows","Class","Heterozygozity")
-        figS <- plotly::plot_ly(ver,y= ~Heterozygozity,color=~Class,type = 'box')
-        figS
+      Impt <- newModificationsPed()
+      ver2<-c("Hets_Line","Hets_Female","Hets_Male")
+      ### change column names for mapping
+      ver=data.frame(Impt[,ver2])
+      ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
+      colnames(ver)[1]="rows"
+      ver[,1]=as.factor(ver[,1])
+      # library(reshape2)
+      ver=reshape2::melt(ver, id="rows")
+      colnames(ver)=c("rows","Class","Heterozygozity")
+      figS <- plotly::plot_ly(ver,y= ~Heterozygozity,color=~Class,type = 'box')
+      figS
       }else{
         fig = plotly::plot_ly()
         fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
@@ -411,18 +406,18 @@ mod_qaPedApp_server <- function(id, data){
       req(data())
       flag=follow()
       if(flag){
-        Impt <- newModificationsPed()
-        ver2<-c("G_matrix_Line_Female","G_matrix_Line_Male","Diagonal_minus_Female_G_matrix")
-        ### change column names for mapping
-        ver=data.frame(Impt[,ver2])
-        ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
-        colnames(ver)[1]="rows"
-        ver[,1]=as.factor(ver[,1])
-        # library(reshape2)
-        ver=reshape2::melt(ver, id="rows")
-        colnames(ver)=c("rows","Class","Gmat")
-        figS <- plotly::plot_ly(ver,y= ~Gmat,color=~Class,type = 'box')
-        figS
+      Impt <- newModificationsPed()
+      ver2<-c("G_matrix_Line_Female","G_matrix_Line_Male","Diagonal_minus_Female_G_matrix")
+      ### change column names for mapping
+      ver=data.frame(Impt[,ver2])
+      ver=as.data.frame(cbind(1:dim(ver)[1],apply(ver,2,function(x) as.numeric(x))))
+      colnames(ver)[1]="rows"
+      ver[,1]=as.factor(ver[,1])
+      # library(reshape2)
+      ver=reshape2::melt(ver, id="rows")
+      colnames(ver)=c("rows","Class","Gmat")
+      figS <- plotly::plot_ly(ver,y= ~Gmat,color=~Class,type = 'box')
+      figS
       }else{
         fig = plotly::plot_ly()
         fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
@@ -446,14 +441,14 @@ mod_qaPedApp_server <- function(id, data){
     })
 
     output$plotClassPed <- plotly::renderPlotly({
-      flag=follow()
-      if(flag){
-        PlotSelected()
-      }else{
-        fig = plotly::plot_ly()
-        fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
-        fig
-      }
+        flag=follow()
+        if(flag){
+          PlotSelected()
+        }else{
+          fig = plotly::plot_ly()
+          fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
+          fig
+        }
     })
 
     ## display the current outliers

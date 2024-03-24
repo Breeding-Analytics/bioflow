@@ -19,29 +19,24 @@ mod_pggApp_ui <- function(id){
                                       shinydashboard::box(status="success",width = 12,
                                                           solidHeader = TRUE,
                                                           column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                                 column(width = 6,
-                                                                        h1(strong(span("Predicted Genetic Gain", style="color:green"))),
-                                                                        h2(strong("Status:")),
-                                                                        uiOutput(ns("warningMessage")),
-                                                                        img(src = "www/pgg.png", height = 250, width = 500), # add an image
-                                                                 ),
-                                                                 column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                                 column(width = 12,
-                                                                        h2(strong("Details")),
-                                                                        p("In order to monitor the efficacy of genetic evaluation in the current cycle of selection the predicted genetic gain formula is used.
+                                                                 h1(strong(span("Predicted Genetic Gain", style="color:green"))),
+                                                                 h2(strong("Status:")),
+                                                                 uiOutput(ns("warningMessage")),
+                                                                 h2(strong("Details")),
+                                                                 p("In order to monitor the efficacy of genetic evaluation in the current cycle of selection the predicted genetic gain formula is used.
                                           This option aims to calculate the predicted genetic gain from the classical breeders' equation
                               R = i*r*s being R the response to selection, i the selection intensity, r the selection accuracy, s the genetic standard deviation.
                                 The way the options are used is the following:"),
-                                                                        p(strong("Trait(s) to use.-")," Trait to be be used for calculating the predicted genetic gain parameters."),
-                                                                        p(strong("Environment(s) to use.-")," Environments-data to be used from the input file."),
-                                                                        p(strong("Proportion selected.-")," Proportion of parents to be selected in order to calculate the selection intensity."),
-                                                                        h2(strong("References:")),
-                                                                        p("Lush, J. L. (2013). Animal breeding plans. Read Books Ltd."),
-                                                                        p("Mrode, R. A. (2014). Linear models for the prediction of animal breeding values. Cabi."),
-                                                                        h2(strong("Software used:")),
-                                                                        p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-                                Vienna, Austria. URL https://www.R-project.org/."),
-                                                                 ),
+                                                                 img(src = "www/pgg.png", height = 250, width = 500), # add an image
+                                                                 p(strong("Trait(s) to use.-")," Trait to be be used for calculating the predicted genetic gain parameters."),
+                                                                 p(strong("Environment(s) to use.-")," Environments-data to be used from the input file."),
+                                                                 p(strong("Proportion selected.-")," Proportion of parents to be selected in order to calculate the selection intensity."),
+                                                                 h2(strong("References:")),
+                                                                 p("Lush, J. L. (2013). Animal breeding plans. Read Books Ltd."),
+                                                                 p("Mrode, R. A. (2014). Linear models for the prediction of animal breeding values. Cabi."),
+                                                                 h2(strong("Software used:")),
+                                                                 p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/.")
                                                           )
                                       )
                             ),
@@ -132,7 +127,7 @@ mod_pggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

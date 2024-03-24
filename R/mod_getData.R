@@ -180,6 +180,7 @@ mod_getData_ui <- function(id){
                             textOutput(ns("outConcatenateEnv")),
         ),
 
+        shiny::plotOutput(ns("plotDataDependencies1")),
 
       ),
       tabPanel(
@@ -313,6 +314,7 @@ mod_getData_ui <- function(id){
           DT::DTOutput(ns('preview_geno')),
         ),
 
+        shiny::plotOutput(ns("plotDataDependencies2")),
 
       ),
       tabPanel(
@@ -377,6 +379,7 @@ mod_getData_ui <- function(id){
         hr(),
         DT::DTOutput(ns('preview_ped')),
 
+        shiny::plotOutput(ns("plotDataDependencies3")),
 
       ),
       tabPanel(
@@ -419,6 +422,7 @@ mod_getData_ui <- function(id){
         ), # end of tabset
         # tags$p('Comming soon!', style = 'color: red; font-size: 20px; margin-top: 25px;'),
 
+        shiny::plotOutput(ns("plotDataDependencies4")),
 
       ),
       tabPanel(
@@ -489,6 +493,7 @@ mod_getData_ui <- function(id){
           DT::DTOutput(ns('preview_qtl')),
         ),
 
+        shiny::plotOutput(ns("plotDataDependencies5")),
 
       ),
     ),
@@ -503,6 +508,12 @@ mod_getData_ui <- function(id){
 mod_getData_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
   moduleServer(id , function(input, output, session){
     ns <- session$ns
+
+    ## dependencie plot
+
+    output$plotDataDependencies1 <- output$plotDataDependencies2 <- output$plotDataDependencies3 <- output$plotDataDependencies4 <- output$plotDataDependencies5 <- shiny::renderPlot({ # plotly::renderPlotly({
+      dependencyPlot()
+    })
 
     ### Phenotypic tab controls ################################################
 
