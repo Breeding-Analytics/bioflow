@@ -19,34 +19,40 @@ mod_ocsApp_ui <- function(id){
                                      shinydashboard::box(status="success",width = 12,
                                                          solidHeader = TRUE,
                                                          column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                                h1(strong(span("Optimal Cross Selection", style="color:green"))),
-                                                                h2(strong("Status:")),
-                                                                uiOutput(ns("warningMessage")),
-                                                                h2(strong("Details")),
-                                                                p("A new generation of individuals with higher genetic merit can be produced selecting the top individuals or
+                                                                column(width = 6,
+                                                                       h1(strong(span("Optimal Cross Selection", style="color:green"))),
+                                                                       h2(strong("Status:")),
+                                                                       uiOutput(ns("warningMessage")),
+                                                                       img(src = "www/ocs.png", height = 400, width = 250), # add an image
+                                                                ),
+                                                                column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                                                column(width = 12,
+                                                                       h2(strong("Details")),
+                                                                       p("A new generation of individuals with higher genetic merit can be produced selecting the top individuals or
                                           selecting directly the best crosses. This option aims to optimize the new crosses given a desired trade-off between
                                           short-term gain(performance) and long-term gain (genetic variance).
                                 The way the options are used is the following:"),
-                                                                img(src = "www/ocs.png", height = 400, width = 250), # add an image
-                                                                p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
-                                                                p(strong("Entry types to use.-")," Which entry types should be used in the algorithm."),
-                                                                p(strong("Number of crosses.-")," Number of top crosses to be selected."),
-                                                                p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity. Zero degrees is weighting strongly towards performance. Ninety degrees is weighting strongly towards diversity."),
-                                                                p(strong("Additional settings.-")),
-                                                                p(strong("Maximum number of top individuals to use.-")," The complexity and computation time of the algorithm scales up with greater number of individuals used for predicted crosses. This arguments applies a filter to only use the top N individuals for the trait of interest."),
-                                                                p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
-                                                                p(strong("Relationship to use.-")," One of the following; GRM, NRM single-step relationship matrix."),
-                                                                p(strong("Environment to use.-")," If the user wants to use predictions from an specific environment. In NULL all are used."),
-                                                                p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
+
+                                                                       p(strong("Trait for cross prediction.-")," Trait to be be used for predicting all possible crosses (an index is suggested)."),
+                                                                       p(strong("Entry types to use.-")," Which entry types should be used in the algorithm."),
+                                                                       p(strong("Number of crosses.-")," Number of top crosses to be selected."),
+                                                                       p(strong("Target angle.-")," Target angle defining the trade-off between performance and diversity. Zero degrees is weighting strongly towards performance. Ninety degrees is weighting strongly towards diversity."),
+                                                                       p(strong("Additional settings.-")),
+                                                                       p(strong("Maximum number of top individuals to use.-")," The complexity and computation time of the algorithm scales up with greater number of individuals used for predicted crosses. This arguments applies a filter to only use the top N individuals for the trait of interest."),
+                                                                       p(strong("Stopping criteria.-")," Maximum number of runs (iterations) without change in the genetic algorithm."),
+                                                                       p(strong("Relationship to use.-")," One of the following; GRM, NRM single-step relationship matrix."),
+                                                                       p(strong("Environment to use.-")," If the user wants to use predictions from an specific environment. In NULL all are used."),
+                                                                       p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
                                 the expected value of the cross, 'stdError' is the average inbreeding of the cross, and 'rel' has the genetic algorithm value (lower the better)."),
-                                                                h2(strong("References:")),
-                                                                p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
-                                                                p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
-                                                                p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
-                                                                h2(strong("Software used:")),
-                                                                p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                                                       h2(strong("References:")),
+                                                                       p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
+                                                                       p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
+                                                                       p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
+                                                                       h2(strong("Software used:")),
+                                                                       p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                                p("https://github.com/gaynorr/QuantGenResources")
+                                                                       p("https://github.com/gaynorr/QuantGenResources"),
+                                                                ),
                                                          )
                                      )
                            ),
@@ -112,6 +118,7 @@ mod_ocsApp_ui <- function(id){
                                                                    column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Summary of selection units and marker availability.", style="color:black")),
                                                                           DT::DTOutput(ns("evaluationUnits")),
+                                                                          img(src = "www/ocs.png", height = 400, width = 250), # add an image
                                                                    )
                                                )
                                       ),
@@ -175,6 +182,7 @@ mod_ocsApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
