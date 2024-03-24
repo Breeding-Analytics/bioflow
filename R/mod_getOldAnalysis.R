@@ -50,7 +50,7 @@ mod_getOldAnalysis_ui <- function(id){
 #' getOldAnalysis Server Functions
 #'
 #' @noRd
-mod_getOldAnalysis_server <- function(id, data){
+mod_getOldAnalysis_server <- function(id, data, res_auth){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 

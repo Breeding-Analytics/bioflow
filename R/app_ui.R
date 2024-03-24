@@ -38,9 +38,9 @@ app_ui <- function(request) {
 
       navbarMenu("Data Retrieval ", icon = icon("upload"),
                  tabPanel(div(icon("folder"), "New Data"),
-                          navlistPanel( widths = c(1, 11),
+                          # navlistPanel( widths = c(1, 11),
                                         tabPanel(div("All (", icon("file"),")" ), mod_getData_ui("getData_1") ),
-                          )
+                          # )
                  ),
                  tabPanel(div(icon("folder-open"), "Old Analysis"),
                           navlistPanel( widths = c(1, 11),
