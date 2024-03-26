@@ -142,6 +142,8 @@ if (is.null(result)){
       temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE) # merge env means
       temp.r2Sta <- r2Sta[r2Sta$trait ==iTrait & r2Sta$environment %in% goodFields, ] # reliabilities
       temp.pred.box <- merge(temp.pred.box,temp.r2Sta[,c("environment","value")], by="environment", all.x = TRUE) # merge reliabilities
+      # vv <- rep(1000, seq(0.5,1.5,0.5))
+      # temp.pred.box$vjust1 <- vv[1:nrow(temp.pred.box)]
       p <- temp.pred.box %>%
         ggplot2::ggplot() +
         ggplot2::aes(x=envMean, y=predictedValue, fill = environment) +
@@ -263,7 +265,7 @@ if (is.null(result)){
         ggplot2::coord_fixed() + 
         ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
         ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
-      if(nrow(nagm) < 20){ # if user wants to add text to the cells
+      if(nrow(nagm) < 15){ # if user wants to add text to the cells
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
       print(p)
@@ -298,7 +300,7 @@ if (is.null(result)){
         ggplot2::coord_fixed() + 
         ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face = "bold"))+
         ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
-      if(nrow(nagm) < 20){ # if user wants to add text to the cells
+      if(nrow(nagm) < 15){ # if user wants to add text to the cells
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
       print(p)
@@ -379,7 +381,7 @@ if (is.null(result)){
         ggplot2::coord_fixed() + 
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-      if(nrow(corr) < 20){ # if user wants to fill cell values
+      if(nrow(corr) < 15){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
       }
       print(p)
@@ -413,7 +415,7 @@ if (is.null(result)){
         ggplot2::coord_fixed() +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
-      if(nrow(corr) < 20){ # if user wants to fill cell values
+      if(nrow(corr) < 15){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
       }
       p
@@ -633,7 +635,7 @@ if (is.null(result)){
       p <- ggplot(data=mydata2, ggplot2::aes(x=trait, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge()) +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "bottom") +
+                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "bottom") +
         ggplot2::labs(x="Trait", y="Parameter value")
       print(p)
       cat("\n")
@@ -646,7 +648,7 @@ if (is.null(result)){
       p <- ggplot2::ggplot(data=mydata2, ggplot2::aes(x=trait, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge()) +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "bottom") +
+                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "bottom") +
         ggplot2::labs(x="Trait", y="Parameter value") 
       p
     })
@@ -712,7 +714,7 @@ if (is.null(result)){
       ggplot2::geom_bar(stat="identity") +
       ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
       ggplot2::scale_fill_brewer(palette="Accent") +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
       ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red') +
       ggplot2::geom_text(data=df3,ggplot2::aes(x= traitOriginal, y = valuePropCum , label =round(value,2) ),
                          position=ggplot2::position_dodge(width = 0.8),size = 3, vjust = -0.5 ,colour="black")
@@ -727,7 +729,7 @@ if (is.null(result)){
         ggplot2::geom_bar(stat="identity") +
         ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
         ggplot2::scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
         ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red') +
         ggplot2::geom_text(data=df3,ggplot2::aes(x= traitOriginal, y = valuePropCum , label =round(value,2) ),
                            position=ggplot2::position_dodge(width = 0.8),size = 3, vjust = -0.5 ,colour="black")
@@ -798,7 +800,7 @@ if (is.null(result)){
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
         ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") +
+        ggplot2::theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1 , size = 7), legend.position = "bottom") +
         guides(fill=guide_legend(nrow=3,byrow=TRUE))
       # if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
       print(p)
@@ -834,7 +836,7 @@ if (is.null(result)){
                                               ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                  width = 0.10) +
           ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+          ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
         p
         
       })

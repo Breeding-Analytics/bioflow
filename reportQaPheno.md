@@ -26,16 +26,14 @@ The following table shows the modifications that have been saved in your analysi
 <label class="control-label" id="qaRawApp_1-traitQa-label" for="qaRawApp_1-traitQa">Trait:</label>
 <div>
 <select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option>
 <option value="Root_Lodging_plants">Root_Lodging_plants</option>
-<option value="Pollen_DAP_days">Pollen_DAP_days</option></select>
+<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-outdfa17c9c06ee697d" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out91813f1a7df42cdd" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -51,15 +49,13 @@ The following boxplot allows you to visualize which records were tagged as outli
 <label class="control-label" id="qaRawApp_1-traitQaBox-label" for="qaRawApp_1-traitQaBox">Trait:</label>
 <div>
 <select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option>
 <option value="Root_Lodging_plants">Root_Lodging_plants</option>
-<option value="Pollen_DAP_days">Pollen_DAP_days</option></select>
+<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-outd49ae7215d42d749" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-outa2eea13f68a2d957" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

@@ -20,10 +20,10 @@ mod_sectionInfoGEApp_ui <- function(id){
                             ),
                             shinydashboard::box(status="success", width = 12,
                                                 title = "What is genetic evaluation?", solidHeader = TRUE,
-                                                p("Genetic evaluation is the process to disect the genetic signal from the phenotypic
+                                                p("Genetic evaluation is the process to dissect the genetic signal from the phenotypic
                                                   records to estimate surrogates of genetic value [i.e., breeding values (BV), general
-                                                  combining ability (GCA), total genetic value(GV)] in oder to apply
-                                                  artifical selection using such estimates and increase the allele frequencies of genes affecting the
+                                                  combining ability (GCA), total genetic value(GV)] in order to apply
+                                                  artificial selection using such estimates and increase the allele frequencies of genes affecting the
                                                   expression of the traits of interest in a particular target
                                                   population of environments (TPE)."),
                                                 img(src = " www/infoge.png", height = 350, width = 600), # add an image
