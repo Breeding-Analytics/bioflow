@@ -8,10 +8,31 @@ params:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+# loading necessary R packages ####
+## data manipulation
+# library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(data.table)
+library(shiny)
 ```
 
 ```{r printfxn, include=FALSE}
+
 # functions ####
 # for printing tables (data.frames) - DT::datatable()
 printTable <- function(DT, pageLength = 7, 
@@ -46,12 +67,10 @@ printTable <- function(DT, pageLength = 7,
 }
 ```
 
-```{r plot_init, include = FALSE}
+```{r, include=FALSE}
 # Init Step to make sure that the dependencies are loaded
-# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
 htmltools::tagList(printTable(mtcars))
-htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
-
+htmltools::tagList(ggplotly(ggplot()))
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -62,7 +81,6 @@ get_h <- function() {
   with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
        fig.height*dpi/fig.retina)
 }
-
 ```
 
 ### Across-environment trait table
@@ -79,7 +97,7 @@ suppressWarnings(tryCatch({
     load("resultIndex.RData")
   }
 }, error = function(e) {
-  NULL
+  # NULL
 }))
 
 if (is.null(result)){
