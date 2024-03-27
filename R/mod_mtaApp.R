@@ -140,8 +140,9 @@ mod_mtaApp_ui <- function(id){
                                                shinydashboard::box(status="success",width = 12,
                                                                    solidHeader = TRUE,
                                                                    column(width=12, style = "height:380px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Metrics associated to the STA stamp selected.", style="color:black")),
-                                                                          DT::DTOutput(ns("evaluationUnits")),
+                                                                          p(span("Available data.", style="color:black")),
+                                                                          selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                          shiny::plotOutput(ns("evaluationUnits")) ,
                                                                    )
                                                )
                                       ),
@@ -301,6 +302,7 @@ mod_mtaApp_server <- function(id, data){
       updateSelectInput(session, "trait2Mta", choices = traitsMta)
       updateSelectInput(session, "traitCor", choices = traitsMta)
       updateSelectInput(session, "traitConnect", choices = traitsMta)
+      updateSelectInput(session, "evaluationUnitsTrait", choices = traitsMta)
     })
     #################
     ## fixed effects
@@ -495,33 +497,58 @@ mod_mtaApp_server <- function(id, data){
       )
     })
 
-    output$evaluationUnits <-  DT::renderDT({
+    output$evaluationUnits <-  shiny::renderPlot({ #DT::renderDT({
       req(data())
       req(input$version2Mta)
+      req(input$evaluationUnitsTrait)
       object <- data()
-      # get the total number of individuals possible to estimate
-      metaPed <- object$metadata$pedigree
-      pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
-      pedCols <- setdiff(pedCols,"")
-      metaCols <- metaPed[which(metaPed$value %in% pedCols), "parameter"]
-      n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(na.omit(unique(x)))})
-      # check how many have phenotypes
-      dtMta <- object$predictions
-      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
-      nPheno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
-        length(intersect(na.omit(unique(x)) , unique(dtMta$designation)))
-      })
-      # check how many have marker
-      nGeno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
-        length(intersect(na.omit(unique(x)) , rownames(object$data$geno)))
-      })
-      final <- data.frame(cbind(metaCols,n, nPheno, nGeno))
-      colnames(final) <- c("Evaluation unit", "N", "With phenotype", "With markers")
-      rownames(final) <- NULL
-      DT::datatable(final, extensions = 'Buttons',
-                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-      )
+      if(!is.null(object$predictions)){
+        phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId == input$version2Mta  &  object$predictions$trait == input$evaluationUnitsTrait),"designation"]))
+      }else{ phenoNames <- character() }
+
+      if(!is.null(object$data$geno)){
+        genoNames <- rownames(object$data$geno)
+      }else{ genoNames <- character() }
+
+      if(!is.null(object$data$pedigree)){
+        metaPed <- object$metadata$pedigree
+        pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+        pedCols <- setdiff(pedCols,"")
+        pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+      }else{ pedNames <- character() }
+
+      if(!is.null(object$data$qtl)){
+        metaQtl <- object$metadata$qtl
+        qtlCols <- metaQtl[which(metaQtl$parameter %in% c("designation")), "value"]
+        qtlCols <- setdiff(qtlCols,"")
+        qtlNames <- na.omit(unique(object$data$qtl[,qtlCols]))
+      }else{ qtlNames <- character() }
+
+      splitAggregate <- list(phenoNames, genoNames, pedNames, qtlNames)
+      names(splitAggregate) <- c("With-Phenotype","With-Genotype","With-Pedigree","With-QTL")
+
+      nagm <- matrix(0,length(splitAggregate),length(splitAggregate)); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = midval, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity (data types)") +
+        ggplot2::theme_minimal()+
+        ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,  hjust = 1, face = "bold"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1,  hjust = 1, face = "bold")) +
+        ggplot2::coord_fixed()
+      p
     })
 
     output$phenoMta <-  DT::renderDT({
