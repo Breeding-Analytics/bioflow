@@ -156,7 +156,7 @@ mod_qaRawApp_server <- function(id, data){
           ggplot2::theme_classic()+
           ggplot2::geom_jitter(ggplot2::aes(color = color), alpha = input$transparency) +
           ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
-          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
           ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
 
       }else{}

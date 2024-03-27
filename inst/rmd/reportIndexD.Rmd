@@ -132,6 +132,12 @@ if (is.null(result)){
     idIndex <- idIndex[length(idIndex)]
     idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
     mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+    # subset to only traits being part of the index
+    desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+    uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
+    uTraits <- gsub("_scaled","",uTraits)
+    dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
+    ##
     environmentPredictionsRadar2="across"
     traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
     ## ensure product profile means come sorted
@@ -233,6 +239,12 @@ if (is.null(result)){
       idIndex <- idIndex[length(idIndex)]
       idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
       mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      # subset to only traits being part of the index
+      desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+      uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
+      uTraits <- gsub("_scaled","",uTraits)
+      dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
+      ##
       environmentPredictionsRadar2="across"
       traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
       ## ensure product profile means come sorted
@@ -367,7 +379,7 @@ if (is.null(result)){
   mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
-uTraits <- gsub("_scaled","",uTraits)
+  uTraits <- gsub("_scaled","",uTraits)
   # uTraits <- unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
   
   object=result
@@ -377,7 +389,7 @@ uTraits <- gsub("_scaled","",uTraits)
   analysisId=idMet
   trait=uTraits
   desirev=desirev
-  scaled=TRUE
+  scaled=as.logical(result$modeling[which(result$modeling$analysisId == idIndex & result$modeling$parameter == "scaled"),"value"])
   
   mydata <- object$predictions
   mydata <- mydata[which(mydata$analysisId == analysisId),]
@@ -440,7 +452,7 @@ uTraits <- gsub("_scaled","",uTraits)
     
   }else{
     
-   shiny::renderPlot({ # plotly::renderPlotly({
+    shiny::renderPlot({ # plotly::renderPlotly({
       ## if user provides threshold values let them know the selection differentials
       if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
         ## add product profile means'
@@ -483,7 +495,7 @@ uTraits <- gsub("_scaled","",uTraits)
       }
       # fig2 <-  plotly::ggplotly(p)
       # fig2
-     p
+      p
     })
     
   }

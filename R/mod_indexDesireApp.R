@@ -88,22 +88,29 @@ mod_indexDesireApp_ui <- function(id){
                                                                         uiOutput(ns("SliderDesireIndex")),
                                                        ),
                                                 ),
-                                                shinydashboard::box(status="success",width = 9,solidHeader = TRUE,
-                                                                    column(width=12, style = "height:550px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           p(span("Metrics associated to the MTA stamp selected.", style="color:black")),
-                                                                           selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
-                                                                           plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
-                                                                           p(span("Radar plot to inspect population values versus target values.", style="color:black")),
-                                                                           plotly::plotlyOutput(ns("plotPredictionsRadar")),
-                                                                           p(span("Expected response to selection using current desire changes.", style="color:black")),
-                                                                           shiny::plotOutput(ns("plotPotentialResponse")),
-                                                                           shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
-                                                                                               numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
-                                                                                               numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
-                                                                                               selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
-                                                                           ),
-                                                                    ),
-                                                )
+                                                column(width=9, style = "height:550px; overflow-y: scroll;overflow-x: scroll;",
+                                                       column(width=12,
+                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                              h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey box in the left", style="color:green"))),
+                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                       ),
+                                                       column(width = 12,
+                                                              p(span("Radar plot to inspect population values versus target values.", style="color:black")),
+                                                              numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
+                                                              plotly::plotlyOutput(ns("plotPredictionsRadar")),
+                                                       ),
+                                                       column(width = 12,
+                                                              p(span("Expected response to selection using current desire changes.", style="color:black")),
+                                                              numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
+                                                              shiny::plotOutput(ns("plotPotentialResponse")),
+                                                       ),
+                                                       column(width = 12,
+                                                              p(span("Metrics associated to the MTA stamp selected.", style="color:black")),
+                                                              selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
+                                                              plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
+                                                       ),
+                                                ),
+
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
                                                 br(),
@@ -116,6 +123,10 @@ mod_indexDesireApp_ui <- function(id){
                                                                  actionButton(ns("runIdxD"), "Calculate index", icon = icon("play-circle")),
                                                                  uiOutput(ns("qaQcIdxDInfo")),
                                                                  textOutput(ns("outIdxD")),
+                                                ),
+                                                hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
+                                                                    selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                                                 ),
                                        ),
                                      )
@@ -367,8 +378,8 @@ mod_indexDesireApp_server <- function(id, data){
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
     })
-    # render radar plot for initial values
-    output$plotPredictionsRadar <-  plotly::renderPlotly({
+
+    desireValues = reactive({
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
@@ -384,8 +395,20 @@ mod_indexDesireApp_server <- function(id, data){
         values <- t(as.numeric(values))
         values <- as.data.frame(values)
         colnames(values) <- input$trait2IdxD
+        values <- as.numeric(values)
+        return(values)
       }
-      values <- as.numeric(values)
+    })
+    # render radar plot for initial values
+    output$plotPredictionsRadar <-  plotly::renderPlotly({
+      req(data())
+      req(input$version2IdxD)
+      req(input$trait2IdxD)
+      dtIdxD <- data();
+      dtIdxD <- dtIdxD$predictions
+      mydata <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      values <- desireValues()
+      if(!is.null(values)){
       ## ensure product profile means come sorted
       if(length(input$trait2IdxD) == length(values) ){
         dd <- data.frame(trait=input$trait2IdxD, value=values )
@@ -395,6 +418,7 @@ mod_indexDesireApp_server <- function(id, data){
       }else{desireRp <- values; traitRp <- input$trait2IdxD}
       radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
                 fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
+      }
     })
     # render plot for potential responses
     output$plotPotentialResponse <-  shiny::renderPlot({
@@ -402,20 +426,12 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$version2IdxD)
       req(input$trait2IdxD)
       dtIdxD <- data();
-      if (length(input$trait2IdxD) != 0) {
-        values <- NULL
-        for (i in 1:length(input$trait2IdxD)) {
-          tempval <- reactive({paste0('input$','SliderDesireIndex',i)})
-          values[i] <- tempval()
-          values[i] <- eval(parse(text = values[i]))
-        }
-        values <- t(as.numeric(values))
-        values <- as.data.frame(values)
-        colnames(values) <- input$trait2IdxD
+      values <- desireValues()
+      if(!is.null(values)){
+        plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
+                            analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex)
       }
-      values <- as.numeric(values)
-      plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
-                          analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex)
+
     })
     ## render result of "run" button click
     outIdxD <- eventReactive(input$runIdxD, {
@@ -426,18 +442,7 @@ mod_indexDesireApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtIdxD <- data()
       # define values for slider all traits for base index
-      if (length(input$trait2IdxD) != 0) {
-        values <- NULL
-        for (i in 1:length(input$trait2IdxD)) {
-          tempval <- reactive({paste0('input$','SliderDesireIndex',i)})
-          values[i] <- tempval()
-          values[i] <- eval(parse(text = values[i]))
-        }
-        values <- t(as.numeric(values))
-        values <- as.data.frame(values)
-        colnames(values) <- input$trait2IdxD
-      }
-      values <- as.numeric(values)
+      values <- desireValues()
       # run the modeling, but before test if mta was done
       if(sum(dtIdxD$status$module %in% "mta") == 0) {
         output$qaQcIdxDInfo <- renderUI({

@@ -706,7 +706,7 @@ mod_mtaApp_server <- function(id, data){
         ggplot2::theme_classic()+
         ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
         ggplot2::xlab("Environment") + ggplot2::ylab("Predicted value") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
     })
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {

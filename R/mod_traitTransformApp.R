@@ -63,6 +63,7 @@ mod_traitTransformApp_ui <- function(id){
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
+                                                               textInput(ns("newName"), label="New name for the trait", value=NULL, placeholder = "New trait name"),
                                                                actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
                                                                textOutput(ns("outEqual")),
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -217,8 +218,7 @@ mod_traitTransformApp_server <- function(id, data){
 
         mydatax <- data()
         ## now we take that list and bind them as independent datasets
-        result <- try(cgiarPipeline::equalizeTraits(object = mydatax, traits=input$traitEqualPheno
-        ), silent = TRUE
+        result <- try(cgiarPipeline::equalizeTraits(object = mydatax, traits=input$traitEqualPheno, newName=input$newName ), silent = TRUE
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
