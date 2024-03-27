@@ -202,10 +202,10 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     
-    cat(paste0("##   {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
     for(iTrait in traitsBoxplot){
-      cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       mydata$predictedValue <- mydata[,iTrait]
       

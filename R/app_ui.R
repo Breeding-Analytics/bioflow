@@ -109,6 +109,7 @@ app_ui <- function(request) {
 
       navbarMenu("Dashboards", icon = icon("table"),
                  tabPanel("ABI", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
+                 tabPanel("Report Builder", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
       ),
 
       navbarMenu("About", icon = icon("question"),

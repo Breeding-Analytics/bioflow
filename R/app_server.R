@@ -55,6 +55,7 @@ app_server <- function(input, output, session) {
 
   ## DASHBOARDS
   mod_abiDashboard_server("abiDashboard_1", data = data)
+  mod_reportBuilder_server("reportBuilder_1", data = data)
 
   ## about tabs
   mod_aboutApp_server("aboutApp_1") # about the application
