@@ -263,19 +263,22 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
-        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
+        ggplot2::coord_fixed() + 
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
+        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
       if(nrow(nagm) < 15){ # if user wants to add text to the cells
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
-      print(p)
+      # print(p) # static
+      print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       
     }
     
   } else{ # display in website
     
-    shiny::renderPlot({
-      
+    # shiny::renderPlot({ # static
+    plotly::renderPlotly({ # dynamic
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMtaConnect, "environment"]
       mydata2 <- mydata[which(mydata$trait == input$traitMtaConnect & mydata$environment %in% goodFields), ]
       splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
@@ -298,12 +301,15 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face = "bold"))+
-        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
+        ggplot2::coord_fixed() + 
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face = "bold"))+
+        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
       if(nrow(nagm) < 15){ # if user wants to add text to the cells
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
-      print(p)
+      # print(p) # static
+      plotly::ggplotly(p) #dynamic
     })
     
   }
@@ -360,8 +366,6 @@ if (is.null(result)){
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, iTrait, unitOfCorrelation="designation", correlatedAcross="environment", valueForCorrelation ="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, checkboxAxis= addTextInPlots)
-      # print(htmltools::tagList(plotly::ggplotly(p.cor.pred.env)))
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait & predictions.gcorrE$environment %in% goodFields , ]
       wide <- stats::reshape(predictions.gcorrE2,
@@ -379,23 +383,21 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() + 
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+        # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+        #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
       if(nrow(corr) < 15){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
       }
-      print(p)
+      # print(p) # static
+      print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       
     }
     
   }else{
     
-    # plotly::renderPlotly({
-    # p.cor.pred.env <- corPlotPredictions(predictions.gcorrE, input$traitPredictionsCorrelation, unitOfCorrelation="designation", correlatedAcross="environment",
-    #                                      valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots,
-    #                                      checkboxAxis= addTextInPlots)
-    # plotly::layout(p.cor.pred.env,font=font.plot_ly)
-    shiny::renderPlot({
+    plotly::renderPlotly({
+      # shiny::renderPlot({
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitPredictionsCorrelation, "environment"]
       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitPredictionsCorrelation & predictions.gcorrE$environment %in% goodFields , ]
       wide <- stats::reshape(predictions.gcorrE2,
@@ -413,13 +415,14 @@ if (is.null(result)){
         ggplot2::theme_minimal()+
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed() +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
+        # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+        #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
       if(nrow(corr) < 15){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
       }
-      p
-      # plotly::ggplotly(p)
+      # p # static
+      plotly::ggplotly(p) # dynamic
     })
     
     
@@ -690,6 +693,7 @@ if (is.null(result)){
   }
   df2$parameterOriginal <- df2$trait
   for(iCov in traitsvc){ df2$parameterOriginal <- gsub(iCov,"",df2$parameterOriginal)}
+  df2$parameterOriginal <- gsub("_QTL","",df2$parameterOriginal)
   df2$parameterOriginal <- paste0(df2$parameter, df2$parameterOriginal)
   df2$value[which(df2$value < 0)]=0
   total <- try( aggregate(value~traitOriginal, FUN = sum, data=df2), silent = TRUE)
@@ -812,34 +816,34 @@ if (is.null(result)){
   }else{
     
     # if(length(unique(pred$designation)) > 200){ # go fixed format
+    
+    shiny::renderPlot({
       
-      shiny::renderPlot({
-        
-        temp.pred.box <- pred[pred$trait== input$traitMta2,]
-        p <- ggplot2::ggplot(
-          data = temp.pred.box,
-          mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
-            col = entryType,
-            text = paste(
-              paste0('<br>', "designation: ", designation),
-              paste0('<br>', "entry type: ", entryType),
-              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-              paste0('<br>', "standard error: ", round(stdError, 4)),
-              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
-              #        round(predictedValue + CI, 2), ")")))) +
-              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                     round(predictedValue + stdError, 4), ")")))) +
-          ggplot2::theme_classic() +  ggplot2::geom_point() +
-          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                 width = 0.10) +
-          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
-        p
-        
-      })
+      temp.pred.box <- pred[pred$trait== input$traitMta2,]
+      p <- ggplot2::ggplot(
+        data = temp.pred.box,
+        mapping = ggplot2::aes(
+          x = reorder(designation, -predictedValue),
+          y = predictedValue,
+          col = entryType,
+          text = paste(
+            paste0('<br>', "designation: ", designation),
+            paste0('<br>', "entry type: ", entryType),
+            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+            paste0('<br>', "standard error: ", round(stdError, 4)),
+            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+            #        round(predictedValue + CI, 2), ")")))) +
+            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                   round(predictedValue + stdError, 4), ")")))) +
+        ggplot2::theme_classic() +  ggplot2::geom_point() +
+        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                               width = 0.10) +
+        ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+      p
+      
+    })
     # }else{ # go dynamic
     #   plotly::renderPlotly({
     #     

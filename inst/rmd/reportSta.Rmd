@@ -315,16 +315,24 @@ if (is.null(result)){
       p <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Proportion of variance") +
-        scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
-        ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
+        ggplot2::scale_fill_brewer(palette="Accent") +
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
       # print(p)
       p2 <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Value of variance") +
-        scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) 
-      print(gridExtra::grid.arrange(p,p2))
+        ggplot2::scale_fill_brewer(palette="Accent") +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) 
+      # print(gridExtra::grid.arrange(p,p2))
+      
+      # ply1 <- plotly::ggplotly(p)
+      # ply2 <- plotly::ggplotly(p2)
+      
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=2) ) )
+      
       cat("\n")
     }
     
@@ -332,20 +340,26 @@ if (is.null(result)){
     
   }else{
     
-    shiny::renderPlot({
+    # shiny::renderPlot({
+    plotly::renderPlotly({
       df3 <- df3[df3$trait == input$traitSta0,]
       p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Proportion of variance") +
         scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
-        ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
       p2 <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Value of variance") +
         scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-      gridExtra::grid.arrange(p,p2)
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+        ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      # gridExtra::grid.arrange(p,p2)
+      ply1 <- plotly::ggplotly(p)
+      ply2 <- plotly::ggplotly(p2)
+      plotly::subplot(ply1, ply2, nrows=2)
     })
   }
   
@@ -396,29 +410,27 @@ if (is.null(result)){
       mydata2 = mydata[which(mydata$parameter %in% iParam),]
       p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                       axis.text.x = ggplot2::element_text(angle = 45,hjust=1, vjust = 1), legend.position = "bottom") +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
+        # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), axis.text.x = ggplot2::element_text(angle = 45,hjust=1, vjust = 1), legend.position = "bottom") +
         ggplot2::labs(x="Environment", y="Parameter value")
-      # print(htmltools::tagList(plotly::ggplotly(p)))
-      print(p)
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      # print(p)
       cat("\n")
     }
     # }
     cat("\n")
   }else{ # display in website
     
-    # plotly::renderPlotly({})
-    
-    shiny::renderPlot({
+    plotly::renderPlotly({
+      # shiny::renderPlot({
       mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                       axis.text.x = ggplot2::element_text(angle = 45,hjust=1, vjust = 1), legend.position = "bottom") +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + 
+        # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"),  axis.text.x = ggplot2::element_text(angle = 45,hjust=1, vjust = 1), legend.position = "bottom") +
         ggplot2::labs(x="Environment", y="Parameter value")
-      p
-      # res <- plotly::ggplotly(p)
-      # res
+      # p
+      plotly::ggplotly(p)
     })
     
   }
@@ -533,11 +545,12 @@ if("params" %in% ls()){ # we will download the document
     p <- ggplot2::ggplot(predTrait[which(predTrait$trait %in% traits[j]),], ggplot2::aes(x=environment, y=predictedValue, label=designation) ) + 
       # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
       ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
-      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                     axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "none") +
+      # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+      #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "none") +
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + 
       ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") 
-    print(p) # static
-    # print(htmltools::tagList(ggplotly(  p  ))) # dynamic
+    # print(p) # static
+    print(htmltools::tagList(ggplotly(  p  ))) # dynamic
     
     cat("\n")
   }
@@ -546,15 +559,18 @@ if("params" %in% ls()){ # we will download the document
   
 }else{
   
-  shiny::renderPlot({
+  # shiny::renderPlot({
+  plotly::renderPlotly({
     if(length(input$traitStaBox) > 0){
       dd <- predTrait[which(predTrait$trait %in% input$traitStaBox),]
-      ggplot2::ggplot(dd, ggplot2::aes(x=environment, y=predictedValue, label=designation) ) +
+      p <- ggplot2::ggplot(dd, ggplot2::aes(x=environment, y=predictedValue, label=designation) ) +
         # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"),
-                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "none") +
+        # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "none") +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + 
         ggplot2::labs(x="", y="Trait value")
+      # p
+      plotly::ggplotly(p)
     }
   })
 }
@@ -624,19 +640,21 @@ if (is.null(result)){
                                       midpoint = 0, limit = c(-1,1), space = "Lab", 
                                       name="Pearson\nCorrelation") +
         ggplot2::theme_minimal()+ 
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
-        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
+        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
-      print(p)
+      # print(p)
+      print(htmltools::tagList(plotly::ggplotly(p)))
       cat("\n")
     }
     cat("\n")
     cat("\n")
   }else{
     
-    shiny::renderPlot({
-      
+    # shiny::renderPlot({
+    plotly::renderPlotly({
       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitStaCor, ]
       
       wide <- stats::reshape(predictions.gcorrE2,
@@ -652,11 +670,13 @@ if (is.null(result)){
                                       midpoint = 0, limit = c(-1,1), space = "Lab", 
                                       name="Pearson\nCorrelation") +
         ggplot2::theme_minimal()+ 
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
-        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
+        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
-      p
+      # p
+      plotly::ggplotly(p)
     })
     
     
