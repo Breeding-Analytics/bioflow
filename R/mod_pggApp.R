@@ -111,7 +111,7 @@ mod_pggApp_ui <- function(id){
                                                                     column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                                 )
                                        ),
-                                       tabPanel("Report", icon = icon("file-image"),
+                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),
                                                 div(tags$p("Please download the report below:") ),
                                                 downloadButton(ns("downloadReportPgg"), "Download report"),
