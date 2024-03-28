@@ -34,12 +34,9 @@ app_ui <- function(request) {
 
       tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
-      # tabPanel("Data Retrieval ", mod_getData_ui("getData_1"), icon = icon("upload") ),
-
       navbarMenu("Data Retrieval ", icon = icon("upload"),
                  tabPanel(div(icon("folder"), "New Data"),
-                          navlistPanel( widths = c(1, 11),
-                                        # tabPanel(div("All (", icon("file"),")" ), mod_getData_ui("getData_1") ),
+                          tabsetPanel( #widths = c(1, 11),
                                         tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
                                         tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
                                         tabPanel(div(icon("code-fork"), "Pedigree"), mod_getDataPed_ui("getDataPed_1") ),
@@ -49,10 +46,6 @@ app_ui <- function(request) {
                  ),
                  tabPanel(div(icon("folder-open"), "Old Analysis"),
                           mod_bindObjectApp_ui("bindObjectApp_1") ,
-                          # navlistPanel( widths = c(1, 11),
-                          #               tabPanel(div("Single Object (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
-                          #               tabPanel(div("Multiple Objects (", icon("cubes"), ")"),  mod_bindObjectApp_ui("bindObjectApp_1")  ),
-                          # )
                  ),
       ),
 
@@ -73,7 +66,7 @@ app_ui <- function(request) {
                                         tabPanel(div("(optional) On Farm Trial Decision (", icon("seedling"), ")" ), mod_oftStaApp_ui("oftStaApp_1") ),
                           )
                  ),
-                 tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-bolt") ,")"), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
+                 tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain") ,")"), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
                  tabPanel(div(icon("calculator"), icon("dice-three"), "Selection Indices (",icon("seedling"),")" ), mod_indexDesireApp_ui("indexDesireApp_1") ) ,
                  tabPanel(div(icon("calculator"), icon("dice-four"), "Optimal Cross Selection (", icon("seedling"), ")" ), mod_ocsApp_ui("ocsApp_1") ),
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
@@ -92,8 +85,8 @@ app_ui <- function(request) {
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
                  tabPanel(strong("GENE FREQUENCIES")), # plus, shuffle, barcode, people-group
-                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("plus-minus"),")", style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div(icon("barcode"), "Marker-assisted backcross (", icon("plus-minus"), ")", style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")", style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("barcode"), "Marker-assisted backcross (", icon("anchor"), ")", style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("barcode"), "Hybridity test (", icon("dna"), ")", style = "color:red")),
                  tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")", style = "color:red")), #  icon = icon("filter")),
                  tabPanel(strong("DRIFT & FLOW HISTORY") ),

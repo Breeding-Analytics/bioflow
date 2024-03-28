@@ -165,7 +165,8 @@ mod_getDataPheno_ui <- function(id){
                         DT::DTOutput(ns('preview_pheno')),
                         uiOutput(ns('pheno_map')),
                         actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-                        p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'location', 'trial' and 'study' ", style="color:orange")),
+                        selectInput(ns("featuresEnvironment"), "", choices = NULL, multiple = TRUE),
+                        p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'country', 'location', 'trial' and 'study' to create a new column named environment.", style="color:orange")),
                         textOutput(ns("outConcatenateEnv")),
     ),
   )
@@ -715,13 +716,23 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }
     )
 
+    observeEvent(c(data()), { # update trait
+      req(data())
+      dtMta <- data()$metadata$pheno
+      if(!is.null(dtMta)){
+        traitMtaInput <- intersect( c('year', 'season', 'country', 'location', 'trial', 'study'), dtMta$parameter )
+        updateSelectInput(session, "featuresEnvironment", choices = traitMtaInput, selected = traitMtaInput)
+      }
+    })
+
     outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in study
       req(data())
+      req(input$featuresEnvironment)
       myObject <- data()
-      myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = c("year","season","location","trial","study")))
+      myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = input$featuresEnvironment ))
       environmentColumn <- which(myObject$metadata$pheno$parameter == "environment")
       if(length(environmentColumn) > 0){ # user has mapped an study column
-        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
           myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
           data(myObject)
@@ -739,7 +750,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to compute the environments and perform a genetic evaluation "), type = "error")
         }
       }else{ # user has not mapped an study column, we will add it
-        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
           myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
