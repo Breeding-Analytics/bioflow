@@ -24,6 +24,7 @@ mod_getDataPheno_ui <- function(id){
     tags$span(id = ns('pheno_file_holder'),
               fileInput(
                 inputId = ns('pheno_file'),
+                multiple = TRUE,
                 label   = NULL,
                 width   = '400px',
                 accept  = c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
@@ -466,8 +467,29 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           if(length(input$pheno_input) > 0){
             if (input$pheno_input == 'file') {
               if (is.null(input$pheno_file)) {return(NULL)}else{
-                data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
-                                                        quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+
+                shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+                if(length(input$pheno_file$datapath) > 1){
+                  dataList <- list()
+                  for(iFile in 1:length(input$pheno_file$datapath)){
+                    dataList[[iFile]] <- as.data.frame(data.table::fread(input$pheno_file$datapath[iFile], sep = input$pheno_sep,
+                                                                         quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+                  }
+                  dataListColNames <- lapply(dataList,colnames)
+                  allColumnNames <- unique(unlist(dataListColNames))
+                  for(jFile in 1:length(dataList)){
+                    prov <- as.data.frame( matrix(NA, nrow=nrow(dataList[[jFile]]), ncol=length(allColumnNames)) )
+                    colnames(prov) <- allColumnNames
+                    prov[,colnames(dataList[[jFile]])] <- dataList[[jFile]]
+                    dataList[[jFile]] <- prov
+                  }
+                  data <- do.call(rbind, dataList)
+                }else{
+                  data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
+                                                          quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+                }
+                shinybusy::remove_modal_spinner()
+
               }
             } else if (input$pheno_input == 'url') {
               if (input$pheno_url == ''){return(NULL)} else{

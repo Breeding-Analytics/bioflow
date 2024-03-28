@@ -29,8 +29,6 @@ mod_getDataWeather_ui <- function(id){
                     column(width = 2, uiOutput(ns("harvestingDate")) ),
                     column(width = 2, selectInput(ns("temporal"),label=NULL, choices = list("hourly","daily","monthly"), selected = "hourly"  ) ),
              ),
-             h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
-             hr(style = "border-top: 3px solid #4c4c4c;"),
              shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                  column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                         p(span("Preview of coordinates selected for extraction.", style="color:black")),
@@ -57,7 +55,8 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 1){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify the location of your environments.")) )
+        if(mappedColumns == 1){
+          # HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify the location of your environments.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column in 'Data Retrieval' tab for Phenotypes.")) )
         }
       }
