@@ -33,84 +33,8 @@ mod_bindObjectApp_ui <- function(id){
     ),
 
     br(),
-    actionButton(ns("runBind"), "Bind objects", icon = icon("play-circle")),
+    actionButton(ns("runBind"), "Load object(s)", icon = icon("play-circle")),
     textOutput(ns("outBind")),
-
-
-    # mainPanel( width = 12,
-    #   tabsetPanel( id=ns("tabsMain"),
-    #                        type = "tabs",
-    #                        tabPanel( div(icon("book"), "Information-Bind") ,
-    #                                 br(),
-    #                                 shinydashboard::box(status="success",width = 12,
-    #                                                     solidHeader = TRUE,
-    #                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-    #                                                            h1(strong(span("Object Binding", style="color:green"))),
-    #                                                            h2(strong("Status:")),
-    #                                                            uiOutput(ns("warningMessage")),
-    #                                                            h2(strong("Details")),
-    #                                                            p("This module aims to help the user to bind the data from multiple files to carry more complex analysis such as multi-year analysis.
-    #                             The way the options are used is the following:"),
-    #                                                            p(strong("File names.-")," The files to be binded."),
-    #                                                            h2(strong("Software used:")),
-    #                                                            p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-    #                             Vienna, Austria. URL https://www.R-project.org/.")
-    #                                                     )
-    #                                 )
-    #                        ),
-    #                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
-    #                                 tabsetPanel(
-    #                                   tabPanel("Pick objects", icon = icon("table"),
-    #                                            br(),
-    #                                            selectInput(
-    #                                              inputId = ns('previous_object_input'),
-    #                                              label   = 'Object Source*: ',
-    #                                              choices = list('Upload from PC' = 'pcfile', 'Upload from cloud' = 'cloudfile'),
-    #                                              width   = '200px'
-    #                                            ),
-    #                                            tags$span(id = ns('previous_object_file_holder'), # from PC
-    #                                                      fileInput(
-    #                                                        inputId = ns('previous_object_file'),
-    #                                                        multiple = TRUE,
-    #                                                        label   = NULL,
-    #                                                        width   = '400px',
-    #                                                        accept  = c('.rds','.RData')
-    #                                                      ),
-    #                                            ),
-    #                                            tags$div(id = ns('previous_object_retrieve'), # from cloud
-    #                                                     actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve data objects"),
-    #                                                     uiOutput(ns('previous_input2')),
-    #                                            ),
-    #                                            column(width=12,
-    #                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
-    #                                                   h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-    #                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
-    #                                            ),
-    #                                            shinydashboard::box(status="success",width = 12,
-    #                                                                solidHeader = TRUE,
-    #                                                                column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-    #                                                                       # DT::DTOutput(ns("predictionsSta")),
-    #                                                                       ),
-    #                                            ),
-    #                                   ),
-    #                                   tabPanel("Run binding", icon = icon("play"),
-    #                                            br(),
-    #                                            actionButton(ns("runBind"), "Bind objects", icon = icon("play-circle")),
-    #                                            textOutput(ns("outBind")),
-    #                                   ),
-    #                                 ) # of of tabsetPanel
-    #                        ), # end of output panel
-    #                        tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
-    #                                 tabsetPanel(
-    #                                   tabPanel("Status", icon = icon("table"),
-    #                                            br(),
-    #                                            shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-    #
-    #                                            )
-    #                                   ),
-    #                                 ) # of of tabsetPanel
-    #                        ),# end of output panel
-    # )) # end mainpanel
 
   )
 }
@@ -155,13 +79,17 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path(res_auth$repository)), multiple = TRUE)
         })
         output$previous_input2 <- renderPrint({  previousFilesAvailable()    })
+
         outBind <- eventReactive(input$runBind, {
+
           shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
           if(input$previous_object_input == 'cloudfile'){ # upload from cloud
             req(input$previous_input)
             load( file.path( getwd(),res_auth$repository,input$previous_input[1] ) ) # old dataset
             if(length(input$previous_input) > 1){
               result1 <- result
+
               for(iFile in 2:length(input$previous_input)){
                 load( file.path( getwd(),res_auth$repository,input$previous_input[iFile] ) ) # old dataset
                 result2 <- result
@@ -170,8 +98,9 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
                 ), silent = TRUE
                 )
               }
+
               result <- result1
-            }else{ }
+            }else{ iFile=1 }
           }else if(input$previous_object_input == 'pcfile'){ # upload rds
             req(input$previous_object_file)
             load(input$previous_object_file$datapath[1]) # old dataset
@@ -185,8 +114,9 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
                 ), silent = TRUE
                 )
               }
+
               result <- result1
-            }else{ }
+            }else{ iFile=1 }
           }
           ## replace tables
           tmp <- data()
@@ -199,10 +129,21 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           tmp$status <- result$status
           data(tmp) # update data with results
           shinybusy::remove_modal_spinner()
+
           if(input$previous_object_input == 'cloudfile'){
-            cat(paste("Datasets:", paste(input$previous_input, collapse = " and "),"binded successfully. Please proceed to perform your analysis."))
+            if(iFile == 1){
+              shinyalert::shinyalert(title = "Success!", text = paste("Dataset:", input$previous_input,"loaded successfully."), type = "success")
+            }else{
+              shinyalert::shinyalert(title = "Success!", text = paste("Datasets:", paste(input$previous_input, collapse = " and "),"binded successfully. Please proceed to perform your analysis.") , type = "success")
+            }
+            # cat(paste("Datasets:", paste(input$previous_input, collapse = " and "),"binded successfully. Please proceed to perform your analysis."))
           }else{
-            cat(paste("Datasets","binded successfully. Please proceed to perform your analysis."))
+            if(iFile == 1){
+              shinyalert::shinyalert(title = "Success!", text = paste("Dataset",input$previous_object_file$name,"loaded successfully."), type = "success")
+            }else{
+              shinyalert::shinyalert(title = "Success!", text = paste("Datasets:", paste(input$previous_object_file$name, collapse = " and "),"binded successfully. Please proceed to perform your analysis.") , type = "success")
+            }
+            # cat(paste("Datasets","binded successfully. Please proceed to perform your analysis."))
           }
         }) ## end eventReactive
         output$outBind <- renderPrint({

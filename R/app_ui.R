@@ -43,10 +43,11 @@ app_ui <- function(request) {
                           # )
                  ),
                  tabPanel(div(icon("folder-open"), "Old Analysis"),
-                          navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("Single Object (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
-                                        tabPanel(div("Multiple Objects (", icon("cubes"), ")"),  mod_bindObjectApp_ui("bindObjectApp_1")  ),
-                          )
+                          mod_bindObjectApp_ui("bindObjectApp_1") ,
+                          # navlistPanel( widths = c(1, 11),
+                          #               tabPanel(div("Single Object (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
+                          #               tabPanel(div("Multiple Objects (", icon("cubes"), ")"),  mod_bindObjectApp_ui("bindObjectApp_1")  ),
+                          # )
                  ),
       ),
 

@@ -23,7 +23,8 @@ app_server <- function(input, output, session) {
 
   ## DATA extraction
   mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
-  mod_getOldAnalysis_server("getOldAnalysis_1",data = data, res_auth=res_auth)
+  mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
+  # mod_getOldAnalysis_server("getOldAnalysis_1",data = data, res_auth=res_auth)
   # mod_getDataWeather_server("getDataWeather_1", data = data)
 
   ## QUALITY ASSURANCE tabs
@@ -34,7 +35,6 @@ app_server <- function(input, output, session) {
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
   ## DATA TRANSFORMATIONS
   mod_traitTransformApp_server("traitTransformApp_1", data = data)
-  mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
   mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
 
   # SELECTION - genetic evaluation
