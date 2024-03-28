@@ -12,35 +12,44 @@ mod_getDataWeather_ui <- function(id){
   tagList(
     tabPanel("Specify coordinates", icon = icon("magnifying-glass-chart"),
              br(),
-             uiOutput(ns("warningMessage")),
-             column(width = 12, style = "background-color:grey; color: #FFFFFF",
-                    column(width = 2, p(strong("Environment")) ),
-                    column(width = 2, p(strong("Latitude")) ),
-                    column(width = 2, p(strong("Longitude")) ),
-                    column(width = 2, p(strong("Planting Date")) ),
-                    column(width = 2, p(strong("Harvesting Date")) ),
-                    column(width = 2, p(strong("Extraction interval")) ),
+             tags$span(id = ns('weather_message_holder'),
+                       uiOutput(ns("warningMessage")),
              ),
-             column(width = 12, style = "background-color:grey; color: #FFFFFF",
-                    column(width = 2, uiOutput(ns("environment")) ),
-                    column(width = 2, uiOutput(ns("latitude")) ),
-                    column(width = 2, uiOutput(ns("longitude")) ),
-                    column(width = 2, uiOutput(ns("plantingDate")) ),
-                    column(width = 2, uiOutput(ns("harvestingDate")) ),
-                    column(width = 2, selectInput(ns("temporal"),label=NULL, choices = list("hourly","daily","monthly"), selected = "hourly"  ) ),
+
+             tags$span(id = ns('weather_file_holder'),
+                       column(width = 12, style = "background-color:green; color: #FFFFFF",
+                              column(width = 2, p(strong("Environment")) ),
+                              column(width = 2, p(strong("Latitude")) ),
+                              column(width = 2, p(strong("Longitude")) ),
+                              column(width = 2, p(strong("Planting Date")) ),
+                              column(width = 2, p(strong("Harvesting Date")) ),
+                              column(width = 2, p(strong("Extraction interval")) ),
+                       ),
+                       column(width = 12, style = "background-color:green; color: #FFFFFF",
+                              column(width = 2, uiOutput(ns("environment")) ),
+                              column(width = 2, uiOutput(ns("latitude")) ),
+                              column(width = 2, uiOutput(ns("longitude")) ),
+                              column(width = 2, uiOutput(ns("plantingDate")) ),
+                              column(width = 2, uiOutput(ns("harvestingDate")) ),
+                              column(width = 2,
+                                     selectInput(ns("temporal"),label=NULL, choices = list("hourly","daily","monthly"), selected = "daily"  ),
+                                     actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
+                                     textOutput(ns("outgetWeather")),
+                              ),
+                       ),
+                       shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                           column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                                  p(span("Preview of coordinates selected for extraction.", style="color:black")),
+                                                  plotly::plotlyOutput(ns("plotMeteo")),
+                                           ),
+                       )
              ),
-             shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                 column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                        p(span("Preview of coordinates selected for extraction.", style="color:black")),
-                                        plotly::plotlyOutput(ns("plotMeteo")),
-                                 ),
-             )
     ),
-    tabPanel("Run extraction", icon = icon("play"),
-             br(),
-             actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
-             textOutput(ns("outgetWeather")),
-    ),
+    # tabPanel("Run extraction", icon = icon("play"),
+    #          br(),
+    #          actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
+    #          textOutput(ns("outgetWeather")),
+    # ),
   )
 }
 
@@ -52,12 +61,19 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
     ns <- session$ns
     output$warningMessage <- renderUI(
       if(is.null(data())){
+        golem::invoke_js('hideid', ns('weather_file_holder'))
+        golem::invoke_js('showid', ns('weather_message_holder'))
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 1){
+          golem::invoke_js('showid', ns('weather_file_holder'))
+          golem::invoke_js('hideid', ns('weather_message_holder'))
           # HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify the location of your environments.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column in 'Data Retrieval' tab for Phenotypes.")) )
+        }else{
+          golem::invoke_js('hideid', ns('weather_file_holder'))
+          golem::invoke_js('showid', ns('weather_message_holder'))
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column in 'Data Retrieval' tab for Phenotypes.")) )
         }
       }
     )
