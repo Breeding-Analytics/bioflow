@@ -34,8 +34,8 @@ app_ui <- function(request) {
 
       tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
 
-      navbarMenu("Data Retrieval ", icon = icon("upload"),
-                 tabPanel(div(icon("folder"), "New Data"),
+      navbarMenu("Data Management ", icon = icon("upload"),
+                 tabPanel(div(icon("folder"), "Retrieve New Data"),
                           tabsetPanel( #widths = c(1, 11),
                                         tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
                                         tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
@@ -44,8 +44,11 @@ app_ui <- function(request) {
                                         tabPanel(div(icon("anchor"), "QTL profile"), mod_getDataQTL_ui("getDataQTL_1") ),
                           )
                  ),
-                 tabPanel(div(icon("folder-open"), "Old Analysis"),
+                 tabPanel(div(icon("folder-open"), "Retrieve Old Analysis"),
                           mod_bindObjectApp_ui("bindObjectApp_1") ,
+                 ),
+                 tabPanel(div(icon("floppy-disk"), "Save Analysis"),
+                          mod_saveData_ui("saveData_1"),
                  ),
       ),
 
@@ -102,13 +105,9 @@ app_ui <- function(request) {
                  tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
-      ),
-
-      tabPanel("Save",  mod_saveData_ui("saveData_1"), icon = icon("floppy-disk") ),
-
-      navbarMenu("Dashboards", icon = icon("table"),
-                 tabPanel("ABI", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
-                 tabPanel("Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
+                 tabPanel(strong("DASHBOARDS")  ),
+                 tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
+                 tabPanel("Analytical Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
       ),
 
       navbarMenu("About", icon = icon("question"),

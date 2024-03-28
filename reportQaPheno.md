@@ -25,14 +25,15 @@ The following table shows the modifications that have been saved in your analysi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQa-label" for="qaRawApp_1-traitQa">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
+<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
+<option value="FLW 50DAYS">FLW 50DAYS</option>
+<option value="YLD_COMBINED">YLD_COMBINED</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out1d3e75fae71a9602" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out7c5c59909ca1ec56" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -47,13 +48,14 @@ The following boxplot allows you to visualize which records were tagged as outli
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQaBox-label" for="qaRawApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
+<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
+<option value="FLW 50DAYS">FLW 50DAYS</option>
+<option value="YLD_COMBINED">YLD_COMBINED</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out48760389a3095016" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-outb6f767edb114ac78" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 
