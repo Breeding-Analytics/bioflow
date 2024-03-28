@@ -84,6 +84,10 @@
 # ## Create a module infrastructure in R/
 # # golem::add_module(name = "input_file_sta", with_test = FALSE) # Name of the module
 # golem::add_module(name = "getData", with_test = FALSE) # extracting raw data
+# golem::add_module(name = "getDataPheno", with_test = FALSE)
+# golem::add_module(name = "getDataGeno", with_test = FALSE)
+# golem::add_module(name = "getDataPed", with_test = FALSE)
+# golem::add_module(name = "getDataQTL", with_test = FALSE)
 # golem::add_module(name = "getDataWeather", with_test = FALSE) # extracting raw data
 # golem::add_module(name = "getOldAnalysis", with_test = FALSE) # extracting raw data
 #

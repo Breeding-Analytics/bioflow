@@ -38,9 +38,14 @@ app_ui <- function(request) {
 
       navbarMenu("Data Retrieval ", icon = icon("upload"),
                  tabPanel(div(icon("folder"), "New Data"),
-                          # navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("All (", icon("file"),")" ), mod_getData_ui("getData_1") ),
-                          # )
+                          navlistPanel( widths = c(1, 11),
+                                        # tabPanel(div("All (", icon("file"),")" ), mod_getData_ui("getData_1") ),
+                                        tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
+                                        tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
+                                        tabPanel(div(icon("code-fork"), "Pedigree"), mod_getDataPed_ui("getDataPed_1") ),
+                                        tabPanel(div(icon("cloud-sun-rain"), "Weather"), mod_getDataWeather_ui("getDataWeather_1") ),
+                                        tabPanel(div(icon("anchor"), "QTL profile"), mod_getDataQTL_ui("getDataQTL_1") ),
+                          )
                  ),
                  tabPanel(div(icon("folder-open"), "Old Analysis"),
                           navlistPanel( widths = c(1, 11),

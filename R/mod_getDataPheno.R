@@ -1,0 +1,799 @@
+pheno_example <- 'www/example/pheno.csv'
+
+#' getDataPheno UI Function
+#'
+#' @description A shiny Module.
+#'
+#' @param id,input,output,session Internal parameters for {shiny}.
+#'
+#' @noRd
+#'
+#' @importFrom shiny NS tagList
+mod_getDataPheno_ui <- function(id){
+  ns <- NS(id)
+  tagList(
+    tags$br(),
+
+    selectInput(
+      inputId = ns('pheno_input'),
+      label   = 'Data Source*: ',
+      choices = list('Upload File' = 'file', 'Copy URL' = 'url', 'BrAPI' = 'brapi'),
+      width   = '200px'
+    ),
+
+    tags$span(id = ns('pheno_file_holder'),
+              fileInput(
+                inputId = ns('pheno_file'),
+                label   = NULL,
+                width   = '400px',
+                accept  = c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
+              )
+    ),
+
+    textInput(
+      inputId = ns('pheno_url'),
+      label   = NULL,
+      value   = '',
+      width   = '400px',
+      placeholder = 'https://example.com/path/file.csv'
+    ),
+
+    tags$div(id = ns('pheno_csv_options'),
+             shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                 shinyWidgets::prettyRadioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                  choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                 shinyWidgets::prettyRadioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                  choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                 shinyWidgets::prettyRadioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                  choices = c('Dot' = '.', 'Comma' = ',')),
+             ),
+    ),
+
+    fluidRow(tags$div(id = ns('dictionary_box'),
+                      shinydashboard::box(width = 6, title = span(icon('bookmark'), ' Dictionary of terms'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                          p(strong("pipeline.-"),"The name of the column containing the labels describing the breeding effort to satisfy a market segment (e.g., Direct seeded late maturity irrigated)."),
+                                          p(strong("stage.-"),"The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."),
+                                          p(strong("year.-"),"The name of the column containing the labels listing the year when a trial was carried out (e.g., 2024)."),
+                                          p(strong("season-"),"The name of the column containing the labels listing the season when a trial was carried out (e.g., dry-season, wet-season, etc.)."),
+                                          p(strong("country.-"),"The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."),
+                                          p(strong("location-"),"The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."),
+                                          p(strong("trial.-"),"The name of the column containing the labels listing the trial of experiment randomized."),
+                                          p(strong("study.-"),"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location. If not available, compute it using the button available."),
+                                          p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
+                                          p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an study."),
+                                          p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study."),
+                                          p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study."),
+                                          p(strong("designation.-"),"The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."),
+                                          p(strong("gid.-"),"The name of the column containing the labels with the unique numerical identifier used within the database management system."),
+                                          p(strong("entryType.-"),"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
+                                          p(strong("trait.-"),"The name of the column(s) containing the numerical traits to be analyzed."),
+                      ),
+    )),
+
+    tags$div(id = ns('pheno_brapi_options'),
+             tags$span(id = ns('config_server_holder'),
+                       shinydashboard::box(width = 4, title = span(icon('screwdriver-wrench'), ' Config Server'), status = 'success', solidHeader = TRUE,
+                                           selectInput(
+                                             inputId = ns('pheno_db_type'),
+                                             label   = 'Database Type: ',
+                                             choices = list('EBS' = 'ebs', 'BMS' = 'bms', 'BreedBase' = 'breedbase')
+                                           ),
+                                           textInput(
+                                             inputId = ns('pheno_db_url'),
+                                             label = 'Server URL:',
+                                             placeholder = 'https://cb-qa.ebsproject.org'
+                                           ),
+                                           actionButton(
+                                             inputId = ns('pheno_db_save'),
+                                             label = 'Save',
+                                             width = '100%'
+                                           ),
+                       )
+             ),
+
+             tags$span(id = ns('auth_server_holder'),
+                       shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
+                                           tags$span(id = ns('pheno_db_user_holder'),
+                                                     textInput(
+                                                       inputId = ns('pheno_db_user'),
+                                                       label = 'Username:'
+                                                     )
+                                           ),
+                                           tags$span(id = ns('pheno_db_password_holder'),
+                                                     passwordInput(
+                                                       inputId = ns('pheno_db_password'),
+                                                       label = 'Password:'
+                                                     )
+                                           ),
+                                           tags$span(id = ns('no_auth_holder'),
+                                                     checkboxInput(
+                                                       inputId = ns('no_auth'),
+                                                       label = 'No authentication required',
+                                                       value = TRUE
+                                                     )
+                                           ),
+
+                                           actionButton(
+                                             inputId = ns('pheno_db_login'),
+                                             label = 'Login',
+                                             width = '100%'
+                                           )                      ),
+             ),
+
+             tags$span(id = ns('data_server_holder'),
+                       shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
+                                           tags$span(id = ns('pheno_db_crop_holder'),
+                                                     selectizeInput(
+                                                       inputId = ns('pheno_db_crop'),
+                                                       label   = 'Crop: ',
+                                                       choices = list()
+                                                     )
+                                           ),
+                                           selectizeInput(
+                                             inputId = ns('pheno_db_program'),
+                                             label   = 'Breeding Program: ',
+                                             choices = list()
+                                           ),
+                                           uiOutput(ns('pheno_db_folder')),
+                                           uiOutput(ns('pheno_db_trial')),
+                                           actionButton(
+                                             inputId = ns('pheno_db_load'),
+                                             label = 'Load',
+                                             width = '100%'
+                                           ),
+                       )
+             ),
+    ),
+
+    shinydashboard::box(width = 12,
+                        if (!is.null(pheno_example)) {
+                          checkboxInput(
+                            inputId = ns('pheno_example'),
+                            label = span('Load example ',
+                                         a('phenotypic data', target = '_blank',
+                                           href = pheno_example)),
+                            value = FALSE
+                          )
+                        },
+
+                        p(span("Note: If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
+
+                        hr(),
+                        uiOutput(ns('brapi_trait_map')),
+                        DT::DTOutput(ns('preview_pheno')),
+                        uiOutput(ns('pheno_map')),
+                        actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
+                        p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'location', 'trial' and 'study' ", style="color:orange")),
+                        textOutput(ns("outConcatenateEnv")),
+    ),
+  )
+}
+
+#' getDataPheno Server Functions
+#'
+#' @noRd
+mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
+  moduleServer( id, function(input, output, session){
+    ns <- session$ns
+
+    observeEvent(
+      input$pheno_input,
+      if(length(input$pheno_input) > 0){ # added
+        if (input$pheno_input == 'file') {
+          golem::invoke_js('showid', ns('pheno_file_holder'))
+          golem::invoke_js('hideid', ns('pheno_url'))
+          golem::invoke_js('showid', ns('pheno_csv_options'))
+          golem::invoke_js('hideid', ns('pheno_brapi_options'))
+          golem::invoke_js('showid', ns('pheno_map'))
+          updateCheckboxInput(session, 'pheno_example', value = FALSE)
+        } else if (input$pheno_input == 'url') {
+          golem::invoke_js('hideid', ns('pheno_file_holder'))
+          golem::invoke_js('showid', ns('pheno_url'))
+          golem::invoke_js('showid', ns('pheno_csv_options'))
+          golem::invoke_js('hideid', ns('pheno_brapi_options'))
+          golem::invoke_js('showid', ns('pheno_map'))
+        } else { # brapi
+          golem::invoke_js('hideid', ns('pheno_file_holder'))
+          golem::invoke_js('hideid', ns('pheno_url'))
+          golem::invoke_js('hideid', ns('pheno_csv_options'))
+          golem::invoke_js('showid', ns('pheno_brapi_options'))
+          golem::invoke_js('showid', ns('config_server_holder'))
+          golem::invoke_js('hideid', ns('auth_server_holder'))
+          golem::invoke_js('hideid', ns('data_server_holder'))
+          golem::invoke_js('hideid', ns('pheno_map'))
+          updateCheckboxInput(session, 'pheno_example', value = FALSE)
+        }
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_save,
+      {
+        if (input$pheno_db_url == '') return(NULL)
+
+        # TODO: check if it has a BrAPI endpoints
+        # http://msdn.microsoft.com/en-us/library/ff650303.aspx
+        if (!grepl("^(ht|f)tp(s?)\\:\\/\\/[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,\\'\\/\\\\\\+&%\\$#_=]*)?$", input$pheno_db_url)) {
+          shinyWidgets::show_alert(title = 'Invalid URL!', type = 'error')
+          return(NULL)
+        }
+
+        golem::invoke_js('showid', ns('auth_server_holder'))
+        golem::invoke_js('hideid', ns('data_server_holder'))
+
+        if (input$pheno_db_type == 'ebs') {
+          golem::invoke_js('hideid', ns('pheno_db_user_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_password_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_crop_holder'))
+          golem::invoke_js('hideid', ns('no_auth_holder'))
+
+          QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'ebs', brapi_ver = 'v2')
+        } else if (input$pheno_db_type == 'bms') {
+          golem::invoke_js('showid', ns('pheno_db_user_holder'))
+          golem::invoke_js('showid', ns('pheno_db_password_holder'))
+          golem::invoke_js('showid', ns('pheno_db_crop_holder'))
+          golem::invoke_js('hideid', ns('no_auth_holder'))
+
+          QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'bms', brapi_ver = 'v1')
+        } else if (input$pheno_db_type == 'breedbase') {
+          golem::invoke_js('hideid', ns('pheno_db_user_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_password_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_crop_holder'))
+          golem::invoke_js('showid', ns('no_auth_holder'))
+
+          updateCheckboxInput(session, 'no_auth', value = TRUE)
+
+          QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
+        }
+
+        output$preview_pheno <- DT::renderDT(NULL)
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_login,
+      {
+        tryCatch(
+          expr = {
+            if (input$pheno_db_type == 'ebs') {
+              ebs_instance <- sub('https?://([^\\.]+)\\.([^/]+).*', '\\1', input$pheno_db_url)
+              ebs_domain   <- sub('https?://([^\\.]+)\\.([^/]+).*', '\\2', input$pheno_db_url)
+
+              # EBS QA instance (https://cb-qa.ebsproject.org)
+              if (ebs_domain == 'ebsproject.org' & ebs_instance == 'cb-qa') {
+                ebs_brapi <- sub('(.+)//cb-qa\\.(.+)', '\\1//cbbrapi-qa.\\2', input$pheno_db_url)
+                QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
+                QBMS::login_oauth2(authorize_url = 'https://auth-dev.ebsproject.org/oauth2/authorize',
+                                   access_url    = 'https://auth-dev.ebsproject.org/oauth2/token',
+                                   client_id     = '5crahiqorgj0lppt3n9dkulkst',
+                                   client_secret = '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs')
+
+                # IRRI production instance (https://prod-cb.ebs.irri.org/)
+              } else if (ebs_domain == 'ebs.irri.org') {
+                ebs_brapi <- sub('(.+)//prod-cb\\.(.+)', '\\1//prod-cbbrapi.\\2', input$pheno_db_url)
+                QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
+                QBMS::login_oauth2(authorize_url = 'https://auth.ebsproject.org/oauth2/authorize',
+                                   access_url    = 'https://auth.ebsproject.org/oauth2/token',
+                                   client_id     = '7s4mb2tu4884679rmbucsuopk1',
+                                   client_secret = 'nf4m8qobpj8eplpg0a9bbo63g69vh0r3p8rbovtfb0udd28rnk9')
+
+                # CIMMYT instances (https://cb-maize.ebs.cimmyt.org, https://cb-staging.ebs.cimmyt.org/)
+                # or evaluation instances (https://cb-mee.ebsproject.org, https://cb-ree.ebsproject.org, and https://cb-wee.ebsproject.org)
+              } else if (ebs_domain == 'ebs.cimmyt.org' || ebs_instance %in% c('cb-mee', 'cb-ree', 'cb-wee')) {
+                ebs_brapi <- sub('(.+)//cb-(.+)', '\\1//cbbrapi-\\2', input$pheno_db_url)
+                QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
+                QBMS::login_oauth2(authorize_url = 'https://auth.ebsproject.org/oauth2/authorize',
+                                   access_url    = 'https://auth.ebsproject.org/oauth2/token',
+                                   client_id     = '346lau0avcptntd1ksbmgdi5c',
+                                   client_secret = 'q5vnvakfj800ibh5tvqut73vj8klv1tpt6ugtmuneh6d2jb28i3')
+              } else {
+                shinyWidgets::show_alert(title = 'Oops!', type = 'warning', "We can't recognize this EBS instance :-(")
+                return()
+              }
+            } else if (input$pheno_db_type == 'bms') {
+              QBMS::login_bms(input$pheno_db_user, input$pheno_db_password)
+            } else if (input$pheno_db_type == 'breedbase') {
+              if (input$no_auth) {
+                QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1', no_auth = TRUE)
+              } else {
+                QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
+              }
+            }
+
+            golem::invoke_js('showid', ns('data_server_holder'))
+
+            if (input$pheno_db_type == 'bms') {
+              shinybusy::show_modal_spinner('fading-circle', text = 'Loading Crops...')
+
+              pheno_db_crops <- QBMS::list_crops()
+
+              updateSelectizeInput(session,
+                                   inputId = 'pheno_db_crop',
+                                   label   = 'Crop: ',
+                                   choices = c('', pheno_db_crops))
+              shinybusy::remove_modal_spinner()
+            } else {
+              shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
+
+              pheno_db_programs <- QBMS::list_programs()
+
+              updateSelectizeInput(session,
+                                   inputId = 'pheno_db_program',
+                                   label   = 'Breeding Program: ',
+                                   choices = c('', pheno_db_programs))
+
+              shinybusy::remove_modal_spinner()
+            }
+
+            output$preview_pheno <- DT::renderDT(NULL)
+
+          },
+          error = function(e) {
+            shinyWidgets::show_alert(title = 'Invalid Credentials!', type = 'error')
+          }
+        )
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_crop,
+      if (input$pheno_db_crop != '') {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Crops...')
+
+        QBMS::set_crop(input$pheno_db_crop)
+
+        pheno_db_programs <- QBMS::list_programs()
+
+        updateSelectizeInput(session,
+                             inputId = 'pheno_db_program',
+                             label   = 'Breeding Program: ',
+                             choices = c('', pheno_db_programs))
+
+        shinybusy::remove_modal_spinner()
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_program,
+      if (input$pheno_db_program != '') {
+        if (input$pheno_db_type == 'breedbase') {
+          shinybusy::show_modal_spinner('fading-circle', text = 'Loading Folders...')
+        } else {
+          shinybusy::show_modal_spinner('fading-circle', text = 'Loading Trials...')
+        }
+
+        QBMS::set_program(input$pheno_db_program)
+
+        pheno_db_trials <- QBMS::list_trials()
+
+        if (input$pheno_db_type == 'breedbase') {
+          output$pheno_db_folder <- renderUI({
+            selectizeInput(
+              inputId = ns('pheno_db_folder'),
+              label   = 'Select Folder: ',
+              choices = c('', pheno_db_trials)
+            )
+          })
+        } else {
+          output$pheno_db_trial <- renderUI({
+            selectizeInput(
+              inputId = ns('pheno_db_trial'),
+              label   = 'Trial/Study: ',
+              choices = pheno_db_trials,
+              multiple = TRUE
+            )
+          })
+        }
+
+        shinybusy::remove_modal_spinner()
+      }
+    )
+
+    observeEvent(
+      input$pheno_db_folder,
+      if (input$pheno_db_folder != '') {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Trials...')
+
+        QBMS::set_trial(input$pheno_db_folder)
+
+        tryCatch(
+          expr = {
+            pheno_db_studies <- QBMS::list_studies()$studyName
+
+            output$pheno_db_trial <- renderUI({
+              selectizeInput(
+                inputId = ns('pheno_db_trial'),
+                label   = 'Trial/Study: ',
+                choices = pheno_db_studies,
+                multiple = TRUE
+              )
+            })
+          },
+          error = function(e) {
+            if (input$pheno_db_type == 'breedbase') {
+              shinyWidgets::show_alert(title = 'Empty Folder!',
+                                       text = 'No trials found in the selected folder! Please choose the last/final folder that contains your trials in any nested folder structure.',
+                                       type = 'warning')
+            } else {
+              shinyWidgets::show_alert(title = e, type = 'error')
+            }
+
+            output$pheno_db_trial <- NULL
+
+            return(NULL)
+          }
+        )
+
+        shinybusy::remove_modal_spinner()
+      }
+    )
+
+    observeEvent(
+      input$no_auth,
+      if(length(input$no_auth) > 0){
+        if (input$no_auth) {
+          golem::invoke_js('hideid', ns('pheno_db_user_holder'))
+          golem::invoke_js('hideid', ns('pheno_db_password_holder'))
+        } else {
+          golem::invoke_js('showid', ns('pheno_db_user_holder'))
+          golem::invoke_js('showid', ns('pheno_db_password_holder'))
+        }
+      }
+    )
+
+    observeEvent(
+      input$brapi_traits,
+      {
+        temp <- data()
+
+        temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+
+        for (i in input[['brapi_traits']]) {
+          temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+          temp$data$pheno[[i]] <- as.numeric(temp$data$pheno[[i]])
+        }
+
+        data(temp)
+      }
+    )
+
+    pheno_data <- reactive({
+      tryCatch(
+        expr = {
+          if(length(input$pheno_input) > 0){
+            if (input$pheno_input == 'file') {
+              if (is.null(input$pheno_file)) {return(NULL)}else{
+                data <- as.data.frame(data.table::fread(input$pheno_file$datapath, sep = input$pheno_sep,
+                                                        quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+              }
+            } else if (input$pheno_input == 'url') {
+              if (input$pheno_url == ''){return(NULL)} else{
+                data <- as.data.frame(data.table::fread(input$pheno_url, sep = input$pheno_sep,
+                                                        quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
+              }
+            } else if (input$pheno_input == 'brapi') {
+              if (input$pheno_db_load != 1){
+                return(NULL)
+              } else {
+                shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
+
+                if (input$pheno_db_type == 'breedbase') {
+                  QBMS::set_study(input$pheno_db_trial)
+                  data <- QBMS::get_study_data()
+
+                  # get breedbase trait ontology
+                  ontology <- QBMS::get_trial_obs_ontology()
+                  fields   <- colnames(data)
+
+                  # replace long trait names with short ones from the ontology
+                  for (i in 1:length(fields)) {
+                    j <- which(ontology$name %in% fields[i])
+                    if (length(j) > 0) {
+                      if(!is.na(ontology$synonyms[[j]][1])) {
+                        fields[i] <- ontology$synonyms[[j]][1]
+                      }
+                    }
+                  }
+
+                  colnames(data) <- fields
+
+                } else {
+                  QBMS::set_trial(input$pheno_db_trial)
+                  data <- QBMS::get_trial_data()
+                }
+
+                data$trialName <- input$pheno_db_trial
+
+                shinybusy::remove_modal_spinner()
+
+                shinyWidgets::show_alert(title = 'Done!', type = 'success')
+              }
+            }
+
+            return(data)
+          }
+        },
+        error = function(e) {
+          shinybusy::remove_modal_spinner()
+          if (input$pheno_db_type == 'ebs') {
+            shinyWidgets::show_alert(title = 'Access Denied!', type = 'error', text = 'You do not have permission to access this trial.')
+          } else {
+            shinyWidgets::show_alert(title = 'Error!', type = 'error', text = e)
+          }
+
+          return(NULL)
+        }
+      )
+    })
+
+    observeEvent(
+      pheno_data(),
+      {
+        #if (is.null(data())) return(NULL)
+
+        temp <- data()
+        temp$data$pheno <- pheno_data()
+
+        output$preview_pheno <- DT::renderDT({
+          DT::datatable(temp$data$pheno,
+                        extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+          )
+        })
+
+        if (input$pheno_input == 'brapi') {
+          output$brapi_trait_map <- renderUI({
+            selectInput(
+              inputId  = ns('brapi_traits'),
+              label    = 'Trait(s):',
+              multiple = TRUE,
+              choices  = as.list(c('', colnames(temp$data$pheno))),
+            )
+          })
+
+          ### BrAPI auto mapping ###############################################
+          mapping <- list(
+            ebs = list(
+              year = 'year',
+              study = 'studyName',
+              rep = 'rep',
+              iBlock = 'block',
+              row = 'positionCoordinateY',
+              col = 'positionCoordinateX',
+              designation = 'germplasmName',
+              gid = 'germplasmDbId',
+              location = 'locationName',
+              trial = 'trialName',
+              entryType = 'entryType'
+            ),
+            bms = list(
+              year = 'year',
+              study = 'studyName',
+              rep = 'rep',
+              iBlock = 'block',
+              row = 'positionCoordinateY',
+              col = 'positionCoordinateX',
+              designation = 'germplasmName',
+              gid = 'germplasmDbId',
+              location = 'studyName',
+              trial = 'trialName',
+              entryType = 'entryType'
+            ),
+            breedbase = list(
+              year = 'studyYear',
+              study = 'studyName',
+              rep = 'replicate',
+              iBlock = 'blockNumber',
+              row = 'rowNumber',
+              col = 'colNumber',
+              designation = 'germplasmName',
+              gid = 'germplasmDbId',
+              location = 'locationName',
+              trial = 'trialName',
+              entryType = 'entryType'
+            )
+          )
+
+          for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
+            if (mapping[[input$pheno_db_type]][[field]] %in% colnames(temp$data$pheno)) {
+              if (field %in% temp$metadata$pheno$parameter) {
+                temp$metadata$pheno[temp$metadata$pheno$parameter == field, 'value'] <- mapping[[input$pheno_db_type]][[field]]
+              } else {
+                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = field, value = mapping[[input$pheno_db_type]][[field]]))
+              }
+            }
+          }
+
+          # shinybusy::show_modal_spinner('fading-circle', text = 'Loading Ontology...')
+          #
+          # traits <- QBMS::get_trial_obs_ontology()
+          #
+          # temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+          #
+          # for (i in traits$name) {
+          #   temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+          # }
+          #
+          # shinybusy::remove_modal_spinner()
+
+
+          # dummy pedigree table
+          temp$data$pedigree <- data.frame(germplasmName = unique(temp$data$pheno$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
+          temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("germplasmName","mother","father","yearOfOrigin") )
+          # stage       <- NA
+          # pipeline    <- NA
+          # country   **<- get_study_info()$locationDbId, then list_locations()
+          # season    * <- get_study_info()$seasons
+
+          ####################################################################
+        }
+        data(temp)
+      }
+    )
+
+    output$pheno_map <- renderUI({
+      if (is.null(pheno_data())) return(NULL)
+
+      header <- colnames(pheno_data())
+      pheno_map <- lapply(map, function(x) {
+        column(3,
+               selectInput(
+                 inputId  = ns(paste0('select', x)),
+                 label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
+                 multiple = ifelse(x == 'trait', TRUE, FALSE),
+                 choices  = as.list(c('', header)),
+                 selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
+               ),
+
+               # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
+
+               renderPrint({
+                 # req(input[[paste0('select', x)]])
+                 temp <- data()
+                 if (x == 'trait') {
+                   temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+                   for (i in input[[paste0('select', x)]]) {
+                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+                     if(!is.numeric(temp$data$pheno[,i])){temp$data$pheno[,i] <- as.numeric(gsub(",","",temp$data$pheno[,i]))}
+                   }
+                 } else { # is any other column other than trait
+                   if (x %in% temp$metadata$pheno$parameter & input[[paste0('select', x)]] != '') {
+                     temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
+                   } else {
+                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                   }
+                   if(x %in% c("designation","study") & input[[paste0('select', x)]] != ''){
+                     temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII")
+                   }
+                   if(input[[paste0('select', x)]] == ''){
+                     temp$metadata$pheno <- temp$metadata$pheno[-which(temp$metadata$pheno$parameter == x), ]
+                   }
+                 }
+                 if (x == 'designation') {
+                   if(input[[paste0('select', x)]] != ''){
+                     temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
+                     temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
+                   }
+                 }
+                 data(temp)
+               }),
+        )
+      })
+      fluidRow(do.call(tagList, pheno_map))
+    })
+
+    observeEvent(
+      input$pheno_example,
+      if(length(input$pheno_example) > 0){
+        if (input$pheno_example) {
+          updateSelectInput(session, 'pheno_input', selected = 'url')
+
+          pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
+                                       session$clientData$url_hostname, ':',
+                                       session$clientData$url_port,
+                                       session$clientData$url_pathname,
+                                       pheno_example)
+
+          updateTextInput(session, 'pheno_url', value = pheno_example_url)
+
+          golem::invoke_js('hideid', ns('pheno_file_holder'))
+          golem::invoke_js('showid', ns('pheno_url'))
+          golem::invoke_js('hideid', ns('pheno_db'))
+        } else {
+          updateSelectInput(session, 'pheno_input', selected = 'file')
+          updateTextInput(session, 'pheno_url', value = '')
+
+          golem::invoke_js('showid', ns('pheno_file_holder'))
+          golem::invoke_js('hideid', ns('pheno_url'))
+          golem::invoke_js('hideid', ns('pheno_db'))
+        }
+      }
+    )
+
+    outConcatenateEnv <- eventReactive(input$concatenateEnv, { # button to concatenate other columns in study
+      req(data())
+      myObject <- data()
+      myObject$metadata$pheno <- myObject$metadata$pheno %>% dplyr::arrange(factor(parameter, levels = c("year","season","location","trial","study")))
+      environmentColumn <- which(myObject$metadata$pheno$parameter == "environment")
+      if(length(environmentColumn) > 0){ # user has mapped an study column
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
+        if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          data(myObject)
+          shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"), type = "success")
+          # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
+        }else if(length(otherEnvironmentColumn) == 1){
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          data(myObject)
+          shinyalert::shinyalert(title = "Success!", text = paste0("No additional columns to concatenate. '", myObject$metadata$pheno[environmentColumn, "value"], "' column is equal to ", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")
+          # cat("No additional columns to concatenate to your 'study' column")
+        }else {
+          myObject$metadata$pheno <- myObject$metadata$pheno[-which(myObject$metadata$pheno$parameter == "environment"), ]
+          myObject$data$pheno <- myObject$data$pheno [,!(names(myObject$data$pheno) %in% c("environment"))]
+          data(myObject)
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to compute the environments and perform a genetic evaluation "), type = "error")
+        }
+      }else{ # user has not mapped an study column, we will add it
+        otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% c("year","season","location","trial","study"))
+        if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
+          myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
+          data(myObject)
+          shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "), type = "success")
+          # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
+        }else if(length(otherEnvironmentColumn) == 1){
+          myObject$data$pheno[,"environment"] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
+          data(myObject)
+          shinyalert::shinyalert(title = "Success!", text = paste("No additional columns to concatenate. 'environment' column is equal to", myObject$metadata$pheno[otherEnvironmentColumn, " value"]), type = "success")
+        }else{
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
+          # cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))
+        }
+      }
+    })
+
+    output$outConcatenateEnv <- renderPrint({
+      outConcatenateEnv()
+    })
+
+    # change color of updated study column
+    observeEvent(input$concatenateEnv,{
+      output$preview_pheno <- DT::renderDT({
+        myObject <- data()
+        phenoColnames <- colnames(myObject$data$pheno)
+        if("environment" %in% phenoColnames){
+          newPhenoColnames <- c("environment", setdiff(phenoColnames, "environment"))
+          myObject$data$pheno <- myObject$data$pheno[, newPhenoColnames]
+          environmentColumnName <- myObject$metadata$pheno$value[which(myObject$metadata$pheno$parameter == "environment")]
+          DT::datatable(myObject$data$pheno,
+                        extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))) %>%
+            DT::formatStyle(environmentColumnName, backgroundColor = "#009E60")
+        } else{
+          DT::datatable(myObject$data$pheno,
+                        extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',
+                                       scrollX = TRUE,
+                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))))
+        }
+      })
+    })
+
+  })
+}
+
+## To be copied in the UI
+# mod_getDataPheno_ui("getDataPheno_1")
+
+## To be copied in the server
+# mod_getDataPheno_server("getDataPheno_1")
