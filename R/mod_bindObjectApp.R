@@ -127,7 +127,6 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
           if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
           if(!is.null(result$status)){tmp$status <- result$status}
-          save(tmp, file = "test.RData")
           data(tmp) # update data with results
           shinybusy::remove_modal_spinner()
 
