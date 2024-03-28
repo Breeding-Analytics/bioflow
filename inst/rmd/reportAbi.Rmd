@@ -83,12 +83,6 @@ get_h <- function() {
 }
 ```
 
-### Data use
-
-The following table shows which data was available and used for this pipeline. It allows to see whether the data has been QA and the summary values for the different data types.
-
-<p>&nbsp;</p>
-
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
   if(file.exists("./outputs/resultAbi.RData")){
@@ -109,49 +103,161 @@ if (is.null(result)){
   idAbi <- idAbi[length(idAbi)]
   modelingAbi <- result$modeling[result$modeling$analysisId == idAbi, ]
   ###############################################################################
-  idSta <- modelingAbi[modelingAbi$parameter == "forMetrics", "value"]
-  pred <- result$predictions
-  pred <- pred[pred$analysisId == idSta,]
-  traits <- unique(pred$trait)
-  traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
-  traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
-  colnames(traits.env) <- c('environment',traits)
-  summarySta <- as.data.frame(traits.env[,'environment'])
-  for (i in 1:length(traits)){
-    temp <- traits.env[,c('environment',traits[i])]
-    colnames(temp)[2] <- "temp.col"
-    temp <- as.data.frame(temp)
-    j=i+1
-    tempp=within(temp,{
-      temp.col.n=NA
-      temp.col.n[!is.na(temp.col)]='✅ '
-      temp.col.n[is.na(temp.col)]=''
-    })
-    temp <- tempp[,3]
-    summarySta <- cbind(summarySta,temp)
-  }
-  colnames(summarySta) <- c('environment',traits)
   
-  pheno <- result$data$pheno
-  ### change column names for mapping
-  paramsPheno <- result$metadata$pheno
-  paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-  colnames(pheno) <- cgiarBase::replaceValues(colnames(pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-  ###
-  pheno.env <- pheno[,c('environment','designation')]
-  pheno.env<- unique(pheno.env[c('designation','environment')]) 
-  pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
-  colnames(pheno.env.designation)[2] <- "Number of entries"
-  summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
+}
+```
+
+### Data use
+
+The following table shows which data was available and used for this pipeline. It allows to see whether the data has been QA and the summary values for the different data types.
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
+  
+  mtaTraits <- setdiff( unique(result$modeling[result$modeling$analysisId == idMta,"trait"]), "inputObject")
   
   if("params" %in% ls()){ # we will download the document
-    printTable(summarySta)
+    
   }else{
-    summarySta <- kableExtra::kbl(summarySta)
-    summarySta <-kableExtra::kable_styling(
-      summarySta, 
-      bootstrap_options = c("hover","condensed","responsive"), fixed_thead = T)
-    kableExtra::scroll_box(summarySta,width = "100%")
+    shiny::selectInput(ns("traitMta"), 
+                       label = "Trait:", 
+                       multiple = FALSE,
+                       choices = mtaTraits, 
+    )
+  }
+  
+}
+
+```
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  ###############################################################################
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in mtaTraits){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      object <- result
+      if(!is.null(object$predictions)){
+        phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId == idMta  &  object$predictions$trait == iTrait),"designation"]))
+      }else{ phenoNames <- character() }
+      
+      if(!is.null(object$data$geno)){
+        genoNames <- rownames(object$data$geno)
+      }else{ genoNames <- character() }
+      
+      if(!is.null(object$data$pedigree)){
+        metaPed <- object$metadata$pedigree
+        pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+        pedCols <- setdiff(pedCols,"")
+        pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+      }else{ pedNames <- character() }
+      
+      if(!is.null(object$data$qtl)){
+        metaQtl <- object$metadata$qtl
+        qtlCols <- metaQtl[which(metaQtl$parameter %in% c("designation")), "value"]
+        qtlCols <- setdiff(qtlCols,"")
+        qtlNames <- na.omit(unique(object$data$qtl[,qtlCols]))
+      }else{ qtlNames <- character() }
+      
+      splitAggregate <- list(phenoNames, genoNames, pedNames, qtlNames)
+      names(splitAggregate) <- c("With-Phenotype","With-Genotype","With-Pedigree","With-QTL")
+      
+      nagm <- matrix(0,length(splitAggregate),length(splitAggregate)); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = midval, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity (data types)") +
+        ggplot2::theme_minimal()+
+        ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,  hjust = 1, face = "bold"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1,  hjust = 1, face = "bold")) +
+        ggplot2::coord_fixed()
+      print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+      
+    }
+    
+  }else{
+    
+    # shiny::renderPlot({ #DT::renderDT({
+    plotly::renderPlotly({
+      object <- result
+      if(!is.null(object$predictions)){
+        phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId == idMta  &  object$predictions$trait == input$traitMta),"designation"]))
+      }else{ phenoNames <- character() }
+      
+      if(!is.null(object$data$geno)){
+        genoNames <- rownames(object$data$geno)
+      }else{ genoNames <- character() }
+      
+      if(!is.null(object$data$pedigree)){
+        metaPed <- object$metadata$pedigree
+        pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+        pedCols <- setdiff(pedCols,"")
+        pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+      }else{ pedNames <- character() }
+      
+      if(!is.null(object$data$qtl)){
+        metaQtl <- object$metadata$qtl
+        qtlCols <- metaQtl[which(metaQtl$parameter %in% c("designation")), "value"]
+        qtlCols <- setdiff(qtlCols,"")
+        qtlNames <- na.omit(unique(object$data$qtl[,qtlCols]))
+      }else{ qtlNames <- character() }
+      
+      splitAggregate <- list(phenoNames, genoNames, pedNames, qtlNames)
+      names(splitAggregate) <- c("With-Phenotype","With-Genotype","With-Pedigree","With-QTL")
+      
+      nagm <- matrix(0,length(splitAggregate),length(splitAggregate)); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = midval, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity (data types)") +
+        ggplot2::theme_minimal()+
+        ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,  hjust = 1, face = "bold"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1,  hjust = 1, face = "bold")) +
+        ggplot2::coord_fixed()
+      # p # static
+      plotly::ggplotly(p) # dynamic
+    })
+    
+    
   }
   
 }

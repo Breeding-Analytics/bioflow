@@ -21,7 +21,7 @@ mod_abiDashboard_ui <- function(id){
                                                column(width=12,
                                                       column(width=3,  selectInput(ns("versionMetrics"), "STA version for metrics view", choices = NULL, multiple = FALSE) ),
                                                       column(width=3,  selectInput(ns("versionTraits"), "MTA version for trait view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=3,  selectInput(ns("versionSelection"), "Abi version for selection view", choices = NULL, multiple = FALSE) ),
+                                                      column(width=3,  selectInput(ns("versionSelection"), "OCS version for selection view", choices = NULL, multiple = FALSE) ),
                                                       column(width=3,  selectInput(ns("versionHistory"), "RGG version for selection hostory", choices = NULL, multiple = FALSE) ),
                                                       style = "background-color:grey; color: #FFFFFF"),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -47,10 +47,9 @@ mod_abiDashboard_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                     tabsetPanel(
-                                      tabPanel("Report", icon = icon("file-image"),
+                                      tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               div(tags$p("Please download the report below:") ),
-                                               downloadButton(ns("downloadReportAbi"), "Download report"),
+                                               downloadButton(ns("downloadReportAbi"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportAbi'))
                                       )
@@ -189,7 +188,7 @@ mod_abiDashboard_server <- function(id, data){
       result <- data()
       idAbi <- as.numeric(Sys.time())
       abiModeling <- data.frame(module="abiDash", analysisId=idAbi, trait="inputObject", environment=NA,
-                 parameter= c("forMetrics", "forTraits", "forSelection", "forHistory") ,
+                 parameter= c("sta", "mta", "ocs", "rgg") ,
                  value=c(input$versionMetrics, input$versionTraits, input$versionSelection, input$versionHistory )
                  )
       abiStatus <- data.frame(module="abiDash", analysisId=idAbi)
@@ -213,6 +212,31 @@ mod_abiDashboard_server <- function(id, data){
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportAbi.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
+        output$downloadReportAbi <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            src <- normalizePath(system.file("rmd","reportAbi.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultAbi.RData')
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultAbi.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd',
+                                     params = list(toDownload=TRUE ),
+                                     switch(
+                                       "HTML",
+                                       HTML = rmarkdown::html_document()
+                                     ))
+            file.rename(out, file)
+          }
+        )
+
       } else {
 
       }
@@ -220,31 +244,6 @@ mod_abiDashboard_server <- function(id, data){
       hideAll$clearAll <- FALSE
 
     }) ## end eventReactive
-
-    output$downloadReportAbi <- downloadHandler(
-      filename = function() {
-        paste('my-report', sep = '.', switch(
-          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-        ))
-      },
-      content = function(file) {
-        src <- normalizePath(system.file("rmd","reportAbi.Rmd",package="bioflow"))
-        src2 <- normalizePath('data/resultAbi.RData')
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
-        file.copy(src2, 'resultAbi.RData', overwrite = TRUE)
-        out <- rmarkdown::render('report.Rmd',
-                                 params = list(toDownload=TRUE ),
-                                 switch(
-          "HTML",
-          HTML = rmarkdown::html_document()
-        ))
-        file.rename(out, file)
-      }
-    )
 
     output$outAbi <- renderPrint({
       outAbi()

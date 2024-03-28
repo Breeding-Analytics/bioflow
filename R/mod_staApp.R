@@ -171,10 +171,9 @@ mod_staApp_ui <- function(id){
                                                                    column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                                )
                                       ),
-                                      tabPanel("Report STA", icon = icon("file-image"),
+                                      tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               div(tags$p("Please download the report below:") ),
-                                               downloadButton(ns("downloadReportSta"), "Download report"),
+                                               downloadButton(ns("downloadReportSta"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportSta')),
                                       ),

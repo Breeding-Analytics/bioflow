@@ -48,10 +48,11 @@ app_ui <- function(request) {
                           )
                  ),
                  tabPanel(div(icon("folder-open"), "Old Analysis"),
-                          navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("Single Object (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
-                                        tabPanel(div("Multiple Objects (", icon("cubes"), ")"),  mod_bindObjectApp_ui("bindObjectApp_1")  ),
-                          )
+                          mod_bindObjectApp_ui("bindObjectApp_1") ,
+                          # navlistPanel( widths = c(1, 11),
+                          #               tabPanel(div("Single Object (", icon("cube"), ")"),  mod_getOldAnalysis_ui("getOldAnalysis_1") ),
+                          #               tabPanel(div("Multiple Objects (", icon("cubes"), ")"),  mod_bindObjectApp_ui("bindObjectApp_1")  ),
+                          # )
                  ),
       ),
 
@@ -114,7 +115,7 @@ app_ui <- function(request) {
 
       navbarMenu("Dashboards", icon = icon("table"),
                  tabPanel("ABI", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
-                 tabPanel("Report Builder", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
+                 tabPanel("Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
       ),
 
       navbarMenu("About", icon = icon("question"),
