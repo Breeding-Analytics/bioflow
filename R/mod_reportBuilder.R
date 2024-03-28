@@ -33,19 +33,18 @@ mod_reportBuilder_ui <- function(id){
                                                                    )
                                                ),
                                       ),
-                                      tabPanel("Build report", icon = icon("play"),
+                                      tabPanel("Build dashboard", icon = icon("play"),
                                                br(),
-                                               actionButton(ns("runReport"), "Build report", icon = icon("play-circle")),
+                                               actionButton(ns("runReport"), "Build dashboard", icon = icon("play-circle")),
                                                textOutput(ns("outReport")),
                                       ),
                                     )
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                     tabsetPanel(
-                                      tabPanel("Report", icon = icon("file-image"),
+                                      tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               div(tags$p("Please download the report below:") ),
-                                               downloadButton(ns("downloadReportReport"), "Download report"),
+                                               downloadButton(ns("downloadReportReport"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportReport'))
                                       )

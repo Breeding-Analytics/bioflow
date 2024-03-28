@@ -27,13 +27,15 @@ The following boxplot allows to see the distribution of predicted values (y-axis
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMta-label" for="reportBuilder_1-traitMta"></label>
 <div>
-<select id="reportBuilder_1-traitMta" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="reportBuilder_1-traitMta" class="shiny-input-select"><option value="PH" selected>PH</option>
+<option value="DTF">DTF</option>
+<option value="GYKGPHA">GYKGPHA</option>
+<option value="Zn">Zn</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outf6725e176eba9f22" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out8258ac6e1e018d8c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between environments
 
@@ -44,13 +46,15 @@ The following heatmap allows the user to review the connectivity (gennotypes in 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMtaConnect-label" for="reportBuilder_1-traitMtaConnect"></label>
 <div>
-<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="PH" selected>PH</option>
+<option value="DTF">DTF</option>
+<option value="GYKGPHA">GYKGPHA</option>
+<option value="Zn">Zn</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outabfcc81d10fdca7e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out816e8c3a60726cba" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Genetic correlations between environments
 
@@ -61,14 +65,16 @@ The following graph allows to see the genetic correlations among the different e
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitPredictionsCorrelation-label" for="reportBuilder_1-traitPredictionsCorrelation"></label>
 <div>
-<select id="reportBuilder_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="reportBuilder_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="PH" selected>PH</option>
+<option value="DTF">DTF</option>
+<option value="GYKGPHA">GYKGPHA</option>
+<option value="Zn">Zn</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out507de270cfda4172" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out0ad4896008a602c0" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -81,13 +87,15 @@ The following graph allows to see the performance of the genotypes over the enev
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitBiplot-label" for="reportBuilder_1-traitBiplot"></label>
 <div>
-<select id="reportBuilder_1-traitBiplot" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="reportBuilder_1-traitBiplot" class="shiny-input-select"><option value="PH" selected>PH</option>
+<option value="DTF">DTF</option>
+<option value="GYKGPHA">GYKGPHA</option>
+<option value="Zn">Zn</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outa209486595a9fd3e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out6a324dc2e10d2cb6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -107,7 +115,7 @@ The following barplot aims to help you check the across environment estimates fo
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outed1246415e917487" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out926825006b5e59d5" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -119,7 +127,7 @@ The following graph allows to see the proportion of variance going to different 
 <p>&nbsp;</p>
 
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-oute3668b3e0e84d6d7" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out9581c3f41058946e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -128,15 +136,18 @@ The following graph allows to see the proportion of variance going to different 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMta2-label" for="reportBuilder_1-traitMta2"></label>
 <div>
-<select id="reportBuilder_1-traitMta2" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Yield_Mg_ha-envIndex">Yield_Mg_ha-envIndex</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Plant_Height_cm-envIndex">Plant_Height_cm-envIndex</option></select>
+<select id="reportBuilder_1-traitMta2" class="shiny-input-select"><option value="PH_QTL" selected>PH_QTL</option>
+<option value="PH_QTLenvIndex">PH_QTLenvIndex</option>
+<option value="DTF_QTL">DTF_QTL</option>
+<option value="DTF_QTLenvIndex">DTF_QTLenvIndex</option>
+<option value="GYKGPHA_QTL">GYKGPHA_QTL</option>
+<option value="GYKGPHA_QTLenvIndex">GYKGPHA_QTLenvIndex</option>
+<option value="Zn_QTL">Zn_QTL</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-oute00c9d2abdc671f1" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out8e9201f0df8b1cd0" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -151,13 +162,15 @@ The following plots allow the user to select individual not only based on the sc
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMta3-label" for="reportBuilder_1-traitMta3"></label>
 <div>
-<select id="reportBuilder_1-traitMta3" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="reportBuilder_1-traitMta3" class="shiny-input-select"><option value="PH" selected>PH</option>
+<option value="DTF">DTF</option>
+<option value="GYKGPHA">GYKGPHA</option>
+<option value="Zn">Zn</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitMta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out35c8de4be81e313e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outdcfe1b94070789b0" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -168,7 +181,7 @@ The following graph allows to see the genetic correlations among traits using ac
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outbfe036399f37647d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out96dbf8c4fec80e84" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -178,7 +191,7 @@ The following table allows to check the trait predictions in wide format togethe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outd3f692943852b605" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out580878a59a0cb46f" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used

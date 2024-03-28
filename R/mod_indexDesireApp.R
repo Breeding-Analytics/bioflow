@@ -263,7 +263,7 @@ mod_indexDesireApp_server <- function(id, data){
             paste0('Desired change (SDs)',": ",trait2IdxD[i]),
             min = -5,
             max = 5,
-            value = 1,
+            value = 0,
             step = 0.5
           )
         })
@@ -275,7 +275,7 @@ mod_indexDesireApp_server <- function(id, data){
             paste0('Desired change (original scale)',": ",trait2IdxD[i]),
             min = -round(sd(traitVals, na.rm=TRUE)*4,3),
             max = round(sd(traitVals, na.rm=TRUE)*4,3),
-            value = round(sd(traitVals, na.rm=TRUE),3),
+            value = 0, #round(sd(traitVals, na.rm=TRUE),3),
             step = round(0.5*sd(traitVals, na.rm=TRUE),3)
           )
         })

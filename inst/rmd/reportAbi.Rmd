@@ -109,7 +109,7 @@ if (is.null(result)){
 
 ### Data use
 
-The following table shows which data was available and used for this pipeline. It allows to see whether the data has been QA and the summary values for the different data types.
+The following visualization shows which data types was used for this pipeline. It allows to see whether the data has been QA and the summary values for the different data types.
 
 ```{r }
 if (is.null(result)){

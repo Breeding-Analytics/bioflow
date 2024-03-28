@@ -120,13 +120,14 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           }
           ## replace tables
           tmp <- data()
-          tmp$data <- result$data
-          tmp$metadata <- result$metadata
-          tmp$modifications <- result$modifications
-          tmp$predictions <- result$predictions
-          tmp$metrics <- result$metrics
-          tmp$modeling <- result$modeling
-          tmp$status <- result$status
+          if(!is.null(result$data)){tmp$data <- result$data}
+          if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+          if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+          if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+          if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+          if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+          if(!is.null(result$status)){tmp$status <- result$status}
+          save(tmp, file = "test.RData")
           data(tmp) # update data with results
           shinybusy::remove_modal_spinner()
 
