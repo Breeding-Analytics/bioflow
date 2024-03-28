@@ -138,6 +138,8 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
     )
 
     output$ped_map <- renderUI({
+      if (is.null(ped_data())) return(NULL)
+
       header <- colnames(ped_data())
       fluidRow(
         column(3, selectInput(
@@ -160,33 +162,34 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
           label    = 'Year of Origin',
           choices  = as.list(c('', header)),
         )),
-        ## testing
+
         renderPrint({
-          req(input$ped_designation)
-          # req(input$ped_father)
-          # req(input$ped_mother)
-          # req(input$ped_year)
           temp <- data()
+
           if ("designation" %in% temp$metadata$pedigree$parameter) {
             temp$metadata$pedigree[temp$metadata$pedigree$parameter == "designation", 'value'] <- input$ped_designation
           } else {
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "designation", value = input$ped_designation ))
           }
+
           if ("mother" %in% temp$metadata$pedigree$parameter) {
             temp$metadata$pedigree[temp$metadata$pedigree$parameter == "mother", 'value'] <- input$ped_mother
           } else {
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "mother", value = input$ped_mother ))
           }
+
           if ("father" %in% temp$metadata$pedigree$parameter) {
             temp$metadata$pedigree[temp$metadata$pedigree$parameter == "father", 'value'] <- input$ped_father
           } else {
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "father", value = input$ped_father ))
           }
+
           if ("yearOfOrigin" %in% temp$metadata$pedigree$parameter) {
             temp$metadata$pedigree[temp$metadata$pedigree$parameter == "yearOfOrigin", 'value'] <- input$ped_year
           } else {
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "yearOfOrigin", value = input$ped_year ))
           }
+
           data(temp)
         }),
       )
