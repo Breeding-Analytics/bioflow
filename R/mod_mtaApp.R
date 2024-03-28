@@ -221,8 +221,7 @@ mod_mtaApp_ui <- function(id){
                                       ),
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               div(tags$p("Please download the report below:") ),
-                                               downloadButton(ns("downloadReportMta"), "Download report"),
+                                               downloadButton(ns("downloadReportMta"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportMta'))
                                       )

@@ -150,8 +150,7 @@ mod_rggApp_ui <- function(id){
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),
-                                                div(tags$p("Please download the report below:") ),
-                                                downloadButton(ns("downloadReportRgg"), "Download report"),
+                                                downloadButton(ns("downloadReportRgg"), "Download dashboard"),
                                                 br(),
                                                 uiOutput(ns('reportRgg'))
                                        )

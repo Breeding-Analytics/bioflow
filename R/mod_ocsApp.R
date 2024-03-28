@@ -162,8 +162,8 @@ mod_ocsApp_ui <- function(id){
                                       ),
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               div(tags$p("Please download the report below:") ),
-                                               downloadButton(ns("downloadReportOcs"), "Download report"),
+                                               # div(tags$p("Please download the report below:") ),
+                                               downloadButton(ns("downloadReportOcs"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportOcs'))
                                       )

@@ -167,8 +167,7 @@ mod_indexDesireApp_ui <- function(id){
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),
-                                                div(tags$p("Please download the report below:") ),
-                                                downloadButton(ns("downloadReportIndex"), "Download report"),
+                                                downloadButton(ns("downloadReportIndex"), "Download dashboard"),
                                                 br(),
                                                 conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
                                                                  uiOutput(ns('reportIndex'))

@@ -85,8 +85,7 @@ mod_filterPhenoApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
                                            br(),
-                                           div(tags$p("Please download the report below:") ),
-                                           downloadButton(ns("downloadReportQaPheno"), "Download report"),
+                                           downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
                                            br(),
                                            uiOutput(ns('reportQaPheno'))
                                   ),

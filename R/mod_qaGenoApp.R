@@ -93,8 +93,7 @@ mod_qaGenoApp_ui <- function(id){
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
                                                       br(),
-                                                      div(tags$p("Please download the report below:") ),
-                                                      downloadButton(ns("downloadReportQaGeno"), "Download report"),
+                                                      downloadButton(ns("downloadReportQaGeno"), "Download dashboard"),
                                                       br(),
                                                       uiOutput(ns('reportQaGeno'))
                                              ),

@@ -113,8 +113,7 @@ mod_pggApp_ui <- function(id){
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),
-                                                div(tags$p("Please download the report below:") ),
-                                                downloadButton(ns("downloadReportPgg"), "Download report"),
+                                                downloadButton(ns("downloadReportPgg"), "Download dashboard"),
                                                 br(),
                                                 uiOutput(ns('reportPgg'))
                                        )
