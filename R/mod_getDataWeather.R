@@ -170,7 +170,7 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
       dtProv = data()$data$pheno
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-      envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+      envCol <- which(paramsPheno$parameter == "environment")
       if (length(envCol) > 0) {
         fieldNames <- as.character(unique(dtProv[,"environment"]))
         values <- values2 <- values3 <- values4 <- values5 <- vector()
