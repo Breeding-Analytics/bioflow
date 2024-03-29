@@ -17,28 +17,33 @@ mod_aboutApp_ui <- function(id){
                             tags$body(
                               p()
                             ),
-                            shinydashboard::box(status="success", width = 12,
-                                                title = "Version control technology", solidHeader = TRUE,
-                                                img(src = " www/github.png", height = 320, width = 600), # add an image
-                                                p("Our front and back end code is stored in Github to ensure team collaboration and quick fixes and improvement.")
+                            column(width = 12,
+                                   shinydashboard::box(status="success", width = 6,
+                                                       title = "Version control technology", solidHeader = TRUE,
+                                                       img(src = " www/github.png", height = 160, width = 300), # add an image
+                                                       p("Our front and back end code is stored in Github to ensure team collaboration and quick fixes and improvement.")
+                                   ),
+                                   shinydashboard::box(status="success", width = 6,
+                                                       title = "Developing environment (IDE)", solidHeader = TRUE,
+                                                       img(src = " www/rstudio2.png", height = 110, width = 300), # add an image
+                                                       p(" "),
+                                                       p("Our team uses R studio to develop packages, functions and pipelines for easy testing. In addition, the interface is developed using the shiny technology under the golem framework.")
+                                   ),
                             ),
-                            shinydashboard::box(status="success", width = 12,
-                                                title = "Developing environment (IDE)", solidHeader = TRUE,
-                                                img(src = " www/rstudio2.png", height = 220, width = 600), # add an image
-                                                p(" "),
-                                                p("Our team uses R studio to develop packages, functions and pipelines for easy testing. In addition, the interface is developed using the shiny technology under the golem framework.")
+                            column(width = 12,
+                                   shinydashboard::box(status="success", width = 6,
+                                                       title = "Data storage technology", solidHeader = TRUE,
+                                                       img(src = " www/aws.png", height = 115, width = 300), # add an image
+                                                       p(" "),
+                                                       p("The data extracted and produced is stored using an AWS-S3 container for flexibility and interoperability with other systems.")
+                                   ),
+                                   shinydashboard::box(status="success", width = 6,
+                                                       title = "Deployment technology", solidHeader = TRUE,
+                                                       img(src = " www/docker2.png", height = 175, width = 300), # add an image
+                                                       p("We use the docker technology to ensure the stability of our software and ensure the version control of our analytical pipeline.")
+                                   ),
                             ),
-                            shinydashboard::box(status="success", width = 12,
-                                                title = "Data storage technology", solidHeader = TRUE,
-                                                img(src = " www/aws.png", height = 230, width = 600), # add an image
-                                                p(" "),
-                                                p("The data extracted and produced is stored using an AWS-S3 container for flexibility and interoperability with other systems.")
-                            ),
-                            shinydashboard::box(status="success", width = 12,
-                                                title = "Deployment technology", solidHeader = TRUE,
-                                                img(src = " www/docker2.png", height = 350, width = 600), # add an image
-                                                p("We use the docker technology to ensure the stability of our software and ensure the version control of our analytical pipeline.")
-                            )
+
         ),
         class = "tab-content"
       )
