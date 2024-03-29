@@ -24,7 +24,7 @@ mod_staApp_ui <- function(id){
                                                                       h1(strong(span("Single Trial Analysis", style="color:green"))),
                                                                       h2(strong("Status:")),
                                                                       uiOutput(ns("warningMessage")),
-                                                                      img(src = "www/sta.png", height = 200, width = 300), # add an image
+                                                                      img(src = "www/sta.png", height = 200, width = 400), # add an image
                                                                ),
                                                                column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
                                                                column(width = 12,

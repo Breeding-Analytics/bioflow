@@ -26,7 +26,7 @@ mod_sectionInfoGEApp_ui <- function(id){
                                                   artificial selection using such estimates and increase the allele frequencies of genes affecting the
                                                   expression of the traits of interest in a particular target
                                                   population of environments (TPE)."),
-                                                img(src = " www/infoge.png", height = 350, width = 600), # add an image
+                                                img(src = " www/infoge.png", height = 350, width = 800), # add an image
                                                 p("The genetic evaluation approach used in bioflow is the so-called 'two-stage'. After cleaning the raw
                                                   phenotypic records from outliers and typos the data is analysed environment by
                                                   environment to remove the spatial noise and extract genotype BLUEs and standard errors (stage 1). This could be

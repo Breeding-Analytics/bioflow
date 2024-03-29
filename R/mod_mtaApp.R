@@ -23,7 +23,7 @@ mod_mtaApp_ui <- function(id){
                                                                       h1(strong(span("Multi Trial Analysis", style="color:green"))),
                                                                       h2(strong("Status:")),
                                                                       uiOutput(ns("warningMessage")),
-                                                                      img(src = "www/mta.png", height = 300, width = 600), # add an image
+                                                                      img(src = "www/mta.png", height = 300, width = 450), # add an image
                                                                ),
                                                                column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
                                                                column(width = 12,
