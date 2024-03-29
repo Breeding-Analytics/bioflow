@@ -1020,8 +1020,6 @@ if (is.null(result)){
   pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   predictions.gcorrT <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
-  # nTraits <- unique(predictions.gcorrE[,"trait"])
-  # addTextInPlots <- ifelse(length(nTraits) > 40, FALSE, TRUE)
   
   wide <- stats::reshape(predictions.gcorrT,
                          direction = "wide", idvar = "designation",
@@ -1033,10 +1031,6 @@ if (is.null(result)){
   if(nrow(corr) > 1){
     if("params" %in% ls()){ # we will download the document
       
-      # p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-      #                                         valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
-      #                                         checkboxAxis= addTextInPlots)
-      # print(htmltools::tagList(plotly::ggplotly(p.cor.pred.traits)))
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
         ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
@@ -1056,10 +1050,7 @@ if (is.null(result)){
       
       # plotly::renderPlotly({
       shiny::renderPlot({
-        # p.cor.pred.traits <- corPlotPredictions(predictions.gcorrT, traitPredictionsCorrelation=NULL, unitOfCorrelation="designation", correlatedAcross="trait",
-        #                                         valueForCorrelation="predictedValue",checkboxCluster=TRUE, checkboxText=addTextInPlots, 
-        #                                         checkboxAxis= addTextInPlots)
-        # plotly::layout(p.cor.pred.traits,font=font.plot_ly)
+        
         p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
           ggplot2::geom_tile(color = "white")+
           ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",

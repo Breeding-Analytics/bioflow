@@ -90,7 +90,7 @@ if (is.null(result)){
   
   rggId <- result$status$analysisId[length(result$status$analysisId)]
   mod <- result$modeling %>% filter(analysisId==rggId)
-  predsId <- mod[mod$analysisId == rggId & mod$trait == "inputObject","value"]
+  # predsId <- mod[mod$analysisId == rggId & mod$trait == "inputObject","value"]
   pred <- result$predictions %>% filter(analysisId == rggId) # before we use the predsId but now we store the designation predictions in the rgg functions
   met <- result$metrics %>% filter(analysisId==rggId)
   traits <- unique(met$trait)
@@ -120,7 +120,7 @@ get_h <- function() {
 }
 ```
 
-## Summary metrics
+### Summary metrics
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
@@ -152,7 +152,7 @@ if (is.null(result)){
 
 ```
 
-## Regression plot
+### Regression plot
 
 ```{r }
 if (is.null(result)){
@@ -179,11 +179,11 @@ if (is.null(result)){
 } else {
   
   if("params" %in% ls()){ # we will download the document
-    cat("\n\n## Graph {.tabset .tabset-pills}       \n\n")
+    cat("\n\n### {.tabset .tabset-pills}       \n\n")
     
     
     for (j in 1:length(traits)){
-      cat("\n\n###", traits[j], "{.tabset .tabset-pills}       \n\n")
+      cat("\n\n####", traits[j], "{.tabset .tabset-pills}       \n\n")
       
       # subset by trait
       myPreds <- myResult %>% filter(trait == traits[j])

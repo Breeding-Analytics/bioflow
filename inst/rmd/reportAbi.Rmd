@@ -548,7 +548,7 @@ if (is.null(result)){
   modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
   traitsMta <- modeling[which(modeling$analysisId == idMta),"trait"]
   traitsMta <- setdiff(traitsMta, "inputObject")
-   
+  
   if("params" %in% ls()){ # we will download the document
     
   }else{
@@ -658,6 +658,198 @@ if (is.null(result)){
 
 The following graphs aim to sow the genetic correlation between traits using across environment estimates of genetic merit. In addition, the radar plot displays the population means and the target values for the product profile to show the differences between these two and see how big are the gaps.
 
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  
+  idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
+  pred.mta <- result$predictions
+  pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
+  predictions.gcorrT <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
+  
+  wide <- stats::reshape(predictions.gcorrT,
+                         direction = "wide", idvar = "designation",
+                         timevar = "trait", v.names = "predictedValue", sep= "")
+  colnames(wide) <- gsub("predictedValue","",colnames(wide))
+  wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+  corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+  mydata4 <- cgiarBase::matToTab(corr)
+  if(nrow(corr) > 1){
+    if("params" %in% ls()){ # we will download the document
+      
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed() + 
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+                       axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+      if(nrow(corr) < 20){ # if user wants to fill cell values
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+      }
+      print(p)
+      
+    }else{
+      
+      # plotly::renderPlotly({
+      shiny::renderPlot({
+        
+        p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                        midpoint = 0, limit = c(-1,1), space = "Lab",
+                                        name="Pearson\nCorrelation") +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("") + ggplot2::xlab("") +
+          ggplot2::coord_fixed() + 
+          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+                         axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+        if(nrow(corr) < 20){ # if user wants to fill cell values
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+        }
+        print(p)
+      })
+      
+    }
+  }else{
+    cat("Only one trait fitted. Skipping correlation plot.")
+  }
+  
+}
+```
+
+```{r, results='asis'}
+library(dplyr)
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  dtIdxD <- result$predictions
+  # idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
+  # idIndex <- idIndex[length(idIndex)]
+  idIndex <- modelingAbi[modelingAbi$parameter == "indexD", "value"]
+  idMet <- modelingAbi[modelingAbi$parameter == "mta", "value"] 
+  #idMet <- result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydataIndex <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  # subset to only traits being part of the index
+  desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+  uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
+  uTraits <- gsub("_scaled","",uTraits)
+  dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
+  ##
+  environmentPredictionsRadar2="across"
+  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
+  ## ensure product profile means come sorted
+  meanGroupPredictionsRadar= result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),c("trait","value")]
+  meanGroupPredictionsRadar <- meanGroupPredictionsRadar[with(meanGroupPredictionsRadar, order(as.numeric(as.factor(trait)))), ]
+  meanGroupPredictionsRadar <- meanGroupPredictionsRadar[,"value"]
+  
+  fontSizeRadar=12; r0Radar=NULL; neRadar=NULL; plotSdRadar=FALSE
+  
+  mydataIndex = mydataIndex[which( (mydataIndex$environment %in% environmentPredictionsRadar2) &
+                           (mydataIndex$trait %in% traitFilterPredictionsRadar2)
+  ),]
+  
+  if(!is.null(environmentPredictionsRadar2) & !is.null(traitFilterPredictionsRadar2)){
+    mm <- stats::aggregate(predictedValue~trait, data=mydataIndex, FUN=mean, na.rm=TRUE)
+    mmsd <- stats::aggregate(predictedValue~trait, data=mydataIndex, FUN=stats::sd, na.rm=TRUE)
+    mm2 <- stats::aggregate(predictedValue~trait, data=mydataIndex, FUN=min, na.rm=TRUE)
+    mm3 <- stats::aggregate(predictedValue~trait, data=mydataIndex, FUN=max, na.rm=TRUE)
+    namesA <- mm[,1]
+    meanA <- mm[,2]/(mm3[,2])
+    
+    # meanA <- rep(0.75,nrow(mm))
+    fig <-  plotly::plot_ly(
+      type = 'scatterpolar',
+      fill = 'toself'
+    )
+    fig <- fig %>%
+      plotly::add_trace(
+        r = meanA, #c(39, 28, 8, 7, 28, 39),
+        theta =paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+        name = 'Breeding population means',
+        text=round(mm[,2],3)
+      )
+    ## add product profile means
+    if(!is.null(meanGroupPredictionsRadar)){
+      meanB <- as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))
+      if(length(meanB) == length(mm[,2])){
+        meanB <- meanB + mm[,2]
+        # r2 = (meanB*0.75)/mm[,2]
+        r2 = meanB/(mm3[,2])
+        dToSearch <- meanB #- mm[,2]
+        fig <- fig %>%
+          plotly::add_trace(
+            r = r2, # c(1.5, 10, 39, 31, 15, 1.5),
+            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+            name = "Desired population", #'Group B'
+            # mode="text",
+            text=round(dToSearch,2)
+            # textfont = list(color = '#000000', size = fontSizeRadar)
+          )
+      }
+    }
+    # add SD polygon
+    if(plotSdRadar){
+      meanC <- (mm[,2]+mmsd[,2])/(mm3[,2])
+      fig <- fig %>%
+        plotly::add_trace(
+          r = meanC, # c(1.5, 10, 39, 31, 15, 1.5),
+          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+          name = "Mean + Standard Deviation from pop", #'Group B'
+          text=round(mm[,2]+mmsd[,2],3)
+        )
+      meanD <- (mm[,2]-mmsd[,2])/(mm3[,2])
+      fig <- fig %>%
+        plotly::add_trace(
+          r = meanD, # c(1.5, 10, 39, 31, 15, 1.5),
+          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+          name = "Mean - Standard Deviation from pop", #'Group B'
+          text=round(mm[,2]-mmsd[,2],3)
+        )
+    }
+    # add selection limits polygon
+    ## add product profile means'
+    if(!is.null(r0Radar)){
+      meanR <- as.numeric(unlist(strsplit(r0Radar,",")))/100
+      if(length(meanR) == length(mm[,2])){
+        meanR <- mm[,2] + ((meanR*mm[,2])*neRadar*2) # selection limits 2*Ne*R0
+        r3 = (meanR*0.75)/mm[,2]
+        dToSearchR <- meanR #- mm[,2]
+        fig <- fig %>%
+          plotly::add_trace(
+            r = r3, # c(1.5, 10, 39, 31, 15, 1.5),
+            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
+            name = "Selection limits", #'Group B'
+            # mode="text",
+            text=round(dToSearchR,2)
+            # textfont = list(color = '#000000', size = fontSizeRadar)
+          )
+      }
+    }
+  }
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    
+    print(htmltools::tagList(plotly::ggplotly(fig)))
+    
+  }else{
+    
+    plotly::renderPlotly({
+      fig
+    }) # enf of render plotly
+    
+  }
+  
+}
+
+```
 
 ### Selection results
 
@@ -668,4 +860,89 @@ The following graph display the expected gain after the selection of parents and
 
 The following graph shows the realized genetic gain for this pipeline. The x-axis represents the year of origin or release of the material and the y-axis represents the trait value.
 
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  rggId <- modelingAbi[modelingAbi$parameter == "rgg", "value"]
+  
+  mod <- result$modeling %>% filter(analysisId==rggId)
+  # predsId <- mod[mod$analysisId == rggId & mod$trait == "inputObject","value"]
+  pred <- result$predictions %>% filter(analysisId == rggId) # before we use the predsId but now we store the designation predictions in the rgg functions
+  met <- result$metrics %>% filter(analysisId==rggId)
+  traits <- unique(met$trait)
+  ped <- result$data$pedigree
+  paramsPed <- result$metadata$pedigree
+  colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = paramsPed$value, Replace = paramsPed$parameter )
+  ped <- unique(ped[,c("designation","yearOfOrigin")])
+  # merge yearOfOrigin
+  myResult <- merge(pred,ped,by="designation")
+  myResult <- myResult[which(!is.na(myResult$yearOfOrigin)),]
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    selectInput(ns("traitSta3"), 
+                label = "Trait:", 
+                multiple = FALSE,
+                choices = unique(traits), 
+    )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    cat("\n\n### {.tabset .tabset-pills}       \n\n")
+    
+    
+    for (j in 1:length(traits)){
+      cat("\n\n####", traits[j], "{.tabset .tabset-pills}       \n\n")
+      
+      # subset by trait
+      myPreds <- myResult %>% filter(trait == traits[j])
+      myMetrics <- met %>% filter(trait == traits[j])
+      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
+                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
+                        round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
+        geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+        theme_classic()+
+        geom_jitter(alpha = 0.6) +
+        labs(title=myLabel,x="Year of origin", y = "Trait performance") +
+        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      
+      # cat("\n")
+    }
+    
+    cat("\n")
+  }else{ # regular rendering
+    plotly::renderPlotly({
+      myPreds <- myResult %>% filter(trait == input$traitSta3)
+      myMetrics <- met %>% filter(trait == input$traitSta3)
+      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
+                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
+                        round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
+        geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+        theme_classic()+
+        geom_jitter(alpha = 0.6) +
+        labs(title=myLabel,x="Year of origin", y = "Trait performance") +
+        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+      fig
+    })
+  }
+  
+}
+
+```
 

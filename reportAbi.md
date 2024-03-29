@@ -30,7 +30,7 @@ The following visualization shows which data types was used for this pipeline. I
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out62fd1c3a22c147f7" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out6dca4a2ab6a644ae" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Base metrics
 
@@ -47,7 +47,7 @@ Variance component proportions
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out26504e05bc81d357" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out2e30c08dd8cd50e6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 Barplot for parameter values
 
@@ -62,7 +62,7 @@ Barplot for parameter values
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outf22dd8ce90464f9f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out85a73f42cab46036" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 Correlation between environments
 
@@ -75,7 +75,7 @@ Correlation between environments
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out1723547b7cbdd570" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outb634c0feb04418c9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 Connectivity between the environments
 
@@ -88,12 +88,15 @@ Connectivity between the environments
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out962d724bab3dffc6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out07ed573a39afb58b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Trait view
 
 The following graphs aim to sow the genetic correlation between traits using across environment estimates of genetic merit. In addition, the radar plot displays the population means and the target values for the product profile to show the differences between these two and see how big are the gaps.
 
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="abiDashboard_1-out4de146cd12c8b621" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outefbc63f310e34489" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Selection results
 
@@ -104,4 +107,14 @@ The following graph display the expected gain after the selection of parents and
 
 The following graph shows the realized genetic gain for this pipeline. The x-axis represents the year of origin or release of the material and the y-axis represents the trait value.
 
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="abiDashboard_1-traitSta3-label" for="abiDashboard_1-traitSta3">Trait:</label>
+<div>
+<select id="abiDashboard_1-traitSta3" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<script type="application/json" data-for="abiDashboard_1-traitSta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outd9b8e221aeeb2db4" style="width:100%;height:400px;"></div><!--/html_preserve-->
 

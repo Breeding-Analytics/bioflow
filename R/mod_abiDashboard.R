@@ -19,10 +19,11 @@ mod_abiDashboard_ui <- function(id){
                                       tabPanel("Pick time stamps", icon = icon("magnifying-glass-chart"),
                                                br(),
                                                column(width=12,
-                                                      column(width=3,  selectInput(ns("versionMetrics"), "STA version for metrics view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=3,  selectInput(ns("versionTraits"), "MTA version for trait view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=3,  selectInput(ns("versionSelection"), "OCS version for selection view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=3,  selectInput(ns("versionHistory"), "RGG version for selection hostory", choices = NULL, multiple = FALSE) ),
+                                                      column(width=2,  selectInput(ns("versionMetrics"), "STA version for metrics view", choices = NULL, multiple = FALSE) ),
+                                                      column(width=2,  selectInput(ns("versionTraits"), "MTA version for trait view", choices = NULL, multiple = FALSE) ),
+                                                      column(width=2,  selectInput(ns("versionIndex"), "Index version for trait view", choices = NULL, multiple = FALSE) ),
+                                                      column(width=2,  selectInput(ns("versionSelection"), "OCS version for selection view", choices = NULL, multiple = FALSE) ),
+                                                      column(width=2,  selectInput(ns("versionHistory"), "RGG version for selection hostory", choices = NULL, multiple = FALSE) ),
                                                       style = "background-color:grey; color: #FFFFFF"),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -95,6 +96,17 @@ mod_abiDashboard_server <- function(id, data){
         traitsAbi <- unique(dtAbi$analysisId)
         if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
         updateSelectInput(session, "versionTraits", choices = traitsAbi)
+      }
+    })
+    observeEvent(c(data()), {
+      req(data())
+      dtAbi <- data()
+      dtAbi <- dtAbi$status
+      if(!is.null(dtAbi)){
+        dtAbi <- dtAbi[which(dtAbi$module %in% c("indexD")),]
+        traitsAbi <- unique(dtAbi$analysisId)
+        if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+        updateSelectInput(session, "versionIndex", choices = traitsAbi)
       }
     })
     observeEvent(c(data()), {
@@ -188,8 +200,8 @@ mod_abiDashboard_server <- function(id, data){
       result <- data()
       idAbi <- as.numeric(Sys.time())
       abiModeling <- data.frame(module="abiDash", analysisId=idAbi, trait="inputObject", environment=NA,
-                 parameter= c("sta", "mta", "ocs", "rgg") ,
-                 value=c(input$versionMetrics, input$versionTraits, input$versionSelection, input$versionHistory )
+                 parameter= c("sta", "mta","indexD", "ocs", "rgg") ,
+                 value=c(input$versionMetrics, input$versionTraits, input$versionIndex, input$versionSelection, input$versionHistory )
                  )
       abiStatus <- data.frame(module="abiDash", analysisId=idAbi)
       result$modeling <- rbind(result$modeling, abiModeling)
