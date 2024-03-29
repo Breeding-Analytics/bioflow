@@ -806,72 +806,72 @@ if (is.null(result)){
         ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
         ggplot2::theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1 , size = 7), legend.position = "bottom") +
         guides(fill=guide_legend(nrow=3,byrow=TRUE))
-      # if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
-      print(p)
-      # }else{ # go dynamic
-      # print(htmltools::tagList(plotly::ggplotly(p)))
-      # }
+      if(length(unique(temp.pred.box$designation)) > 1200){ # go fixed format
+        print(p)
+      }else{ # go dynamic
+        print(htmltools::tagList(plotly::ggplotly(p)))
+      }
     }
     
   }else{
     
-    # if(length(unique(pred$designation)) > 200){ # go fixed format
-    
-    shiny::renderPlot({
+    if(length(unique(pred$designation)) > 1200){ # go fixed format
       
-      temp.pred.box <- pred[pred$trait== input$traitMta2,]
-      p <- ggplot2::ggplot(
-        data = temp.pred.box,
-        mapping = ggplot2::aes(
-          x = reorder(designation, -predictedValue),
-          y = predictedValue,
-          col = entryType,
-          text = paste(
-            paste0('<br>', "designation: ", designation),
-            paste0('<br>', "entry type: ", entryType),
-            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-            paste0('<br>', "standard error: ", round(stdError, 4)),
-            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
-            #        round(predictedValue + CI, 2), ")")))) +
-            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                   round(predictedValue + stdError, 4), ")")))) +
-        ggplot2::theme_classic() +  ggplot2::geom_point() +
-        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                               width = 0.10) +
-        ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
-      p
-      
-    })
-    # }else{ # go dynamic
-    #   plotly::renderPlotly({
-    #     
-    #     temp.pred.box <- pred[pred$trait== input$traitMta2,]
-    #     p <- ggplot2::ggplot(
-    #       data = temp.pred.box,
-    #       mapping = ggplot2::aes(
-    #         x = reorder(designation, -predictedValue),
-    #         y = predictedValue,
-    #         col = entryType,
-    #         text = paste(
-    #           paste0('<br>', "designation: ", designation),
-    #           paste0('<br>', "entry type: ", entryType),
-    #           paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-    #           paste0('<br>', "standard error: ", round(stdError, 4)),
-    #           # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
-    #           #        round(predictedValue + CI, 2), ")")))) +
-    #           paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-    #                  round(predictedValue + stdError, 4), ")")))) +
-    #       ggplot2::theme_classic() +  ggplot2::geom_point() +
-    #       ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-    #                                           ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-    #                              width = 0.10) +
-    #       ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-    #       ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
-    #     plotly::ggplotly(p)
-    #   })
-    # }
+      shiny::renderPlot({
+        
+        temp.pred.box <- pred[pred$trait== input$traitMta2,]
+        p <- ggplot2::ggplot(
+          data = temp.pred.box,
+          mapping = ggplot2::aes(
+            x = reorder(designation, -predictedValue),
+            y = predictedValue,
+            col = entryType,
+            text = paste(
+              paste0('<br>', "designation: ", designation),
+              paste0('<br>', "entry type: ", entryType),
+              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+              paste0('<br>', "standard error: ", round(stdError, 4)),
+              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+              #        round(predictedValue + CI, 2), ")")))) +
+              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                     round(predictedValue + stdError, 4), ")")))) +
+          ggplot2::theme_classic() +  ggplot2::geom_point() +
+          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                                 width = 0.10) +
+          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+          ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+        p
+        
+      })
+    }else{ # go dynamic
+      plotly::renderPlotly({
+        
+        temp.pred.box <- pred[pred$trait== input$traitMta2,]
+        p <- ggplot2::ggplot(
+          data = temp.pred.box,
+          mapping = ggplot2::aes(
+            x = reorder(designation, -predictedValue),
+            y = predictedValue,
+            col = entryType,
+            text = paste(
+              paste0('<br>', "designation: ", designation),
+              paste0('<br>', "entry type: ", entryType),
+              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+              paste0('<br>', "standard error: ", round(stdError, 4)),
+              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+              #        round(predictedValue + CI, 2), ")")))) +
+              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                     round(predictedValue + stdError, 4), ")")))) +
+          ggplot2::theme_classic() +  ggplot2::geom_point() +
+          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                                 width = 0.10) +
+          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+        plotly::ggplotly(p)
+      })
+    }
     
   }
 }
@@ -949,7 +949,7 @@ if (is.null(result)){
               geom_point(size=2) + ylab(iTrait) + xlab(stabilityTrait) 
           }
         }
-        if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
+        if(length(unique(temp.pred.box$designation)) > 1000){ # go fixed format
           print(p)
         }else{ # go dynamic
           print(htmltools::tagList(plotly::ggplotly(p)))
@@ -958,7 +958,7 @@ if (is.null(result)){
       
     }else{ # render in screen
       
-      if(length(unique(pred$designation)) > 200){ # go fixed format
+      if(length(unique(pred$designation)) > 1000){ # go fixed format
         
         shiny::renderPlot({ # regular ggplot
           

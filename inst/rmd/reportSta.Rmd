@@ -325,11 +325,6 @@ if (is.null(result)){
         ggplot2::xlab("Environment") + ggplot2::ylab("Value of variance") +
         ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank())
-      # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) 
-      # print(gridExtra::grid.arrange(p,p2))
-      
-      # ply1 <- plotly::ggplotly(p)
-      # ply2 <- plotly::ggplotly(p2)
       
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=2) ) )
       
