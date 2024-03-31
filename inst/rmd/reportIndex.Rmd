@@ -292,31 +292,17 @@ if (is.null(result)){
   dtIdxD <- result$predictions
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
-  idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
-  mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydata <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
   uTraits <- gsub("_scaled","",uTraits)
-  # uTraits <- unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
-  
-  object=result
-  environmentPredictionsRadar2="across"
-  traitFilterPredictionsRadar2=uTraits
-  meanGroupPredictionsRadar=desirev
-  analysisId=idMet
-  trait=uTraits
-  desirev=desirev
-  scaled=as.logical(result$modeling[which(result$modeling$analysisId == idIndex & result$modeling$parameter == "scaled"),"value"])
-  
-  mydata <- object$predictions
-  mydata <- mydata[which(mydata$analysisId == analysisId),]
-  
-  mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
-                           (mydata$trait %in% traitFilterPredictionsRadar2)
-  ),]
   mydata$selected <- "no"
-  ## pop means
-  mm <- stats::aggregate(predictedValue~trait, data=mydata, FUN=mean, na.rm=TRUE)
+  
+  # mydataOcs <- dtIdxD[which(dtIdxD$analysisId == idOcs),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  # idsPop <- unique(mydata[mydata$trait == iTrait, "designation"])
+  # idsSel <- unique(c( mydataOcs[, "mother"], mydataOcs[, "father"] ) )
+  # mydata[ which( mydata$designation %in% idsSel ), "selected"] <- "yes"
   
   
   if("params" %in% ls()){ # we will download the document
@@ -325,94 +311,39 @@ if (is.null(result)){
     for(iProportionTrait in proportionTrait){
       cat("\n\n#####", iProportionTrait, "{.tabset .tabset-pills}       \n\n")
       
-      if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
-        ## add product profile means'
-        mm$threshold <- as.numeric(unlist(strsplit(meanGroupPredictionsRadar,","))) + mm[,2]
-        mm$desire <- mm$threshold - mm$predictedValue
-        # index calculation
-        resInd <- cgiarPipeline::indexDesire(
-          phenoDTfile= object, # input data structure
-          analysisId=analysisId, # analysis to be picked from predictions database
-          trait= trait, # traits to include in the index
-          desirev = as.numeric(unlist(strsplit(desirev,","))), # vector of desired values
-          scaled=scaled, # whether predicted values should be scaled or not
-          verbose=FALSE # sh
-        )
-        myIndex <- resInd$predictions
-        mtas <- resInd$status[which(resInd$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
-        myIndex <- myIndex[which(myIndex$analysisId == mtaId),]
-        myIndex <- myIndex[with(myIndex, order(-predictedValue)), ]
-        selected <- myIndex[1:round(nrow(myIndex)*iProportionTrait),"designation"]
-        mydata$selected[which(mydata$designation %in% selected)] <- "yes"
-        # update mm
-        mm2 <- stats::aggregate(predictedValue~trait, data=mydata[which(mydata$selected == "yes"),], FUN=mean, na.rm=TRUE)
+      for(iTrait in uTraits){ # iTrait = uTraits[1]
+        prov <- mydata[mydata$trait == iTrait, ]
+        prov <- prov[with(prov, order(-predictedValue)), ]
+        selected <- prov[1:round(nrow(prov)*iProportionTrait),"designation"]
+        mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
       }
-      
-      if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
-        p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
-          ggplot2::geom_histogram() +
-          ggplot2::ylab("Frequency") +
-          ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-          ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
-          ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red") +
-          ggplot2::geom_vline(data = mm2, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="cadetblue")
-      }else{
-        p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
-          ggplot2::geom_histogram() +
-          ggplot2::ylab("Frequency") +
-          ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-          ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
-          ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red")
-      }
+      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+        ggplot2::geom_histogram() +
+        ggplot2::ylab("Frequency") +
+        ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+        ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
       print(htmltools::tagList(plotly::ggplotly(p)))
     }
     
   }else{
     
-    shiny::renderPlot({ # plotly::renderPlotly({
+    # shiny::renderPlot({ # 
+    plotly::renderPlotly({
       ## if user provides threshold values let them know the selection differentials
-      if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
-        ## add product profile means'
-        mm$threshold <- as.numeric(unlist(strsplit(meanGroupPredictionsRadar,","))) + mm[,2]
-        mm$desire <- mm$threshold - mm$predictedValue
-        # index calculation
-        resInd <- cgiarPipeline::indexDesire(
-          phenoDTfile= object, # input data structure
-          analysisId=analysisId, # analysis to be picked from predictions database
-          trait= trait, # traits to include in the index
-          desirev = as.numeric(unlist(strsplit(desirev,","))), # vector of desired values
-          scaled=scaled, # whether predicted values should be scaled or not
-          verbose=FALSE # sh
-        )
-        myIndex <- resInd$predictions
-        mtas <- resInd$status[which(resInd$status$module == "indexD"),"analysisId"]; mtaId <- mtas[length(mtas)]
-        myIndex <- myIndex[which(myIndex$analysisId == mtaId),]
-        myIndex <- myIndex[with(myIndex, order(-predictedValue)), ]
-        selected <- myIndex[1:round(nrow(myIndex)*input$proportionTrait),"designation"]
-        mydata$selected[which(mydata$designation %in% selected)] <- "yes"
-        # update mm
-        mm2 <- stats::aggregate(predictedValue~trait, data=mydata[which(mydata$selected == "yes"),], FUN=mean, na.rm=TRUE)
+      for(iTrait in uTraits){ # iTrait = uTraits[1]
+        prov <- mydata[mydata$trait == iTrait, ]
+        prov <- prov[with(prov, order(-predictedValue)), ]
+        selected <- prov[1:round(nrow(prov)*input$proportionTrait),"designation"]
+       mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
       }
+      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+        ggplot2::geom_histogram() +
+        ggplot2::ylab("Frequency") +
+        ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+        ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
       
-      if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){
-        p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
-          ggplot2::geom_histogram() +
-          ggplot2::ylab("Frequency") +
-          ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-          ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
-          ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red") +
-          ggplot2::geom_vline(data = mm2, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="cadetblue")
-      }else{
-        p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
-          ggplot2::geom_histogram() +
-          ggplot2::ylab("Frequency") +
-          ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-          ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
-          ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red")
-      }
-      # fig2 <-  plotly::ggplotly(p)
-      # fig2
-      p
+      # p
+      plotly::ggplotly(p)
     })
     
   }

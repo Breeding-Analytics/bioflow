@@ -103,6 +103,11 @@ if (is.null(result)){
   idAbi <- idAbi[length(idAbi)]
   modelingAbi <- result$modeling[result$modeling$analysisId == idAbi, ]
   ###############################################################################
+  idRgg <- modelingAbi[modelingAbi$parameter == "rgg", "value"]
+  idOcs <- modelingAbi[modelingAbi$parameter == "ocs", "value"]
+  idIndex <- result$modeling[result$modeling$analysisId == idOcs & result$modeling$trait == "inputObject", "value"]
+  idMta <- result$modeling[result$modeling$analysisId == idIndex & result$modeling$trait == "inputObject", "value"]
+  idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject", "value"]
   
 }
 ```
@@ -116,7 +121,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
+  # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
   
   mtaTraits <- setdiff( unique(result$modeling[result$modeling$analysisId == idMta,"trait"]), "inputObject")
   
@@ -274,7 +279,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
   staTraits <- setdiff( unique(result$modeling[result$modeling$analysisId == idSta,"trait"]), "inputObject")
   
   if("params" %in% ls()){ # we will download the document
@@ -367,7 +372,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   metrics <- result$metrics
-  idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
   parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
   if("params" %in% ls()){  # if user will download the report
     
@@ -437,7 +442,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
   modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
   modeling <- setdiff(modeling, "inputObject")
   
@@ -539,8 +544,8 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
-  idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
   traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
@@ -664,7 +669,7 @@ if (is.null(result)){
 } else {
   
   
-  idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
+  # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
   pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   predictions.gcorrT <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
@@ -730,12 +735,9 @@ if (is.null(result)){
 } else {
   
   dtIdxD <- result$predictions
-  # idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
-  # idIndex <- idIndex[length(idIndex)]
-  idIndex <- modelingAbi[modelingAbi$parameter == "indexD", "value"]
-  idMet <- modelingAbi[modelingAbi$parameter == "mta", "value"] 
-  #idMet <- result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
-  mydataIndex <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  # idIndex <- modelingAbi[modelingAbi$parameter == "indexD", "value"]
+  # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
+  mydataIndex <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
   # subset to only traits being part of the index
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
@@ -743,7 +745,7 @@ if (is.null(result)){
   dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
   ##
   environmentPredictionsRadar2="across"
-  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
+  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMta),"trait"])
   ## ensure product profile means come sorted
   meanGroupPredictionsRadar= result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),c("trait","value")]
   meanGroupPredictionsRadar <- meanGroupPredictionsRadar[with(meanGroupPredictionsRadar, order(as.numeric(as.factor(trait)))), ]
@@ -752,7 +754,7 @@ if (is.null(result)){
   fontSizeRadar=12; r0Radar=NULL; neRadar=NULL; plotSdRadar=FALSE
   
   mydataIndex = mydataIndex[which( (mydataIndex$environment %in% environmentPredictionsRadar2) &
-                           (mydataIndex$trait %in% traitFilterPredictionsRadar2)
+                                     (mydataIndex$trait %in% traitFilterPredictionsRadar2)
   ),]
   
   if(!is.null(environmentPredictionsRadar2) & !is.null(traitFilterPredictionsRadar2)){
@@ -855,6 +857,72 @@ if (is.null(result)){
 
 The following graph display the expected gain after the selection of parents and crosses for the next generation. The density plots show the base population (red), the selected population of parents (blue), and the predicted distribution of the crosses to be made (green). The distribution of selected parents and future crosses come from the optimal cross selection (OCS) run.
 
+```{r, results='asis'}
+library(dplyr)
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  dtIdxD <- result$predictions
+  # idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
+  # idIndex <- idIndex[length(idIndex)]
+  # idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydataOcs <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+  uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
+  uTraits <- gsub("_scaled","",uTraits)
+  mydataOcs$selected <- "no"
+  
+  myPredsOcs <- dtIdxD[which(dtIdxD$analysisId == idOcs),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  idsPop <- unique(mydataOcs[mydataOcs$trait == iTrait, "designation"])
+  idsSel <- unique(c( myPredsOcs[, "mother"], myPredsOcs[, "father"] ) )
+  mydataOcs[ which( mydataOcs$designation %in% idsSel ), "selected"] <- "yes"
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("#### Proportion selected  {.tabset .tabset-pills}    \n\n  "))
+    for(iProportionTrait in proportionTrait){
+      cat("\n\n#####", iProportionTrait, "{.tabset .tabset-pills}       \n\n")
+      # for(iTrait in uTraits){ # iTrait = uTraits[1]
+      #   prov <- mydataOcs[mydataOcs$trait == iTrait, ]
+      #   prov <- prov[with(prov, order(-predictedValue)), ]
+      #   selected <- prov[1:round(nrow(prov)*iProportion),"designation"]
+      #   mydataOcs[which( (mydataOcs$trait == iTrait) & (mydataOcs$designation %in% selected) ), "selected"] <- "yes"
+      # }
+      p <- ggplot2::ggplot(mydataOcs, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+        ggplot2::geom_histogram() +
+        ggplot2::ylab("Frequency") +
+        ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+        ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
+      print(htmltools::tagList(plotly::ggplotly(p)))
+    }
+    
+  }else{
+    
+    # shiny::renderPlot({ # 
+    plotly::renderPlotly({
+      ## if user provides threshold values let them know the selection differentials
+      # for(iTrait in uTraits){ # iTrait = uTraits[1]
+      #   prov <- mydataOcs[mydataOcs$trait == iTrait, ]
+      #   prov <- prov[with(prov, order(-predictedValue)), ]
+      #   selected <- prov[1:round(nrow(prov)*iProportion),"designation"]
+      #   mydataOcs[which( (mydataOcs$trait == iTrait) & (mydataOcs$designation %in% selected) ), "selected"] <- "yes"
+      # }
+      p <- ggplot2::ggplot(mydataOcs, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+        ggplot2::geom_histogram() +
+        ggplot2::ylab("Frequency") +
+        ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+        ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
+      
+      # p
+      plotly::ggplotly(p)
+    })
+    
+  }
+  
+}
+
+```
 
 ### Selection history
 
@@ -865,12 +933,9 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  rggId <- modelingAbi[modelingAbi$parameter == "rgg", "value"]
-  
-  mod <- result$modeling %>% filter(analysisId==rggId)
-  # predsId <- mod[mod$analysisId == rggId & mod$trait == "inputObject","value"]
-  pred <- result$predictions %>% filter(analysisId == rggId) # before we use the predsId but now we store the designation predictions in the rgg functions
-  met <- result$metrics %>% filter(analysisId==rggId)
+  mod <- result$modeling %>% filter(analysisId==idRgg)
+  pred <- result$predictions %>% filter(analysisId == idRgg) # before we use the predsId but now we store the designation predictions in the rgg functions
+  met <- result$metrics %>% filter(analysisId==idRgg)
   traits <- unique(met$trait)
   ped <- result$data$pedigree
   paramsPed <- result$metadata$pedigree

@@ -19,11 +19,11 @@ mod_abiDashboard_ui <- function(id){
                                       tabPanel("Pick time stamps", icon = icon("magnifying-glass-chart"),
                                                br(),
                                                column(width=12,
-                                                      column(width=2,  selectInput(ns("versionMetrics"), "STA version for metrics view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=2,  selectInput(ns("versionTraits"), "MTA version for trait view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=2,  selectInput(ns("versionIndex"), "Index version for trait view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=2,  selectInput(ns("versionSelection"), "OCS version for selection view", choices = NULL, multiple = FALSE) ),
-                                                      column(width=2,  selectInput(ns("versionHistory"), "RGG version for selection hostory", choices = NULL, multiple = FALSE) ),
+                                                      # column(width=2,  selectInput(ns("versionMetrics"), "STA version for metrics view", choices = NULL, multiple = FALSE) ),
+                                                      # column(width=2,  selectInput(ns("versionTraits"), "MTA version for trait view", choices = NULL, multiple = FALSE) ),
+                                                      # column(width=2,  selectInput(ns("versionIndex"), "Index version for trait view", choices = NULL, multiple = FALSE) ),
+                                                      column(width=6,  selectInput(ns("versionSelection"), "OCS analysis (to trace selection)", choices = NULL, multiple = FALSE) ),
+                                                      column(width=6,  selectInput(ns("versionHistory"), "RGG analysis (to link gain)", choices = NULL, multiple = FALSE) ),
                                                       style = "background-color:grey; color: #FFFFFF"),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -76,39 +76,39 @@ mod_abiDashboard_server <- function(id, data){
     ############################################################################
     #################
     ## version
-    observeEvent(c(data()), {
-      req(data())
-      dtAbi <- data()
-      dtAbi <- dtAbi$status
-      if(!is.null(dtAbi)){
-      dtAbi <- dtAbi[which(dtAbi$module %in% c("sta")),]
-      traitsAbi <- unique(dtAbi$analysisId)
-      if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
-      updateSelectInput(session, "versionMetrics", choices = traitsAbi)
-      }
-    })
-    observeEvent(c(data()), {
-      req(data())
-      dtAbi <- data()
-      dtAbi <- dtAbi$status
-      if(!is.null(dtAbi)){
-        dtAbi <- dtAbi[which(dtAbi$module %in% c("mta")),]
-        traitsAbi <- unique(dtAbi$analysisId)
-        if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
-        updateSelectInput(session, "versionTraits", choices = traitsAbi)
-      }
-    })
-    observeEvent(c(data()), {
-      req(data())
-      dtAbi <- data()
-      dtAbi <- dtAbi$status
-      if(!is.null(dtAbi)){
-        dtAbi <- dtAbi[which(dtAbi$module %in% c("indexD")),]
-        traitsAbi <- unique(dtAbi$analysisId)
-        if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
-        updateSelectInput(session, "versionIndex", choices = traitsAbi)
-      }
-    })
+    # observeEvent(c(data()), {
+    #   req(data())
+    #   dtAbi <- data()
+    #   dtAbi <- dtAbi$status
+    #   if(!is.null(dtAbi)){
+    #   dtAbi <- dtAbi[which(dtAbi$module %in% c("sta")),]
+    #   traitsAbi <- unique(dtAbi$analysisId)
+    #   if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+    #   updateSelectInput(session, "versionMetrics", choices = traitsAbi)
+    #   }
+    # })
+    # observeEvent(c(data()), {
+    #   req(data())
+    #   dtAbi <- data()
+    #   dtAbi <- dtAbi$status
+    #   if(!is.null(dtAbi)){
+    #     dtAbi <- dtAbi[which(dtAbi$module %in% c("mta")),]
+    #     traitsAbi <- unique(dtAbi$analysisId)
+    #     if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+    #     updateSelectInput(session, "versionTraits", choices = traitsAbi)
+    #   }
+    # })
+    # observeEvent(c(data()), {
+    #   req(data())
+    #   dtAbi <- data()
+    #   dtAbi <- dtAbi$status
+    #   if(!is.null(dtAbi)){
+    #     dtAbi <- dtAbi[which(dtAbi$module %in% c("indexD")),]
+    #     traitsAbi <- unique(dtAbi$analysisId)
+    #     if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+    #     updateSelectInput(session, "versionIndex", choices = traitsAbi)
+    #   }
+    # })
     observeEvent(c(data()), {
       req(data())
       dtAbi <- data()
@@ -177,12 +177,14 @@ mod_abiDashboard_server <- function(id, data){
     ## render the data to be analyzed
     output$phenoAbi <-  DT::renderDT({
       req(data())
-      req(input$versionMetrics)
+      req(input$versionSelection)
       dtAbi <- data()
-      dtAbi <- dtAbi$predictions
-      dtAbi <- dtAbi[which(dtAbi$analysisId %in% c( input$versionMetrics, input$versionTraits, input$versionSelection, input$versionHistory ) ),setdiff(colnames(dtAbi),c("module","analysisId"))]
-      numeric.output <- c("predictedValue", "stdError", "reliability")
-      DT::formatRound(DT::datatable(dtAbi, extensions = 'Buttons',
+      # dtAbi <- dtAbi$predictions
+      # dtAbi <- dtAbi[which(dtAbi$analysisId %in% c( input$versionMetrics, input$versionTraits, input$versionSelection, input$versionHistory ) ),setdiff(colnames(dtAbi),c("module","analysisId"))]
+      # numeric.output <- c("predictedValue", "stdError", "reliability")
+      colTypes <- unlist(lapply(dtAbi$data$pheno, class))
+      numeric.output <- names(colTypes)[which(colTypes == "numeric")]
+      DT::formatRound(DT::datatable(dtAbi$data$pheno, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
@@ -195,13 +197,13 @@ mod_abiDashboard_server <- function(id, data){
     ## render result of "run" button click
     outAbi <- eventReactive(input$runAbi, {
       req(data())
-      req(input$versionMetrics) # minimum requirements for the dashboard is the data and sta
+      # req(input$versionMetrics) # minimum requirements for the dashboard is the data and sta
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       result <- data()
       idAbi <- as.numeric(Sys.time())
       abiModeling <- data.frame(module="abiDash", analysisId=idAbi, trait="inputObject", environment=NA,
-                 parameter= c("sta", "mta","indexD", "ocs", "rgg") ,
-                 value=c(input$versionMetrics, input$versionTraits, input$versionIndex, input$versionSelection, input$versionHistory )
+                 parameter= c( "ocs", "rgg") , # "sta", "mta","indexD",
+                 value=c(input$versionSelection, input$versionHistory ) # input$versionMetrics, input$versionTraits, input$versionIndex,
                  )
       abiStatus <- data.frame(module="abiDash", analysisId=idAbi)
       result$modeling <- rbind(result$modeling, abiModeling)

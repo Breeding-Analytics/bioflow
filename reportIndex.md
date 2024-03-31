@@ -20,7 +20,7 @@ The following table allows you to inspect the across-environment predictions for
 <p>&nbsp;</p>
 
 NULL
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out0c4ad5453d2b3305" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out4645f13dcb2606bc" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -30,7 +30,7 @@ This plot allows the user to visualize the distance between the population means
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out3afad1756a6c10ce" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out628724d59e93db7f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Expected Response Plot
@@ -44,7 +44,7 @@ This plot allows the user to visualize the expected response in the new generati
 <input id="reportBuilder_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out8f312f11bc123332" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out6def54e03236f714" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### References of methods used
 

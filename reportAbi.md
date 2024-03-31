@@ -2,10 +2,26 @@
 title: "Accelerated Breeding Initiative Dashboard"
 author: ""
 date: "2023-11-03"
-output: html_document
+output: 
+  rmdformats::robobook:
+    toc_depth: 4
 params:
  toDownload: FALSE
 ---
+
+<style>
+.main-container {
+  max-width: 200%;
+  margin-left: 0;
+  margin-right: 0;
+}
+.tab-content {
+  margin-bottom: 50px;
+}
+.book .book-body .page-inner {
+  max-width: 2000px;
+}
+</style>
 
 
 
@@ -30,7 +46,7 @@ The following visualization shows which data types was used for this pipeline. I
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out6dca4a2ab6a644ae" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out39bc93468736c271" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Base metrics
 
@@ -47,7 +63,7 @@ Variance component proportions
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out2e30c08dd8cd50e6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out1fc300253d3052c1" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 Barplot for parameter values
 
@@ -62,7 +78,7 @@ Barplot for parameter values
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out85a73f42cab46036" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out7b489a603d39c3b6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 Correlation between environments
 
@@ -75,7 +91,7 @@ Correlation between environments
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outb634c0feb04418c9" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outbf46b4b9f93a6bd8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 Connectivity between the environments
 
@@ -88,20 +104,21 @@ Connectivity between the environments
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out07ed573a39afb58b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out2d45749760e88201" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Trait view
 
 The following graphs aim to sow the genetic correlation between traits using across environment estimates of genetic merit. In addition, the radar plot displays the population means and the target values for the product profile to show the differences between these two and see how big are the gaps.
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="abiDashboard_1-out4de146cd12c8b621" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="abiDashboard_1-out6d397e3456eab67b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outefbc63f310e34489" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out06398e7d8e1b324b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Selection results
 
 The following graph display the expected gain after the selection of parents and crosses for the next generation. The density plots show the base population (red), the selected population of parents (blue), and the predicted distribution of the crosses to be made (green). The distribution of selected parents and future crosses come from the optimal cross selection (OCS) run.
 
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out5649a912d3a68ed5" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Selection history
 
@@ -116,5 +133,5 @@ The following graph shows the realized genetic gain for this pipeline. The x-axi
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outd9b8e221aeeb2db4" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outf0536e9aed8a2d3c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
