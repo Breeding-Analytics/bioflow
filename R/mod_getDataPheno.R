@@ -159,17 +159,21 @@ mod_getDataPheno_ui <- function(id){
                           )
                         },
 
-                        p(span("Note: If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
+                        # p(span("Note: If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
 
                         hr(),
                         uiOutput(ns('brapi_trait_map')),
                         DT::DTOutput(ns('preview_pheno')),
                         uiOutput(ns('pheno_map')),
-                        actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-                        selectInput(ns("featuresEnvironment"), "", choices = NULL, multiple = TRUE),
-                        p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'country', 'location', 'trial' and 'study' to create a new column named environment.", style="color:orange")),
-                        textOutput(ns("outConcatenateEnv")),
     ),
+
+    tags$div(id = ns('concat_environment_holder'),
+              actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
+              selectInput(ns("featuresEnvironment"), "Columns forming environment:", choices = NULL, multiple = TRUE),
+              # p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'country', 'location', 'trial' and 'study' to create a new column named environment.", style="color:orange")),
+              textOutput(ns("outConcatenateEnv")),
+    ),
+
   )
 }
 
@@ -183,6 +187,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     observeEvent(
       input$pheno_input,
       if(length(input$pheno_input) > 0){ # added
+        golem::invoke_js('hideid', ns('concat_environment_holder'))
         if (input$pheno_input == 'file') {
           golem::invoke_js('showid', ns('pheno_file_holder'))
           golem::invoke_js('hideid', ns('pheno_url'))
@@ -549,6 +554,15 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           return(NULL)
         }
       )
+    })
+
+
+    observeEvent(c(data()), { # update trait
+      req(data())
+      dtMta <- data()$data$pheno
+      if(!is.null(dtMta)){
+        golem::invoke_js('showid', ns('concat_environment_holder'))
+      }
     })
 
     observeEvent(
