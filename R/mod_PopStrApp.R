@@ -478,11 +478,11 @@ mod_PopStrApp_server <- function(id, data){
    DataG(dat)
  })
 
- observeEvent(input[["geno_group"]], {
-   src <- normalizePath("www/example/Groupgeno.csv")
-   dat <- read.csv(src)
-   DataG(dat)
- })
+# observeEvent(input[["geno_group"]], {
+#   src <- normalizePath("www/example/Groupgeno.csv")
+#   dat <- read.csv(src)
+#   DataG(dat)
+# })
 
   mdata1=reactive({
     library(ape)
