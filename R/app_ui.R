@@ -32,16 +32,26 @@ app_ui <- function(request) {
 
       title=div(img(src="www/cgiarmini.png"), "",style = "color:#FFFFFF"),
 
-      tabPanel("Home", mod_homeApp_ui("homeApp_1"), icon = icon("house")  ),
+      navbarMenu("Home", icon = icon("house"),
+                 tabPanel(div( "Bioflow", icon("battery") ), mod_homeApp_ui("homeApp_1")  ),
+                 tabPanel( tags$a(href="https://cgiar-service-portal-prd.azurewebsites.net/register", "Service Portal (BRI)", target="_blank")  ),
+                 tabPanel(div( "About us", icon("question") ),
+                          tabsetPanel( #widths = c(1, 11),
+                            tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
+                            tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),
+                            tabPanel("Contact us", mod_contactUsApp_ui("contactUsApp_1"), icon = icon("envelope") ),
+                          )
+                 ),
+      ),
 
       navbarMenu("Data Management ", icon = icon("upload"),
                  tabPanel(div(icon("folder"), "Retrieve New Data"),
                           tabsetPanel( #widths = c(1, 11),
-                                        tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
-                                        tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
-                                        tabPanel(div(icon("code-fork"), "Pedigree"), mod_getDataPed_ui("getDataPed_1") ),
-                                        tabPanel(div(icon("cloud-sun-rain"), "Weather"), mod_getDataWeather_ui("getDataWeather_1") ),
-                                        tabPanel(div(icon("anchor"), "QTL profile"), mod_getDataQTL_ui("getDataQTL_1") ),
+                            tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
+                            tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
+                            tabPanel(div(icon("code-fork"), "Pedigree"), mod_getDataPed_ui("getDataPed_1") ),
+                            tabPanel(div(icon("cloud-sun-rain"), "Weather"), mod_getDataWeather_ui("getDataWeather_1") ),
+                            tabPanel(div(icon("anchor"), "QTL profile"), mod_getDataQTL_ui("getDataQTL_1") ),
                           )
                  ),
                  tabPanel(div(icon("folder-open"), "Retrieve Old Analysis"),
@@ -108,12 +118,6 @@ app_ui <- function(request) {
                  tabPanel(strong("DASHBOARDS")  ),
                  tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
                  tabPanel("Analytical Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
-      ),
-
-      navbarMenu("About", icon = icon("question"),
-                 tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
-                 tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),
-                 tabPanel("Contact us", mod_contactUsApp_ui("contactUsApp_1"), icon = icon("envelope") )
       ),
 
     )
