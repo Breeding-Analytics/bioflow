@@ -44,14 +44,14 @@ mod_PopStrApp_ui <- function(id){
                                                           ),
                                                     )
                                 ),
-                                
+
                                 tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
                                          tabPanel("Run analysis", icon = icon("play"),
                                                   br(),
                                                   actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
                                                   uiOutput(ns("outPopStr")),
-                                                  
+
                                          ),
                                          tabPanel("Additional settings...", icon = icon("table"),
                                            br(),
@@ -79,7 +79,7 @@ mod_PopStrApp_ui <- function(id){
                                                   radioButtons(ns("distk"), "Genetic distance to be calculate",choices = c(Rogers = "Rogers", Nei = "Nei"))
                                            )
                                   )
-                                  
+
                                 )
                        ),
 
@@ -128,7 +128,7 @@ mod_PopStrApp_ui <- function(id){
                                                                                                             selectInput(ns('colordend'),'Choose a color',choices = '',selected="",multiple=T)
                                                                    ),
                                                                    div(plotOutput(ns("dend"),height = "750px",width = "950px"),align="center")
-                                                                   
+
                                            ),
                                            shinydashboard::box(title="Fst",status="success",width = 12,solidHeader = TRUE, collapsible = FALSE,
                                                                column(width=12,DT::DTOutput(ns("seeDataGDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
@@ -199,7 +199,7 @@ mod_PopStrApp_ui <- function(id){
                                   #inicia dend
                                   #tabPanel("Dendogram", icon = icon("magnifying-glass-chart"),
                                   #         br(),
-                                  #         
+                                  #
                                   #),
                                   #termina dend
                                   tabPanel("Report", icon = icon("file-image"),
@@ -275,7 +275,7 @@ mod_PopStrApp_server <- function(id, data){
         })
         HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
     })
-    
+
     DoforDiv<-reactive({
       library(stringr)
       req(data())
@@ -389,7 +389,7 @@ mod_PopStrApp_server <- function(id, data){
     datos<-as.data.frame(DoforDiv()[[5]])
     datos1<-as.data.frame(mdata1()[[1]])
 	  seedatosFst=cgiarBase::gdiv(datos,datos1,as.character(input$catv),as.character(input$quitomono),as.data.frame(DoforDiv()[[6]]))
-    
+
     seedatos1<-as.data.frame(seedatosFst[[1]])
     names(seedatos1)=c("Parameter","Groups","Fst","NumMark_UsedForCalculated")
     seedatos1$Fst=round(as.numeric(seedatos1$Fst),4)
@@ -432,9 +432,9 @@ mod_PopStrApp_server <- function(id, data){
      seedatos<-data()[["PopStr"]]
      seedatosStaM<-as.data.frame(seedatos[[4]])
      seedatosStaM[,1]=rownames(seedatosStaM)
-     
+
      seedatosStaM[,2:7]=apply(seedatosStaM[,2:7],2,function(x){round(as.numeric(x),4)})
-     
+
      DT::datatable(seedatosStaM, extensions = 'Buttons',
                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
@@ -472,18 +472,18 @@ mod_PopStrApp_server <- function(id, data){
   #shinyFiles::shinyFileChoose(input, ns('fileenvbio'), roots = shinyFiles::getVolumes(),filetypes=c('', 'csv'))
 
  DataG <- reactiveVal(NULL)
- 
+
  observeEvent(input[["input$fileenvbio"]], {
    dat <- read.csv(input[["input$fileenvbio"]][["datapath"]])
    DataG(dat)
  })
- 
+
  observeEvent(input[["geno_group"]], {
-   src <- normalizePath("inst/app/www/example/Groupgeno.csv")
+   src <- normalizePath("www/example/Groupgeno.csv")
    dat <- read.csv(src)
    DataG(dat)
  })
- 
+
   mdata1=reactive({
     library(ape)
     #Cada que se actualice nclust
@@ -650,7 +650,7 @@ mod_PopStrApp_server <- function(id, data){
       file.rename(out, file)
     }
   )
-  
+
 
   })
 }
