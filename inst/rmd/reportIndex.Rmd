@@ -83,13 +83,7 @@ get_h <- function() {
 }
 ```
 
-### Across-environment trait table
-
-The following table allows you to inspect the across-environment predictions for the different entries (rows) and different traits (columns).
-
-<p>&nbsp;</p>
-
-```{r, results='asis'}
+```{r}
 suppressWarnings(tryCatch({
   if(file.exists("./outputs/resultIndex.RData")){
     load("./outputs/resultIndex.RData")
@@ -106,12 +100,27 @@ if (is.null(result)){
   mydata = result$predictions
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
-  idMet <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
-  mydata <- mydata[which(mydata$analysisId %in% c(idMet,idIndex)),]
+  idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydata <- mydata[which(mydata$analysisId %in% c(idMta,idIndex)),]
   wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
                          timevar = "trait", v.names = c("predictedValue"), sep= "_")
   colnames(wide) <- gsub("predictedValue_","",colnames(wide))
   numeric.output <- colnames(wide)[-c(1)]
+  
+}
+```
+
+### Across-environment trait table
+
+The following table allows you to inspect the across-environment predictions for the different entries (rows) and different traits (columns).
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
   
   if("params" %in% ls()){ # we will download the document
     printTable(wide)
@@ -144,9 +153,9 @@ if (is.null(result)){
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
   # idIndex <- modelingAbi[modelingAbi$parameter == "indexD", "value"]
-  # idMet <- modelingAbi[modelingAbi$parameter == "mta", "value"] 
-  idMet <- result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
-  mydata <- dtIdxD[which(dtIdxD$analysisId == idMet),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"] 
+  idMta <- result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydata <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
   # subset to only traits being part of the index
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
@@ -154,7 +163,7 @@ if (is.null(result)){
   dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
   ##
   environmentPredictionsRadar2="across"
-  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMet),"trait"])
+  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMta),"trait"])
   ## ensure product profile means come sorted
   meanGroupPredictionsRadar= result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),c("trait","value")]
   meanGroupPredictionsRadar <- meanGroupPredictionsRadar[with(meanGroupPredictionsRadar, order(as.numeric(as.factor(trait)))), ]
@@ -293,9 +302,11 @@ if (is.null(result)){
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
   idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
-  mydata <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  mydataMta <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  mydataIndex <- dtIdxD[which(dtIdxD$analysisId == idIndex),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  mydata <- rbind(mydataMta,mydataIndex)
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
-  uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
+  uTraits <- unique(mydata$trait)#result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
   uTraits <- gsub("_scaled","",uTraits)
   mydata$selected <- "no"
   
@@ -312,7 +323,7 @@ if (is.null(result)){
       cat("\n\n#####", iProportionTrait, "{.tabset .tabset-pills}       \n\n")
       
       for(iTrait in uTraits){ # iTrait = uTraits[1]
-        prov <- mydata[mydata$trait == iTrait, ]
+        prov <- mydata[mydata$trait == "desireIndex", ]
         prov <- prov[with(prov, order(-predictedValue)), ]
         selected <- prov[1:round(nrow(prov)*iProportionTrait),"designation"]
         mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
@@ -331,10 +342,10 @@ if (is.null(result)){
     plotly::renderPlotly({
       ## if user provides threshold values let them know the selection differentials
       for(iTrait in uTraits){ # iTrait = uTraits[1]
-        prov <- mydata[mydata$trait == iTrait, ]
+        prov <- mydata[mydata$trait == "desireIndex", ]
         prov <- prov[with(prov, order(-predictedValue)), ]
-        selected <- prov[1:round(nrow(prov)*input$proportionTrait),"designation"]
-       mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
+        selected <- prov[1:round(nrow(prov)*iProportionTrait),"designation"]
+        mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
       }
       p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
         ggplot2::geom_histogram() +
@@ -352,6 +363,72 @@ if (is.null(result)){
   
 }
 
+```
+
+### Index versus Trait Plot
+
+This plot allows the user to visualize the relationship between the selection index with other traits. This can be specially useful for selecting materials with high total merit and stability for yield.
+
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  
+  mtaTraits <- setdiff( colnames(wide), c("designation","desireIndex"))
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    shiny::selectInput(ns("traitMtaScatter"), 
+                       label = "Trait:", 
+                       multiple = FALSE,
+                       choices = mtaTraits, 
+    )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in mtaTraits){ # iTrait="Yield_Mg_ha"
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      wide$trait1 <- wide[,iTrait]
+      p <- ggplot(wide, aes(x=trait1, y=desireIndex, text=designation)) + 
+        geom_point(size=2, alpha = 0.6) + xlab(iTrait) + ylab("Selection Index") 
+      
+      if(nrow(wide) > 1000){ # go fixed format
+        print(p)
+      }else{ # go dynamic
+        print(htmltools::tagList(plotly::ggplotly(p)))
+      }
+    }
+    
+  }else{ # render in screen
+    
+    plotly::renderPlotly({
+      wide$trait1 <- wide[,input$traitMtaScatter]
+      p <- ggplot(wide, aes(x=trait1, y=desireIndex, text=designation)) + 
+        geom_point(size=2, alpha = 0.6) + xlab(input$traitMtaScatter) + ylab("Selection Index") 
+      
+      plotly::ggplotly(p)
+    })
+    
+  }
+  
+}
 ```
 
 ### References of methods used

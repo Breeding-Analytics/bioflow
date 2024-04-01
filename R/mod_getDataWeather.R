@@ -239,19 +239,27 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
         # save(xx, file="xx.RData")
         howManyProvidede <- apply(xx,1,function(x){length(which(is.na(x)))/length(x)})
         if( length(which(howManyProvidede != 0)) > 0  ){ # the user has not provided any full information for any field
-          cat( "Please fill the 4 fields required for at least one environment to extract weather data.")
+          cat( "Please fill the 4 fields required (latitude, longitude, planting date and harvesting date) for all environments to extract weather data.")
         }else{
-          result <- data()
-          weather <- cgiarPipeline::nasaPowerExtraction(LAT=xx$latitude,LONG=xx$longitude,
-                                                        date_planted=xx$plantingDate,
-                                                        date_harvest=xx$harvestingDate,
-                                                        environments=xx$environment,
-                                                        temporal=input$temporal
-          )
-          result$data$weather <- weather$WTH
-          result$metadata$weather <- unique(rbind(result$metadata$weather, weather$descriptive))
-          data(result)
-          cat(paste("Weather data saved succesfully."))
+
+          if ( nrow(unique(xx[,c("latitude","longitude")])) == nrow(xx) ){ # unique coordinates for each environment
+
+            result <- data()
+            weather <- cgiarPipeline::nasaPowerExtraction(LAT=xx$latitude,LONG=xx$longitude,
+                                                          date_planted=xx$plantingDate,
+                                                          date_harvest=xx$harvestingDate,
+                                                          environments=xx$environment,
+                                                          temporal=input$temporal
+            )
+            result$data$weather <- weather$WTH
+            result$metadata$weather <- unique(rbind(result$metadata$weather, weather$descriptive))
+            data(result)
+            cat(paste("Weather data saved succesfully."))
+
+          }else{
+            cat(paste("Different environments cannot have the same coordinates. Please correct."))
+          }
+
         }
         shinybusy::remove_modal_spinner()
       }
