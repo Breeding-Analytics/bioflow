@@ -1,4 +1,4 @@
-geno_group<- 'www/example/Groupgeno.csv'
+geno_groupPopStr<- 'www/example/Groupgeno.csv'
 #' PopStrApp UI Function
 #'
 #' @description A shiny Module.
@@ -67,10 +67,10 @@ mod_PopStrApp_ui <- function(id){
                                                             )
                                                   ),
                                                     checkboxInput(
-                                                      inputId = ns('geno_group'),
+                                                      inputId = ns('geno_groupPopStr'),
                                                       label = span('Load example ',
-                                                                   a('group data', target = '_blank',
-                                                                     href = geno_group)),
+                                                                   a('external group data', target = '_blank',
+                                                                     href = geno_groupPopStr)),
                                                       value = FALSE
                                                     ),
                                                   hr(),
@@ -469,8 +469,7 @@ mod_PopStrApp_server <- function(id, data){
  })
 
   #Transformacion de los datos, para el uso posterior en los graficos
-  #shinyFiles::shinyFileChoose(input, ns('fileenvbio'), roots = shinyFiles::getVolumes(),filetypes=c('', 'csv'))
-
+ 
  DataG <- reactiveVal(NULL)
 
  observeEvent(input[["input$fileenvbio"]], {
@@ -478,7 +477,7 @@ mod_PopStrApp_server <- function(id, data){
    DataG(dat)
  })
 
-# observeEvent(input[["geno_group"]], {
+# observeEvent(input[["geno_groupPopStr"]], {
 #   src <- normalizePath("www/example/Groupgeno.csv")
 #   dat <- read.csv(src)
 #   DataG(dat)
@@ -498,9 +497,6 @@ mod_PopStrApp_server <- function(id, data){
     data1$Factor3=as.numeric(as.character(data1$Factor3))
     data1$GroupClust=as.factor(as.character(data1$GroupClust))
     #Cuando se agrega un archivo para grupos externos
-    #if (!is.null(input$fileenvbio)){
-    #  inFileenvbio<-input$fileenvbio$datapath
-    #  dfenvbio <- read.csv(as.character(inFileenvbio),header = TRUE,sep = ",")
     if (!is.null(DataG())){
       dfenvbio <-DataG()
   	  dfenvbio[,1]<-dfenvbio[,1]
@@ -565,10 +561,6 @@ mod_PopStrApp_server <- function(id, data){
       #titulo y etiquetas ejes
       p= p %>% plotly::layout(title=input$tp,titlefont=list(size=input$ts,color=input$pnc), xaxis = list(title = input$tx, titlefont=list(size=input$szl,color=input$ac)),
              yaxis = list(title = input$ty,titlefont=list(size=input$szl,color=input$ac)))
-
-    #el siguiente codigo, cambia temporalmente el directorio de trabajo para guardar el grafico 2d
-    #primero se especifica la direccion en la que se guardara y luego la accion (guardar el grafico)
-    #withr::with_dir(file.path(DoforDiv()[[3]]),saveWidget(p,paste0('MDS2d',input$catv,'.html'), selfcontained = F))
     p
     }else{
       fig = plotly::plot_ly()
@@ -589,17 +581,6 @@ mod_PopStrApp_server <- function(id, data){
     distplot=plotly::plot_ly(x=names,y=names,z = distMat, colorscale="viridis",type = "heatmap")
     distplot=distplot %>% plotly::layout(xaxis = list(showticklabels = F), yaxis = list(showticklabels = F))
     distplot
-    #mydata<-data()$data$geno
-    #if(!is.null(mydata)){
-    #  use=as.data.frame(mdata1()[[1]])
-    #  groupheat=as.character(input$catv)
-    #  use=use[order(use[,groupheat]),]
-    #  useorder=match(use$Gen,rownames(DoforDiv()[[6]]))
-    #  heatxy<-rownames(DoforDiv()[[6]])[useorder]
-    #  heatz<-DoforDiv()[[6]][useorder,useorder]
-    #  distplot=plotly::plot_ly(x=rownames(DoforDiv()[[6]])[useorder],y=rownames(DoforDiv()[[6]])[useorder],z = DoforDiv()[[6]][useorder,useorder], colorscale=input$colorheat,type = "heatmap")
-    #  distplot=distplot %>% plotly::layout(xaxis = list(showticklabels = F), yaxis = list(showticklabels = F))
-    #  distplot
     }else{
       fig = plotly::plot_ly()
       fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
