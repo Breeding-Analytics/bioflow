@@ -345,7 +345,10 @@ mod_qaRawApp_server <- function(id, data){
         if(!inherits(result,"try-error")) { # if all goes well in the run
           # ## Report tab
           output$reportQaPheno <- renderUI({
-            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+            src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            HTML(markdown::markdownToHTML(knitr::knit("report.Rmd"), fragment.only=TRUE))
+            # HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
           })
 
           output$downloadReportQaPheno <- downloadHandler(
