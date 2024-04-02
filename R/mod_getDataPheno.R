@@ -184,10 +184,14 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    golem::invoke_js('hideid', ns('pheno_brapi_options'))
+    golem::invoke_js('hideid', ns('pheno_url'))
+
     observeEvent(
       input$pheno_input,
       if(length(input$pheno_input) > 0){ # added
         golem::invoke_js('hideid', ns('concat_environment_holder'))
+
         if (input$pheno_input == 'file') {
           golem::invoke_js('showid', ns('pheno_file_holder'))
           golem::invoke_js('hideid', ns('pheno_url'))
