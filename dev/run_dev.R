@@ -13,3 +13,5 @@ golem::document_and_reload()
 
 # Run the application
 run_app()
+
+#profvis::profvis(print(run_app()))
