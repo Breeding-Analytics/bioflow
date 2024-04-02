@@ -35,7 +35,7 @@ Imports:
     plotly,
     plyr,
     psych,
-    QBMS (>= 0.9.1),
+    QBMS (>= 1.0.0),
     RColorBrewer,
     RSpectra,
     shiny (>= 1.7.5),
@@ -72,5 +72,4 @@ Remotes:
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
-    r-lib/async,
-    icarda-git/QBMS
+    r-lib/async
