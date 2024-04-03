@@ -30,19 +30,18 @@ app_server <- function(input, output, session) {
   mod_getDataQTL_server("getDataQTL_1", data = data, res_auth = res_auth)
 
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
-  # mod_getOldAnalysis_server("getOldAnalysis_1",data = data, res_auth=res_auth)
-  # mod_getDataWeather_server("getDataWeather_1", data = data)
 
   ## QUALITY ASSURANCE tabs
   mod_qaRawApp_server("qaRawApp_1", data = data)
-  mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
   mod_qaPedApp_server("qaPedApp_1",data = data)
-  mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
+
   ## DATA TRANSFORMATIONS
   mod_traitTransformApp_server("traitTransformApp_1", data = data)
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
   mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
+  mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
+  mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
 
   # SELECTION - genetic evaluation
   mod_staApp_server("staApp_1", data = data) # single trial analysis

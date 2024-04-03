@@ -50,7 +50,7 @@ mod_filterPhenoApp_ui <- function(id){
                                                   selectInput(ns("trials"), "Trials to keep", choices = NULL, multiple = TRUE),
                                                   selectInput(ns("environments"), "Environments to keep", choices = NULL, multiple = TRUE),
                                                   shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
-                                                                      sliderInput(ns("slider1"), label = "Maximum #of genotypes allowed (trials with more will be removed)", min = 0,max = 5000, value = 500)
+                                                                      sliderInput(ns("slider1"), label = "Maximum #of genotypes allowed (trials with more will be removed)", min = 0,max = 500000, value = 500000)
                                                   ),
                                            ),
                                            column(width=6, style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
@@ -159,10 +159,13 @@ mod_filterPhenoApp_server <- function(id, data){
           dtQaRaw <- droplevels(dtQaRaw[which(dtQaRaw[,envCol] %in% keepEnvs),])
 
           traitsQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
-          if( traitsQaRaw %in% colnames(dtQaRaw)  & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+          if(length(traitsQaRaw) > 0){
+            if( traitsQaRaw %in% colnames(dtQaRaw)  & input$traitFilterPheno %in% colnames(dtQaRaw) ){
             newLevels <-  na.omit(unique(dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),traitsQaRaw]))
             if(length(newLevels)==0){newLevels <- "all"}
           }else{newLevels <- "all"}
+          }else{newLevels <- "all"}
+
           updateSelectInput(session, "years",choices = newLevels, selected = newLevels)
           shinyjs::hide(ns("years"))
         }
@@ -183,12 +186,16 @@ mod_filterPhenoApp_server <- function(id, data){
 
           yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
           seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
-          if(length(seasonQaQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+
+          if(length(seasonQaQaRaw) > 0){
+            if(length(seasonQaQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
             reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
             if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
             newLevels <- na.omit(unique(reduced2[,seasonQaQaRaw]))
             if(length(newLevels)==0){newLevels <- "all"}
           }else{newLevels <- "all"}
+          }else{newLevels <- "all"}
+
           updateSelectInput(session, "seasons",choices = newLevels, selected = newLevels)
           shinyjs::hide(ns("seasons"))
         }
@@ -210,13 +217,16 @@ mod_filterPhenoApp_server <- function(id, data){
           yearQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
           seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
           countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
-          if(length(countryQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+          if(length(countryQaRaw) > 0){
+             if(length(countryQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
             reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
             if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
             if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
             newLevels <- na.omit(unique(reduced3[,countryQaRaw]))
             if(length(newLevels)==0){newLevels <- "all"}
           }else{newLevels <- "all"}
+          }else{newLevels <- "all"}
+
           updateSelectInput(session, "countries",choices = newLevels, selected = newLevels)
           shinyjs::hide(ns("countries"))
         }
@@ -239,7 +249,8 @@ mod_filterPhenoApp_server <- function(id, data){
           seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
           countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
           locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
-          if(length(locationQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+          if(length(locationQaRaw) > 0){
+             if(length(locationQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
             reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
             if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
             if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
@@ -247,6 +258,8 @@ mod_filterPhenoApp_server <- function(id, data){
             newLevels <- na.omit(unique(reduced4[,locationQaRaw]))
             if(length(newLevels)==0){newLevels <- "all"}
           }else{newLevels <- "all"}
+          }else{newLevels <- "all"}
+
           updateSelectInput(session, "locations",choices = newLevels, selected = newLevels)
           shinyjs::hide(ns("locations"))
         }
@@ -270,7 +283,8 @@ mod_filterPhenoApp_server <- function(id, data){
           countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
           locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
           trialQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="trial","value"]) # column for year
-          if(length(trialQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+          if(length(trialQaRaw) > 0){
+            if(length(trialQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
             reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
             if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
             if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
@@ -279,6 +293,8 @@ mod_filterPhenoApp_server <- function(id, data){
             newLevels <- na.omit(unique(reduced5[,trialQaRaw]))
             if(length(newLevels)==0){newLevels <- "all"}
           }else{newLevels <- "all"}
+          }else{newLevels <- "all"}
+
           updateSelectInput(session, "trials",choices = newLevels, selected = newLevels)
           shinyjs::hide(ns("trials"))
         }
@@ -303,7 +319,8 @@ mod_filterPhenoApp_server <- function(id, data){
           locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
           trialQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="trial","value"]) # column for year
           environmentQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"]) # column for year
-          if(length(environmentQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+          if(length(environmentQaRaw) > 0){
+            if(length(environmentQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
             reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
             if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
             if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
@@ -313,6 +330,8 @@ mod_filterPhenoApp_server <- function(id, data){
             newLevels <- na.omit(unique(reduced6[,environmentQaRaw]))
             if(length(newLevels)==0){newLevels <- "all"}
           }else{newLevels <- "all"}
+          }else{newLevels <- "all"}
+
           updateSelectInput(session, "environments",choices = newLevels, selected = newLevels)
           shinyjs::hide(ns("environments"))
         }

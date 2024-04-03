@@ -781,7 +781,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         }else if(length(otherEnvironmentColumn) == 1){
           myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
           data(myObject)
-          shinyalert::shinyalert(title = "Success!", text = paste0("No additional columns to concatenate. '", myObject$metadata$pheno[environmentColumn, "value"], "' column is equal to ", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")
+          shinyalert::shinyalert(title = "Success!", text = paste0(myObject$metadata$pheno[environmentColumn, "value"], "' column is equal to ", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")
           # cat("No additional columns to concatenate to your 'study' column")
         }else {
           myObject$metadata$pheno <- myObject$metadata$pheno[-which(myObject$metadata$pheno$parameter == "environment"), ]
