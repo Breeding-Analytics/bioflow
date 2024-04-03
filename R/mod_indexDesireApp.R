@@ -56,7 +56,7 @@ mod_indexDesireApp_ui <- function(id){
                                      tabsetPanel(
                                        tabPanel("Pick MTA-stamp", icon = icon("table"),
                                                 br(),
-                                                column(width=12, selectInput(ns("version2IdxD"), "MTA version to analyze", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
+                                                column(width=12, selectInput(ns("version2IdxD"), "MTA version to analyze (required)", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
                                                 column(width=12,
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -79,7 +79,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
                                                        radioButtons(ns("rbSelectionIndices"),"Selection Index",choices=c("Desire","Base"), selected="Desire"),
                                                        conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                        selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
+                                                                        selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE),
                                                                         uiOutput(ns("SliderBaseIndex")),
                                                        ),
                                                        conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
@@ -120,7 +120,7 @@ mod_indexDesireApp_ui <- function(id){
                                                                  textOutput(ns("outIdxB"))
                                                 ),
                                                 conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                 actionButton(ns("runIdxD"), "Calculate index", icon = icon("play-circle")),
+                                                                 actionButton(ns("runIdxD"), "Calculate index (click)", icon = icon("play-circle")),
                                                                  uiOutput(ns("qaQcIdxDInfo")),
                                                                  textOutput(ns("outIdxD")),
                                                 ),
