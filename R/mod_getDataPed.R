@@ -224,6 +224,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
                                    session$clientData$url_port,
                                    session$clientData$url_pathname,
                                    ped_example)
+        # ped_example_url <- 'https://drive.google.com/uc?export=download&id=1rEVR_Xaidz4tjtLPMUe-I11cbR0a-Zcl'
 
         updateTextInput(session, 'ped_url', value = ped_example_url)
 

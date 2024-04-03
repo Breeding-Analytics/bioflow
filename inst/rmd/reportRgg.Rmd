@@ -191,10 +191,10 @@ if (is.null(result)){
       myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
                         round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
                         round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
-      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
+      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue  ) ) +
         geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
         theme_classic()+
-        geom_jitter(alpha = 0.6) +
+        geom_jitter(alpha = 0.6, width = 0.3) +
         labs(title=myLabel,x="Year of origin", y = "Trait performance") +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
       print(htmltools::tagList(plotly::ggplotly(p)))
@@ -210,10 +210,10 @@ if (is.null(result)){
       myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
                         round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
                         round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
-      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
+      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue  ) ) +
         geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
         theme_classic()+
-        geom_jitter(alpha = 0.6) +
+        geom_jitter(alpha = 0.6, width = 0.3) +
         labs(title=myLabel,x="Year of origin", y = "Trait performance") +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
       fig <-  plotly::ggplotly(p)#, height = get_h()*2);
