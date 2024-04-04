@@ -5,6 +5,7 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: html_document
 params:
  fieldinst: NULL
+ traits: NULL
  toDownload: FALSE
 ---
 
@@ -105,22 +106,26 @@ suppressWarnings(tryCatch({
 
 ```
 
-```{r getData, error = FALSE}
+```{r getData, results='asis', error = FALSE}
 ### loading the RData
-obj <- result
-dt_orig <- obj$data$pheno
+# result <- params$data
+dt_orig <- result$data$pheno
+dt_orig <- merge(dt_orig, result$data$pedigree, 
+                 by.x = result$metadata$pheno[result$metadata$pheno$parameter=="designation","value"], 
+                 by.y = result$metadata$pedigree[result$metadata$pedigree$parameter=="designation","value"], all.x = TRUE)
 
 ### change column names for mapping
-paramsPheno <- obj$metadata$pheno
+paramsPheno <- result$metadata$pheno
 paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+paramsPed <- result$metadata$pedigree
 colnames(dt_orig) <- cgiarBase::replaceValues(colnames(dt_orig), 
-                                              Search = paramsPheno$value, 
-                                              Replace = paramsPheno$parameter)
+                                              Search = c(paramsPheno$value,paramsPed$value), 
+                                              Replace = c(paramsPheno$parameter,paramsPed$parameter))
 
 ### remove the outliers
 dt_clean <- dt_orig
-rowPheno <- obj$modifications$pheno$row
-traitPheno <- obj$modifications$pheno$trait
+rowPheno <- result$modifications$pheno$row
+traitPheno <- result$modifications$pheno$trait
 
 for(i in length(rowPheno)){
   dt_clean[rownames(dt_clean) %in% rowPheno[i], traitPheno[i]] <- NA
@@ -140,13 +145,16 @@ if(is.null(params$fieldinst)){
 dt_orig <- dt_orig[which(dt_orig$environment %in% fieldinst),]
 dt_clean <- dt_clean[which(dt_clean$environment %in% fieldinst),]
 
-dt_sta_pred <- obj$predictions[which(obj$predictions$module == "sta"),]
+dt_sta_pred <- result$predictions[which(result$predictions$module == "sta"),]
 dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$environment %in% fieldinst),]
 
-dt_sta_met <- obj$metrics[which(obj$metrics$module == "sta"),]
+dt_sta_met <- result$metrics[which(result$metrics$module == "sta"),]
 dt_sta_met <- dt_sta_met[which(dt_sta_met$environment %in% fieldinst),]
 
 traits <- unique(dt_sta_met$trait)
+if(!is.null(params$traits)){
+  traits <- traits[which(traits %in% params$traits)]
+}
 numTraits <- length(traits)
 
 # traitDesc <- c("Grain Yield(in t/ha)", "Grain Per Panicle", "Unfilled Grain Per Panicle", "Percent Fertility", "Test_Weight")
@@ -162,11 +170,11 @@ numTraits <- length(traits)
 Summary of Number of Varieties per Variety Class; and Number of Trials in each Market Segment.
 
 ```{r dataInfo, echo = FALSE, message = FALSE, warning = FALSE}
-varInfo <- dt_clean %>% count(environment,entryType,designation,year) %>% 
+varInfo <- dt_clean %>% count(environment,entryType,designation,yearOfOrigin) %>% 
   mutate(color = case_when(entryType == "TEST VARIETY" ~ "#2835e6",
                            entryType == "LOCAL VARIETY" ~ "#038542",
                            entryType == "BENCHMARK VARIETY" ~ "#e65628")) %>% 
-  mutate(year = as.numeric(year)) %>% arrange(environment, designation, entryType)  
+  mutate(yearOfOrigin = as.numeric(yearOfOrigin)) %>% arrange(environment, designation, entryType)  
 
 varCodeColor <- varInfo %>% count(entryType, color) %>% arrange(entryType) %>% pull(color)
 
@@ -238,8 +246,8 @@ for (i in 1:numTraits) {
  
  BLUPs[[i]] <- BLUPs_trial[[i]]  %>% group_by(environment,entryType)
  BLUPs[[i]] <- BLUPs[[i]] %>% mutate(RankByType = rank(-predictedValue)) %>%
-               relocate(RankByType, .before = Rank) %>% arrange(Rank) %>% 
-               rename(yearOfOrigin = year)
+               relocate(RankByType, .before = Rank) %>% arrange(Rank)
+ # %>% rename(yearOfOrigin = year)
  # %>% relocate(params$experiment, params$entryType, params$entry) 
  
  BLUPs_All <- BLUPs %>% bind_rows()
@@ -473,7 +481,7 @@ for (i in 1:length(traits)) {
     if(nrow(UPR %>% filter(Control=="MFU")) > 1){
       MFU_vals <- UPR %>% filter(Control=="MFU")%>%pull(UL)
       for (k in nrow(UPR %>% filter(Control=="MFU"))){
-        assign(paste0("sigU_TVFV",k),subset(CI_TV,as.logical(MFU_vals[k] >= CI_TV$LL)==F))
+        assign(paste0("sigU_TVMFU",k),subset(CI_TV,as.logical(MFU_vals[k] >= CI_TV$LL)==F))
         sigU_TVMFU <- rbind(sigU_TVMFU, get(paste0("sigU_TVMFU",k)))
       }
     } else{
@@ -533,13 +541,13 @@ for (j in seq_along(RiceEnvs)) {
   BLUPs_BG <- comp_bestFVBM %>% filter(trait==traits[1] & environment == as.factor(RiceEnvs[j]))
   dt_orig$designation <- gsub(" ", "", dt_orig$designation)
    
-  Var_Dse_temp <- dt_orig   %>%  filter(environment == RiceEnvs[j]) %>% droplevels(.) %>%
-                  janitor::tabyl(designation,MDiseases) %>%  janitor::adorn_totals("col") %>% 
-                  mutate(environment=RiceEnvs[j])      
+  # Var_Dse_temp <- dt_orig   %>%  filter(environment == RiceEnvs[j]) %>% droplevels(.) %>%
+  #                 janitor::tabyl(designation,MDiseases) %>%  janitor::adorn_totals("col") %>% 
+  #                 mutate(environment=RiceEnvs[j], Yes=Total-No)      
 
   Var_Dse_temp <- dt_orig   %>%  filter(environment == RiceEnvs[j]) %>% droplevels(.) %>%
                   janitor::tabyl(designation,MDiseases) %>%  janitor::adorn_totals("col") %>% 
-                  mutate(environment=RiceEnvs[j], Yes=Total-No)
+                  mutate(environment=RiceEnvs[j]) %>% data.frame() 
     
  comp_bestBM_red <- comp_bestBM_ALL%>%filter(trait=="Yield") %>% 
                     select(environment, designation, predictedValue) %>% 
@@ -548,7 +556,26 @@ for (j in seq_along(RiceEnvs)) {
  Var_Dse <- merge(Var_Dse_temp, comp_bestBM_red, by =  c("environment", "designation"), all.x = T) 
  
  # Bargrpah of Disease Occ
- bar_dse[[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~Yes,
+ if(!"No" %in% colnames(Var_Dse)) {
+   bar_dse[[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~Yes,
+                          marker = list(color = 'gray', width=3), name = "With Disease", 
+                          width = 800, height = 800, type = "bar",text = Var_Dse$Yes, 
+                          textposition = 'inside', 
+                          textfont = list(color = 'darkblue', size = 12)) %>% 
+                  layout(barmode = 'stack') %>%
+                  layout(xaxis = list(title = "Designation"), 
+                         yaxis = list(title = "Count of With Disease")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
+ } else if(!"Yes" %in% colnames(Var_Dse)){
+     bar_dse[[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~No,
+                          marker = list(color = 'green', width=3), name = "Without Disease", 
+                          width = 800, height = 800, type = "bar",text = Var_Dse$No, 
+                          textposition = 'inside', 
+                          textfont = list(color = 'darkblue', size = 12)) %>% 
+                  layout(barmode = 'stack') %>%
+                  layout(xaxis = list(title = "Designation"), 
+                         yaxis = list(title = "Count of Without Disease")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
+ } else{
+     bar_dse[[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~Yes,
                           marker = list(color = 'gray', width=3), name = "With Disease", 
                           width = 800, height = 800, type = "bar",text = Var_Dse$Yes, 
                           textposition = 'inside', 
@@ -556,22 +583,29 @@ for (j in seq_along(RiceEnvs)) {
                   add_trace(y= ~No, marker = list(color = 'green', width=3), 
                             text = Var_Dse$No, name = "Without Disease", textposition = 'inside', 
                             textfont = list(color = 'darkblue', size = 12)) %>% 
-                  layout(yaxis = list(title = 'count'), barmode = 'stack') %>%
-                  layout(xaxis = list(title = "designation"), 
-                         yaxis = list(title = "Predicted Value")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
+                  layout(barmode = 'stack') %>%
+                  layout(xaxis = list(title = "Designation"), 
+                         yaxis = list(title = "Count")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
+ }
+ 
  # Bargrpah of Type of Disease
  TDse_temp <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes") %>%
               droplevels(.) %>%  janitor::tabyl(designation,Type_Disease) %>% 
               arrange(designation) %>%
               tibble::remove_rownames() %>% textshape::column_to_rownames(loc = "designation")  %>%               as.matrix()  
   
- DseSev_temp[[j]] <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes") %>% select(designation,Type_Disease,Disease_Severity) %>% 
+ 
+ if(nrow(dt_orig   %>%   filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes"))>0) {
+   DseSev_temp[[j]] <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes") %>% select(designation,Type_Disease,Disease_Severity) %>% 
                      group_by(designation, Type_Disease) %>% 
                      summarise(Severity=max(Disease_Severity)) %>% 
                      tidyr::pivot_wider(names_from = Type_Disease, values_from = Severity) %>% 
                      arrange(designation) %>% t() %>% as.data.frame() %>% 
                      set_names(slice(.,1)) %>% slice(-1) %>% 
                      tibble::rownames_to_column(var = "Type_Disease") %>% arrange(desc(Type_Disease))
+ } else{
+    DseSev_temp[[j]] <- dt_orig   %>%   filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes")
+ }
  
  palette <- colorRampPalette(c("palegreen","navy"))
   
@@ -595,34 +629,60 @@ for (i in 1:length(traits)) {
     
     cat("#### Bargraph \n")
     
-    BLUPs_BG <- comp_bestFVBM %>% filter(trait==traits[i] & environment == as.factor(RiceEnvs[j])) 
+    BLUPs_BG <- comp_bestFVBM %>% filter(trait==traits[i] & environment == as.factor(RiceEnvs[j])) %>%
+      mutate(color = case_when(entryType == "TEST VARIETY" ~ "#2835e6",
+                               entryType == "LOCAL VARIETY" ~ "#038542",
+                               entryType == "BENCHMARK VARIETY" ~ "#e65628"
+                               ))
     m <- list(l = 40,r = 40,b = 40,  t = 40)
     
+    t1 <- list(color = "blue", size=20)
+    
     BLUPsBG[[i]][[j]] <- plot_ly(BLUPs_BG, x = ~reorder(designation, -predictedValue),
-                                 marker = list(color = '#038542', width=3), width = 800, 
-                                 height = 800) %>% 
-                         add_trace(y = ~predictedValue,type = "bar", name = "Predicted Value",
-                                   text = round(BLUPs_BG$predictedValue,2), 
+                                 width = 800, height = 800) %>% 
+                         add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","designation"],
+                                   y = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","predictedValue"],
+                                   type = "bar", 
+                                   marker = list(color = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","color"], width=3),
+                                   name = "Test Variety",
+                                   text = round(BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","predictedValue"],2), 
                                    textposition = 'outside',
-                                   textfont = list(color = 'darkblue', size = 12)) %>%  
+                                   textfont = list(color = 'darkblue', size = 12)) %>% 
+                         add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","designation"],
+                                   y = BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","predictedValue"],
+                                   type = "bar", 
+                                   marker = list(color = BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","color"], width=3),
+                                   name = "Local Variety",
+                                   text = round(BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","predictedValue"],2), 
+                                   textposition = 'outside',
+                                   textfont = list(color = 'darkblue', size = 12)) %>%
+                         add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","designation"],
+                                   y = BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","predictedValue"],
+                                   type = "bar", 
+                                   marker = list(color = BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","color"], width=3),
+                                   name = "Benchmark Variety",
+                                   text = round(BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","predictedValue"],2), 
+                                   textposition = 'outside',
+                                   textfont = list(color = 'darkblue', size = 12)) %>%
+                         layout(xaxis = list(categoryorder = "total descending")) %>%
                          add_trace(y = ~gainOverLoc, mode = "lines+markers+text", type = "scatter",
-                                   yaxis = "y2", name = "% gain over FV", 
-                                   line = list(color = 'black', width = 3), 
+                                   yaxis = "y2", name = "% Gain over Local Variety", 
+                                   line = list(color = 'yellow', width = 3), 
                                    marker = list(color = 'white', size = 5), 
                                    text = round(BLUPs_BG$gainOverLoc,2), 
                                    textposition = 'bottom center', 
                                    textfont = list(color = 'white', size = 12)) %>%
                          layout(yaxis2 = list(overlaying = "y", side = "right")) %>% 
                          add_trace(y = ~gainOverBM, mode = "lines+markers+text", type = "scatter", 
-                                   yaxis = "y2", name = "% gain over BM", 
-                                   line = list(color = 'yellow', width = 3), 
+                                   yaxis = "y2", name = "% Gain over Benchmark Variety", 
+                                   line = list(color = 'black', width = 3), 
                                    marker = list(color = 'white', size = 5),
                                    text = round(BLUPs_BG$gainOverBM,2), 
                                    textposition = 'bottom center', 
                                    textfont = list(color = 'white', size = 12)) %>%
                          layout(xaxis = list(title = "Variety"), 
                                 yaxis = list(title = "Predicted Value"))  %>% 
-                         layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Predicted performance", margin = m)
+                         layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, font = list(size = 14))) %>% layout(title = list(text = "Predicted performance", font = t1), margin = m)
 
     print(htmltools::tagList(BLUPsBG[[i]][[j]]))
     cat("\\linebreak")
