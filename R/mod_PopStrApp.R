@@ -114,7 +114,7 @@ mod_PopStrApp_ui <- function(id){
                                            shinydashboardPlus::box(title = "Dendogram",closable = FALSE, width=12, solidHeader = TRUE, collapsible = TRUE, status="success",
                                                                    sidebar = shinydashboardPlus::boxSidebar(id="dend",width = 25,
                                                                                                             sliderInput(ns('sizeline'),'Size cluster line',min=0.1,max=2,value=0.9),
-                                                                                                            sliderInput(ns('sizelab'),'Size labels',min=0.5,max=5,value=3),
+                                                                                                            sliderInput(ns('sizelab'),'Size labels',min=0.5,max=0.6,value=3),
                                                                                                             sliderInput(ns('space'),'Spaces',min=0.1,max=2,value=0.2),
                                                                                                             tags$hr(),
                                                                                                             selectInput(ns('poslen'),'Position legend',choices=c('left','top','bottom','right'),selected='left'),
