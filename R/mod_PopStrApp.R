@@ -15,7 +15,7 @@ mod_PopStrApp_ui <- function(id){
   tagList(
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel(
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-Population structure") ,
                                 br(),
@@ -111,13 +111,10 @@ mod_PopStrApp_ui <- function(id){
                                   #termina heatmap
                                   tabPanel("Population structure", icon = icon("table"),
                                            br(),
-                                           #shinydashboard::box(title="AMOVA", status="success",width = 12, solidHeader = TRUE,
-                                           #                    column(width=12,DT::DTOutput(ns("seeDataGAmova")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
-                                           #)
                                            shinydashboardPlus::box(title = "Dendogram",closable = FALSE, width=12, solidHeader = TRUE, collapsible = TRUE, status="success",
                                                                    sidebar = shinydashboardPlus::boxSidebar(id="dend",width = 25,
                                                                                                             sliderInput(ns('sizeline'),'Size cluster line',min=0.1,max=2,value=0.9),
-                                                                                                            sliderInput(ns('sizelab'),'Size labels',min=0.5,max=5,value=3),
+                                                                                                            sliderInput(ns('sizelab'),'Size labels',min=0.5,max=0.6,value=3),
                                                                                                             sliderInput(ns('space'),'Spaces',min=0.1,max=2,value=0.2),
                                                                                                             tags$hr(),
                                                                                                             selectInput(ns('poslen'),'Position legend',choices=c('left','top','bottom','right'),selected='left'),
@@ -127,8 +124,8 @@ mod_PopStrApp_ui <- function(id){
                                                                                                             #Creacion de color para cambiar el color de los puntos del grafico de acuerdo a una lista de colores generada
                                                                                                             selectInput(ns('colordend'),'Choose a color',choices = '',selected="",multiple=T)
                                                                    ),
-                                                                   div(plotOutput(ns("dend"),height = "750px",width = "950px"),align="center")
-
+                                                                   div(plotOutput(ns("dend"),height = "750px",width = "1250px"),align="center")
+                                                                   
                                            ),
                                            shinydashboard::box(title="Fst",status="success",width = 12,solidHeader = TRUE, collapsible = FALSE,
                                                                column(width=12,DT::DTOutput(ns("seeDataGDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
@@ -137,11 +134,8 @@ mod_PopStrApp_ui <- function(id){
                                   #termina structure
                                   tabPanel("MDS", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           #shinydashboard::box(
-
                                            shinydashboardPlus::box(title = "2D-Plot",closable = FALSE, width=12, solidHeader = TRUE, collapsible = TRUE,status="success",
                                                                    sidebar = shinydashboardPlus::boxSidebar(id="mdsplot2d",width = 25,
-                                                                                                            #useShinyalert(),
                                                                                                             selectInput(ns('xcol'), 'X Variable',choices =""),
                                                                                                             selectInput(ns('ycol'), 'Y Variable',choices =""),
                                                                                                             selectInput(ns('zcol'), 'Z Variable',choices =""),
@@ -183,8 +177,6 @@ mod_PopStrApp_ui <- function(id){
                                                                                                             selectInput(ns('eti'),'Label points',choices=''),
                                                                                                             sliderInput(ns('size'),'Points size',min=5,max=25,value=7)
                                                                    ),
-                                                                   #cuadro de texto que se mostrara por default con una direccion en la que se encuentra el grafico 2d
-                                                                   #verbatimTextOutput(ns("default1"),placeholder = TRUE),
                                                                    #grafico 2d
                                                                    div(plotly::plotlyOutput(ns("try"),height = "750px",width = "950px"),align="center")
                                            ),
@@ -195,13 +187,6 @@ mod_PopStrApp_ui <- function(id){
                                                     )
                                            #)
                                   ),
-
-                                  #inicia dend
-                                  #tabPanel("Dendogram", icon = icon("magnifying-glass-chart"),
-                                  #         br(),
-                                  #
-                                  #),
-                                  #termina dend
                                   tabPanel("Report", icon = icon("file-image"),
                                            br(),
                                            div(tags$p("Please download the report below:") ),
@@ -233,12 +218,6 @@ mod_PopStrApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
-
-    # data = reactive({ # provisional dataset for testing
-    #   load("dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
     # warning message
     output$warningMessage <- renderUI({
 
@@ -252,11 +231,7 @@ mod_PopStrApp_server <- function(id, data){
         }
       }
    })
-    ##
-    #outPopStr <- eventReactive(input$runPopStr, {
-	   # req(data())
-    #  HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
-    #})
+    
     output$outPopStr <- renderUI({
       outPopStr()
     })
@@ -277,7 +252,6 @@ mod_PopStrApp_server <- function(id, data){
     })
 
     DoforDiv<-reactive({
-      library(stringr)
       req(data())
       outFolder<-"BioAnalysis"
       nall=2
@@ -291,7 +265,6 @@ mod_PopStrApp_server <- function(id, data){
       ht1=-1
       ht2=0
       ht3=1
-
       if (typedata=="SNP"){
 		    datos=replace(datos,datos==ht1,99)
 		    datos=replace(datos,datos==ht2,0.5)
@@ -305,9 +278,7 @@ mod_PopStrApp_server <- function(id, data){
       dirfile=as.character(mydata$data$genodir)
       nn=length(unlist((strsplit(dirfile,"[\\]"))))
       filename=as.character(unlist((strsplit(dirfile,"[\\]")))[nn])
-      outFolder <- paste("DiversityAnalysis_",str_replace(filename,".csv",""),sep="")
-      #if(!file.exists(outFolder)) dir.create(outFolder)
-      #setwd(outFolder)
+      outFolder <- paste("DiversityAnalysis_",stringr::str_replace(filename,".csv",""),sep="")
 
       ### Correr funciones ----------------------------------------
       if (typedata=="CUENTA"){
@@ -325,8 +296,7 @@ mod_PopStrApp_server <- function(id, data){
 		    colnames(coord)=c("dim1","dim2","dim3")
 		    rm(mds)
 		    ###For do dendograms and MDSgraph
-		    library(cluster)
-		    clust=agnes(mrdMAT, method = "ward")
+		    clust=cluster::agnes(mrdMAT, method = "ward")
 		    coord2=cbind(gen=colnames(datos)[-1],coord)
 		    names(coord2)=c("Gen","Factor1","Factor2","Factor3")
 		    datos=NULL
@@ -334,8 +304,8 @@ mod_PopStrApp_server <- function(id, data){
 		    biodata=list(as.data.frame(div),coord2, getwd(), clust, datos, mrdMAT, perctCP12)
 	    }else{
 	      shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-	      biodata=cgiarBase::Biodv(str_replace(filename,".csv",""),datos,nall,distk,mayorque,menorque,missval,typedata,ht1,ht2,ht3)
-		    shinybusy::remove_modal_spinner()
+	      biodata=cgiarBase::Biodv(stringr::str_replace(filename,".csv",""),datos,nall,distk,mayorque,menorque,missval,typedata,ht1,ht2,ht3)
+	      shinybusy::remove_modal_spinner()
 	    }
 
 	    updateTextInput(session,'tx','X Axis Label',value = paste0('Factor 1 (',biodata[[7]][1],'%)'))
@@ -351,28 +321,8 @@ mod_PopStrApp_server <- function(id, data){
  observeEvent(data(),{
   #Ver datos en tabla dinamica Summary Diversity
   output$seeDataDiver<-DT::renderDT({
-    allInfo=data()[["PopStr"]]#DoforDiv()[[8]]
-    #markfile=allInfo[[1]]
-    #genfile=allInfo[[2]]
-    #if (is.null(markfile)==F && is.null(genfile)==F){
-    #  shinyalert::shinyalert(title = "Important message",
-    #             text="Repeated sequence of markers and genotypes information were found!",
-    #             type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
-    #  )
-    #}
-    #if (is.null(markfile)==F && is.null(genfile)==T){
-    #  shinyalert::shinyalert(title = "Important message",
-    #             text="Repeated sequence of markers information were found!",
-    #             type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
-    #  )
-    #}
-    #if (is.null(markfile)==T && is.null(genfile)==F){
-    #  shinyalert::shinyalert(title = "Important message",
-    #             text="Repeated sequence of genotypes information were found!",
-    #             type = "warning", showCancelButton=FALSE, showConfirmButton=TRUE, confirmButtonCol = "green"
-    #  )
-    #}
-    seedatosum<-as.data.frame(allInfo[["SummaryDiversityAnalysis"]])#as.data.frame(DoforDiv()[[1]])
+    allInfo=data()[["PopStr"]]
+    seedatosum<-as.data.frame(allInfo[["SummaryDiversityAnalysis"]])
     colnames(seedatosum)=c("Parameter","Value")
     seedatosum[,2]=round(as.numeric(seedatosum[,2]),3)
     DT::datatable(seedatosum, extensions = 'Buttons',
@@ -389,8 +339,7 @@ mod_PopStrApp_server <- function(id, data){
     datos<-as.data.frame(DoforDiv()[[5]])
     datos1<-as.data.frame(mdata1()[[1]])
 	  seedatosFst=cgiarBase::gdiv(datos,datos1,as.character(input$catv),as.character(input$quitomono),as.data.frame(DoforDiv()[[6]]))
-
-    seedatos1<-as.data.frame(seedatosFst[[1]])
+	  seedatos1<-as.data.frame(seedatosFst[[1]])
     names(seedatos1)=c("Parameter","Groups","Fst","NumMark_UsedForCalculated")
     seedatos1$Fst=round(as.numeric(seedatos1$Fst),4)
 	  DT::datatable(seedatos1, extensions = 'Buttons',
@@ -401,40 +350,12 @@ mod_PopStrApp_server <- function(id, data){
 })
 
  observeEvent(data(),{
-  #Ver datos en tabla dinamica AMOVA
-  output$seeDataGAmova<-DT::renderDT({
-    datos1<-as.data.frame(mdata1()[[1]])
-	  pp=as.data.frame(as.character(datos1[,as.character(input$catv)]))
-	  rownames(pp)=datos1[,1]
-	  groups=pp
-	  agc.env=as.data.frame(as.numeric(as.factor(groups[,1])))
-	  names(agc.env)<-c("Pop")
-	  agc.env$Pop<-as.factor(agc.env$Pop)
-
-	  shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-	  seedatosAmova<-cgiarBase::forAMOVA(as.data.frame(DoforDiv()[[6]]),agc.env)
-	  shinybusy::remove_modal_spinner()
-
-	  rownames(seedatosAmova)=seedatosAmova[,1]
-	  seedatosAmova=seedatosAmova[,-1]
-	  seedatosAmova[,2:8]=apply(seedatosAmova[,2:8],2,function(x){round(as.numeric(x),4)})
-	  #if(input$typedata=="DistMat"){write.csv(seedatos,file.path(DoforDiv()[[3]],"AMOVA.csv"))}
-	  DT::datatable(seedatosAmova, extensions = 'Buttons',
-	                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-	                               lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-	  )
-  })
-})
-
- observeEvent(data(),{
    #Ver datos en tabla dinamica %NA, He, Ho by marker
    output$seeDataStatMark<-DT::renderDT({
      seedatos<-data()[["PopStr"]]
      seedatosStaM<-as.data.frame(seedatos[[4]])
      seedatosStaM[,1]=rownames(seedatosStaM)
-
      seedatosStaM[,2:7]=apply(seedatosStaM[,2:7],2,function(x){round(as.numeric(x),4)})
-
      DT::datatable(seedatosStaM, extensions = 'Buttons',
                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
@@ -459,7 +380,6 @@ mod_PopStrApp_server <- function(id, data){
    #Ver datos en tabla dinamica MDS
    output$seeDataMDS<-DT::renderDT({
      seedatosMDS<-as.data.frame(mdata1()[[1]])
-     #seedatos<-as.data.frame(seedatos[[8]])
      seedatosMDS[,2:4]=apply(seedatosMDS[,2:4],2,function(x){round(as.numeric(x),4)})
      DT::datatable(seedatosMDS, extensions = 'Buttons',
                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
@@ -467,27 +387,24 @@ mod_PopStrApp_server <- function(id, data){
      )
    })
  })
-
-  #Transformacion de los datos, para el uso posterior en los graficos
- 
- DataG <- reactiveVal(NULL)
-
+  
+ #Transformacion de los datos, para el uso posterior en los graficos
+ DataGPopStr <- reactiveVal(NULL)
  observeEvent(input[["input$fileenvbio"]], {
    dat <- read.csv(input[["input$fileenvbio"]][["datapath"]])
-   DataG(dat)
+   DataGPopStr(dat)
+ })
+ 
+ observeEvent(input[["geno_groupPopStr"]], {
+   src <- normalizePath("inst/app/www/example/Groupgeno.csv")
+   dat <- read.csv(src)
+   DataGPopStr(dat)
  })
 
-# observeEvent(input[["geno_groupPopStr"]], {
-#   src <- normalizePath("www/example/Groupgeno.csv")
-#   dat <- read.csv(src)
-#   DataG(dat)
-# })
-
   mdata1=reactive({
-    library(ape)
     #Cada que se actualice nclust
-    pp=as.data.frame(cutree (as.hclust(DoforDiv()[[4]]), k = input$nclust))
-    TFArx=as.phylo(as.hclust(DoforDiv()[[4]]))
+    pp=as.data.frame(cutree(as.hclust(DoforDiv()[[4]]), k = input$nclust))
+    TFArx=ape::as.phylo(as.hclust(DoforDiv()[[4]]))
     groups=as.data.frame(pp)
     coord2=as.data.frame(DoforDiv()[[2]])
     data1=as.data.frame(cbind(coord2,groups[,1]))
@@ -497,8 +414,8 @@ mod_PopStrApp_server <- function(id, data){
     data1$Factor3=as.numeric(as.character(data1$Factor3))
     data1$GroupClust=as.factor(as.character(data1$GroupClust))
     #Cuando se agrega un archivo para grupos externos
-    if (!is.null(DataG())){
-      dfenvbio <-DataG()
+    if (!is.null(DataGPopStr())){
+      dfenvbio <-DataGPopStr()
   	  dfenvbio[,1]<-dfenvbio[,1]
 	    indexCOV <- match(data1$Gen,as.character(dfenvbio[,1]))
       if(length(indexCOV)>0)	dfenvbio <- dfenvbio[indexCOV,]
@@ -569,9 +486,6 @@ mod_PopStrApp_server <- function(id, data){
     }
   })
 
-  #Cuadro de texto que muestra la direccion en la que se guardo el grafico.
-  output$default1=renderText({paste('You can find results and edited plots files in:',as.character(DoforDiv()[[3]]))})
-
 #Plot heatmap
   output$heat=plotly::renderPlotly({
     distMat=data()[["PopStr"]][["Distance_Matrix"]]
@@ -588,7 +502,6 @@ mod_PopStrApp_server <- function(id, data){
     }
   })
 
-
   output$dend=renderPlot({
     mydata<-data()$data$geno
     if(!is.null(mydata)){
@@ -597,17 +510,32 @@ mod_PopStrApp_server <- function(id, data){
       info<- cbind(ID=info$Gen,info)
       names(info)=c("ID","Gen","Group")
       tree=mdata1()[[2]]
-      library(ggtree)
-      p=ggtree::ggtree(tree, layout=input$typeclust ,size=input$sizeline)%<+%info
-        p=p + ggtree::scale_color_manual(values=input$colordend)
-        p=p + ggtree::geom_tiplab(aes(label=Gen,color=Group),size=input$sizelab, offset=input$space, hjust=0.5)
-        p=p + ggtree::theme(legend.position=input$poslen)
-        p
-    #ggsave(paste0('DendogramPlot',input$catvdend,'.pdf'),p)
+      
+      if (input$typeclust=="rectangular"){
+        plot(tree, type = "phylogram", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
+        legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
+      }else{
+        plot(tree, type = "fan", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
+        legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
+      }
+      #colnames(info)[1]="label"
+      #p=ggtree::ggtree(tree, layout=input$typeclust ,size=input$sizeline)
+      #c1=data.frame(as.character(p$data$label))
+      #names(c1)="label"
+      #if(dim(info)[1]!=length(p$data$label)){
+      #  v=merge(info,c1,id="label")
+      #  v1=data.frame(cbind(label=rep(NA,abs(length(p$data$label)-dim(info)[1])),Gen=rep(NA,abs(length(p$data$label)-dim(info)[1])),Group=rep(NA,abs(length(p$data$label)-dim(info)[1]))))
+      #  v2=rbind(v,v1)
+      #}
+      #p$data$Gen=v2$Gen
+      #p$data$Group=v2$Group
+      #p=p + ggtree::scale_color_manual(values=input$colordend)
+      #p=p + ggtree::geom_tiplab(mapping=ggplot2::aes(label=Gen,color=Group),size=input$sizelab, offset=input$space, hjust=0.5)
+      #p=p + ggtree::theme(legend.position=input$poslen)
+      #p
     }
-
   })
-
+  
   ## Report tab
   output$downloadReportPopStr <- downloadHandler(
     filename = function() {
