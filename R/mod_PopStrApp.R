@@ -240,6 +240,9 @@ mod_PopStrApp_server <- function(id, data){
         result <- data()
         uno=DoforDiv()
         result$PopStr<-uno[[8]]
+        result$PopStr$treeStr<-uno[[4]]
+        result$PopStr$MarkStr<-uno[[5]]
+        result$PopStr$DistStr<-uno[[6]]
         ## write the new status table
         newStatus <- data.frame(module="PopStr", analysisId= as.numeric(Sys.time()))
         result$status <- rbind(result$status, newStatus)
@@ -336,9 +339,10 @@ mod_PopStrApp_server <- function(id, data){
  observeEvent(data(),{
   #Ver datos en tabla dinamica Population structure
   output$seeDataGDiver<-DT::renderDT({
-    datos<-as.data.frame(DoforDiv()[[5]])
+    seedatosPS<-data()[["PopStr"]]
+    datos<-as.data.frame(seedatosPS[["MarkStr"]])
     datos1<-as.data.frame(mdata1()[[1]])
-	  seedatosFst=cgiarBase::gdiv(datos,datos1,as.character(input$catv),as.character(input$quitomono),as.data.frame(DoforDiv()[[6]]))
+	  seedatosFst=cgiarBase::gdiv(datos,datos1,as.character(input$catv),as.character(input$quitomono),as.data.frame(seedatosPS[["DistStr"]]))
 	  seedatos1<-as.data.frame(seedatosFst[[1]])
     names(seedatos1)=c("Parameter","Groups","Fst","NumMark_UsedForCalculated")
     seedatos1$Fst=round(as.numeric(seedatos1$Fst),4)
@@ -402,11 +406,17 @@ mod_PopStrApp_server <- function(id, data){
  })
 
   mdata1=reactive({
+    req(data())
+    see1=data()[["PopStr"]]
     #Cada que se actualice nclust
-    pp=as.data.frame(cutree(as.hclust(DoforDiv()[[4]]), k = input$nclust))
-    TFArx=ape::as.phylo(as.hclust(DoforDiv()[[4]]))
+    pp=as.data.frame(cutree(as.hclust(see1[["treeStr"]]), k = input$nclust))
+    TFArx=ape::as.phylo(as.hclust(see1[["treeStr"]]))
+    #pp=as.data.frame(cutree(as.hclust(DoforDiv()[[4]]), k = input$nclust))
+    #TFArx=ape::as.phylo(as.hclust(DoforDiv()[[4]]))
     groups=as.data.frame(pp)
-    coord2=as.data.frame(DoforDiv()[[2]])
+    coord2=as.data.frame(see1[["MDSTable"]])
+    coord2=cbind(rownames(coord2),coord2)
+    #coord2=as.data.frame(DoforDiv()[[2]])
     data1=as.data.frame(cbind(coord2,groups[,1]))
     names(data1)=c("Gen","Factor1","Factor2","Factor3","GroupClust")
     data1$Factor1=as.numeric(as.character(data1$Factor1))
