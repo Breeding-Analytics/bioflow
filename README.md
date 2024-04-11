@@ -68,6 +68,12 @@ You can install the development version of bioflow like this:
 # git clone https://github.com/Breeding-Analytics/bioflow.git
 ```
 
+## Demo server
+
+A demo of the application can be found at:
+
+<https://cgiar-market-intelligence.shinyapps.io/bioflow/>
+
 ## Contribution process
 
 In this collaborative development model, anyone can fork an existing
@@ -108,6 +114,44 @@ space for internal and external collaborators interested in contributing
 The submitted functions will be tested using a sample of multiple
 datasets collected by the different centers to ensure that new functions
 and interfaces perform well across a variety of scenarios.
+
+Here are some business rules that need to be followed:
+
+1)  The elements (data frames) in the data structure are fixed and no
+    additional tables should be added. The list structure contains the
+    following elements:
+
+<!-- -->
+
+1)  data: a list with datasets for raw phenotypes, genotypes, pedigree,
+    qtl profile and weather
+2)  metadata: a list of datasets specifying the column name mapping of
+    the raw datasets and the columns expected by bioflow.
+3)  modifications: a list of datasets specifying the modifications that
+    should be done to the raw datasets and the columns expected by
+    bioflow.
+4)  status: a table indicating what module the user has run and the
+    timestamp (ID) associated to the run
+5)  modeling: a table keeping track of the modeling paramters used
+    during the run a given analysis.
+6)  metrics: a table to store relevant metrics associated to an analysis
+    for reporting purposes.
+7)  predictions: a table of predictions for individuals, crosses,
+    markers, or haplotypes to be used for decision making or
+    visualization.
+
+The data strucure from bioflow and expected columns can be understood by
+running the function:
+
+``` r
+cgiarBase::create_getData_object()
+```
+
+2)  Functions should not be written inside the interface. The functions
+    should be stored in the cgiarBase, cgiarGenomics or cgiarPipeline
+    packages.
+
+3)  Functions should be documented properly and include examples.
 
 ### Types of contributions that will be accepted (check list)
 

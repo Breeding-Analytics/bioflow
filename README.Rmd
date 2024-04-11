@@ -96,7 +96,12 @@ Here are some business rules that need to be followed:
   f) metrics: a table to store relevant metrics associated to an analysis for reporting purposes.
   g) predictions: a table of predictions for individuals, crosses, markers, or haplotypes to be used for decision making or visualization.
 
-The data strucure from bioflow and expected columns can be understood by running the function cgiarBase::create_getData_object()
+The data strucure from bioflow and expected columns can be understood by running the function:
+
+
+``` r
+cgiarBase::create_getData_object()
+```
 
 2) Functions should not be written inside the interface. The functions should be stored in the cgiarBase, cgiarGenomics or cgiarPipeline packages.
 
