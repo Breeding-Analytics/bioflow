@@ -39,7 +39,7 @@ app_ui <- function(request) {
                           tabsetPanel( #widths = c(1, 11),
                             tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
                             tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),
-                            tabPanel("Contact us", mod_contactUsApp_ui("contactUsApp_1"), icon = icon("envelope") ),
+                            tabPanel("Contact & Development", mod_contactUsApp_ui("contactUsApp_1"), icon = icon("envelope") ),
                           )
                  ),
       ),

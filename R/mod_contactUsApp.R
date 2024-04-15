@@ -20,6 +20,14 @@ mod_contactUsApp_ui <- function(id){
                             p("Please use the following link", tags$a(href="https://brservices.atlassian.net/servicedesk/customer/portal/3", "(BIOFLOW Support Desk)", target="_blank") ,
                               "to reach our Help Desk and send us your question or request."),
 
+                            h3(strong("Local installation")),
+
+                            p(" If you wish to install bioflow locally in your computer you can run the following three lines in your R or R studio console:"),
+                            p("devtools::install_github('Breeding-Analytics/bioflow')"),
+                            p("library(bioflow)"),
+                            p(" bioflow::run_app()"),
+                            p("The first line will install bioflow as an r package in your computer. The second line will call the library/application to the environment. And the third line will start the application."),
+
                             h3(strong("How to contribute?")),
                             p("We do generate and maintain our code in", tags$a(href="https://github.com/Breeding-Analytics", "Github.", target="_blank") ,
                               "If you want to contribute you can download a sample data object and generate 2 files;", strong("1)")," an R script with a function that uses as
@@ -28,7 +36,8 @@ mod_contactUsApp_ui <- function(id){
                               for the shiny interface which can use the R function. This file should be pushed to the ",
                               tags$a(href="https://github.com/Breeding-Analytics/bioflow", "bioflow", target="_blank"), "package."),
 
-                            img(src = "www/contribute.png", height = 500, width = 850) # add an image
+                            img(src = "www/contribute.png", height = 500, width = 850), # add an image
+
         )
       ),
       class = "tab-content"

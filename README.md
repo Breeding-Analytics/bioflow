@@ -48,9 +48,31 @@ Keith Gardner, Angela Pacheco, Fernando Toledo, Juan Burgueno, Aubin
 Amagnide, Luis Delgado Munoz, Christian Cadena, Christian Werner, Sergio
 Cruz, Alaine Gulles, Justine Bonifacio.
 
-## Installation
+## Demo server
 
-You can install the development version of bioflow like this:
+A demo of the application can be accessed at:
+
+<https://cgiar-market-intelligence.shinyapps.io/bioflow/>
+
+## Local installation
+
+If you wish to install bioflow locally in your computer in case you have
+internet problems you can run the following three lines in your R or R
+studio console (make sure you uncomment the lines):
+
+``` r
+# devtools::install_github("Breeding-Analytics/bioflow")
+# library(bioflow)
+# bioflow::run_app()
+```
+
+The first line will install bioflow as an r package in your computer.
+The second line will call the library/application to the environment.
+And the third line will start the application.
+
+## Cloning the repositories to contribute
+
+You can clone the development version of bioflow like this:
 
 1)  Install the dependency packages cgiarBase, cgiarPipeline, cgiarOcs
 
@@ -68,11 +90,8 @@ You can install the development version of bioflow like this:
 # git clone https://github.com/Breeding-Analytics/bioflow.git
 ```
 
-## Demo server
-
-A demo of the application can be found at:
-
-<https://cgiar-market-intelligence.shinyapps.io/bioflow/>
+Now you can start making changes to the code to later make a pull
+request. Let us tell you more how to contribute.
 
 ## Contribution process
 
