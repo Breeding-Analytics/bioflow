@@ -64,7 +64,7 @@ mod_mtaApp_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Pick STA-stamp", icon = icon("table"),
                                                br(),
-                                               column(width=12, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = FALSE),  style = "background-color:grey; color: #FFFFFF"),
+                                               column(width=12, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE),  style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -296,7 +296,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$version2Mta)
       dtMta <- data()
       dtMta <- dtMta$predictions
-      dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       traitsMta <- unique(dtMta$trait)
       updateSelectInput(session, "trait2Mta", choices = traitsMta)
       updateSelectInput(session, "traitCor", choices = traitsMta)
@@ -316,7 +316,7 @@ mod_mtaApp_server <- function(id, data){
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       dtMta <- dtMta$predictions
-      dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)
       traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)] # remove factors that do not have more than one level
@@ -336,7 +336,7 @@ mod_mtaApp_server <- function(id, data){
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       dtMta <- dtMta$predictions
-      dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),]
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)
       traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)]
@@ -376,7 +376,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- data()
       dtProv = dtMta$predictions
       if(!is.null(dtProv)){
-        dtProv <- dtProv[which(dtProv$analysisId == input$version2Mta),]
+        dtProv <- dtProv[which(dtProv$analysisId %in% input$version2Mta),]
         dtProvTable=  as.data.frame( do.call( rbind, list (with(dtProv, table(environment,trait)) ) ) )
         bad <- which(dtProvTable <= 1, arr.ind = TRUE)
         if(nrow(bad) > 0){dtProvTable[bad] = 0}
@@ -503,7 +503,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$evaluationUnitsTrait)
       object <- data()
       if(!is.null(object$predictions)){
-        phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId == input$version2Mta  &  object$predictions$trait == input$evaluationUnitsTrait),"designation"]))
+        phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId %in% input$version2Mta  &  object$predictions$trait == input$evaluationUnitsTrait),"designation"]))
       }else{ phenoNames <- character() }
 
       if(!is.null(object$data$geno)){
@@ -556,7 +556,7 @@ mod_mtaApp_server <- function(id, data){
       req(input$version2Mta)
       dtMta <- data()
       dtMta <- dtMta$predictions
-      dtMta <- dtMta[which(dtMta$analysisId == input$version2Mta),setdiff(colnames(dtMta),c("module","analysisId"))]
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),setdiff(colnames(dtMta),c("module","analysisId"))]
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtMta, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),

@@ -33,6 +33,7 @@
 # usethis::use_package("shinycssloaders")
 # usethis::use_package("shinyAce")
 # usethis::use_package("shinyWidgets")
+# usethis::use_package("shinyalert")
 # usethis::use_package("magrittr")
 # usethis::use_package("plotly")
 # usethis::use_package("plyr")
