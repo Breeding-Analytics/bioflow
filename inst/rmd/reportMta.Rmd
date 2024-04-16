@@ -915,7 +915,7 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
   }else{
-    if (sum(grepl("envIndex",traitsInPreds))>0){
+    if (sum(grepl("envIndex",traitsInPreds))>0){ # if there is envIndex fitted
       selectInput(ns("traitMta3"),
                   label = "",
                   choices = traits
@@ -930,7 +930,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if (sum(grepl("envIndex",traitsInPreds))>0){
+  if (sum(grepl("envIndex",traitsInPreds))>0){ # if there is envIndex fitted
     
     if("params" %in% ls()){ # we will download the document
       
@@ -955,7 +955,7 @@ if (is.null(result)){
         }
         if(length(unique(temp.pred.box$designation)) > 1000){ # go fixed format
           print(p)
-        }else{ # go dynamic
+        }else{ # go dynamic if there is less than 1000 genotypes in the plot
           print(htmltools::tagList(plotly::ggplotly(p)))
         }
       }

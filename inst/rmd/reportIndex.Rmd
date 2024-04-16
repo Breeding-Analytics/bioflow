@@ -344,7 +344,7 @@ if (is.null(result)){
       for(iTrait in uTraits){ # iTrait = uTraits[1]
         prov <- mydata[mydata$trait == "desireIndex", ]
         prov <- prov[with(prov, order(-predictedValue)), ]
-        selected <- prov[1:round(nrow(prov)*iProportionTrait),"designation"]
+        selected <- prov[1:round(nrow(prov)*input$proportionTrait),"designation"]
         mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
       }
       p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +

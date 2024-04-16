@@ -24,7 +24,7 @@ The following table allows you to inspect the across-environment predictions for
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outeaece1d6e427eb80" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out6f84e890fdbcffa8" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -34,7 +34,7 @@ This plot allows the user to visualize the distance between the population means
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out6ac207f944a7c0fb" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out8a81c3bddecf72d4" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Expected Response Plot
@@ -44,11 +44,11 @@ This plot allows the user to visualize the expected response in the new generati
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-proportionTrait-label" for="reportBuilder_1-proportionTrait">Selected proportion</label>
-<input id="reportBuilder_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
+<label class="control-label" id="indexDesireApp_1-proportionTrait-label" for="indexDesireApp_1-proportionTrait">Selected proportion</label>
+<input id="indexDesireApp_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out86562361b499f913" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outf747e153bf5cd504" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Index versus Trait Plot
 
@@ -57,17 +57,15 @@ This plot allows the user to visualize the relationship between the selection in
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMtaScatter-label" for="reportBuilder_1-traitMtaScatter">Trait:</label>
+<label class="control-label" id="indexDesireApp_1-traitMtaScatter-label" for="indexDesireApp_1-traitMtaScatter">Trait:</label>
 <div>
-<select id="reportBuilder_1-traitMtaScatter" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Yield_Mg_ha-envIndex">Yield_Mg_ha-envIndex</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Plant_Height_cm-envIndex">Plant_Height_cm-envIndex</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMtaScatter" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<script type="application/json" data-for="indexDesireApp_1-traitMtaScatter" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out061f3f32c13ca090" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out8843abf6a6937d4c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### References of methods used
 

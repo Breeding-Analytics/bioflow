@@ -56,7 +56,7 @@ mod_indexDesireApp_ui <- function(id){
                                      tabsetPanel(
                                        tabPanel("Pick MTA-stamp", icon = icon("table"),
                                                 br(),
-                                                column(width=12, selectInput(ns("version2IdxD"), "MTA version to analyze (required)", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
+                                                column(width=12, selectInput(ns("version2IdxD"), "MTA version to analyze (required)", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                 column(width=12,
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -241,7 +241,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$version2IdxD)
       dtIdxD <- data()
       dtIdxD <- dtIdxD$predictions
-      dtIdxD <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),]
+      dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
       traitsIdxD <- unique(dtIdxD$trait)
       updateSelectInput(session, "trait2IdxD", choices = traitsIdxD)
     })
@@ -255,7 +255,7 @@ mod_indexDesireApp_server <- function(id, data){
       trait2IdxD <- input$trait2IdxD # trait2IdxD <- c("Yield_Mg_ha_QTL","Ear_Height_cm") # list(trait2IdxD=c("Yield_Mg_ha","Ear_Height_cm"))
       dtIdxD <- data()
       dtIdxD <- dtIdxD$predictions
-      dtIdxD <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),]
+      dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
       if(input$scaledIndex){ # if user wants traits scaled
         lapply(1:length(trait2IdxD), function(i) {
           sliderInput(
@@ -368,7 +368,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       req(input$version2IdxD)
       dtIdxD <- data(); dtIdxD <- dtIdxD$predictions
-      dtIdxD <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
       wide <- stats::reshape(dtIdxD[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
                              timevar = "trait", v.names = c("predictedValue"), sep= "_")
       colnames(wide) <- gsub("predictedValue_","",colnames(wide))
@@ -384,7 +384,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$version2IdxD)
       req(input$trait2IdxD)
       dtIdxD <- data(); dtIdxD <- dtIdxD$predictions
-      mydata <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      mydata <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
       if (length(input$trait2IdxD) != 0) {
         values <- NULL
         for (i in 1:length(input$trait2IdxD)) {
@@ -406,7 +406,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$trait2IdxD)
       dtIdxD <- data();
       dtIdxD <- dtIdxD$predictions
-      mydata <- dtIdxD[which(dtIdxD$analysisId == input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      mydata <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
       values <- desireValues()
       if(!is.null(values)){
       ## ensure product profile means come sorted
@@ -566,7 +566,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$version2IdxD)
       dtBaseIndex <- data()
       dtBaseIndex <- dtBaseIndex$predictions
-      dtBaseIndex <- dtBaseIndex[which(dtBaseIndex$analysisId == input$version2IdxD),]
+      dtBaseIndex <- dtBaseIndex[which(dtBaseIndex$analysisId %in% input$version2IdxD),]
       traitsBaseIndex <- unique(dtBaseIndex$trait)
       updateSelectInput(session, "traitsBaseIndex", choices = traitsBaseIndex)
     })
@@ -596,7 +596,7 @@ mod_indexDesireApp_server <- function(id, data){
       dtBaseIndex <- data()
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtBaseIndexPred <- dtBaseIndex$predictions
-      dtBaseIndexPred <- dtBaseIndexPred[dtBaseIndexPred$analysisId == input$version2IdxD,]
+      dtBaseIndexPred <- dtBaseIndexPred[dtBaseIndexPred$analysisId %in% input$version2IdxD,]
       traitsBaseIndex <- input$traitsBaseIndex
 
       # define values for slider all traits for base index

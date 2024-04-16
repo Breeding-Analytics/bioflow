@@ -104,7 +104,7 @@ mod_ocsApp_ui <- function(id){
                                       tabPanel("Set contribution", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=4,textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="20") ),
+                                                      column(width=4,textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="70") ),
                                                       column(width=4, textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30") ),
                                                       column(width=4, selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE) ),
                                                ),
