@@ -14,7 +14,7 @@ mod_getDataPheno_ui <- function(id){
   tagList(
     tags$br(),
 
-    h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
+    h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
 
     selectInput(
       inputId = ns('pheno_input'),
@@ -736,11 +736,13 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         if (input$pheno_example) {
           updateSelectInput(session, 'pheno_input', selected = 'url')
 
-          pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
-                                       session$clientData$url_hostname, ':',
-                                       session$clientData$url_port,
-                                       session$clientData$url_pathname,
-                                       pheno_example)
+          # pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
+          #                              session$clientData$url_hostname, ':',
+          #                              session$clientData$url_port,
+          #                              session$clientData$url_pathname,
+          #                              pheno_example)
+
+          pheno_example_url <- 'https://drive.google.com/uc?export=download&id=1X_MaWs9wd8s2fUsyouN4t1-znN3s5jiw'
 
           updateTextInput(session, 'pheno_url', value = pheno_example_url)
 

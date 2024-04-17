@@ -219,12 +219,13 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
       if (input$ped_example) {
         updateSelectInput(session, 'ped_input', selected = 'url')
 
-        ped_example_url <-  paste0(session$clientData$url_protocol, '//',
-                                   session$clientData$url_hostname, ':',
-                                   session$clientData$url_port,
-                                   session$clientData$url_pathname,
-                                   ped_example)
-        # ped_example_url <- 'https://drive.google.com/uc?export=download&id=1rEVR_Xaidz4tjtLPMUe-I11cbR0a-Zcl'
+        # ped_example_url <-  paste0(session$clientData$url_protocol, '//',
+        #                            session$clientData$url_hostname, ':',
+        #                            session$clientData$url_port,
+        #                            session$clientData$url_pathname,
+        #                            ped_example)
+
+        ped_example_url <- 'https://drive.google.com/uc?export=download&id=1rEVR_Xaidz4tjtLPMUe-I11cbR0a-Zcl'
 
         updateTextInput(session, 'ped_url', value = ped_example_url)
 

@@ -15,7 +15,7 @@ mod_getDataGeno_ui <- function(id){
     fluidRow(
       style = 'padding: 30px;',
 
-      h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
+      h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
       # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
       # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
       selectInput(
@@ -395,12 +395,13 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
         if (input$geno_example) {
           updateSelectInput(session, 'geno_input', selected = 'url')
 
-          geno_example_url <-  paste0(session$clientData$url_protocol, '//',
-                                      session$clientData$url_hostname, ':',
-                                      session$clientData$url_port,
-                                      session$clientData$url_pathname,
-                                      geno_example)
-          # geno_example_url <- 'https://drive.google.com/uc?export=download&id=19RzGe542z-bYLGWn1Iwt34UXWofgSPoe'
+          # geno_example_url <-  paste0(session$clientData$url_protocol, '//',
+          #                             session$clientData$url_hostname, ':',
+          #                             session$clientData$url_port,
+          #                             session$clientData$url_pathname,
+          #                             geno_example)
+
+          geno_example_url <- 'https://drive.google.com/uc?export=download&id=19RzGe542z-bYLGWn1Iwt34UXWofgSPoe'
 
           updateTextInput(session, 'geno_url', value = geno_example_url)
 
