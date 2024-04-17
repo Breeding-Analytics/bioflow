@@ -66,12 +66,13 @@ mod_homeApp_ui <- function(id){
         tags$div(
           class = "foreground-text",
           tags$img(src = "www/cgiar.png", height = 170, width = 600),
-          tags$h1("Biometrical Genetics Workflow (bioflow)"),
+          tags$h1(span("Biometrical Genetics Workflow (bioflow)", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan")),
+          # tags$h1("Biometrical Genetics Workflow (bioflow)"),
           tags$p(
             "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods for understanding or using evolutionary forces",
             "(mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force).",
             "Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase),",
-            "genotypic databases (GIGWA), and environmental databases (NASAPOWER) data, quickly map some required features (columns), and carry the analytical procedures."
+            "genotypic databases (GIGWA), and environmental databases (NASAPOWER), and carry the analytical procedures."
           )
         )
       )

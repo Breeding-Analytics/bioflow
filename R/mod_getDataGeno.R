@@ -15,6 +15,7 @@ mod_getDataGeno_ui <- function(id){
     fluidRow(
       style = 'padding: 30px;',
 
+      h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
       # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
       # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
       selectInput(

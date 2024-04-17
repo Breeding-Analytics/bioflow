@@ -14,6 +14,8 @@ mod_getDataPheno_ui <- function(id){
   tagList(
     tags$br(),
 
+    h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
+
     selectInput(
       inputId = ns('pheno_input'),
       label   = 'Data Source*: ',
