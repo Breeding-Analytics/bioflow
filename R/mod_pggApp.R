@@ -20,7 +20,7 @@ mod_pggApp_ui <- function(id){
                                                           solidHeader = TRUE,
                                                           column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                  column(width = 6,
-                                                                        h1(strong(span("Predicted Genetic Gain", style="color:green"))),
+                                                                        h1(strong(span("Predicted Genetic Gain", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
                                                                         h2(strong("Status:")),
                                                                         uiOutput(ns("warningMessage")),
                                                                         img(src = "www/pgg.png", height = 250, width = 500), # add an image

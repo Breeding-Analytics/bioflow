@@ -21,7 +21,7 @@ mod_qaGenoApp_ui <- function(id){
                                                                column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                       tags$body(
                                                                         column(width = 6,
-                                                                               h1(strong(span("QA for genetic markers", style="color:green"))),
+                                                                               h1(strong(span("QA for genetic markers", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
                                                                                h2(strong("Status:")),
                                                                                uiOutput(ns("warningMessage")),
                                                                                img(src = "www/qaGeno.png", height = 300, width = 650), # add an image

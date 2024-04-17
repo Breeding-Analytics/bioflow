@@ -19,7 +19,7 @@ mod_oftStaApp_ui <- function(id){
                                     shinydashboard::box(status="success",width = 12,
                                                         solidHeader = TRUE,
                                                         column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                               h1(strong(span("On Farm Trial Analysis", style="color:green"))),
+                                                               h1(strong(span("On Farm Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:green"))),
                                                                h2(strong("Status:")),
                                                                uiOutput(ns("warningMessage")),
                                                                h2(strong("Details")),

@@ -23,7 +23,7 @@ mod_PopStrApp_ui <- function(id){
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
-                                                             h1(strong(span("Population structure", style="color:green"))),
+                                                             h1(strong(span("Population structure", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:green"))),
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
                                                              h2(strong("Details")),
@@ -125,7 +125,7 @@ mod_PopStrApp_ui <- function(id){
                                                                                                             selectInput(ns('colordend'),'Choose a color',choices = '',selected="",multiple=T)
                                                                    ),
                                                                    div(plotOutput(ns("dend"),height = "750px",width = "1250px"),align="center")
-                                                                   
+
                                            ),
                                            shinydashboard::box(title="Factors and Groups", status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12,DT::DTOutput(ns("seeDataMDS")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
@@ -229,12 +229,12 @@ mod_PopStrApp_server <- function(id, data){
         }
       }
    })
-    
+
     output$outPopStr <- renderUI({
       outPopStr()
     })
 
-    
+
     outPopStr <- eventReactive(input$runPopStr, {
           req(data())
           result <- data()
@@ -252,13 +252,13 @@ mod_PopStrApp_server <- function(id, data){
           rm(result)
           result <- list(PopStr=uno[[4]])
           save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
-          
+
           if(length(names(uno[[5]]))>5) catv<-names(uno[[5]])[6]
           txlab <- paste0('Factor 1 (',uno[[3]][1],'%)')
           tylab <- paste0('Factor 2 (',uno[[3]][2],'%)')
           tzlab <- paste0('Factor 3 (',uno[[3]][3],'%)')
           eti <- "Gen"
-          
+
           #Actualiza la variable catv (grupos) en conjunto con la seleccion de colores
           observeEvent(catv,{
             set.seed(7)
@@ -270,13 +270,13 @@ mod_PopStrApp_server <- function(id, data){
             updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
             updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
           })
-          
-      #For report  
+
+      #For report
       output$reportPopStr <- renderUI({
         r#esult<-DivResult()[["result"]]
         HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
       })
-      
+
       #Ver datos en tabla dinamica Summary Diversity
         output$seeDataDiver<-DT::renderDT({
           allInfo=result[["PopStr"]]
@@ -288,7 +288,7 @@ mod_PopStrApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
         })
-        
+
         #Ver datos en tabla dinamica Population structure
         output$seeDataGDiver<-DT::renderDT({
           datos<-as.data.frame(uno[[1]])
@@ -338,7 +338,7 @@ mod_PopStrApp_server <- function(id, data){
           tylab2=txlab
           if(input$ycol=="Factor2") tylab2=tylab
           if(input$ycol=="Factor3") tylab2=tzlab
-          
+
           mydata<-data()$data$geno
           if(!is.null(mydata)){
             p=plotly::plot_ly(data=uno[[5]],x=uno[[5]][,input$xcol],y=uno[[5]][,input$ycol],color=uno[[5]][,catv],
@@ -356,7 +356,7 @@ mod_PopStrApp_server <- function(id, data){
             fig
           }
         })
-        
+
         #Plot heatmap
         output$heat=plotly::renderPlotly({
           distMat=result[["PopStr"]][["Distance_Matrix"]]
@@ -381,7 +381,7 @@ mod_PopStrApp_server <- function(id, data){
             info<- cbind(ID=info$Gen,info)
             names(info)=c("ID","Gen","Group")
             tree=uno[[6]]
-            
+
             if (input$typeclust=="rectangular"){
               plot(tree, type = "phylogram", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
               legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
@@ -391,7 +391,7 @@ mod_PopStrApp_server <- function(id, data){
             }
           }
         })
-        
+
         HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
     })
 
@@ -401,13 +401,13 @@ observeEvent(input[["input$fileenvbio"]], {
       dat <- read.csv(input[["input$fileenvbio"]][["datapath"]])
       DataGPopStr(dat)
 })
-    
+
 observeEvent(input[["geno_groupPopStr"]], {
       src <- normalizePath("inst/app/www/example/Groupgeno.csv")
       dat <- read.csv(src)
       DataGPopStr(dat)
 })
-    
+
  ## Report tab
   output$downloadReportPopStr <- downloadHandler(
     filename = function() {
