@@ -351,9 +351,9 @@ if (is.null(result)){
   
   if("params" %in% ls()){  # if user will download the report
     
-    cat(paste0("##  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
     for(iTrait in unique(myTraits)){
-      cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       mydata = result$predictions
       idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
       idOcs <- idOcs[length(idOcs)]

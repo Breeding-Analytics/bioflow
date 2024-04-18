@@ -21,20 +21,20 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out778ae6454f074127" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out5b0da6f6ee664372" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Regression plot
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitSta3-label" for="reportBuilder_1-traitSta3">Trait:</label>
+<label class="control-label" id="rggApp_1-traitSta3-label" for="rggApp_1-traitSta3">Trait:</label>
 <div>
-<select id="reportBuilder_1-traitSta3" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<select id="rggApp_1-traitSta3" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
 <option value="Plant_Height_cm">Plant_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitSta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="rggApp_1-traitSta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outcc35d4fe97976a4f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-out021ec047f81e0597" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References on methods used

@@ -884,7 +884,8 @@ mod_mtaApp_server <- function(id, data){
             file.copy(src2, 'resultMta.RData', overwrite = TRUE)
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
-              HTML = rmarkdown::html_document()
+              HTML = rmdformats::robobook(toc_depth = 4)
+              # HTML = rmarkdown::html_document()
             ))
             file.rename(out, file)
           }

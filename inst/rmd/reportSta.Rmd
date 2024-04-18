@@ -374,7 +374,7 @@ if (is.null(result)){
   idSta <- idSta[length(idSta)]
   parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
   if("params" %in% ls()){  # if user will download the report
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("parameterMetrics"), 
                        label = "Parameter:", 
@@ -450,7 +450,7 @@ if (is.null(result)){
   traitFieldView <- unique(result$predictions[which( result$predictions$analysisId == idSta),"trait"])
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     
     if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){

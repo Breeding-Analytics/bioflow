@@ -20,16 +20,15 @@ params:
 The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw phenotypic data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., single trial analysis module).
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitQa-label" for="reportBuilder_1-traitQa">Trait:</label>
+<label class="control-label" id="expDesignEditApp_1-traitQa-label" for="expDesignEditApp_1-traitQa">Trait:</label>
 <div>
-<select id="reportBuilder_1-traitQa" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="expDesignEditApp_1-traitQa" class="shiny-input-select"><option value="rep" selected>rep</option></select>
+<script type="application/json" data-for="expDesignEditApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outab25ddf11c70baee" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="expDesignEditApp_1-outd3e0855f1998fabc" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -42,15 +41,14 @@ The following boxplot allows you to visualize which records were tagged as outli
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitQaBox-label" for="reportBuilder_1-traitQaBox">Trait:</label>
+<label class="control-label" id="expDesignEditApp_1-traitQaBox-label" for="expDesignEditApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="reportBuilder_1-traitQaBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="expDesignEditApp_1-traitQaBox" class="shiny-input-select"><option value="rep" selected>rep</option></select>
+<script type="application/json" data-for="expDesignEditApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out27b02f7a5b92027a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="expDesignEditApp_1-oute1d323f8a6495bab" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

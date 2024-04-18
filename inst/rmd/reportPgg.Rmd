@@ -157,11 +157,11 @@ if (is.null(result)){
   current.metrics <- metrics[which(metrics$analysisId %in% c(idPgg)),]
   
   if("params" %in% ls()){
-    cat(paste0("## Selection differentials and expected response  {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("### Selection differentials and expected response  {.tabset .tabset-pills}    \n\n  "))
     # l <- htmltools::tagList()
     # counter <- 1
     for(iTrait in unique(modeling)){
-      cat("\n\n###", iTrait, "{.tabset .tabset-pills}       \n\n")
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"]
       sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"]
       R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"]

@@ -631,7 +631,7 @@ mod_staApp_server <- function(id,data){
 
         output$downloadReportSta <- downloadHandler(
           filename = function() {
-            paste('my-report-STA', sep = '.', switch(
+            paste('my-report', sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
@@ -639,54 +639,23 @@ mod_staApp_server <- function(id,data){
             shinybusy::show_modal_spinner(spin = "fading-circle",
                                           text = "Generating Report...")
             src <- normalizePath(system.file("rmd","reportSta.Rmd",package="bioflow"))
-            # src2 <- normalizePath('data/resultSta.RData')
-
+            src2 <- normalizePath('data/resultSta.RData')
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
-            # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
+            file.copy(src2, 'resultSta.RData', overwrite = TRUE)
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
-              HTML = rmarkdown::html_document()
-              # HTML = rmdformats::robobook(toc_depth = 4)
+              # HTML = rmarkdown::html_document()
+              HTML = rmdformats::robobook(toc_depth = 4)
             ))
             file.rename(out, file)
             shinybusy::remove_modal_spinner()
           }
         )
 
-        ## report OFT
-        updateSelectInput(session, inputId = "fieldinst", choices = result$metrics$environment, selected = result$metrics$environment[1])
-
-        output$downloadReportOft <- downloadHandler(
-          filename = function() {
-            paste('my-report-OFT', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle",
-                                          text = "Generating Report...")
-
-            src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
-            # src2 <- normalizePath('data/resultSta.RData')
-
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report2.Rmd', overwrite = TRUE)
-            # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report2.Rmd', params = list(fieldinst=input$fieldinst, toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmarkdown::html_document()
-            ))
-            file.rename(out, file)
-            shinybusy::remove_modal_spinner()
-          }
-        )
       } else {
         output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})
         output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
