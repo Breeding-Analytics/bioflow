@@ -66,7 +66,7 @@ mod_homeApp_ui <- function(id){
         tags$div(
           class = "foreground-text",
           tags$img(src = "www/cgiar.png", height = 170, width = 600),
-          tags$h1(span("Biometrical Genetics Workflow (bioflow)", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan")),
+          tags$h1(span("Biometrical Genetics Workflow (bioflow)", tags$a(href="https://www.youtube.com/watch?v=MD5pq9sRGd8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX", icon("youtube") , target="_blank"), style="color:darkcyan")),
           # tags$h1("Biometrical Genetics Workflow (bioflow)"),
           tags$p(
             "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods for understanding or using evolutionary forces",
