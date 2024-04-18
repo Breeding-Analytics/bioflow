@@ -21,7 +21,7 @@ mod_staApp_ui <- function(id){
                                                         solidHeader = TRUE,
                                                         column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
                                                                column(width = 6,
-                                                                      h1(strong(span("Single Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
+                                                                      h1(strong(span("Single Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                       h2(strong("Status:")),
                                                                       uiOutput(ns("warningMessage")),
                                                                       img(src = "www/sta.png", height = 200, width = 400), # add an image

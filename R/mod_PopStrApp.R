@@ -23,7 +23,7 @@ mod_PopStrApp_ui <- function(id){
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
-                                                             h1(strong(span("Population structure", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:green"))),
+                                                             h1(strong(span("Population structure", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
                                                              h2(strong("Details")),

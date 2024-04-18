@@ -20,7 +20,7 @@ mod_rggApp_ui <- function(id){
                                                          solidHeader = TRUE,
                                                          column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                 column(width = 6,
-                                                                       h1(strong(span("Realized Genetic Gain", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:green"))),
+                                                                       h1(strong(span("Realized Genetic Gain", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                        h2(strong("Status:")),
                                                                        uiOutput(ns("warningMessage")),
                                                                 ),

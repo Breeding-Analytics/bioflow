@@ -20,7 +20,7 @@ mod_filterPhenoApp_ui <- function(id){
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
                                                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                           h1(strong(span("Filter of environments", style="color:green"))),
+                                                           h1(strong(span("Filter of environments", style="color:darkcyan"))),
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(

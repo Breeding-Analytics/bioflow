@@ -12,12 +12,14 @@ mod_saveData_ui <- function(id){
   tagList(
 
 
-    shinydashboard::tabBox(
-      width = 12,
-      id    = ns('tabset'),
+    # shinydashboard::tabBox(
+    #   width = 12,
+    #   id    = ns('tabset'),
+
+      h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
 
       tabPanel(
-        title = 'Save analysis',
+        # title = 'Save analysis',
         value = ns('tab5'),
         tags$br(),
 
@@ -42,7 +44,7 @@ mod_saveData_ui <- function(id){
         DT::DTOutput(ns("statusTable"))
       )
 
-    )
+    # )
 
 
   )

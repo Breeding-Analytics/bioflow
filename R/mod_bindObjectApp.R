@@ -12,6 +12,9 @@ mod_bindObjectApp_ui <- function(id){
   tagList(
 
     br(),
+
+    h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+
     selectInput(
       inputId = ns('previous_object_input'),
       label   = 'Object Source*: ',
