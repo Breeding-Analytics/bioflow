@@ -77,7 +77,7 @@ The following table allows you to review the different metrics calculated for th
 
 ```{r, results='asis'}
 if (is.null(result)){
-  cat(".")
+  
 } else {
   
   pggId <- result$status$analysisId[length(result$status$analysisId)]
@@ -124,18 +124,18 @@ suppressWarnings(tryCatch({
     load("resultPgg.RData")
   }
 }, error = function(e) {
-  cat(".")
+  shinyjs::hide()
 }))
 
 if (is.null(result)){
-  cat(".")
+  
 } else {
   modeling <- result$modeling
   idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
   idPgg <- idPgg[length(idPgg)]
   modeling <- modeling[which(modeling$analysisId == idPgg & modeling$environment == "across"),"trait"]
   if("params" %in% ls()){
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitFilterPredictions2D2"),
                        label = "Trait:",
@@ -148,7 +148,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-cat(".")
+
 } else {
   
   metrics <- result$metrics

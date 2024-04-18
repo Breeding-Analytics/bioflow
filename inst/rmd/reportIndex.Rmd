@@ -91,7 +91,7 @@ suppressWarnings(tryCatch({
     load("resultIndex.RData")
   }
 }, error = function(e) {
-  # NULL
+ shinyjs::hide()
 }))
 
 if (is.null(result)){
@@ -310,11 +310,6 @@ if (is.null(result)){
   uTraits <- gsub("_scaled","",uTraits)
   mydata$selected <- "no"
   
-  # mydataOcs <- dtIdxD[which(dtIdxD$analysisId == idOcs),setdiff(colnames(dtIdxD),c("module","analysisId"))]
-  # idsPop <- unique(mydata[mydata$trait == iTrait, "designation"])
-  # idsSel <- unique(c( mydataOcs[, "mother"], mydataOcs[, "father"] ) )
-  # mydata[ which( mydata$designation %in% idsSel ), "selected"] <- "yes"
-  
   
   if("params" %in% ls()){ # we will download the document
     
@@ -380,7 +375,7 @@ if (is.null(result)){
   mtaTraits <- setdiff( colnames(wide), c("designation","desireIndex"))
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitMtaScatter"), 
                        label = "Trait:", 

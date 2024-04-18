@@ -20,8 +20,7 @@ The following table provides an overview of the performance of the predicted cro
 
 <p>&nbsp;</p>
 
-NULL
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out5de5df57d5e1617d" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out600ca471e9461a76" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -32,14 +31,14 @@ The following barplot allows you identify the number of times (y-axis) that a pa
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="ocsApp_1-environ-label" for="ocsApp_1-environ">Treatment:</label>
+<label class="control-label" id="reportBuilder_1-environ-label" for="reportBuilder_1-environ">Treatment:</label>
 <div>
-<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="desireIndex ~ 50 crosses * 90 degrees" selected>desireIndex ~ 50 crosses * 90 degrees</option></select>
-<script type="application/json" data-for="ocsApp_1-environ">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="reportBuilder_1-environ" class="shiny-input-select" multiple="multiple"><option value="desireIndex ~ 20 crosses * 30 degrees" selected>desireIndex ~ 20 crosses * 30 degrees</option></select>
+<script type="application/json" data-for="reportBuilder_1-environ">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out4309a3add655fabc" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outb6007ea6752631f7" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -49,7 +48,7 @@ This table shows the performance of the parents selected by the OCS algorithm. T
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outc5f2bbfab5aa9361" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outd00a558ac8a78087" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -59,7 +58,7 @@ The following table summarizes the trait means for the different OCS runs (numbe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out35ab93f2a0e22919" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out4478321ba9e95d5e" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -69,17 +68,14 @@ The following boxplot allows you to see the performance of the different crosses
 
 <p>&nbsp;</p>
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="ocsApp_1-traitFilterPredictions2D2-label" for="ocsApp_1-traitFilterPredictions2D2">Trait:</label>
+<label class="control-label" id="reportBuilder_1-traitFilterPredictions2D2-label" for="reportBuilder_1-traitFilterPredictions2D2">Trait:</label>
 <div>
-<select id="ocsApp_1-traitFilterPredictions2D2" class="shiny-input-select" multiple="multiple"><option value="desireIndex" selected>desireIndex</option>
-<option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Grain_Moisture" selected>Grain_Moisture</option>
-<option value="general" selected>general</option></select>
-<script type="application/json" data-for="ocsApp_1-traitFilterPredictions2D2">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="reportBuilder_1-traitFilterPredictions2D2" class="shiny-input-select" multiple="multiple"><option value="desireIndex" selected>desireIndex</option></select>
+<script type="application/json" data-for="reportBuilder_1-traitFilterPredictions2D2">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out3ebc0444573e34d2" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out8379b2e2d9df4437" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

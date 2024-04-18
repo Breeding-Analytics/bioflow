@@ -650,6 +650,7 @@ mod_staApp_server <- function(id,data){
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmarkdown::html_document()
+              # HTML = rmdformats::robobook(toc_depth = 4)
             ))
             file.rename(out, file)
             shinybusy::remove_modal_spinner()

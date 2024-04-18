@@ -97,11 +97,11 @@ suppressWarnings(tryCatch({
     load("resultSta.RData")
   }
 }, error = function(e) {
-  # NULL
+  shinyjs::hide()
 }))
 
 if (is.null(result)){
-  # invisible(NULL)
+  
 } else {
   
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
@@ -142,6 +142,7 @@ if (is.null(result)){
   summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
   
   if("params" %in% ls()){ # we will download the document
+    
     printTable(summarySta)
   }else{
     summarySta <- kableExtra::kbl(summarySta)
@@ -170,8 +171,9 @@ if (is.null(result)){
   staTraits <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
+    
     shiny::selectInput(ns("traitSta"), 
                        label = "Trait:", 
                        multiple = FALSE,
@@ -253,8 +255,8 @@ if (is.null(result)){
       rownames = FALSE,
       class = 'cell-border stripe',
       options = list(
-        scrollY = "400px",
-        scrollX = "400px",
+        scrollY = "300px",
+        scrollX = "300px",
         paging = F)
     ),numeric.output)
     })
@@ -277,7 +279,7 @@ if (is.null(result)){
   staTraits2 <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitSta0"), 
                        label = "Trait:", 
@@ -435,6 +437,102 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
+`r if (length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ) {"### Field view\n
+The following graphs allow the user to inspect the spatial trends in the different fields.\n"}`
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  modeling <- result$modeling
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  traitFieldView <- unique(result$predictions[which( result$predictions$analysisId == idSta),"trait"])
+  
+  if("params" %in% ls()){ # we will download the document
+    
+  }else{
+    
+    if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){
+      shiny::selectInput(ns("traitStaFieldView"), 
+                         label = "Trait:", 
+                         choices = traitFieldView, 
+      )
+    }
+    
+  }
+  
+}
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){
+    pheno <- result$data$pheno
+    metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
+    colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
+    
+    
+    if("params" %in% ls()){ # we will download the document
+      
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+      
+      for(iTrait in traitFieldView){
+        cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+        
+        pheno$value <- pheno[, iTrait]
+        maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        
+        p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
+                                        midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
+                                        name=iTrait) +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("") + ggplot2::xlab("") +
+          ggplot2::facet_wrap(~environment, scales = "free") +
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+        # print(p) # static
+        print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+        
+      }
+      
+    }else{ # we will display in the GUI
+      
+      # shiny::renderPlot({ # static
+      plotly::renderPlotly({ # dynamic
+        
+        pheno$value <- pheno[, input$traitStaFieldView]
+        maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        
+        p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
+                                        midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
+                                        name=input$traitStaFieldView) +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("") + ggplot2::xlab("") +
+          ggplot2::facet_wrap(~environment, scales = "free") +
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+        plotly::ggplotly(p)
+        
+      })
+      
+    }
+  }
+  
+  
+}
+
+```
+
 ### Predictions
 
 The following table allows you to check the trait predictions in wide format and filter them by environment.
@@ -451,7 +549,7 @@ if (is.null(result)){
   envs <- unique(result$predictions[which( result$predictions$analysisId == idSta),"environment"])
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("envSta"), 
                        label = "Environment:", 
@@ -513,7 +611,7 @@ if (is.null(result)){
   modeling <- setdiff(modeling, "inputObject")
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitStaBox"), 
                        label = "Trait:", 
@@ -591,7 +689,7 @@ if (is.null(result)){
   modeling <- setdiff(modeling, "inputObject")
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitStaCor"), 
                        label = "Trait:", 

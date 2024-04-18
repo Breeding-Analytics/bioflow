@@ -80,7 +80,7 @@ suppressWarnings(tryCatch({
     load("resultQaPheno.RData")
   }
 }, error = function(e) {
-  # NULL
+  shinyjs::hide()
 }))
 
 ```
@@ -105,7 +105,7 @@ if (is.null(result)){
   
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitQa"), 
                        label = "Reason for QA:", 

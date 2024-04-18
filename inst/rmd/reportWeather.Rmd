@@ -80,7 +80,7 @@ suppressWarnings(tryCatch({
     load("resultWeather.RData")
   }
 }, error = function(e) {
-  # NULL
+  shinyjs::hide()
 }))
 
 ```

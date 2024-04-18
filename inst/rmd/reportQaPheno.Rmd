@@ -11,13 +11,13 @@ params:
 
 # knitr R markdown chunk options
 knitr::opts_chunk$set(dependson = knitr::all_labels(),
-echo = FALSE,
-cache = FALSE,
-warning = FALSE,
-message = FALSE,
-comment = NA,
-out.width = "100%",
-error = TRUE)
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
 options(knitr.kable.NA = '')
 
 # loading necessary R packages ####
@@ -80,7 +80,7 @@ suppressWarnings(tryCatch({
     load("result.RData")
   }
 }, error = function(e) {
-  # NULL
+  shinyjs::hide()
 }))
 
 ```
@@ -105,7 +105,7 @@ if (is.null(result)){
   
   
   if("params" %in% ls()){ # we will download the document
-    
+    shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitQa"), 
                        label = "Trait:", 
@@ -156,21 +156,21 @@ The following boxplot allows you to visualize which records were tagged as outli
 ```{r }
 
 if (is.null(result)){
-# invisible(NULL)
+  # invisible(NULL)
 } else {
-
-traitsBoxplot <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
-if(idQaType == "qaMb"){traitsBoxplot <- paste0(traitsBoxplot,"-residual")}
-
-if("params" %in% ls()){ # we will download the document
-
-}else{
-shiny::selectInput(ns("traitQaBox"), 
-label = "Trait:", 
-choices = traitsBoxplot, 
-)
-}
-
+  
+  traitsBoxplot <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
+  if(idQaType == "qaMb"){traitsBoxplot <- paste0(traitsBoxplot,"-residual")}
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("traitQaBox"), 
+                       label = "Trait:", 
+                       choices = traitsBoxplot, 
+    )
+  }
+  
 }
 
 ```
@@ -223,7 +223,7 @@ if (is.null(result)){
     
     shiny::renderPlot({
       mydata$predictedValue <- mydata[,input$traitQaBox]
-
+      
       ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
         geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
         theme_classic()+
@@ -231,7 +231,7 @@ if (is.null(result)){
         xlab("Environment") + ylab("Trait value") +
         theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
         scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))
-
+      
     })
     
   }
