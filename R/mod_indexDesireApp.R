@@ -20,7 +20,7 @@ mod_indexDesireApp_ui <- function(id){
                                                          solidHeader = TRUE,
                                                          column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                 column(width = 6,
-                                                                       h1(strong(span("Selection indices", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                                       h1(strong(span("Selection indices", tags$a(href="https://www.youtube.com/watch?v=YhveKqd0q4s&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=8", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                        h2(strong("Status:")),
                                                                        uiOutput(ns("warningMessage")),
                                                                        img(src = "www/indexDesire.png", height = 300, width = 600), # add an image

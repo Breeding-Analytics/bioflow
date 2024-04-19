@@ -16,7 +16,7 @@ mod_saveData_ui <- function(id){
     #   width = 12,
     #   id    = ns('tabset'),
 
-      h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+      h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/watch?v=B3JaVw36dvI&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=3", icon("youtube") , target="_blank"), style="color:darkcyan"))),
 
       tabPanel(
         # title = 'Save analysis',

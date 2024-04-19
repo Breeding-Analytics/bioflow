@@ -20,7 +20,7 @@ mod_ocsApp_ui <- function(id){
                                                          solidHeader = TRUE,
                                                          column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                 column(width = 6,
-                                                                       h1(strong(span("Optimal Cross Selection", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                                       h1(strong(span("Optimal Cross Selection", tags$a(href="https://www.youtube.com/watch?v=LTiN7G6zCtM&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=9", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                        h2(strong("Status:")),
                                                                        uiOutput(ns("warningMessage")),
                                                                        img(src = "www/ocs.png", height = 400, width = 250), # add an image
