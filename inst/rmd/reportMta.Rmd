@@ -507,9 +507,8 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Biplot by trait
-
-The following graph allows to see the performance of the genotypes over the enevironments for each **trait**.
+`r if(length(result$metrics[result$metrics$analysisId == idMta & result$metrics$parameter == "nEnv" & result$metrics$value > 1, "trait"]) > 0){"### Biplot by trait\n
+The following graph allows to see the performance of the genotypes over the enevironments for each **trait**.\n"}`
 
 <p>&nbsp;</p>
 
@@ -521,15 +520,20 @@ if (is.null(result)){
   idMta <- idMta[length(idMta)]
   pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
-  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred.mta$trait)
+  modeling <- result$modeling
+  modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
+  metrics <- result$metrics
+  traitsBiplotAll <- metrics[metrics$analysisId == idMta & metrics$parameter == "nEnv" & metrics$value > 1, "trait"]
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    selectInput(ns("traitBiplot"),
-                label = "",
-                choices = traits
-    )
+    if(length(result$metrics[result$metrics$analysisId == idMta & result$metrics$parameter == "nEnv" & result$metrics$value > 1, "trait"]) > 0){
+      selectInput(ns("traitBiplot"),
+                  label = "",
+                  choices = traitsBiplotAll
+      )
+    }
   }
 }
 
@@ -540,122 +544,125 @@ if (is.null(result)){
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
-  idMta <- idMta[length(idMta)]
-  idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject","value"]
-  pred.sta <- result$predictions
-  pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   
-  if("params" %in% ls()){ # we will download the document
+  if(length(result$metrics[result$metrics$analysisId == idMta & result$metrics$parameter == "nEnv" & result$metrics$value > 1, "trait"]) > 0){
     
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject","value"]
+    pred.sta <- result$predictions
+    pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
     
-    for(iTrait in traits){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+    if("params" %in% ls()){ # we will download the document
       
-      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
-                                 direction = "wide", idvar = "designation", timevar = "environment")
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
       
-      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
-      pred.mta.biplot <- pred.mta.biplot[,-1]
-      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
-      
-      # keep only 
-      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
-      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
-      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
-      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-      components <- prin_comp[["x"]]
-      components <- data.frame(components)
-      components$PC2 <- -components$PC2
-      
-      explained_variance <- summary(prin_comp)[["sdev"]]
-      explained_variance <- explained_variance[1:2]
-      comp <- prin_comp[["rotation"]]
-      comp[,'PC2'] <- - comp[,'PC2']
-      loadings <- comp
-      for (i in seq(explained_variance) ){
-        loadings[,i] <- comp[,i] * explained_variance[i]
-      }
-      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                        x=components$PC1,
-                                        y=components$PC2,
-                                        text=rownames(components),
-                                        marker=list(color="blue"),
-                                        hoverinfo='text',
-                                        showlegend=FALSE
-      )
-      for (i in 1:ncol(pred.mta.biplot)){
-        p.mta.biplot <- p.mta.biplot %>%
-          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-        if(ncol(pred.mta.biplot) < 20){
-          p.mta.biplot <- p.mta.biplot %>%
-            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+      for(iTrait in traitsBiplotAll){
+        cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+        
+        goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
+        pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
+                                   direction = "wide", idvar = "designation", timevar = "environment")
+        
+        rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
+        pred.mta.biplot <- pred.mta.biplot[,-1]
+        names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
+        
+        # keep only 
+        missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
+        pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
+        missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
+        pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
+        pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+        # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
+        prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+        components <- prin_comp[["x"]]
+        components <- data.frame(components)
+        components$PC2 <- -components$PC2
+        
+        explained_variance <- summary(prin_comp)[["sdev"]]
+        explained_variance <- explained_variance[1:2]
+        comp <- prin_comp[["rotation"]]
+        comp[,'PC2'] <- - comp[,'PC2']
+        loadings <- comp
+        for (i in seq(explained_variance) ){
+          loadings[,i] <- comp[,i] * explained_variance[i]
         }
+        p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+        p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                          x=components$PC1,
+                                          y=components$PC2,
+                                          text=rownames(components),
+                                          marker=list(color="blue"),
+                                          hoverinfo='text',
+                                          showlegend=FALSE
+        )
+        for (i in 1:ncol(pred.mta.biplot)){
+          p.mta.biplot <- p.mta.biplot %>%
+            plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+          if(ncol(pred.mta.biplot) < 20){
+            p.mta.biplot <- p.mta.biplot %>%
+              plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+          }
+        }
+        print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+        
       }
-      print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+      
+    }else{
+      
+      plotly::renderPlotly({
+        goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitBiplot, "environment"]
+        pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
+                                   direction = "wide", idvar = "designation", timevar = "environment")
+        
+        rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
+        pred.mta.biplot <- pred.mta.biplot[,-1, drop=FALSE]
+        names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
+        
+        # keep only 
+        missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
+        pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),, drop=FALSE]
+        missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
+        pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8), drop=FALSE]
+        pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+        # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
+        
+        prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+        components <- prin_comp[["x"]]
+        components <- data.frame(components)
+        components$PC2 <- -components$PC2
+        
+        explained_variance <- summary(prin_comp)[["sdev"]]
+        explained_variance <- explained_variance[1:2]
+        comp <- prin_comp[["rotation"]]
+        comp[,'PC2'] <- - comp[,'PC2']
+        loadings <- comp
+        for (i in seq(explained_variance) ){
+          loadings[,i] <- comp[,i] * explained_variance[i]
+        }
+        
+        p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+        p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                          x=components$PC1,
+                                          y=components$PC2,
+                                          text=rownames(components),
+                                          marker=list(color="blue"),
+                                          hoverinfo='text',
+                                          showlegend=FALSE
+        )
+        
+        
+        for (i in 1:ncol(pred.mta.biplot)){
+          p.mta.biplot <- p.mta.biplot %>%
+            plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+          if(ncol(pred.mta.biplot) < 20){
+            p.mta.biplot <- p.mta.biplot %>%
+              plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+          }
+        }
+        plotly::layout(p.mta.biplot,font=font.plot_ly)
+      })
       
     }
-    
-  }else{
-    
-    plotly::renderPlotly({
-      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitBiplot, "environment"]
-      pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == input$traitBiplot & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
-                                 direction = "wide", idvar = "designation", timevar = "environment")
-      
-      rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
-      pred.mta.biplot <- pred.mta.biplot[,-1]
-      names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
-      
-      # keep only 
-      missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
-      missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
-      pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
-      pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-      # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
-      
-      prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-      components <- prin_comp[["x"]]
-      components <- data.frame(components)
-      components$PC2 <- -components$PC2
-      
-      explained_variance <- summary(prin_comp)[["sdev"]]
-      explained_variance <- explained_variance[1:2]
-      comp <- prin_comp[["rotation"]]
-      comp[,'PC2'] <- - comp[,'PC2']
-      loadings <- comp
-      for (i in seq(explained_variance) ){
-        loadings[,i] <- comp[,i] * explained_variance[i]
-      }
-      
-      p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-      p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                        x=components$PC1,
-                                        y=components$PC2,
-                                        text=rownames(components),
-                                        marker=list(color="blue"),
-                                        hoverinfo='text',
-                                        showlegend=FALSE
-      )
-      
-      
-      for (i in 1:ncol(pred.mta.biplot)){
-        p.mta.biplot <- p.mta.biplot %>%
-          plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-        if(ncol(pred.mta.biplot) < 20){
-          p.mta.biplot <- p.mta.biplot %>%
-            plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
-        }
-      }
-      plotly::layout(p.mta.biplot,font=font.plot_ly)
-    })
     
   }
   

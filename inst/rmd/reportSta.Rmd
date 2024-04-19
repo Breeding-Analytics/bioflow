@@ -437,8 +437,12 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-`r if (length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ) {"### Field view\n
-The following graphs allow the user to inspect the spatial trends in the different fields.\n"}`
+`r if (length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ) {
+coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
+if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){shinyjs::hide()}else{"### Field view\n
+The following graphs allow the user to inspect the spatial trends in the different fields.\n"}
+
+}`
 
 ```{r }
 if (is.null(result)){
@@ -453,11 +457,19 @@ if (is.null(result)){
     shinyjs::hide()
   }else{
     
-    if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){
-      shiny::selectInput(ns("traitStaFieldView"), 
-                         label = "Trait:", 
-                         choices = traitFieldView, 
-      )
+    if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){ # user mapped the columns
+      
+      coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
+      
+      if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+        shinyjs::hide()
+      }else{
+        shiny::selectInput(ns("traitStaFieldView"), 
+                           label = "Trait:", 
+                           choices = traitFieldView, 
+        )
+      }
+      
     }
     
   }
@@ -471,63 +483,68 @@ if (is.null(result)){
 } else {
   
   if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){
-    pheno <- result$data$pheno
-    metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
-    colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
     
     
-    if("params" %in% ls()){ # we will download the document
+    if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+      shinyjs::hide()
+    }else{
+      pheno <- result$data$pheno
+      metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
+      colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
       
-      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-      
-      for(iTrait in traitFieldView){
-        cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      if("params" %in% ls()){ # we will download the document
         
-        pheno$value <- pheno[, iTrait]
-        maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-        minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-        meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
         
-        p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
-          ggplot2::geom_tile(color = "white")+
-          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
-                                        midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
-                                        name=iTrait) +
-          ggplot2::theme_minimal()+
-          ggplot2::ylab("") + ggplot2::xlab("") +
-          ggplot2::facet_wrap(~environment, scales = "free") +
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
-        # print(p) # static
-        print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+        for(iTrait in traitFieldView){
+          cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+          
+          pheno$value <- pheno[, iTrait]
+          maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+          minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+          meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+          
+          p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
+            ggplot2::geom_tile(color = "white")+
+            ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
+                                          midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
+                                          name=iTrait) +
+            ggplot2::theme_minimal()+
+            ggplot2::ylab("") + ggplot2::xlab("") +
+            ggplot2::facet_wrap(~environment, scales = "free") +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+          # print(p) # static
+          print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+          
+        }
+        
+      }else{ # we will display in the GUI
+        
+        # shiny::renderPlot({ # static
+        plotly::renderPlotly({ # dynamic
+          
+          pheno$value <- pheno[, input$traitStaFieldView]
+          maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+          minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+          meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+          
+          p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
+            ggplot2::geom_tile(color = "white")+
+            ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
+                                          midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
+                                          name=input$traitStaFieldView) +
+            ggplot2::theme_minimal()+
+            ggplot2::ylab("") + ggplot2::xlab("") +
+            ggplot2::facet_wrap(~environment, scales = "free") +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+          plotly::ggplotly(p)
+          
+        })
         
       }
-      
-    }else{ # we will display in the GUI
-      
-      # shiny::renderPlot({ # static
-      plotly::renderPlotly({ # dynamic
-        
-        pheno$value <- pheno[, input$traitStaFieldView]
-        maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-        minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-        meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-        
-        p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
-          ggplot2::geom_tile(color = "white")+
-          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
-                                        midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
-                                        name=input$traitStaFieldView) +
-          ggplot2::theme_minimal()+
-          ggplot2::ylab("") + ggplot2::xlab("") +
-          ggplot2::facet_wrap(~environment, scales = "free") +
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
-        plotly::ggplotly(p)
-        
-      })
-      
-    }
-  }
-  
+    } # end of if user has coordinate data
+    
+  } # end of if user mapped the coordinate columns
   
 }
 
