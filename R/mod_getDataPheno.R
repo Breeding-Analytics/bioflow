@@ -764,7 +764,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       req(data())
       dtMta <- data()$metadata$pheno
       if(!is.null(dtMta)){
-        traitMtaInput <- intersect( c('year', 'season', 'country', 'location', 'trial', 'study'), dtMta$parameter )
+        traitMtaInput <- intersect( c('pipeline','stage','year', 'season', 'country', 'location', 'trial', 'study'), dtMta$parameter )
         updateSelectInput(session, "featuresEnvironment", choices = traitMtaInput, selected = traitMtaInput)
       }
     })
@@ -791,7 +791,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           myObject$metadata$pheno <- myObject$metadata$pheno[-which(myObject$metadata$pheno$parameter == "environment"), ]
           myObject$data$pheno <- myObject$data$pheno [,!(names(myObject$data$pheno) %in% c("environment"))]
           data(myObject)
-          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to compute the environments and perform a genetic evaluation "), type = "error")
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns: 'pipeline', 'stage', 'year', 'season', 'location', 'trial' or 'study' to be able to compute the environments and perform a genetic evaluation "), type = "error")
         }
       }else{ # user has not mapped an study column, we will add it
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
