@@ -881,7 +881,7 @@ if (is.null(result)){
         ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
-        ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+        ggplot2::labs(title = "Across environment estimates comparison", x = "Designation", y = "Predicted value", col = "entry type") +
         ggplot2::theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1 , size = 7), legend.position = "bottom") +
         guides(fill=guide_legend(nrow=3,byrow=TRUE))
       if(length(unique(temp.pred.box$designation)) > 1200){ # go fixed format
@@ -917,7 +917,7 @@ if (is.null(result)){
           ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                               ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                  width = 0.10) +
-          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+          ggplot2::labs(title = "Across environment estimates comparison", x = "Designation", y = "Predicted value", col = "entry type") +
           ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
         p
         
@@ -943,7 +943,7 @@ if (is.null(result)){
           ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                               ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                  width = 0.10) +
-          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+          ggplot2::labs(title = "Across environment estimates comparison", x = "Designation", y = "Predicted value", col = "entry type") +
           ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
         plotly::ggplotly(p)
       })
@@ -1079,7 +1079,8 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Percent check comparison to top 30 entries
+`r if (length( grep("check|chck|bnchmark|benchmark|chek|chec", unique(pred[pred$analysisId == idMta,"entryType"]), ignore.case = TRUE) ) > 0) {"### Percent check comparison to top 30 entries\n
+The following plots allow the user to compare the tested entries versus the checks.\n"}`
 
 ```{r }
 if (is.null(result)){
@@ -1090,16 +1091,27 @@ if (is.null(result)){
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
-  traits <- unique(pred$trait)
   
-  if("params" %in% ls()){ # we will download the document
-    shinyjs::hide()
+  entryTypePresent <- table(pred$entryType)
+  check1 <- which(entryTypePresent < 100)
+  check2 <- grep("check|chck|bnchmark|benchmark|chek|chec", names(entryTypePresent), ignore.case = TRUE, value=FALSE)
+  checksFound <- intersect(check1,check2)
+  if(length(checksFound) > 0){
+    labelChecks <- names(entryTypePresent)[checksFound]
+    nameOfChecks <- unique(pred[ which(pred$entryType %in% labelChecks) , "designation"])
+    
+    if("params" %in% ls()){ # we will download the document
+      shinyjs::hide()
+    }else{
+      selectInput(ns("checkMta"),
+                  label = "Check to compare to:",
+                  choices = nameOfChecks
+      )
+    }
   }else{
-    selectInput(ns("traitMta2"),
-                label = "Check to compare to:",
-                choices = traits
-    )
+    shinyjs::hide()
   }
+  
 }
 ```
 
@@ -1108,76 +1120,98 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if("params" %in% ls()){ # we will download the document
+  if(length(checksFound) > 0){
     
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    
-    for(iTrait in traits){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+    if("params" %in% ls()){ # we will download the document
       
-      temp.pred.box <- pred[pred$trait== iTrait,]
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
       
-      p <- ggplot2::ggplot(
-        data = temp.pred.box, 
-        mapping = ggplot2::aes(
-          x = reorder(designation, -predictedValue),
-          y = predictedValue,
-          col = entryType,
-          text = paste(
-            paste0('<br>', "designation: ", designation),
-            paste0('<br>', "entry type: ", entryType),
-            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-            paste0('<br>', "standard error: ", round(stdError, 4)),
-            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
-            #        round(predictedValue + CI, 2), ")")))) +
-            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
-                   round(predictedValue + stdError, 4), ")")))) +
-        ggplot2::theme_classic() +  ggplot2::geom_point() +
-        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                               width = 0.10) +
-        ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1 , size = 7), legend.position = "bottom") +
-        guides(fill=guide_legend(nrow=3,byrow=TRUE))
-      if(length(unique(temp.pred.box$designation)) > 1200){ # go fixed format
-        print(p)
-      }else{ # go dynamic
-        print(htmltools::tagList(plotly::ggplotly(p)))
-      }
-    }
-    
-  }else{
-    
-      plotly::renderPlotly({
+      for(iCheck in nameOfChecks){
+        cat("\n\n####", iCheck, "{.tabset .tabset-pills}       \n\n")
         
-        temp.pred.box <- pred[pred$trait== input$traitMta2,]
+        predList <- split(pred, pred$trait)
+        predList2 <- lapply(predList, function(x){ # x <- predList[[1]]
+          checkSelected <- which(x$designation == iCheck)
+          x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x <- x[with(x, order(-predictedValue2)), ]
+          x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == iCheck ))),]
+          return(x)
+        })
+        temp.pred.box <- do.call(rbind, predList2)
+        
         p <- ggplot2::ggplot(
           data = temp.pred.box,
           mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
-            col = entryType,
+            x = designation, # reorder(designation, -predictedValue2),
+            y = predictedValue2,
+            col = trait,
             text = paste(
               paste0('<br>', "designation: ", designation),
               paste0('<br>', "entry type: ", entryType),
-              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-              paste0('<br>', "standard error: ", round(stdError, 4)),
-              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                     round(predictedValue + stdError, 4), ")")))) +
-          ggplot2::theme_classic() +  ggplot2::geom_point() +
-          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                 width = 0.10) +
-          ggplot2::labs(title = "across", x = "designation", y = "predicted value", col = "entry type") +
+              paste0('<br>', "predicted value: ", round(predictedValue2, 4)),
+              # paste0('<br>', "standard error: ", round(stdError2, 4)),
+              paste0("<br>predVal +- stdError: (", round(LB, 2) , ", ",
+                     round(UB, 4), ")")))) +
+          ggplot2::theme_classic() +  ggplot2::geom_point() + #facet_grid(~trait, scales = "free_x")+
+          ggplot2::geom_errorbar(ggplot2::aes(ymax = UB,# predictedValue2 + stdError2,
+                                              ymin = LB#predictedValue2 - stdError2
+          ), position = ggplot2::position_dodge(0.5),
+          width = 0.10) +
+          ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+        
+        print(htmltools::tagList(plotly::ggplotly(p)))
+        
+      }
+      
+    }else{
+      
+      plotly::renderPlotly({
+        
+        predList <- split(pred, pred$trait)
+        predList2 <- lapply(predList, function(x){ # x <- predList[[1]]
+          checkSelected <- which(x$designation == input$checkMta)
+          x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x <- x[with(x, order(-predictedValue2)), ]
+          x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == input$checkMta))),]
+          return(x)
+        })
+        temp.pred.box <- do.call(rbind, predList2)
+        
+        p <- ggplot2::ggplot(
+          data = temp.pred.box,
+          mapping = ggplot2::aes(
+            x = designation, # reorder(designation, -predictedValue2),
+            y = predictedValue2,
+            col = trait,
+            text = paste(
+              paste0('<br>', "designation: ", designation),
+              paste0('<br>', "entry type: ", entryType),
+              paste0('<br>', "predicted value: ", round(predictedValue2, 4)),
+              # paste0('<br>', "standard error: ", round(stdError2, 4)),
+              paste0("<br>predVal +- stdError: (", round(LB, 2) , ", ",
+                     round(UB, 4), ")")))) +
+          ggplot2::theme_classic() +  ggplot2::geom_point() + #facet_grid(~trait, scales = "free_x")+
+          ggplot2::geom_errorbar(ggplot2::aes(ymax = UB,# predictedValue2 + stdError2,
+                                              ymin = LB#predictedValue2 - stdError2
+          ), position = ggplot2::position_dodge(0.5),
+          width = 0.10) +
+          ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
           ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
         plotly::ggplotly(p)
+        
       })
+      
+    }
     
   }
+  
 }
 ```
-
-
 
 ### Genetic correlations between traits
 

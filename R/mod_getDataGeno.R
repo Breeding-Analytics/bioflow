@@ -401,7 +401,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           #                             session$clientData$url_pathname,
           #                             geno_example)
 
-          geno_example_url <- 'https://drive.google.com/uc?export=download&id=19RzGe542z-bYLGWn1Iwt34UXWofgSPoe'
+          geno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/geno.hmp.txt'
 
           updateTextInput(session, 'geno_url', value = geno_example_url)
 

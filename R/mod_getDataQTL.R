@@ -116,7 +116,7 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
           #                            session$clientData$url_pathname,
           #                            qtl_example)
 
-          qtl_example_url <- 'https://drive.google.com/uc?export=download&id=1oNZsRB8KucLqfGA5qARyaHqf1NyEugF-'
+          qtl_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/qtl.csv'
 
           updateTextInput(session, 'qtl_url', value = qtl_example_url)
 

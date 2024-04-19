@@ -742,7 +742,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           #                              session$clientData$url_pathname,
           #                              pheno_example)
 
-          pheno_example_url <- 'https://drive.google.com/uc?export=download&id=1X_MaWs9wd8s2fUsyouN4t1-znN3s5jiw'
+          pheno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/pheno.csv'
 
           updateTextInput(session, 'pheno_url', value = pheno_example_url)
 
