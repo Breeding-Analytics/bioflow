@@ -130,7 +130,7 @@ mod_traitTransformApp_server <- function(id, data){
     dtFieldTraC = reactive({
       dtProv = data()$metadata$pheno
       traitNames = dtProv[dtProv$parameter == "trait","value"]
-      mm = matrix(0,nrow = 3, ncol = length(traitNames)); rownames(mm) <- c("log","sqrt","cbrt"); colnames(mm) <- traitNames
+      mm = matrix(0,nrow = 4, ncol = length(traitNames)); rownames(mm) <- c("I","log","sqrt","cbrt"); colnames(mm) <- traitNames
       dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
       return(dtProvTable)
     })

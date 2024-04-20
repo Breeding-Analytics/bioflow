@@ -1,7 +1,7 @@
 ---
 title: "Optimal Cross Selection Report"
-author: ""
-date: "December 2023"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
 params:
  toDownload: FALSE
@@ -368,7 +368,7 @@ if (is.null(result)){
       colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
       mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
       
-      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=parent, y=predictedValue, label=designation) ) + 
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
         ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
@@ -395,7 +395,7 @@ if (is.null(result)){
       mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
       
       
-      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=parent, y=predictedValue, label=designation) ) + 
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
         ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 

@@ -1,7 +1,7 @@
 ---
 title: "Predicted Genetic Gain Report"
-author: ""
-date: "December 2023"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
 params:
  toDownload: FALSE
