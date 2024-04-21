@@ -403,7 +403,7 @@ observeEvent(input[["input$fileenvbio"]], {
 })
 
 observeEvent(input[["geno_groupPopStr"]], {
-      src <- normalizePath("inst/app/www/example/Groupgeno.csv")
+      src <- normalizePath("www/example/Groupgeno.csv")
       dat <- read.csv(src)
       DataGPopStr(dat)
 })
