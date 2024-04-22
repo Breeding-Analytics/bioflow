@@ -58,6 +58,7 @@ rsconnect::deployApp(
   forceUpdate = TRUE
 )
 
+options(rsconnect.max.bundle.size=8589934592)
 rsconnect::setAccountInfo(name='cgiar-market-intelligence',
                           token='DB3778031938A406DDB9EA47006FB47D',
                           secret='OYKpvd/zQUgIXhlzhMau9nJ/OhYeR3oiv0odKDCD')
