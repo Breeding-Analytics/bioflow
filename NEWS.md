@@ -1,3 +1,3 @@
-# frame (development version)
+# bioflow (development version)
 
 * Initial CRAN submission.

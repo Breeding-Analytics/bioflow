@@ -19,6 +19,7 @@
 # attachment::att_amend_desc()
 #
 #
+# usethis::use_package("ape")
 # usethis::use_package("DT")
 # usethis::use_package("config")
 # usethis::use_package("sommer")
@@ -147,7 +148,7 @@
 # # Documentation
 #
 # ## Vignette ----
-# # usethis::use_vignette("frame")
+# # usethis::use_vignette("bioflow")
 # devtools::build_vignettes()
 #
 # ## Code Coverage----

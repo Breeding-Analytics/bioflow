@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 # library(testthat)
-# library(frame)
+# library(bioflow)
 #
-# test_check("frame")
+# test_check("bioflow")
