@@ -309,8 +309,9 @@ if (is.null(result)){
       # Basic histogram
       mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
       group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
+      ub <- max(mydata4$Freq, na.rm = TRUE)
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
         scale_fill_manual(values=group.colors)
       # combine plots
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
@@ -358,8 +359,9 @@ if (is.null(result)){
       # Basic histogram
       mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
       group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
+      ub <- max(mydata4$Freq, na.rm = TRUE)
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
         scale_fill_manual(values=group.colors)
       # combine plots
       ply1 <- plotly::ggplotly(p)
@@ -449,8 +451,8 @@ if (is.null(result)){
       mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + 
-        scale_fill_manual(values=group.colors)
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_manual(values=group.colors) 
       # combine plots
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
       # print(p) # static
@@ -489,7 +491,7 @@ if (is.null(result)){
       mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
         scale_fill_manual(values=group.colors)
       # combine plots
       ply1 <- plotly::ggplotly(p)
@@ -756,7 +758,6 @@ The following graph allows to see the proportion of variance going to different 
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  
   idMtaVC <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMtaVC <- idMtaVC[length(idMtaVC)]
   traitsvc <- unique(result$modeling[which(result$modeling$analysisId == idMtaVC  & result$modeling$environment == "across"),"trait"])
@@ -795,10 +796,8 @@ if (is.null(result)){
   
   
   if("params" %in% ls()){ # we will download the document
+    
     cat("\n\n###  {.tabset .tabset-pills}       \n\n")
-    # for (j in 1:length(traitsvc)){
-    #   cat("\n\n####", traitsvc[j], "{.tabset .tabset-pills}       \n\n")
-    # df4 <- df3[df3$traitOriginal == traitsvc[j],]
     p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=traitOriginal, y=valueProp, fill=parameterOriginal)) +
       ggplot2::geom_bar(stat="identity") +
       ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
@@ -808,9 +807,9 @@ if (is.null(result)){
       ggplot2::geom_text(data=df3,ggplot2::aes(x= traitOriginal, y = valuePropCum , label =round(value,2) ),
                          position=ggplot2::position_dodge(width = 0.8),size = 3, vjust = -0.5 ,colour="black")
     print(p)
-    # cat("\n")
-    # }
     cat("\n")
+    cat("\n")
+    
   }else{
     
     shiny::renderPlot({
@@ -831,7 +830,9 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Across-environment merit estimates
+### Across-environment merit estimates of top entries
+
+In the following plot you can observe the comparison between the top 100 entries from each entry type category. If a category has less than a 100 entries all individuals are displayed.
 
 ```{r }
 if (is.null(result)){
@@ -868,9 +869,26 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       temp.pred.box <- pred[pred$trait== iTrait,]
+      ub <- max(temp.pred.box$predictedValue, na.rm = TRUE)
+      lb <- min(temp.pred.box$predictedValue, na.rm = TRUE)
       
-      p <- ggplot2::ggplot(
-        data = temp.pred.box, 
+      p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
+        ggplot2::labs(x="", y="Trait value") +  
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +
+        ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      temp.pred.box.list <- split(temp.pred.box, temp.pred.box$entryType)
+      temp.pred.box.list <- lapply(temp.pred.box.list, function(x){
+        x[with(x, order(-predictedValue)), ]
+        x <- x[1:min(c(nrow(x), 100)),]
+        return(x)
+      })
+      temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
+      
+      p2 <- ggplot2::ggplot(
+        data = temp.pred.box2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
@@ -880,81 +898,77 @@ if (is.null(result)){
             paste0('<br>', "entry type: ", entryType),
             paste0('<br>', "predicted value: ", round(predictedValue, 4)),
             paste0('<br>', "standard error: ", round(stdError, 4)),
-            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ", 
+            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
             #        round(predictedValue + CI, 2), ")")))) +
-            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ", 
+            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
                    round(predictedValue + stdError, 4), ")")))) +
         ggplot2::theme_classic() +  ggplot2::geom_point() +
         ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
-        ggplot2::labs(title = "Across environment estimates comparison", x = "Designation", y = "Predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1 , size = 7), legend.position = "bottom") +
-        guides(fill=guide_legend(nrow=3,byrow=TRUE))
-      if(length(unique(temp.pred.box$designation)) > 1200){ # go fixed format
-        print(p)
-      }else{ # go dynamic
-        print(htmltools::tagList(plotly::ggplotly(p)))
-      }
+        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
+        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), nrows=1, widths = c(0.75,0.25) ) ) )
+      
+      cat("\n")
+      cat("\n")
     }
     
   }else{
     
-    if(length(unique(pred$designation)) > 1200){ # go fixed format
+    plotly::renderPlotly({
       
-      shiny::renderPlot({
-        
-        temp.pred.box <- pred[pred$trait== input$traitMta2,]
-        p <- ggplot2::ggplot(
-          data = temp.pred.box,
-          mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
-            col = entryType,
-            text = paste(
-              paste0('<br>', "designation: ", designation),
-              paste0('<br>', "entry type: ", entryType),
-              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-              paste0('<br>', "standard error: ", round(stdError, 4)),
-              # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
-              #        round(predictedValue + CI, 2), ")")))) +
-              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                     round(predictedValue + stdError, 4), ")")))) +
-          ggplot2::theme_classic() +  ggplot2::geom_point() +
-          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                 width = 0.10) +
-          ggplot2::labs(title = "Across environment estimates comparison", x = "Designation", y = "Predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
-        p
-        
+      temp.pred.box <- pred[pred$trait== input$traitMta2,]
+      ub <- max(temp.pred.box$predictedValue, na.rm = TRUE)
+      lb <- min(temp.pred.box$predictedValue, na.rm = TRUE)
+      
+      p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
+        ggplot2::labs(x="", y="Trait value") +  
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      temp.pred.box.list <- split(temp.pred.box, temp.pred.box$entryType)
+      temp.pred.box.list <- lapply(temp.pred.box.list, function(x){
+        x[with(x, order(-predictedValue)), ]
+        x <- x[1:min(c(nrow(x), 100)),]
+        return(x)
       })
-    }else{ # go dynamic
-      plotly::renderPlotly({
-        
-        temp.pred.box <- pred[pred$trait== input$traitMta2,]
-        p <- ggplot2::ggplot(
-          data = temp.pred.box,
-          mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
-            col = entryType,
-            text = paste(
-              paste0('<br>', "designation: ", designation),
-              paste0('<br>', "entry type: ", entryType),
-              paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-              paste0('<br>', "standard error: ", round(stdError, 4)),
-              paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                     round(predictedValue + stdError, 4), ")")))) +
-          ggplot2::theme_classic() +  ggplot2::geom_point() +
-          ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                              ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                 width = 0.10) +
-          ggplot2::labs(title = "Across environment estimates comparison", x = "Designation", y = "Predicted value", col = "entry type") +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
-        plotly::ggplotly(p)
-      })
-    }
+      temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
+      
+      p2 <- ggplot2::ggplot(
+        data = temp.pred.box2,
+        mapping = ggplot2::aes(
+          x = reorder(designation, -predictedValue),
+          y = predictedValue,
+          col = entryType,
+          text = paste(
+            paste0('<br>', "designation: ", designation),
+            paste0('<br>', "entry type: ", entryType),
+            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+            paste0('<br>', "standard error: ", round(stdError, 4)),
+            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+            #        round(predictedValue + CI, 2), ")")))) +
+            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                   round(predictedValue + stdError, 4), ")")))) +
+        ggplot2::theme_classic() +  ggplot2::geom_point() +
+        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                               width = 0.10) +
+        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
+        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) + 
+        ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      ply1 <- plotly::ggplotly(p1)
+      ply2 <- plotly::ggplotly(p2)
+      plotly::subplot(ply2, ply1, nrows=1, widths = c(0.75,0.25))
+      
+    })
+    
+    
     
   }
 }
