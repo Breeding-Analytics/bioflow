@@ -175,6 +175,14 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
         req(input$qtl_table_designation)
         if(!is.null(input$qtl_table_firstsnp) & !is.null(input$qtl_table_designation) ){
           temp <- data()
+
+          if(!is.null(temp$metadata$qtl)){temp$metadata$qtl <- temp$metadata$qtl[0,]} # make sure if an user uploads a new dataset the metadata starts empty
+          if(!is.null(temp$modifications$qtl)){temp$modifications$qtl <- temp$modifications$qtl[0,]} # make sure if an user uploads a new dataset the modifications starts empty
+          if(!is.null(temp$status)){
+            toRemove <- which(temp$status$module == "qaQtl")
+            if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
+          } # make sure if an user uploads a new dataset the qaPed starts empty
+
           temp$metadata$qtl <- data.frame(parameter="designation",value=c(input$qtl_table_designation))
           temp$data$qtl <- qtl_data_table()[,unique(c(input$qtl_table_designation,input$qtl_table_firstsnp))]
           data(temp)

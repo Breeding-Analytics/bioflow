@@ -39,7 +39,7 @@ dependencyPlot <- function(){
 }
 
 plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilterPredictionsRadar2, meanGroupPredictionsRadar, proportion=0.2,
-                                 analysisId, trait, desirev, scaled){
+                                 analysisId, trait, desirev, scaled, title=NULL){
 
   mydata <- object$predictions
   mydata <- mydata[which(mydata$analysisId == analysisId),]
@@ -90,6 +90,9 @@ plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilte
       ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
       ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red")
   }
+  if(!is.null(title)){
+    p <- p %>% plotly::layout(title=title)
+  }
   # fig2 <-  plotly::ggplotly(p)
   # fig2
   p
@@ -97,7 +100,7 @@ plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilte
 }
 
 radarPlot <-  function(mydata, environmentPredictionsRadar2=NULL,traitFilterPredictionsRadar2=NULL,proportion=NULL,meanGroupPredictionsRadar=NULL,
-                       fontSizeRadar=12, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE){
+                       fontSizeRadar=12, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE, title=NULL){
 
 
   mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
@@ -179,6 +182,9 @@ radarPlot <-  function(mydata, environmentPredictionsRadar2=NULL,traitFilterPred
             # textfont = list(color = '#000000', size = fontSizeRadar)
           )
       }
+    }
+    if(!is.null(title)){
+      fig <- fig %>% plotly::layout(title=title)
     }
     return(fig)
   }

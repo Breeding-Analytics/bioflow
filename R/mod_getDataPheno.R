@@ -578,6 +578,12 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         temp <- data()
         temp$data$pheno <- pheno_data()
+        if(!is.null(temp$metadata$pheno)){temp$metadata$pheno <- temp$metadata$pheno[0,]} # make sure if an user uploads a new dataset the metadata starts empty
+        if(!is.null(temp$modifications$pheno)){temp$modifications$pheno <- temp$modifications$pheno[0,]} # make sure if an user uploads a new dataset the modifications starts empty
+        if(!is.null(temp$status)){
+          toRemove <- which(temp$status$module == "qaRaw")
+          if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
+        } # make sure if an user uploads a new dataset the qaRaw starts empty
 
         output$preview_pheno <- DT::renderDT({
           DT::datatable(temp$data$pheno,

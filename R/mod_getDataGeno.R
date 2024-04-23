@@ -226,6 +226,14 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
         if(!is.null(input$geno_table_firstsnp) & !is.null(input$geno_table_lastsnp) & !is.null(input$geno_table_designation) ){
           temp <- data()
           tempG <- geno_data_table()
+
+          if(!is.null(temp$metadata$geno)){temp$metadata$geno <- temp$metadata$geno[0,]} # make sure if an user uploads a new dataset the metadata starts empty
+          if(!is.null(temp$modifications$geno)){temp$modifications$geno <- temp$modifications$geno[0,]} # make sure if an user uploads a new dataset the modifications starts empty
+          if(!is.null(temp$status)){
+            toRemove <- which(temp$status$module == "qaGeno")
+            if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
+          } # make sure if an user uploads a new dataset the qaGeno starts empty
+
           tempG <- tempG[which(!duplicated(tempG[,which(colnames(tempG)==input$geno_table_designation)[1]])),]
           rownamestempG <- tempG[,which(colnames(tempG)==input$geno_table_designation)[1] ]
           missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
@@ -374,6 +382,14 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
       geno_data(),
       {
         temp <- data()
+
+        if(!is.null(temp$metadata$geno)){temp$metadata$geno <- temp$metadata$geno[0,]} # make sure if an user uploads a new dataset the metadata starts empty
+        if(!is.null(temp$modifications$geno)){temp$modifications$geno <- temp$modifications$geno[0,]} # make sure if an user uploads a new dataset the modifications starts empty
+        if(!is.null(temp$status)){
+          toRemove <- which(temp$status$module == "qaGeno")
+          if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
+        } # make sure if an user uploads a new dataset the qaGeno starts empty
+
         gd<-geno_data()[[1]]
         temp$data$geno <- t(as.matrix(gd[, -c(1:11)])) - 1
         colnames(temp$data$geno) <- gd$`rs#`

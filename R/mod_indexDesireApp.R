@@ -65,9 +65,9 @@ mod_indexDesireApp_ui <- function(id){
                                                                     # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            p(span("Network plot of current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
-                                                                           p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
+                                                                           # p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
                                                                            DT::DTOutput(ns("statusIndex")),
-                                                                           p(span("MTA predictions to be used as input.", style="color:black")),
+                                                                           # p(span("MTA predictions to be used as input.", style="color:black")),
                                                                            DT::DTOutput(ns("tablePredictionsTraitsWide")),
                                                 #                     )
                                                 # )
@@ -93,12 +93,12 @@ mod_indexDesireApp_ui <- function(id){
                                                               hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        ),
                                                        column(width = 12,
-                                                              p(span("Radar plot to inspect population values versus target values.", style="color:black")),
+                                                              # p(span("Radar plot to inspect population values versus target values.", style="color:black")),
                                                               numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
                                                               plotly::plotlyOutput(ns("plotPredictionsRadar")),
                                                        ),
                                                        column(width = 12,
-                                                              p(span("Expected response to selection using current desire changes.", style="color:black")),
+                                                              # p(span("Expected response to selection using current desire changes.", style="color:black")),
                                                               numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
                                                               shiny::plotOutput(ns("plotPotentialResponse")),
                                                        ),
@@ -333,7 +333,11 @@ mod_indexDesireApp_server <- function(id, data){
       paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Past modeling parameters from MTA stamp(s) selected.')
+                    )
       )
     })
     observeEvent(c(data(),input$version2IdxD), { # update parameter
@@ -369,7 +373,11 @@ mod_indexDesireApp_server <- function(id, data){
       numeric.output <- colnames(wide)[-c(1)]
       DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                    caption = htmltools::tags$caption(
+                                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                                      htmltools::em('MTA predictions to be used as input.')
+                                    )
       ), numeric.output)
     })
 
@@ -411,7 +419,7 @@ mod_indexDesireApp_server <- function(id, data){
         traitRp <- dd[,"trait"]
       }else{desireRp <- values; traitRp <- input$trait2IdxD}
       radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
-                fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE) # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
+                fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE, title="Radar plot to inspect population values versus target values.") # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
       }
     })
     # render plot for potential responses
@@ -423,7 +431,7 @@ mod_indexDesireApp_server <- function(id, data){
       values <- desireValues()
       if(!is.null(values)){
         plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
-                            analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex)
+                            analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex, title="Expected response to selection using current desire changes")
       }
 
     })

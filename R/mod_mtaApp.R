@@ -73,9 +73,9 @@ mod_mtaApp_ui <- function(id){
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                p(span("Network plot of current analyses available.", style="color:black")),
                                                shiny::plotOutput(ns("plotTimeStamps")),
-                                               p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
+                                               # p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
                                                DT::DTOutput(ns("statusMta")), # modeling table
-                                               p(span("STA predictions table to be used as input.", style="color:black")),
+                                               # p(span("STA predictions table to be used as input.", style="color:black")),
                                                DT::DTOutput(ns("phenoMta")), # predictions data table
                                                #                     )
                                                # )
@@ -502,7 +502,11 @@ mod_mtaApp_server <- function(id, data){
       paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Past modeling parameters from STA stamp(s) selected.')
+                    )
       )
     })
 
@@ -569,7 +573,11 @@ mod_mtaApp_server <- function(id, data){
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtMta, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                    caption = htmltools::tags$caption(
+                                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                                      htmltools::em('STA predictions table to be used as input.')
+                                    )
       ), numeric.output)
     })
     ## render connectivity plot

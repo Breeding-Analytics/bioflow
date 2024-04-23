@@ -120,6 +120,13 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
         # should check file format here!
         temp$data$pedigree <- ped_data()
 
+        if(!is.null(temp$metadata$pedigree)){temp$metadata$pedigree <- temp$metadata$pedigree[0,]} # make sure if an user uploads a new dataset the metadata starts empty
+        if(!is.null(temp$modifications$pedigree)){temp$modifications$pedigree <- temp$modifications$pedigree[0,]} # make sure if an user uploads a new dataset the modifications starts empty
+        if(!is.null(temp$status)){
+          toRemove <- which(temp$status$module == "qaPed")
+          if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
+        } # make sure if an user uploads a new dataset the qaPed starts empty
+
         output$preview_ped <- DT::renderDT({
           req(ped_data())
 

@@ -64,7 +64,7 @@ mod_qaRawApp_ui <- function(id){
                                                                                  column(width=4, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
                                                                                  column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                                  column(width=12,
-                                                                                        p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
+                                                                                        # p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                                         DT::DTOutput(ns("modificationsQa")),
                                                                                  )
                                                                           # )
@@ -149,6 +149,7 @@ mod_qaRawApp_server <- function(id, data){
         mydata$color <- "valid"
         if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
         mydata$predictedValue <- mydata[,input$traitOutqPheno]
+        mydata <- mydata[,which(!duplicated(colnames(mydata)))]
         ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
           ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
           ggplot2::theme_classic()+
@@ -189,8 +190,8 @@ mod_qaRawApp_server <- function(id, data){
           myTable <- myTable[!duplicated(myTable$record),]
           DT::datatable(myTable, filter = "top", # extensions = 'Buttons',
                         caption = htmltools::tags$caption(
-                          style = 'color:orange', #caption-side: bottom; text-align: center;
-                          htmltools::em('Please check potentiels outliers and click on relevant data points to keep them in the workflow.')
+                          style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                          htmltools::em('Please check potential outliers and click on relevant data points to keep them in the workflow.')
                         )
           )
         }

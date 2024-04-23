@@ -75,9 +75,9 @@ mod_staApp_ui <- function(id){
                                                #                     column(width=12,style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Network plot of current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Past modeling parameters from QA stamp selected.", style="color:black")),
+                                                                          # p(span("Past modeling parameters from QA stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusSta")), # modeling table
-                                                                          p(span("Raw phenotypic data to be used as input.", style="color:black")),
+                                                                          # p(span("Raw phenotypic data to be used as input.", style="color:black")),
                                                                           DT::DTOutput(ns("phenoSta")), # data input
                                                #                     )
                                                # )
@@ -122,10 +122,10 @@ mod_staApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                #                     column(width=12, style = "height:480px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Summary of number of individuals, mothers and fathers available in the dataset.", style="color:black")),
+                                                                          # p(span("Summary of number of individuals, mothers and fathers available in the dataset.", style="color:black")),
                                                                           selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
                                                                           DT::DTOutput(ns("summariesSta")), # genetic evaluation units
-                                                                          p(span("Experimental design factos present per environment", style="color:black")),
+                                                                          # p(span("Experimental design factos present per environment", style="color:black")),
                                                                           DT::dataTableOutput(ns("dtFieldTraC")), # design units
                                                #                     )
                                                # )
@@ -374,7 +374,11 @@ mod_staApp_server <- function(id,data){
           paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
           DT::datatable(paramsPheno, extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                        caption = htmltools::tags$caption(
+                          style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                          htmltools::em('Past modeling parameters from QA stamp selected.')
+                        )
           )
         })
         ## render summaries
@@ -416,7 +420,11 @@ mod_staApp_server <- function(id,data){
           dtSta <- dtSta[with(dtSta, order(geneticUnit)), ]; rownames(dtSta) <- NULL
           DT::datatable(dtSta, extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                        caption = htmltools::tags$caption(
+                          style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                          htmltools::em('Summary of number of individuals, mothers and fathers available in the dataset.')
+                        )
           )
         })
         ## render designs
@@ -442,7 +450,11 @@ mod_staApp_server <- function(id,data){
               dtProvTable = as.data.frame(presentFactorsPerField);  rownames(dtProvTable) <- fieldNames
               DT::datatable(dtProvTable, extensions = 'Buttons',
                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                            caption = htmltools::tags$caption(
+                              style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                              htmltools::em('Experimental design factos present per environment.')
+                            )
               )
             }
           }
@@ -485,6 +497,7 @@ mod_staApp_server <- function(id,data){
             mydata$color <- "valid"
             if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
             mydata$predictedValue <- mydata[,input$trait3Sta]
+            mydata <- mydata[,which(!duplicated(colnames(mydata)))]
             ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
               ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
               ggplot2::theme_classic()+
@@ -509,7 +522,11 @@ mod_staApp_server <- function(id,data){
           numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
           DT::formatRound(DT::datatable(dtSta, extensions = 'Buttons',
                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                        caption = htmltools::tags$caption(
+                                          style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                                          htmltools::em('Raw phenotypic data to be used as input.')
+                                        )
           ), numeric.output)
         })
       } else {
