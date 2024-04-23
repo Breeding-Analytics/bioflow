@@ -16,9 +16,8 @@ mod_indexDesireApp_ui <- function(id){
                             type = "tabs",
                             tabPanel(div(icon("book"), "Information-Index") ,
                                      br(),
-                                     shinydashboard::box(status="success",width = 12,
-                                                         solidHeader = TRUE,
-                                                         column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                     # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                     #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                 column(width = 6,
                                                                        h1(strong(span("Selection indices", tags$a(href="https://www.youtube.com/watch?v=YhveKqd0q4s&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=8", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                        h2(strong("Status:")),
@@ -49,8 +48,8 @@ mod_indexDesireApp_ui <- function(id){
                                                                        p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                                                 ),
-                                                         )
-                                     )
+                                     #                     )
+                                     # )
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
@@ -62,17 +61,16 @@ mod_indexDesireApp_ui <- function(id){
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                    # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            p(span("Network plot of current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
                                                                            p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
                                                                            DT::DTOutput(ns("statusIndex")),
                                                                            p(span("MTA predictions to be used as input.", style="color:black")),
                                                                            DT::DTOutput(ns("tablePredictionsTraitsWide")),
-                                                                    )
-                                                )
+                                                #                     )
+                                                # )
                                        ),
                                        tabPanel("Pick traits", icon = icon("table"),
                                                 br(),
@@ -88,7 +86,7 @@ mod_indexDesireApp_ui <- function(id){
                                                                         uiOutput(ns("SliderDesireIndex")),
                                                        ),
                                                 ),
-                                                column(width=9, style = "height:550px; overflow-y: scroll;overflow-x: scroll;",
+                                                column(width=9, #style = "height:550px; overflow-y: scroll;overflow-x: scroll;",
                                                        column(width=12,
                                                               hr(style = "border-top: 3px solid #4c4c4c;"),
                                                               h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey box in the left", style="color:green"))),
@@ -135,35 +133,31 @@ mod_indexDesireApp_ui <- function(id){
                                      tabsetPanel(
                                        tabPanel("Predictions", icon = icon("table"),
                                                 br(),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(
-                                                                      width=12,
+                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                #                     column(width=12,
                                                                       conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
                                                                                        DT::DTOutput(ns("predictionsIdxD"))
                                                                       ),
                                                                       conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
                                                                                        DT::DTOutput(ns("predictionsIdxB"))
                                                                       ),
-                                                                      style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
-                                                                    )
-                                                )
+                                                #                       style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
+                                                #                     )
+                                                # )
                                        ),
                                        tabPanel("Modeling", icon = icon("table"),
                                                 br(),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(
-                                                                      width=12,
+                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                #                     column( width=12,
                                                                       conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
                                                                                        DT::DTOutput(ns("modelingIdxD"))
                                                                       ),
                                                                       conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
                                                                                        DT::DTOutput(ns("modelingIdxB"))
                                                                       ),
-                                                                      style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
-                                                                    )
-                                                )
+                                                #                       style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
+                                                #                     )
+                                                # )
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),

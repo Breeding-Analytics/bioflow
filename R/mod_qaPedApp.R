@@ -16,9 +16,8 @@ mod_qaPedApp_ui <- function(id){
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-QA-ped") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              column(width = 6,
                                                                     h1(strong(span("QA/QC for Pedigree", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
@@ -119,9 +118,8 @@ mod_qaPedApp_ui <- function(id){
                                                                     p("")
                                                              ),
                                                            )
-                                                    ),
-
-                                )
+                                #                     ),
+                                # )
                        ),
 
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -135,12 +133,12 @@ mod_qaPedApp_ui <- function(id){
                                            ),
                                            h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                           #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                       #grafico boxplot Imputed Data
                                                                       div(plotly::plotlyOutput(ns("plotImputedD")),align="center")
-                                                               ),
-                                           ),
+                                           #                     ),
+                                           # ),
                                   ),
                                   tabPanel("Set coincidence", icon = icon("table"),
                                            br(),
@@ -152,12 +150,12 @@ mod_qaPedApp_ui <- function(id){
                                            ),
                                            h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                           #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                       #grafico boxplot Imputed Data
                                                                       div(plotly::plotlyOutput(ns("plotQCp")),align="center")
-                                                               ),
-                                           ),
+                                           #                     ),
+                                           # ),
                                   ),
                                   tabPanel("Specify heterozygozity", icon = icon("table"),
                                            br(),
@@ -168,11 +166,11 @@ mod_qaPedApp_ui <- function(id){
                                            ),
                                            h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                           #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                       div(plotly::plotlyOutput(ns("plotHetLFM")),align="center")
-                                                               ),
-                                           ),
+                                           #                     ),
+                                           # ),
                                   ),
                                   tabPanel("Specify G-matrix values", icon = icon("table"),
                                            br(),
@@ -184,11 +182,11 @@ mod_qaPedApp_ui <- function(id){
                                            ),
                                            h4(strong(span("Visualizations below aim to help you pick the right parameter values. Please inspect them.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                               column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                           #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                       div(plotly::plotlyOutput(ns("plotGmat")),align="center")
-                                                               ),
-                                           ),
+                                           #                     ),
+                                           # ),
                                   ),
                                   tabPanel("Run analysis", icon = icon("play"),
                                            br(),
@@ -201,19 +199,17 @@ mod_qaPedApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Classification Table", icon = icon("table"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                column(width=12,DT::DTOutput(ns("modificationsQaPed")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                           )
+                                           # )
                                   ),
                                   tabPanel("Classification Plots", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                selectInput(ns("traitOutqPed"), "", choices = NULL, multiple = FALSE),
                                                                column(width=12,plotly::plotlyOutput(ns("plotClassPed")) ,style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
 
-                                           )
+                                           # )
                                   )
                                 )
                        )# end of output panel

@@ -17,9 +17,8 @@ mod_qaRawApp_ui <- function(id){
 
                                   tabPanel(div(icon("book"), "Information-QA") ,
                                            br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                               # column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
                                                                       column(width = 6,
                                                                              h1(strong(span("Outlier detection", tags$a(href="https://www.youtube.com/watch?v=X8lYQ8_LmSg&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=4", icon("youtube") , target="_blank")  ,style="color:darkcyan"))),
                                                                              h2(strong("Status:")),
@@ -41,8 +40,8 @@ mod_qaRawApp_ui <- function(id){
                                                                                p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
                                                                              )
                                                                       ),
-                                                               )
-                                           )
+                                                               # )
+                                           # )
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            tabsetPanel(
@@ -57,8 +56,8 @@ mod_qaRawApp_ui <- function(id){
                                                              h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       ),
-                                                      shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                          column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
+                                                      # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                          # column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
                                                                                  p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                                  column(width=4, selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE) ),
                                                                                  column(width=4, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
@@ -68,8 +67,8 @@ mod_qaRawApp_ui <- function(id){
                                                                                         p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                                                         DT::DTOutput(ns("modificationsQa")),
                                                                                  )
-                                                                          )
-                                                      ),
+                                                                          # )
+                                                      # ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("play"),
                                                       br(),

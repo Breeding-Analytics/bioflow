@@ -31,8 +31,7 @@ mod_qaStaApp_ui <- function(id){
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-QA-MB") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
+                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                     column(width=12,   style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h1(strong(span("Model-based outlier detection", style="color:darkcyan"))),
@@ -52,7 +51,7 @@ mod_qaStaApp_ui <- function(id){
                                                            )
                                                     ),
 
-                                )
+                                # )
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
@@ -67,8 +66,8 @@ mod_qaStaApp_ui <- function(id){
                                                   h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
                                            ),
-                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                               column(width=12, style = "height:470px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                           #                     column(width=12, style = "height:470px; overflow-y: scroll;overflow-x: scroll;",
                                                                       p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
                                                                       selectInput(ns("traitOutqPheno2"), "", choices = NULL, multiple = FALSE),
                                                                       shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
@@ -76,8 +75,8 @@ mod_qaStaApp_ui <- function(id){
                                                                                           numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
                                                                       ),
                                                                       DT::DTOutput(ns("modificationsQa"))
-                                                               ),
-                                           )
+                                           #                     ),
+                                           # )
                                   ),
                                   tabPanel("Run analysis", icon = icon("play"),
                                            br(),

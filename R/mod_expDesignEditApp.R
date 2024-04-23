@@ -17,9 +17,8 @@ mod_expDesignEditApp_ui <- function(id){
 
                        tabPanel(div(icon("book"), "Information-Filter-Design") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h1(strong(span("Experimental Design Factor Filtering", style="color:darkcyan"))),
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
@@ -35,8 +34,8 @@ mod_expDesignEditApp_ui <- function(id){
                                                                information is available. If the user wants to silence a particular factor it just needs to double click in the cell and
                                                                set the value to zero."),
                                                            )
-                                                    )
-                                )
+                                #                     )
+                                # )
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
@@ -51,13 +50,16 @@ mod_expDesignEditApp_ui <- function(id){
                                                   h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
                                            ),
-                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
                                                                p(span("Heatmap to explore the spatial distribution of factors and traits. Row and column information need to be mapped for this visualization to properly display.", style="color:black")),
                                                                column(width = 4, selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE) ),
                                                                column(width = 4, selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE) ),
                                                                column(width = 4, selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE) ),
-                                                               column(width=12, plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,style = "height:300px; overflow-y: scroll;overflow-x: scroll;"),
-                                           )
+                                                               column(width=12,
+                                                                      plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,
+                                                                      # style = "height:300px; overflow-y: scroll;overflow-x: scroll;"
+                                                                      ),
+                                           # )
                                   ),
                                   tabPanel("Run analysis", icon = icon("play"),
                                            br(),

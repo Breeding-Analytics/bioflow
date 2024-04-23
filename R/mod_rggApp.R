@@ -16,9 +16,8 @@ mod_rggApp_ui <- function(id){
                             type = "tabs",
                             tabPanel(div(icon("book"), "Information-RGG") ,
                                      br(),
-                                     shinydashboard::box(status="success",width = 12,
-                                                         solidHeader = TRUE,
-                                                         column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                     # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                     #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                 column(width = 6,
                                                                        h1(strong(span("Realized Genetic Gain", tags$a(href="https://www.youtube.com/watch?v=5kkS98iJECs&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=10", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                        h2(strong("Status:")),
@@ -50,8 +49,8 @@ mod_rggApp_ui <- function(id){
                                                                        p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                                                 ),
-                                                         )
-                                     )
+                                     #                     )
+                                     # )
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
@@ -66,15 +65,14 @@ mod_rggApp_ui <- function(id){
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
-                                                shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12,
+                                                # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
+                                                #                     column(width=12,
                                                                            p(span("Network plot of current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
                                                                            p(span("Predictions table.", style="color:black")),
                                                                            DT::DTOutput(ns("phenoRgg")),
-                                                                    )
-                                                )
+                                                #                     )
+                                                # )
                                        ),
                                        tabPanel("Select trait(s)", icon = icon("magnifying-glass-chart"),
                                                 br(),
@@ -84,13 +82,13 @@ mod_rggApp_ui <- function(id){
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
-                                                shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                    column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            p(span("View of current analyses available.", style="color:black")),
                                                                            selectInput(ns("trait3Rgg"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
                                                                            plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                    ),
-                                                )
+                                                #                     ),
+                                                # )
                                        ),
                                        tabPanel("Select years & units", icon = icon("table"),
                                                 br(),
@@ -102,12 +100,12 @@ mod_rggApp_ui <- function(id){
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                       column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                              p(span("View of current analyses available.", style="color:black")),
-                                                              selectInput(ns("trait3Rgg2"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
-                                                              plotly::plotlyOutput(ns("plotPredictionsCleanOut2")),
-                                                       ),
                                                 ),
+                                                # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                       p(span("View of current analyses available.", style="color:black")),
+                                                       selectInput(ns("trait3Rgg2"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
+                                                       plotly::plotlyOutput(ns("plotPredictionsCleanOut2")),
+                                                # ),
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
                                                 br(),
@@ -115,7 +113,7 @@ mod_rggApp_ui <- function(id){
                                                 uiOutput(ns("qaQcRggInfo")),
                                                 textOutput(ns("outRgg")),
                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                column(width=12, #style = "background-color:grey; color: #FFFFFF",
                                                        shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                            tags$span(id = ns('mackayOptions'),
                                                                                      numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
@@ -136,17 +134,19 @@ mod_rggApp_ui <- function(id){
                                      tabsetPanel(
                                        tabPanel("Metrics", icon = icon("table"),
                                                 br(),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12,br(),DT::DTOutput(ns("metricsRgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
-                                                )
+                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                #                     column(width=12,br(),
+                                                                           DT::DTOutput(ns("metricsRgg")),
+                                                #                            style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
+                                                # )
                                        ),
                                        tabPanel("Modeling", icon = icon("table"),
                                                 br(),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12,DT::DTOutput(ns("modelingRgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
-                                                )
+                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                #                     column(width=12,
+                                                                           DT::DTOutput(ns("modelingRgg")),
+                                                #                            style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
+                                                # )
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),

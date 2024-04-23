@@ -16,9 +16,8 @@ mod_qaGenoApp_ui <- function(id){
                                   type = "tabs",
                                   tabPanel(div(icon("book"), "Information-QA-Geno") ,
                                            br(),
-                                           shinydashboard::box(status="success",width = 12,
-                                                               solidHeader = TRUE,
-                                                               column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                               # column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                       tags$body(
                                                                         column(width = 6,
                                                                                h1(strong(span("QA for genetic markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
@@ -46,9 +45,9 @@ mod_qaGenoApp_ui <- function(id){
                                                                                p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
                                                                         ),
                                                                       )
-                                                               ),
+                                                               # ),
 
-                                           )
+                                           # )
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            tabsetPanel(
@@ -66,26 +65,25 @@ mod_qaGenoApp_ui <- function(id){
                                                              h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       ),
-                                                      shinydashboard::box(status="success",width = 12,
-                                                                          solidHeader = TRUE,
-                                                                          column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
+                                                      # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                      #                     column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
                                                                                  p(span("Preview of the proportion of markers or individuals tagged for the different QA parameters.", style="color:black")),
                                                                                  plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker")) ,
                                                                                  p(span("Number of individuals and markers available in the dataset.", style="color:black")),
                                                                                  DT::DTOutput(ns("summariesGeno")),
                                                                                  p(span("Preview of potential modifications to add.", style="color:black")),
                                                                                  DT::DTOutput(ns("modificationsQaMarker")),
-                                                                                 shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                                                     selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
-                                                                                                     numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
-                                                                                 ),
-                                                                          ),
-                                                      )
+                                                      #                     ),
+                                                      # )
                                              ),
                                              tabPanel("Run analysis", icon = icon("play"),
                                                       br(),
                                                       actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),
                                                       textOutput(ns("outQaMb")),
+                                                      shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                          selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
+                                                                          numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
+                                                      ),
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel

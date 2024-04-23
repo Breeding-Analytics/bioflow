@@ -17,9 +17,8 @@ mod_filterPhenoApp_ui <- function(id){
 
                        tabPanel(div(icon("book"), "Information-Filter-Pheno") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h1(strong(span("Filter of environments", style="color:darkcyan"))),
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
@@ -34,14 +33,14 @@ mod_filterPhenoApp_ui <- function(id){
                                                              p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
                                                              p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
                                                            )
-                                                    )
-                                )
+                                #                     )
+                                # )
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
                                   tabPanel("Set filters", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           column(width=6, style = "height:580px; overflow-y: scroll;overflow-x: scroll; background-color:grey; color: #FFFFFF",
+                                           column(width=6, #style = "height:580px; overflow-y: scroll;overflow-x: scroll; background-color:grey; color: #FFFFFF",
                                                   selectInput(ns("traitFilterPheno"), "Trait to filter", choices = NULL, multiple = FALSE),
                                                   selectInput(ns("years"), "Years to keep", choices = NULL, multiple = TRUE),
                                                   selectInput(ns("seasons"), "Seasons to keep", choices = NULL, multiple = TRUE),
@@ -53,7 +52,7 @@ mod_filterPhenoApp_ui <- function(id){
                                                                       sliderInput(ns("slider1"), label = "Maximum #of genotypes allowed (trials with more will be removed)", min = 0,max = 500000, value = 500000)
                                                   ),
                                            ),
-                                           column(width=6, style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                           column(width=6, #style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
                                                   h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),

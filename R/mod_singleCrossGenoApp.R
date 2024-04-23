@@ -17,9 +17,8 @@ mod_singleCrossGenoApp_ui <- function(id){
 
                        tabPanel( div(icon("book"), "Information-SCM") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h1(strong(span("Single Cross Marker Matrix Build", style="color:green"))),
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
@@ -42,8 +41,8 @@ mod_singleCrossGenoApp_ui <- function(id){
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                                              p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
                                                            )
-                                                    )
-                                )
+                                #                     )
+                                # )
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
@@ -52,23 +51,23 @@ mod_singleCrossGenoApp_ui <- function(id){
                                            column(width=12, numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000), style = "background-color:grey; color: #FFFFFF"),
                                            h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
-                                                               column(width=12, style = "height:530px; overflow-y: scroll;overflow-x: scroll;",
+                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
+                                           #                     column(width=12, style = "height:530px; overflow-y: scroll;overflow-x: scroll;",
                                                                       DT::DTOutput(ns("summariesScr")),
-                                                                      )
-                                           )
+                                           #                            )
+                                           # )
                                   ),
                                   tabPanel("Pick crosses", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            column(width=12, selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE), style = "background-color:grey; color: #FFFFFF"),
                                            h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           shinydashboard::box(status="success",width = 12,  solidHeader = TRUE, #background = "green",
+                                           # shinydashboard::box(status="success",width = 12,  solidHeader = TRUE, #background = "green",
                                                                column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
                                                                column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
                                                                column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
                                                                column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
-                                           )
+                                           # )
                                   ),
                                   tabPanel("Run analysis", icon = icon("play"),
                                            br(),

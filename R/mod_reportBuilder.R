@@ -25,13 +25,12 @@ mod_reportBuilder_ui <- function(id){
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12,
+                                               # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
+                                               #                     column(width=12,
                                                                           p(span("Current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
-                                                                   )
-                                               ),
+                                               #                     )
+                                               # ),
                                       ),
                                       tabPanel("Build dashboard", icon = icon("play"),
                                                br(),

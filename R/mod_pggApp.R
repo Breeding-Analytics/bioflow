@@ -16,9 +16,8 @@ mod_pggApp_ui <- function(id){
                             type = "tabs",
                             tabPanel( div(icon("book"), "Information-PGG") ,
                                       br(),
-                                      shinydashboard::box(status="success",width = 12,
-                                                          solidHeader = TRUE,
-                                                          column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                      # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                      #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                  column(width = 6,
                                                                         h1(strong(span("Predicted Genetic Gain", tags$a(href="https://www.youtube.com/watch?v=nc4_SddPjjo&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=11", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                         h2(strong("Status:")),
@@ -42,8 +41,8 @@ mod_pggApp_ui <- function(id){
                                                                         p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                                                  ),
-                                                          )
-                                      )
+                                      #                     )
+                                      # )
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
@@ -55,15 +54,14 @@ mod_pggApp_ui <- function(id){
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
-                                                shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12,
+                                                # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
+                                                #                     column(width=12,
                                                                            p(span("Network plot of current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
                                                                            p(span("Predictions table to be used as input.", style="color:black")),
                                                                            DT::DTOutput(ns("phenoPgg")),
-                                                                    )
-                                                )
+                                                #                     )
+                                                # )
                                        ),
                                        tabPanel("Select trait(s)", icon = icon("table"),
                                                 br(),
@@ -73,8 +71,8 @@ mod_pggApp_ui <- function(id){
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
-                                                shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                    column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            p(span("Metrics available for analysis stamp selected.", style="color:black")),
                                                                            column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
                                                                            column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
@@ -84,8 +82,8 @@ mod_pggApp_ui <- function(id){
                                                                                                numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
                                                                                                selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                                                                            ),
-                                                                    ),
-                                                )
+                                                #                     ),
+                                                # )
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
                                                 br(),
@@ -99,17 +97,19 @@ mod_pggApp_ui <- function(id){
                                      tabsetPanel(
                                        tabPanel("Metrics", icon = icon("table"),
                                                 br(),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12,br(),DT::DTOutput(ns("metricsPgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                                )
+                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                    # column(width=12,br(),
+                                                                           DT::DTOutput(ns("metricsPgg")),
+                                                                           # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                                # )
                                        ),
                                        tabPanel("Modeling", icon = icon("table"),
                                                 br(),
-                                                shinydashboard::box(status="success",width = 12,
-                                                                    solidHeader = TRUE,
-                                                                    column(width=12,DT::DTOutput(ns("modelingPgg")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                                )
+                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                    # column(width=12,
+                                                                           DT::DTOutput(ns("modelingPgg")),
+                                                                           # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                                # )
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),

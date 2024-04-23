@@ -16,49 +16,48 @@ mod_mtaApp_ui <- function(id){
                            type = "tabs",
                            tabPanel(div(icon("book"), "Information-MTA") ,
                                     br(),
-                                    shinydashboard::box(status="success",width = 12,
-                                                        solidHeader = TRUE,
-                                                        column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                               column(width = 6,
-                                                                      h1(strong(span("Multi Trial Analysis", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                                                      h2(strong("Status:")),
-                                                                      uiOutput(ns("warningMessage")),
-                                                                      img(src = "www/mta.png", height = 300, width = 450), # add an image
-                                                               ),
-                                                               column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                               column(width = 12,
-                                                                      h2(strong("Details")),
-                                                                      p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
+                                    # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                    #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                    column(width = 6,
+                                           h1(strong(span("Multi Trial Analysis", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                           h2(strong("Status:")),
+                                           uiOutput(ns("warningMessage")),
+                                           img(src = "www/mta.png", height = 300, width = 450), # add an image
+                                    ),
+                                    column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                    column(width = 12,
+                                           h2(strong("Details")),
+                                           p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
                               analysis and optionally a relationship matrix between individuals.
                                 The way the arguments are used is the following:"),
 
-                                                                      p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
-                                                                      p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
-                                                                      p(strong("Random effects.-")," Columns to be fitted as random effects."),
-                                                                      # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
-                                                                      p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
-                                                                      p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
-                                                                      p(strong("Additional settings:")),
-                                                                      p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
-                                                                      p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
-                                                                      p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
-                                                                      p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                                                      p(strong("Maximum number of markers if rrBLUP.-")," Maximum number of markers that should be used if an rrBLUP genetic evaluation method is selected. Under high density marker SNP panels the user may want to reduce the complexity of the marker-based model, the default is 1000. The markers will be randomly sampled without replacement."),
-                                                                      p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
-                                                                      p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
-                                                                      h2(strong("References:")),
-                                                                      p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
-                                                                      p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
-                                                                      p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
-                                                                      h2(strong("Software used:")),
-                                                                      p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                           p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
+                                           p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
+                                           p(strong("Random effects.-")," Columns to be fitted as random effects."),
+                                           # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
+                                           p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
+                                           p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
+                                           p(strong("Additional settings:")),
+                                           p(strong("Deregress.-")," A TRUE/FALSE value to decide is the STA predictions should be deregressed. Only to be used if you fitted BLUPs in the STA step."),
+                                           p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
+                                           p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
+                                           p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
+                                           p(strong("Maximum number of markers if rrBLUP.-")," Maximum number of markers that should be used if an rrBLUP genetic evaluation method is selected. Under high density marker SNP panels the user may want to reduce the complexity of the marker-based model, the default is 1000. The markers will be randomly sampled without replacement."),
+                                           p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
+                                           p(strong("nPC.-")," Number of principal components for the big MET. If the value is equal to 0 the classical rrBLUP model is used. Otherwise a principal component model is run according to Odegard et al. (2019)."),
+                                           h2(strong("References:")),
+                                           p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
+                                           p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
+                                           p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
+                                           h2(strong("Software used:")),
+                                           p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                                      p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
-                                                                      p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
-                                                               ),
-                                                        )
-                                    )
+                                           p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
+                                           p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                    ),
+                                    #                     )
+                                    # )
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
@@ -70,16 +69,16 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Network plot of current analyses available.", style="color:black")),
-                                                                          shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
-                                                                          DT::DTOutput(ns("statusMta")), # modeling table
-                                                                          p(span("STA predictions table to be used as input.", style="color:black")),
-                                                                          DT::DTOutput(ns("phenoMta")), # predictions data table
-                                                                   )
-                                               )
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                               p(span("Network plot of current analyses available.", style="color:black")),
+                                               shiny::plotOutput(ns("plotTimeStamps")),
+                                               p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
+                                               DT::DTOutput(ns("statusMta")), # modeling table
+                                               p(span("STA predictions table to be used as input.", style="color:black")),
+                                               DT::DTOutput(ns("phenoMta")), # predictions data table
+                                               #                     )
+                                               # )
                                       ),
                                       tabPanel("Select traits", icon = icon("table"),
                                                br(),
@@ -97,18 +96,18 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                   column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Metrics associated to the STA stamp selected.", style="color:black")),
-                                                                          column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                                                          column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                                                          p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
-                                                                          column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
-                                                                   ),
-                                               )
+                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                               p(span("Metrics associated to the STA stamp selected.", style="color:black")),
+                                               column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                               column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                               column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                               p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
+                                               column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                               column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                               column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
+                                               #                     ),
+                                               # )
                                       ),
 
                                       tabPanel("Pick the model", icon = icon("table"),
@@ -137,14 +136,13 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12, style = "height:380px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Available data.", style="color:black")),
-                                                                          selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                          shiny::plotOutput(ns("evaluationUnits")) ,
-                                                                   )
-                                               )
+                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:380px; overflow-y: scroll;overflow-x: scroll;",
+                                               p(span("Available data.", style="color:black")),
+                                               selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                               shiny::plotOutput(ns("evaluationUnits")) ,
+                                               #                     )
+                                               # )
                                       ),
                                       tabPanel("Specify GxE", icon = icon("table"),
                                                br(),
@@ -161,27 +159,35 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                   column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
-                                                                          column(width=3, selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=3, selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
-                                                                          column(width=2, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=2, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=2, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
-                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
-                                                                          column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
-                                                                          column(width=3, selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=3, checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=3, checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                                                          column(width=3, numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6) ),
-                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCor")) ),
-                                                                          column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
-                                                                          column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
-                                                                          column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
-                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
-                                                                   ),
-                                               )
+                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                               column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
+                                               column(width = 3,
+                                                      selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                      selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE),
+                                                      checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
+                                                      checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                      numericInput(ns("heatmapFontSize"), label = "Font size", value = 6),
+                                                      ),
+                                               column(width = 9,
+                                                      shiny::plotOutput(ns("plotPredictionsConnectivity"))
+                                                      ),
+                                               column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
+                                               column(width=3,
+                                                      selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                      checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE),
+                                                      checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                      numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6),
+                                                      ),
+                                               column(width=9,
+                                                      shiny::plotOutput(ns("plotPredictionsCor"))
+                                                      ),
+                                               column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
+                                               column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
+                                               column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
+                                               column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
+                                               #                     ),
+                                               # )
                                       ),
                                       tabPanel("Run analysis", icon = icon("play"),
                                                br(),
@@ -200,24 +206,27 @@ mod_mtaApp_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12,DT::DTOutput(ns("predictionsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               )
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               # column(width=12,
+                                               DT::DTOutput(ns("predictionsMta")),
+                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               # )
                                       ),
                                       tabPanel("Metrics", icon = icon("table"),
                                                br(),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12,br(),DT::DTOutput(ns("metricsMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               )
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               # column(width=12,br(),
+                                               DT::DTOutput(ns("metricsMta")),
+                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               # )
                                       ),
                                       tabPanel("Modeling", icon = icon("table"),
                                                br(),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12,DT::DTOutput(ns("modelingMta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               )
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               # column(width=12,
+                                               DT::DTOutput(ns("modelingMta")),
+                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               # )
                                       ),
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),

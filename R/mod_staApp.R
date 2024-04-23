@@ -17,9 +17,8 @@ mod_staApp_ui <- function(id){
 
                            tabPanel(div(icon("book"), "Information-STA") ,
                                     br(),
-                                    shinydashboard::box(status="success",width = 12,
-                                                        solidHeader = TRUE,
-                                                        column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
+                                    # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                    #                     column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
                                                                column(width = 6,
                                                                       h1(strong(span("Single Trial Analysis", tags$a(href="https://www.youtube.com/watch?v=fqUTdvbzNSE&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=6", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                                       h2(strong("Status:")),
@@ -59,8 +58,8 @@ mod_staApp_ui <- function(id){
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                                                       p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000.")
                                                                ),
-                                                        )
-                                    )
+                                    #                     )
+                                    # )
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
@@ -72,16 +71,16 @@ mod_staApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12,style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               #                     column(width=12,style = "height:460px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Network plot of current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
                                                                           p(span("Past modeling parameters from QA stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusSta")), # modeling table
                                                                           p(span("Raw phenotypic data to be used as input.", style="color:black")),
                                                                           DT::DTOutput(ns("phenoSta")), # data input
-                                                                   )
-                                               )
+                                               #                     )
+                                               # )
                                       ),
                                       tabPanel("Pick trait(s)", icon = icon("magnifying-glass-chart"),
                                                br(),
@@ -100,13 +99,13 @@ mod_staApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;", # height:420px;
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;", # height:420px;
                                                                           p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                                           selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
                                                                           shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                   ),
-                                               )
+                                               #                     ),
+                                               # )
                                       ),
                                       tabPanel("Pick effect(s)", icon = icon("table"),
                                                br(),
@@ -121,15 +120,15 @@ mod_staApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12, style = "height:480px; overflow-y: scroll;overflow-x: scroll;",
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:480px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Summary of number of individuals, mothers and fathers available in the dataset.", style="color:black")),
                                                                           selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
                                                                           DT::DTOutput(ns("summariesSta")), # genetic evaluation units
                                                                           p(span("Experimental design factos present per environment", style="color:black")),
                                                                           DT::dataTableOutput(ns("dtFieldTraC")), # design units
-                                                                   )
-                                               )
+                                               #                     )
+                                               # )
                                       ),
                                       tabPanel("Run analysis", icon = icon("play"),
                                                br(),
@@ -152,24 +151,27 @@ mod_staApp_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12,DT::DTOutput(ns("predictionsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               )
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   # column(width=12,
+                                                                          DT::DTOutput(ns("predictionsSta")),
+                                                                          # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               # )
                                       ),
                                       tabPanel("Metrics", icon = icon("table"),
                                                br(),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12,br(),DT::DTOutput(ns("metricsSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               )
+                                               # shinydashboard::box(status="success",width = 12,  solidHeader = TRUE,
+                                                                   # column(width=12,br(),
+                                                                          DT::DTOutput(ns("metricsSta")),
+                                                                          # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               # )
                                       ),
                                       tabPanel("Modeling", icon = icon("table"),
                                                br(),
-                                               shinydashboard::box(status="success",width = 12,
-                                                                   solidHeader = TRUE,
-                                                                   column(width=12,br(),DT::DTOutput(ns("modelingSta")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               )
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                   # column(width=12,br(),
+                                                                          DT::DTOutput(ns("modelingSta")),
+                                                                          # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                               # )
                                       ),
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),

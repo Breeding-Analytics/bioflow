@@ -17,9 +17,8 @@ mod_traitTransformApp_ui <- function(id){
 
                        tabPanel(div(icon("book"), "Information-Transform") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                            h2(strong("Status:")),
                                                            uiOutput(ns("warningMessage")),
                                                            tags$body(
@@ -35,8 +34,8 @@ mod_traitTransformApp_ui <- function(id){
                                                              p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                                            )
-                                                    )
-                                )
+                                #                     )
+                                # )
                        ),
                        tabPanel("Conversion", icon = icon("rocket"),
                                 tabsetPanel(
@@ -46,13 +45,17 @@ mod_traitTransformApp_ui <- function(id){
                                                                actionButton(ns("runTra"), "Apply conversions", icon = icon("play-circle")),
                                                                textOutput(ns("outTraC")),
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
-                                                               column(width=12,DT::DTOutput(ns("transTableC")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
+                                                               # column(width=12,
+                                                                      DT::DTOutput(ns("transTableC")),
+                                                                      # style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
                                            ),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("rawPheno")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
+                                                               # column(width=12,
+                                                                      DT::DTOutput(ns("rawPheno")),
+                                                                      # style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
                                            ),
                                   ),
                                 ),
@@ -61,19 +64,21 @@ mod_traitTransformApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
+                                           # shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
                                                                textInput(ns("newName"), label="New name for the trait", value=NULL, placeholder = "New trait name"),
                                                                actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
                                                                textOutput(ns("outEqual")),
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
-                                           ),
+                                           # ),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("rawPheno2")),style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
-                                           ),
+                                           # shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
+                                           #                     column(width=12,
+                                                                      DT::DTOutput(ns("rawPheno2")),
+                                           #                            style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
+                                           # ),
                                   ),
                                 ),
                        ), # end of output panel

@@ -16,9 +16,8 @@ mod_oftStaApp_ui <- function(id){
                            type = "tabs",
                            tabPanel(div(icon("book"), "Information-OFT") ,
                                     br(),
-                                    shinydashboard::box(status="success",width = 12,
-                                                        solidHeader = TRUE,
-                                                        column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                    # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                    #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                                                h1(strong(span("On Farm Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
                                                                h2(strong("Status:")),
                                                                uiOutput(ns("warningMessage")),
@@ -35,8 +34,8 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                p(strong("Year of origin.-")," The name of the column containing the year when the genotype originated."),
                                                                p(strong("Entry type.-")," The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
                                                                p(strong("Environment(s) to include.-")," Environments to be included in the report. It only includes analyzed environments from sta."),
-                                                        )
-                                    )
+                                    #                     )
+                                    # )
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
@@ -48,16 +47,16 @@ that perform well under farmers’ conditions before these are announced to the 
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                   column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Network plot of current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
                                                                           p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusOft")), # modeling table
                                                                           p(span("STA predictions table to be used as input.", style="color:black")),
                                                                           DT::DTOutput(ns("phenoOft")), # predictions data table
-                                                                   )
-                                               )
+                                               #                     )
+                                               # )
                                       ),
                                       tabPanel("Select traits", icon = icon("table"),
                                                br(),
@@ -67,8 +66,8 @@ that perform well under farmers’ conditions before these are announced to the 
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                   column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Metrics associated to the STA stamp selected.", style="color:black")),
                                                                           column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
                                                                           column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
@@ -77,8 +76,8 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                           column(width=6, selectInput(ns("trait3Oft"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                           column(width=6, selectInput(ns("groupOftInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
                                                                           column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
-                                                                   ),
-                                               )
+                                               #                     ),
+                                               # )
                                       ),
 
                                       tabPanel("Select year of origin & entry type", icon = icon("table"),
@@ -92,14 +91,14 @@ that perform well under farmers’ conditions before these are announced to the 
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                   column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                           p(span("Preview of Pedigree data associated to the STA stamp selected.", style="color:black")),
                                                                           column(width=12, DT::DTOutput(ns('preview_ped'))  ),
                                                                           p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
                                                                           column(width=12, DT::DTOutput(ns('preview_pheno')) )
-                                                                   ),
-                                               )
+                                               #                     ),
+                                               # )
                                       ),
                                       tabPanel("Select Environments", icon = icon("table"),
                                                br(),
@@ -109,8 +108,8 @@ that perform well under farmers’ conditions before these are announced to the 
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                   column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                           column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
                                                                           column(width=3, selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                           column(width=3, selectInput(ns("entryTypeOft"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
@@ -118,8 +117,8 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                           column(width=2, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
                                                                           column(width=2, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
                                                                           column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) )
-                                                                   ),
-                                               )
+                                               #                     ),
+                                               # )
                                       ),
                                       tabPanel("Generate report", icon = icon("play"),
                                                br(),

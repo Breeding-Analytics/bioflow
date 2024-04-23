@@ -19,9 +19,8 @@ mod_PopStrApp_ui <- function(id){
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-Population structure") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                #                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h1(strong(span("Population structure", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
                                                              h2(strong("Status:")),
@@ -41,8 +40,8 @@ mod_PopStrApp_ui <- function(id){
                                                                 Datos de Marcadores Moleculares: Modulo de Aprendizaje. Instituto Internacional
                                                                 de Recursos Fitogeneticos (IPGRI), Roma, Italia.")
                                                               )
-                                                          ),
-                                                    )
+                                                    #       ),
+                                                    # )
                                 ),
 
                                 tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
