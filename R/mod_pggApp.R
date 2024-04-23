@@ -58,7 +58,7 @@ mod_pggApp_ui <- function(id){
                                                 #                     column(width=12,
                                                                            p(span("Network plot of current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
-                                                                           p(span("Predictions table to be used as input.", style="color:black")),
+                                                                           # p(span("Predictions table to be used as input.", style="color:black")),
                                                                            DT::DTOutput(ns("phenoPgg")),
                                                 #                     )
                                                 # )
@@ -73,7 +73,7 @@ mod_pggApp_ui <- function(id){
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                 #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           p(span("Metrics available for analysis stamp selected.", style="color:black")),
+                                                                           # p(span("Metrics available for analysis stamp selected.", style="color:black")),
                                                                            column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
                                                                            column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
                                                                            column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
@@ -231,12 +231,15 @@ mod_pggApp_server <- function(id, data){
       mydata <- mydata[which(mydata$analysisId %in% input$version2Pgg),]
       mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
-      res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
-                            color=mydata[,"trait"]
-                            # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
-      )   # , type="scatter", mode   = "markers")
-      res = res %>% plotly::add_bars()
-      res
+      res <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
+        ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge()) +  ggplot2::ggtitle("Metrics associated to this stamp selected")
+      plotly::ggplotly(res)
+      # res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
+      #                       color=mydata[,"trait"]
+      #                       # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
+      # )   # , type="scatter", mode   = "markers")
+      # res = res %>% plotly::add_bars()
+      # res
     })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
@@ -293,7 +296,11 @@ mod_pggApp_server <- function(id, data){
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                    caption = htmltools::tags$caption(
+                                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                                      htmltools::em('Predictions table to be used as input.')
+                                    )
       ), numeric.output)
     })
     ## render result of "run" button click

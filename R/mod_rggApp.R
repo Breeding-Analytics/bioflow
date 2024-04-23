@@ -69,7 +69,7 @@ mod_rggApp_ui <- function(id){
                                                 #                     column(width=12,
                                                                            p(span("Network plot of current analyses available.", style="color:black")),
                                                                            shiny::plotOutput(ns("plotTimeStamps")),
-                                                                           p(span("Predictions table.", style="color:black")),
+                                                                           # p(span("Predictions table.", style="color:black")),
                                                                            DT::DTOutput(ns("phenoRgg")),
                                                 #                     )
                                                 # )
@@ -84,7 +84,7 @@ mod_rggApp_ui <- function(id){
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                 #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           p(span("View of current analyses available.", style="color:black")),
+                                                                           # p(span("View of current analyses available.", style="color:black")),
                                                                            selectInput(ns("trait3Rgg"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
                                                                            plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                 #                     ),
@@ -102,7 +102,7 @@ mod_rggApp_ui <- function(id){
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
                                                 # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                       p(span("View of current analyses available.", style="color:black")),
+                                                       # p(span("View of current analyses available.", style="color:black")),
                                                        selectInput(ns("trait3Rgg2"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
                                                        plotly::plotlyOutput(ns("plotPredictionsCleanOut2")),
                                                 # ),
@@ -292,10 +292,15 @@ mod_rggApp_server <- function(id, data){
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
       mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
-                             x = mydata[,"yearOfOrigin"], text=mydata[,"designation"], pointpos = -1.8)
+
+      res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
+        ggplot2::geom_point() +
+        ggplot2::ggtitle("View of current analyses available")
+      plotly::ggplotly(res)
+      # res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
+      #                        x = mydata[,"yearOfOrigin"], text=mydata[,"designation"], pointpos = -1.8)
       # res = res %>% plotly::layout(showlegend = TRUE,  xaxis = list(titlefont = list(size = input$fontSize), tickfont = list(size = input$fontSize)))
-      res
+      # res
     })
     output$plotPredictionsCleanOut2 <- plotly::renderPlotly({ # update plot
       req(data())
@@ -314,10 +319,16 @@ mod_rggApp_server <- function(id, data){
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg2),]
       mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
-                             x = mydata[,"yearOfOrigin"], text=mydata[,"designation"], pointpos = -1.8)
+
+      res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
+        ggplot2::geom_point() +
+        ggplot2::ggtitle("View of current analyses available")
+      plotly::ggplotly(res)
+
+      # res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
+      #                        x = mydata[,"yearOfOrigin"], text=mydata[,"designation"], pointpos = -1.8)
       # res = res %>% plotly::layout(showlegend = TRUE,  xaxis = list(titlefont = list(size = input$fontSize), tickfont = list(size = input$fontSize)))
-      res
+      # res
     })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
@@ -373,7 +384,11 @@ mod_rggApp_server <- function(id, data){
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtRgg, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                    caption = htmltools::tags$caption(
+                                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                                      htmltools::em('Predictions table.')
+                                    )
       ), numeric.output)
     })
     ## render result of "run" button click

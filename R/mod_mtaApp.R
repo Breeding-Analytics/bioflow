@@ -98,11 +98,11 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                               p(span("Metrics associated to the STA stamp selected.", style="color:black")),
+                                               # p(span("Metrics associated to the STA stamp selected.", style="color:black")),
                                                column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
                                                column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
                                                column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                               p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
+                                               # p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
                                                column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
                                                column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
@@ -138,7 +138,7 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:380px; overflow-y: scroll;overflow-x: scroll;",
-                                               p(span("Available data.", style="color:black")),
+                                               # p(span("Available data.", style="color:black")),
                                                selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
                                                shiny::plotOutput(ns("evaluationUnits")) ,
                                                #                     )
@@ -551,7 +551,7 @@ mod_mtaApp_server <- function(id, data){
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
       midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
+        ggplot2::geom_tile(color = "white")+ ggplot2::ggtitle("Available data for this trait.")
         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
                                       midpoint = midval, limit = c(0,maxVal), space = "Lab",
                                       name="Connectivity (data types)") +
@@ -716,12 +716,10 @@ mod_mtaApp_server <- function(id, data){
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
-      res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
-                            color=mydata[,"trait"]
-                            # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
-      )   # , type="scatter", mode   = "markers")
-      res = res %>% plotly::add_bars()
-      res
+      res <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value)) +
+        ggplot2::geom_bar(stat="identity", fill="steelblue")+
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
+      plotly::ggplotly(res)
     })
     ## render trait distribution plot
     observeEvent(c(data(),input$version2Mta), { # update trait
@@ -742,12 +740,9 @@ mod_mtaApp_server <- function(id, data){
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      # res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, #color = mydata[,input$groupMtaInputPlot],
-      #                        x = mydata[,input$groupMtaInputPlot], text=mydata[,"designation"], pointpos = -1.8)
-      # res = res %>% plotly::layout(showlegend = FALSE); res
       ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
         ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
-        ggplot2::theme_classic()+
+        ggplot2::theme_classic()+ ggplot2::ggtitle("Dispersal of predictions associated to the STA stamp selected") +
         ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
         ggplot2::xlab("Environment") + ggplot2::ylab("Predicted value") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))

@@ -69,9 +69,9 @@ mod_ocsApp_ui <- function(id){
                                                                    # column(width=12,
                                                                           p(span("Network plot of current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Past modeling parameters from Index stamp selected.", style="color:black")),
+                                                                          # p(span("Past modeling parameters from Index stamp selected.", style="color:black")),
                                                                           DT::DTOutput(ns("statusOcs")),
-                                                                          p(span("Index predictions table to be used as input.", style="color:black")),
+                                                                          # p(span("Index predictions table to be used as input.", style="color:black")),
                                                                           DT::DTOutput(ns("phenoOcs")),
                                                #                     )
                                                # )
@@ -89,7 +89,7 @@ mod_ocsApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                #                     column(width=12, style = "height:430px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Boxplot of trait dispersion by entry type.", style="color:black")),
+                                                                          # p(span("Boxplot of trait dispersion by entry type.", style="color:black")),
                                                                           column(width=6, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ) ,
                                                                           column(width=6, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
                                                                           column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")) ),
@@ -113,7 +113,7 @@ mod_ocsApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Summary of selection units and marker availability.", style="color:black")),
+                                                                          # p(span("Summary of selection units and marker availability.", style="color:black")),
                                                                           DT::DTOutput(ns("evaluationUnits")),
                                                                           img(src = "www/ocs.png", height = 400, width = 250), # add an image
                                                #                     )
@@ -300,10 +300,16 @@ mod_ocsApp_server <- function(id, data){
       if(input$groupOcsInputPlot == "entryType"){mydata <- mydata[which(mydata$entryType %in% input$entryType2Ocs),]}
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Ocs),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, color = mydata[,input$groupOcsInputPlot],
-                             x = mydata[,input$groupOcsInputPlot], text=mydata[,"designation"], pointpos = -1.8)
-      res = res %>% plotly::layout(showlegend = TRUE,  xaxis = list(titlefont = list(size = input$fontSize), tickfont = list(size = input$fontSize)))
-      res
+      mydata <- mydata[,which(!duplicated(colnames(mydata)))]
+      mydata$myEntryType <- mydata[,input$groupOcsInputPlot]
+      ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(myEntryType), y=predictedValue)) +
+        ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
+        ggplot2::theme_classic() + ggplot2::ggtitle("Boxplot of trait dispersion by entry type") +
+        ggplot2::geom_jitter(ggplot2::aes(colour = myEntryType), alpha = 0.5) +
+        ggplot2::xlab("Entry type") + ggplot2::ylab("Trait value") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
+        ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))
+
     })
     ## render evaluation units
     output$evaluationUnits <-  DT::renderDT({
@@ -331,7 +337,11 @@ mod_ocsApp_server <- function(id, data){
       rownames(final) <- NULL
       DT::datatable(final, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Summary of selection units and marker availability.')
+                    )
       )
     })
     ## render the data to be analyzed
@@ -344,7 +354,11 @@ mod_ocsApp_server <- function(id, data){
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtOcs, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                    caption = htmltools::tags$caption(
+                                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                                      htmltools::em('Index predictions table to be used as input.')
+                                    )
       ), numeric.output)
     })
     ## render timestamps flow
@@ -403,7 +417,11 @@ mod_ocsApp_server <- function(id, data){
       paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Past modeling parameters from Index stamp selected.')
+                    )
       )
     })
     ## render result of "run" button click

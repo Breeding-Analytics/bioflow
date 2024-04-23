@@ -101,7 +101,7 @@ mod_staApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                #                     column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;", # height:420px;
-                                                                          p(span("Boxplot of trait dispersion by environment", style="color:black")),
+                                                                          # p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                                           selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
                                                                           shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                #                     ),
@@ -500,7 +500,7 @@ mod_staApp_server <- function(id,data){
             mydata <- mydata[,which(!duplicated(colnames(mydata)))]
             ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
               ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
-              ggplot2::theme_classic()+
+              ggplot2::theme_classic() + ggplot2::ggtitle("Boxplot of trait dispersion by environment") +
               ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
               ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
               ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
