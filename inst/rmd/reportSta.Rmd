@@ -112,7 +112,7 @@ if (is.null(result)){
   traits <- unique(pred$trait)
   traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
   traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
-  colnames(traits.env) <- c('environment',traits)
+  colnames(traits.env) <- gsub("designation.","",colnames(traits.env) )# c('environment',traits)
   summarySta <- as.data.frame(traits.env[,'environment'])
   for (i in 1:length(traits)){
     temp <- traits.env[,c('environment',traits[i])]
@@ -127,7 +127,7 @@ if (is.null(result)){
     temp <- tempp[,3]
     summarySta <- cbind(summarySta,temp)
   }
-  colnames(summarySta) <- c('environment',traits)
+  colnames(summarySta) <-colnames(traits.env)# c('environment',traits)
   
   pheno <- result$data$pheno
   ### change column names for mapping

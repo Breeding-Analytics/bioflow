@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Phenotypic Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "April 23, 2024"  
+date: "April 24, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -28,7 +28,7 @@ The following table shows the modifications that have been saved in your analysi
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out566037a27b9e87d9" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-outbf52998f5eecd93c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -48,7 +48,7 @@ The following boxplot allows you to visualize which records were tagged as outli
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-outa2f7c5d9fc3f4554" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out37e90daa1f88dcdf" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

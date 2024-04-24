@@ -17,35 +17,35 @@ mod_qaGenoApp_ui <- function(id){
                                   tabPanel(div(icon("book"), "Information-QA-Geno") ,
                                            br(),
                                            # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                               # column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                                      tags$body(
-                                                                        column(width = 6,
-                                                                               h1(strong(span("QA for genetic markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                                                               h2(strong("Status:")),
-                                                                               uiOutput(ns("warningMessage")),
-                                                                               img(src = "www/qaGeno.png", height = 300, width = 650), # add an image
-                                                                        ),
-                                                                        column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                                        column(width = 12,
-                                                                               h2(strong("Details")),
-                                                                               p("When genetic evaluation is carried using genomic data, we need to ensure the quality of genetic markers.
+                                           # column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                           tags$body(
+                                             column(width = 6,
+                                                    h1(strong(span("QA for genetic markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                    h2(strong("Status:")),
+                                                    uiOutput(ns("warningMessage")),
+                                                    img(src = "www/qaGeno.png", height = 300, width = 650), # add an image
+                                             ),
+                                             column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                             column(width = 12,
+                                                    h2(strong("Details")),
+                                                    p("When genetic evaluation is carried using genomic data, we need to ensure the quality of genetic markers.
                                                              This option aims to allow users to identify bad markers or individuals given certain QA parameters.
                                 The way arguments are used is the following:"),
 
-                                                                               p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. Any marker with more than this value will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                                                                               p(strong("Threshold for missing data in individuals.-"),"  this sets a threshold for how much missing data in an individual is allowed. Any individual with more than this value it will be marked as a row to be removed in posterior analyses. Value between 0 and 1."),
-                                                                               p(strong("Minor allele frequency.-")," this sets a lower threshold for what is the minimum allele frequency allowed in the dataset. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                                                                               p(strong("Threshold for heterozygosity in markers.-")," this sets an upper threshold for what is the maximum level of heterozygosity allowed in the markers. If greater than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1. For example, a line dataset should not have markers with high heterozigosity."),
-                                                                               p(strong("Threshold for inbreeding in markers.-")," this sets an upper threshold for what is the maximum level of inbreeding allowed in the markers. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                                                                               p(strong("Additional settings:")),
-                                                                               p(strong("Imputation method.-")," method to impute missing cells. Median is the only method currently available."),
-                                                                               p(strong("Ploidy.-")," number of chromosome copies. This value is important to compute some of the paramters. Default is 2 or diploid."),
-                                                                               h2(strong("References")),
-                                                                               p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                                                               p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
-                                                                        ),
-                                                                      )
-                                                               # ),
+                                                    p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. Any marker with more than this value will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                    p(strong("Threshold for missing data in individuals.-"),"  this sets a threshold for how much missing data in an individual is allowed. Any individual with more than this value it will be marked as a row to be removed in posterior analyses. Value between 0 and 1."),
+                                                    p(strong("Minor allele frequency.-")," this sets a lower threshold for what is the minimum allele frequency allowed in the dataset. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                    p(strong("Threshold for heterozygosity in markers.-")," this sets an upper threshold for what is the maximum level of heterozygosity allowed in the markers. If greater than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1. For example, a line dataset should not have markers with high heterozigosity."),
+                                                    p(strong("Threshold for inbreeding in markers.-")," this sets an upper threshold for what is the maximum level of inbreeding allowed in the markers. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                    p(strong("Additional settings:")),
+                                                    p(strong("Imputation method.-")," method to impute missing cells. Median is the only method currently available."),
+                                                    p(strong("Ploidy.-")," number of chromosome copies. This value is important to compute some of the paramters. Default is 2 or diploid."),
+                                                    h2(strong("References")),
+                                                    p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                                    p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
+                                             ),
+                                           )
+                                           # ),
 
                                            # )
                                   ),
@@ -53,26 +53,28 @@ mod_qaGenoApp_ui <- function(id){
                                            tabsetPanel(
                                              tabPanel("Set thresholds", icon = icon("magnifying-glass-chart"),
                                                       br(),
-                                                      column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=4, numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("propNaUpperThreshForInds"), label = "Upper threshold for missing data in individuals(> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("maf"), label = "Upper threshold for minor allele frequency (< will be removed)", value = 0, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
-                                                      ),
-                                                      column(width=12,
-                                                             hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                             h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                             hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      ),
+                                                      # tags$span(id = ns('holder'),
+                                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                                       column(width=4, numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
+                                                                       column(width=4, numericInput(ns("propNaUpperThreshForInds"), label = "Upper threshold for missing data in individuals(> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
+                                                                       column(width=4, numericInput(ns("maf"), label = "Upper threshold for minor allele frequency (< will be removed)", value = 0, step = .05, max = 1, min = 0) ),
+                                                                       column(width=4, numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
+                                                                       column(width=4, numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
+                                                                ),
+                                                                column(width=12,
+                                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                ),
+                                                      # ),
                                                       # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                       #                     column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
-                                                                                 p(span("Preview of the proportion of markers or individuals tagged for the different QA parameters.", style="color:black")),
-                                                                                 plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker")) ,
-                                                                                 p(span("Number of individuals and markers available in the dataset.", style="color:black")),
-                                                                                 DT::DTOutput(ns("summariesGeno")),
-                                                                                 p(span("Preview of potential modifications to add.", style="color:black")),
-                                                                                 DT::DTOutput(ns("modificationsQaMarker")),
+                                                      # p(span("Preview of the proportion of markers or individuals tagged for the different QA parameters.", style="color:black")),
+                                                      plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker")) ,
+                                                      # p(span("Number of individuals and markers available in the dataset.", style="color:black")),
+                                                      DT::DTOutput(ns("summariesGeno")),
+                                                      # p(span("Preview of potential modifications to add.", style="color:black")),
+                                                      DT::DTOutput(ns("modificationsQaMarker")),
                                                       #                     ),
                                                       # )
                                              ),
@@ -115,6 +117,16 @@ mod_qaGenoApp_server <- function(id, data){
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
+    })
+    ############################################################################
+    # show shinyWidgets until the user can use the module
+    observeEvent(c(data()), {
+      req(data())
+      if(!is.null(data()$data$geno)){
+        golem::invoke_js('showid', ns('holder'))
+      }else{
+        golem::invoke_js('hideid', ns('holder'))
+      }
     })
     ############################################################################
     # warning message
@@ -182,6 +194,7 @@ mod_qaGenoApp_server <- function(id, data){
         vline2 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
         vline3 <- function(x = 0, color = "green") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
         fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Value of parameter"), yaxis = list(title = "Proportion of markers" ),
+                                      title="Preview of the proportion of markers or individuals tagged for the different QA parameters",
                                       shapes = list(vline1(input$propNaUpperThreshForMarker),vline2(input$propNaUpperThreshForInds),vline3(input$maf) ) )
         fig
       }else{
@@ -203,7 +216,11 @@ mod_qaGenoApp_server <- function(id, data){
       }
       DT::datatable(mo, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Number of individuals and markers available in the dataset.')
+                    )
       )
 
     })
@@ -226,7 +243,11 @@ mod_qaGenoApp_server <- function(id, data){
         }
         DT::datatable(mo, extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                      caption = htmltools::tags$caption(
+                        style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                        htmltools::em('Preview of potential modifications to add.')
+                      )
         )
 
       })

@@ -18,29 +18,29 @@ mod_qaRawApp_ui <- function(id){
                                   tabPanel(div(icon("book"), "Information-QA") ,
                                            br(),
                                            # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                               # column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
-                                                                      column(width = 6,
-                                                                             h1(strong(span("Outlier detection", tags$a(href="https://www.youtube.com/watch?v=X8lYQ8_LmSg&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=4", icon("youtube") , target="_blank")  ,style="color:darkcyan"))),
-                                                                             h2(strong("Status:")),
-                                                                             uiOutput(ns("warningMessage")),
-                                                                             img(src = "www/qaRaw.png", height = 300, width = 700), # add an image
-                                                                      ),
-                                                                      column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                                      column(width = 12,
-                                                                             tags$body(
-                                                                               h2(strong("Details")),
-                                                                               p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
+                                           # column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
+                                           column(width = 6,
+                                                  h1(strong(span("Outlier detection", tags$a(href="https://www.youtube.com/watch?v=X8lYQ8_LmSg&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=4", icon("youtube") , target="_blank")  ,style="color:darkcyan"))),
+                                                  h2(strong("Status:")),
+                                                  uiOutput(ns("warningMessage")),
+                                                  img(src = "www/qaRaw.png", height = 300, width = 700), # add an image
+                                           ),
+                                           column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                           column(width = 12,
+                                                  tags$body(
+                                                    h2(strong("Details")),
+                                                    p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
                                                              This option aims to allow users to select outliers based on plot whiskers and absolute values.
                                 The way arguments are used is the following:"),
-                                                                               p(strong("Trait(s) to QA.-")," Trait(s) to apply jointly the parameter values in the grey box."),
-                                                                               p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
-                                                                               h2(strong("References")),
-                                                                               p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                                                               p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
-                                                                               p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
-                                                                             )
-                                                                      ),
-                                                               # )
+                                                    p(strong("Trait(s) to QA.-")," Trait(s) to apply jointly the parameter values in the grey box."),
+                                                    p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
+                                                    h2(strong("References")),
+                                                    p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                                    p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
+                                                    p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
+                                                  )
+                                           ),
+                                           # )
                                            # )
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -57,17 +57,19 @@ mod_qaRawApp_ui <- function(id){
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       ),
                                                       # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                          # column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
-                                                                                 p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
-                                                                                 column(width=4, selectInput(ns("traitOutqPheno"), "", choices = NULL, multiple = FALSE) ),
-                                                                                 column(width=4, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
-                                                                                 column(width=4, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
-                                                                                 column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                                                 column(width=12,
-                                                                                        # p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
-                                                                                        DT::DTOutput(ns("modificationsQa")),
-                                                                                 )
-                                                                          # )
+                                                      # column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
+                                                      # p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
+                                                      tags$span(id = ns('holder'),
+                                                                column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                column(width=4, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
+                                                                column(width=4, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
+                                                      ),
+                                                      column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                      column(width=12,
+                                                             # p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
+                                                             DT::DTOutput(ns("modificationsQa")),
+                                                      )
+                                                      # )
                                                       # ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("play"),
@@ -106,6 +108,17 @@ mod_qaRawApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    # show shinyWidgets until the user can use the module
+    observeEvent(c(data()), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3){
+        golem::invoke_js('showid', ns('holder'))
+      }else{
+        golem::invoke_js('hideid', ns('holder'))
+      }
+    })
+    ######################################
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -152,7 +165,7 @@ mod_qaRawApp_server <- function(id, data){
         mydata <- mydata[,which(!duplicated(colnames(mydata)))]
         ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
           ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
-          ggplot2::theme_classic()+
+          ggplot2::theme_classic()+ ggplot2::ggtitle("Preview of outliers that would be tagged using current input parameters above for the trait selected") +
           ggplot2::geom_jitter(ggplot2::aes(color = color), alpha = input$transparency) +
           ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
           ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
