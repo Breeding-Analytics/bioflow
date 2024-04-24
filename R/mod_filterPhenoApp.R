@@ -40,7 +40,7 @@ mod_filterPhenoApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Set filters", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           column(width=6, #style = "height:580px; overflow-y: scroll;overflow-x: scroll; background-color:grey; color: #FFFFFF",
+                                           column(width=6, style = "background-color:grey; color: #FFFFFF",
                                                   selectInput(ns("traitFilterPheno"), "Trait to filter", choices = NULL, multiple = FALSE),
                                                   selectInput(ns("years"), "Years to keep", choices = NULL, multiple = TRUE),
                                                   selectInput(ns("seasons"), "Seasons to keep", choices = NULL, multiple = TRUE),
@@ -56,7 +56,7 @@ mod_filterPhenoApp_ui <- function(id){
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
                                                   h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                  p(span("Network plot showing the dependencies between years, seasons, locations, trials, etc.", style="color:black")),
+                                                  # p(span("Network plot showing the dependencies between years, seasons, locations, trials, etc.", style="color:black")),
                                                   shiny::plotOutput(ns("plotFilterOut")),
                                                   DT::DTOutput(ns("modificationsFilter")),
                                            )
@@ -483,14 +483,18 @@ mod_filterPhenoApp_server <- function(id, data){
       X <- do.call(cbind, X); rownames(X) <- xx[,envsQaRaw]
       hc <- hclust(dist(X), "ave")
       dend1 <- as.dendrogram(hc) # "print()" method
-      plot(dend1)
+      plot(dend1, main="Network plot showing the dependencies between years, seasons, locations, trials, etc.")
     })
 
     ## display the current outliers
     output$modificationsFilter <-  DT::renderDT({
       DT::datatable(newOutliers(), extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Records identified to be tagged and ignored.')
+                    )
       )
     })
 

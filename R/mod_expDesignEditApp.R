@@ -19,21 +19,21 @@ mod_expDesignEditApp_ui <- function(id){
                                 br(),
                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                 #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                           h1(strong(span("Experimental Design Factor Filtering", style="color:darkcyan"))),
-                                                           h2(strong("Status:")),
-                                                           uiOutput(ns("warningMessage")),
-                                                           tags$body(
-                                                             h2(strong("Details")),
-                                                             p("Sometimes is required to set to missing experimental design factors that we are aware that are not correctly saved
+                                h1(strong(span("Experimental Design Factor Filtering", style="color:darkcyan"))),
+                                h2(strong("Status:")),
+                                uiOutput(ns("warningMessage")),
+                                tags$body(
+                                  h2(strong("Details")),
+                                  p("Sometimes is required to set to missing experimental design factors that we are aware that are not correctly saved
                                                                in the databases. Although the tight solution would be to fix this information in the original database, a pragmatic
                                                                approach is to set certain factors from an especific environment to missing so it is ignored in the model fitting or
                                                                or any other analytical module using this information."),
-                                                             # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                                             p(strong("Editing table-")," there is not much complexity of how to use this module. There is a table with a column for
+                                  # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                  p(strong("Editing table-")," there is not much complexity of how to use this module. There is a table with a column for
                                                                each experimental design factor and a row for each environment. By default this table is filled with ones wherever this
                                                                information is available. If the user wants to silence a particular factor it just needs to double click in the cell and
                                                                set the value to zero."),
-                                                           )
+                                )
                                 #                     )
                                 # )
                        ),
@@ -41,24 +41,28 @@ mod_expDesignEditApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Pick factors", icon = icon("magnifying-glass-chart"),
                                            br(),
-                                           column(width = 12,
-                                                  p(span("The experimental design factors (columns) present in a particular environment (rows) are displayed in the table below. Please double click in any cell (environment by factor combination) that you would like to silence by setting the value to zero. Then run the analysis to save those modifications for posterior analyses.", style="color:black")),
-                                                  DT::dataTableOutput(ns("transTableC")),
-                                                  style = "height:300px; overflow-y: scroll;overflow-x: scroll;"),
+                                           column(width = 12, style = "overflow-y: scroll;overflow-x: scroll;"), # height:300px;
+                                           tags$span(id = ns('holder1'),
+                                                     p(span("The experimental design factors (columns) present in a particular environment (rows) are displayed in the table below. Please double click in any cell (environment by factor combination) that you would like to silence by setting the value to zero. Then run the analysis to save those modifications for posterior analyses.", style="color:black")),
+                                           ),
+                                           DT::dataTableOutput(ns("transTableC")),
+
                                            column(width=12,
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
                                                   h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
                                            ),
                                            # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
-                                                               p(span("Heatmap to explore the spatial distribution of factors and traits. Row and column information need to be mapped for this visualization to properly display.", style="color:black")),
-                                                               column(width = 4, selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE) ),
-                                                               column(width = 4, selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE) ),
-                                                               column(width = 4, selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE) ),
-                                                               column(width=12,
-                                                                      plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,
-                                                                      # style = "height:300px; overflow-y: scroll;overflow-x: scroll;"
-                                                                      ),
+                                           p(span("Heatmap to explore the spatial distribution of factors and traits. Row and column information need to be mapped for this visualization to properly display.", style="color:black")),
+                                           tags$span(id = ns('holder2'),
+                                                     column(width = 4, selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE) ),
+                                                     column(width = 4, selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE) ),
+                                                     column(width = 4, selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE) ),
+                                                     column(width=12,
+                                                            plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,
+                                                            # style = "height:300px; overflow-y: scroll;overflow-x: scroll;"
+                                                     ),
+                                           ),
                                            # )
                                   ),
                                   tabPanel("Run analysis", icon = icon("play"),
@@ -95,6 +99,19 @@ mod_expDesignEditApp_server <- function(id, data){
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
+    })
+    ############################################################################
+    # show shinyWidgets until the user can use the module
+    observeEvent(c(data() ), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait","rep","iBlock","row","col") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns > 3){
+        golem::invoke_js('showid', ns('holder1'))
+        golem::invoke_js('showid', ns('holder2'))
+      }else{
+        golem::invoke_js('hideid', ns('holder1'))
+        golem::invoke_js('hideid', ns('holder2'))
+      }
     })
     ############################################################################
     # warning message

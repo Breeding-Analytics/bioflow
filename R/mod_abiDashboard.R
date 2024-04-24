@@ -27,10 +27,10 @@ mod_abiDashboard_ui <- function(id){
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
                                                #                     column(width=12,
-                                                                          p(span("Current analyses available.", style="color:black")),
-                                                                          shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Data used as input.", style="color:black")),
-                                                                          DT::DTOutput(ns("phenoAbi")),
+                                               # p(span("Current analyses available.", style="color:black")),
+                                               shiny::plotOutput(ns("plotTimeStamps")),
+                                               # p(span("Data used as input.", style="color:black")),
+                                               # DT::DTOutput(ns("phenoAbi")),
                                                #                     )
                                                # ),
                                       ),
@@ -110,10 +110,10 @@ mod_abiDashboard_server <- function(id, data){
       dtAbi <- data()
       dtAbi <- dtAbi$status
       if(!is.null(dtAbi)){
-      dtAbi <- dtAbi[which(dtAbi$module %in% c("ocs")),]
-      traitsAbi <- unique(dtAbi$analysisId)
-      if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
-      updateSelectInput(session, "versionSelection", choices = traitsAbi)
+        dtAbi <- dtAbi[which(dtAbi$module %in% c("ocs")),]
+        traitsAbi <- unique(dtAbi$analysisId)
+        if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+        updateSelectInput(session, "versionSelection", choices = traitsAbi)
       }
     })
     observeEvent(c(data()), {
@@ -121,10 +121,10 @@ mod_abiDashboard_server <- function(id, data){
       dtAbi <- data()
       dtAbi <- dtAbi$status
       if(!is.null(dtAbi)){
-      dtAbi <- dtAbi[which(dtAbi$module %in% c("rgg")),]
-      traitsAbi <- unique(dtAbi$analysisId)
-      if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
-      updateSelectInput(session, "versionHistory", choices = traitsAbi)
+        dtAbi <- dtAbi[which(dtAbi$module %in% c("rgg")),]
+        traitsAbi <- unique(dtAbi$analysisId)
+        if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+        updateSelectInput(session, "versionHistory", choices = traitsAbi)
       }
     })
 
@@ -165,26 +165,26 @@ mod_abiDashboard_server <- function(id, data){
       network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
       ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
         ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-        ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+        ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Current analyses available") +
         ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                         fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
         ggnetwork::theme_blank()
     })
     ## render the data to be analyzed
-    output$phenoAbi <-  DT::renderDT({
-      req(data())
-      req(input$versionSelection)
-      dtAbi <- data()
-      # dtAbi <- dtAbi$predictions
-      # dtAbi <- dtAbi[which(dtAbi$analysisId %in% c( input$versionMetrics, input$versionTraits, input$versionSelection, input$versionHistory ) ),setdiff(colnames(dtAbi),c("module","analysisId"))]
-      # numeric.output <- c("predictedValue", "stdError", "reliability")
-      colTypes <- unlist(lapply(dtAbi$data$pheno, class))
-      numeric.output <- names(colTypes)[which(colTypes == "numeric")]
-      DT::formatRound(DT::datatable(dtAbi$data$pheno, extensions = 'Buttons',
-                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-      ), numeric.output)
-    })
+    # output$phenoAbi <-  DT::renderDT({
+    #   req(data())
+    #   req(input$versionSelection)
+    #   dtAbi <- data()
+    #   # dtAbi <- dtAbi$predictions
+    #   # dtAbi <- dtAbi[which(dtAbi$analysisId %in% c( input$versionMetrics, input$versionTraits, input$versionSelection, input$versionHistory ) ),setdiff(colnames(dtAbi),c("module","analysisId"))]
+    #   # numeric.output <- c("predictedValue", "stdError", "reliability")
+    #   colTypes <- unlist(lapply(dtAbi$data$pheno, class))
+    #   numeric.output <- names(colTypes)[which(colTypes == "numeric")]
+    #   DT::formatRound(DT::datatable(dtAbi$data$pheno, extensions = 'Buttons',
+    #                                 options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    #                                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    #   ), numeric.output)
+    # })
 
 
     #################################
@@ -198,9 +198,9 @@ mod_abiDashboard_server <- function(id, data){
       result <- data()
       idAbi <- as.numeric(Sys.time())
       abiModeling <- data.frame(module="abiDash", analysisId=idAbi, trait="inputObject", environment=NA,
-                 parameter= c( "ocs", "rgg") , # "sta", "mta","indexD",
-                 value=c(input$versionSelection, input$versionHistory ) # input$versionMetrics, input$versionTraits, input$versionIndex,
-                 )
+                                parameter= c( "ocs", "rgg") , # "sta", "mta","indexD",
+                                value=c(input$versionSelection, input$versionHistory ) # input$versionMetrics, input$versionTraits, input$versionIndex,
+      )
       abiStatus <- data.frame(module="abiDash", analysisId=idAbi)
       result$modeling <- rbind(result$modeling, abiModeling)
       result$status <- rbind(result$status, abiStatus)

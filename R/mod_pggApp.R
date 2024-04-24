@@ -56,8 +56,8 @@ mod_pggApp_ui <- function(id){
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
                                                 #                     column(width=12,
-                                                                           p(span("Network plot of current analyses available.", style="color:black")),
-                                                                           shiny::plotOutput(ns("plotTimeStamps")),
+                                                                           # p(span("Network plot of current analyses available.", style="color:black")),
+                                                                           column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
                                                                            # p(span("Predictions table to be used as input.", style="color:black")),
                                                                            DT::DTOutput(ns("phenoPgg")),
                                                 #                     )
@@ -74,6 +74,7 @@ mod_pggApp_ui <- function(id){
                                                 # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                 #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            # p(span("Metrics available for analysis stamp selected.", style="color:black")),
+                                                tags$span(id = ns('holder1'),
                                                                            column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
                                                                            column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
                                                                            column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
@@ -82,6 +83,7 @@ mod_pggApp_ui <- function(id){
                                                                                                numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
                                                                                                selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                                                                            ),
+                                                ),
                                                 #                     ),
                                                 # )
                                        ),
@@ -136,6 +138,17 @@ mod_pggApp_server <- function(id, data){
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
+    })
+    ############################################################################
+    # show shinyWidgets until the user can use the module
+    observeEvent(c(data(), input$version2Pgg ), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3 & length(input$version2Pgg)>0 ){
+        golem::invoke_js('showid', ns('holder1'))
+      }else{
+        golem::invoke_js('hideid', ns('holder1'))
+      }
     })
     ############################################################################
     ## warning message
@@ -279,7 +292,7 @@ mod_pggApp_server <- function(id, data){
         network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
           ggnetwork::theme_blank()

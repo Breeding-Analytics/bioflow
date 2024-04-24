@@ -67,8 +67,8 @@ mod_rggApp_ui <- function(id){
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
                                                 #                     column(width=12,
-                                                                           p(span("Network plot of current analyses available.", style="color:black")),
-                                                                           shiny::plotOutput(ns("plotTimeStamps")),
+                                                                           # p(span("Network plot of current analyses available.", style="color:black")),
+                                                                           column(width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
                                                                            # p(span("Predictions table.", style="color:black")),
                                                                            DT::DTOutput(ns("phenoRgg")),
                                                 #                     )
@@ -85,8 +85,10 @@ mod_rggApp_ui <- function(id){
                                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                 #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                            # p(span("View of current analyses available.", style="color:black")),
+                                                tags$span(id = ns('holder1'),
                                                                            selectInput(ns("trait3Rgg"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
                                                                            plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                ),
                                                 #                     ),
                                                 # )
                                        ),
@@ -103,8 +105,10 @@ mod_rggApp_ui <- function(id){
                                                 ),
                                                 # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                        # p(span("View of current analyses available.", style="color:black")),
+                                                tags$span(id = ns('holder2'),
                                                        selectInput(ns("trait3Rgg2"), "Trait to visualize regression over years.", choices = NULL, multiple = FALSE),
                                                        plotly::plotlyOutput(ns("plotPredictionsCleanOut2")),
+                                                ),
                                                 # ),
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
@@ -188,6 +192,19 @@ mod_rggApp_server <- function(id, data){
         }
       }
     )
+    ############################################################################
+    # show shinyWidgets until the user can use the module
+    observeEvent(c(data(), input$version2Rgg ), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3 & length(input$version2Rgg)>0  ){
+        golem::invoke_js('showid', ns('holder1'))
+        golem::invoke_js('showid', ns('holder2'))
+      }else{
+        golem::invoke_js('hideid', ns('holder1'))
+        golem::invoke_js('hideid', ns('holder2'))
+      }
+    })
     ############################################################################
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -368,7 +385,7 @@ mod_rggApp_server <- function(id, data){
         network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
           ggnetwork::theme_blank()

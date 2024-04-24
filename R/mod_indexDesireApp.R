@@ -18,36 +18,36 @@ mod_indexDesireApp_ui <- function(id){
                                      br(),
                                      # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                      #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                                column(width = 6,
-                                                                       h1(strong(span("Selection indices", tags$a(href="https://www.youtube.com/watch?v=YhveKqd0q4s&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=8", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                                                       h2(strong("Status:")),
-                                                                       uiOutput(ns("warningMessage")),
-                                                                       img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
-                                                                ),
-                                                                column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                                column(width = 12,
-                                                                       h2(strong("Details")),
-                                                                       p("Genetic evaluation has as final purpose to select the individuals with highest genetic merit across
+                                     column(width = 6,
+                                            h1(strong(span("Selection indices", tags$a(href="https://www.youtube.com/watch?v=YhveKqd0q4s&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=8", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                            h2(strong("Status:")),
+                                            uiOutput(ns("warningMessage")),
+                                            img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
+                                     ),
+                                     column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                     column(width = 12,
+                                            h2(strong("Details")),
+                                            p("Genetic evaluation has as final purpose to select the individuals with highest genetic merit across
                                           all traits of interest. In order to select for multiple traits at the same time a selection index is preferred.
                                           This option aims to calculate a selection index using across-environment predictions from multiple
                               traits based on user's desired change (used to calculate weights) and return a table of predictions with the index and the traits used
                               for selection.
                                 The way the options are used is the following:"),
 
-                                                                       p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
-                                                                       p(strong("Traits to include in the index-")," Traits to be considered in the index."),
-                                                                       p(strong("Desire or base values.-")," Vector of values indicating the desired change in traits."),
-                                                                       p(strong("Scale traits.-")," A TRUE or FALSE value indicating if the table of traits should be
+                                            p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
+                                            p(strong("Traits to include in the index-")," Traits to be considered in the index."),
+                                            p(strong("Desire or base values.-")," Vector of values indicating the desired change in traits."),
+                                            p(strong("Scale traits.-")," A TRUE or FALSE value indicating if the table of traits should be
                                 scaled or not. If TRUE is selected, the values of the desire vector are expected to be expressed in
                                 standard deviations. If FALSE, the values of the desire vector are expected to be expressed in
                                 original-scale units."),
-                                                                       h2(strong("References:")),
-                                                                       p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
-                                                                       p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
-                                                                       h2(strong("Software used:")),
-                                                                       p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                            h2(strong("References:")),
+                                            p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
+                                            p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
+                                            h2(strong("Software used:")),
+                                            p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                                ),
+                                     ),
                                      #                     )
                                      # )
                             ),
@@ -62,13 +62,13 @@ mod_indexDesireApp_ui <- function(id){
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                    # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           # p(span("Network plot of current analyses available.", style="color:black")),
-                                                                           column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                                           # p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
-                                                                           DT::DTOutput(ns("statusIndex")),
-                                                                           # p(span("MTA predictions to be used as input.", style="color:black")),
-                                                                           DT::DTOutput(ns("tablePredictionsTraitsWide")),
+                                                # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                                # p(span("Network plot of current analyses available.", style="color:black")),
+                                                column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                # p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
+                                                DT::DTOutput(ns("statusIndex")),
+                                                # p(span("MTA predictions to be used as input.", style="color:black")),
+                                                DT::DTOutput(ns("tablePredictionsTraitsWide")),
                                                 #                     )
                                                 # )
                                        ),
@@ -93,21 +93,21 @@ mod_indexDesireApp_ui <- function(id){
                                                               hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        ),
                                                        tags$span(id = ns('holder1'),
-                                                       column(width = 12,
-                                                              # p(span("Radar plot to inspect population values versus target values.", style="color:black")),
-                                                              numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
-                                                              plotly::plotlyOutput(ns("plotPredictionsRadar")),
-                                                       ),
-                                                       column(width = 12,
-                                                              # p(span("Expected response to selection using current desire changes.", style="color:black")),
-                                                              numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
-                                                              shiny::plotOutput(ns("plotPotentialResponse")),
-                                                       ),
-                                                       column(width = 12,
-                                                              p(span("Metrics associated to the MTA stamp selected.", style="color:black")),
-                                                              selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
-                                                              plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
-                                                       ),
+                                                                 column(width = 12,
+                                                                        # p(span("Radar plot to inspect population values versus target values.", style="color:black")),
+                                                                        numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
+                                                                        plotly::plotlyOutput(ns("plotPredictionsRadar")),
+                                                                 ),
+                                                                 column(width = 12,
+                                                                        # p(span("Expected response to selection using current desire changes.", style="color:black")),
+                                                                        numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
+                                                                        shiny::plotOutput(ns("plotPotentialResponse")),
+                                                                 ),
+                                                                 column(width = 12,
+                                                                        p(span("Metrics associated to the MTA stamp selected.", style="color:black")),
+                                                                        selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
+                                                                        plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
+                                                                 ),
                                                        ),
                                                 ),
 
@@ -137,12 +137,12 @@ mod_indexDesireApp_ui <- function(id){
                                                 br(),
                                                 # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                 #                     column(width=12,
-                                                                      conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                                       DT::DTOutput(ns("predictionsIdxD"))
-                                                                      ),
-                                                                      conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                                       DT::DTOutput(ns("predictionsIdxB"))
-                                                                      ),
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
+                                                                 DT::DTOutput(ns("predictionsIdxD"))
+                                                ),
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
+                                                                 DT::DTOutput(ns("predictionsIdxB"))
+                                                ),
                                                 #                       style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
                                                 #                     )
                                                 # )
@@ -151,12 +151,12 @@ mod_indexDesireApp_ui <- function(id){
                                                 br(),
                                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                 #                     column( width=12,
-                                                                      conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                                       DT::DTOutput(ns("modelingIdxD"))
-                                                                      ),
-                                                                      conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                                       DT::DTOutput(ns("modelingIdxB"))
-                                                                      ),
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
+                                                                 DT::DTOutput(ns("modelingIdxD"))
+                                                ),
+                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
+                                                                 DT::DTOutput(ns("modelingIdxB"))
+                                                ),
                                                 #                       style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
                                                 #                     )
                                                 # )
@@ -419,15 +419,15 @@ mod_indexDesireApp_server <- function(id, data){
       mydata <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
       values <- desireValues()
       if(!is.null(values)){
-      ## ensure product profile means come sorted
-      if(length(input$trait2IdxD) == length(values) ){
-        dd <- data.frame(trait=input$trait2IdxD, value=values )
-        dd <- dd[with(dd, order(as.numeric(as.factor(trait)))), ]
-        desireRp <- dd[,"value"]
-        traitRp <- dd[,"trait"]
-      }else{desireRp <- values; traitRp <- input$trait2IdxD}
-      radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
-                fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE, title="Radar plot to inspect population values versus target values.") # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
+        ## ensure product profile means come sorted
+        if(length(input$trait2IdxD) == length(values) ){
+          dd <- data.frame(trait=input$trait2IdxD, value=values )
+          dd <- dd[with(dd, order(as.numeric(as.factor(trait)))), ]
+          desireRp <- dd[,"value"]
+          traitRp <- dd[,"trait"]
+        }else{desireRp <- values; traitRp <- input$trait2IdxD}
+        radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
+                  fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE, title="Radar plot to inspect population values versus target values.") # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
       }
     })
     # render plot for potential responses
