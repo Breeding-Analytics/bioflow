@@ -102,9 +102,9 @@ mod_staApp_ui <- function(id){
                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                #                     column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;", # height:420px;
                                                # p(span("Boxplot of trait dispersion by environment", style="color:black")),
-                                               # tags$span(id = ns('holder_pick_traits'),
+                                               tags$span(id = ns('holder1'),
                                                          selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                               # ),
+                                               ),
                                                shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                #                     ),
                                                # )
@@ -125,7 +125,9 @@ mod_staApp_ui <- function(id){
                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                #                     column(width=12, style = "height:480px; overflow-y: scroll;overflow-x: scroll;",
                                                # p(span("Summary of number of individuals, mothers and fathers available in the dataset.", style="color:black")),
-                                               selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
+                                               tags$span(id = ns('holder2'),
+                                                         selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
+                                               ),
                                                DT::DTOutput(ns("summariesSta")), # genetic evaluation units
                                                # p(span("Experimental design factos present per environment", style="color:black")),
                                                DT::dataTableOutput(ns("dtFieldTraC")), # design units
@@ -200,19 +202,19 @@ mod_staApp_server <- function(id,data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
-    ########
+    ############################################################################
     # show shinyWidgets until the user can use the module
-    # observeEvent(c(data()), {
-    #   req(data())
-    #   mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-    #   if(mappedColumns == 3 & length(input$version2Sta)>0 ){
-    #     golem::invoke_js('showid', ns('holder_pick_traits'))
-    #   }else{
-    #     golem::invoke_js('hideid', ns('holder_pick_traits'))
-    #   }
-    # })
-
-
+    observeEvent(c(data(), input$version2Sta), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3 & length(input$version2Sta)>0 ){
+        golem::invoke_js('showid', ns('holder1'))
+        golem::invoke_js('showid', ns('holder2'))
+      }else{
+        golem::invoke_js('hideid', ns('holder1'))
+        golem::invoke_js('hideid', ns('holder2'))
+      }
+    })
     ############################################################################
     observeEvent(
       c(data(),input$version2Sta,input$genoUnitSta),

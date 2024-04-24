@@ -71,8 +71,8 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                               p(span("Network plot of current analyses available.", style="color:black")),
-                                               shiny::plotOutput(ns("plotTimeStamps")),
+                                               # p(span("Network plot of current analyses available.", style="color:black")),
+                                               column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
                                                # p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
                                                DT::DTOutput(ns("statusMta")), # modeling table
                                                # p(span("STA predictions table to be used as input.", style="color:black")),
@@ -99,13 +99,17 @@ mod_mtaApp_ui <- function(id){
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                # p(span("Metrics associated to the STA stamp selected.", style="color:black")),
-                                               column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                               column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                               column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                               tags$span(id = ns('holder1'),
+                                                         column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                         column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                         column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                               ),
                                                # p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
-                                               column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                               column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                               column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
+                                               tags$span(id = ns('holder2'),
+                                                         column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                         column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                                         column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
+                                               ),
                                                #                     ),
                                                # )
                                       ),
@@ -139,8 +143,11 @@ mod_mtaApp_ui <- function(id){
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:380px; overflow-y: scroll;overflow-x: scroll;",
                                                # p(span("Available data.", style="color:black")),
-                                               selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                               shiny::plotOutput(ns("evaluationUnits")) ,
+                                               tags$span(id = ns('holder3'),
+                                                         selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                         shiny::plotOutput(ns("evaluationUnits")) ,
+                                               ),
+
                                                #                     )
                                                # )
                                       ),
@@ -161,31 +168,33 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                               column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
-                                               column(width = 3,
-                                                      selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                      selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE),
-                                                      checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
-                                                      checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
-                                                      numericInput(ns("heatmapFontSize"), label = "Font size", value = 6),
-                                                      ),
-                                               column(width = 9,
-                                                      shiny::plotOutput(ns("plotPredictionsConnectivity"))
-                                                      ),
-                                               column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
-                                               column(width=3,
-                                                      selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                      checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE),
-                                                      checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
-                                                      numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6),
-                                                      ),
-                                               column(width=9,
-                                                      shiny::plotOutput(ns("plotPredictionsCor"))
-                                                      ),
-                                               column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
-                                               column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
-                                               column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
-                                               column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
+                                               tags$span(id = ns('holder4'),
+                                                         column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
+                                                         column(width = 3,
+                                                                selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE),
+                                                                checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
+                                                                checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                                numericInput(ns("heatmapFontSize"), label = "Font size", value = 6),
+                                                         ),
+                                                         column(width = 9, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
+                                               ),
+                                               tags$span(id = ns('holder5'),
+                                                         column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
+                                                         column(width=3,
+                                                                selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE),
+                                                                checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                                numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6),
+                                                         ),
+                                                         column(width=9, shiny::plotOutput(ns("plotPredictionsCor")) ),
+                                               ),
+                                               tags$span(id = ns('holder6'),
+                                                         column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
+                                                         column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
+                                                         column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
+                                                         column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
+                                               ),
                                                #                     ),
                                                # )
                                       ),
@@ -254,6 +263,27 @@ mod_mtaApp_server <- function(id, data){
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
+    })
+    ############################################################################
+    # show shinyWidgets until the user can use the module
+    observeEvent(c(data(), input$version2Mta), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3 & length(input$version2Mta)>0 ){
+        golem::invoke_js('showid', ns('holder1'))
+        golem::invoke_js('showid', ns('holder2'))
+        golem::invoke_js('showid', ns('holder3'))
+        golem::invoke_js('showid', ns('holder4'))
+        golem::invoke_js('showid', ns('holder5'))
+        golem::invoke_js('showid', ns('holder6'))
+      }else{
+        golem::invoke_js('hideid', ns('holder1'))
+        golem::invoke_js('hideid', ns('holder2'))
+        golem::invoke_js('hideid', ns('holder3'))
+        golem::invoke_js('hideid', ns('holder4'))
+        golem::invoke_js('hideid', ns('holder5'))
+        golem::invoke_js('hideid', ns('holder6'))
+      }
     })
     ############################################################################
     observeEvent(
@@ -486,7 +516,7 @@ mod_mtaApp_server <- function(id, data){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
           ggnetwork::theme_blank()
@@ -551,10 +581,10 @@ mod_mtaApp_server <- function(id, data){
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
       midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+ ggplot2::ggtitle("Available data for this trait.")
-        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                      midpoint = midval, limit = c(0,maxVal), space = "Lab",
-                                      name="Connectivity (data types)") +
+        ggplot2::geom_tile(color = "white")+ ggplot2::ggtitle("Available data for this trait.") +
+      ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                    midpoint = midval, limit = c(0,maxVal), space = "Lab",
+                                    name="Connectivity (data types)") +
         ggplot2::theme_minimal()+
         ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
         ggplot2::ylab("") + ggplot2::xlab("") +
@@ -716,9 +746,10 @@ mod_mtaApp_server <- function(id, data){
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
-      res <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value)) +
-        ggplot2::geom_bar(stat="identity", fill="steelblue")+
-        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
+      res <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
+        ggplot2::geom_bar(stat="identity", position=position_dodge())+
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
       plotly::ggplotly(res)
     })
     ## render trait distribution plot

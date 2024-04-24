@@ -127,7 +127,7 @@ if (is.null(result)){
     temp <- tempp[,3]
     summarySta <- cbind(summarySta,temp)
   }
-  colnames(summarySta) <-colnames(traits.env)# c('environment',traits)
+  colnames(summarySta) <- c('environment',traits)
   
   pheno <- result$data$pheno
   ### change column names for mapping
