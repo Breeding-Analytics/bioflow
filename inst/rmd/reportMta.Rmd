@@ -869,8 +869,8 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       temp.pred.box <- pred[pred$trait== iTrait,]
-      ub <- max(temp.pred.box$predictedValue, na.rm = TRUE)
-      lb <- min(temp.pred.box$predictedValue, na.rm = TRUE)
+      ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
+      lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
@@ -921,8 +921,8 @@ if (is.null(result)){
     plotly::renderPlotly({
       
       temp.pred.box <- pred[pred$trait== input$traitMta2,]
-      ub <- max(temp.pred.box$predictedValue, na.rm = TRUE)
-      lb <- min(temp.pred.box$predictedValue, na.rm = TRUE)
+      ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
+      lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
@@ -1136,7 +1136,7 @@ if (is.null(result)){
 }
 ```
 
-```{r, results='asis'}
+```{r, results='asis', fig.height=20}
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -1153,12 +1153,14 @@ if (is.null(result)){
         predList <- split(pred, pred$trait)
         predList2 <- lapply(predList, function(x){ # x <- predList[[1]]
           checkSelected <- which(x$designation == iCheck)
-          x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
-          x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
-          x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
-          x <- x[with(x, order(-predictedValue2)), ]
-          x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == iCheck ))),]
-          return(x)
+          if(length(checkSelected) > 0){
+            x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+            x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+            x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+            x <- x[with(x, order(-predictedValue2)), ]
+            x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == iCheck ))),]
+            return(x)
+          }
         })
         temp.pred.box <- do.call(rbind, predList2)
         
@@ -1167,7 +1169,7 @@ if (is.null(result)){
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
-            col = trait,
+            col = entryType,
             text = paste(
               paste0('<br>', "designation: ", designation),
               paste0('<br>', "entry type: ", entryType),
@@ -1181,7 +1183,7 @@ if (is.null(result)){
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         
         print(htmltools::tagList(plotly::ggplotly(p)))
         
@@ -1194,12 +1196,14 @@ if (is.null(result)){
         predList <- split(pred, pred$trait)
         predList2 <- lapply(predList, function(x){ # x <- predList[[1]]
           checkSelected <- which(x$designation == input$checkMta)
-          x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
-          x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
-          x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
-          x <- x[with(x, order(-predictedValue2)), ]
-          x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == input$checkMta))),]
-          return(x)
+          if(length(checkSelected) > 0){
+            x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+            x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+            x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+            x <- x[with(x, order(-predictedValue2)), ]
+            x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == input$checkMta))),]
+            return(x)
+          }
         })
         temp.pred.box <- do.call(rbind, predList2)
         
@@ -1208,7 +1212,7 @@ if (is.null(result)){
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
-            col = trait,
+            col = entryType,
             text = paste(
               paste0('<br>', "designation: ", designation),
               paste0('<br>', "entry type: ", entryType),
@@ -1222,7 +1226,7 @@ if (is.null(result)){
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE))
+          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         plotly::ggplotly(p)
         
       })

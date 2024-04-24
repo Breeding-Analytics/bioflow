@@ -46,7 +46,19 @@ mod_reportBuilder_ui <- function(id){
                                                downloadButton(ns("downloadReportReport"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportReport'))
-                                      )
+                                      ),
+                                      tabPanel("Predictions", icon = icon("table"),
+                                               br(),
+                                               DT::DTOutput(ns("predictionsX")),
+                                      ),
+                                      tabPanel("Metrics", icon = icon("table"),
+                                               br(),
+                                               DT::DTOutput(ns("metricsX")),
+                                      ),
+                                      tabPanel("Modeling", icon = icon("table"),
+                                               br(),
+                                               DT::DTOutput(ns("modelingX")),
+                                      ),
                                     )
                            )
               )) # end mainpanel
@@ -166,6 +178,59 @@ mod_reportBuilder_server <- function(id, data){
       ##
 
       if(!inherits(result,"try-error")) {
+
+        ## predictions table
+        output$predictionsX <-  DT::renderDT({
+          predictions <- result$predictions
+          current.predictions <- predictions[predictions$analysisId == result$status$analysisId[nrow(result$status)] ,]
+          if(nrow(current.predictions) > 0){
+            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+            numeric.output <- c("predictedValue", "stdError", "reliability")
+            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            ), numeric.output)
+          }else{
+            DT::datatable(data.frame(), extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            )
+          }
+        })
+        # metrics table
+        output$metricsX <-  DT::renderDT({
+          if(!inherits(result,"try-error") ){
+            metrics <- result$metrics
+            metrics <- metrics[which(metrics$analysisId == result$status$analysisId[nrow(result$status)] ),]
+            if(nrow(metrics) > 0){
+              metrics <- subset(metrics, select = -c(module,analysisId))
+              numeric.output <- c("value", "stdError")
+              DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
+                                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+              ), numeric.output)
+            }else{
+              DT::datatable(data.frame(), extensions = 'Buttons',
+                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+              )
+            }
+          }
+        })
+        # modeling table
+        output$modelingX <-  DT::renderDT({
+          if(!inherits(result,"try-error") ){
+            modeling <- result$modeling
+            modeling <- modeling[which(modeling$analysisId == result$status$analysisId[nrow(result$status)] ),]
+            if(nrow(modeling) > 0){
+              modeling <- subset(modeling, select = -c(module,analysisId))
+            }else{modeling <- data.frame()}
+            DT::datatable(modeling, extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            )
+          }
+        })
 
         ## Report tab
         output$reportReport <- renderUI({
