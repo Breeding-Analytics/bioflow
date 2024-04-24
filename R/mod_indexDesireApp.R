@@ -63,8 +63,8 @@ mod_indexDesireApp_ui <- function(id){
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                                     # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           p(span("Network plot of current analyses available.", style="color:black")),
-                                                                           shiny::plotOutput(ns("plotTimeStamps")),
+                                                                           # p(span("Network plot of current analyses available.", style="color:black")),
+                                                                           column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
                                                                            # p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
                                                                            DT::DTOutput(ns("statusIndex")),
                                                                            # p(span("MTA predictions to be used as input.", style="color:black")),
@@ -92,6 +92,7 @@ mod_indexDesireApp_ui <- function(id){
                                                               h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey box in the left", style="color:green"))),
                                                               hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        ),
+                                                       tags$span(id = ns('holder1'),
                                                        column(width = 12,
                                                               # p(span("Radar plot to inspect population values versus target values.", style="color:black")),
                                                               numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
@@ -106,6 +107,7 @@ mod_indexDesireApp_ui <- function(id){
                                                               p(span("Metrics associated to the MTA stamp selected.", style="color:black")),
                                                               selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
                                                               plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
+                                                       ),
                                                        ),
                                                 ),
 
@@ -192,11 +194,17 @@ mod_indexDesireApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
-    # data = reactive({
-    #   load("~/Documents/bioflow/dataStr0.RData")
-    #   data <- res
-    #   return(data)
-    # })
+    ############################################################################
+    # show shinyWidgets until the user can use the module
+    observeEvent(c(data(), input$version2IdxD, input$trait2IdxD ), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3 & length(input$version2IdxD)>0 & length(input$trait2IdxD)>0 ){
+        golem::invoke_js('showid', ns('holder1'))
+      }else{
+        golem::invoke_js('hideid', ns('holder1'))
+      }
+    })
     ############################################################################
     # warning message
     output$warningMessage <- renderUI(
@@ -316,7 +324,7 @@ mod_indexDesireApp_server <- function(id, data){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
           ggnetwork::theme_blank()

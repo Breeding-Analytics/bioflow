@@ -91,7 +91,7 @@ plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilte
       ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red")
   }
   if(!is.null(title)){
-    p <- p %>% plotly::layout(title=title)
+    p <- p + ggplot2::ggtitle(title)
   }
   # fig2 <-  plotly::ggplotly(p)
   # fig2

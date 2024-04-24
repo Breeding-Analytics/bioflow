@@ -83,6 +83,7 @@ mod_qaGenoApp_ui <- function(id){
                                                       br(),
                                                       actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),
                                                       textOutput(ns("outQaMb")),
+                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                           selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
                                                                           numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)

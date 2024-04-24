@@ -104,8 +104,8 @@ mod_staApp_ui <- function(id){
                                                # p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                tags$span(id = ns('holder1'),
                                                          selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                         shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                ),
-                                               shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                #                     ),
                                                # )
                                       ),
@@ -127,10 +127,10 @@ mod_staApp_ui <- function(id){
                                                # p(span("Summary of number of individuals, mothers and fathers available in the dataset.", style="color:black")),
                                                tags$span(id = ns('holder2'),
                                                          selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
+                                                         DT::DTOutput(ns("summariesSta")), # genetic evaluation units
+                                                         # p(span("Experimental design factos present per environment", style="color:black")),
+                                                         DT::dataTableOutput(ns("dtFieldTraC")), # design units
                                                ),
-                                               DT::DTOutput(ns("summariesSta")), # genetic evaluation units
-                                               # p(span("Experimental design factos present per environment", style="color:black")),
-                                               DT::dataTableOutput(ns("dtFieldTraC")), # design units
                                                #                     )
                                                # )
                                       ),

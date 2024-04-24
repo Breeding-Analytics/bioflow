@@ -65,9 +65,5 @@ rsconnect::setAccountInfo(name='',
 
 rsconnect::deployApp(account = "cgiar-market-intelligence")
 
-
-# rsconnect::setAccountInfo(name='giovanny-covarrubias',
-#                           token='DB3778031938A406DDB9EA47006FB47D',
-#                           secret='OYKpvd/zQUgIXhlzhMau9nJ/OhYeR3oiv0odKDCD')
 #
 # rsconnect::deployApp(account = "giovanny-covarrubias")
