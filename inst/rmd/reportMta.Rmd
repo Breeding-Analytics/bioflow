@@ -108,7 +108,7 @@ The objective of this dashboard is to help scientist to understand the following
 
 5. Individual across environment predictions for each trait (output) 
 
-6. Individual sensitivity values from the Finlay-Wilkinson model (Finlay & Wilkinson, 1963) (output)
+6. Individual sensitivity values according to the Finlay-Wilkinson model (Finlay & Wilkinson, 1963) (output)
 
 7. Percent check comparison against the different benchmark varieties present in the dataset (output)
 

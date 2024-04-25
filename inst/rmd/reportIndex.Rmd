@@ -102,17 +102,33 @@ if (is.null(result)){
   idIndex <- idIndex[length(idIndex)]
   idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
   mydata <- mydata[which(mydata$analysisId %in% c(idMta,idIndex)),]
-  wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
+  wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue", "entryType"))], direction = "wide", idvar = c("designation"),
                          timevar = "trait", v.names = c("predictedValue"), sep= "_")
   colnames(wide) <- gsub("predictedValue_","",colnames(wide))
-  numeric.output <- colnames(wide)[-c(1)]
+  numeric.output <- colnames(wide)[-c(1:2)]
   
 }
 ```
 
+### Objectives of a Selection Index
+
+The objective of this dashboard is to help scientist to understand the following points:
+
+1. Individual across environment predictions for each trait (input) 
+
+2. Individual sensitivity values from the Finlay-Wilkinson model (Finlay & Wilkinson, 1963) (input)
+
+3. Relative distance between the desired values (target product profiles) and the population means (output)
+
+4. Expected response to selection in each trait after using the index (output)
+
+5. Relationship between the index with the input traits (output)
+
+Understanding these data features should allow the scientist to identify which traits are driving the desire selection index (Pesek & Baker, 1969) and understand what is the approximate expected change of the population in the next generation. We would recommend to use the index as the input trait for an optimal contribution selection algorithm.
+
 ### Across-environment trait table
 
-The following table allows you to inspect the across-environment predictions for the different entries (rows) and different traits (columns).
+The following table allows you to inspect the across-environment predictions for the different entries (rows) and different traits (columns) that were used as input to calculate the selection index.
 
 <p>&nbsp;</p>
 
@@ -139,7 +155,7 @@ if (is.null(result)){
 
 ### Radar Plot
 
-This plot allows the user to visualize the distance between the population means and the target values.
+This spider plot allows you to visualize the distance between the population means and the target values (hopefully coming from your product profile).
 
 <p>&nbsp;</p>
 
@@ -271,10 +287,9 @@ if (is.null(result)){
 
 ```
 
-
 ### Expected Response Plot
 
-This plot allows the user to visualize the expected response in the new generation given the individuals selected (best 20 percent) using the selection index.
+The following plot allows the user to visualize the expected response in the new generation given the individuals selected (different proportions can be investigated) using the selection index.
 
 <p>&nbsp;</p>
 
@@ -362,7 +377,7 @@ if (is.null(result)){
 
 ### Index versus Trait Plot
 
-This plot allows the user to visualize the relationship between the selection index with other traits. This can be specially useful for selecting materials with high total merit and stability for yield.
+The following plot allows you to visualize the relationship between the selection index with other traits. This can be specially useful for selecting materials with high total merit (index) and stability for yield (for example, for product development).
 
 <p>&nbsp;</p>
 
@@ -372,7 +387,7 @@ if (is.null(result)){
 } else {
   
   
-  mtaTraits <- setdiff( colnames(wide), c("designation","desireIndex"))
+  mtaTraits <- setdiff( colnames(wide), c("designation","desireIndex","entryType"))
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
@@ -402,7 +417,7 @@ if (is.null(result)){
       
       wide$trait1 <- wide[,iTrait]
       p <- ggplot(wide, aes(x=trait1, y=desireIndex, text=designation)) + 
-        geom_point(size=2, alpha = 0.6) + xlab(iTrait) + ylab("Selection Index") 
+        geom_point(size=2, alpha = 0.6, aes(shape=entryType)) + xlab(iTrait) + ylab("Selection Index") 
       
       if(nrow(wide) > 1000){ # go fixed format
         print(p)
@@ -416,7 +431,7 @@ if (is.null(result)){
     plotly::renderPlotly({
       wide$trait1 <- wide[,input$traitMtaScatter]
       p <- ggplot(wide, aes(x=trait1, y=desireIndex, text=designation)) + 
-        geom_point(size=2, alpha = 0.6) + xlab(input$traitMtaScatter) + ylab("Selection Index") 
+        geom_point(size=2, alpha = 0.6, aes(shape=entryType) ) + xlab(input$traitMtaScatter) + ylab("Selection Index") 
       
       plotly::ggplotly(p)
     })
@@ -447,7 +462,7 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    if( length(na.omit(unique(result$predictions$mother)))> 0 & length(na.omit(unique(result$predictions$father)))>0 ){
+    if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTrait$father)))>0 ){
       shiny::selectInput(ns("traitIndexBox"), 
                        label = "Trait:", 
                        multiple = FALSE,
@@ -463,7 +478,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 
-if( length(na.omit(unique(result$predictions$mother)))> 0 & length(na.omit(unique(result$predictions$father)))>0 ){
+if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTrait$father)))>0 ){
   if("params" %in% ls()){ # we will download the document
   
   cat("\n\n###  {.tabset .tabset-pills}       \n\n")

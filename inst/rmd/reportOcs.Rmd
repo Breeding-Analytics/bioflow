@@ -65,9 +65,25 @@ get_h <- function() {
 
 ```
 
+### Objectives of Optimal Cross Selection
+
+The objective of this dashboard is to help scientist to understand the following points:
+
+1. Optimal crosses for the trade off between performance and genetic variance specified
+
+2. Expected performance of crosses by parent
+
+3. Performance of parents selected to go into the crossing block
+
+4. Number of crosses proposed per parent selected to go into the crossing block
+
+5. Difference in mean and variance observed for different degree runs
+
+Understanding these data features should allow the scientist to identify which crosses should be performed in the crossing block. It should also allow the scientist to assess the relationship between the degree selected (aggressiveness) and the number of parents selected and times that each parent shows up.  
+
 ### Cross performance table
 
-The following table provides an overview of the performance of the predicted crosses for the different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs.
+The following table provides an overview of the performance of the predicted/proposed crosses across different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs.
 
 <p>&nbsp;</p>
 
@@ -122,9 +138,156 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
+### Cross performance per parent
+
+The following boxplot allows you to see the performance of the different crosses predicted/proposed (dots in the boxplot) grouped by the different parents selected to go into the crossing block (x-axis).
+
+<p>&nbsp;</p>
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  predictions <- result$predictions
+  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+  idOcs <- idOcs[length(idOcs)]
+  myTraits <- predictions[which(predictions$analysisId == idOcs),"trait"]
+  
+  if("params" %in% ls()){  # if user will download the report
+    shinyjs::hide()
+  }else{ # if user will just visualize the report in the website
+    
+    shiny::selectInput(ns("traitFilterPredictions2D2"), 
+                       label = "Trait:", 
+                       multiple = TRUE,
+                       selected = unique(myTraits),
+                       choices = unique(myTraits)
+    )
+    
+    
+  }
+  
+}
+```
+
+```{r, results='asis'}
+library(dplyr)
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){  # if user will download the report
+    
+    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
+    for(iTrait in unique(myTraits)){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      mydata = result$predictions
+      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+      idOcs <- idOcs[length(idOcs)]
+      mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+      ## get the required traits
+      mydata <- mydata[which(mydata$trait %in% c(iTrait)),]
+      ##
+      mydataF <- mydataM <- mydata
+      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
+      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
+      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
+      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
+      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+      
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
+        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      
+    }
+    
+  }else{ # if user will just visualize the report in the website
+    plotly::renderPlotly({
+      mydata = result$predictions
+      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+      idOcs <- idOcs[length(idOcs)]
+      mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+      ## get the required traits
+      mydata <- mydata[which(mydata$trait %in% c(input$traitFilterPredictions2D2)),]
+      ##
+      mydataF <- mydataM <- mydata
+      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
+      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
+      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
+      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
+      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+      
+      
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
+        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~environment, scales = "free")# +
+      # ggplot2::guides(color=ggplot2::guide_legend(""))
+      
+      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+      fig
+    })
+  }
+  
+}
+```
+
+### Parent performance table
+
+This table shows the performance of the parents selected by the OCS algorithm. The parental means are extracted from the multi-trial analysis results.
+
+<p>&nbsp;</p>
+
+```{r}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  mydata = result$predictions
+  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
+  idOcs <- idOcs[length(idOcs)]
+  # get parents selected in crosses
+  mydataOcs <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+  parentsSelected <- unique(c(mydataOcs$mother, mydataOcs$father))
+  # what was the input of ocs? index or mta?
+  idInputOcs <- result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$trait == "inputObject"), "value"]
+  moduleInputOcs <- result$status[which(result$status$analysisId == idInputOcs),"module"];
+  if(moduleInputOcs != "mta"){ # we keep looking for mta since we had an index
+    idInputOcs <- result$modeling[which(result$modeling$analysisId == idInputOcs & result$modeling$trait == "inputObject"), "value"]
+    moduleInputOcs <- result$status[which(result$status$analysisId == idInputOcs),"module"];
+  }else{} # we stop
+  
+  mydata <- mydata[which(mydata$analysisId %in% c(idInputOcs)),]
+  wideParents <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
+                                timevar = "trait", v.names = c("predictedValue"), sep= "_")
+  colnames(wideParents) <- gsub("predictedValue_","",colnames(wideParents))
+  numeric.output <- colnames(wideParents)[-c(1)]
+  wideParents <- wideParents[which(wideParents$designation %in% parentsSelected),]
+  rownames(wideParents) <- NULL
+  
+  if("params" %in% ls()){  # if user will download the report
+    printTable(wideParents)
+  }else{ # if user will just examinate the report on the website
+    DT::renderDT(DT::formatRound(DT::datatable(wideParents, extensions = 'Buttons',
+                                               options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                              lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+    ), numeric.output)
+    )
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
 ### Number of crosses per parent
 
-The following barplot allows you identify the number of times (y-axis) that a parent (x-axis) is suggested to be used in the crossing block for a given treatment (number of crosses by degrees).
+The following barplot allows you to assess the number of times (y-axis) that a given parent (x-axis) is suggested to be used in the crossing block for certain OCS treatment (number of crosses by degrees specifications).
 
 <p>&nbsp;</p>
 
@@ -228,57 +391,9 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
-### Parent performance table
-
-This table shows the performance of the parents selected by the OCS algorithm. The parental means are extracted from the multi-trial analysis results.
-
-<p>&nbsp;</p>
-
-```{r}
-
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  mydata = result$predictions
-  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-  idOcs <- idOcs[length(idOcs)]
-  # get parents selected in crosses
-  mydataOcs <- mydata[which(mydata$analysisId %in% c(idOcs)),]
-  parentsSelected <- unique(c(mydataOcs$mother, mydataOcs$father))
-  # what was the input of ocs? index or mta?
-  idInputOcs <- result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$trait == "inputObject"), "value"]
-  moduleInputOcs <- result$status[which(result$status$analysisId == idInputOcs),"module"];
-  if(moduleInputOcs != "mta"){ # we keep looking for mta since we had an index
-    idInputOcs <- result$modeling[which(result$modeling$analysisId == idInputOcs & result$modeling$trait == "inputObject"), "value"]
-    moduleInputOcs <- result$status[which(result$status$analysisId == idInputOcs),"module"];
-  }else{} # we stop
-  
-  mydata <- mydata[which(mydata$analysisId %in% c(idInputOcs)),]
-  wideParents <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
-                                timevar = "trait", v.names = c("predictedValue"), sep= "_")
-  colnames(wideParents) <- gsub("predictedValue_","",colnames(wideParents))
-  numeric.output <- colnames(wideParents)[-c(1)]
-  wideParents <- wideParents[which(wideParents$designation %in% parentsSelected),]
-  rownames(wideParents) <- NULL
-  
-  if("params" %in% ls()){  # if user will download the report
-    printTable(wideParents)
-  }else{ # if user will just examinate the report on the website
-    DT::renderDT(DT::formatRound(DT::datatable(wideParents, extensions = 'Buttons',
-                                               options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                              lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-    ), numeric.output)
-    )
-  }
-  
-}
-```
-
-<p>&nbsp;</p>
-
 ### Treatment comparison
 
-The following table summarizes the trait means for the different OCS runs (number of crosses and degrees treatments). 
+The following table summarizes the trait means for the different OCS runs (number of crosses and degrees treatments) in case you want to compare what would have been the resulting means and variances under different degrees or number of crosses. 
 
 <p>&nbsp;</p>
 
@@ -311,107 +426,6 @@ if (is.null(result)){
 ```
 
 <p>&nbsp;</p>
-
-### Cross performance per parent
-
-The following boxplot allows you to see the performance of the different crosses predicted (dots in the boxplot) grouped by the different parents (x-axis).
-
-<p>&nbsp;</p>
-```{r}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  predictions <- result$predictions
-  idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-  idOcs <- idOcs[length(idOcs)]
-  myTraits <- predictions[which(predictions$analysisId == idOcs),"trait"]
-  
-  if("params" %in% ls()){  # if user will download the report
-    shinyjs::hide()
-  }else{ # if user will just visualize the report in the website
-    
-    shiny::selectInput(ns("traitFilterPredictions2D2"), 
-                       label = "Trait:", 
-                       multiple = TRUE,
-                       selected = unique(myTraits),
-                       choices = unique(myTraits)
-    )
-    
-    
-  }
-  
-}
-```
-
-```{r, results='asis'}
-library(dplyr)
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  
-  if("params" %in% ls()){  # if user will download the report
-    
-    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
-    for(iTrait in unique(myTraits)){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-      mydata = result$predictions
-      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-      idOcs <- idOcs[length(idOcs)]
-      mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
-      ## get the required traits
-      mydata <- mydata[which(mydata$trait %in% c(iTrait)),]
-      ##
-      mydataF <- mydataM <- mydata
-      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
-      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
-      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
-      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
-      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
-      
-      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
-        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
-      print(htmltools::tagList(plotly::ggplotly(p)))
-      
-    }
-    
-  }else{ # if user will just visualize the report in the website
-    plotly::renderPlotly({
-      mydata = result$predictions
-      idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
-      idOcs <- idOcs[length(idOcs)]
-      mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
-      ## get the required traits
-      mydata <- mydata[which(mydata$trait %in% c(input$traitFilterPredictions2D2)),]
-      ##
-      mydataF <- mydataM <- mydata
-      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
-      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
-      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
-      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
-      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
-      
-      
-      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
-        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-        ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~environment, scales = "free")# +
-      # ggplot2::guides(color=ggplot2::guide_legend(""))
-      
-      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
-      fig
-    })
-  }
-  
-}
-```
-
-
 
 ### References of methods used
 
