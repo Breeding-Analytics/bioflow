@@ -12,6 +12,7 @@ geno_example  <- 'www/example/geno.hmp.txt'
 mod_getDataGeno_ui <- function(id){
   ns <- NS(id)
   tagList(
+    tags$br(),
 
     column(width=8,
 
