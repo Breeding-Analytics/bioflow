@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "April 24, 2024"  
+date: "April 25, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -15,13 +15,39 @@ params:
 
 
 
+### Objectives
+
+The objective of this dashboard is to help scientist to understand the following points:
+
+1. Overall number of entries and entry types included in the multi trial analysis (input)
+
+2. High-level of the phenotypic adjusted means included in the analysis (input)
+
+3. Number of entries connecting the different environments per trait (input)
+
+3. Phenotypic correlation between environments for the traits present (input)
+
+4. Across environment KPIs per trait such as reliability and variance component ratios (output) 
+
+5. Individual across environment predictions for each trait (output) 
+
+6. Individual sensitivity values from the Finlay-Wilkinson model (output)
+
+7. Percent check comparison against the different benchmark varieties present in the dataset (output)
+
+8. Genetic correlation between the traits (output)
+
+Understanding these data features should allow the scientist to identify which traits express more genotype by environment interactions and how they should be selected. It should also allow the scientist to assess the correlation between traits and how the product profile should be addressed to maximize genetic gains while developing the needed varieties at the same time. Materials with the highest performance and sensitivity to the environment could be potential nominations for advancement although we recommend to don't select new parents or products until the results from the multi-trial analysis are analyzed with a selection index.  
+
 ### Number of individuals per trait and entry type
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out0eccd3a245071f2a" style="width:100%;height:auto;"></div><!--/html_preserve-->
+The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
+
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out65762f0d93336dc5" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### By environment merit distribution
 
-The following boxplot allows to see the distribution of predicted values (y-axis) in the different environments for each **trait**. At the top of each boxplot the reliability (r2) for that environment by trait combination can be reviewed.
+The following boxplot allows you to inspect the distribution of adjusted means (y-axis) from the different environments for each trait that were used as input for the analysis. The environments are sorted by environmental mean to understand the slope of the regression fitted in the Finlay-Wilkinson model. It is recommended that you have at least 6 environments to fit the random regressions over the environmental indices or other weather and soil variables
 
 <p>&nbsp;</p>
 
@@ -38,11 +64,11 @@ The following boxplot allows to see the distribution of predicted values (y-axis
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outc8a06895002c7483" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out5d09193a592643b8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between environments
 
-The following heatmap allows the user to review the connectivity (gennotypes in common) between different environments.
+The following heatmap and histogram allows you to assess the connectivity (gennotypes in common) between different environments for a given trait. Our recommendation is that each pair of environments should at least have 30 genotypes in common in order to estimate genetic correlations and at least 2-3 entries in common to adjust across environment means. We classify as low everything below 30, intermediate connectivity between 30 to 60, and high everything above 60.
 
 <p>&nbsp;</p>
 
@@ -59,11 +85,11 @@ The following heatmap allows the user to review the connectivity (gennotypes in 
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outbcba85db399cbf61" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out0256d69ed1f5f015" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Genetic correlations between environments
 
-The following graph allows to see the genetic correlations among the different environment one **trait** at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates.
+The following heatmap and histogram allows to assess the genetic correlations among the different environment one trait at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates. We recommend that only environments that are on-average positively correlated with the main cluster (i.e., rG>0) are included in the multi-trial analysis to guarantee decent rates of genetic gain and adapted products in the TPE.
 
 <p>&nbsp;</p>
 
@@ -80,14 +106,13 @@ The following graph allows to see the genetic correlations among the different e
 </div>
 </div><!--/html_preserve-->
 
-
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out30a645373552ba6d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out1f91dbb403a1ed05" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
 ### Biplot by trait
 
-The following graph allows to see the performance of the genotypes over the enevironments for each **trait**.
+The following graph allows to see the clustering of different genotypes in the TPE for each trait. This can help you identify clusters of environments and better define the TPE.
 
 
 <p>&nbsp;</p>
@@ -103,14 +128,13 @@ The following graph allows to see the performance of the genotypes over the enev
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out1312a8cf0abb8679" style="width:100%;height:400px;"></div><!--/html_preserve-->
-
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out17a95216d6b76a84" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
 ### Across-environment metrics
 
-The following barplot aims to help you check the across environment estimates for multiple parameters from the multi-trial analysis.
+The following barplot aims to help you inspect the across environment estimates for multiple parameters from the multi-trial analysis such as across-environment reliability.
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-parameterMetrics2-label" for="reportBuilder_1-parameterMetrics2">Parameter:</label>
@@ -124,25 +148,21 @@ The following barplot aims to help you check the across environment estimates fo
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outf518689fac53663e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out91189cae1d1c42f0" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
-
-### Variance component proportions for traits (across environments)
-
-The following graph allows to see the proportion of variance going to different components. Above the bars you can see the value of the variance component for each factor.
+The following graph allows you to assess the proportion of variance going to different components for the different traits. Above the bars you can see the value of the variance component for each factor. The residual variance is all the variance that could not be explained by the main effect and sensitivity effects. This values should be considered carefully depending of the genetic evaluation model used. For example, when sing the rrBLUP model the variance components reflect the marker variance and may look very small, but we can't conclude that there is not eough genetic signal.
 
 <p>&nbsp;</p>
 
-
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outf334dd62965a9870" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out3c3f853a6d5b7da4" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
 ### Across-environment merit estimates of top entries
 
-In the following plot you can observe the comparison between the top 100 entries from each entry type category. If a category has less than a 100 entries all individuals are displayed.
+In the following plot you can observe the comparison between the top 100 entries from each entry type category for the different traits. If a category has less than a 100 entries all individuals are displayed. This should allow you to identify the entries that coul potentially become parents or nominated for advanced stages of evaluation. We would recommend you to wait until a selection index is calculated.
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMta2-label" for="reportBuilder_1-traitMta2"></label>
@@ -157,8 +177,7 @@ In the following plot you can observe the comparison between the top 100 entries
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outbfeff0a7f031e2d1" style="width:100%;height:400px;"></div><!--/html_preserve-->
-
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outbe8efa5489bdb82d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -175,7 +194,7 @@ In the following plot you can observe the comparison between the top 100 entries
 
 ### Percent check comparison to top 30 entries
 
-The following plots allow the user to compare the tested entries versus the checks.
+The following plots allow the user to compare the top 30 entries against the different checks/benchmarks present in the dataset.
 
 
 <!--html_preserve--><div class="form-group shiny-input-container">
@@ -221,15 +240,15 @@ The following plots allow the user to compare the tested entries versus the chec
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out8fb0acf88667f782" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out4b61d67307bab26f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Genetic correlations between traits
 
-The following graph allows to see the genetic correlations among traits using across environment estimates.
+The following heatmap and histogram allows to see the genetic correlations among traits calculated using across environment estimates of merit for the different traits. This can be used to understand the implications of selecting for a set of traits to achieve a product profile and make neccesary adjustment to the selection strategy.
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outd4bc0659b4c6b14f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outf09e0393919286a9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -239,7 +258,7 @@ The following table allows to check the trait predictions in wide format togethe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outbba493a3aafceebb" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out43e5ca7f1e13e52c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used
