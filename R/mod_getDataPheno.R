@@ -14,167 +14,184 @@ mod_getDataPheno_ui <- function(id){
   tagList(
     tags$br(),
 
-    h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/watch?v=gFYGIb9fBLQ&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=2", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+    column(width=8,
 
-    selectInput(
-      inputId = ns('pheno_input'),
-      label   = 'Data Source*: ',
-      choices = list('Upload File' = 'file', 'Copy URL' = 'url', 'BrAPI' = 'brapi'),
-      width   = '200px'
+           selectInput(
+             inputId = ns('pheno_input'),
+             label   = 'Data Source*: ',
+             choices = list('Upload File' = 'file', 'Copy URL' = 'url', 'BrAPI' = 'brapi'),
+             width   = '200px'
+           ),
+
+           tags$span(id = ns('pheno_file_holder'),
+                     fileInput(
+                       inputId = ns('pheno_file'),
+                       multiple = TRUE,
+                       label   = NULL,
+                       width   = '400px',
+                       accept  = c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
+                     )
+           ),
+
+           textInput(
+             inputId = ns('pheno_url'),
+             label   = NULL,
+             value   = '',
+             width   = '400px',
+             placeholder = 'https://example.com/path/file.csv'
+           ),
+
+           tags$div(id = ns('pheno_brapi_options'),
+                    tags$span(id = ns('config_server_holder'),
+                              shinydashboard::box(width = 4, title = span(icon('screwdriver-wrench'), ' Config Server'), status = 'success', solidHeader = TRUE,
+                                                  selectInput(
+                                                    inputId = ns('pheno_db_type'),
+                                                    label   = 'Database Type: ',
+                                                    choices = list('EBS' = 'ebs', 'BMS' = 'bms', 'BreedBase' = 'breedbase')
+                                                  ),
+                                                  textInput(
+                                                    inputId = ns('pheno_db_url'),
+                                                    label = 'Server URL:',
+                                                    placeholder = 'https://cb-qa.ebsproject.org'
+                                                  ),
+                                                  actionButton(
+                                                    inputId = ns('pheno_db_save'),
+                                                    label = 'Save',
+                                                    width = '100%'
+                                                  ),
+                              )
+                    ),
+
+                    tags$span(id = ns('auth_server_holder'),
+                              shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
+                                                  tags$span(id = ns('pheno_db_user_holder'),
+                                                            textInput(
+                                                              inputId = ns('pheno_db_user'),
+                                                              label = 'Username:'
+                                                            )
+                                                  ),
+                                                  tags$span(id = ns('pheno_db_password_holder'),
+                                                            passwordInput(
+                                                              inputId = ns('pheno_db_password'),
+                                                              label = 'Password:'
+                                                            )
+                                                  ),
+                                                  tags$span(id = ns('no_auth_holder'),
+                                                            checkboxInput(
+                                                              inputId = ns('no_auth'),
+                                                              label = 'No authentication required',
+                                                              value = TRUE
+                                                            )
+                                                  ),
+
+                                                  actionButton(
+                                                    inputId = ns('pheno_db_login'),
+                                                    label = 'Login',
+                                                    width = '100%'
+                                                  )                      ),
+                    ),
+
+                    tags$span(id = ns('data_server_holder'),
+                              shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
+                                                  tags$span(id = ns('pheno_db_crop_holder'),
+                                                            selectizeInput(
+                                                              inputId = ns('pheno_db_crop'),
+                                                              label   = 'Crop: ',
+                                                              choices = list()
+                                                            )
+                                                  ),
+                                                  selectizeInput(
+                                                    inputId = ns('pheno_db_program'),
+                                                    label   = 'Breeding Program: ',
+                                                    choices = list()
+                                                  ),
+                                                  uiOutput(ns('pheno_db_folder')),
+                                                  uiOutput(ns('pheno_db_trial')),
+                                                  actionButton(
+                                                    inputId = ns('pheno_db_load'),
+                                                    label = 'Load',
+                                                    width = '100%'
+                                                  ),
+                              )
+                    ),
+           ),
+           if (!is.null(pheno_example)) {
+             checkboxInput(
+               inputId = ns('pheno_example'),
+               label = span('Load example ',
+                            a('phenotypic data', target = '_blank',
+                              href = pheno_example)),
+               value = FALSE
+             )
+           },
+
+
     ),
 
-    tags$span(id = ns('pheno_file_holder'),
-              fileInput(
-                inputId = ns('pheno_file'),
-                multiple = TRUE,
-                label   = NULL,
-                width   = '400px',
-                accept  = c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
-              )
+    column(width=4,
+           shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                               h4(strong(span("", tags$a(href="https://www.youtube.com/watch?v=gFYGIb9fBLQ&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=2", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                               ),
+           tags$div(id = ns('pheno_csv_options'),
+                    shinydashboard::box(width = 12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                        shinyWidgets::prettyRadioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                         choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                        shinyWidgets::prettyRadioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                         choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                        shinyWidgets::prettyRadioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                         choices = c('Dot' = '.', 'Comma' = ',')),
+                    ),
+           ),
+           shinydashboard::box(width = 12, title = span(icon('bookmark'), ' Dictionary of terms'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                               p(strong("pipeline.-"),"The name of the column containing the labels describing the breeding effort to satisfy a market segment (e.g., Direct seeded late maturity irrigated)."),
+                               p(strong("stage.-"),"The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."),
+                               p(strong("year.-"),"The name of the column containing the labels listing the year when a trial was carried out (e.g., 2024)."),
+                               p(strong("season-"),"The name of the column containing the labels listing the season when a trial was carried out (e.g., dry-season, wet-season, etc.)."),
+                               p(strong("country.-"),"The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."),
+                               p(strong("location-"),"The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."),
+                               p(strong("trial.-"),"The name of the column containing the labels listing the trial of experiment randomized."),
+                               p(strong("study.-"),"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location. If not available, compute it using the button available."),
+                               p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
+                               p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an study."),
+                               p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study."),
+                               p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study."),
+                               p(strong("designation.-"),"The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."),
+                               p(strong("gid.-"),"The name of the column containing the labels with the unique numerical identifier used within the database management system."),
+                               p(strong("entryType.-"),"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
+                               p(strong("trait.-"),"The name of the column(s) containing the numerical traits to be analyzed."),
+           ),
     ),
 
-    textInput(
-      inputId = ns('pheno_url'),
-      label   = NULL,
-      value   = '',
-      width   = '400px',
-      placeholder = 'https://example.com/path/file.csv'
+    column(width=12,
+           shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
+                               hr(),
+                               tags$div(id = ns('mapping_title_holder'),
+                                        HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
+                               ),
+                               uiOutput(ns('brapi_trait_map')),
+                               uiOutput(ns('pheno_map')),
+                               tags$div(id = ns('concat_environment_holder'),
+                                        actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
+                                        selectInput(ns("featuresEnvironment"), "Columns forming environment:", choices = NULL, multiple = TRUE),
+                                        textOutput(ns("outConcatenateEnv")),
+                               ),
+           ),
     ),
 
-    tags$div(id = ns('pheno_csv_options'),
-             shinydashboard::box(title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-                                 shinyWidgets::prettyRadioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                                                  choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
-
-                                 shinyWidgets::prettyRadioButtons(ns('pheno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                                                  choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
-
-                                 shinyWidgets::prettyRadioButtons(ns('pheno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                                                  choices = c('Dot' = '.', 'Comma' = ',')),
-             ),
+    column(width=12,
+           shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                               hr(),
+                               DT::DTOutput(ns('preview_pheno')),
+           ),
     ),
 
-    fluidRow(tags$div(id = ns('dictionary_box'),
-                      shinydashboard::box(width = 6, title = span(icon('bookmark'), ' Dictionary of terms'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
-                                          p(strong("pipeline.-"),"The name of the column containing the labels describing the breeding effort to satisfy a market segment (e.g., Direct seeded late maturity irrigated)."),
-                                          p(strong("stage.-"),"The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."),
-                                          p(strong("year.-"),"The name of the column containing the labels listing the year when a trial was carried out (e.g., 2024)."),
-                                          p(strong("season-"),"The name of the column containing the labels listing the season when a trial was carried out (e.g., dry-season, wet-season, etc.)."),
-                                          p(strong("country.-"),"The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."),
-                                          p(strong("location-"),"The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."),
-                                          p(strong("trial.-"),"The name of the column containing the labels listing the trial of experiment randomized."),
-                                          p(strong("study.-"),"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location. If not available, compute it using the button available."),
-                                          p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
-                                          p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an study."),
-                                          p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study."),
-                                          p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study."),
-                                          p(strong("designation.-"),"The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."),
-                                          p(strong("gid.-"),"The name of the column containing the labels with the unique numerical identifier used within the database management system."),
-                                          p(strong("entryType.-"),"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
-                                          p(strong("trait.-"),"The name of the column(s) containing the numerical traits to be analyzed."),
-                      ),
-    )),
 
-    tags$div(id = ns('pheno_brapi_options'),
-             tags$span(id = ns('config_server_holder'),
-                       shinydashboard::box(width = 4, title = span(icon('screwdriver-wrench'), ' Config Server'), status = 'success', solidHeader = TRUE,
-                                           selectInput(
-                                             inputId = ns('pheno_db_type'),
-                                             label   = 'Database Type: ',
-                                             choices = list('EBS' = 'ebs', 'BMS' = 'bms', 'BreedBase' = 'breedbase')
-                                           ),
-                                           textInput(
-                                             inputId = ns('pheno_db_url'),
-                                             label = 'Server URL:',
-                                             placeholder = 'https://cb-qa.ebsproject.org'
-                                           ),
-                                           actionButton(
-                                             inputId = ns('pheno_db_save'),
-                                             label = 'Save',
-                                             width = '100%'
-                                           ),
-                       )
-             ),
 
-             tags$span(id = ns('auth_server_holder'),
-                       shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
-                                           tags$span(id = ns('pheno_db_user_holder'),
-                                                     textInput(
-                                                       inputId = ns('pheno_db_user'),
-                                                       label = 'Username:'
-                                                     )
-                                           ),
-                                           tags$span(id = ns('pheno_db_password_holder'),
-                                                     passwordInput(
-                                                       inputId = ns('pheno_db_password'),
-                                                       label = 'Password:'
-                                                     )
-                                           ),
-                                           tags$span(id = ns('no_auth_holder'),
-                                                     checkboxInput(
-                                                       inputId = ns('no_auth'),
-                                                       label = 'No authentication required',
-                                                       value = TRUE
-                                                     )
-                                           ),
 
-                                           actionButton(
-                                             inputId = ns('pheno_db_login'),
-                                             label = 'Login',
-                                             width = '100%'
-                                           )                      ),
-             ),
 
-             tags$span(id = ns('data_server_holder'),
-                       shinydashboard::box(width = 4, title = span(icon('magnifying-glass-chart'), ' Data Source'), status = 'success', solidHeader = TRUE,
-                                           tags$span(id = ns('pheno_db_crop_holder'),
-                                                     selectizeInput(
-                                                       inputId = ns('pheno_db_crop'),
-                                                       label   = 'Crop: ',
-                                                       choices = list()
-                                                     )
-                                           ),
-                                           selectizeInput(
-                                             inputId = ns('pheno_db_program'),
-                                             label   = 'Breeding Program: ',
-                                             choices = list()
-                                           ),
-                                           uiOutput(ns('pheno_db_folder')),
-                                           uiOutput(ns('pheno_db_trial')),
-                                           actionButton(
-                                             inputId = ns('pheno_db_load'),
-                                             label = 'Load',
-                                             width = '100%'
-                                           ),
-                       )
-             ),
-    ),
 
-    shinydashboard::box(width = 12,
-                        if (!is.null(pheno_example)) {
-                          checkboxInput(
-                            inputId = ns('pheno_example'),
-                            label = span('Load example ',
-                                         a('phenotypic data', target = '_blank',
-                                           href = pheno_example)),
-                            value = FALSE
-                          )
-                        },
-
-                        # p(span("Note: If you have hybrid-crop data and need to map 'mother' and 'father' information for GCA models please provide that information in the Pedigree tab (you can use the same Phenotype file if those columns are there).", style="color:orange")),
-
-                        hr(),
-                        uiOutput(ns('brapi_trait_map')),
-                        DT::DTOutput(ns('preview_pheno')),
-                        uiOutput(ns('pheno_map')),
-    ),
-
-    tags$div(id = ns('concat_environment_holder'),
-              actionButton(ns("concatenateEnv"), div(p(strong('Compute Environments', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-              selectInput(ns("featuresEnvironment"), "Columns forming environment:", choices = NULL, multiple = TRUE),
-              # p(span("Note: 'Compute environment' will concatenate any info provided in optional columns: 'year', 'season', 'country', 'location', 'trial' and 'study' to create a new column named environment.", style="color:orange")),
-              textOutput(ns("outConcatenateEnv")),
-    ),
 
   )
 }
@@ -193,6 +210,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       input$pheno_input,
       if(length(input$pheno_input) > 0){ # added
         golem::invoke_js('hideid', ns('concat_environment_holder'))
+        golem::invoke_js('hideid', ns('mapping_title_holder'))
 
         if (input$pheno_input == 'file') {
           golem::invoke_js('showid', ns('pheno_file_holder'))
@@ -568,6 +586,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       dtMta <- data()$data$pheno
       if(!is.null(dtMta)){
         golem::invoke_js('showid', ns('concat_environment_holder'))
+        golem::invoke_js('showid', ns('mapping_title_holder'))
       }
     })
 
@@ -591,7 +610,12 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))
+                                       ),
+                        caption = htmltools::tags$caption(
+                          style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                          htmltools::em('Data preview.')
+                        )
           )
         })
 
@@ -837,7 +861,12 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))) %>%
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
+                        caption = htmltools::tags$caption(
+                          style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                          htmltools::em('Data preview.')
+                        )
+                        ) %>%
             DT::formatStyle(environmentColumnName, backgroundColor = "#009E60")
         } else{
           DT::datatable(myObject$data$pheno,
@@ -845,7 +874,12 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))))
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
+                        caption = htmltools::tags$caption(
+                          style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                          htmltools::em('Data preview.')
+                        )
+                        )
         }
       })
     })
