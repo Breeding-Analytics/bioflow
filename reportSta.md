@@ -1,7 +1,7 @@
 ---
 title: "Single Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "April 25, 2024"  
+date: "April 26, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -14,21 +14,21 @@ params:
 
 
 
-### Objectives
+### Objectives of Single-Trial Analysis
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. Overall number of entries and environments included in the single trial analysis
+1. Overall number of entries and environments included in the single trial analysis (input)
 
-2. High-level summary statistics of the phenotypic information included
+2. High-level summary statistics of the phenotypic information included (input)
 
-3. Genetic variance and other genetic parameters observed in the different environments for the different traits
+3. Observed spatial variation in the different environments when coordinates of the field exist (input)
 
-4. Observed spatial variation in the different environments when coordinates of the field exist
+4. Genetic variance and other genetic parameters observed in the different environments for the different traits (output)
 
-5. Individual adjusted means for each trait by environment combination
+5. Individual adjusted means for each trait by environment combination (output)
 
-6. Phenotypic correlation between environments for the traits present
+6. Phenotypic correlation between environments for the traits present (output)
 
 Understanding these data features should allow the scientist to identify trait by environments combinations that have enough genetic signal and take the decision of which to include in the multi-trial analysis. It should also allow the scientist to assess the quality of the trials conducted and take corrective measures (e.g., change service providers, improve practices, etc.).  
 
@@ -42,115 +42,35 @@ The following table allows to see how many locations had data for the different 
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLDTONHA </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> HT_AVG </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> FLW50 </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLD_TON </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> ZINC </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> PERCENT_HEAD_RICE </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Yield_Mg_ha </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> TMeLS-R (Drt)_Stage 1_2022_Wet_IN_CT_RP_IGKV </td>
+   <td style="text-align:left;"> 2021_NYH3 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 235 </td>
+   <td style="text-align:right;"> 11 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TMeLS-R (Drt)_Stage 1_2022_Wet_IN_JH_RN_BAU </td>
+   <td style="text-align:left;"> 2021_NYS1 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 235 </td>
+   <td style="text-align:right;"> 9 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TMeLS-R (Drt)_Stage 1_2022_Wet_IN_TR_WT_ICAR </td>
+   <td style="text-align:left;"> 2021_SCH1 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 235 </td>
+   <td style="text-align:right;"> 17 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TMeLS-R (Drt)_Stage 1_2022_Wet_IN_UP_PY_SHUATS </td>
+   <td style="text-align:left;"> 2021_TXH1 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 235 </td>
+   <td style="text-align:right;"> 18 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> TMeLS-R (Drt)_Stage 1_2022_Wet_IN_WB_PU_ZDRPRS </td>
+   <td style="text-align:left;"> 2021_TXH2 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 234 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TMeLS-R_Stage 1_2023_Wet_IN_CT_RP_IGKV </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 188 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TMeLS-R_Stage 1_2023_Wet_IN_JH_HZ_CRURRS </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 188 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TMeLS-R_Stage 1_2023_Wet_IN_JH_RN_BAU </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 187 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TMeLS-R_Stage 1_2023_Wet_IN_UP_PY_SHUATS </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 188 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> TMeLS-R_Stage 1_2023_Wet_IN_WB_PU_ZDRPRS </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 188 </td>
+   <td style="text-align:right;"> 11 </td>
   </tr>
 </tbody>
 </table></div>
@@ -166,17 +86,24 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitSta-label" for="reportBuilder_1-traitSta">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitSta" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="YLDTONHA">YLDTONHA</option>
-<option value="FLW50">FLW50</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="ZINC">ZINC</option>
-<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option></select>
+<select id="reportBuilder_1-traitSta" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outb9fe21f5cdb81cba" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outce9730b6a6c97370" style="width:100%;height:auto;"></div><!--/html_preserve-->
+
+<p>&nbsp;</p>
+
+
+
+<p>&nbsp;</p>
+
+
+
+
+
+### Output parameters 
 
 <p>&nbsp;</p>
 
@@ -187,17 +114,12 @@ This barplot allows you to see the variance components values and ratios for the
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitSta0-label" for="reportBuilder_1-traitSta0">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitSta0" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="YLDTONHA">YLDTONHA</option>
-<option value="FLW50">FLW50</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="ZINC">ZINC</option>
-<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option></select>
+<select id="reportBuilder_1-traitSta0" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-oute360007972d4d569" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out391cc34b055a10a9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -217,31 +139,7 @@ The following barplot is designed to provide a high-level view of estimated para
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out4ea0d86b80f461b6" style="width:100%;height:400px;"></div><!--/html_preserve-->
-
-<p>&nbsp;</p>
-
-### Field view
-
-The following heatmaps allow you to inspect the spatial trends in the different fields to take corrective measures in the next season and understand why some variance components may look the way they look.
-
-
-<p>&nbsp;</p>
-
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitStaFieldView-label" for="reportBuilder_1-traitStaFieldView">Trait to filter:</label>
-<div>
-<select id="reportBuilder_1-traitStaFieldView" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="FLW50">FLW50</option>
-<option value="YLD_TON">YLD_TON</option>
-<option value="ZINC">ZINC</option>
-<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitStaFieldView" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
-
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outb660f11622756f59" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outf4418284c68f3f12" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions
 
@@ -254,21 +152,16 @@ The following table allows you to check the trait by environment adjusted means 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-envSta-label" for="reportBuilder_1-envSta">Environment to filter:</label>
 <div>
-<select id="reportBuilder_1-envSta" class="shiny-input-select"><option value="TMeLS-R_Stage 1_2023_Wet_IN_JH_HZ_CRURRS" selected>TMeLS-R_Stage 1_2023_Wet_IN_JH_HZ_CRURRS</option>
-<option value="TMeLS-R_Stage 1_2023_Wet_IN_JH_RN_BAU">TMeLS-R_Stage 1_2023_Wet_IN_JH_RN_BAU</option>
-<option value="TMeLS-R_Stage 1_2023_Wet_IN_WB_PU_ZDRPRS">TMeLS-R_Stage 1_2023_Wet_IN_WB_PU_ZDRPRS</option>
-<option value="TMeLS-R (Drt)_Stage 1_2022_Wet_IN_CT_RP_IGKV">TMeLS-R (Drt)_Stage 1_2022_Wet_IN_CT_RP_IGKV</option>
-<option value="TMeLS-R (Drt)_Stage 1_2022_Wet_IN_UP_PY_SHUATS">TMeLS-R (Drt)_Stage 1_2022_Wet_IN_UP_PY_SHUATS</option>
-<option value="TMeLS-R (Drt)_Stage 1_2022_Wet_IN_JH_RN_BAU">TMeLS-R (Drt)_Stage 1_2022_Wet_IN_JH_RN_BAU</option>
-<option value="TMeLS-R (Drt)_Stage 1_2022_Wet_IN_TR_WT_ICAR">TMeLS-R (Drt)_Stage 1_2022_Wet_IN_TR_WT_ICAR</option>
-<option value="TMeLS-R (Drt)_Stage 1_2022_Wet_IN_WB_PU_ZDRPRS">TMeLS-R (Drt)_Stage 1_2022_Wet_IN_WB_PU_ZDRPRS</option>
-<option value="TMeLS-R_Stage 1_2023_Wet_IN_CT_RP_IGKV">TMeLS-R_Stage 1_2023_Wet_IN_CT_RP_IGKV</option>
-<option value="TMeLS-R_Stage 1_2023_Wet_IN_UP_PY_SHUATS">TMeLS-R_Stage 1_2023_Wet_IN_UP_PY_SHUATS</option></select>
+<select id="reportBuilder_1-envSta" class="shiny-input-select"><option value="2021_NYH3" selected>2021_NYH3</option>
+<option value="2021_TXH2">2021_TXH2</option>
+<option value="2021_SCH1">2021_SCH1</option>
+<option value="2021_TXH1">2021_TXH1</option>
+<option value="2021_NYS1">2021_NYS1</option></select>
 <script type="application/json" data-for="reportBuilder_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out0ca2c1a003b196bd" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outd5773fadb13784c4" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -279,17 +172,12 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitStaBox-label" for="reportBuilder_1-traitStaBox">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaBox" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="YLDTONHA" selected>YLDTONHA</option>
-<option value="FLW50" selected>FLW50</option>
-<option value="HT_AVG" selected>HT_AVG</option>
-<option value="ZINC" selected>ZINC</option>
-<option value="PERCENT_HEAD_RICE" selected>PERCENT_HEAD_RICE</option></select>
+<select id="reportBuilder_1-traitStaBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out8ffc76121b7a76b8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out15d8e6d81edf3510" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -302,17 +190,12 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitStaCor-label" for="reportBuilder_1-traitStaCor">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaCor" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="YLDTONHA" selected>YLDTONHA</option>
-<option value="FLW50" selected>FLW50</option>
-<option value="HT_AVG" selected>HT_AVG</option>
-<option value="ZINC" selected>ZINC</option>
-<option value="PERCENT_HEAD_RICE" selected>PERCENT_HEAD_RICE</option></select>
+<select id="reportBuilder_1-traitStaCor" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out654a8b2141214d56" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outbe35797fc04fcb75" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References of methods used

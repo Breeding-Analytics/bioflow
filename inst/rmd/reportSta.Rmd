@@ -110,67 +110,67 @@ The following table allows to see how many locations had data for the different 
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-if(file.exists("./outputs/resultSta.RData")){
-load("./outputs/resultSta.RData")
-}else{
-load("resultSta.RData")
-}
+  if(file.exists("./outputs/resultSta.RData")){
+    load("./outputs/resultSta.RData")
+  }else{
+    load("resultSta.RData")
+  }
 }, error = function(e) {
-shinyjs::hide()
+  shinyjs::hide()
 }))
 
 if (is.null(result)){
-
+  
 } else {
-
-idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
-idSta <- idSta[length(idSta)]
-
-pred <- result$predictions
-pred <- pred[pred$analysisId == idSta,]
-traits <- unique(pred$trait)
-traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
-traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
-colnames(traits.env) <- gsub("designation.","",colnames(traits.env) )# c('environment',traits)
-summarySta <- as.data.frame(traits.env[,'environment'])
-for (i in 1:length(traits)){
-temp <- traits.env[,c('environment',traits[i])]
-colnames(temp)[2] <- "temp.col"
-temp <- as.data.frame(temp)
-j=i+1
-tempp=within(temp,{
-temp.col.n=NA
-temp.col.n[!is.na(temp.col)]='✅ '
-temp.col.n[is.na(temp.col)]=''
-})
-temp <- tempp[,3]
-summarySta <- cbind(summarySta,temp)
-}
-colnames(summarySta) <- c('environment',traits)
-
-pheno <- result$data$pheno
-### change column names for mapping
-paramsPheno <- result$metadata$pheno
-paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-colnames(pheno) <- cgiarBase::replaceValues(colnames(pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-###
-pheno.env <- pheno[,c('environment','designation')]
-pheno.env<- unique(pheno.env[c('designation','environment')]) 
-pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
-colnames(pheno.env.designation)[2] <- "Number of entries"
-summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
-
-if("params" %in% ls()){ # we will download the document
-
-printTable(summarySta)
-}else{
-summarySta <- kableExtra::kbl(summarySta)
-summarySta <-kableExtra::kable_styling(
-summarySta, 
-bootstrap_options = c("hover","condensed","responsive"), fixed_thead = T)
-kableExtra::scroll_box(summarySta,width = "100%")
-}
-
+  
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  
+  pred <- result$predictions
+  pred <- pred[pred$analysisId == idSta,]
+  traits <- unique(pred$trait)
+  traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
+  traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
+  colnames(traits.env) <- gsub("designation.","",colnames(traits.env) )# c('environment',traits)
+  summarySta <- as.data.frame(traits.env[,'environment'])
+  for (i in 1:length(traits)){
+    temp <- traits.env[,c('environment',traits[i])]
+    colnames(temp)[2] <- "temp.col"
+    temp <- as.data.frame(temp)
+    j=i+1
+    tempp=within(temp,{
+      temp.col.n=NA
+      temp.col.n[!is.na(temp.col)]='✅ '
+      temp.col.n[is.na(temp.col)]=''
+    })
+    temp <- tempp[,3]
+    summarySta <- cbind(summarySta,temp)
+  }
+  colnames(summarySta) <- c('environment',traits)
+  
+  pheno <- result$data$pheno
+  ### change column names for mapping
+  paramsPheno <- result$metadata$pheno
+  paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+  colnames(pheno) <- cgiarBase::replaceValues(colnames(pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+  ###
+  pheno.env <- pheno[,c('environment','designation')]
+  pheno.env<- unique(pheno.env[c('designation','environment')]) 
+  pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
+  colnames(pheno.env.designation)[2] <- "Number of entries"
+  summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    printTable(summarySta)
+  }else{
+    summarySta <- kableExtra::kbl(summarySta)
+    summarySta <-kableExtra::kable_styling(
+      summarySta, 
+      bootstrap_options = c("hover","condensed","responsive"), fixed_thead = T)
+    kableExtra::scroll_box(summarySta,width = "100%")
+  }
+  
 }
 ```
 
@@ -184,22 +184,22 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 
 ```{r }
 if (is.null(result)){
-# invisible(NULL)
+  # invisible(NULL)
 } else {
-modeling <- result$modeling
-staTraits <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
-
-if("params" %in% ls()){ # we will download the document
-shinyjs::hide()
-}else{
-
-shiny::selectInput(ns("traitSta"), 
-label = "Trait to filter:", 
-multiple = FALSE,
-choices = staTraits, 
-)
-}
-
+  modeling <- result$modeling
+  staTraits <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    
+    shiny::selectInput(ns("traitSta"), 
+                       label = "Trait to filter:", 
+                       multiple = FALSE,
+                       choices = staTraits, 
+    )
+  }
+  
 }
 
 ```
@@ -223,7 +223,7 @@ if (is.null(result)){
                          v.names = "Value",
                          idvar = c("designation", "environment"),
                          timevar = "trait",
-                         times = traits)
+                         times = staTraits)
   rownames(pred.traits) <- NULL
   ## Max
   pred.traits.max <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
@@ -236,6 +236,7 @@ if (is.null(result)){
   colnames(pred.traits.mean)[3] <- "mean"
   ## H2
   metrics <- result$metrics
+  metrics <- metrics[metrics$analysisId == idSta,]
   metrics.h2 <- metrics[metrics$parameter=="plotH2",]
   metrics.h2 <- subset(metrics.h2, select = c(trait,environment,value))
   colnames(metrics.h2)[3] <- "H2"
@@ -409,23 +410,23 @@ This barplot allows you to see the variance components values and ratios for the
 
 ```{r }
 if (is.null(result)){
-# invisible(NULL)
+  # invisible(NULL)
 } else {
-modeling <- result$modeling
-idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
-idSta <- idSta[length(idSta)]
-staTraits2 <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
-
-if("params" %in% ls()){ # we will download the document
-shinyjs::hide()
-}else{
-shiny::selectInput(ns("traitSta0"), 
-label = "Trait to filter:", 
-multiple = FALSE,
-choices = staTraits2, 
-)
-}
-
+  modeling <- result$modeling
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  staTraits2 <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("traitSta0"), 
+                       label = "Trait to filter:", 
+                       multiple = FALSE,
+                       choices = staTraits2, 
+    )
+  }
+  
 }
 
 ```
@@ -505,22 +506,22 @@ if (is.null(result)){
 
 ```{r}
 if (is.null(result)){
-# invisible(NULL)
+  # invisible(NULL)
 } else {
-metrics <- result$metrics
-idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
-idSta <- idSta[length(idSta)]
-parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
-if("params" %in% ls()){  # if user will download the report
-shinyjs::hide()
-}else{
-shiny::selectInput(ns("parameterMetrics"), 
-label = "Parameter to filter:", 
-multiple = FALSE,
-selected = setdiff( unique(parameters), c("Vg","Vr") ),
-choices = setdiff( unique(parameters), c("Vg","Vr") )
-)
-}
+  metrics <- result$metrics
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
+  if("params" %in% ls()){  # if user will download the report
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("parameterMetrics"), 
+                       label = "Parameter to filter:", 
+                       multiple = FALSE,
+                       selected = setdiff( unique(parameters), c("Vg","Vr") ),
+                       choices = setdiff( unique(parameters), c("Vg","Vr") )
+    )
+  }
 }
 ```
 <p>&nbsp;</p>
@@ -782,7 +783,15 @@ if (is.null(result)){
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
       # print(p)
-      print(htmltools::tagList(plotly::ggplotly(p)))
+      # Basic histogram
+      vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
+      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_manual(values=group.colors) 
+      # combine plots
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
+      # print(htmltools::tagList(plotly::ggplotly(p)))
       cat("\n")
     }
     cat("\n")
@@ -812,7 +821,17 @@ if (is.null(result)){
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
       # p
-      plotly::ggplotly(p)
+      # plotly::ggplotly(p)
+      # Basic histogram
+      vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
+      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_manual(values=group.colors)
+      # combine plots
+      ply1 <- plotly::ggplotly(p)
+      ply2 <- plotly::ggplotly(p2)
+      plotly::subplot(ply1, ply2, nrows=1)
     })
     
     

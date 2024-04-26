@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "April 25, 2024"  
+date: "April 26, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -15,7 +15,7 @@ params:
 
 
 
-### Objectives
+### Objectives of Multi-Trial Analysis
 
 The objective of this dashboard is to help scientist to understand the following points:
 
@@ -31,7 +31,7 @@ The objective of this dashboard is to help scientist to understand the following
 
 5. Individual across environment predictions for each trait (output) 
 
-6. Individual sensitivity values from the Finlay-Wilkinson model (output)
+6. Individual sensitivity values according to the Finlay-Wilkinson model (Finlay & Wilkinson, 1963) (output)
 
 7. Percent check comparison against the different benchmark varieties present in the dataset (output)
 
@@ -43,7 +43,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out65762f0d93336dc5" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out2173490221c5f14b" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### By environment merit distribution
 
@@ -54,17 +54,12 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMta-label" for="reportBuilder_1-traitMta"></label>
 <div>
-<select id="reportBuilder_1-traitMta" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="FLW50">FLW50</option>
-<option value="YLD_TON">YLD_TON</option>
-<option value="ZINC">ZINC</option>
-<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option></select>
+<select id="reportBuilder_1-traitMta" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out5d09193a592643b8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out762627f9ac964b1d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between environments
 
@@ -75,17 +70,12 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMtaConnect-label" for="reportBuilder_1-traitMtaConnect"></label>
 <div>
-<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="FLW50">FLW50</option>
-<option value="YLD_TON">YLD_TON</option>
-<option value="ZINC">ZINC</option>
-<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option></select>
+<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out0256d69ed1f5f015" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outc1c57b9ade939138" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Genetic correlations between environments
 
@@ -96,17 +86,12 @@ The following heatmap and histogram allows to assess the genetic correlations am
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitPredictionsCorrelation-label" for="reportBuilder_1-traitPredictionsCorrelation"></label>
 <div>
-<select id="reportBuilder_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="FLW50">FLW50</option>
-<option value="YLD_TON">YLD_TON</option>
-<option value="ZINC">ZINC</option>
-<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option></select>
+<select id="reportBuilder_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out1f91dbb403a1ed05" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out241c46e1d711baaa" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -120,15 +105,12 @@ The following graph allows to see the clustering of different genotypes in the T
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitBiplot-label" for="reportBuilder_1-traitBiplot"></label>
 <div>
-<select id="reportBuilder_1-traitBiplot" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="FLW50">FLW50</option>
-<option value="YLD_TON">YLD_TON</option></select>
+<select id="reportBuilder_1-traitBiplot" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out17a95216d6b76a84" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out9dfc1bb2f3fcadad" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -148,7 +130,7 @@ The following barplot aims to help you inspect the across environment estimates 
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out91189cae1d1c42f0" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-oute71d4cd046d7fea9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -156,7 +138,7 @@ The following graph allows you to assess the proportion of variance going to dif
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out3c3f853a6d5b7da4" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outbc6d9b2598e2d352" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -167,17 +149,12 @@ In the following plot you can observe the comparison between the top 100 entries
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitMta2-label" for="reportBuilder_1-traitMta2"></label>
 <div>
-<select id="reportBuilder_1-traitMta2" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
-<option value="HT_AVG">HT_AVG</option>
-<option value="YLDTONHA">YLDTONHA</option>
-<option value="FLW50">FLW50</option>
-<option value="PERCENT_HEAD_RICE">PERCENT_HEAD_RICE</option>
-<option value="ZINC">ZINC</option></select>
+<select id="reportBuilder_1-traitMta2" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outbe8efa5489bdb82d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outec5e8b929a02d8b8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -192,55 +169,11 @@ In the following plot you can observe the comparison between the top 100 entries
 
 <p>&nbsp;</p>
 
-### Percent check comparison to top 30 entries
-
-The following plots allow the user to compare the top 30 entries against the different checks/benchmarks present in the dataset.
 
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-checkMta-label" for="reportBuilder_1-checkMta">Check to compare to:</label>
-<div>
-<select id="reportBuilder_1-checkMta" class="shiny-input-select"><option value="ABHISHEK" selected>ABHISHEK</option>
-<option value="CO 51">CO 51</option>
-<option value="CR DHAN 320">CR DHAN 320</option>
-<option value="CR dhan 415">CR dhan 415</option>
-<option value="DRR dhan 42">DRR dhan 42</option>
-<option value="DRR Dhan 44">DRR Dhan 44</option>
-<option value="GONTRA BIDHAN-3">GONTRA BIDHAN-3</option>
-<option value="HAZARIDHAN">HAZARIDHAN</option>
-<option value="Indira Aerobic-1">Indira Aerobic-1</option>
-<option value="IR 64">IR 64</option>
-<option value="IR16A3838">IR16A3838</option>
-<option value="IR16A3891">IR16A3891</option>
-<option value="IR16A4085">IR16A4085</option>
-<option value="IR16A4261">IR16A4261</option>
-<option value="IRRI 104">IRRI 104</option>
-<option value="IRRI 123">IRRI 123</option>
-<option value="IRRI 148">IRRI 148</option>
-<option value="IRRI 154">IRRI 154</option>
-<option value="IRRI 156">IRRI 156</option>
-<option value="IRRI 163">IRRI 163</option>
-<option value="IRRI 168">IRRI 168</option>
-<option value="IRRI 174">IRRI 174</option>
-<option value="IRRI 254">IRRI 254</option>
-<option value="IRRI 264">IRRI 264</option>
-<option value="LALAT">LALAT</option>
-<option value="MTU 1010">MTU 1010</option>
-<option value="R-RF-105">R-RF-105</option>
-<option value="R-RF-127">R-RF-127</option>
-<option value="SAHBHAGI DHAN">SAHBHAGI DHAN</option>
-<option value="SAMBHA MAHSURI">SAMBHA MAHSURI</option>
-<option value="SHUATS DHAN-1">SHUATS DHAN-1</option>
-<option value="SHUATS DHAN-2">SHUATS DHAN-2</option>
-<option value="SHUATS DHAN-3">SHUATS DHAN-3</option>
-<option value="SHUATS DHAN-4">SHUATS DHAN-4</option>
-<option value="SWARNA">SWARNA</option>
-<option value="Vandana">Vandana</option></select>
-<script type="application/json" data-for="reportBuilder_1-checkMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out4b61d67307bab26f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+
 
 ### Genetic correlations between traits
 
@@ -248,17 +181,17 @@ The following heatmap and histogram allows to see the genetic correlations among
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outf09e0393919286a9" style="width:100%;height:400px;"></div><!--/html_preserve-->
+Only one trait fitted. Skipping correlation plot.
 
 <p>&nbsp;</p>
 
 ### Predictions 
 
-The following table allows to check the trait predictions in wide format together with the QTL profile in case those are available.
+The following table allows you to inspect the trait predictions in wide format together with the QTL profile (in case those are available) to understand the type of data that would be used to calculate a selection index (e.g., desire index).
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out43e5ca7f1e13e52c" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out67337d9034d14ea7" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used

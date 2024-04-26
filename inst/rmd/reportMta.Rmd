@@ -9,7 +9,7 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
-font.plot_ly <- list(family="Courier New, monospace", size=9)
+# font.plot_ly <- list(family="Courier New, monospace", size=9)
 ```
 
 ```{r printfxn, include=FALSE}
@@ -253,7 +253,7 @@ if (is.null(result)){
         temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
         p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
                               x = ~envMean,  type = "box", color = ~environment
-        ) %>%  plotly::layout( font=font.plot_ly,
+        ) %>%  plotly::layout(# font=font.plot_ly,
                                xaxis=list( title="Environmental mean"), yaxis=list( title="Trait value") )
         p
       })
@@ -686,7 +686,7 @@ if (is.null(result)){
               plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
           }
         }
-        plotly::layout(p.mta.biplot,font=font.plot_ly)
+        plotly::layout(p.mta.biplot) # ,font=font.plot_ly
       })
       
     }
