@@ -72,7 +72,7 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
 
 
     output$warningMessage <- renderUI(
-      if(is.null(data())){
+      if(is.null(data()$data$pheno)){
         golem::invoke_js('hideid', ns('weather_file_holder'))
         golem::invoke_js('showid', ns('weather_message_holder'))
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data first to identify the environments.")) )

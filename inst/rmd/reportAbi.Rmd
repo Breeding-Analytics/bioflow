@@ -1,5 +1,5 @@
 ---
-title: "Accelerated Breeding Initiative Dashboard"
+title: "Accelerated Breeding Initiative (ABI) Dashboard"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
@@ -112,7 +112,23 @@ if (is.null(result)){
 }
 ```
 
-### Data use
+### Objectives of the ABI dashboard
+
+The objective of this dashboard is to help leadership to understand the following points for a given pipeline:
+
+1. Data available and used for the analysis
+
+2. Connectivity and correlation between environments for traits phenotyped
+
+3. Key performance indicators (KPIs) associated to the pipeline (e.g., trial heritabilities, variance components, etc.)
+
+4. Genetic correlation between traits and distance between the desired and current population
+
+5. Realized genetic gain associated to the pipeline
+
+Understanding these data features should allow the leadership to understand the level of investment in a given pipeline, the quality of the data generated and the complexity of the phenotyped traits (oligogenic or polygenic, level of GxE) which may indicate how feasible is to reach a product profile. Also the realized genetic gain should allow the leadership to monitor the effectiveness of the program to increase gains and deliver better products.
+
+### Data availability
 
 The following visualization shows which data types was used for this pipeline. It allows to see whether the data has been QA and the summary values for the different data types.
 
@@ -190,19 +206,20 @@ if (is.null(result)){
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
-      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of 
       midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
                                       midpoint = midval, limit = c(0,maxVal), space = "Lab",
-                                      name="Connectivity (data types)") +
+                                      name="Connectivity of data types") +
         ggplot2::theme_minimal()+
         ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
         ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,  hjust = 1, face = "bold"))+
         ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1,  hjust = 1, face = "bold")) +
         ggplot2::coord_fixed()
+      
       print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       
     }
@@ -245,13 +262,13 @@ if (is.null(result)){
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
-      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of 
       midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
                                       midpoint = midval, limit = c(0,maxVal), space = "Lab",
-                                      name="Connectivity (data types)") +
+                                      name="Connectivity of data types") +
         ggplot2::theme_minimal()+
         ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
         ggplot2::ylab("") + ggplot2::xlab("") +
@@ -260,6 +277,7 @@ if (is.null(result)){
         ggplot2::coord_fixed()
       # p # static
       plotly::ggplotly(p) # dynamic
+      
     })
     
     
@@ -387,7 +405,6 @@ if (is.null(result)){
 }
 ```
 
-
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
@@ -429,108 +446,6 @@ if (is.null(result)){
       # p
       plotly::ggplotly(p)
     })
-    
-  }
-  
-}
-```
-
-Correlation between environments
-
-```{r }
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  modeling <- result$modeling
-  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
-  modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
-  modeling <- setdiff(modeling, "inputObject")
-  
-  if("params" %in% ls()){ # we will download the document
-    shinyjs::hide()
-  }else{
-    shiny::selectInput(ns("traitStaCor"), 
-                       label = "Trait:", 
-                       multiple = FALSE,
-                       selected = unique(modeling),
-                       choices = unique(modeling), 
-    )
-  }
-  
-}
-
-```
-
-```{r, results='asis'}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  
-  pred <- result$predictions
-  pred <- pred[pred$analysisId == idSta, ]
-  predictions.gcorrE <- subset(pred, select = c(trait,designation,environment,predictedValue))
-  
-  # addTextInPlots <- ifelse(length(envs) > 30, FALSE, TRUE)
-  if("params" %in% ls()){ # we will download the document
-    
-    cat("\n\n###  {.tabset .tabset-pills}       \n\n")
-    
-    for(iTrait in modeling){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-      
-      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait, ]
-      wide <- stats::reshape(predictions.gcorrE2,
-                             direction = "wide", idvar = "designation",
-                             timevar = "environment", v.names = "predictedValue", sep= "")
-      colnames(wide) <- gsub("predictedValue","",colnames(wide))
-      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
-      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
-      vv <- cgiarBase::matToTab(corr)
-      p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
-                                      midpoint = 0, limit = c(-1,1), space = "Lab", 
-                                      name="Pearson\nCorrelation") +
-        ggplot2::theme_minimal()+ 
-        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
-        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
-        ggplot2::ylab("") + ggplot2::xlab("") +
-        ggplot2::coord_fixed()
-      # print(p)
-      print(htmltools::tagList(plotly::ggplotly(p)))
-      cat("\n")
-    }
-    cat("\n")
-    cat("\n")
-  }else{
-    
-    # shiny::renderPlot({
-    plotly::renderPlotly({
-      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitStaCor, ]
-      
-      wide <- stats::reshape(predictions.gcorrE2,
-                             direction = "wide", idvar = "designation",
-                             timevar = "environment", v.names = "predictedValue", sep= "")
-      colnames(wide) <- gsub("predictedValue","",colnames(wide))
-      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
-      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
-      vv <- cgiarBase::matToTab(corr)
-      p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
-                                      midpoint = 0, limit = c(-1,1), space = "Lab", 
-                                      name="Pearson\nCorrelation") +
-        ggplot2::theme_minimal()+ 
-        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
-        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
-        ggplot2::ylab("") + ggplot2::xlab("") +
-        ggplot2::coord_fixed()
-      # p
-      plotly::ggplotly(p)
-    })
-    
     
   }
   
@@ -609,11 +524,20 @@ if (is.null(result)){
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
         # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-      if(nrow(nagm) < 15){ # if user wants to add text to the cells
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
-      }
-      # print(p) # static
-      print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+      # if(nrow(nagm) < 15){ # if user wants to add text to the cells
+      #   p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+      # }
+      # # print(p) # static
+      # print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+      # Basic histogram
+      mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
+      group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
+      ub <- max(mydata4$Freq, na.rm = TRUE)
+      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+        scale_fill_manual(values=group.colors)
+      # combine plots
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
       
     }
     
@@ -651,8 +575,141 @@ if (is.null(result)){
         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
       }
       # print(p) # static
-      plotly::ggplotly(p) #dynamic
+      # plotly::ggplotly(p) #dynamic
+      # Basic histogram
+      mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
+      group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
+      ub <- max(mydata4$Freq, na.rm = TRUE)
+      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+        scale_fill_manual(values=group.colors)
+      # combine plots
+      ply1 <- plotly::ggplotly(p)
+      ply2 <- plotly::ggplotly(p2)
+      plotly::subplot(ply1, ply2, nrows=1)
+      
     })
+    
+  }
+  
+}
+```
+
+Correlation between environments
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  modeling <- result$modeling
+  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
+  modeling <- setdiff(modeling, "inputObject")
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("traitStaCor"), 
+                       label = "Trait:", 
+                       multiple = FALSE,
+                       selected = unique(modeling),
+                       choices = unique(modeling), 
+    )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  pred <- result$predictions
+  pred <- pred[pred$analysisId == idSta, ]
+  predictions.gcorrE <- subset(pred, select = c(trait,designation,environment,predictedValue))
+  
+  # addTextInPlots <- ifelse(length(envs) > 30, FALSE, TRUE)
+  if("params" %in% ls()){ # we will download the document
+    
+    cat("\n\n###  {.tabset .tabset-pills}       \n\n")
+    
+    for(iTrait in modeling){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait, ]
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      vv <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
+                                      midpoint = 0, limit = c(-1,1), space = "Lab", 
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+ 
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
+        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      # print(p)
+      # print(htmltools::tagList(plotly::ggplotly(p)))
+      # Basic histogram
+      vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
+      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_manual(values=group.colors) 
+      # combine plots
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
+      cat("\n")
+    }
+    cat("\n")
+    cat("\n")
+  }else{
+    
+    # shiny::renderPlot({
+    plotly::renderPlotly({
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitStaCor, ]
+      
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      vv <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
+                                      midpoint = 0, limit = c(-1,1), space = "Lab", 
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+ 
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
+        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      # p
+      # plotly::ggplotly(p)
+      # Basic histogram
+      vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
+      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_manual(values=group.colors)
+      # combine plots
+      ply1 <- plotly::ggplotly(p)
+      ply2 <- plotly::ggplotly(p2)
+      plotly::subplot(ply1, ply2, nrows=1)
+      
+    })
+    
     
   }
   
@@ -694,15 +751,23 @@ if (is.null(result)){
         ggplot2::coord_fixed() + 
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                        axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-      if(nrow(corr) < 20){ # if user wants to fill cell values
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-      }
-      print(p)
+      # if(nrow(corr) < 20){ # if user wants to fill cell values
+      #   p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+      # }
+      # print(p)
+      # Basic histogram
+      mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
+      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_manual(values=group.colors) 
+      # combine plots
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
       
     }else{
       
-      # plotly::renderPlotly({
-      shiny::renderPlot({
+      plotly::renderPlotly({
+        # shiny::renderPlot({
         
         p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
           ggplot2::geom_tile(color = "white")+
@@ -714,10 +779,20 @@ if (is.null(result)){
           ggplot2::coord_fixed() + 
           ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                          axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-        if(nrow(corr) < 20){ # if user wants to fill cell values
-          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-        }
-        print(p)
+        # if(nrow(corr) < 20){ # if user wants to fill cell values
+        #   p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+        # }
+        # print(p)
+        # Basic histogram
+        mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
+        group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+        p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+          geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+          scale_fill_manual(values=group.colors)
+        # combine plots
+        ply1 <- plotly::ggplotly(p)
+        ply2 <- plotly::ggplotly(p2)
+        plotly::subplot(ply1, ply2, nrows=1)
       })
       
     }
@@ -853,7 +928,7 @@ if (is.null(result)){
 
 ```
 
-### Selection results
+### Selection effectiveness
 
 The following graph display the expected gain after the selection of parents and crosses for the next generation. The density plots show the base population (red), the selected population of parents (blue), and the predicted distribution of the crosses to be made (green). The distribution of selected parents and future crosses come from the optimal cross selection (OCS) run.
 
@@ -874,28 +949,28 @@ if (is.null(result)){
   mydataOcs$selected <- "no"
   
   myPredsOcs <- dtIdxD[which(dtIdxD$analysisId == idOcs),setdiff(colnames(dtIdxD),c("module","analysisId"))]
-  idsPop <- unique(mydataOcs[mydataOcs$trait == iTrait, "designation"])
+  idsPop <- unique(mydataOcs[mydataOcs$trait %in% uTraits, "designation"])
   idsSel <- unique(c( myPredsOcs[, "mother"], myPredsOcs[, "father"] ) )
   mydataOcs[ which( mydataOcs$designation %in% idsSel ), "selected"] <- "yes"
   
   if("params" %in% ls()){ # we will download the document
     
     cat(paste0("#### Proportion selected  {.tabset .tabset-pills}    \n\n  "))
-    for(iProportionTrait in proportionTrait){
-      cat("\n\n#####", iProportionTrait, "{.tabset .tabset-pills}       \n\n")
-      # for(iTrait in uTraits){ # iTrait = uTraits[1]
-      #   prov <- mydataOcs[mydataOcs$trait == iTrait, ]
-      #   prov <- prov[with(prov, order(-predictedValue)), ]
-      #   selected <- prov[1:round(nrow(prov)*iProportion),"designation"]
-      #   mydataOcs[which( (mydataOcs$trait == iTrait) & (mydataOcs$designation %in% selected) ), "selected"] <- "yes"
-      # }
-      p <- ggplot2::ggplot(mydataOcs, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
-        ggplot2::geom_histogram() +
-        ggplot2::ylab("Frequency") +
-        ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-        ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
-      print(htmltools::tagList(plotly::ggplotly(p)))
-    }
+    # for(iProportionTrait in proportionTrait){
+    # cat("\n\n#####", iProportionTrait, "{.tabset .tabset-pills}       \n\n")
+    # for(iTrait in uTraits){ # iTrait = uTraits[1]
+    #   prov <- mydataOcs[mydataOcs$trait == iTrait, ]
+    #   prov <- prov[with(prov, order(-predictedValue)), ]
+    #   selected <- prov[1:round(nrow(prov)*iProportion),"designation"]
+    #   mydataOcs[which( (mydataOcs$trait == iTrait) & (mydataOcs$designation %in% selected) ), "selected"] <- "yes"
+    # }
+    p <- ggplot2::ggplot(mydataOcs, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+      ggplot2::geom_histogram() +
+      ggplot2::ylab("Frequency") +
+      ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+      ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
+    print(htmltools::tagList(plotly::ggplotly(p)))
+    # }
     
   }else{
     
@@ -924,35 +999,42 @@ if (is.null(result)){
 
 ```
 
-### Selection history
 
-The following graph shows the realized genetic gain for this pipeline. The x-axis represents the year of origin or release of the material and the y-axis represents the trait value.
+
+
+`r if (length(setdiff("",idRgg))>0) {"### Selection history\n
+The following graph shows the realized genetic gain for this pipeline. The x-axis represents the year of origin or release of the material and the y-axis represents the trait value.\n"}`
+
 
 ```{r }
 if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  mod <- result$modeling %>% filter(analysisId==idRgg)
-  pred <- result$predictions %>% filter(analysisId == idRgg) # before we use the predsId but now we store the designation predictions in the rgg functions
-  met <- result$metrics %>% filter(analysisId==idRgg)
-  traits <- unique(met$trait)
-  ped <- result$data$pedigree
-  paramsPed <- result$metadata$pedigree
-  colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = paramsPed$value, Replace = paramsPed$parameter )
-  ped <- unique(ped[,c("designation","yearOfOrigin")])
-  # merge yearOfOrigin
-  myResult <- merge(pred,ped,by="designation")
-  myResult <- myResult[which(!is.na(myResult$yearOfOrigin)),]
-  
-  if("params" %in% ls()){ # we will download the document
-    shinyjs::hide()
-  }else{
-    selectInput(ns("traitSta3"), 
-                label = "Trait:", 
-                multiple = FALSE,
-                choices = unique(traits), 
-    )
+  if(length(setdiff("",idRgg)) > 0){
+    
+    mod <- result$modeling %>% filter(analysisId==idRgg)
+    pred <- result$predictions %>% filter(analysisId == idRgg) # before we use the predsId but now we store the designation predictions in the rgg functions
+    met <- result$metrics %>% filter(analysisId==idRgg)
+    traits <- unique(met$trait)
+    ped <- result$data$pedigree
+    paramsPed <- result$metadata$pedigree
+    colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = paramsPed$value, Replace = paramsPed$parameter )
+    ped <- unique(ped[,c("designation","yearOfOrigin")])
+    # merge yearOfOrigin
+    myResult <- merge(pred,ped,by="designation")
+    myResult <- myResult[which(!is.na(myResult$yearOfOrigin)),]
+    
+    if("params" %in% ls()){ # we will download the document
+      shinyjs::hide()
+    }else{
+      selectInput(ns("traitSta3"), 
+                  label = "Trait:", 
+                  multiple = FALSE,
+                  choices = unique(traits), 
+      )
+    }
+    
   }
   
 }
@@ -964,47 +1046,51 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if("params" %in% ls()){ # we will download the document
-    cat("\n\n### {.tabset .tabset-pills}       \n\n")
+  if(length(setdiff("",idRgg)) > 0){
     
-    
-    for (j in 1:length(traits)){
-      cat("\n\n####", traits[j], "{.tabset .tabset-pills}       \n\n")
+    if("params" %in% ls()){ # we will download the document
+      cat("\n\n### {.tabset .tabset-pills}       \n\n")
       
-      # subset by trait
-      myPreds <- myResult %>% filter(trait == traits[j])
-      myMetrics <- met %>% filter(trait == traits[j])
-      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
-                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
-                        round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
-      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
-        geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
-        theme_classic()+
-        geom_jitter(alpha = 0.6) +
-        labs(title=myLabel,x="Year of origin", y = "Trait performance") +
-        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-      print(htmltools::tagList(plotly::ggplotly(p)))
       
-      # cat("\n")
+      for (j in 1:length(traits)){
+        cat("\n\n####", traits[j], "{.tabset .tabset-pills}       \n\n")
+        
+        # subset by trait
+        myPreds <- myResult %>% filter(trait == traits[j])
+        myMetrics <- met %>% filter(trait == traits[j])
+        myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
+                          round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
+                          round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+        p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
+          geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+          theme_classic()+
+          geom_jitter(alpha = 0.6) +
+          labs(title=myLabel,x="Year of origin", y = "Trait performance") +
+          theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+        print(htmltools::tagList(plotly::ggplotly(p)))
+        
+        # cat("\n")
+      }
+      
+      cat("\n")
+    }else{ # regular rendering
+      plotly::renderPlotly({
+        myPreds <- myResult %>% filter(trait == input$traitSta3)
+        myMetrics <- met %>% filter(trait == input$traitSta3)
+        myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
+                          round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
+                          round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+        p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
+          geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+          theme_classic()+
+          geom_jitter(alpha = 0.6) +
+          labs(title=myLabel,x="Year of origin", y = "Trait performance") +
+          theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+        fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+        fig
+      })
     }
     
-    cat("\n")
-  }else{ # regular rendering
-    plotly::renderPlotly({
-      myPreds <- myResult %>% filter(trait == input$traitSta3)
-      myMetrics <- met %>% filter(trait == input$traitSta3)
-      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
-                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
-                        round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
-      p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
-        geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
-        theme_classic()+
-        geom_jitter(alpha = 0.6) +
-        labs(title=myLabel,x="Year of origin", y = "Trait performance") +
-        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
-      fig
-    })
   }
   
 }

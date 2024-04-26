@@ -19,7 +19,7 @@ mod_abiDashboard_ui <- function(id){
                                       tabPanel("Pick time stamps", icon = icon("magnifying-glass-chart"),
                                                br(),
                                                column(width=12,
-                                                      column(width=6,  selectInput(ns("versionSelection"), "OCS analysis (to trace selection)", choices = NULL, multiple = FALSE) ),
+                                                      column(width=6,  selectInput(ns("versionSelection"), "OCS analysis (to trace selection history)", choices = NULL, multiple = FALSE) ),
                                                       column(width=6,  selectInput(ns("versionHistory"), "RGG analysis (to link gain)", choices = NULL, multiple = FALSE) ),
                                                       style = "background-color:grey; color: #FFFFFF"),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -170,21 +170,6 @@ mod_abiDashboard_server <- function(id, data){
                                         fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
         ggnetwork::theme_blank()
     })
-    ## render the data to be analyzed
-    # output$phenoAbi <-  DT::renderDT({
-    #   req(data())
-    #   req(input$versionSelection)
-    #   dtAbi <- data()
-    #   # dtAbi <- dtAbi$predictions
-    #   # dtAbi <- dtAbi[which(dtAbi$analysisId %in% c( input$versionMetrics, input$versionTraits, input$versionSelection, input$versionHistory ) ),setdiff(colnames(dtAbi),c("module","analysisId"))]
-    #   # numeric.output <- c("predictedValue", "stdError", "reliability")
-    #   colTypes <- unlist(lapply(dtAbi$data$pheno, class))
-    #   numeric.output <- names(colTypes)[which(colTypes == "numeric")]
-    #   DT::formatRound(DT::datatable(dtAbi$data$pheno, extensions = 'Buttons',
-    #                                 options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-    #                                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-    #   ), numeric.output)
-    # })
 
 
     #################################
@@ -241,7 +226,8 @@ mod_abiDashboard_server <- function(id, data){
                                      params = list(toDownload=TRUE ),
                                      switch(
                                        "HTML",
-                                       HTML = rmarkdown::html_document()
+                                       HTML = rmdformats::robobook(toc_depth = 4)
+                                       # HTML = rmarkdown::html_document()
                                      ))
             file.rename(out, file)
           }
