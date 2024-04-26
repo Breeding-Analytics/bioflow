@@ -14,155 +14,165 @@ mod_getDataGeno_ui <- function(id){
   tagList(
     tags$br(),
 
-    column(width=8,
+    navlistPanel( widths = c(2, 10),
+                  tabPanel(div("1. Load data" ),
+                           column(width=8,
 
-           # fluidRow(
-           #   style = 'padding: 30px;',
+                                  # fluidRow(
+                                  #   style = 'padding: 30px;',
 
-             # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
-             # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
-             selectInput(
-               inputId = ns('geno_input'),
-               label   = 'Genotypic SNPs Source*:',
-               choices = list('HapMap Upload' = 'file', 'HapMap URL' = 'url',
-                              'Table Upload' = 'matfile', 'Table URL' = 'matfileurl',
-                              'VCF Upload' = 'vcf.file', 'VCF URL' = 'vcf.url'),
-               width   = '200px'
-             ),
-             tags$span(id = ns('geno_file_holder'),
-                       fileInput(
-                         inputId = ns('geno_file'),
-                         label   = NULL,
-                         width   = '400px',
-                         accept  = c('application/gzip', '.gz', '.txt', '.hmp', '.csv', '.vcf')
-                       )
-             ),
-             textInput(
-               inputId = ns('geno_url'),
-               label   = NULL,
-               value   = '',
-               width   = '400px',
-               placeholder = 'https://example.com/path/file.gz'
-             ),
+                                  # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
+                                  # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
+                                  selectInput(
+                                    inputId = ns('geno_input'),
+                                    label   = 'Genotypic SNPs Source*:',
+                                    choices = list('HapMap Upload' = 'file', 'HapMap URL' = 'url',
+                                                   'Table Upload' = 'matfile', 'Table URL' = 'matfileurl',
+                                                   'VCF Upload' = 'vcf.file', 'VCF URL' = 'vcf.url'),
+                                    width   = '200px'
+                                  ),
+                                  tags$span(id = ns('geno_file_holder'),
+                                            fileInput(
+                                              inputId = ns('geno_file'),
+                                              label   = NULL,
+                                              width   = '400px',
+                                              accept  = c('application/gzip', '.gz', '.txt', '.hmp', '.csv', '.vcf')
+                                            )
+                                  ),
+                                  textInput(
+                                    inputId = ns('geno_url'),
+                                    label   = NULL,
+                                    value   = '',
+                                    width   = '400px',
+                                    placeholder = 'https://example.com/path/file.gz'
+                                  ),
 
 
-             if (!is.null(geno_example)) {
-               checkboxInput(
-                 inputId = ns('geno_example'),
-                 label = span('Load example ',
-                              a('genotypic data', target = '_blank',
-                                href = geno_example)),
-                 value = FALSE
-               )
-             },
-           # ),
+                                  if (!is.null(geno_example)) {
+                                    checkboxInput(
+                                      inputId = ns('geno_example'),
+                                      label = span('Load example ',
+                                                   a('genotypic data', target = '_blank',
+                                                     href = geno_example)),
+                                      value = FALSE
+                                    )
+                                  },
+                                  # ),
 
-    ),
+                           ),
 
-    column(width=4,
-           shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
-                               h4(strong(span("", tags$a(href="https://www.youtube.com/watch?v=gFYGIb9fBLQ&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=2", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-           ),
+                           column(width=4,
+                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                                      h4(strong(span("", tags$a(href="https://www.youtube.com/watch?v=gFYGIb9fBLQ&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=2", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                  ),
 
-           tags$div(id = ns('geno_table_options'),
-                    shinydashboard::box(width = 12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-                                        shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                                                         choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+                                  tags$div(id = ns('geno_table_options'),
+                                           shinydashboard::box(width = 12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                                               shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                                                choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
-                                        shinyWidgets::prettyRadioButtons(ns('geno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                                                         choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+                                                               shinyWidgets::prettyRadioButtons(ns('geno_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                                                choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
 
-                                        shinyWidgets::prettyRadioButtons(ns('geno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                                                         choices = c('Dot' = '.', 'Comma' = ',')),
-                    ),
-           ),
+                                                               shinyWidgets::prettyRadioButtons(ns('geno_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                                                choices = c('Dot' = '.', 'Comma' = ',')),
+                                           ),
+                                  ),
 
-    ),
-
-    column(width=12,
-           shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
-                               tags$span(id = ns('geno_table_mapping'),
-                                         HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
-                                         column(4,
-                                                selectizeInput(
-                                                  inputId = ns('geno_table_designation'),
-                                                  label   = 'Designation column: ',
-                                                  choices = list()
-                                                ),    ),
-                                         column(4,
-                                                selectizeInput(
-                                                  inputId = ns('geno_table_firstsnp'),
-                                                  label   = 'First SNP column: ',
-                                                  choices = list()
-                                                ),   ),
-                                         column(4,
-                                                selectizeInput(
-                                                  inputId = ns('geno_table_lastsnp'),
-                                                  label   = 'Last SNP column: ',
-                                                  choices = list()
-                                                ),
-                                         ),
-                               ),
-           ),
-    ),
-
-    column(width=12,
-           fluidRow(
-             style = 'padding-right: 0px; padding-left: 0px;',
-             shinydashboard::box(
-               title = 'Notes:',
-               width = 12,
-               solidHeader = TRUE,
-               status = 'success',
-               tags$ul(
-                 tags$li('Accept HapMap, VCF, CSV formats (tab-delimited text file with a header row).
+                           ),
+                           column(width=12,
+                                  fluidRow(
+                                    style = 'padding-right: 0px; padding-left: 0px;',
+                                    shinydashboard::box(
+                                      title = 'Notes:',
+                                      width = 12,
+                                      solidHeader = TRUE,
+                                      status = 'success',
+                                      tags$ul(
+                                        tags$li('Accept HapMap, VCF, CSV formats (tab-delimited text file with a header row).
                          The HapMap and VCF files list SNPs in rows and Accessions (individual samples)
                          in columns, and viceversa in the case of the CSV. The first 11 columns of the HapMap
                          describe attributes of the SNP, but only the first 4 columns data are required for processing:
                          rs# (SNP id), alleles (e.g., C/G), chrom (chromosome), and pos (position).'),
 
-                 tags$li(
-                   tags$span(
-                     'Accept numeric coding ([0,1, and 2] or [-1,0, and 1] for reference/major,
+                                        tags$li(
+                                          tags$span(
+                                            'Accept numeric coding ([0,1, and 2] or [-1,0, and 1] for reference/major,
                      heterozygous, and alternative/minor alleles respectively), or the ',
-                     tags$a('IUPAC single-letter', target = '_blank', href = 'https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation'),
-                     'code (ref. ',
-                     tags$a('https://doi.org/10.1093/nar/13.9.3021', target = '_blank', href = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC341218/'),
-                     '),', 'and double-letter code.'
-                   )
-                 ),
+                                            tags$a('IUPAC single-letter', target = '_blank', href = 'https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation'),
+                                            'code (ref. ',
+                                            tags$a('https://doi.org/10.1093/nar/13.9.3021', target = '_blank', href = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC341218/'),
+                                            '),', 'and double-letter code.'
+                                          )
+                                        ),
 
-                 tags$li('Position should be in bp (base pairs) not cM (CentiMorgan).'),
+                                        tags$li('Position should be in bp (base pairs) not cM (CentiMorgan).'),
 
-                 tags$li(
-                   tags$span(
-                     'We recommend compressing your HapMap genotypic data using the gzip
+                                        tags$li(
+                                          tags$span(
+                                            'We recommend compressing your HapMap genotypic data using the gzip
                      format (*.gz extension) to significantly reduce file size. On average,
                      the compressed file size is only 5% of the original size. You can use
                      free software such as',
-                     tags$a('7-Zip', href = 'https://www.7-zip.org', target = '_blank'),
-                     'to perform the compression.'
-                   )
-                 ),
-               )
-             ),
-           ),
+                                            tags$a('7-Zip', href = 'https://www.7-zip.org', target = '_blank'),
+                                            'to perform the compression.'
+                                          )
+                                        ),
+                                      )
+                                    ),
+                                  ),
+                           ),
+                  ),
+                  tabPanel(div("2. Match columns" ),
+
+                           column(width=12,
+                                  shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
+                                                      tags$span(id = ns('geno_table_mapping'),
+                                                                HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
+                                                                column(4,
+                                                                       selectizeInput(
+                                                                         inputId = ns('geno_table_designation'),
+                                                                         label   = 'Designation column: ',
+                                                                         choices = list()
+                                                                       ),    ),
+                                                                column(4,
+                                                                       selectizeInput(
+                                                                         inputId = ns('geno_table_firstsnp'),
+                                                                         label   = 'First SNP column: ',
+                                                                         choices = list()
+                                                                       ),   ),
+                                                                column(4,
+                                                                       selectizeInput(
+                                                                         inputId = ns('geno_table_lastsnp'),
+                                                                         label   = 'Last SNP column: ',
+                                                                         choices = list()
+                                                                       ),
+                                                                ),
+                                                      ),
+                                  ),
+                           ),
+
+                           column(width=12,
+                                  # Verify file format: Hapmap file format (with reference link)
+                                  # highlight that pos unit should be bp not cM
+                                  # Report summary statistics (#acc, #snps, etc.)
+                                  # to let the user verify before proceeding to the next step
+                                  tags$div(id = ns('noNeedMapMessage'),
+                                           HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "No need to map columns for this type of data format.")) ),
+                                  ),
+                                  tableOutput(ns('chrom_summary')),
+                                  # Accessions exist in both phenotypic and genotypic files (will be used to train the model)
+                                  # Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
+                                  # Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
+                                  verbatimTextOutput(ns('geno_summary')),
+                                  DT::DTOutput(ns('preview_geno')),
+                           ),
+
+                  ),
+                  tabPanel(div("3. Check status" ),
+                           uiOutput(ns("warningMessage")),
+                  ),
     ),
-
-    column(width=12,
-           # Verify file format: Hapmap file format (with reference link)
-           # highlight that pos unit should be bp not cM
-           # Report summary statistics (#acc, #snps, etc.)
-           # to let the user verify before proceeding to the next step
-           tableOutput(ns('chrom_summary')),
-           # Accessions exist in both phenotypic and genotypic files (will be used to train the model)
-           # Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
-           # Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
-           verbatimTextOutput(ns('geno_summary')),
-           DT::DTOutput(ns('preview_geno')),
-    ),
-
-
 
   )
 }
@@ -174,6 +184,22 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    ############################################################################
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
+      }else{ # data is there
+        if(!is.null(data()$data$geno)){
+          if(!is.null(data()$metadata$geno)){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
+          }else{
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
+          }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
+      }
+    )
+
     observeEvent(
       input$geno_input,
       if(length(input$geno_input) > 0){ # added
@@ -182,23 +208,27 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('geno_url'))
           golem::invoke_js('hideid', ns('geno_table_mapping'))
           golem::invoke_js('hideid', ns('geno_table_options'))
+          golem::invoke_js('showid', ns('noNeedMapMessage'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
         } else if (input$geno_input %in% c('url', 'vcf.url')) {
           golem::invoke_js('hideid', ns('geno_file_holder'))
           golem::invoke_js('hideid', ns('geno_table_mapping'))
           golem::invoke_js('hideid', ns('geno_table_options'))
           golem::invoke_js('showid', ns('geno_url'))
+          golem::invoke_js('showid', ns('noNeedMapMessage'))
         } else if (input$geno_input == 'matfile' ){
           golem::invoke_js('showid', ns('geno_file_holder'))
           golem::invoke_js('showid', ns('geno_table_mapping'))
           golem::invoke_js('showid', ns('geno_table_options'))
           golem::invoke_js('hideid', ns('geno_url'))
+          golem::invoke_js('hideid', ns('noNeedMapMessage'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
         } else if (input$geno_input == 'matfileurl' ){
           golem::invoke_js('hideid', ns('geno_file_holder'))
           golem::invoke_js('showid', ns('geno_table_mapping'))
           golem::invoke_js('showid', ns('geno_table_options'))
           golem::invoke_js('showid', ns('geno_url'))
+          golem::invoke_js('hideid', ns('noNeedMapMessage'))
         }
       }
     )
@@ -234,7 +264,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
                       extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                       caption = htmltools::tags$caption(
-                        style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                        style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
                         htmltools::em('Data preview.')
                       )
         )

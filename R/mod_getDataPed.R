@@ -14,83 +14,101 @@ mod_getDataPed_ui <- function(id){
   tagList(
     tags$br(),
 
-    column(width=8,
+    navlistPanel( widths = c(2, 10),
+                  tabPanel(div("1. Load data" ),
+                           column(width=8,
 
-           selectInput(
-             inputId = ns('ped_input'),
-             label   = 'Data Source*: ',
-             choices = list('Upload File' = 'file', 'Copy URL' = 'url'),
-             width   = '200px'
-           ),
+                                  selectInput(
+                                    inputId = ns('ped_input'),
+                                    label   = 'Data Source*: ',
+                                    choices = list('Upload File' = 'file', 'Copy URL' = 'url'),
+                                    width   = '200px'
+                                  ),
 
-           tags$span(id = ns('ped_file_holder'),
-                     fileInput(
-                       inputId = ns('ped_file'),
-                       label   = NULL,
-                       width   = '400px',
-                       accept  = c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
-                     )
-           ),
-           textInput(
-             inputId = ns('ped_url'),
-             label   = NULL,
-             value   = '',
-             width   = '400px',
-             placeholder = 'https://example.com/path/file.csv'
-           ),
+                                  tags$span(id = ns('ped_file_holder'),
+                                            fileInput(
+                                              inputId = ns('ped_file'),
+                                              label   = NULL,
+                                              width   = '400px',
+                                              accept  = c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
+                                            )
+                                  ),
+                                  textInput(
+                                    inputId = ns('ped_url'),
+                                    label   = NULL,
+                                    value   = '',
+                                    width   = '400px',
+                                    placeholder = 'https://example.com/path/file.csv'
+                                  ),
 
-           if (!is.null(ped_example)) {
-             checkboxInput(
-               inputId = ns('ped_example'),
-               label = span('Load example ',
-                            a('pedigree data', target = '_blank',
-                              href = ped_example)),
-               value = FALSE
-             )
-           },
+                                  if (!is.null(ped_example)) {
+                                    checkboxInput(
+                                      inputId = ns('ped_example'),
+                                      label = span('Load example ',
+                                                   a('pedigree data', target = '_blank',
+                                                     href = ped_example)),
+                                      value = FALSE
+                                    )
+                                  },
 
+                           ),
+
+
+                           column(width=4,
+
+                                  tags$span(id = ns('ped_csv_options'),
+                                            shinydashboard::box(width=12, title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                                                shinyWidgets::prettyRadioButtons(ns('ped_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                                                 choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                                                shinyWidgets::prettyRadioButtons(ns('ped_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                                                 choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                                                shinyWidgets::prettyRadioButtons(ns('ped_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                                                 choices = c('Dot' = '.', 'Comma' = ',')),
+                                            ),
+                                  ),
+
+                           ),
+                           column(width=12,
+                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                                                      column(width=8,
+                                                             DT::DTOutput(ns('preview_ped')),
+                                                      ),
+                                                      column(width=4,
+                                                             verbatimTextOutput(ns('ped_summary')),
+                                                      )
+
+                                  ),
+                           ),
+                  ),
+                  tabPanel(div("2. Match columns" ),
+                           column(width=12,
+                                  shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
+                                                      tags$span(id = ns('ped_table_mapping'),
+                                                                HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
+                                                                p(span("**Unknown mothers or fathers should be set as missing data in your input file.", style="color:orange")),
+                                                      ),
+                                                      uiOutput(ns('ped_map')),
+                                  ),
+                           ),
+                           column(width=12,
+                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                                                      column(width=8,
+                                                             DT::DTOutput(ns('preview_ped2')),
+                                                      ),
+                                                      column(width=4,
+                                                             verbatimTextOutput(ns('ped_summary2')),
+                                                      )
+
+                                  ),
+                           ),
+                  ),
+                  tabPanel(div("3. Check status" ),
+                           uiOutput(ns("warningMessage")),
+                  ),
     ),
 
-
-    column(width=4,
-
-           tags$span(id = ns('ped_csv_options'),
-                     shinydashboard::box(width=12, title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-                                         shinyWidgets::prettyRadioButtons(ns('ped_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                                                          choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
-
-                                         shinyWidgets::prettyRadioButtons(ns('ped_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                                                          choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
-
-                                         shinyWidgets::prettyRadioButtons(ns('ped_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                                                          choices = c('Dot' = '.', 'Comma' = ',')),
-                     ),
-           ),
-
-    ),
-
-    column(width=12,
-           shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
-                               tags$span(id = ns('ped_table_mapping'),
-                                         HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
-                                         p(span("**Unknown mothers or fathers should be set as missing data in your input file.", style="color:orange")),
-                               ),
-                               uiOutput(ns('ped_map')),
-           ),
-    ),
-
-
-    column(width=12,
-           shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
-                               column(width=8,
-                                      DT::DTOutput(ns('preview_ped')),
-                               ),
-                               column(width=4,
-                                      verbatimTextOutput(ns('ped_summary')),
-                               )
-
-           ),
-    ),
 
   )
 }
@@ -101,6 +119,25 @@ mod_getDataPed_ui <- function(id){
 mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
+      }else{ # data is there
+        if(!is.null(data()$data$pedigree)){
+          if(!is.null(data()$metadata$pedigree)){
+            if(length(setdiff(data()$metadata$pedigree$value,"")) > 0){
+              HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
+            }else{
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
+            }
+          }else{
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
+          }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab. ")) )}
+      }
+    )
 
     observeEvent(
       input$ped_input,
@@ -160,7 +197,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
           if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
         } # make sure if an user uploads a new dataset the qaPed starts empty
 
-        output$preview_ped <- DT::renderDT({
+        output$preview_ped <- output$preview_ped2  <- DT::renderDT({
           req(ped_data())
 
           DT::datatable(ped_data(),
@@ -170,7 +207,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                         caption = htmltools::tags$caption(
-                          style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                          style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
                           htmltools::em('Data preview.')
                         )
           )
@@ -239,7 +276,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
       )
     })
 
-    output$ped_summary <- renderText({
+    output$ped_summary <- output$ped_summary2 <- renderText({
       req(input$ped_designation)
       tmp <- data()
       ped <- ped_data()

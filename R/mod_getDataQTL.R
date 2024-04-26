@@ -14,76 +14,94 @@ mod_getDataQTL_ui <- function(id){
   tagList(
     tags$br(),
 
-    column(width=8,
-           # fluidRow(
-           #   style = 'padding: 30px;',
-           # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
-           # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
-           selectInput(
-             inputId = ns('qtl_input'),
-             label   = 'QTL Source*:',
-             choices = list('Table Upload' = 'qtlfile', 'Table URL' = 'qtlfileurl' ),
-             width   = '200px'
-           ),
-           tags$span(id = ns('qtl_file_holder'),
-                     fileInput(
-                       inputId = ns('qtl_file'),
-                       label   = NULL,
-                       width   = '400px',
-                       accept  = c('.txt', '.csv')
-                     )
-           ),
-           textInput(
-             inputId = ns('qtl_url'),
-             label   = NULL,
-             value   = '',
-             width   = '400px',
-             placeholder = 'https://example.com/path/file.csv'
-           ),
-           if (!is.null(qtl_example)) {
-             checkboxInput(
-               inputId = ns('qtl_example'),
-               label = span('Load example ',
-                            a('QTL data', target = '_blank',
-                              href = qtl_example)),
-               value = FALSE
-             )
-           },
-           # ),
+    navlistPanel( widths = c(2, 10),
+                  tabPanel(div("1. Load data" ),
+                           column(width=8,
+                                  # fluidRow(
+                                  #   style = 'padding: 30px;',
+                                  # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
+                                  # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
+                                  selectInput(
+                                    inputId = ns('qtl_input'),
+                                    label   = 'QTL Source*:',
+                                    choices = list('Table Upload' = 'qtlfile', 'Table URL' = 'qtlfileurl' ),
+                                    width   = '200px'
+                                  ),
+                                  tags$span(id = ns('qtl_file_holder'),
+                                            fileInput(
+                                              inputId = ns('qtl_file'),
+                                              label   = NULL,
+                                              width   = '400px',
+                                              accept  = c('.txt', '.csv')
+                                            )
+                                  ),
+                                  textInput(
+                                    inputId = ns('qtl_url'),
+                                    label   = NULL,
+                                    value   = '',
+                                    width   = '400px',
+                                    placeholder = 'https://example.com/path/file.csv'
+                                  ),
+                                  if (!is.null(qtl_example)) {
+                                    checkboxInput(
+                                      inputId = ns('qtl_example'),
+                                      label = span('Load example ',
+                                                   a('QTL data', target = '_blank',
+                                                     href = qtl_example)),
+                                      value = FALSE
+                                    )
+                                  },
+                                  # ),
+                           ),
+
+                           column(width=4,
+                                  tags$div(id = ns('qtl_table_options'),
+                                           shinydashboard::box(width=12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                                               shinyWidgets::prettyRadioButtons(ns('qtl_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                                                choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                                               shinyWidgets::prettyRadioButtons(ns('qtl_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                                                choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                                               shinyWidgets::prettyRadioButtons(ns('qtl_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                                                choices = c('Dot' = '.', 'Comma' = ',')),
+                                           ),
+                                  ),
+                           ),
+                           column(width=12,
+                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                                                      DT::DTOutput(ns('preview_qtl')),
+                                  ),
+                           ),
+                  ),
+                  tabPanel(div("2. Match columns" ),
+                           column(width=12,
+                                  shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
+                                                      tags$span(id = ns('qtl_table_mapping_title'),
+                                                                HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
+                                                      ),
+                                                      uiOutput(ns('qtl_map')),
+
+
+                                  ),
+                           ),
+                           column(width=12,
+                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                                                      DT::DTOutput(ns('preview_qtl2')),
+                                  ),
+                           ),
+                  ),
+                  tabPanel(div("3. Check status" ),
+                           uiOutput(ns("warningMessage")),
+                  ),
     ),
 
-    column(width=4,
-           tags$div(id = ns('qtl_table_options'),
-                    shinydashboard::box(width=12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-                                        shinyWidgets::prettyRadioButtons(ns('qtl_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                                                         choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
-
-                                        shinyWidgets::prettyRadioButtons(ns('qtl_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                                                         choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
-
-                                        shinyWidgets::prettyRadioButtons(ns('qtl_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                                                         choices = c('Dot' = '.', 'Comma' = ',')),
-                    ),
-           ),
-    ),
-
-    column(width=12,
-           shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
-                               tags$span(id = ns('qtl_table_mapping_title'),
-                                         HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
-                               ),
-                               uiOutput(ns('qtl_map')),
 
 
-           ),
-    ),
 
 
-    column(width=12,
-           shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
-                               DT::DTOutput(ns('preview_qtl')),
-           ),
-    ),
+
+
 
   )
 }
@@ -94,6 +112,22 @@ mod_getDataQTL_ui <- function(id){
 mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
+    # warning message
+    output$warningMessage <- renderUI(
+      if(!is.null(data()$data$qtl)){
+        if(!is.null(data()$metadata$qtl)){
+          if(length(setdiff(data()$metadata$qtl$value,"")) > 0){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
+          }else{
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
+          }
+        }else{
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
+        }
+      }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data and match the needed columns. ")) )}
+
+    )
 
     observeEvent(
       input$qtl_input,
@@ -216,13 +250,13 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
     observeEvent(c(qtl_data_table()), { # display preview of qtl data
       req(qtl_data_table())
       provqtl <- qtl_data_table()
-      output$preview_qtl <- DT::renderDT({
+      output$preview_qtl <- output$preview_qtl2 <- DT::renderDT({
         req(qtl_data_table())
         DT::datatable(qtl_data_table()[,1:min(c(50,ncol(qtl_data_table())))],
                       extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                       caption = htmltools::tags$caption(
-                        style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                        style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
                         htmltools::em('Data preview.')
                       )
         )
