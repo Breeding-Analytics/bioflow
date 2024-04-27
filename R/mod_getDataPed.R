@@ -42,13 +42,14 @@ mod_getDataPed_ui <- function(id){
                                   ),
 
                                   if (!is.null(ped_example)) {
-                                    checkboxInput(
-                                      inputId = ns('ped_example'),
-                                      label = span('Load example ',
-                                                   a('pedigree data', target = '_blank',
-                                                     href = ped_example)),
-                                      value = FALSE
-                                    )
+                                    # checkboxInput(
+                                    #   inputId = ns('ped_example'),
+                                    #   label = span('Load example ',
+                                    #                a('pedigree data', target = '_blank',
+                                    #                  href = ped_example)),
+                                    #   value = FALSE
+                                    # )
+                                    shinyWidgets::prettySwitch( inputId = ns('ped_example'), label = "Load example", status = "success")
                                   },
 
                            ),
@@ -295,31 +296,73 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
     #   }
     # })
 
+    # observeEvent(
+    #   input$ped_example,
+    #   if (input$ped_example) {
+    #     updateSelectInput(session, 'ped_input', selected = 'url')
+    #
+    #     # ped_example_url <-  paste0(session$clientData$url_protocol, '//',
+    #     #                            session$clientData$url_hostname, ':',
+    #     #                            session$clientData$url_port,
+    #     #                            session$clientData$url_pathname,
+    #     #                            ped_example)
+    #
+    #     ped_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/pedigree.csv'
+    #
+    #     updateTextInput(session, 'ped_url', value = ped_example_url)
+    #
+    #     golem::invoke_js('hideid', ns('ped_file_holder'))
+    #     golem::invoke_js('showid', ns('ped_url'))
+    #   } else {
+    #     updateSelectInput(session, 'ped_input', selected = 'file')
+    #     updateTextInput(session, 'ped_url', value = '')
+    #
+    #     golem::invoke_js('showid', ns('ped_file_holder'))
+    #     golem::invoke_js('hideid', ns('ped_url'))
+    #   }
+    # )
+
+    ## data example loading
     observeEvent(
       input$ped_example,
-      if (input$ped_example) {
-        updateSelectInput(session, 'ped_input', selected = 'url')
-
-        # ped_example_url <-  paste0(session$clientData$url_protocol, '//',
-        #                            session$clientData$url_hostname, ':',
-        #                            session$clientData$url_port,
-        #                            session$clientData$url_pathname,
-        #                            ped_example)
-
-        ped_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/pedigree.csv'
-
-        updateTextInput(session, 'ped_url', value = ped_example_url)
-
-        golem::invoke_js('hideid', ns('ped_file_holder'))
-        golem::invoke_js('showid', ns('ped_url'))
-      } else {
-        updateSelectInput(session, 'ped_input', selected = 'file')
-        updateTextInput(session, 'ped_url', value = '')
-
-        golem::invoke_js('showid', ns('ped_file_holder'))
-        golem::invoke_js('hideid', ns('ped_url'))
+      if(length(input$ped_example) > 0){
+        if (input$ped_example) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example pedigree? This will delete any pedigree data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
       }
     )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        if (input$ped_example) {
+          updateSelectInput(session, 'ped_input', selected = 'url')
+
+          # ped_example_url <-  paste0(session$clientData$url_protocol, '//',
+          #                            session$clientData$url_hostname, ':',
+          #                            session$clientData$url_port,
+          #                            session$clientData$url_pathname,
+          #                            ped_example)
+
+          ped_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/pedigree.csv'
+
+          updateTextInput(session, 'ped_url', value = ped_example_url)
+
+          golem::invoke_js('hideid', ns('ped_file_holder'))
+          golem::invoke_js('showid', ns('ped_url'))
+        } else {
+          updateSelectInput(session, 'ped_input', selected = 'file')
+          updateTextInput(session, 'ped_url', value = '')
+
+          golem::invoke_js('showid', ns('ped_file_holder'))
+          golem::invoke_js('hideid', ns('ped_url'))
+        }
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "ped_example", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
 
   })
 }

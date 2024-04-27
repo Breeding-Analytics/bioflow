@@ -119,13 +119,15 @@ mod_getDataPheno_ui <- function(id){
                                            ),
                                   ),
                                   if (!is.null(pheno_example)) {
-                                    checkboxInput(
-                                      inputId = ns('pheno_example'),
-                                      label = span('Load example ',
-                                                   a('phenotypic data', target = '_blank',
-                                                     href = pheno_example)),
-                                      value = FALSE
-                                    )
+                                    # checkboxInput(
+                                    #   inputId = ns('pheno_example'),
+                                    #   label = span('Load example ',
+                                    #                a('phenotypic data', target = '_blank',
+                                    #                  href = pheno_example)),
+                                    #   value = FALSE
+                                    # )
+                                    shinyWidgets::prettySwitch( inputId = ns('pheno_example'), label = "Load example", status = "success")
+
                                   },
 
 
@@ -791,37 +793,84 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       fluidRow(do.call(tagList, pheno_map))
     })
 
+    # observeEvent(
+    #   input$pheno_example,
+    #   if(length(input$pheno_example) > 0){
+    #     if (input$pheno_example) {
+    #       updateSelectInput(session, 'pheno_input', selected = 'url')
+    #
+    #       # pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
+    #       #                              session$clientData$url_hostname, ':',
+    #       #                              session$clientData$url_port,
+    #       #                              session$clientData$url_pathname,
+    #       #                              pheno_example)
+    #
+    #       pheno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/pheno.csv'
+    #
+    #       updateTextInput(session, 'pheno_url', value = pheno_example_url)
+    #
+    #       golem::invoke_js('hideid', ns('pheno_file_holder'))
+    #       golem::invoke_js('showid', ns('pheno_url'))
+    #       golem::invoke_js('hideid', ns('pheno_db'))
+    #     } else {
+    #       updateSelectInput(session, 'pheno_input', selected = 'file')
+    #       updateTextInput(session, 'pheno_url', value = '')
+    #
+    #       golem::invoke_js('showid', ns('pheno_file_holder'))
+    #       golem::invoke_js('hideid', ns('pheno_url'))
+    #       golem::invoke_js('hideid', ns('pheno_db'))
+    #     }
+    #   }
+    # )
+
+    ## data example loading
     observeEvent(
       input$pheno_example,
       if(length(input$pheno_example) > 0){
         if (input$pheno_example) {
-          updateSelectInput(session, 'pheno_input', selected = 'url')
-
-          # pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
-          #                              session$clientData$url_hostname, ':',
-          #                              session$clientData$url_port,
-          #                              session$clientData$url_pathname,
-          #                              pheno_example)
-
-          pheno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/pheno.csv'
-
-          updateTextInput(session, 'pheno_url', value = pheno_example_url)
-
-          golem::invoke_js('hideid', ns('pheno_file_holder'))
-          golem::invoke_js('showid', ns('pheno_url'))
-          golem::invoke_js('hideid', ns('pheno_db'))
-        } else {
-          updateSelectInput(session, 'pheno_input', selected = 'file')
-          updateTextInput(session, 'pheno_url', value = '')
-
-          golem::invoke_js('showid', ns('pheno_file_holder'))
-          golem::invoke_js('hideid', ns('pheno_url'))
-          golem::invoke_js('hideid', ns('pheno_db'))
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example phenotypes? This will delete any phenotypic data currently in the environment.",
+            title = "Data replacement warning"
+          )
         }
       }
     )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        if(length(input$pheno_example) > 0){
+          if (input$pheno_example) {
+            updateSelectInput(session, 'pheno_input', selected = 'url')
 
-    observeEvent(c(data()), { # update trait
+            # pheno_example_url <-  paste0(session$clientData$url_protocol, '//',
+            #                              session$clientData$url_hostname, ':',
+            #                              session$clientData$url_port,
+            #                              session$clientData$url_pathname,
+            #                              pheno_example)
+
+            pheno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/pheno.csv'
+
+            updateTextInput(session, 'pheno_url', value = pheno_example_url)
+
+            golem::invoke_js('hideid', ns('pheno_file_holder'))
+            golem::invoke_js('showid', ns('pheno_url'))
+            golem::invoke_js('hideid', ns('pheno_db'))
+          } else {
+            updateSelectInput(session, 'pheno_input', selected = 'file')
+            updateTextInput(session, 'pheno_url', value = '')
+
+            golem::invoke_js('showid', ns('pheno_file_holder'))
+            golem::invoke_js('hideid', ns('pheno_url'))
+            golem::invoke_js('hideid', ns('pheno_db'))
+          }
+        }
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "pheno_example", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
+
+    # update trait
+    observeEvent(c(data()), {
       req(data())
       dtMta <- data()$metadata$pheno
       if(!is.null(dtMta)){

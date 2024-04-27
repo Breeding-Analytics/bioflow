@@ -49,13 +49,14 @@ mod_getDataGeno_ui <- function(id){
 
 
                                   if (!is.null(geno_example)) {
-                                    checkboxInput(
-                                      inputId = ns('geno_example'),
-                                      label = span('Load example ',
-                                                   a('genotypic data', target = '_blank',
-                                                     href = geno_example)),
-                                      value = FALSE
-                                    )
+                                    # checkboxInput(
+                                    #   inputId = ns('geno_example'),
+                                    #   label = span('Load example ',
+                                    #                a('genotypic data', target = '_blank',
+                                    #                  href = geno_example)),
+                                    #   value = FALSE
+                                    # )
+                                    shinyWidgets::prettySwitch( inputId = ns('geno_example'), label = "Load example", status = "success")
                                   },
                                   # ),
 
@@ -463,33 +464,77 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
       }
     )
 
+    # observeEvent(
+    #   input$geno_example,
+    #   if(length(input$geno_example) > 0){ # added
+    #     if (input$geno_example) {
+    #       updateSelectInput(session, 'geno_input', selected = 'url')
+    #
+    #       # geno_example_url <-  paste0(session$clientData$url_protocol, '//',
+    #       #                             session$clientData$url_hostname, ':',
+    #       #                             session$clientData$url_port,
+    #       #                             session$clientData$url_pathname,
+    #       #                             geno_example)
+    #
+    #       geno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/geno.hmp.txt'
+    #
+    #       updateTextInput(session, 'geno_url', value = geno_example_url)
+    #
+    #       golem::invoke_js('hideid', ns('geno_file_holder'))
+    #       golem::invoke_js('showid', ns('geno_url'))
+    #     } else {
+    #       updateSelectInput(session, 'geno_input', selected = 'file')
+    #       updateTextInput(session, 'geno_url', value = '')
+    #
+    #       golem::invoke_js('showid', ns('geno_file_holder'))
+    #       golem::invoke_js('hideid', ns('geno_url'))
+    #     }
+    #   }
+    # )
+
+    ## data example loading
     observeEvent(
       input$geno_example,
-      if(length(input$geno_example) > 0){ # added
+      if(length(input$geno_example) > 0){
         if (input$geno_example) {
-          updateSelectInput(session, 'geno_input', selected = 'url')
-
-          # geno_example_url <-  paste0(session$clientData$url_protocol, '//',
-          #                             session$clientData$url_hostname, ':',
-          #                             session$clientData$url_port,
-          #                             session$clientData$url_pathname,
-          #                             geno_example)
-
-          geno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/geno.hmp.txt'
-
-          updateTextInput(session, 'geno_url', value = geno_example_url)
-
-          golem::invoke_js('hideid', ns('geno_file_holder'))
-          golem::invoke_js('showid', ns('geno_url'))
-        } else {
-          updateSelectInput(session, 'geno_input', selected = 'file')
-          updateTextInput(session, 'geno_url', value = '')
-
-          golem::invoke_js('showid', ns('geno_file_holder'))
-          golem::invoke_js('hideid', ns('geno_url'))
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example genotype data? This will delete any genotype data currently in the environment.",
+            title = "Data replacement warning"
+          )
         }
       }
     )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        if(length(input$geno_example) > 0){ # added
+          if (input$geno_example) {
+            updateSelectInput(session, 'geno_input', selected = 'url')
+
+            # geno_example_url <-  paste0(session$clientData$url_protocol, '//',
+            #                             session$clientData$url_hostname, ':',
+            #                             session$clientData$url_port,
+            #                             session$clientData$url_pathname,
+            #                             geno_example)
+
+            geno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/geno.hmp.txt'
+
+            updateTextInput(session, 'geno_url', value = geno_example_url)
+
+            golem::invoke_js('hideid', ns('geno_file_holder'))
+            golem::invoke_js('showid', ns('geno_url'))
+          } else {
+            updateSelectInput(session, 'geno_input', selected = 'file')
+            updateTextInput(session, 'geno_url', value = '')
+
+            golem::invoke_js('showid', ns('geno_file_holder'))
+            golem::invoke_js('hideid', ns('geno_url'))
+          }
+        }
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "geno_example", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
 
   })
 }

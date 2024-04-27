@@ -43,13 +43,14 @@ mod_getDataQTL_ui <- function(id){
                                     placeholder = 'https://example.com/path/file.csv'
                                   ),
                                   if (!is.null(qtl_example)) {
-                                    checkboxInput(
-                                      inputId = ns('qtl_example'),
-                                      label = span('Load example ',
-                                                   a('QTL data', target = '_blank',
-                                                     href = qtl_example)),
-                                      value = FALSE
-                                    )
+                                    # checkboxInput(
+                                    #   inputId = ns('qtl_example'),
+                                    #   label = span('Load example ',
+                                    #                a('QTL data', target = '_blank',
+                                    #                  href = qtl_example)),
+                                    #   value = FALSE
+                                    # )
+                                    shinyWidgets::prettySwitch( inputId = ns('qtl_example'), label = "Load example", status = "success")
                                   },
                                   # ),
                            ),
@@ -190,35 +191,6 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
       )
     })
 
-    observeEvent(
-      input$qtl_example,
-      if(length(input$qtl_example) > 0){ # if user clicked on qtl example
-        if (input$qtl_example) {
-          updateSelectInput(session, 'qtl_input', selected = 'qtlfileurl')
-
-          # qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
-          #                            session$clientData$url_hostname, ':',
-          #                            session$clientData$url_port,
-          #                            session$clientData$url_pathname,
-          #                            qtl_example)
-
-          qtl_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/qtl.csv'
-
-          updateTextInput(session, 'qtl_url', value = qtl_example_url)
-
-          golem::invoke_js('hideid', ns('qtl_file_holder'))
-          golem::invoke_js('showid', ns('qtl_url'))
-        } else {
-          updateSelectInput(session, 'qtl_input', selected = 'qtlfile')
-          updateTextInput(session, 'qtl_url', value = '')
-
-          golem::invoke_js('showid', ns('qtl_file_holder'))
-          golem::invoke_js('hideid', ns('qtl_url'))
-        }
-      }
-
-    )
-
     qtl_data_table = reactive({ # function to purely just read a csv when we need to match the qtltype file
       if(length(input$qtl_input) > 0){ # added
         if (input$qtl_input == 'qtlfile' ) {
@@ -276,6 +248,79 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
         }else{return(NULL)}
       }
     )
+
+    # observeEvent(
+    #   input$qtl_example,
+    #   if(length(input$qtl_example) > 0){ # if user clicked on qtl example
+    #     if (input$qtl_example) {
+    #       updateSelectInput(session, 'qtl_input', selected = 'qtlfileurl')
+    #
+    #       # qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
+    #       #                            session$clientData$url_hostname, ':',
+    #       #                            session$clientData$url_port,
+    #       #                            session$clientData$url_pathname,
+    #       #                            qtl_example)
+    #
+    #       qtl_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/qtl.csv'
+    #
+    #       updateTextInput(session, 'qtl_url', value = qtl_example_url)
+    #
+    #       golem::invoke_js('hideid', ns('qtl_file_holder'))
+    #       golem::invoke_js('showid', ns('qtl_url'))
+    #     } else {
+    #       updateSelectInput(session, 'qtl_input', selected = 'qtlfile')
+    #       updateTextInput(session, 'qtl_url', value = '')
+    #
+    #       golem::invoke_js('showid', ns('qtl_file_holder'))
+    #       golem::invoke_js('hideid', ns('qtl_url'))
+    #     }
+    #   }
+    #
+    # )
+
+    ## data example loading
+    observeEvent(
+      input$qtl_example,
+      if(length(input$qtl_example) > 0){
+        if (input$qtl_example) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example QTL data? This will delete any QTL data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        if(length(input$qtl_example) > 0){ # if user clicked on qtl example
+          if (input$qtl_example) {
+            updateSelectInput(session, 'qtl_input', selected = 'qtlfileurl')
+
+            # qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
+            #                            session$clientData$url_hostname, ':',
+            #                            session$clientData$url_port,
+            #                            session$clientData$url_pathname,
+            #                            qtl_example)
+
+            qtl_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/qtl.csv'
+
+            updateTextInput(session, 'qtl_url', value = qtl_example_url)
+
+            golem::invoke_js('hideid', ns('qtl_file_holder'))
+            golem::invoke_js('showid', ns('qtl_url'))
+          } else {
+            updateSelectInput(session, 'qtl_input', selected = 'qtlfile')
+            updateTextInput(session, 'qtl_url', value = '')
+
+            golem::invoke_js('showid', ns('qtl_file_holder'))
+            golem::invoke_js('hideid', ns('qtl_url'))
+          }
+        }
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "qtl_example", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
 
   })
 }
