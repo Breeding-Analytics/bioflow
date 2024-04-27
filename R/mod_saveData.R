@@ -12,40 +12,44 @@ mod_saveData_ui <- function(id){
   tagList(
 
 
-    # shinydashboard::tabBox(
-    #   width = 12,
-    #   id    = ns('tabset'),
+    navlistPanel( widths = c(2, 10),
+                  tabPanel(div("1. Select storing place" ),
+                           column(width = 8,
+                                  tags$br(),
 
-      h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/watch?v=B3JaVw36dvI&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=3", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                  selectInput(
+                                    inputId = ns('object_output'),
+                                    label   = 'Storing place*: ',
+                                    choices = list('Computer' = 'pcfile', 'Cloud' = 'cloudfile'),
+                                    width   = '200px'
+                                  ),
 
-      tabPanel(
-        # title = 'Save analysis',
-        value = ns('tab5'),
-        tags$br(),
-
-        selectInput(
-          inputId = ns('object_output'),
-          label   = 'Storing place*: ',
-          choices = list('Computer' = 'pcfile', 'Cloud' = 'cloudfile'),
-          width   = '200px'
-        ),
-        textInput(ns("fileNameUpload"), label = "Name assigned to the analysis", placeholder = "Enter name..."),
-
-        tags$span(id = ns('pcfile_holder'),
-                  downloadButton(ns("downloadRds"), "Save", icon = icon("floppy-disk")),
-                  textOutput(ns("outSave2")),
-        ),
-        ## provisionally silenced until Khaled enables the S3 saving using the users table
-        tags$span(id = ns('cloudfile_holder'),
-                  actionButton(ns("runSave"), "Save", icon = icon("floppy-disk")),
-                  textOutput(ns("outSave")),
-        ),
-        hr(style = "border-top: 1px solid #4c4c4c;"),
-        DT::DTOutput(ns("statusTable"))
-      )
-
-    # )
-
+                                  DT::DTOutput(ns("statusTable"))
+                           ),
+                           column(width = 4,
+                                  tags$br(),
+                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                                      h4(strong(span("", tags$a(href="https://www.youtube.com/watch?v=B3JaVw36dvI&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=3", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                  ),
+                           )
+                  ),
+                  tabPanel(div("2. Assign name" ),
+                           tags$br(),
+                           textInput(ns("fileNameUpload"), label = "Name assigned to the analysis", placeholder = "Enter name..."),
+                  ),
+                  tabPanel(div("3. Save object" ),
+                           tags$br(),
+                           tags$span(id = ns('pcfile_holder'),
+                                     downloadButton(ns("downloadRds"), "Save", icon = icon("floppy-disk")),
+                                     textOutput(ns("outSave2")),
+                           ),
+                           ## provisionally silenced until Khaled enables the S3 saving using the users table
+                           tags$span(id = ns('cloudfile_holder'),
+                                     actionButton(ns("runSave"), "Save", icon = icon("floppy-disk")),
+                                     textOutput(ns("outSave")),
+                           ),
+                  ),
+    ),
 
   )
 }

@@ -96,13 +96,6 @@ mod_getDataQTL_ui <- function(id){
                   ),
     ),
 
-
-
-
-
-
-
-
   )
 }
 

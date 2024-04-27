@@ -23,6 +23,7 @@ mod_qaGenoApp_ui <- function(id){
                                                     h1(strong(span("QA for genetic markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                     h2(strong("Status:")),
                                                     uiOutput(ns("warningMessage")),
+                                                    tags$br(),
                                                     img(src = "www/qaGeno.png", height = 300, width = 650), # add an image
                                              ),
                                              column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -59,6 +60,9 @@ mod_qaGenoApp_ui <- function(id){
                                                              column(width=4, numericInput(ns("maf"), label = "Upper threshold for minor allele frequency (< will be removed)", value = 0, step = .05, max = 1, min = 0) ),
                                                              column(width=4, numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
                                                              column(width=4, numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
+                                                             column(width=4, tags$br(), tags$br(),
+                                                                    shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
+                                                             ),
                                                       ),
                                                       column(width=12,
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -143,6 +147,39 @@ mod_qaGenoApp_server <- function(id, data){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
       }
     )
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        data(cgiarBase::create_getData_object())
+        tmp <- data()
+        utils::data(DT_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
     ##
     newModifications <- reactive({ # p('File to be analyzed')
       req(data())

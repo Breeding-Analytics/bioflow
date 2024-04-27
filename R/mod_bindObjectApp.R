@@ -11,33 +11,43 @@ mod_bindObjectApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    br(),
+    tags$br(),
 
-    h4(strong(span("Tutorial", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-
-    selectInput(
-      inputId = ns('previous_object_input'),
-      label   = 'Object Source*: ',
-      choices = list('Upload from PC' = 'pcfile', 'Upload from cloud' = 'cloudfile'),
-      width   = '200px'
+    navlistPanel( widths = c(2, 10),
+                  tabPanel(div("1. Select object(s)" ),
+                           column(width=8,
+                                  selectInput(
+                                    inputId = ns('previous_object_input'),
+                                    label   = 'Object Source*: ',
+                                    choices = list('Upload from PC' = 'pcfile', 'Upload from cloud' = 'cloudfile'),
+                                    width   = '200px'
+                                  ),
+                                  tags$span(id = ns('previous_object_file_holder'), # from PC
+                                            fileInput(
+                                              inputId = ns('previous_object_file'),
+                                              multiple = TRUE,
+                                              label   = NULL,
+                                              width   = '400px',
+                                              accept  = c('.rds','.RData')
+                                            ),
+                                  ),
+                                  tags$div(id = ns('previous_object_retrieve'), # from cloud
+                                           actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve data objects"),
+                                           uiOutput(ns('previous_input2')),
+                                  ),
+                           ),
+                           column(width=4,
+                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                                      h4(strong(span("", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                  ),
+                           ),
+                  ),
+                  tabPanel(div("2. Load object(s)" ),
+                           br(),
+                           actionButton(ns("runBind"), "Load object(s)", icon = icon("play-circle")),
+                           textOutput(ns("outBind")),
+                  ),
     ),
-    tags$span(id = ns('previous_object_file_holder'), # from PC
-              fileInput(
-                inputId = ns('previous_object_file'),
-                multiple = TRUE,
-                label   = NULL,
-                width   = '400px',
-                accept  = c('.rds','.RData')
-              ),
-    ),
-    tags$div(id = ns('previous_object_retrieve'), # from cloud
-             actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve data objects"),
-             uiOutput(ns('previous_input2')),
-    ),
-
-    br(),
-    actionButton(ns("runBind"), "Load object(s)", icon = icon("play-circle")),
-    textOutput(ns("outBind")),
 
   )
 }

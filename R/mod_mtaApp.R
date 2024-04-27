@@ -11,6 +11,8 @@ mod_mtaApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    tags$br(),
+
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
@@ -22,6 +24,7 @@ mod_mtaApp_ui <- function(id){
                                            h1(strong(span("Multi Trial Analysis", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                            h2(strong("Status:")),
                                            uiOutput(ns("warningMessage")),
+                                           tags$br(),
                                            img(src = "www/mta.png", height = 300, width = 450), # add an image
                                     ),
                                     column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -63,7 +66,12 @@ mod_mtaApp_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Pick STA-stamp", icon = icon("table"),
                                                br(),
-                                               column(width=12, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE),  style = "background-color:grey; color: #FFFFFF"),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=8, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE)),
+                                                      column(width=4, tags$br(),
+                                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
+                                                      ),
+                                               ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -285,6 +293,39 @@ mod_mtaApp_server <- function(id, data){
         golem::invoke_js('hideid', ns('holder6'))
       }
     })
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        data(cgiarBase::create_getData_object())
+        tmp <- data()
+        utils::data(DT_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
     ############################################################################
     observeEvent(
       input$modelMet,
@@ -582,9 +623,9 @@ mod_mtaApp_server <- function(id, data){
       midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+ ggplot2::ggtitle("Available data for this trait.") +
-      ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                    midpoint = midval, limit = c(0,maxVal), space = "Lab",
-                                    name="Connectivity (data types)") +
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = midval, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity (data types)") +
         ggplot2::theme_minimal()+
         ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
         ggplot2::ylab("") + ggplot2::xlab("") +

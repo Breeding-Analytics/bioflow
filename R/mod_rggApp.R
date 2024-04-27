@@ -11,6 +11,8 @@ mod_rggApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    tags$br(),
+
     mainPanel( width = 12,
                tabsetPanel( id=ns("tabsMain"),
                             type = "tabs",
@@ -58,7 +60,10 @@ mod_rggApp_ui <- function(id){
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=6, selectInput(ns("version2Rgg"), "Data version to analyze", choices = NULL, multiple = FALSE) ),
-                                                       column(width=6, radioButtons(ns("methodRgg"),"Method",choices=list("Mackay"="mackay","Piepho"="piepho"), selected="mackay") ),
+                                                       column(width=3, radioButtons(ns("methodRgg"),"Method",choices=list("Mackay"="mackay","Piepho"="piepho"), selected="mackay") ),
+                                                       column(width=3, tags$br(),
+                                                              shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
+                                                       ),
                                                 ),
                                                 column(width=12,
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -224,6 +229,39 @@ mod_rggApp_server <- function(id, data){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
     )
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        data(cgiarBase::create_getData_object())
+        tmp <- data()
+        utils::data(DT_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
     #################
     ## version
     observeEvent(c(data(), input$methodRgg), {

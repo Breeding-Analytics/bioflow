@@ -16,33 +16,33 @@ mod_singleCrossGenoApp_ui <- function(id){
                        type = "tabs",
 
                        tabPanel( div(icon("book"), "Information-SCM") ,
-                                br(),
-                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                           h1(strong(span("Single Cross Marker Matrix Build", style="color:green"))),
-                                                           h2(strong("Status:")),
-                                                           uiOutput(ns("warningMessage")),
-                                                           tags$body(
-                                                             h2(strong("Details")),
-                                                             p("Hybrid breeding based on single-cross of lines allows the genotyping of only the parental lines and the consequent
+                                 br(),
+                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                 #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
+                                 h1(strong(span("Single Cross Marker Matrix Build", style="color:darkcyan"))),
+                                 h2(strong("Status:")),
+                                 uiOutput(ns("warningMessage")),
+                                 tags$body(
+                                   h2(strong("Details")),
+                                   p("Hybrid breeding based on single-cross of lines allows the genotyping of only the parental lines and the consequent
                                                                formation of single-cross marker matrices. The idea is that the user provides the marker information from the parental
                                                                lines and has uploaded a pedigree of the phenotypic dataset. The marker profiles of the possible cross combinations
                                                                will be computed based on the availability of the marker information. Some of the parameters required are:"),
-                                                             # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                                             p(strong("Batch size to compute-")," the number of hybrids to build in each batch. Building all hybrids at once can be computationally
+                                   # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                   p(strong("Batch size to compute-")," the number of hybrids to build in each batch. Building all hybrids at once can be computationally
                                                                intensive and unnecesary. The default value is 1000 hybrids per batch."),
-                                                             p(strong("Compute all possible hybrids?-")," an indication to know if only the marker-profiles for the hybrids present in the phenotypic dataset should be computed or
+                                   p(strong("Compute all possible hybrids?-")," an indication to know if only the marker-profiles for the hybrids present in the phenotypic dataset should be computed or
                                                                marker-profiles for all cross combinations should be created. This should be used carefully when the number of males and females in the pedigree file is big."),
-                                                             h2(strong("References")),
-                                                             p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
-                                                             p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
-                                                             h2(strong("Software")),
-                                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                   h2(strong("References")),
+                                   p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
+                                   p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
+                                   h2(strong("Software")),
+                                   p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                             p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
-                                                           )
-                                #                     )
-                                # )
+                                   p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                 )
+                                 #                     )
+                                 # )
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
@@ -53,7 +53,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
                                            #                     column(width=12, style = "height:530px; overflow-y: scroll;overflow-x: scroll;",
-                                                                      DT::DTOutput(ns("summariesScr")),
+                                           DT::DTOutput(ns("summariesScr")),
                                            #                            )
                                            # )
                                   ),
@@ -63,10 +63,10 @@ mod_singleCrossGenoApp_ui <- function(id){
                                            h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                            # shinydashboard::box(status="success",width = 12,  solidHeader = TRUE, #background = "green",
-                                                               column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
-                                                               column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
-                                                               column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
-                                                               column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
+                                           column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
+                                           column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
+                                           column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
+                                           column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
                                            # )
                                   ),
                                   tabPanel("Run analysis", icon = icon("play"),

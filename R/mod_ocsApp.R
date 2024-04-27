@@ -11,6 +11,8 @@ mod_ocsApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    tags$br(),
+
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
@@ -22,6 +24,7 @@ mod_ocsApp_ui <- function(id){
                                             h1(strong(span("Optimal Cross Selection", tags$a(href="https://www.youtube.com/watch?v=LTiN7G6zCtM&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=9", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                             h2(strong("Status:")),
                                             uiOutput(ns("warningMessage")),
+                                            tags$br(),
                                             img(src = "www/ocs.png", height = 400, width = 250), # add an image
                                      ),
                                      column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -59,7 +62,12 @@ mod_ocsApp_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Pick Index-stamp", icon = icon("table"),
                                                br(),
-                                               column(width=12, selectInput(ns("version2Ocs"), "Index version to analyze (required)", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=8, selectInput(ns("version2Ocs"), "Index version to analyze (required)", choices = NULL, multiple = FALSE)),
+                                                      column(width=4, tags$br(),
+                                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
+                                                      ),
+                                                      ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -219,6 +227,39 @@ mod_ocsApp_server <- function(id, data){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        data(cgiarBase::create_getData_object())
+        tmp <- data()
+        utils::data(DT_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
     #################
     ## version
     observeEvent(c(data()), {

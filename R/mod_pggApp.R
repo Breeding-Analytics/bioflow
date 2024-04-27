@@ -11,6 +11,8 @@ mod_pggApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    tags$br(),
+
     mainPanel( width =12,
                tabsetPanel( id=ns("tabsMain"),
                             type = "tabs",
@@ -18,29 +20,30 @@ mod_pggApp_ui <- function(id){
                                       br(),
                                       # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                       #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                                 column(width = 6,
-                                                                        h1(strong(span("Predicted Genetic Gain", tags$a(href="https://www.youtube.com/watch?v=nc4_SddPjjo&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=11", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                                                        h2(strong("Status:")),
-                                                                        uiOutput(ns("warningMessage")),
-                                                                        img(src = "www/pgg.png", height = 250, width = 500), # add an image
-                                                                 ),
-                                                                 column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                                                 column(width = 12,
-                                                                        h2(strong("Details")),
-                                                                        p("In order to monitor the efficacy of genetic evaluation in the current cycle of selection the predicted genetic gain formula is used.
+                                      column(width = 6,
+                                             h1(strong(span("Predicted Genetic Gain", tags$a(href="https://www.youtube.com/watch?v=nc4_SddPjjo&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=11", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                             h2(strong("Status:")),
+                                             uiOutput(ns("warningMessage")),
+                                             tags$br(),
+                                             img(src = "www/pgg.png", height = 250, width = 500), # add an image
+                                      ),
+                                      column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                      column(width = 12,
+                                             h2(strong("Details")),
+                                             p("In order to monitor the efficacy of genetic evaluation in the current cycle of selection the predicted genetic gain formula is used.
                                           This option aims to calculate the predicted genetic gain from the classical breeders' equation
                               R = i*r*s being R the response to selection, i the selection intensity, r the selection accuracy, s the genetic standard deviation.
                                 The way the options are used is the following:"),
-                                                                        p(strong("Trait(s) to use.-")," Trait to be be used for calculating the predicted genetic gain parameters."),
-                                                                        p(strong("Environment(s) to use.-")," Environments-data to be used from the input file."),
-                                                                        p(strong("Proportion selected.-")," Proportion of parents to be selected in order to calculate the selection intensity."),
-                                                                        h2(strong("References:")),
-                                                                        p("Lush, J. L. (2013). Animal breeding plans. Read Books Ltd."),
-                                                                        p("Mrode, R. A. (2014). Linear models for the prediction of animal breeding values. Cabi."),
-                                                                        h2(strong("Software used:")),
-                                                                        p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                             p(strong("Trait(s) to use.-")," Trait to be be used for calculating the predicted genetic gain parameters."),
+                                             p(strong("Environment(s) to use.-")," Environments-data to be used from the input file."),
+                                             p(strong("Proportion selected.-")," Proportion of parents to be selected in order to calculate the selection intensity."),
+                                             h2(strong("References:")),
+                                             p("Lush, J. L. (2013). Animal breeding plans. Read Books Ltd."),
+                                             p("Mrode, R. A. (2014). Linear models for the prediction of animal breeding values. Cabi."),
+                                             h2(strong("Software used:")),
+                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                                 ),
+                                      ),
                                       #                     )
                                       # )
                             ),
@@ -48,7 +51,12 @@ mod_pggApp_ui <- function(id){
                                      tabsetPanel(
                                        tabPanel("Pick Index-stamp", icon = icon("table"),
                                                 br(),
-                                                column(width=12, selectInput(ns("version2Pgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE), style = "background-color:grey; color: #FFFFFF"),
+                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                       column(width=8, selectInput(ns("version2Pgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE)),
+                                                       column(width=4, tags$br(),
+                                                              shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
+                                                       ),
+                                                ),
                                                 column(width=12,
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -56,10 +64,10 @@ mod_pggApp_ui <- function(id){
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
                                                 #                     column(width=12,
-                                                                           # p(span("Network plot of current analyses available.", style="color:black")),
-                                                                           column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                                           # p(span("Predictions table to be used as input.", style="color:black")),
-                                                                           DT::DTOutput(ns("phenoPgg")),
+                                                # p(span("Network plot of current analyses available.", style="color:black")),
+                                                column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                # p(span("Predictions table to be used as input.", style="color:black")),
+                                                DT::DTOutput(ns("phenoPgg")),
                                                 #                     )
                                                 # )
                                        ),
@@ -73,16 +81,16 @@ mod_pggApp_ui <- function(id){
                                                 ),
                                                 # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                 #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                           # p(span("Metrics available for analysis stamp selected.", style="color:black")),
+                                                # p(span("Metrics available for analysis stamp selected.", style="color:black")),
                                                 tags$span(id = ns('holder1'),
-                                                                           column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
-                                                                           column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                                           column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                                                           shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                                               selectInput(ns("environmentToUse"), "Environments to use", choices = NULL, multiple = TRUE),
-                                                                                               numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
-                                                                                               selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
-                                                                           ),
+                                                          column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
+                                                          column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                          shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                              selectInput(ns("environmentToUse"), "Environments to use", choices = NULL, multiple = TRUE),
+                                                                              numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
+                                                                              selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                          ),
                                                 ),
                                                 #                     ),
                                                 # )
@@ -100,17 +108,17 @@ mod_pggApp_ui <- function(id){
                                        tabPanel("Metrics", icon = icon("table"),
                                                 br(),
                                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                    # column(width=12,br(),
-                                                                           DT::DTOutput(ns("metricsPgg")),
-                                                                           # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                                # column(width=12,br(),
+                                                DT::DTOutput(ns("metricsPgg")),
+                                                # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                                 # )
                                        ),
                                        tabPanel("Modeling", icon = icon("table"),
                                                 br(),
                                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                    # column(width=12,
-                                                                           DT::DTOutput(ns("modelingPgg")),
-                                                                           # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
+                                                # column(width=12,
+                                                DT::DTOutput(ns("modelingPgg")),
+                                                # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                                 # )
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
@@ -161,6 +169,39 @@ mod_pggApp_server <- function(id, data){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
       }
     )
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        data(cgiarBase::create_getData_object())
+        tmp <- data()
+        utils::data(DT_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
     #################
     ## version
     observeEvent(c(data()), {
