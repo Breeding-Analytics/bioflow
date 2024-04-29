@@ -852,7 +852,7 @@ if (is.null(result)){
 
 ### Across-environment merit estimates of top entries
 
-In the following plot you can observe the comparison between the top 100 entries from each entry type category for the different traits. If a category has less than a 100 entries all individuals are displayed. This should allow you to identify the entries that coul potentially become parents or nominated for advanced stages of evaluation. We would recommend you to wait until a selection index is calculated.
+In the following plot you can observe the comparison between the top 100 entries from each entry type category for the different traits. If a category has less than a 100 entries all individuals are displayed. This should allow you to identify the entries that could potentially become parents or nominated for advanced stages of evaluation. We would recommend you to wait until a selection index is calculated.
 
 ```{r }
 if (is.null(result)){

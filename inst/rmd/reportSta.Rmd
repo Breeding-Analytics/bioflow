@@ -717,6 +717,172 @@ if("params" %in% ls()){ # we will download the document
 
 <p>&nbsp;</p>
 
+### Per-environment merit estimates of top entries
+
+In the following plot you can observe the comparison between the top 30 entries from each entry type category for the different traits. If a category has less than a 30 entries all individuals are displayed. This should allow you to identify the top entries in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi-trial analysis and selection indices.
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  modeling <- result$modeling
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
+  traitsComp <- unique(setdiff(modeling, "inputObject"))
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("traitStaComp"), 
+                       label = "Trait to filter:", 
+                       multiple = FALSE,
+                       selected = traitsComp,
+                       choices = traitsComp, 
+    )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  predComp <- result$predictions[which(result$predictions$analysisId == idSta),]
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
+    for(iTrait in traitsComp){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      temp.predComp.box <- predComp[predComp$trait== iTrait,]
+      ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
+      lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
+      
+      p1 <- ggplot2::ggplot(temp.predComp.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
+        ggplot2::labs(x="", y="Trait value") +  
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box$entryType))/3) )) +  ggplot2::facet_grid(~environment) +
+        ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      temp.predComp.box.list <- split(temp.predComp.box, temp.predComp.box$entryType)
+      temp.predComp.box.list <- lapply(temp.predComp.box.list, function(x){
+        y <- split(x, x$environment)
+        
+        bindByEnv <- lapply(y, function(z){
+          z <- z[with(z, order(-predictedValue)), ]
+          z <- z[1:min(c(nrow(z), 30)),]
+          return(z)
+        })
+        
+        res0 <- do.call(rbind, bindByEnv)
+        
+        return(res0)
+      })
+      temp.predComp.box2 <- do.call(rbind, temp.predComp.box.list)
+      
+      p2 <- ggplot2::ggplot(
+        data = temp.predComp.box2,
+        mapping = ggplot2::aes(
+          x = reorder(designation, -predictedValue),
+          y = predictedValue,
+          col = entryType,
+          text = paste(
+            paste0('<br>', "designation: ", designation),
+            paste0('<br>', "entry type: ", entryType),
+            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+            paste0('<br>', "standard error: ", round(stdError, 4)),
+            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+            #        round(predictedValue + CI, 2), ")")))) +
+            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                   round(predictedValue + stdError, 4), ")")))) +
+        ggplot2::theme_classic() +  ggplot2::geom_point() + 
+        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                               width = 0.10) +
+        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
+        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) ) )
+      
+      cat("\n")
+      cat("\n")
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      
+      temp.predComp.box <- predComp[predComp$trait== input$traitStaComp,]
+      ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
+      lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
+      
+      p1 <- ggplot2::ggplot(temp.predComp.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +  ggplot2::facet_grid(~environment) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
+        ggplot2::labs(x="", y="Trait value") +  
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      temp.predComp.box.list <- split(temp.predComp.box, temp.predComp.box$entryType)
+      temp.predComp.box.list <- lapply(temp.predComp.box.list, function(x){
+        y <- split(x, x$environment)
+        
+        bindByEnv <- lapply(y, function(z){
+          z <- z[with(z, order(-predictedValue)), ]
+          z <- z[1:min(c(nrow(z), 30)),]
+          return(z)
+        })
+        
+        res0 <- do.call(rbind, bindByEnv)
+        
+        return(res0)
+      })
+      temp.predComp.box2 <- do.call(rbind, temp.predComp.box.list)
+      
+      p2 <- ggplot2::ggplot(
+        data = temp.predComp.box2,
+        mapping = ggplot2::aes(
+          x = reorder(designation, -predictedValue),
+          y = predictedValue,
+          col = entryType,
+          text = paste(
+            paste0('<br>', "designation: ", designation),
+            paste0('<br>', "entry type: ", entryType),
+            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+            paste0('<br>', "standard error: ", round(stdError, 4)),
+            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+            #        round(predictedValue + CI, 2), ")")))) +
+            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                   round(predictedValue + stdError, 4), ")")))) +
+        ggplot2::theme_classic() +  ggplot2::geom_point() +
+        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                               width = 0.10) + ggplot2::facet_grid(~environment, scales = "free_x") +
+        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
+        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) + 
+        ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      
+      ply1 <- plotly::ggplotly(p1)
+      ply2 <- plotly::ggplotly(p2)
+      plotly::subplot(ply1, ply2, nrows=2)#, widths = c(0.75,0.25))
+      
+    })
+    
+    
+    
+  }
+}
+```
+
+
 ### Correlation between environments
 
 The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments for the traits available in order to identify if there is one or more environments that do not align with the target population of environments (i.e., negatively correlated with the main cluster across most environments). You may want to exclude such environments from the multi-trial analysis (MTA) to ensure that selected entries in the MTA achieve genetic gain in the main cluster of environments.
