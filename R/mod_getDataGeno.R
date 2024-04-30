@@ -450,7 +450,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
         } # make sure if an user uploads a new dataset the qaGeno starts empty
 
         gd<-geno_data()[[1]]
-        temp$data$geno <- t(as.matrix(gd[, -c(1:11)])) # - 1
+        temp$data$geno <- t(as.matrix(gd[, -c(1:11)])) - 1
         colnames(temp$data$geno) <- gd$`rs#`
 
         map <- gd[, c('rs#', 'chrom', 'pos', 'alleles', 'alleles')]
