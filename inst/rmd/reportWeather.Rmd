@@ -153,7 +153,7 @@ if (is.null(result)){
 
 ### Coordinates map
 
-The following plot allows you to visualize which records were tagged as outliers and will be ignored in posterior analyses if this QA time stamp is added to the posterior analyses.
+The following map allows you to assess the location where trials are planted.
 
 <p>&nbsp;</p>
 
@@ -214,10 +214,6 @@ if (is.null(result)){
   
 }
 ```
-
-
-
-
 
 ### References of methods used
 
