@@ -221,11 +221,11 @@ mod_qaGenoApp_server <- function(id, data){
         propNaIndividual <- apply(mydata,1,function(x){(length(which(is.na(x)))/length(x))})
         fig <- fig %>% plotly::add_histogram(x = propNaIndividual, histnorm = "probability", name="Missing data in individuals" )
         ## historgram for MAF
-        MAF <- apply(mydata+1, 2, function(x) {AF <- mean(x, na.rm = T)/input$ploidy;MAF <- ifelse(AF > 0.5, 1 - AF, AF) })
+        MAF <- apply(mydata, 2, function(x) {AF <- mean(x, na.rm = T)/input$ploidy;MAF <- ifelse(AF > 0.5, 1 - AF, AF) })
         fig <- fig %>% plotly::add_histogram(x = MAF, histnorm = "probability", name="Minor allele frequency" )
         ## histogram for heterozigosity
         q <- MAF; p <- 1 - q
-        he <- 2 * p * q;  ho <- colMeans((mydata+1) == 1, na.rm = TRUE) # Get the obseved heterozygosity.
+        he <- 2 * p * q;  ho <- colMeans((mydata) == 1, na.rm = TRUE) # Get the obseved heterozygosity.
         fig <- fig %>% plotly::add_histogram(x = ho, histnorm = "probability", name="Observed heterozygosity" )
         ## histogram for inbreeding
         Fis <- ifelse(he == 0, yes = 0, no = 1 - (ho / he))
