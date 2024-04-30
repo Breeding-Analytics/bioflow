@@ -323,7 +323,7 @@ if (is.null(result)){
                                       midpoint = 60, limit = c(0,maxVal), space = "Lab",
                                       name="Connectivity") +
         ggplot2::theme_minimal()+
-        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
         ggplot2::coord_fixed() + 
         ggplot2::coord_fixed() + 
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
@@ -338,9 +338,9 @@ if (is.null(result)){
       ub <- max(mydata4$Freq, na.rm = TRUE)
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-        scale_fill_manual(values=group.colors)
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
       # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       # print(p) # static
       # print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       
@@ -370,7 +370,7 @@ if (is.null(result)){
                                       midpoint = 60, limit = c(0,maxVal), space = "Lab",
                                       name="Connectivity") +
         ggplot2::theme_minimal()+
-        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
         ggplot2::coord_fixed() + 
         ggplot2::coord_fixed() + 
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face = "bold"))+
@@ -388,11 +388,11 @@ if (is.null(result)){
       ub <- max(mydata4$Freq, na.rm = TRUE)
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-        scale_fill_manual(values=group.colors)
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
       # combine plots
       ply1 <- plotly::ggplotly(p)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1)
+      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
       
     })
     
@@ -464,7 +464,7 @@ if (is.null(result)){
                                       midpoint = 0, limit = c(-1,1), space = "Lab",
                                       name="Pearson\nCorrelation") +
         ggplot2::theme_minimal()+
-        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
         ggplot2::coord_fixed() + 
         # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
         #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
@@ -477,9 +477,9 @@ if (is.null(result)){
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) 
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
       # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       # print(p) # static
       # print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       
@@ -504,7 +504,7 @@ if (is.null(result)){
                                       midpoint = 0, limit = c(-1,1), space = "Lab",
                                       name="Pearson\nCorrelation") +
         ggplot2::theme_minimal()+
-        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
         ggplot2::coord_fixed() +
         # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
         #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
@@ -517,11 +517,11 @@ if (is.null(result)){
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors)
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
       # combine plots
       ply1 <- plotly::ggplotly(p)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1)
+      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
       # p # static
       # plotly::ggplotly(p) # dynamic
     })
@@ -930,7 +930,7 @@ if (is.null(result)){
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), nrows=1, widths = c(0.75,0.25) ) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareY = TRUE, shareX = TRUE, nrows=1, widths = c(0.75,0.25) ) ) )
       
       cat("\n")
       cat("\n")
@@ -984,7 +984,7 @@ if (is.null(result)){
       
       ply1 <- plotly::ggplotly(p1)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply2, ply1, nrows=1, widths = c(0.75,0.25))
+      plotly::subplot(ply2, ply1, nrows=1, shareY = TRUE, shareX = TRUE, widths = c(0.75,0.25))
       
     })
     
@@ -1302,9 +1302,9 @@ if (is.null(result)){
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) 
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
       # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       
     }else{
       
@@ -1330,11 +1330,11 @@ if (is.null(result)){
         group.colors <- c(Low="#E46726",Medium="white", High="#038542")
         p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
           geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-          scale_fill_manual(values=group.colors)
+          scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
         # combine plots
         ply1 <- plotly::ggplotly(p)
         ply2 <- plotly::ggplotly(p2)
-        plotly::subplot(ply1, ply2, nrows=1)
+        plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
         
         # print(p)
       })

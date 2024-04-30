@@ -946,7 +946,7 @@ if (is.null(result)){
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
         # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
-        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::ylab("Environments") + ggplot2::xlab("Environments") +
         ggplot2::coord_fixed()
       # print(p)
       # Basic histogram
@@ -954,9 +954,9 @@ if (is.null(result)){
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) 
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
       # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       # print(htmltools::tagList(plotly::ggplotly(p)))
       cat("\n")
     }
@@ -984,7 +984,7 @@ if (is.null(result)){
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
         # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
-        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::ylab("Environments") + ggplot2::xlab("Environments") +
         ggplot2::coord_fixed()
       # p
       # plotly::ggplotly(p)
@@ -993,11 +993,11 @@ if (is.null(result)){
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors)
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
       # combine plots
       ply1 <- plotly::ggplotly(p)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1)
+      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
     })
     
     
