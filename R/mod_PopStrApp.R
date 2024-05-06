@@ -19,10 +19,11 @@ mod_PopStrApp_ui <- function(id){
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-Population structure") ,
                                 br(),
-                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                #                     column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                shinydashboard::box(status="success",width = 12,
+                                                    solidHeader = TRUE,
+                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
-                                                             h1(strong(span("Population structure", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
+                                                             h1(strong(span("Population structure", style="color:green"))),
                                                              h2(strong("Status:")),
                                                              uiOutput(ns("warningMessage")),
                                                              h2(strong("Details")),
@@ -40,8 +41,8 @@ mod_PopStrApp_ui <- function(id){
                                                                 Datos de Marcadores Moleculares: Modulo de Aprendizaje. Instituto Internacional
                                                                 de Recursos Fitogeneticos (IPGRI), Roma, Italia.")
                                                               )
-                                                    #       ),
-                                                    # )
+                                                          ),
+                                                    )
                                 ),
 
                                 tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -65,13 +66,14 @@ mod_PopStrApp_ui <- function(id){
                                                               accept  = c('.csv')
                                                             )
                                                   ),
+												                        if (!is.null(geno_groupPopStr)) {
                                                     checkboxInput(
                                                       inputId = ns('geno_groupPopStr'),
                                                       label = span('Load example ',
                                                                    a('external group data', target = '_blank',
                                                                      href = geno_groupPopStr)),
                                                       value = FALSE
-                                                    ),
+                                                    )},
                                                   hr(),
                                                   checkboxInput(ns("quitomono"),"Remove monomorphic markers from groups",value=FALSE),
                                                   textInput(ns('nclust'),'No. Clusters',value='3'),
@@ -87,9 +89,9 @@ mod_PopStrApp_ui <- function(id){
                                   tabPanel("Statistics", icon = icon("table"),
                                            br(),
                                            shinydashboard::box(title="By Genotypes",status="success",width = 12, collapsible = TRUE, solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataStatGeno")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,DT::DTOutput(ns("seeDataStatGeno")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            ),shinydashboard::box(title="By Markers",status="success",width = 12,solidHeader = TRUE,
-                                                                 column(width=12,DT::DTOutput(ns("seeDataStatMark")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                                 column(width=12,DT::DTOutput(ns("seeDataStatMark")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   ),
                                   #Termina statistics
@@ -104,7 +106,7 @@ mod_PopStrApp_ui <- function(id){
                                                                    div(plotly::plotlyOutput(ns("heat"),height = "750px",width = "950px"),align="center")
                                            ),
                                            shinydashboard::box(title="Statiscs of diversity",status="success",width = 12,solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,DT::DTOutput(ns("seeDataDiver")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   ),
                                   #termina heatmap
@@ -124,10 +126,10 @@ mod_PopStrApp_ui <- function(id){
                                                                                                             selectInput(ns('colordend'),'Choose a color',choices = '',selected="",multiple=T)
                                                                    ),
                                                                    div(plotOutput(ns("dend"),height = "750px",width = "1250px"),align="center")
-
+                                                                   
                                            ),
                                            shinydashboard::box(title="Factors and Groups", status="success",width = 12, solidHeader = TRUE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataMDS")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                                               column(width=12,DT::DTOutput(ns("seeDataMDS")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   ),
                                   #termina structure
@@ -180,8 +182,8 @@ mod_PopStrApp_ui <- function(id){
                                                                    div(plotly::plotlyOutput(ns("try"),height = "750px",width = "950px"),align="center")
                                            ),
 
-                                           shinydashboard::box(title="Fst",status="success",width = 12,solidHeader = TRUE, collapsible = FALSE,
-                                                               column(width=12,DT::DTOutput(ns("seeDataGDiver")),style = "height:800px; overflow-y: scroll;overflow-x: scroll;")
+                                           shinydashboard::box(title="AMOVA",status="success",width = 12,solidHeader = TRUE, collapsible = FALSE,
+                                                               column(width=12,DT::DTOutput(ns("seeDataGAMOVA")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   ),
                                   tabPanel("Report", icon = icon("file-image"),
@@ -198,7 +200,6 @@ mod_PopStrApp_ui <- function(id){
 
   )
 }
-
 
 
 #' PopStrApp Server Functions
@@ -228,12 +229,12 @@ mod_PopStrApp_server <- function(id, data){
         }
       }
    })
-
+    
     output$outPopStr <- renderUI({
       outPopStr()
     })
 
-
+    
     outPopStr <- eventReactive(input$runPopStr, {
           req(data())
           result <- data()
@@ -241,23 +242,30 @@ mod_PopStrApp_server <- function(id, data){
           nclust <- input$nclust
           dfenvbio <- NULL
           catv <-"GroupClust"
-          if(input$geno_groupPopStr!=FALSE) dfenvbio <- DataGPopStr()
-          if(length(input[["input$fileenvbio"]][["datapath"]])!=0) dfenvbio <- DataGPopStr()
+          if(input$geno_groupPopStr!=FALSE) {
+			        src <- normalizePath("inst/app/www/example/Groupgeno.csv")     
+			        dfenvbio <- read.csv(src)
+		      }
+          if(length(input$fileenvbio$datapath)!=0) dfenvbio <- read.csv(input$fileenvbio$datapath)
+          #print(str(dfenvbio))
           shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-          uno <- cgiarBase::Biodv(result,distk, nclust, dfenvbio)
-        #source("Biodv.R")
-        #uno <- Biodv(result,distk, nclust, dfenvbio)
+          #source("Biodv.R")
+          #uno <- Biodv(result,distk, nclust, dfenvbio, catv)
+		      uno <- cgiarBase::Biodv(result,distk, nclust, dfenvbio, catv)
           shinybusy::remove_modal_spinner()
+          
           rm(result)
+      if(!inherits(uno,"try-error")) {
           result <- list(PopStr=uno[[4]])
+          result$PopStr$AMOVA=uno[[7]]
           save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
-
+          
           if(length(names(uno[[5]]))>5) catv<-names(uno[[5]])[6]
           txlab <- paste0('Factor 1 (',uno[[3]][1],'%)')
           tylab <- paste0('Factor 2 (',uno[[3]][2],'%)')
           tzlab <- paste0('Factor 3 (',uno[[3]][3],'%)')
           eti <- "Gen"
-
+          
           #Actualiza la variable catv (grupos) en conjunto con la seleccion de colores
           observeEvent(catv,{
             set.seed(7)
@@ -269,13 +277,34 @@ mod_PopStrApp_server <- function(id, data){
             updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
             updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
           })
-
-      #For report
+          
+      #For report  
       output$reportPopStr <- renderUI({
-        r#esult<-DivResult()[["result"]]
         HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
       })
-
+      ## Report tab
+      output$downloadReportPopStr <- downloadHandler(
+        filename = function() {
+          paste('my-report', sep = '.', switch(
+            "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+          ))
+        },
+        content = function(file) {
+          src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
+          src2 <- normalizePath('./R/outputs/resultPopStr.RData')
+          # temporarily switch to the temp dir, in case you do not have write
+          # permission to the current working directory
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
+          file.copy(src, 'report.Rmd', overwrite = TRUE)
+          file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
+          out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+            "HTML",
+            HTML = rmarkdown::html_document()
+          ))
+          file.rename(out, file)
+        }
+      )
       #Ver datos en tabla dinamica Summary Diversity
         output$seeDataDiver<-DT::renderDT({
           allInfo=result[["PopStr"]]
@@ -287,20 +316,19 @@ mod_PopStrApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
         })
-
-        #Ver datos en tabla dinamica Population structure
-        output$seeDataGDiver<-DT::renderDT({
-          datos<-as.data.frame(uno[[1]])
-          datos1<-as.data.frame(uno[[5]])
-          seedatosFst=cgiarBase::gdiv(datos,datos1,as.character(catv),as.character(input$quitomono),as.data.frame(uno[[2]]))
-          seedatos1<-as.data.frame(seedatosFst[[1]])
-          names(seedatos1)=c("Parameter","Groups","Fst","NumMark_UsedForCalculated")
-          seedatos1$Fst=round(as.numeric(seedatos1$Fst),4)
-          DT::datatable(seedatos1, extensions = 'Buttons',
+        
+       
+        #Ver datos en tabla dinamica AMOVA
+        output$seeDataGAMOVA<-DT::renderDataTable({
+          seedatosAV=as.data.frame(uno[[7]])  
+          rownames(seedatosAV)=seedatosAV[,1]
+          seedatosAV=seedatosAV[,-1]
+          DT::datatable(seedatosAV, extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
         })
+        
         #Ver datos en tabla dinamica %NA, He, Ho by marker
         output$seeDataStatMark<-DT::renderDT({
           seedatosStaM<-as.data.frame(result[["PopStr"]][[4]])
@@ -337,7 +365,7 @@ mod_PopStrApp_server <- function(id, data){
           tylab2=txlab
           if(input$ycol=="Factor2") tylab2=tylab
           if(input$ycol=="Factor3") tylab2=tzlab
-
+          
           mydata<-data()$data$geno
           if(!is.null(mydata)){
             p=plotly::plot_ly(data=uno[[5]],x=uno[[5]][,input$xcol],y=uno[[5]][,input$ycol],color=uno[[5]][,catv],
@@ -355,7 +383,7 @@ mod_PopStrApp_server <- function(id, data){
             fig
           }
         })
-
+        
         #Plot heatmap
         output$heat=plotly::renderPlotly({
           distMat=result[["PopStr"]][["Distance_Matrix"]]
@@ -380,7 +408,7 @@ mod_PopStrApp_server <- function(id, data){
             info<- cbind(ID=info$Gen,info)
             names(info)=c("ID","Gen","Group")
             tree=uno[[6]]
-
+            
             if (input$typeclust=="rectangular"){
               plot(tree, type = "phylogram", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
               legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
@@ -390,47 +418,17 @@ mod_PopStrApp_server <- function(id, data){
             }
           }
         })
-
-        HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
+        
+        if(length(input$fileenvbio$datapath)!=0 & catv=="GroupClust"){
+          HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready but please check the external groups file, did't find genotype names matches" )) )
+        }else{
+          HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
+        }
+        
+      }else{
+        HTML( as.character(div(style="color:green ; font-size: 20px;", "Some errors were found" )) )
+      }
     })
-
-#Transformacion de los datos, para el uso posterior en los graficos
-DataGPopStr <- reactiveVal(NULL)
-observeEvent(input[["input$fileenvbio"]], {
-      dat <- read.csv(input[["input$fileenvbio"]][["datapath"]])
-      DataGPopStr(dat)
-})
-
-observeEvent(input[["geno_groupPopStr"]], {
-      src <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/Groupgeno.csv'
-      dat <- read.csv(src)
-      DataGPopStr(dat)
-})
-
- ## Report tab
-  output$downloadReportPopStr <- downloadHandler(
-    filename = function() {
-      paste('my-report', sep = '.', switch(
-        "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-      ))
-    },
-    content = function(file) {
-      src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-      src2 <- normalizePath('R/outputs/resultPopStr.RData')
-      # temporarily switch to the temp dir, in case you do not have write
-      # permission to the current working directory
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      file.copy(src, 'report.Rmd', overwrite = TRUE)
-      file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-      out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-        "HTML",
-        HTML = rmarkdown::html_document()
-      ))
-      file.rename(out, file)
-    }
-  )
-
 
   })
 }
