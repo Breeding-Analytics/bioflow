@@ -48,7 +48,8 @@ app_server <- function(input, output, session) {
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
-  mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices
+  mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
+  mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
   # SELECTION - selection history
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain

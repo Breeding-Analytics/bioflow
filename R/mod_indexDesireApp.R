@@ -37,7 +37,7 @@ mod_indexDesireApp_ui <- function(id){
                               for selection.
                                 The way the options are used is the following:"),
 
-                                            p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
+                                            # p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
                                             p(strong("Traits to include in the index-")," Traits to be considered in the index."),
                                             p(strong("Desire or base values.-")," Vector of values indicating the desired change in traits."),
                                             p(strong("Scale traits.-")," A TRUE or FALSE value indicating if the table of traits should be
@@ -83,16 +83,9 @@ mod_indexDesireApp_ui <- function(id){
                                        tabPanel("Pick traits", icon = icon("table"),
                                                 br(),
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
-                                                       radioButtons(ns("rbSelectionIndices"),"Selection Index",choices=c("Desire","Base"), selected="Desire"),
-                                                       conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                        selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE),
-                                                                        uiOutput(ns("SliderBaseIndex")),
-                                                       ),
-                                                       conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                        selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-                                                                        selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-                                                                        uiOutput(ns("SliderDesireIndex")),
-                                                       ),
+                                                       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                                       uiOutput(ns("SliderDesireIndex"))
                                                 ),
                                                 column(width=9, #style = "height:550px; overflow-y: scroll;overflow-x: scroll;",
                                                        column(width=12,
@@ -122,16 +115,9 @@ mod_indexDesireApp_ui <- function(id){
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
                                                 br(),
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                 actionButton(ns("runIdxB"), "Calculate index", icon = icon("play-circle")),
-                                                                 uiOutput(ns("qaQcIdxBInfo")),
-                                                                 textOutput(ns("outIdxB"))
-                                                ),
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                 actionButton(ns("runIdxD"), "Calculate index (click)", icon = icon("play-circle")),
-                                                                 uiOutput(ns("qaQcIdxDInfo")),
-                                                                 textOutput(ns("outIdxD")),
-                                                ),
+                                                actionButton(ns("runIdxD"), "Calculate index (click)", icon = icon("play-circle")),
+                                                uiOutput(ns("qaQcIdxDInfo")),
+                                                textOutput(ns("outIdxD")),
                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
                                                                     selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
@@ -143,42 +129,17 @@ mod_indexDesireApp_ui <- function(id){
                                      tabsetPanel(
                                        tabPanel("Predictions", icon = icon("table"),
                                                 br(),
-                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                #                     column(width=12,
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                 DT::DTOutput(ns("predictionsIdxD"))
-                                                ),
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                 DT::DTOutput(ns("predictionsIdxB"))
-                                                ),
-                                                #                       style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
-                                                #                     )
-                                                # )
+                                                DT::DTOutput(ns("predictionsIdxD"))
                                        ),
                                        tabPanel("Modeling", icon = icon("table"),
                                                 br(),
-                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                #                     column( width=12,
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                 DT::DTOutput(ns("modelingIdxD"))
-                                                ),
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                 DT::DTOutput(ns("modelingIdxB"))
-                                                ),
-                                                #                       style = "height:530px; overflow-y: scroll;overflow-x: scroll;"
-                                                #                     )
-                                                # )
+                                                DT::DTOutput(ns("modelingIdxD"))
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),
                                                 downloadButton(ns("downloadReportIndex"), "Download dashboard"),
                                                 br(),
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Desire'"),
-                                                                 uiOutput(ns('reportIndex'))
-                                                ),
-                                                conditionalPanel(condition=paste0("input['", ns("rbSelectionIndices"),"']=='Base'"),
-                                                                 DT::DTOutput(ns("BaseIndex"))
-                                                )
+                                                uiOutput(ns('reportIndex'))
 
                                        )
                                      )
@@ -602,174 +563,6 @@ mod_indexDesireApp_server <- function(id, data){
 
     output$outIdxD <- renderPrint({
       outIdxD()
-    })
-
-
-    ######################################################################################
-    ######################################################################################
-    ########################################### Base Index
-    ######################################################################################
-    ######################################################################################
-
-    ####################
-    ## traits for base index
-    observeEvent(c(data(), input$version2IdxD), {
-      req(data())
-      req(input$version2IdxD)
-      dtBaseIndex <- data()
-      dtBaseIndex <- dtBaseIndex$predictions
-      dtBaseIndex <- dtBaseIndex[which(dtBaseIndex$analysisId %in% input$version2IdxD),]
-      traitsBaseIndex <- unique(dtBaseIndex$trait)
-      updateSelectInput(session, "traitsBaseIndex", choices = traitsBaseIndex)
-    })
-    ####################
-    ## Weights for traits Base Index
-    output$SliderBaseIndex <- renderUI({
-      req(data())
-      req(input$traitsBaseIndex)
-      traitsBaseIndex <- input$traitsBaseIndex
-      lapply(1:length(traitsBaseIndex), function(i) {
-        sliderInput(
-          session$ns(paste0('SliderBaseIndex',i)),
-          paste0('Weight',": ",traitsBaseIndex[i]),
-          min = -5,
-          max = 5,
-          value = 1,
-          step = 0.5
-        )
-      })
-    })
-    ####################
-    ## Run button for Base Index
-    outIdxB <- eventReactive(input$runIdxB, {
-      req(data())
-      req(input$version2IdxD)
-      req(input$traitsBaseIndex)
-      dtBaseIndex <- data()
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      dtBaseIndexPred <- dtBaseIndex$predictions
-      dtBaseIndexPred <- dtBaseIndexPred[dtBaseIndexPred$analysisId %in% input$version2IdxD,]
-      traitsBaseIndex <- input$traitsBaseIndex
-
-      # define values for slider all traits for base index
-      if (length(traitsBaseIndex) != 0) {
-        values <- NULL
-        for (i in 1:length(traitsBaseIndex)) {
-          tempval <- reactive({paste0('input$','SliderBaseIndex',i)})
-          values[i] <- tempval()
-          values[i] <- eval(parse(text = values[i]))
-        }
-        values <- t(as.numeric(values))
-        values <- as.data.frame(values)
-        colnames(values) <- traitsBaseIndex
-      }
-      values <- as.numeric(values)
-
-      # run the modeling, but before test if mta was done
-      if(sum(dtBaseIndex$status$module %in% "mta") == 0) {
-        output$qaQcIdxBInfo <- renderUI({
-          if (hideAll$clearAll)
-            return()
-          else
-            req(dtBaseIndex)
-          HTML(as.character(div(style="color: brown;",
-                                "Please perform Multi-Trial-Analysis before conducting a Selection index."))
-          )
-        })
-      }else{
-        output$qaQcIdxBInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipeline::baseIndex(
-          dtBaseIndex,
-          input$version2IdxD,
-          traitsBaseIndex,
-          values),
-          silent=TRUE
-        )
-        if(!inherits(result,"try-error")) {
-          data(result) # update data with results
-          # save(result, file = "./R/outputs/resultIndex.RData")
-          cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved. Please proceed to use this time stamp in the optimal cross selection."))
-          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-        }else{
-          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-        }
-      }
-      shinybusy::remove_modal_spinner()
-      if(!inherits(result,"try-error")) {
-        # display table of predictions
-        output$predictionsIdxB <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          predictions <- result$predictions
-          predictions <- predictions[predictions$module=="indexB",]
-          predictions$analysisId <- as.numeric(predictions$analysisId)
-          predictions <- predictions[!is.na(predictions$analysisId),]
-          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-          numeric.output <- c("predictedValue", "stdError", "reliability")
-          DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          ), numeric.output)
-          # }
-        })
-        # display table of modeling
-        output$modelingIdxB <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          modeling <- result$modeling
-          mtas <- result$status[which(result$status$module == "indexB"),"analysisId"]; mtaId <- mtas[length(mtas)]
-          modeling <- modeling[which(modeling$analysisId == mtaId),]
-          modeling <- subset(modeling, select = -c(module,analysisId))
-          DT::datatable(modeling, extensions = 'Buttons',
-                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          )
-          # }
-        })
-        # Report tab
-        analysisIdBaseIndex <- result$status[ result$status$module %in% c("mta","indexB"),"analysisId"]
-        predBaseIndex <- result$predictions[result$predictions$analysisId %in% analysisIdBaseIndex,]
-
-        predBaseIndexWide <- reshape(
-          data=subset(predBaseIndex, select=c(designation,trait,predictedValue)),
-          timevar = "trait",
-          idvar = "designation",
-          direction="wide"
-        )
-        colnames(predBaseIndexWide)[-1] <- gsub("predictedValue.","", colnames(predBaseIndexWide)[-1])
-        predBaseIndexWide <- predBaseIndexWide[order(predBaseIndexWide$baseIndex,decreasing=TRUE),]
-        predBaseIndexWide$Rank <- 1:nrow(predBaseIndexWide)
-
-        output$BaseIndex <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          numeric.output <- c(input$traitsBaseIndex,"baseIndex")
-          # print(head(predBaseIndexWide))
-          DT::formatRound(DT::datatable(predBaseIndexWide,
-                                        extensions = 'Buttons',
-                                        rownames = FALSE,
-                                        class = 'cell-border',
-                                        options = list(dom = 'Blfrtip',
-                                                       scrollY = "400px",
-                                                       scrollX = "400px",
-                                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       paging=F)
-          ), numeric.output)
-
-        })
-
-      }
-
-      hideAll$clearAll <- FALSE
-
-    })
-
-    output$outIdxB <- renderPrint({
-      outIdxB()
     })
 
 

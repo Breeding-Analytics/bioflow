@@ -80,7 +80,12 @@ app_ui <- function(request) {
                           )
                  ),
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain") ,")" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
-                 tabPanel(div(icon("calculator"), icon("dice-three"), "Selection Indices (",icon("seedling"),")" ), mod_indexDesireApp_ui("indexDesireApp_1") ) ,
+                 tabPanel(div(icon("calculator"), icon("dice-three"), "Selection Indices (", icon("seedling"), ")"),
+                          navlistPanel( widths = c(1, 11),
+                                        tabPanel(div("Desire Index (", icon("seedling"), ")"),  mod_indexDesireApp_ui("indexDesireApp_1") ),
+                                        tabPanel(div("Base Index (", icon("seedling"), ")" ), mod_indexBaseApp_ui("indexBaseApp_1") )
+                          )
+                 ),
                  tabPanel(div(icon("calculator"), icon("dice-four"), "Optimal Cross Selection (", icon("seedling"), icon("dna"), icon("network-wired"), ")" ), mod_ocsApp_ui("ocsApp_1") ),
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
                  tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input

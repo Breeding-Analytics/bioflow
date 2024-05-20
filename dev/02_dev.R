@@ -108,6 +108,7 @@
 # golem::add_module(name = "oftStaApp", with_test = FALSE) # OFT after sta
 # golem::add_module(name = "mtaApp", with_test = FALSE) # multi trial analysis
 # golem::add_module(name = "indexDesireApp", with_test = FALSE) # desire selection index
+# golem::add_module(name = "indexBaseApp", with_test = FALSE) # desire selection index
 # golem::add_module(name = "ocsApp", with_test = FALSE) # optimal cross selection
 # golem::add_module(name = "rggApp", with_test = FALSE) # realized genetic gain
 # golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
