@@ -515,28 +515,6 @@ if (is.null(result)){
     
     cat("\n\n###  {.tabset .tabset-pills}       \n\n")
     
-    # for (j in 1:length(staTraits2)){
-    #   cat("\n\n####", staTraits2[j], "{.tabset .tabset-pills}       \n\n")
-    #   df4 <- df3[df3$trait == staTraits2[j],]
-    #   p <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
-    #     ggplot2::geom_bar(stat="identity") +
-    #     ggplot2::xlab("Environment") + ggplot2::ylab("Proportion of variance") +
-    #     ggplot2::scale_fill_brewer(palette="Accent") +
-    #     # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
-    #     ggplot2::theme(axis.text.x = ggplot2::element_blank())
-    #   ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
-    #   # print(p)
-    #   p2 <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
-    #     ggplot2::geom_bar(stat="identity") +
-    #     ggplot2::xlab("Environment") + ggplot2::ylab("Value of variance") +
-    #     ggplot2::scale_fill_brewer(palette="Accent") +
-    #     ggplot2::theme(axis.text.x = ggplot2::element_blank())
-    #   
-    #   print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=2) ) )
-    #   
-    #   cat("\n")
-    # }
-    
     for (j in 1:length(staTraits2)){
       cat("\n\n####", staTraits2[j], "{.tabset .tabset-pills}       \n\n")
       df4 <- df3[df3$trait == staTraits2[j],]
@@ -560,28 +538,6 @@ if (is.null(result)){
     cat("\n")
     
   }else{
-    
-    # shiny::renderPlot({
-    # plotly::renderPlotly({
-    #   df3 <- df3[df3$trait == input$traitSta0,]
-    #   p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
-    #     ggplot2::geom_bar(stat="identity") +
-    #     ggplot2::xlab("Environment") + ggplot2::ylab("Proportion of variance") +
-    #     scale_fill_brewer(palette="Accent") +
-    #     # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
-    #     ggplot2::theme(axis.text.x = ggplot2::element_blank())
-    #   ggplot2::geom_hline(yintercept = seq(0.25,0.75,0.25), linetype = 3, colour = 'red')
-    #   p2 <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=value, fill=parameter)) +
-    #     ggplot2::geom_bar(stat="identity") +
-    #     ggplot2::xlab("Environment") + ggplot2::ylab("Value of variance") +
-    #     scale_fill_brewer(palette="Accent") +
-    #     # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-    #     ggplot2::theme(axis.text.x = ggplot2::element_blank())
-    #   # gridExtra::grid.arrange(p,p2)
-    #   ply1 <- plotly::ggplotly(p)
-    #   ply2 <- plotly::ggplotly(p2)
-    #   plotly::subplot(ply1, ply2, nrows=2)
-    # })
     
     plotly::renderPlotly({
       df3 <- df3[df3$trait == input$traitSta0,]
