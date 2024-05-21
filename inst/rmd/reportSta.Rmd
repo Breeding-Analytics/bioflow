@@ -275,29 +275,14 @@ if (is.null(result)){
 } else {
   
   pred.traits <- subset(pred, select = c(trait,designation,environment,predictedValue))
-  pred.traits <- reshape(
-    data=pred.traits, 
-    timevar = c("trait"), 
-    idvar = c("environment","designation"), 
-    direction="wide"
-  )
-  names(pred.traits)[-c(1,2)] <- gsub("predictedValue.", "", names(pred.traits)[-c(1,2)]) 
-  pred.traits <- reshape(pred.traits, 
-                         direction = "long",
-                         varying = list(names(pred.traits)[3:ncol(pred.traits)]),
-                         v.names = "Value",
-                         idvar = c("designation", "environment"),
-                         timevar = "trait",
-                         times = staTraits)
-  rownames(pred.traits) <- NULL
   ## Max
-  pred.traits.max <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
+  pred.traits.max <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
   colnames(pred.traits.max)[3] <- "max"
   ## Min
-  pred.traits.min <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) min(x,na.rm=T))
+  pred.traits.min <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) min(x,na.rm=T))
   colnames(pred.traits.min)[3] <- "min"
   ## Mean
-  pred.traits.mean <- aggregate(Value ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
+  pred.traits.mean <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
   colnames(pred.traits.mean)[3] <- "mean"
   ## H2
   metrics <- result$metrics
