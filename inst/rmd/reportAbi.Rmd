@@ -49,13 +49,9 @@ printTable <- function(DT, pageLength = 7,
   
   table <- DT::datatable(data = DT, 
                          filter = "top", 
-                         options = list(autoWidth = TRUE, 
-                                        dom = 'l<<t>pB>', 
-                                        buttons = c('copy', 'excel'),
-                                        pageLength = pageLength,
-                                        searchHighlight = TRUE,
-                                        lengthMenu = c(7, 14, 21, 28, 35)),
                          extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
