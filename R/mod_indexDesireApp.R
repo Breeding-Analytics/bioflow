@@ -56,7 +56,7 @@ mod_indexDesireApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
-                                       tabPanel("Pick MTA-stamp", icon = icon("table"),
+                                       tabPanel("Pick MTA-stamp", icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=8, selectInput(ns("version2IdxD"), "MTA version to analyze (required)", choices = NULL, multiple = TRUE)),
@@ -80,7 +80,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 #                     )
                                                 # )
                                        ),
-                                       tabPanel("Pick traits", icon = icon("table"),
+                                       tabPanel("Pick traits", icon = icon("dice-two"),
                                                 br(),
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
                                                        selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
@@ -114,14 +114,21 @@ mod_indexDesireApp_ui <- function(id){
 
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
-                                                br(),
-                                                actionButton(ns("runIdxD"), "Calculate index (click)", icon = icon("play-circle")),
-                                                uiOutput(ns("qaQcIdxDInfo")),
-                                                textOutput(ns("outIdxD")),
-                                                hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
-                                                                    selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                       column(width=4,
+                                                              br(),
+                                                              actionButton(ns("runIdxD"), "Calculate index (click)", icon = icon("play-circle")),
+                                                              uiOutput(ns("qaQcIdxDInfo")),
+                                                       ),
+                                                       column(width=8,
+                                                              br(),
+                                                              shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
+                                                                                  selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                              ),
+                                                       ),
+                                                       br()
                                                 ),
+                                                textOutput(ns("outIdxD")),
                                        ),
                                      )
                             ),

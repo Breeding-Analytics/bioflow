@@ -49,7 +49,7 @@ mod_pggApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
-                                       tabPanel("Pick Index-stamp", icon = icon("table"),
+                                       tabPanel("Pick Index-stamp", icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=8, selectInput(ns("version2Pgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE)),
@@ -71,7 +71,7 @@ mod_pggApp_ui <- function(id){
                                                 #                     )
                                                 # )
                                        ),
-                                       tabPanel("Select trait(s)", icon = icon("table"),
+                                       tabPanel("Select trait(s)", icon = icon("dice-two"),
                                                 br(),
                                                 column(width=12, selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),  style = "background-color:grey; color: #FFFFFF"),
                                                 column(width=12,
@@ -96,9 +96,12 @@ mod_pggApp_ui <- function(id){
                                                 # )
                                        ),
                                        tabPanel("Run analysis", icon = icon("play"),
-                                                br(),
-                                                actionButton(ns("runPgg"), "Run PGG", icon = icon("play-circle")),
-                                                uiOutput(ns("qaQcPggInfo")),
+                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                       br(),
+                                                       actionButton(ns("runPgg"), "Run PGG", icon = icon("play-circle")),
+                                                       uiOutput(ns("qaQcPggInfo")),
+                                                       br(),
+                                                ),
                                                 textOutput(ns("outPgg")),
                                        ),
                                      )

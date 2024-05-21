@@ -79,8 +79,12 @@ mod_qaRawApp_ui <- function(id){
                                                       # ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("play"),
+                                                      column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
+                                                      br(),
+                                                      br(),
+                                                      ),
                                                       textOutput(ns("outQaRaw")),
                                              ),
                                            ) # end of tabset
