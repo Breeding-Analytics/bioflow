@@ -93,7 +93,7 @@ You can clone the development version of bioflow like this:
 Now you can start making changes to the code to later make a pull
 request. Let us tell you more how to contribute.
 
-## Contribution process
+## Contribution and decision-making process
 
 In this collaborative development model, anyone can fork an existing
 repository and push changes to their personal fork. You do not need
@@ -124,7 +124,7 @@ If you wish to contribute a shiny module please make sure that it can
 use the data structure proposed and make your pull request to the
 bioflow repository.
 
-### How is a contribution review and accepted?
+### How is a contribution reviewed and accepted?
 
 Priority issues and functionalities will be posted in the confluence
 space for internal and external collaborators interested in contributing
@@ -132,7 +132,7 @@ space for internal and external collaborators interested in contributing
 
 The submitted functions will be tested using a sample of multiple
 datasets collected by the different centers to ensure that new functions
-and interfaces perform well across a variety of scenarios.
+and interfaces perform well across a variety of scenarios (e.g., crops).
 
 Here are some business rules that need to be followed:
 
@@ -167,10 +167,11 @@ cgiarBase::create_getData_object()
 ```
 
 2)  Functions should not be written inside the interface. The functions
-    should be stored in the cgiarBase, cgiarGenomics or cgiarPipeline
+    should be submitted to the cgiarBase, cgiarGenomics or cgiarPipeline
     packages.
 
-3)  Functions should be documented properly and include examples.
+3)  Functions should be documented properly and include examples for
+    other members to recreate the results.
 
 ### Types of contributions that will be accepted (check list)
 
@@ -180,11 +181,16 @@ Only contributions that met the following criteria will be accepted:
     section above).
 
 2)  Functions that enable methods approved by the Quantitative Genetics
-    community lead by the Accelerated Breeding Initiative (before EiB).
+    community lead by the Accelerated Breeding Initiative (ABI, before
+    EiB).
 
-3)  Functions that are proven better than existing methods, robust
-    enough to handle the variability of data encountered across the
-    CGIAR (use sample datasets to test your own function).
+3)  Functions that are proven better or equally good than existing
+    methods, robust enough to handle the variability of datasets
+    encountered across the CGIAR (use sample datasets to test your own
+    functions and interface).
+
+4)  The function should be accepted at least by two of the current
+    maintainers at the time of submission.
 
 ### Open an issue before submitting a pull-request
 
@@ -194,4 +200,5 @@ templates, please check the following link:
 
 ### When it’s appropriate to follow up?
 
-Within 7 days after a pull request is submitted.
+Within 7 days after a pull request is submitted you should have a
+reponse. Otherwise please reach the development team.
