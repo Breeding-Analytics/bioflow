@@ -199,7 +199,7 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                tags$span(id = ns('holder6'),
                                                          column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
-                                                         column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 15)) ),
+                                                         column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 100)) ),
                                                          column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
                                                ),
@@ -676,7 +676,7 @@ mod_mtaApp_server <- function(id, data){
       M2 <- matrix(M, nrow = nrow(M), ncol = ncol(M))
       M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
       M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
-      Matrix::image(as(t(M2), Class = "dgCMatrix"), xlab="Environments", ylab="Genotypes", colorkey=TRUE)
+      Matrix::image(as(t(M2), Class = "dgCMatrix"), xlab="Genotypes", ylab="Environments", colorkey=TRUE)
     })
     # render correlation plot
     output$plotPredictionsCor <-  shiny::renderPlot({
