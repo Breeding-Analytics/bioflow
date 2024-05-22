@@ -6,6 +6,11 @@ output: html_document
 params:
  fieldinst: NULL
  traits: NULL
+ yldTrait: NULL
+ mdisease: NULL
+ tdisease: NULL
+ sdisease: NULL
+ version: NULL
  toDownload: FALSE
 ---
 
@@ -124,15 +129,19 @@ colnames(dt_orig) <- cgiarBase::replaceValues(colnames(dt_orig),
 
 ### remove the outliers
 dt_clean <- dt_orig
-rowPheno <- result$modifications$pheno$row
-traitPheno <- result$modifications$pheno$trait
+rowPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == params$version),"row"]
+traitPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == params$version),"trait"]
 
-for(i in length(rowPheno)){
+if(length(rowPheno)>0){
+  for(i in 1:length(rowPheno)){
   dt_clean[rownames(dt_clean) %in% rowPheno[i], traitPheno[i]] <- NA
 }
+}
 
-### standardize type_disease naming
-colnames(dt_orig)[grepl("Type_Disease" , names(dt_orig))] ="Type_Disease"
+### standardize disease info naming
+colnames(dt_orig)[which(names(dt_orig) == params$mdisease)] <- "MDiseases"
+colnames(dt_orig)[which(names(dt_orig) == params$tdisease)] <- "Type_Disease"
+colnames(dt_orig)[which(names(dt_orig) == params$sdisease)] <- "Disease_Severity"
 
 ### get fieldinst input
 if(is.null(params$fieldinst)){
@@ -147,17 +156,17 @@ dt_clean <- dt_clean[which(dt_clean$environment %in% fieldinst),]
 
 dt_sta_pred <- result$predictions[which(result$predictions$module == "sta"),]
 dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$environment %in% fieldinst),]
+dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$analysisId == params$version),]
 
 dt_sta_met <- result$metrics[which(result$metrics$module == "sta"),]
 dt_sta_met <- dt_sta_met[which(dt_sta_met$environment %in% fieldinst),]
+dt_sta_met <- dt_sta_met[which(dt_sta_met$analysisId == params$version),]
 
 traits <- unique(dt_sta_met$trait)
 if(!is.null(params$traits)){
   traits <- traits[which(traits %in% params$traits)]
 }
 numTraits <- length(traits)
-
-# traitDesc <- c("Grain Yield(in t/ha)", "Grain Per Panicle", "Unfilled Grain Per Panicle", "Percent Fertility", "Test_Weight")
 
 ```
 
@@ -197,31 +206,90 @@ printTable(studyInfo, scrollXOpt = FALSE,
 
 <p>&nbsp;</p>
 
-#### Descriptive Statistics
+### Summary statistics
 
-```{r dataChecking}
-descStatTemp <- list()
+The following table allows you to verify some quality metrics (KPIs) for the different trait by environment combinations.
 
-for (i in 1:length(traits)) {
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  if(params$toDownload == TRUE){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("traitOft"), 
+                       label = "Trait to filter:", 
+                       multiple = FALSE,
+                       choices = params$traits, 
+    )
+  }
   
-  if (!traits[i] %in% names(dt_clean)) next
-    
-  descStatTemp[[i]] <- dt_clean %>% 
-    group_by(environment = dt_clean$environment) %>% 
-    summarise(trait = traits[i],
-              n = sum(!is.na(get(traits[i]))), 
-              min = min(get(traits[i]), na.rm = T),
-              mean = mean(get(traits[i]), na.rm = T),
-              max = max(get(traits[i]), na.rm = T),
-              stddev = sd(get(traits[i]), na.rm = T))
 }
 
-descStat.All <- do.call(rbind.data.frame, descStatTemp)
+```
 
-printTable(descStat.All, scrollXOpt = FALSE,
-           colNames = c("Environment", "Trait", "n", "min", "mean", "max", "stddev"),
-           numericColNames = c("min", "mean", "max", "stddev"))
-                                         
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  pred.traits <- subset(dt_sta_pred, select = c(trait,designation,environment,predictedValue))
+  ## Max
+  pred.traits.max <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
+  colnames(pred.traits.max)[3] <- "max"
+  ## Min
+  pred.traits.min <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) min(x,na.rm=T))
+  colnames(pred.traits.min)[3] <- "min"
+  ## Mean
+  pred.traits.mean <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
+  colnames(pred.traits.mean)[3] <- "mean"
+  ## H2
+  metrics <- dt_sta_met
+  metrics <- metrics[metrics$analysisId == params$version,]
+  metrics.h2 <- metrics[metrics$parameter=="plotH2",]
+  metrics.h2 <- subset(metrics.h2, select = c(trait,environment,value))
+  colnames(metrics.h2)[3] <- "H2"
+  ## CV
+  metrics.CV <- metrics[metrics$parameter=="CV",]
+  metrics.CV <- subset(metrics.CV, select = c(trait,environment,value))
+  colnames(metrics.CV)[3] <- "CV"
+  ## r2
+  metrics.r2 <- metrics[metrics$parameter=="r2",]
+  metrics.r2 <- subset(metrics.r2, select = c(trait,environment,value))
+  colnames(metrics.r2)[3] <- "r2"
+  ## Vg
+  metrics.Vg <- metrics[metrics$parameter=="Vg",]
+  metrics.Vg <- subset(metrics.Vg, select = c(trait,environment,value))
+  colnames(metrics.Vg)[3] <- "Vg"
+  ## Vr
+  metrics.Vr <- metrics[metrics$parameter=="Vr",]
+  metrics.Vr <- subset(metrics.Vr, select = c(trait,environment,value))
+  colnames(metrics.Vr)[3] <- "Vr"
+  
+  pred.traits.summary <- merge(x = pred.traits.min, y = pred.traits.mean, by = c("environment","trait"), all.x = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = pred.traits.max, by = c("environment","trait"), all.x = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.h2, by = c("environment","trait"), all.x = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.CV, by = c("environment","trait"), all.x = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.r2, by = c("environment","trait"), all.x = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vg, by = c("environment","trait"), all.x = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vr, by = c("environment","trait"), all.x = TRUE)
+  numeric.output <- c("min","mean","max","H2","CV","r2","Vg","Vr")
+  
+  if(params$toDownload == TRUE){ # we will download the document
+    printTable(unique(pred.traits.summary),
+               scrollXOpt = FALSE,
+               colNames = c("Market Segment", "Trait", numeric.output),
+               numericColNames = numeric.output,
+               numRound = 4)
+  }else{
+    DT::renderDT(printTable(unique(pred.traits.summary[pred.traits.summary$trait==input$traitOft,]),
+                                             scrollXOpt = FALSE,
+                            colNames = c("Market Segment", "Trait", numeric.output),
+                            numericColNames = numeric.output,
+                            numRound = 4))
+  }
+}
 ```
 
 ```{r modelling1, cache = FALSE, include = FALSE,echo = FALSE, message = FALSE, warning = FALSE}
@@ -408,8 +476,8 @@ sig_TVFVTab2 <- NULL
 sig_TVMFUTab2 <- NULL
 sig_TVBMTab2 <- NULL
 
-for (i in 1:length(traits)) {
-  for (j in seq_along(environment)) { 
+for (i in 1:numTraits) {
+  for (j in seq_along(RiceEnvs)) { 
     Control_data <- rbind(TopFV_All,MFU_All, BM_All)
     LWR <- Control_data %>% select(environment, trait, Control, entryType, LL, predictedValue, UL) %>% arrange(environment, Control) %>% filter(trait==traits[i] & environment == 
                                                         as.factor(RiceEnvs[j]))
@@ -439,7 +507,7 @@ for (i in 1:length(traits)) {
     sigL_TVFV <- NULL
     if(nrow(LWR %>% filter(Control=="TopLocal")) > 1){
       FVL_vals <- LWR %>% filter(Control=="TopLocal") %>% pull(LL)
-      for (k in nrow(LWR %>% filter(Control=="TopLocal"))){
+      for (k in 1:nrow(LWR %>% filter(Control=="TopLocal"))){
         assign(paste0("sigL_TVFV",k),subset(CI_TV,as.logical(FVL_vals[k] <= CI_TV$UL)==F))
         sigL_TVFV <- rbind(sigL_TVFV, get(paste0("sigL_TVFV",k)))
       }
@@ -451,7 +519,7 @@ for (i in 1:length(traits)) {
     sigU_TVFV <- NULL
     if(nrow(UPR %>% filter(Control=="TopLocal")) > 1){
       FVU_vals <- UPR %>% filter(Control=="TopLocal")%>%pull(UL)
-      for (k in nrow(UPR %>% filter(Control=="TopLocal"))){
+      for (k in 1:nrow(UPR %>% filter(Control=="TopLocal"))){
         assign(paste0("sigU_TVFV",k),subset(CI_TV,as.logical(FVU_vals[k] >= CI_TV$LL)==F))
         sigU_TVFV <- rbind(sigU_TVFV, get(paste0("sigU_TVFV",k)))
       }
@@ -468,7 +536,7 @@ for (i in 1:length(traits)) {
     sigL_TVMFU <- NULL
     if(nrow(LWR %>% filter(Control=="MFU")) > 1){
       MFUL_vals <- LWR %>% filter(Control=="MFU")%>%pull(LL)
-      for (k in nrow(LWR %>% filter(Control=="MFU"))){
+      for (k in 1:nrow(LWR %>% filter(Control=="MFU"))){
         assign(paste0("sigL_TVMFU",k),subset(CI_TV,as.logical(MFUL_vals[k] <= CI_TV$UL)==F))
         sigL_TVMFU <- rbind(sigL_TVMFU, get(paste0("sigL_TVMFU",k)))
       }
@@ -480,7 +548,7 @@ for (i in 1:length(traits)) {
     sigU_TVMFU <- NULL
     if(nrow(UPR %>% filter(Control=="MFU")) > 1){
       MFU_vals <- UPR %>% filter(Control=="MFU")%>%pull(UL)
-      for (k in nrow(UPR %>% filter(Control=="MFU"))){
+      for (k in 1:nrow(UPR %>% filter(Control=="MFU"))){
         assign(paste0("sigU_TVMFU",k),subset(CI_TV,as.logical(MFU_vals[k] >= CI_TV$LL)==F))
         sigU_TVMFU <- rbind(sigU_TVMFU, get(paste0("sigU_TVMFU",k)))
       }
@@ -498,7 +566,7 @@ for (i in 1:length(traits)) {
     sigL_TVBM <- NULL
     if(nrow(LWR %>% filter(Control=="Benchmark")) > 1){  
       BML_vals <- LWR %>% filter(Control=="Benchmark")%>%pull(LL)
-      for (k in nrow(LWR %>% filter(Control=="Benchmark"))){
+      for (k in 1:nrow(LWR %>% filter(Control=="Benchmark"))){
         assign(paste0("sigL_TVBM",k),subset(CI_TV,as.logical(BML_vals[k] <= CI_TV$UL)==F))
         sigL_TVBM <- rbind(sigL_TVBM, get(paste0("sigL_TVBM",k)))
       }
@@ -510,7 +578,7 @@ for (i in 1:length(traits)) {
     sigU_TVBM <- NULL
     if(nrow(UPR %>% filter(Control=="Benchmark")) >= 1){
       BMU_vals <- UPR %>% filter(Control=="Benchmark")%>%pull(UL)
-      for (k in nrow(UPR %>% filter(Control=="Benchmark"))){
+      for (k in 1:nrow(UPR %>% filter(Control=="Benchmark"))){
         assign(paste0("sigU_TVBM",k),subset(CI_TV,as.logical(BMU_vals[k] >= CI_TV$LL)==F))
         sigU_TVBM <- rbind(sigU_TVBM, get(paste0("sigU_TVBM",k)))
       }
@@ -530,16 +598,19 @@ for (i in 1:length(traits)) {
 <div style = "width:100%; height:auto;">
 ```{r bargRE, echo = FALSE, message = FALSE, warning = FALSE, include=FALSE}
 
-bar_dse <- vector(mode = "list", length = length(RiceEnvs))            
-TDse_tempHMP  <- vector(mode = "list", length = length(RiceEnvs))
-TDse_tempHMP2  <- vector(mode = "list", length = length(RiceEnvs))
-DseSev_temp <- vector(mode = "list", length = length(RiceEnvs))
+bar_dse <- vector(mode = "list", length = length(traits)*length(RiceEnvs))            
+TDse_tempHMP  <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
+TDse_tempHMP2  <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
+DseSev_temp <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
+order_desig <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
 
 # Disease by RiceEnv : Count and %
 m <- list(l = 40,r = 40,b = 40,  t = 40) 
-for (j in seq_along(RiceEnvs)) {
-  BLUPs_BG <- comp_bestFVBM %>% filter(trait==traits[1] & environment == as.factor(RiceEnvs[j]))
-  dt_orig$designation <- gsub(" ", "", dt_orig$designation)
+
+for (i in 1:numTraits){
+  for (j in seq_along(RiceEnvs)) {
+  BLUPs_BG <- comp_bestFVBM %>% filter(trait==traits[i] & environment == as.factor(RiceEnvs[j]))
+  # dt_orig$designation <- gsub(" ", "", dt_orig$designation)
    
   # Var_Dse_temp <- dt_orig   %>%  filter(environment == RiceEnvs[j]) %>% droplevels(.) %>%
   #                 janitor::tabyl(designation,MDiseases) %>%  janitor::adorn_totals("col") %>% 
@@ -548,8 +619,8 @@ for (j in seq_along(RiceEnvs)) {
   Var_Dse_temp <- dt_orig   %>%  filter(environment == RiceEnvs[j]) %>% droplevels(.) %>%
                   janitor::tabyl(designation,MDiseases) %>%  janitor::adorn_totals("col") %>% 
                   mutate(environment=RiceEnvs[j]) %>% data.frame() 
-    
- comp_bestBM_red <- comp_bestBM_ALL%>%filter(trait=="Yield") %>% 
+  
+ comp_bestBM_red <- comp_bestBM_ALL%>%filter(trait==traits[i]) %>% 
                     select(environment, designation, predictedValue) %>% 
                     filter(environment == RiceEnvs[j]) 
     
@@ -557,25 +628,25 @@ for (j in seq_along(RiceEnvs)) {
  
  # Bargrpah of Disease Occ
  if(!"No" %in% colnames(Var_Dse)) {
-   bar_dse[[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~Yes,
+   bar_dse[[i]][[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~Yes,
                           marker = list(color = 'gray', width=3), name = "With Disease", 
                           width = 800, height = 800, type = "bar",text = Var_Dse$Yes, 
                           textposition = 'inside', 
                           textfont = list(color = 'darkblue', size = 12)) %>% 
                   layout(barmode = 'stack') %>%
-                  layout(xaxis = list(title = "Designation"), 
+                  layout(xaxis = list(title = "Variety"), 
                          yaxis = list(title = "Count of With Disease")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
  } else if(!"Yes" %in% colnames(Var_Dse)){
-     bar_dse[[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~No,
+     bar_dse[[i]][[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~No,
                           marker = list(color = 'green', width=3), name = "Without Disease", 
                           width = 800, height = 800, type = "bar",text = Var_Dse$No, 
                           textposition = 'inside', 
                           textfont = list(color = 'darkblue', size = 12)) %>% 
                   layout(barmode = 'stack') %>%
-                  layout(xaxis = list(title = "Designation"), 
+                  layout(xaxis = list(title = "Variety"), 
                          yaxis = list(title = "Count of Without Disease")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
  } else{
-     bar_dse[[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~Yes,
+     bar_dse[[i]][[j]] <-  plot_ly(Var_Dse, x = ~reorder(designation, -predictedValue), y = ~Yes,
                           marker = list(color = 'gray', width=3), name = "With Disease", 
                           width = 800, height = 800, type = "bar",text = Var_Dse$Yes, 
                           textposition = 'inside', 
@@ -584,48 +655,84 @@ for (j in seq_along(RiceEnvs)) {
                             text = Var_Dse$No, name = "Without Disease", textposition = 'inside', 
                             textfont = list(color = 'darkblue', size = 12)) %>% 
                   layout(barmode = 'stack') %>%
-                  layout(xaxis = list(title = "Designation"), 
+                  layout(xaxis = list(title = "Variety"), 
                          yaxis = list(title = "Count")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
  }
  
  # Bargrpah of Type of Disease
  TDse_temp <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes") %>%
               droplevels(.) %>%  janitor::tabyl(designation,Type_Disease) %>% 
-              arrange(designation) %>%
+              arrange(match(designation,Var_Dse[order(-Var_Dse$predictedValue),"designation"])) %>%
               tibble::remove_rownames() %>% textshape::column_to_rownames(loc = "designation")  %>%               as.matrix()  
   
  
  if(nrow(dt_orig   %>%   filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes"))>0) {
-   DseSev_temp[[j]] <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes") %>% select(designation,Type_Disease,Disease_Severity) %>% 
+   DseSev_temp[[i]][[j]] <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes") %>% select(designation,Type_Disease,Disease_Severity) %>% 
                      group_by(designation, Type_Disease) %>% 
                      summarise(Severity=max(Disease_Severity)) %>% 
                      tidyr::pivot_wider(names_from = Type_Disease, values_from = Severity) %>% 
-                     arrange(designation) %>% t() %>% as.data.frame() %>% 
+                     arrange(match(designation,Var_Dse[order(-Var_Dse$predictedValue),"designation"])) %>% t() %>% as.data.frame() %>% 
                      set_names(slice(.,1)) %>% slice(-1) %>% 
                      tibble::rownames_to_column(var = "Type_Disease") %>% arrange(desc(Type_Disease))
  } else{
-    DseSev_temp[[j]] <- dt_orig   %>%   filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes")
+    DseSev_temp[[i]][[j]] <- dt_orig   %>%   filter(environment == RiceEnvs[j]) %>% filter(MDiseases == "Yes")
  }
  
  palette <- colorRampPalette(c("palegreen","navy"))
   
- TDse_tempHMP[[j]] <- plot_ly(y=colnames(TDse_temp), x=rownames(TDse_temp), z= t(TDse_temp),
+ TDse_tempHMP[[i]][[j]] <- plot_ly(y=colnames(TDse_temp), x=rownames(TDse_temp), z= t(TDse_temp),
                               colors = palette(20), type = "heatmap") %>%  
                       layout(title = "Type of Major Disease", margin = m)  
+}
+}
+
+
+```
+<p>&nbsp;</p>
+
+### Visualizations per Trait and Environment
+
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  if(params$toDownload == TRUE){ # we will download the document
+    shinyjs::hide()
+  }else{
+    inputPanel(
+      shiny::selectInput(ns("traitOft2"),
+                         label = "Trait to filter:", 
+                         multiple = FALSE,
+                         choices = params$traits,
+                         ),
+      shiny::selectInput(ns("envOft2"),
+                         label = "Environment to filter:", 
+                         multiple = FALSE,
+                         choices = params$fieldinst,
+                         ),
+      shiny::selectInput(ns("graphOft2"),
+                         label = "Graph or Table to visualize:", 
+                         multiple = FALSE,
+                         choices = c("Bargraph", "Error Graph", "Predicted Mean", "Genetic Parameters", "BLUPs Comparison", "Comparison With the Control"),
+                         )
+    )
+  }
+  
 }
 
 ```
 
-```{r, results = "asis", echo=FALSE}
-
-BLUPsBG <- vector(mode = "list", length = length(traits)*length(environment()))
-
-for (i in 1:length(traits)) {
+```{r , results = "asis", echo = FALSE}
+if(params$toDownload == TRUE){
+  BLUPsBG <- vector(mode = "list", length = length(traits)*length(environment()))
+  for (i in 1:numTraits) {
   cat("\n\n")
   cat("##", traits[i], "\n")
   
-  for (j in 1:(nlevels(as.factor(dt_clean$environment)))) {
-    cat("###", levels(as.factor(dt_clean$environment))[j], " {.tabset .tabset-pills}\n")
+  for (j in seq_along(RiceEnvs)) {
+    cat("###", RiceEnvs[j], " {.tabset .tabset-pills}\n")
     
     cat("#### Bargraph \n")
     
@@ -687,24 +794,24 @@ for (i in 1:length(traits)) {
     print(htmltools::tagList(BLUPsBG[[i]][[j]]))
     cat("\\linebreak")
     cat("\\linebreak")
-    print(htmltools::tagList(bar_dse[[j]]))
+    print(htmltools::tagList(bar_dse[[i]][[j]]))
     cat("\\linebreak")
     cat("\\linebreak")
     if(nrow(TDse_temp <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% 
             filter(MDiseases =="Yes"))== 0){
       cat(paste0("**No Major Disease**"))
     }else{
-      print(htmltools::tagList(TDse_tempHMP[[j]]))
+      print(htmltools::tagList(TDse_tempHMP[[i]][[j]]))
     }
     cat("\\linebreak")
     cat("\\linebreak")
     cat("\n\n")
-    if(nrow(DseSev_temp[[j]])== 0){
+    if(nrow(DseSev_temp[[i]][[j]])== 0){
       cat(paste0("**No Disease Severity**"))
     } else{
       cat(paste0("Disease Severity"))
-      print(htmltools::tagList(list(printTable(DseSev_temp[[j]],
-                 colNames = colnames(DseSev_temp[[j]]),
+      print(htmltools::tagList(list(printTable(DseSev_temp[[i]][[j]],
+                 colNames = colnames(DseSev_temp[[i]][[j]]),
                  scrollXOpt = FALSE,
                  numRound = 4))))
     }
@@ -748,7 +855,7 @@ for (i in 1:length(traits)) {
     print(htmltools::tagList(list(printTable(BLUPsRE[c("environment", "designation", "entryType", 
                                                        "predictedValue", "stdError", "RankByType", "n")],
                                              scrollXOpt = FALSE,
-                                             colNames = c("Market Segment", "Variety Name", 
+                                             colNames = c("Market Segment", "Variety", 
                                                           "Variety Type", "Predicted Means", 
                                                           "Standard Error",
                                                           "Overall Rank", "Num Trial"),
@@ -765,7 +872,7 @@ for (i in 1:length(traits)) {
                                              select(-c(analysisId, stdError)) %>% 
                                              filter(trait==traits[i] & 
                                                     environment==as.factor(RiceEnvs[j])),
-                                             colNames = c("Environment", "Trait", 
+                                             colNames = c("Market Segment", "Trait", 
                                                           "Parameter", "Value", 
                                                           "Module",
                                                           "Method"),
@@ -781,7 +888,7 @@ for (i in 1:length(traits)) {
   
     print(htmltools::tagList(list(printTable(RG_All,scrollXOpt = FALSE,
                                              caption = "BLUPs Comparison: Best Test variety vs. Best Farmer's and Benchmark Variety",
-                                             colNames = c("Market Segment", "trait", "Comparison",
+                                             colNames = c("Market Segment", "Trait", "Comparison",
                                                           "Best Test Variety", "Predicted Mean",
                                                           "Number of Observations",
                                                           "Best Farmer's/Bencmark Variety",
@@ -814,7 +921,7 @@ for (i in 1:length(traits)) {
                             position=position_dodge(.9)) + xlab("Variety") + ylab(traits[i]) + 
               theme_classic() +
               #facet_wrap(~ RiceEnv, ncol = 2) + 
-              ylim(min(TVFV_AllG$LL), max(TVFV_AllG$UL)+ 3*sd(TVFV_AllG$BLUPs))+
+              ylim(min(TVFV_AllG$LL), max(TVFV_AllG$UL)+ 3*sd(TVFV_AllG$predictedValue))+
               scale_color_manual(values = varCodeColor) +
               ggtitle(paste0(as.factor(RiceEnvs[j])," :Comparison of Test Variety vs. Top Performing Local Variety"),
                       subtitle = "with 95% confidence intervals (& the number of Trials at the top of the errorbar)") +
@@ -840,7 +947,7 @@ for (i in 1:length(traits)) {
               ylab(traits[i]) +
               theme_classic() +
               # facet_wrap(~ RiceEnv, ncol = 2) + 
-              ylim(min(TVMFU_AllG$LL), max(TVMFU_AllG$UL)+ 3*sd(TVMFU_AllG$BLUPs))+
+              ylim(min(TVMFU_AllG$LL), max(TVMFU_AllG$UL)+ 3*sd(TVMFU_AllG$predictedValue))+
               scale_color_manual(values = varCodeColor) +
               ggtitle(paste0(as.factor(RiceEnvs[j])," : Comparison of Test Variety vs. Most Frequently Used Local Variety"),
                       subtitle = "with 95% confidence intervals (& the number of Trials at the top of the errorbar)") +
@@ -869,7 +976,7 @@ for (i in 1:length(traits)) {
               ylab(traits[i]) +
               theme_classic() +
               #facet_wrap(~ RiceEnv, ncol = 2) + 
-              ylim(min(TVBM_AllG$LL), max(TVBM_AllG$UL)+ 3*sd(TVBM_AllG$BLUPs))+
+              ylim(min(TVBM_AllG$LL), max(TVBM_AllG$UL)+ 3*sd(TVBM_AllG$predictedValue))+
               scale_color_manual(values = varCodeColor) +
               ggtitle(paste0(as.factor(RiceEnvs[j])," : Comparison of Test Variety vs. Benchmark"),
               subtitle = "with 95% confidence intervals (& the number of Trials at the top of the errorbar)") +
@@ -896,7 +1003,7 @@ for (i in 1:length(traits)) {
       cat(paste0("Test Varieties Significantly Different with Top Performing Local Variety"))
       print(htmltools::tagList(list(printTable(sig_TVFV2Tab3,
                  scrollXOpt = FALSE,
-                 colnames = c("Rice Environment", "Variety","Variety Class", 
+                 colNames = c("Rice Environment", "Variety","Variety Class", 
                                "Lower Predicted Mean", "Predicted Mean",
                                "Upper Predicted Mean"),
                  numRound = 4))))
@@ -914,7 +1021,7 @@ for (i in 1:length(traits)) {
       cat(paste0("Test Varieties Significantly Different with Most Frequently Used Local Variety"))
       print(htmltools::tagList(list(printTable(sig_TVMFU2Tab3,
                  scrollXOpt = FALSE,
-                 colnames = c("Rice Environment", "Variety","Variety Class",
+                 colNames = c("Rice Environment", "Variety","Variety Class",
                               "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                  numRound = 4))))
     }
@@ -932,13 +1039,13 @@ for (i in 1:length(traits)) {
     sig_TVBM2Tab3 <- sig_TVBMTab2 %>% filter(trait==traits[i] & environment==as.factor(RiceEnvs[j])) %>% select(-c(trait))
  
     # if(nrow(sig_TVBM2Tab3) <= nrow(sig_TVBM2Tab3)-1){
-    if(!("TEST VARIETY" %in% sig_TVBM2Tab3$VarCode)){
+    if(!("TEST VARIETY" %in% sig_TVBM2Tab3$entryType)){
       cat(paste0("**Predicted Grain Yield Mean of Test Varieties are not sigficantly different with Benchmark Variety**"))
     } else{
       cat(paste0("Test Varieties Significantly Different with Benchmark Variety"))
       print(htmltools::tagList(list(printTable(sig_TVBM2Tab3,
                  scrollXOpt = FALSE,
-                 colnames = c("Rice Environment", "Variety","Variety Class", 
+                 colNames = c("Rice Environment", "Variety","Variety Class", 
                               "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                  numRound = 4))))
     }
@@ -962,6 +1069,428 @@ for (i in 1:length(traits)) {
   cat("\\linebreak")
   cat("\\linebreak")
   cat("\\ ")
+  }
+} else{
+  BLUPsBG <- NULL
+  
+  shiny::renderUI({
+    if(input$graphOft2 == "Bargraph"){
+        BLUPs_BG <- comp_bestFVBM %>% filter(trait==input$traitOft2 & environment == as.factor(input$envOft2)) %>%
+      mutate(color = case_when(entryType == "TEST VARIETY" ~ "#2835e6",
+                               entryType == "LOCAL VARIETY" ~ "#038542",
+                               entryType == "BENCHMARK VARIETY" ~ "#e65628"
+                               ))
+    m <- list(l = 40,r = 40,b = 40,  t = 40)
+
+    t1 <- list(color = "blue", size=20)
+
+    BLUPsBG <- plot_ly(BLUPs_BG, x = ~reorder(designation, -predictedValue),
+                                 width = 800, height = 800) %>%
+                         add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","designation"],
+                                   y = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","predictedValue"],
+                                   type = "bar",
+                                   marker = list(color = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","color"], width=3),
+                                   name = "Test Variety",
+                                   text = round(BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","predictedValue"],2),
+                                   textposition = 'outside',
+                                   textfont = list(color = 'darkblue', size = 12)) %>%
+                         add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","designation"],
+                                   y = BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","predictedValue"],
+                                   type = "bar",
+                                   marker = list(color = BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","color"], width=3),
+                                   name = "Local Variety",
+                                   text = round(BLUPs_BG[BLUPs_BG$entryType == "LOCAL VARIETY","predictedValue"],2),
+                                   textposition = 'outside',
+                                   textfont = list(color = 'darkblue', size = 12)) %>%
+                         add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","designation"],
+                                   y = BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","predictedValue"],
+                                   type = "bar",
+                                   marker = list(color = BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","color"], width=3),
+                                   name = "Benchmark Variety",
+                                   text = round(BLUPs_BG[BLUPs_BG$entryType == "BENCHMARK VARIETY","predictedValue"],2),
+                                   textposition = 'outside',
+                                   textfont = list(color = 'darkblue', size = 12)) %>%
+                         layout(xaxis = list(categoryorder = "total descending")) %>%
+                         add_trace(y = ~gainOverLoc, mode = "lines+markers+text", type = "scatter",
+                                   yaxis = "y2", name = "% Gain over Local Variety",
+                                   line = list(color = 'yellow', width = 3),
+                                   marker = list(color = 'white', size = 5),
+                                   text = round(BLUPs_BG$gainOverLoc,2),
+                                   textposition = 'bottom center',
+                                   textfont = list(color = 'white', size = 12)) %>%
+                         layout(yaxis2 = list(overlaying = "y", side = "right")) %>%
+                         add_trace(y = ~gainOverBM, mode = "lines+markers+text", type = "scatter",
+                                   yaxis = "y2", name = "% Gain over Benchmark Variety",
+                                   line = list(color = 'black', width = 3),
+                                   marker = list(color = 'white', size = 5),
+                                   text = round(BLUPs_BG$gainOverBM,2),
+                                   textposition = 'bottom center',
+                                   textfont = list(color = 'white', size = 12)) %>%
+                         layout(xaxis = list(title = "Variety"),
+                                yaxis = list(title = "Predicted Value"))  %>%
+                         layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, font = list(size = 14))) %>% layout(title = list(text = "Predicted performance", font = t1), margin = m)
+
+    BLUPsBG
+    } else if(input$graphOft2 == "Error Graph"){
+        BLUPsG <- BLUPs_All %>% filter(trait==input$traitOft2 & environment == as.factor(input$envOft2)) 
+     
+    BLUPs_G <- ggplot(data = BLUPsG,
+                      aes(x = reorder(designation, -predictedValue),
+                          y = predictedValue,
+                          color = entryType)) +
+               geom_point() +
+               geom_text(aes(label = n, y = UL + 0.4*sd(predictedValue)), size = 3.5) +
+               geom_errorbar(aes(ymin = LL, ymax = UL), width=.3,position=position_dodge(.9)) +
+               xlab("Variety") + ylab(input$traitOft2) + ylim(min(BLUPsG$LL), max(BLUPsG$UL)+
+                                                        3*sd(BLUPsG$predictedValue))+
+              scale_color_manual(values = varCodeColor) +
+              ggtitle(paste0("Predicted performance in ", as.factor(input$envOft2)),
+                      subtitle = "with 95% confidence intervals (& the number of trials at the top of the errorbar)") +
+              theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1),
+                    legend.position="top", legend.title=element_text(size=8),
+                    legend.text = element_text(size=6), panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_rect(fill="white",colour = "black", size=1))  +
+              guides(col= guide_legend(title= "Variety Code"))
+              # facet_wrap(~ State, ncol = 2) +
+    
+    shiny::renderPlot(BLUPs_G) 
+    } else if (input$graphOft2 == "Predicted Mean"){
+        BLUPs2 <- BLUPs_All %>% relocate(entryType, .after = designation)  %>%
+              relocate(yearOfOrigin, .after = entryType) %>%  dplyr::select(-c(LL, UL, color)) 
+     
+    BLUPsRE <- BLUPs2 %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2)) %>%
+               dplyr::select(-Rank)
+    DT::renderDT(printTable(BLUPsRE[c("environment", "designation", "entryType", 
+                                                       "predictedValue", "stdError", "RankByType", "n")],
+                                             scrollXOpt = FALSE,
+                                             colNames = c("Market Segment", "Variety", 
+                                                          "Variety Type", "Predicted Means", 
+                                                          "Standard Error",
+                                                          "Overall Rank", "Num Trial"),
+                                             caption = paste0(as.factor(input$envOft2),": Predicted performance (BLUPs per Variety in each Market Segment"),
+                                             numericColNames = c("predictedValue", "stdError"),
+                                             numRound = 4))
+    } else if(input$graphOft2 == "Genetic Parameters"){
+      DT::renderDT(printTable(dt_sta_met %>%  
+                                             relocate(analysisId, environment, trait, parameter,
+                                                      value, stdError) %>% 
+                                             select(-c(analysisId, stdError)) %>% 
+                                             filter(trait==input$traitOft2 & 
+                                                    environment==as.factor(input$envOft2)),
+                                             colNames = c("Market Segment", "Trait", 
+                                                          "Parameter", "Value", 
+                                                          "Module",
+                                                          "Method"),
+                                             scrollXOpt = FALSE,
+                                             caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & trial/field instance")))
+    } else if (input$graphOft2 == "BLUPs Comparison"){
+RG_All <- rbind(BestTest_Local,BestLocal_Benchmark) %>%   
+              arrange(environment) %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2))
+  
+    DT::renderDT(printTable(RG_All,scrollXOpt = FALSE,
+                                             caption = "BLUPs Comparison: Best Test variety vs. Best Farmer's and Benchmark Variety",
+                                             colNames = c("Market Segment", "Trait", "Comparison",
+                                                          "Best Test Variety", "Predicted Mean",
+                                                          "Number of Observations",
+                                                          "Best Farmer's/Bencmark Variety",
+                                                          "Predicted Mean",
+                                                          "Number of Observations",
+                                                          "BLUPs Diff",
+                                                          "BLUPs Diff (%)",
+                                                          "BLUPs Diff(t/ha) per year",
+                                                          "BLUPs Diff(%) per year"),
+                                             pageLength = nrow(BestTest_Local),
+                                             numericColNames = c("BLUPs_test",
+                                                                 "BLUPs_CTVar","RG", "pctRG",
+                                                                 "RG_per_year",
+                                                                 "pctRG_per_year")))
+    } else if(input$graphOft2 == "Comparison With the Control"){
+      shiny::selectInput(ns("controlOft2"),
+                         label = "Comparison With:", 
+                         multiple = FALSE,
+                         choices = c("Top Performing Local Variety", "Most Frequently Used Local Variety", "Benchmark Variety")) 
+  }
+  })
+}
+
+```
+
+```{r , results = "asis", echo = FALSE}
+if(params$toDownload == FALSE){
+  shiny::renderUI({
+    if(input$graphOft2 == "Comparison With the Control" & !is.null(input$controlOft2)){
+      if(input$controlOft2 == "Top Performing Local Variety"){
+  TVFV_AllG <- TopTVFV_All %>% filter(trait==input$traitOft2 & environment == as.factor(input$envOft2)) 
+  
+  TVFV_G <- ggplot(data = TVFV_AllG,
+                   aes(x = reorder(designation,-predictedValue),
+                       y = predictedValue,
+                       color = entryType)) +
+    geom_point() +
+    geom_text(aes(label = n, y = UL + 0.4*sd(predictedValue)), size = 3.5) +
+    geom_errorbar(aes(ymin = LL, ymax = UL), width=.3,
+                  position=position_dodge(.9)) + xlab("Variety") + ylab(input$traitOft2) + 
+    theme_classic() +
+    #facet_wrap(~ RiceEnv, ncol = 2) + 
+    ylim(min(TVFV_AllG$LL), max(TVFV_AllG$UL)+ 3*sd(TVFV_AllG$predictedValue))+
+    scale_color_manual(values = varCodeColor) +
+    ggtitle(paste0(as.factor(input$envOft2)," :Comparison of Test Variety vs. Top Performing Local Variety"),
+            subtitle = "with 95% confidence intervals (& the number of Trials at the top of the errorbar)") +
+    theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1), 
+          legend.position="top",
+          legend.title=element_text(size=10),legend.text = element_text(size=6),
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_rect(fill="white",colour = "black", size=1),
+          plot.title = element_text(size = 12))  + 
+    guides(col= guide_legend(title= "Variety Code"))
+  
+  shiny::renderPlot(TVFV_G)
+} else if(input$controlOft2 == "Most Frequently Used Local Variety"){
+  TVMFU_AllG <- TVMFU_All %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2))
+  TVMFU_G <- ggplot(data = TVMFU_AllG,
+                    aes(x = reorder(designation,-predictedValue),
+                        y = predictedValue,
+                        color = entryType)) +
+    geom_point() +
+    geom_text(aes(label = n, y = UL + 0.4*sd(predictedValue)), size = 3.5) + 
+    geom_errorbar(aes(ymin = LL, ymax = UL), width=.3,
+                  position=position_dodge(.9)) +
+    xlab("Variety") +
+    ylab(input$traitOft2) +
+    theme_classic() +
+    # facet_wrap(~ RiceEnv, ncol = 2) + 
+    ylim(min(TVMFU_AllG$LL), max(TVMFU_AllG$UL)+ 3*sd(TVMFU_AllG$predictedValue))+
+    scale_color_manual(values = varCodeColor) +
+    ggtitle(paste0(as.factor(input$envOft2)," : Comparison of Test Variety vs. Most Frequently Used Local Variety"),
+            subtitle = "with 95% confidence intervals (& the number of Trials at the top of the errorbar)") +
+    theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1),
+          legend.position="top", legend.title=element_text(size=12),
+          legend.text = element_text(size=6),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_rect(fill="white",colour = "black", size=1),
+          plot.title = element_text(size = 10))  + 
+    guides(col= guide_legend(title="Variety Code"))
+  
+  shiny::renderPlot(TVMFU_G)
+} else{
+  TVBM_AllG <- TVBM_All %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2))
+  
+  TVBM_G <- ggplot(data = TVBM_AllG,
+                   aes(x = reorder(designation,-predictedValue),
+                       y = predictedValue,
+                       color = entryType)) +
+    geom_point() +
+    geom_text(aes(label = n, y = UL + 0.4*sd(predictedValue)), size = 3.5) + 
+    geom_errorbar(aes(ymin = LL, ymax = UL), width=.3,
+                  position=position_dodge(.9)) +
+    xlab("Variety") +
+    ylab(input$traitOft2) +
+    theme_classic() +
+    #facet_wrap(~ RiceEnv, ncol = 2) + 
+    ylim(min(TVBM_AllG$LL), max(TVBM_AllG$UL)+ 3*sd(TVBM_AllG$predictedValue))+
+    scale_color_manual(values = varCodeColor) +
+    ggtitle(paste0(as.factor(input$envOft2)," : Comparison of Test Variety vs. Benchmark"),
+            subtitle = "with 95% confidence intervals (& the number of Trials at the top of the errorbar)") +
+    theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1),
+          legend.position="top",
+          legend.title=element_text(size=10),
+          legend.text = element_text(size=6),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_rect(fill="white",colour = "black",size=1),
+          plot.title = element_text(size = 12))  + 
+    guides(col= guide_legend(title= "Variety Code"))
+  
+  shiny::renderPlot(TVBM_G)
+}
+    }
+      
+  })
+}
+
+```
+
+```{r , results = "asis", echo = FALSE}
+if(params$toDownload == FALSE){
+  shiny::renderUI({
+    if(input$graphOft2 == "Comparison With the Control" & !is.null(input$controlOft2)){
+      if(input$controlOft2 == "Top Performing Local Variety"){
+        sig_TVFV2Tab3 <- sig_TVFVTab2 %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2)) %>%
+  select(-c(trait))
+
+if(nrow(sig_TVFV2Tab3)<= 1){
+  shiny::renderText("**Predicted Grain Yield Mean of Test Varieties are not sigficantly different with Top Performing Local Variety**")
+} else{
+  DT::renderDT(printTable(sig_TVFV2Tab3,
+                                           scrollXOpt = FALSE,
+                                           colNames = c("Rice Environment", "Variety","Variety Class",
+                                                        "Lower Predicted Mean", "Predicted Mean",
+                                                        "Upper Predicted Mean"),
+                      caption = paste0("Test Varieties Significantly Different with Top Performing Local Variety"),
+                                           numRound = 4))
+}
+      } else if(input$controlOft2 == "Most Frequently Used Local Variety"){
+        sig_TVMFU2Tab3 <- sig_TVMFUTab2 %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2)) %>% select(-c(trait))
+
+
+if(nrow(sig_TVMFU2Tab3) <= 1){
+  shiny::renderText("**Predicted Grain Yield Mean of Test Varieties are not sigficantly different with Top Performing Local Variety**")
+
+} else{
+  DT::renderDT(printTable(sig_TVMFU2Tab3,
+                                           scrollXOpt = FALSE,
+                                           colNames = c("Rice Environment", "Variety","Variety Class",
+                                                        "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
+                      caption = paste0("Test Varieties Significantly Different with Most Frequently Used Local Variety"),
+                                           numRound = 4))
+}
+      } else{
+        sig_TVBM2Tab3 <- sig_TVBMTab2 %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2)) %>% select(-c(trait))
+
+# if(nrow(sig_TVBM2Tab3) <= nrow(sig_TVBM2Tab3)-1){
+if(!("TEST VARIETY" %in% sig_TVBM2Tab3$entryType)){
+  shiny::renderText("**Predicted Grain Yield Mean of Test Varieties are not sigficantly different with Benchmark Variety**")
+} else{
+  DT::renderDT(printTable(sig_TVBM2Tab3,
+                                           scrollXOpt = FALSE,
+                                           colNames = c("Rice Environment", "Variety","Variety Class",
+                                                        "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
+                      caption = paste0("Test Varieties Significantly Different with Benchmark Variety"),
+                                           numRound = 4))
+}
+      }
+    }
+  })
 
 }
+
+```
+
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  if(params$toDownload == TRUE){ # we will download the document
+    shinyjs::hide()
+  }else{
+    inputPanel(
+      shiny::selectInput(ns("traitOft3"),
+                         label = "Trait to filter:", 
+                         multiple = FALSE,
+                         choices = c("Disease"),
+                         selected = "Disease"
+                         ),
+      shiny::selectInput(ns("envOft3"),
+                         label = "Environment to filter:", 
+                         multiple = FALSE,
+                         choices = params$fieldinst,
+                         ),
+      shiny::selectInput(ns("graphOft3"),
+                         label = "Graph or Table to visualize:", 
+                         multiple = FALSE,
+                         choices = c("Bargraph", "Heatmap", "Summary Count"),
+                         )
+    )
+  }
+}
+
+```
+
+```{r , results = "asis", echo = FALSE}
+if(params$toDownload == FALSE){
+  bar_dse <- NULL            
+  TDse_tempHMP  <- NULL
+  TDse_tempHMP2  <- NULL
+  DseSev_temp <- NULL
+  
+  m <- list(l = 40,r = 40,b = 40,  t = 40)
+  
+  shiny::renderUI({
+    if(input$graphOft3 == "Bargraph"){
+    dt_orig$designation <- gsub(" ", "", dt_orig$designation)
+
+    Var_Dse <- dt_orig %>%  filter(environment == input$envOft3) %>% droplevels(.) %>%
+                    janitor::tabyl(designation,MDiseases) %>%  janitor::adorn_totals("col") %>% 
+                    mutate(environment=input$envOft3) %>% data.frame() 
+   
+      if(!"No" %in% colnames(Var_Dse)) {
+   bar_dse <- plot_ly(Var_Dse, x = ~designation, y = ~Yes,
+                          marker = list(color = 'gray', width=3), name = "With Disease", 
+                          width = 800, height = 800, type = "bar",text = Var_Dse$Yes, 
+                          textposition = 'inside', 
+                          textfont = list(color = 'darkblue', size = 12)) %>% 
+                  layout(barmode = 'stack') %>%
+                  layout(xaxis = list(title = "Variety"), 
+                         yaxis = list(title = "Count of With Disease")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
+ } else if(!"Yes" %in% colnames(Var_Dse)){
+     bar_dse <- plot_ly(Var_Dse, x = ~designation, y = ~No,
+                          marker = list(color = 'green', width=3), name = "Without Disease", 
+                          width = 800, height = 800, type = "bar",text = Var_Dse$No, 
+                          textposition = 'inside', 
+                          textfont = list(color = 'darkblue', size = 12)) %>% 
+                  layout(barmode = 'stack') %>%
+                  layout(xaxis = list(title = "Variety"), 
+                         yaxis = list(title = "Count of Without Disease")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
+ } else{
+     bar_dse <-  plot_ly(Var_Dse, x = ~designation, y = ~Yes,
+                          marker = list(color = 'gray', width=3), name = "With Disease", 
+                          width = 800, height = 800, type = "bar",text = Var_Dse$Yes, 
+                          textposition = 'inside', 
+                          textfont = list(color = 'darkblue', size = 12)) %>% 
+                  add_trace(y= ~No, marker = list(color = 'green', width=3), 
+                            text = Var_Dse$No, name = "Without Disease", textposition = 'inside', 
+                            textfont = list(color = 'darkblue', size = 12)) %>% 
+                  layout(barmode = 'stack') %>%
+                  layout(xaxis = list(title = "Variety"), 
+                         yaxis = list(title = "Count")) %>% layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, y= 1)) %>% layout(title = "Major Disease Occurrence", margin = m)
+ }
+      bar_dse
+    } else if(input$graphOft3 == "Heatmap"){
+       TDse_temp <- dt_orig %>% filter(environment == input$envOft3) %>% filter(MDiseases == "Yes") %>%
+              droplevels(.) %>%  janitor::tabyl(designation,Type_Disease) %>% 
+              arrange(designation) %>%
+              tibble::remove_rownames() %>% textshape::column_to_rownames(loc = "designation")  %>%               as.matrix()  
+       
+        palette <- colorRampPalette(c("palegreen","navy"))
+  
+ TDse_tempHMP <- plot_ly(y=colnames(TDse_temp), x=rownames(TDse_temp), z= t(TDse_temp),
+                              colors = palette(20), type = "heatmap") %>%  
+                      layout(title = "Type of Major Disease", margin = m)  
+ 
+ if(nrow(TDse_temp <- dt_orig %>% filter(environment == input$envOft3) %>% 
+            filter(MDiseases =="Yes"))== 0){
+      shiny::renderText("**No Major Disease**")
+    }else{
+      plotly::renderPlotly(TDse_tempHMP)
+    }
+    } else{
+      if(nrow(dt_orig   %>%   filter(environment == input$envOft3) %>% filter(MDiseases == "Yes"))>0) {
+   DseSev_temp <- dt_orig %>% filter(environment == input$envOft3) %>% filter(MDiseases == "Yes") %>% select(designation,Type_Disease,Disease_Severity) %>% 
+                     group_by(designation, Type_Disease) %>% 
+                     summarise(Severity=max(Disease_Severity)) %>% 
+                     tidyr::pivot_wider(names_from = Type_Disease, values_from = Severity) %>% 
+                     arrange(designation) %>% t() %>% as.data.frame() %>% 
+                     set_names(slice(.,1)) %>% slice(-1) %>% 
+                     tibble::rownames_to_column(var = "Type_Disease") %>% arrange(desc(Type_Disease))
+ } else{
+    DseSev_temp <- dt_orig   %>%   filter(environment == input$envOft3) %>% filter(MDiseases == "Yes")
+ }
+      if(nrow(DseSev_temp)== 0){
+      shiny::renderText("**No Disease Severity**")
+    } else{
+      DT::renderDT(printTable(DseSev_temp,
+                 colNames = colnames(DseSev_temp),
+                 scrollXOpt = FALSE,
+                 caption = "Disease Severity",
+                 numRound = 4))
+    }
+      
+    }
+  })
+}
+
 ```

@@ -30,10 +30,13 @@ systems (NARS), seed companies, and non-governmental organizations (NGOs). The o
 from a rigorous stage-gate advancement process, under farmers’ conditions to identify promising hybrids
 that perform well under farmers’ conditions before these are announced to the partners for further uptake.
                                 The way the options are used is the following:"),
-                                                               p(strong("Trait(s) to include.-")," Traits to be included in the report. It only includes analyzed traits from sta."),
+                                                               p(strong("Trait(s) to include.-")," Traits to be included in the dashboard. It only includes analyzed traits from sta."),
                                                                p(strong("Year of origin.-")," The name of the column containing the year when the genotype originated."),
                                                                p(strong("Entry type.-")," The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
-                                                               p(strong("Environment(s) to include.-")," Environments to be included in the report. It only includes analyzed environments from sta."),
+                                                               p(strong("Major Diseases.-")," The name of the column containing whether a major disease was observed or not."),
+                                                               p(strong("Type of Disease.-")," The name of the column containing the type of major disease observed."),
+                                                               p(strong("Disease Severity.-")," The name of the column containing the severity of major disease observed."),
+                                                               p(strong("Environment(s) to include.-")," Environments to be included in the dashboard. It only includes analyzed environments from sta."),
                                     #                     )
                                     # )
                            ),
@@ -41,7 +44,12 @@ that perform well under farmers’ conditions before these are announced to the 
                                     tabsetPanel(
                                       tabPanel("Pick STA-stamp", icon = icon("table"),
                                                br(),
-                                               column(width=12, selectInput(ns("version2Oft"), "STA version to use", choices = NULL, multiple = FALSE),  style = "background-color:grey; color: #FFFFFF"),
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=8, selectInput(ns("version2Oft"), "STA version to use", choices = NULL, multiple = FALSE) ),
+                                                      column(width=4, tags$br(),
+                                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
+                                                      )
+                                               ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -79,7 +87,6 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-
                                       tabPanel("Select year of origin & entry type", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
@@ -100,6 +107,25 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
+                                      tabPanel("Select Disease Information", icon = icon("table"),
+                                               br(),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=4, selectInput(ns("mDisease"), "Major Disease", choices = NULL, multiple = FALSE) ),
+                                                      column(width=4, selectInput(ns("typeDisease"), "Type of Disease", choices = NULL, multiple = FALSE) ),
+                                                      column(width=4, selectInput(ns("diseaseSeverity"), "Disease Severity", choices = NULL, multiple = FALSE) ),
+                                               ),
+                                               column(width=12,
+                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               ),
+                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
+                                               p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
+                                               column(width=12, DT::DTOutput(ns('preview_pheno2')) )
+                                               #                     ),
+                                               # )
+                                      ),
                                       tabPanel("Select Environments", icon = icon("table"),
                                                br(),
                                                column(width=12, selectInput(ns("env2Oft"), "Environment(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
@@ -108,8 +134,8 @@ that perform well under farmers’ conditions before these are announced to the 
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                               shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                                   column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                           column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
                                                                           column(width=3, selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                           column(width=3, selectInput(ns("entryTypeOft"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
@@ -117,22 +143,22 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                           column(width=2, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
                                                                           column(width=2, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
                                                                           column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) )
-                                               #                     ),
-                                               # )
+                                                                   ),
+                                               )
                                       ),
-                                      tabPanel("Generate report", icon = icon("play"),
+                                      tabPanel("Generate dashboard", icon = icon("play"),
                                                br(),
-                                               actionButton(ns("runOft"), "Generate OFT Report", icon = icon("play-circle")),
+                                               actionButton(ns("runOft"), "Generate OFT Dashboard", icon = icon("play-circle")),
                                                uiOutput(ns("outOft"))
                                       ),
                                     )
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                     tabsetPanel(
-                                      tabPanel("Report", icon = icon("file-image"),
+                                      tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               div(tags$p("Please download the report below:") ),
-                                               downloadButton(ns("downloadReportOft"), "Download report"),
+                                               div(tags$p("Please download the dashboard below:") ),
+                                               downloadButton(ns("downloadReportOft"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportOft'))
                                       )
@@ -169,14 +195,48 @@ mod_oftStaApp_server <- function(id, data){
             mappedColName <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree$",mappedColName)))),NA))
             if(mappedColumns > 0){
-              HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to generation of OFT Report.")) )
+              HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to generation of OFT Dashboard.")) )
             } else{
-              HTML( as.character(div(style="color: red; font-size: 20px;", "To generate OFT Report, please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )
+              HTML( as.character(div(style="color: red; font-size: 20px;", "To generate OFT Dashboard, please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )
             }
-          }else{ HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single trial analysis before generating OFT report.")) ) }
+          }else{ HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single trial analysis before generating OFT dashboard.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation', 'entryType' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
+
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        data(cgiarBase::create_getData_object())
+        tmp <- data()
+        utils::data(OFT_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
 
     ## version
     observeEvent(c(data()), {
@@ -196,7 +256,7 @@ mod_oftStaApp_server <- function(id, data){
       dtOft <- dtOft$predictions
       dtOft <- dtOft[which(dtOft$analysisId == input$version2Oft),]
       traitsOft <- unique(dtOft$trait)
-      updateSelectInput(session, "trait2Oft", choices = traitsOft)
+      updateSelectInput(session, "trait2Oft", choices = traitsOft, selected = traitsOft)
       updateSelectInput(session, "traitConnect", choices = traitsOft)
     })
     ## years
@@ -221,8 +281,36 @@ mod_oftStaApp_server <- function(id, data){
       traitsOft <- dtOft$metadata$pheno[dtOft$metadata$pheno$parameter=="entryType","value"]
       updateSelectInput(session, "entryTypeToUse", choices = traitsOft, selected = traitsOft )
     })
+    ## mDisease
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft), {
+      req(data())
+      req(input$version2Oft)
+      req(input$trait2Oft)
+      dtOft <- data()
+      traitsOft <- setdiff(colnames(dtOft$data$pheno), dtOft$metadata$pheno$value)
+      updateSelectInput(session, "mDisease", choices = traitsOft, selected = ifelse("MDiseases" %in% traitsOft, "MDiseases", traitsOft[1]))
+    })
+    ## typeDisease
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft), {
+      req(data())
+      req(input$version2Oft)
+      req(input$trait2Oft)
+      dtOft <- data()
+      traitsOft <- setdiff(colnames(dtOft$data$pheno), dtOft$metadata$pheno$value)
+      updateSelectInput(session, "typeDisease", choices = traitsOft, selected = ifelse("Type_Disease" %in% traitsOft, "Type_Disease", traitsOft[1]))
+    })
+    ## diseaseSeverity
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft), {
+      req(data())
+      req(input$version2Oft)
+      req(input$trait2Oft)
+      dtOft <- data()
+      traitsOft <- setdiff(colnames(dtOft$data$pheno), dtOft$metadata$pheno$value)
+      updateSelectInput(session, "diseaseSeverity", choices = traitsOft, selected = ifelse("Disease_Severity" %in% traitsOft, "Disease_Severity", traitsOft[1]))
+    })
     ## environment
-    observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$yearsToUse,input$entryTypeToUse), {
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$yearsToUse,input$entryTypeToUse,
+                   input$mDisease,input$typeDisease,input$diseaseSeverity), {
       req(data())
       req(input$version2Oft)
       req(input$trait2Oft)
@@ -394,6 +482,19 @@ mod_oftStaApp_server <- function(id, data){
       )
     })
 
+    ## -------- Select disease information --------- ##
+    output$preview_pheno2 <- DT::renderDT({
+      req(data())
+      dtOft <- data()
+      DT::datatable(dtOft$data$pheno,
+                    extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',
+                                   scrollX = TRUE,
+                                   buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+      )
+    })
+
     ## -------- Select environment(s) to include --------- ##
     ## render connectivity plot
     observeEvent(c(data(),input$version2Oft), { # update entry types included in the plot
@@ -462,29 +563,31 @@ mod_oftStaApp_server <- function(id, data){
       if(sum(result$status$module %in% "sta") != 0) {
         ## report OFT
         shinybusy::show_modal_spinner(spin = "fading-circle",
-                                      text = "Generating Report...")
+                                      text = "Generating Dashboard...")
         out <- rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
                                  output_format = rmarkdown::html_fragment(),
-                                 params = list(traits = input$trait2Oft, fieldinst=input$env2Oft),
+                                 params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
+                                               mdisease = input$mDisease, tdisease = input$typeDisease,
+                                               sdisease = input$diseaseSeverity, version = input$version2Oft),
                                  quiet = TRUE)
         output$reportOft <- renderUI({
           shiny::withMathJax(HTML(readLines(out)))
           # HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOft.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
-        cat(paste("Report Generated Successfully."))
+        cat(paste("Dashboard Generated Successfully."))
         shinybusy::remove_modal_spinner()
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 
         ## report OFT
         output$downloadReportOft <- downloadHandler(
           filename = function() {
-            paste('my-report-OFT', sep = '.', switch(
+            paste('my-dashboard-OFT', sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
             shinybusy::show_modal_spinner(spin = "fading-circle",
-                                          text = "Downloading Report...")
+                                          text = "Downloading Dashboard...")
             src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
             # src2 <- normalizePath('data/resultSta.RData')
 
@@ -495,8 +598,10 @@ mod_oftStaApp_server <- function(id, data){
             file.copy(src, 'report2.Rmd', overwrite = TRUE)
             # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
             out2 <- rmarkdown::render('report2.Rmd',
-                                     params = list(traits = input$trait2Oft, fieldinst=input$env2Oft, toDownload=TRUE),
-                                     switch("HTML",HTML = rmarkdown::html_document()))
+                                     params = list(traits = input$trait2Oft, fieldinst=input$env2Oft, toDownload=TRUE,
+                                                   mdisease = input$mDisease, tdisease = input$typeDisease,
+                                                   sdisease = input$diseaseSeverity, version = input$version2Oft),
+                                     switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
             file.rename(out2, file)
             shinybusy::remove_modal_spinner()
           }
