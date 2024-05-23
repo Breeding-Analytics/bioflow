@@ -356,7 +356,7 @@ mod_rggApp_server <- function(id, data){
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
       res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
-        ggplot2::geom_point() +
+        ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
         ggplot2::ggtitle("View of current analyses available")
       plotly::ggplotly(res)
       # res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "scatter", boxpoints = "all", color = mydata[,"entryType"],
@@ -382,8 +382,11 @@ mod_rggApp_server <- function(id, data){
       mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
+      if(length(input$yearsToUse) > 0){
+        mydata <- mydata[which(mydata$yearOfOrigin %in% input$yearsToUse),]
+      }
       res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
-        ggplot2::geom_point() +
+        ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
         ggplot2::ggtitle("View of current analyses available")
       plotly::ggplotly(res)
 
