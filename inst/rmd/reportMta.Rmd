@@ -950,12 +950,14 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       temp.pred.box <- pred[pred$trait== iTrait,]
+      temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
+      
       ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
       lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = ggplot2::element_blank() ) + 
         ggplot2::labs(x="", y="Trait value") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -967,13 +969,14 @@ if (is.null(result)){
         return(x)
       })
       temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
+      temp.pred.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box2$entryType))]
       
       p2 <- ggplot2::ggplot(
         data = temp.pred.box2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
-          col = entryType,
+          col = entryTypeSimple,
           text = paste(
             paste0('<br>', "designation: ", designation),
             paste0('<br>', "entry type: ", entryType),
@@ -1002,15 +1005,18 @@ if (is.null(result)){
     plotly::renderPlotly({
       
       temp.pred.box <- pred[pred$trait== input$traitMta2,]
+      temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
+      
       ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
       lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
+        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) + 
         ggplot2::labs(x="", y="Trait value") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
+      # plot 2
       temp.pred.box.list <- split(temp.pred.box, temp.pred.box$entryType)
       temp.pred.box.list <- lapply(temp.pred.box.list, function(x){
         x <- x[with(x, order(-predictedValue)), ]
@@ -1018,13 +1024,14 @@ if (is.null(result)){
         return(x)
       })
       temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
+      temp.pred.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box2$entryType))]
       
       p2 <- ggplot2::ggplot(
         data = temp.pred.box2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
-          col = entryType,
+          col = entryTypeSimple,
           text = paste(
             paste0('<br>', "designation: ", designation),
             paste0('<br>', "entry type: ", entryType),
@@ -1243,13 +1250,14 @@ if (is.null(result)){
           }
         })
         temp.pred.box <- do.call(rbind, predList2)
+        temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
         
         p <- ggplot2::ggplot(
           data = temp.pred.box,
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
-            col = entryType,
+            col = entryTypeSimple,
             text = paste(
               paste0('<br>', "designation: ", designation),
               paste0('<br>', "entry type: ", entryType),
@@ -1263,7 +1271,7 @@ if (is.null(result)){
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         
         print(htmltools::tagList(plotly::ggplotly(p)))
         
@@ -1286,13 +1294,13 @@ if (is.null(result)){
           }
         })
         temp.pred.box <- do.call(rbind, predList2)
-        
+        temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
         p <- ggplot2::ggplot(
           data = temp.pred.box,
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
-            col = entryType,
+            col = entryTypeSimple,
             text = paste(
               paste0('<br>', "designation: ", designation),
               paste0('<br>', "entry type: ", entryType),
@@ -1306,7 +1314,7 @@ if (is.null(result)){
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
-          ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         plotly::ggplotly(p)
         
       })

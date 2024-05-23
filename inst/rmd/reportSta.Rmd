@@ -801,11 +801,13 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       temp.predComp.box <- predComp[predComp$trait== iTrait,]
+      temp.predComp.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box$entryType))]
+      
       ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
       lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.predComp.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
         ggplot2::labs(x="", y="Trait value") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box$entryType))/3) )) +  ggplot2::facet_grid(~environment) +
@@ -826,13 +828,13 @@ if (is.null(result)){
         return(res0)
       })
       temp.predComp.box2 <- do.call(rbind, temp.predComp.box.list)
-      
+      temp.predComp.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box2$entryType))]
       p2 <- ggplot2::ggplot(
         data = temp.predComp.box2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
-          col = entryType,
+          col = entryTypeSimple,
           text = paste(
             paste0('<br>', "designation: ", designation),
             paste0('<br>', "entry type: ", entryType),
@@ -847,7 +849,9 @@ if (is.null(result)){
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), 
+          # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
+          legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) ) )
@@ -861,11 +865,13 @@ if (is.null(result)){
     plotly::renderPlotly({
       
       temp.predComp.box <- predComp[predComp$trait== input$traitStaComp,]
+      temp.predComp.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box$entryType))]
+      
       ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
       lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.predComp.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +  ggplot2::facet_grid(~environment) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +  ggplot2::facet_grid(~environment) +
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
         ggplot2::labs(x="", y="Trait value") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -885,13 +891,13 @@ if (is.null(result)){
         return(res0)
       })
       temp.predComp.box2 <- do.call(rbind, temp.predComp.box.list)
-      
+      temp.predComp.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box2$entryType))]
       p2 <- ggplot2::ggplot(
         data = temp.predComp.box2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
-          col = entryType,
+          col = entryTypeSimple,
           text = paste(
             paste0('<br>', "designation: ", designation),
             paste0('<br>', "entry type: ", entryType),
@@ -906,7 +912,9 @@ if (is.null(result)){
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) + ggplot2::facet_grid(~environment, scales = "free_x") +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
+        ggplot2::theme( axis.text.x = ggplot2::element_blank(), 
+          # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
+          legend.position = "bottom", legend.title = element_blank() ) +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) + 
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
