@@ -652,14 +652,14 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   traits <- unique(pred$trait)
-  predictions.designation <- subset(pred, select = c(trait,designation,environment,predictedValue))
+  predictions.designation <- subset(pred, select = c(trait,designation,environment,entryType,predictedValue))
   predictions.designation <- reshape(
     data=predictions.designation, 
     timevar = c("trait"), 
-    idvar = c("environment","designation"), 
+    idvar = c("environment","designation","entryType"), 
     direction="wide"
   )
-  names(predictions.designation) <- c("designation","environment",traits)
+  names(predictions.designation) <- c("designation","environment","entryType",traits)
   
   if("params" %in% ls()){ # we will download the document
     printTable(predictions.designation)

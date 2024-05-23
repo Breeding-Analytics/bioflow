@@ -30,8 +30,8 @@ printTable <- function(DT, pageLength = 7,
   table <- DT::datatable(data = DT, 
                          filter = "top", 
                          extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
@@ -160,56 +160,56 @@ if (is.null(result)){
 } else {
   
   if(!is.null(result$data$weather)){ # if weather data was extracted
-xx <- result$metadata$weather
-  xx <- xx[which(xx$trait %in% c("latitude","longitude")),c("environment","trait","value")]
-  xx <- reshape(xx, direction = "wide", idvar = "environment",
-                timevar = "trait", v.names = "value", sep= "_")
-  colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
-  
-  if("params" %in% ls()){ # we will download the document
+    xx <- result$metadata$weather
+    xx <- xx[which(xx$trait %in% c("latitude","longitude")),c("environment","trait","value")]
+    xx <- reshape(xx, direction = "wide", idvar = "environment",
+                  timevar = "trait", v.names = "value", sep= "_")
+    colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
     
-    world <- ggplot2::map_data("world")
-    p <- ggplot2::ggplot() + # + 
-      ggplot2::theme(legend.position="bottom", legend.text = ggplot2::element_text(size=4), legend.title = ggplot2::element_text(size=0)) +
-      ggplot2::geom_map(
-        data = world, map = world,
-        ggplot2::aes(long, lat, map_id = region),
-        color = "black", fill = "lightgray", linewidth=0.1
-      )  + ggplot2::ylab(" Latitude") + ggplot2::xlab("Longitude") +
-      ggplot2::geom_point(
-        data = xx,
-        ggplot2::aes(longitude, latitude, color = environment),
-        alpha = 0.7
-      ) 
-    print(p)
-    # plotly::ggplotly(p)
-    
-  }else{
-    
-    plotly::renderPlotly({
+    if("params" %in% ls()){ # we will download the document
       
-      fig <- xx
-      fig <- fig %>%
-        plotly::plot_ly(
-          lat = ~latitude,
-          lon = ~longitude,
-          type = "scattermapbox",
-          hovertext = ~environment, #us_cities[,"City"],
-          marker = list(color = "fuchsia"))
-      fig <- fig %>%
-        plotly::layout(
-          mapbox = list(
-            style = 'open-street-map',
-            zoom =1,
-            center = list(lon = 0, lat = 0)
+      world <- ggplot2::map_data("world")
+      p <- ggplot2::ggplot() + # + 
+        ggplot2::theme(legend.position="bottom", legend.text = ggplot2::element_text(size=4), legend.title = ggplot2::element_text(size=0)) +
+        ggplot2::geom_map(
+          data = world, map = world,
+          ggplot2::aes(long, lat, map_id = region),
+          color = "black", fill = "lightgray", linewidth=0.1
+        )  + ggplot2::ylab(" Latitude") + ggplot2::xlab("Longitude") +
+        ggplot2::geom_point(
+          data = xx,
+          ggplot2::aes(longitude, latitude, color = environment),
+          alpha = 0.7
+        ) 
+      print(p)
+      # plotly::ggplotly(p)
+      
+    }else{
+      
+      plotly::renderPlotly({
+        
+        fig <- xx
+        fig <- fig %>%
+          plotly::plot_ly(
+            lat = ~latitude,
+            lon = ~longitude,
+            type = "scattermapbox",
+            hovertext = ~environment, #us_cities[,"City"],
+            marker = list(color = "fuchsia"))
+        fig <- fig %>%
+          plotly::layout(
+            mapbox = list(
+              style = 'open-street-map',
+              zoom =1,
+              center = list(lon = 0, lat = 0)
+            )
           )
-        )
-      # }
-      fig
+        # }
+        fig
+        
+      })
       
-    })
-    
-  }
+    }
   }
   
 }
@@ -315,7 +315,7 @@ if (is.null(result)){
         p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
                               x = ~envMean,  type = "box", color = ~environment
         ) %>%  plotly::layout(# font=font.plot_ly,
-                               xaxis=list( title="Environmental mean"), yaxis=list( title="Trait value") )
+          xaxis=list( title="Environmental mean"), yaxis=list( title="Trait value") )
         p
       })
       
@@ -1370,7 +1370,7 @@ if (is.null(result)){
     }else{
       
       plotly::renderPlotly({
-      # shiny::renderPlot({
+        # shiny::renderPlot({
         
         p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
           ggplot2::geom_tile(color = "white")+
@@ -1425,14 +1425,15 @@ if (is.null(result)){
   pred.mta <- result$predictions
   pred.mta <- pred.mta[pred.mta$analysisId == idMta,]
   traits <- unique(pred.mta$trait)
-  pred.mta <- subset(pred.mta, select = c(trait,designation,environment,predictedValue))
+  pred.mta <- subset(pred.mta, select = c(trait,designation,environment,entryType,predictedValue))
   pred.mta.wide <- reshape(
     data=pred.mta, 
     timevar = c("trait"), 
-    idvar = c("environment","designation"), 
+    idvar = c("environment","designation","entryType"), 
     direction="wide"
   )
-  names(pred.mta.wide) <- c("designation","environment",traits)
+  names(pred.mta.wide) <- c("designation","environment","entryType",traits)
+  
   
   if(!is.null(result$data$qtl)  ){ # there's QTL information
     if(nrow(result$data$qtl)>0){
