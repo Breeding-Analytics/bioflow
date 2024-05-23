@@ -510,7 +510,7 @@ if (is.null(result)){
         ggplot2::guides(fill = "none") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance")
       
-      print(htmltools::tagList( plotly::subplot(pplotly::ggplotly(p_proportion_variance), plotly::ggplotly(p_value_variance), nrows=2, shareX = TRUE, shareY = TRUE) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p_proportion_variance), plotly::ggplotly(p_value_variance), nrows=2, shareX = TRUE, shareY = TRUE) ) )
       
       cat("\n")
     }
