@@ -168,7 +168,7 @@ mod_mtaApp_ui <- function(id){
                                                              selectInput(ns("interactionTermMta2"), "GxE term(s) (optional)", choices = NULL, multiple = TRUE),
                                                       ),
                                                       column(width = 8,
-                                                             numericInput(ns("minimumNumberEnvsFW"), label = "Minimum number of environments to fit a Finlay-Wilkinson regression", value = 6),
+                                                             numericInput(ns("minimumNumberEnvsFW"), label = "Minimum number of levels in GxE factor to fit a random regression", value = 6),
                                                       ),
                                                       column(width=12,
                                                              shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (OPTIONAL)...",
