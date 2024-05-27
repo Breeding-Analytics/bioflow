@@ -880,7 +880,7 @@ if (is.null(result)){
     
     cat("\n\n###  {.tabset .tabset-pills}       \n\n")
     p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=traitOriginal, y=valueProp, fill=parameterOriginal)) +
-      ggplot2::geom_bar(stat="identity") +
+      ggplot2::geom_bar(stat="identity") + ggplot2::labs(fill="Variance component") +
       ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
       ggplot2::scale_fill_brewer(palette="Accent") +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
@@ -895,7 +895,7 @@ if (is.null(result)){
     
     shiny::renderPlot({
       p <- ggplot2::ggplot(data=df3, ggplot2::aes(x=traitOriginal, y=valueProp, fill=parameterOriginal)) +
-        ggplot2::geom_bar(stat="identity") +
+        ggplot2::geom_bar(stat="identity") + ggplot2::labs(fill="Variance component") +
         ggplot2::xlab("Traits") + ggplot2::ylab("Proportion of variance") +
         ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1)) +
@@ -959,7 +959,7 @@ if (is.null(result)){
       p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = ggplot2::element_blank() ) + 
-        ggplot2::labs(x="", y="Trait value") +  
+        ggplot2::labs(x="", y="Trait value", color="Entry type") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
@@ -991,7 +991,7 @@ if (is.null(result)){
         ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
-        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
+        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
@@ -1014,7 +1014,7 @@ if (is.null(result)){
       p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) + 
-        ggplot2::labs(x="", y="Trait value") +  
+        ggplot2::labs(x="", y="Trait value", color="Entry type") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       # plot 2
@@ -1046,7 +1046,7 @@ if (is.null(result)){
         ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
-        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
+        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) + 
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -1271,13 +1271,12 @@ if (is.null(result)){
                                               ymin = LB#predictedValue2 - stdError2
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
-          ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
+          ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
           ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         
         print(htmltools::tagList(plotly::ggplotly(p)))
         
       }
-      
     }else{
       
       plotly::renderPlotly({
@@ -1314,7 +1313,7 @@ if (is.null(result)){
                                               ymin = LB#predictedValue2 - stdError2
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
-          ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Trait") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
+          ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
           ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         plotly::ggplotly(p)
         
@@ -1508,8 +1507,8 @@ if (is.null(result)){
   if(!is.null(result$data$qtl)  ){ # there's QTL information
     if(nrow(result$data$qtl)>0){
       qtls <- result$data$qtl
-      colnames(qtls) <- cgiarBase::replaceValues(Source = colnames(qtls), Search = result$metadata$qtl$value , Replace = result$metadata$qtl$parameter)
-      pred.mta.wide <- merge(pred.mta.wide, qtls, by="designation", all.x = TRUE)
+      byMerge <- result$metadata$qtl$value[which(result$metadata$qtl$parameter == "designation")]
+      pred.mta.wide <- merge(pred.mta.wide, qtls, by.x="designation", by.y=byMerge, all.x = TRUE)
     }
   }
   
