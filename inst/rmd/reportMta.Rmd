@@ -913,7 +913,8 @@ if (is.null(result)){
 
 ### Across-environment merit estimates of top entries
 
-In the following plot you can observe the comparison between the top 100 entries from each entry type category for the different traits. If a category has less than a 100 entries all individuals are displayed. This should allow you to identify the entries that could potentially become parents or nominated for advanced stages of evaluation. We would recommend you to wait until a selection index is calculated.
+In the left-side plot you can observe the comparison between the top 100 entries from each entry type category for the different traits. If a category has less than a 100 entries all individuals are displayed. This should allow you to identify the entries that could potentially become parents or nominated for advanced stages of evaluation. We would recommend you to wait until a selection index is calculated. In the right-side plot you can see a boxplot of the entire distribution of values for each entryType category so you know until which trait-values the rest of the entries that are not plotted in the left-side plot reach. 
+
 
 ```{r }
 if (is.null(result)){
@@ -994,7 +995,7 @@ if (is.null(result)){
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareY = TRUE, shareX = TRUE, nrows=1, widths = c(0.75,0.25) ) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = TRUE, nrows=1, widths = c(0.75,0.25) ) ) )
       
       cat("\n")
       cat("\n")
@@ -1052,7 +1053,7 @@ if (is.null(result)){
       
       ply1 <- plotly::ggplotly(p1)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply2, ply1, nrows=1, shareY = TRUE, shareX = TRUE, widths = c(0.75,0.25))
+      plotly::subplot(ply2, ply1, nrows=1, shareX = TRUE,  widths = c(0.75,0.25))
       
     })
     
@@ -1188,7 +1189,7 @@ if (is.null(result)){
 <p>&nbsp;</p>
 
 `r if (length( grep("check|chck|bnchmark|benchmark|chek|chec", unique(pred[pred$analysisId == idMta,"entryType"]), ignore.case = TRUE) ) > 0) {"### Percent check comparison to top 30 entries\n
-The following plots allow the user to compare the top 30 entries against the different checks/benchmarks present in the dataset.\n"}`
+The following plots allow the user to compare the top 30 entries against the different checks/benchmarks present in the dataset for each trait. The table below that shows the wide-table of all possible comparisons for all traits.\n"}`
 
 ```{r }
 if (is.null(result)){
@@ -1325,6 +1326,67 @@ if (is.null(result)){
   
 }
 ```
+
+```{r, results='asis', fig.height=20}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if(length(checksFound) > 0){
+    
+    predList <- split(pred, pred$trait) # make a list by trait
+    
+    for(iTrait in 1:length(predList)){
+      x <- predList[[iTrait]]
+      byCheck <- list()
+      for(iCheck in nameOfChecks){ # iCheck = nameOfChecks[1]
+        checkSelected <- which(x$designation == iCheck)
+        if(length(checkSelected) > 0){
+          x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x <- x[with(x, order(designation)), ]
+          # x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == iCheck ))),]
+          x$benchmark <- iCheck
+          byCheck[[iCheck]] <- x
+        }
+      }
+      long <- do.call(rbind, byCheck)
+      wide <- reshape(long[, c("benchmark", "designation","predictedValue2")], direction = "wide", idvar = "designation",
+                      timevar = c("benchmark"), v.names = c("predictedValue2"), sep= "_")
+      colnames(wide) <- paste0(names(predList)[iTrait], gsub("predictedValue2","",colnames(wide)))
+      colnames(wide)[1] <- "designation"
+      if(iTrait == 1){
+        res <- wide
+      }else{
+        res <- merge(res, wide, by="designation")
+      }
+    }
+    numCols <- colnames(res)[-c(1)]
+    
+    if("params" %in% ls()){ # we will download the document
+      printTable(res)
+    }else{
+      DT::renderDT({DT::formatRound(DT::datatable(
+        res,
+        extensions = 'Buttons',
+        rownames = FALSE,
+        class = 'cell-border',
+        options = list(
+          dom = 'Blfrtip',
+          scrollY = "400px",
+          scrollX = "400px",
+          buttons = c('copy','csv','excel','pdf','print'),
+          paging = F)
+      ),numCols)
+      })
+    }
+    
+  }
+  
+}
+```
+
 
 ### Genetic correlations between traits
 
