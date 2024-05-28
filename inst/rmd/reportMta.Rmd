@@ -1074,7 +1074,10 @@ traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & re
 traitsInPreds <- unique(pred$trait)
 ```
 
-`r if (sum(grepl("envIndex",traitsInPreds))>0) {"### Trait by trait-sensitivity plots\n
+`r if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+sum(grepl(x,traitsInPreds))
+})) > 0 )
+) {"### Trait by trait-sensitivity plots\n
 The following plots allow you to identify individuals with high performance for a trait but also with high or low sensitivity to the environmental means from a weather covariate or just the environmental means.\n"}`
 
 ```{r }
@@ -1096,7 +1099,10 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    if (sum(grepl("envIndex",traitsInPreds))>0){ # if there is envIndex fitted
+    if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+      sum(grepl(x,traitsInPreds))
+    })) > 0 )
+    ){ # if there is envIndex fitted
       selectInput(ns("traitMta3"),
                   label = "",
                   choices = traits
@@ -1111,7 +1117,10 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if (sum(grepl("envIndex",traitsInPreds))>0){ # if there is envIndex fitted
+  if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+    sum(grepl(x,traitsInPreds))
+  })) > 0 )
+  ){ # if there is envIndex fitted
     
     if("params" %in% ls()){ # we will download the document
       
