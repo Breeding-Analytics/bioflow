@@ -109,7 +109,7 @@ to work independently without upfront coordination.
 For more details, please check the following guidelines:
 <https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project>
 
-### Contributing an R function or a shiny module?
+#### A) Contributing an R function or a shiny module?
 
 If you wish to contribute a function that can be used across modules
 (e.g., a function to summarize data) please make your pull request to
@@ -124,7 +124,7 @@ If you wish to contribute a shiny module please make sure that it can
 use the data structure proposed and make your pull request to the
 bioflow repository.
 
-### How is a contribution reviewed and accepted?
+#### B) How is a contribution reviewed and accepted?
 
 Priority issues and functionalities will be posted in the confluence
 space for internal and external collaborators interested in contributing
@@ -173,7 +173,7 @@ cgiarBase::create_getData_object()
 3)  Functions should be documented properly and include examples for
     other members to recreate the results.
 
-### Types of contributions that will be accepted (check list)
+#### C) Types of contributions that will be accepted (check list)
 
 Only contributions that met the following criteria will be accepted:
 
@@ -192,13 +192,45 @@ Only contributions that met the following criteria will be accepted:
 4)  The function should be accepted at least by two of the current
     maintainers at the time of submission.
 
-### Open an issue before submitting a pull-request
+#### D) Required features if you want to submit an improved pipeline
+
+When you are sure that you can submit a better pipeline to any module
+don’t hesitate to do so by submitting it to the cgiarPipeline package.
+Still, make sure that your new pipeline function covers the essentials:
+
+1)  Pheno-QA modules: should return a table of modifications tagging
+    outliers.
+
+2)  Single-Trial-Analysis modules: should fit any experimental design
+    and return predictions and metrics associated to the analysis.
+
+3)  Multi-Trial Analysis modules: should fit genotype by environment
+    interactions, be able to use genomic information, return estimates,
+    standard errors and associated metrics to the analysis.
+
+4)  Selection index modules: should return estimated merit and
+    associated metrics to the analysis.
+
+5)  Optimal contribution selection: should be able to use any pedigree
+    or marker information and return optimal crosses and associated
+    metrics to the analysis.
+
+6)  Genetic gain analysis: should return gains in % and in original
+    units, standard errors, p-values.
+
+7)  Population structure: should return PCAs and other metrics
+    associated to the analysis.
+
+Of course, your pipeline should be robust against multiple data issues
+and foresee some situations where singularities may occur.
+
+#### E) Open an issue before submitting a pull-request
 
 For more information about GitHub Issues and Pull Request (PR)
 templates, please check the following link:
 <https://github.blog/2016-02-17-issue-and-pull-request-templates/>
 
-### When it’s appropriate to follow up?
+#### F) When it’s appropriate to follow up?
 
 Within 7 days after a pull request is submitted you should have a
-reponse. Otherwise please reach the development team.
+response. Otherwise please reach the development team.

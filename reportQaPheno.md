@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Phenotypic Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "May 23, 2024"  
+date: "May 27, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -22,14 +22,13 @@ The following table shows the modifications that have been saved in your analysi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQa-label" for="qaRawApp_1-traitQa">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="PHT" selected>PHT</option>
-<option value="GYKGPHA">GYKGPHA</option></select>
+<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out7bc781597b876c3d" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out227f716ed481319c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -44,13 +43,12 @@ The following boxplot allows you to visualize which records were tagged as outli
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQaBox-label" for="qaRawApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="PHT" selected>PHT</option>
-<option value="GYKGPHA">GYKGPHA</option></select>
+<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out769834860cdf5ea2" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out3d3d307155990698" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

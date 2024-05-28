@@ -157,7 +157,8 @@ mod_getDataPheno_ui <- function(id){
                                                       p(strong("country.-"),"The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."),
                                                       p(strong("location-"),"The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."),
                                                       p(strong("trial.-"),"The name of the column containing the labels listing the trial of experiment randomized."),
-                                                      p(strong("study.-"),"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location. If not available, compute it using the button available."),
+                                                      p(strong("study.-"),"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location."),
+                                                      p(strong("management-"),"The name of the column containing the labels listing the unique occurrences of a management (e.g., drought, irrigated, etc.) nested in a trial, nested in a year, country, location."),
                                                       p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
                                                       p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an study."),
                                                       p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study."),
@@ -874,7 +875,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       req(data())
       dtMta <- data()$metadata$pheno
       if(!is.null(dtMta)){
-        traitMtaInput <- intersect( c('pipeline','stage','year', 'season', 'country', 'location', 'trial', 'study'), dtMta$parameter )
+        traitMtaInput <- intersect( c('pipeline','stage','year', 'season', 'country', 'location', 'trial', 'study','management'), dtMta$parameter )
         updateSelectInput(session, "featuresEnvironment", choices = traitMtaInput, selected = traitMtaInput)
       }
     })
@@ -901,7 +902,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           myObject$metadata$pheno <- myObject$metadata$pheno[-which(myObject$metadata$pheno$parameter == "environment"), ]
           myObject$data$pheno <- myObject$data$pheno [,!(names(myObject$data$pheno) %in% c("environment"))]
           data(myObject)
-          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns: 'pipeline', 'stage', 'year', 'season', 'location', 'trial' or 'study' to be able to compute the environments and perform a genetic evaluation "), type = "error")
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns: 'pipeline', 'stage', 'year', 'season', 'location', 'trial', 'study' or 'management' to be able to compute the environments and perform a genetic evaluation "), type = "error")
         }
       }else{ # user has not mapped an study column, we will add it
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
@@ -917,7 +918,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("No additional columns to concatenate. 'environment' column is equal to", myObject$metadata$pheno[otherEnvironmentColumn, " value"]), type = "success")
         }else{
-          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial', 'study' or 'management' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
           # cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))
         }
       }
