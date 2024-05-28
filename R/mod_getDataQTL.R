@@ -82,8 +82,10 @@ mod_getDataQTL_ui <- function(id){
                                                                 HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 24px;", "Column match/mapping")) ),
                                                       ),
                                                       uiOutput(ns('qtl_map')),
-
-
+                                                      column(width=4),
+                                                      column(width=8,
+                                                             shinyWidgets::prettySwitch( inputId = ns('qtl_all'), label = "Select all columns", status = "success")
+                                                      ),
                                   ),
                            ),
                            column(width=12,
@@ -249,35 +251,6 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
       }
     )
 
-    # observeEvent(
-    #   input$qtl_example,
-    #   if(length(input$qtl_example) > 0){ # if user clicked on qtl example
-    #     if (input$qtl_example) {
-    #       updateSelectInput(session, 'qtl_input', selected = 'qtlfileurl')
-    #
-    #       # qtl_example_url <-  paste0(session$clientData$url_protocol, '//',
-    #       #                            session$clientData$url_hostname, ':',
-    #       #                            session$clientData$url_port,
-    #       #                            session$clientData$url_pathname,
-    #       #                            qtl_example)
-    #
-    #       qtl_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/qtl.csv'
-    #
-    #       updateTextInput(session, 'qtl_url', value = qtl_example_url)
-    #
-    #       golem::invoke_js('hideid', ns('qtl_file_holder'))
-    #       golem::invoke_js('showid', ns('qtl_url'))
-    #     } else {
-    #       updateSelectInput(session, 'qtl_input', selected = 'qtlfile')
-    #       updateTextInput(session, 'qtl_url', value = '')
-    #
-    #       golem::invoke_js('showid', ns('qtl_file_holder'))
-    #       golem::invoke_js('hideid', ns('qtl_url'))
-    #     }
-    #   }
-    #
-    # )
-
     ## data example loading
     observeEvent(
       input$qtl_example,
@@ -291,6 +264,7 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
         }
       }
     )
+
     observeEvent(input$myconfirmation, {
       if (isTRUE(input$myconfirmation)) {
         if(length(input$qtl_example) > 0){ # if user clicked on qtl example
@@ -321,6 +295,23 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
         shinyWidgets::updatePrettySwitch(session, "qtl_example", value = FALSE)
       }
     }, ignoreNULL = TRUE)
+
+
+    ############
+    # check box to load all qtls
+
+    observeEvent(
+      input$qtl_all,
+      if(length(input$qtl_all) > 0){
+        if (input$qtl_all) {
+          header <- colnames(qtl_data_table())
+          updateSelectizeInput(session, 'qtl_table_markers', selected = header)
+        }else{
+          shinyWidgets::updatePrettySwitch(session, "qtl_all", value = FALSE)
+          updateSelectizeInput(session, 'qtl_table_markers', selected = '')
+        }
+      }
+    )
 
   })
 }
