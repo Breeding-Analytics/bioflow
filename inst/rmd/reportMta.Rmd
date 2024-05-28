@@ -611,7 +611,10 @@ if (is.null(result)){
   modeling <- result$modeling
   modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
   metrics <- result$metrics
-  traitsBiplotAll <- metrics[metrics$analysisId == idMta & metrics$parameter == "nEnv" & metrics$value > 1, "trait"]
+  traitsBiplot1 <- setdiff(unique(modeling[modeling$analysisId == idMta, "trait" ]), "inputObject" )
+  traitsBiplot2 <- metrics[metrics$analysisId == idMta & metrics$parameter == "nEnv" & metrics$value > 1, "trait"]
+  traitsBiplotAll <- intersect(traitsBiplot1, traitsBiplot2)
+  # traitsBiplotAll <- metrics[metrics$analysisId == idMta & metrics$parameter == "nEnv" & metrics$value > 1, "trait"]
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
@@ -1101,11 +1104,17 @@ if (is.null(result)){
   }else{
     if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
       sum(grepl(x,traitsInPreds))
-    })) > 0 )
-    ){ # if there is envIndex fitted
-      selectInput(ns("traitMta3"),
-                  label = "",
-                  choices = traits
+    })) > 0 )    ){ # if there is envIndex fitted
+      
+      inputPanel(
+        selectInput(ns("traitMta3"),
+                    label = "Trait",
+                    choices = traits
+        ),
+        selectInput(ns("envCovMta3"),
+                    label = "Covariate",
+                    choices = covariates
+        ),
       )
     }
   }
@@ -1132,6 +1141,7 @@ if (is.null(result)){
         temp.pred.box <- pred[pred$trait== ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait),]
         # for each possible environmental covariate iCovariate = covariates[1]
         for(iCovariate in covariates){ 
+          cat("\n\n#####", iCovariate, "{.tabset .tabset-pills}       \n\n")
           stabilityTrait <- ifelse(isRRBLUP, paste0(iTrait,"_QTL", iCovariate), paste0(iTrait,"-", iCovariate) ) # paste0(ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait),"-",iCovariate)
           if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
             subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait), stabilityTrait)),]
@@ -1141,13 +1151,14 @@ if (is.null(result)){
             colnames(wide)[3:4] <- c("trait1","trait2")
             p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
               geom_point(size=2, ggplot2::aes(shape=entryType)) + ylab(iTrait) + xlab(stabilityTrait) 
+            if(length(unique(temp.pred.box$designation)) > 1000){ # go fixed format
+              print(p)
+            }else{ # go dynamic if there is less than 1000 genotypes in the plot
+              print(htmltools::tagList(plotly::ggplotly(p)))
+            }
           }
         }
-        if(length(unique(temp.pred.box$designation)) > 1000){ # go fixed format
-          print(p)
-        }else{ # go dynamic if there is less than 1000 genotypes in the plot
-          print(htmltools::tagList(plotly::ggplotly(p)))
-        }
+        
       }
       
     }else{ # render in screen
@@ -1156,37 +1167,34 @@ if (is.null(result)){
         
         shiny::renderPlot({ # regular ggplot
           
-          for(iCovariate in covariates){ 
-            stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", iCovariate), paste0(input$traitMta3,"-", iCovariate) ) # # paste0(input$traitMta3,"-",iCovariate)
-            if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-              subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
-              wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
-                              direction = "wide", idvar = "designation",
-                              timevar = "trait", v.names = "predictedValue", sep= "_")
-              colnames(wide)[3:4] <- c("trait1","trait2")
-              p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
-                geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$traitMta3) + xlab(stabilityTrait) 
-            }
+          stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", input$envCovMta3), paste0(input$traitMta3,"-", input$envCovMta3) )
+          if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
+            subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
+            wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
+                            direction = "wide", idvar = "designation",
+                            timevar = "trait", v.names = "predictedValue", sep= "_")
+            colnames(wide)[3:4] <- c("trait1","trait2")
+            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
+              geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$traitMta3) + xlab(stabilityTrait) 
+            p
           }
-          p
           
         })
       }else{ # go dynamic
         plotly::renderPlotly({
           
-          for(iCovariate in covariates){ 
-            stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", iCovariate), paste0(input$traitMta3,"-", iCovariate) ) # paste0(input$traitMta3,"-",iCovariate)
-            if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-              subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
-              wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
-                              direction = "wide", idvar = "designation",
-                              timevar = "trait", v.names = "predictedValue", sep= "_")
-              colnames(wide)[3:4] <- c("trait1","trait2")
-              p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
-                geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$traitMta3) + xlab(stabilityTrait) 
-            }
+          stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", input$envCovMta3), paste0(input$traitMta3,"-", input$envCovMta3) )
+          if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
+            subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
+            wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
+                            direction = "wide", idvar = "designation",
+                            timevar = "trait", v.names = "predictedValue", sep= "_")
+            colnames(wide)[3:4] <- c("trait1","trait2")
+            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
+              geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$traitMta3) + xlab(stabilityTrait) 
+            plotly::ggplotly(p)
           }
-          plotly::ggplotly(p)
+          
         })
       }
     }
