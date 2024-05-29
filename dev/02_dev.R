@@ -63,6 +63,7 @@
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
 # usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 # usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
+# usethis::use_dev_package("st4gi", type = "Imports", remote = "reyzaguirre/st4gi")
 #
 # # https://icarda-git.github.io/QBMS/#boosting-big-queries-performance
 # # https://github.com/gaborcsardi/async/issues/70
@@ -112,6 +113,7 @@
 # golem::add_module(name = "ocsApp", with_test = FALSE) # optimal cross selection
 # golem::add_module(name = "rggApp", with_test = FALSE) # realized genetic gain
 # golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "dataConsistPotatoApp", with_test = FALSE) # predicted genetic gain
 #
 # golem::add_module(name = "homeApp", with_test = FALSE) # home
 #

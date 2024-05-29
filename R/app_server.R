@@ -43,6 +43,9 @@ app_server <- function(input, output, session) {
   mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
 
+  ## DATA CONSISTENCY
+  mod_dataConsistPotatoApp_server("dataConsistPotatoApp_1", data = data)
+
   # SELECTION - genetic evaluation
   mod_staApp_server("staApp_1", data = data) # single trial analysis
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA

@@ -53,6 +53,7 @@ Imports:
     shinyWidgets,
     slickR,
     sommer,
+    st4gi (>= 3.1.1),
     stats,
     stringi,
     stringr,
@@ -73,8 +74,9 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.1.9000
-Remotes: 
+Remotes:  
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
-    r-lib/async
+    r-lib/async,
+    reyzaguirre/st4gi
