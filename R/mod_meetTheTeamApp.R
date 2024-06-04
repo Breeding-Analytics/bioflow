@@ -22,7 +22,7 @@ mod_meetTheTeamApp_ui <- function(id){
 
                                    shinydashboard::box(status="success", width = 6,
                                                        title = "Contributors of analytical modules:", solidHeader = TRUE,
-                                                       img(src = " www/centers.png", height = 500, width = 600), # add an image
+                                                       img(src = " www/centers.png", height = 400, width = 480), # add an image
                                                        p(" "),
                                                        p("All CGIAR centers with Biometrics capacity have contributed to the design of the breeding analytics platform
                                                   and currently work in developing analytical modules. Want to contribute? Contact us.")
