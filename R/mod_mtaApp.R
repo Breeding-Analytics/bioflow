@@ -109,14 +109,16 @@ mod_mtaApp_ui <- function(id){
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                # p(span("Metrics associated to the STA stamp selected.", style="color:black")),
                                                tags$span(id = ns('holder1'),
-                                                         column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                                         column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                         column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                         column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                         column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
                                                ),
                                                # p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
                                                tags$span(id = ns('holder2'),
-                                                         column(width=6, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                         column(width=6, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                                         column(width=5, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                         column(width=5, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                                         column(width=2, checkboxInput(ns("checkbox2"), label = "Include x-axis labels", value = TRUE) ),
                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
                                                ),
                                                #                     ),
@@ -793,11 +795,15 @@ mod_mtaApp_server <- function(id, data){
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
-      res <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
+      p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=position_dodge())+
-        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
-      plotly::ggplotly(res)
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
+      if(input$checkbox1){
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      }else{
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      }
+      plotly::ggplotly(p)
     })
     ## render trait distribution plot
     observeEvent(c(data(),input$version2Mta), { # update trait
@@ -818,12 +824,17 @@ mod_mtaApp_server <- function(id, data){
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
         ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
         ggplot2::theme_classic()+ ggplot2::ggtitle("Dispersal of predictions associated to the STA stamp selected") +
         ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
-        ggplot2::xlab("Environment") + ggplot2::ylab("Predicted value") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+        ggplot2::xlab("Environment") + ggplot2::ylab("Predicted value")
+      if(input$checkbox2){
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      }else{
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      }
+      p
     })
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {
