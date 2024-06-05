@@ -22,3 +22,4 @@ run_app()
 
 # profile your Shiny application
 #profvis::profvis(print(run_app()))
+

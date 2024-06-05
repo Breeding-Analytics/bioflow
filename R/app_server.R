@@ -251,6 +251,7 @@ app_server <- function(input, output, session) {
   # mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
   mod_getDataPheno_server("getDataPheno_1", map = required_mapping, data = data, res_auth = res_auth)
   mod_getDataGeno_server("getDataGeno_1", data = data, res_auth = res_auth)
+  mod_getDataGenoCustom_server("getDataGenoCustom_1", data = data, res_auth = res_auth)
   mod_getDataPed_server("getDataPed_1", data = data, res_auth = res_auth)
   mod_getDataWeather_server("getDataWeather_1", map = required_mapping_weather, data = data, res_auth = res_auth)
   mod_getDataQTL_server("getDataQTL_1", data = data, res_auth = res_auth)

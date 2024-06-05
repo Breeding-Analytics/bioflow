@@ -50,6 +50,7 @@ app_ui <- function(request) {
                           tabsetPanel( #widths = c(1, 11),
                             tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
                             tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
+                            tabPanel(div(icon("dna"), "Genotypic Custom"), mod_getDataGenoCustom_ui("getDataGenoCustom_1") ),
                             tabPanel(div(icon("code-fork"), "Pedigree"), mod_getDataPed_ui("getDataPed_1") ),
                             tabPanel(div(icon("anchor"), "QTL profile"), mod_getDataQTL_ui("getDataQTL_1") ),
                             tabPanel(div(icon("cloud-sun-rain"), "Weather"), mod_getDataWeather_ui("getDataWeather_1") ),
