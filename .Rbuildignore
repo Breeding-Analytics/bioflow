@@ -1,2 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
+^README\.Rmd$
+^CODE_OF_CONDUCT\.md$
+^data-raw$
+^\.github$
+^Makefile$
+^Jenkinsfile$
+^\.gitlab-ci\.yml$
