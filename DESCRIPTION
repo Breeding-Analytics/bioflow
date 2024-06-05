@@ -1,23 +1,20 @@
 Package: bioflow
-Title: CGIAR Breeding Analytics Pipeline
-Description: CGIAR Breeding Analytics Pipeline
-Version: 0.1.0
-Authors@R: c(
-    person("Giovanny", "Covarrubias Pazaran", , "g.covarrubias@irri.org", role = c("aut", "cre")),
-    person("Ibnou", "Dieng", , "i.dieng@cgiar.org", role = c("aut")),
-    person("Khaled", "Al-Shamaa", , "k.el-shamaa@cgiar.org", role = c("aut"))
-  )
-License: GPL (>= 3)
+Title: PKG_TITLE
+Description: PKG_DESC.
+Version: 0.0.0.9000
+Authors@R: person('AUTHOR_FIRST', 'AUTHOR_LAST', email = 'AUTHOR@MAIL.COM', role = c('cre', 'aut'))
+License: MIT + file LICENSE
 URL: https://github.com/Breeding-Analytics/bioflow/
 BugReports: https://github.com/Breeding-Analytics/bioflow/issues
 Imports: 
     ape,
     async (>= 0.0.0.9004),
-    cgiarBase (>= 1.0.1),
+    cgiarBase (>= 1.0.2),
     cgiarOcs (>= 1.1),
-    cgiarPipeline (>= 1.0.3),
+    cgiarPipeline (>= 1.0.4),
     config (>= 0.3.2),
     data.table,
+    dendextend,
     DT,
     ggnetwork,
     ggplot2,
@@ -74,7 +71,7 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.1.9000
-Remotes:  
+Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
