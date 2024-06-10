@@ -70,7 +70,7 @@ mod_homeApp_ui <- function(id){
           # tags$h1("Biometrical Genetics Workflow (bioflow)"),
           tags$p(
             "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods for understanding or using evolutionary forces",
-            "(mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force).",
+            "(mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force) in decision-making.",
             "Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase),",
             "genotypic databases (GIGWA), and environmental databases (NASAPOWER), and carry the analytical procedures."
           )

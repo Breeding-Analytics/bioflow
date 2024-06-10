@@ -1218,8 +1218,8 @@ if (is.null(result)){
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
   
-  entryTypePresent <- table(pred$entryType)
-  check1 <- which(entryTypePresent < 100)
+  entryTypePresent <- table((unique(pred[,c("designation","entryType")]))$entryType)
+  check1 <- which(entryTypePresent < 200)
   check2 <- grep("check|chck|bnchmark|benchmark|chek|chec", names(entryTypePresent), ignore.case = TRUE, value=FALSE)
   checksFound <- intersect(check1,check2)
   if(length(checksFound) > 0){
@@ -1255,8 +1255,8 @@ if (is.null(result)){
       for(iCheck in nameOfChecks){
         cat("\n\n####", iCheck, "{.tabset .tabset-pills}       \n\n")
         
-        predList <- split(pred, pred$trait)
-        predList2 <- lapply(predList, function(x){ # x <- predList[[1]]
+        predListBench <- split(pred, pred$trait)
+        predListBench2 <- lapply(predListBench, function(x){ # x <- predListBench[[1]]
           checkSelected <- which(x$designation == iCheck)
           if(length(checkSelected) > 0){
             x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
@@ -1267,11 +1267,11 @@ if (is.null(result)){
             return(x)
           }
         })
-        temp.pred.box <- do.call(rbind, predList2)
-        temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
+        temp.pred.box.bench <- do.call(rbind, predListBench2)
+        temp.pred.box.bench$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.bench$entryType))]
         
-        p <- ggplot2::ggplot(
-          data = temp.pred.box,
+        pb <- ggplot2::ggplot(
+          data = temp.pred.box.bench,
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
@@ -1291,15 +1291,15 @@ if (is.null(result)){
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
           ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         
-        print(htmltools::tagList(plotly::ggplotly(p)))
+        print(htmltools::tagList(plotly::ggplotly(pb)))
         
       }
     }else{
       
       plotly::renderPlotly({
         
-        predList <- split(pred, pred$trait)
-        predList2 <- lapply(predList, function(x){ # x <- predList[[1]]
+        predListBench <- split(pred, pred$trait)
+        predListBench2 <- lapply(predListBench, function(x){ # x <- predListBench[[1]]
           checkSelected <- which(x$designation == input$checkMta)
           if(length(checkSelected) > 0){
             x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
@@ -1310,10 +1310,10 @@ if (is.null(result)){
             return(x)
           }
         })
-        temp.pred.box <- do.call(rbind, predList2)
-        temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
-        p <- ggplot2::ggplot(
-          data = temp.pred.box,
+        temp.pred.box.bench <- do.call(rbind, predListBench2)
+        temp.pred.box.bench$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.bench$entryType))]
+        pb <- ggplot2::ggplot(
+          data = temp.pred.box.bench,
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
@@ -1332,7 +1332,7 @@ if (is.null(result)){
           width = 0.10) +
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
           ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
-        plotly::ggplotly(p)
+        plotly::ggplotly(pb)
         
       })
       
@@ -1350,10 +1350,10 @@ if (is.null(result)){
   
   if(length(checksFound) > 0){
     
-    predList <- split(pred, pred$trait) # make a list by trait
+    predListBenchForTable <- split(pred, pred$trait) # make a list by trait
     
-    for(iTrait in 1:length(predList)){
-      x <- predList[[iTrait]]
+    for(iTrait in 1:length(predListBenchForTable)){
+      x <- predListBenchForTable[[iTrait]]
       byCheck <- list()
       for(iCheck in nameOfChecks){ # iCheck = nameOfChecks[1]
         checkSelected <- which(x$designation == iCheck)
@@ -1368,23 +1368,23 @@ if (is.null(result)){
         }
       }
       long <- do.call(rbind, byCheck)
-      wide <- reshape(long[, c("benchmark", "designation","predictedValue2")], direction = "wide", idvar = "designation",
+      wideBench <- reshape(long[, c("benchmark", "designation","predictedValue2")], direction = "wide", idvar = "designation",
                       timevar = c("benchmark"), v.names = c("predictedValue2"), sep= "_")
-      colnames(wide) <- paste0(names(predList)[iTrait], gsub("predictedValue2","",colnames(wide)))
-      colnames(wide)[1] <- "designation"
+      colnames(wideBench) <- paste0(names(predListBenchForTable)[iTrait], gsub("predictedValue2","",colnames(wideBench)))
+      colnames(wideBench)[1] <- "designation"
       if(iTrait == 1){
-        res <- wide
+        resBench <- wideBench
       }else{
-        res <- merge(res, wide, by="designation")
+        resBench <- merge(resBench, wideBench, by="designation")
       }
     }
-    numCols <- colnames(res)[-c(1)]
+    numCols <- colnames(resBench)[-c(1)]
     
     if("params" %in% ls()){ # we will download the document
-      printTable(res)
+      printTable(resBench)
     }else{
       DT::renderDT({DT::formatRound(DT::datatable(
-        res,
+        resBench,
         extensions = 'Buttons',
         rownames = FALSE,
         class = 'cell-border',

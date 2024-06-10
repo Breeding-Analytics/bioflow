@@ -51,7 +51,7 @@ formLme4 <- function(input0,object, analysisId){
   if(length(keep) > 0){
     toExtractFromData <- metaPheno[keep, "value"]
     tpe <- unique(object$data$pheno[,c("environment",toExtractFromData)])
-    colnames(tpe) <- replaceValues(colnames(tpe), Search = metaPheno$value, Replace = metaPheno$parameter )
+    colnames(tpe) <- cgiarBase::replaceValues(colnames(tpe), Search = metaPheno$value, Replace = metaPheno$parameter )
     predictions <- merge(predictions, tpe, by="environment", all.x = TRUE)
   }
   ## make the formula
