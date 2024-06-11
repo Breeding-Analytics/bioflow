@@ -299,7 +299,8 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
           for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
           ## check if the data is in single letter format
-          markersToSample <- sample(which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp),  min(c(ncol(tempG),20)) )
+          indexMarkers <- which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)
+          markersToSample <- sample( indexMarkers,  min(c(length(indexMarkers),20)) )
           ## check if user provided letter format markers, if not return an error
           columnClasses <- sort(table(unlist(lapply(tempG[,markersToSample], class))), decreasing = TRUE)
           if( names(columnClasses)[1] %in% c("integer","numeric") ){
