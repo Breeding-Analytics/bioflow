@@ -12,7 +12,7 @@ mod_singleCrossGenoApp_ui <- function(id){
   tagList(
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel(id=ns("tabsMain"), #width=9,
                        type = "tabs",
 
                        tabPanel( div(icon("book"), "Information-SCM") ,
@@ -46,6 +46,23 @@ mod_singleCrossGenoApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
+                                  tabPanel("Pick QA-stamp(s)", icon = icon("dice-one"),
+                                           br(),
+                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=8, selectInput(ns("version2Scm"), "QA stamp to apply to markers", choices = NULL, multiple = FALSE) ),
+                                                  column(width=4, tags$br(),
+                                                         shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
+                                                  ),
+                                           ),
+                                           column(width=12,
+                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           ),
+                                           column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                           DT::DTOutput(ns("statusScm")), # modeling table
+                                           DT::DTOutput(ns("genoScm")), # data input
+                                  ),
                                   tabPanel("Pick batch size", icon = icon("magnifying-glass-chart"),
                                            br(),
                                            column(width=12, numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000), style = "background-color:grey; color: #FFFFFF"),
@@ -76,6 +93,16 @@ mod_singleCrossGenoApp_ui <- function(id){
                                   ),
                                 ), # end of tabset
                        ),# end of output panel
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                tabsetPanel(
+                                  tabPanel("Data", icon = icon("table"),
+                                           br(),
+                                           downloadButton(ns("downloadDataScm"), "Download Genotypic data"),
+                                           br(),
+                                           DT::DTOutput(ns("dataScm")),
+                                  ),
+                                ) # of of tabsetPanel
+                       )# end of output panel
                      )) # end mainpanel
 
 
@@ -124,7 +151,9 @@ mod_singleCrossGenoApp_server <- function(id, data){
                 if(is.null(geno)){ # no markers available
                   HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your marker data using the 'Data Retrieval' tab.")) )
                 }else{ # markers are there
-                  HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform your analysis.")) )
+                  if("qaGeno" %in% data()$status$module){
+                    HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform your analysis.")) )
+                  }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please run the 'Markers QA/QC' module before performing your analysis.")) ) }
                 } # end of if pedigree available
               } #
             }
@@ -132,6 +161,141 @@ mod_singleCrossGenoApp_server <- function(id, data){
         }
       }
     )
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        data(cgiarBase::create_getData_object())
+        tmp <- data()
+        utils::data(SCM_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
+    # QA versions to use
+    observeEvent(c(data()), {
+      req(data())
+      dtScm <- data()
+      dtScm <- dtScm$status
+      dtScm <- dtScm[which(dtScm$module %in% "qaGeno"),]
+      traitsScm <- unique(dtScm$analysisId)
+      if(length(traitsScm) > 0){names(traitsScm) <- as.POSIXct(traitsScm, origin="1970-01-01", tz="GMT")}
+      updateSelectInput(session, "version2Scm", choices = traitsScm)
+    })
+    ## render timestamps flow
+    output$plotTimeStamps <- shiny::renderPlot({
+      req(data())
+      xx <- data()$status;  yy <- data()$modeling
+      v <- which(yy$parameter == "analysisId")
+      if(length(v) > 0){
+        yy <- yy[v,c("analysisId","value")]
+        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
+      }else{ zz <- xx; zz$value <- NA}
+      if(!is.null(xx)){
+        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+          X <- with(zz, sommer::overlay(outputId, inputId))
+        }else{
+          if(nLevelsCheck1 <= 1){
+            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+          if(nLevelsCheck2 <= 1){
+            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+          if(!is.null(X1)){X[,colnames(X1)] <- X1}
+          if(!is.null(X2)){X[,colnames(X2)] <- X2}
+        };  rownames(X) <- as.character(zz$outputId)
+        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        # make the network plot
+        n <- network::network(X, directed = FALSE)
+        network::set.vertex.attribute(n,"family",zz$module)
+        network::set.vertex.attribute(n,"importance",1)
+        e <- network::network.edgecount(n)
+        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
+        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+        library(ggnetwork)
+        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
+          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
+                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
+          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
+      }
+    })
+    ## render the data to be analyzed
+    observeEvent(data(),{
+      if(sum(data()$status$module %in% "qaGeno") != 0) {
+        ## render status
+        output$statusScm <-  DT::renderDT({
+          req(data())
+          req(input$version2Scm)
+          dtScm <- data()
+          ### change column names for mapping
+          paramsGeno <- data()$modifications$geno
+          paramsGeno <- paramsGeno[which(paramsGeno$analysisId %in% input$version2Scm),, drop=FALSE]
+          paramsGeno$analysisId <- as.POSIXct(paramsGeno$analysisId, origin="1970-01-01", tz="GMT")
+          DT::datatable(paramsGeno, extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                        caption = htmltools::tags$caption(
+                          style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                          htmltools::em('Modifications from QA stamp selected.')
+                        )
+          )
+        })
+        ## render raw data
+        output$genoScm <-  DT::renderDT({
+          req(data())
+          dtScm <- data()
+          req(input$version2Scm)
+          dtScm <- dtScm$data$geno
+          ### change column names for mapping
+          paramsGeno <- data()$metadata$geno
+          colnames(dtScm) <- cgiarBase::replaceValues(colnames(dtScm), Search = paramsGeno$value, Replace = paramsGeno$parameter )
+          ###
+          traitTypes <- unlist(lapply(dtScm,class))
+          numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
+          DT::formatRound(DT::datatable(dtScm[,1:min(c(50,ncol(dtScm)))],
+                                        extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                        caption = htmltools::tags$caption(
+                                          style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                                          htmltools::em('Raw genotypic data to be used as input.')
+                                        )
+          ), numeric.output)
+        })
+      } else {
+        output$genoScm <- DT::renderDT({DT::datatable(NULL)})
+      }
+    })
     ## render the expected result
     output$plotPossibleCrosses <- shiny::renderPlot({
       req(data())
@@ -152,7 +316,6 @@ mod_singleCrossGenoApp_server <- function(id, data){
         Matrix::image(as(A, Class = "dgCMatrix"), xlab="Fathers", ylab="Mothers", colorkey=FALSE, main="Available hybrids")
       }
     })
-
     output$plotPossibleProfiles <- shiny::renderPlot({
       req(data())
       if(!is.null(data()$data$pheno) & !is.null(data()$data$geno) & !is.null(data()$data$pedigree) ){
@@ -193,6 +356,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
           colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
           phe <- data()$data$pheno
           metaPhe <- data()$metadata$pheno
+          metaPhe <- metaPhe[metaPhe$parameter != "trait",]
           colnames(phe) <- cgiarBase::replaceValues(colnames(phe), Search = metaPhe$value, Replace = metaPhe$parameter )
           gen <- data()$data$geno
 
@@ -251,6 +415,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
                   myObject <- data()
                   result <- try(cgiarPipeline::singleCrossMat( # single cross matrix function
                     object= myObject,
+                    analysisIdForGenoModifications= input$version2Scm,
                     hybridBatch=input$hybridBatch,
                     allHybrids=input$checkboxAllHybrids,
                     verbose=FALSE
@@ -260,6 +425,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
                   if(!inherits(result,"try-error")) {
                     data(result) # update data with results
                     cat(paste("Single cross marker matrix building with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+                    updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
                   }else{
                     cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
                   }
@@ -276,7 +442,44 @@ mod_singleCrossGenoApp_server <- function(id, data){
       outScr()
     })
 
+    ## output scm
+    output$dataScm <- DT::renderDT({
+      req(data())
+      dtScm <- data()$data$geno
 
+      dtPed <- data()$data$pedigree
+      metaPed <- data()$metadata$pedigree
+      colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
+
+      dtScm <- dtScm[setdiff(rownames(dtScm),unique(c(dtPed$mother,dtPed$father))),]
+
+      DT::datatable(dtScm[order(rownames(dtScm)),1:min(c(50,ncol(dtScm)))],
+                    extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Market Profile Computed for Hybrids (showing only first 50 Markers). Click Download button to get complete data.')
+                    ))
+    })
+
+    output$downloadDataScm <- downloadHandler(
+      filename = function() {
+        paste('scm_geno_data', sep = '.', "csv")
+      },
+      content = function(file) {
+        shinybusy::show_modal_spinner(spin = "fading-circle",
+                                      text = "Downloading data...")
+        req(data())
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        out <- data()$data$geno
+        utils::write.csv(out, file, row.names = TRUE)
+        shinybusy::remove_modal_spinner()
+      }, contentType = "text/csv"
+    )
 
   })
 }
