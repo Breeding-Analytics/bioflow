@@ -306,6 +306,9 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           if( names(columnClasses)[1] %in% c("integer","numeric") ){
             shinybusy::remove_modal_spinner()
             shinyWidgets::show_alert(title = 'Error !!', text = 'Markers need to be provided in a letter format. Please upload in the right format.', type = 'error')
+            updateSelectizeInput(session, "geno_table_firstsnp", choices = colnames(tempG)[1:min(c(ncol(tempG),100))], selected = character(0))
+            updateSelectizeInput(session, "geno_table_lastsnp", choices = colnames(tempG)[max(c(1,ncol(tempG)-100)):ncol(tempG)], selected = character(0))
+            updateSelectizeInput(session, "geno_table_designation", choices = colnames(tempG)[1:min(c(ncol(tempG),100))], selected = character(0))
             return(NULL)
           }
           ## if markers were letter proceed
