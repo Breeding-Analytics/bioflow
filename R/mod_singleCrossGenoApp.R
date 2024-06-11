@@ -49,7 +49,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                   tabPanel("Pick QA-stamp(s)", icon = icon("dice-one"),
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=8, selectInput(ns("version2Scm"), "QA stamps to apply to markers", choices = NULL, multiple = TRUE) ),
+                                                  column(width=8, selectInput(ns("version2Scm"), "QA stamp to apply to markers", choices = NULL, multiple = FALSE) ),
                                                   column(width=4, tags$br(),
                                                          shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
                                                   ),
