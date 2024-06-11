@@ -84,6 +84,8 @@ mod_mtaExpApp_ui <- function(id){
                                                       column(width=12,
                                                              column(width=4, selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = FALSE) ),
                                                              column(width=2, numericInput(ns("nTerms"), label = "nTerms", value = 2, step = 1, min = 1, max=100) ),
+                                                             column(width=3, selectInput(ns("modelMet"), "Designation model", choices = NULL, multiple = FALSE) ),
+                                                             column(width=3, tags$span(id = ns('ismarkermodel'), selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE), ),  ),
                                                       ),
                                                       column(width=12,
                                                              column(width=4, uiOutput(ns("leftSides")) ),
@@ -277,6 +279,29 @@ mod_mtaExpApp_server <- function(id, data){
         return(values)
       }
     })
+    ## show or not id marker to select
+    observeEvent(
+      input$modelMet,
+      if (input$modelMet %in% c('gblup','rrblup','ssgblup') ) {
+        golem::invoke_js('showid', ns('ismarkermodel'))
+      } else {
+        golem::invoke_js('hideid', ns('ismarkermodel'))
+      }
+    )
+
+    #################
+    ## model types
+    observeEvent(c(data(), input$version2Mta, input$trait2Mta), {
+      req(data())
+      req(input$version2Mta)
+      req(input$trait2Mta)
+      # if("designation" %in% input$rightSides ){
+      #   traitsMta <- list(BLUE="blue")
+      # }else{
+        traitsMta <- list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
+      # }
+      updateSelectInput(session, "modelMet", choices = traitsMta, selected = traitsMta[1])
+    })
 
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {
@@ -285,8 +310,71 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$trait2Mta)
       req(input$nTerms)
-      xx <- inputFormula()
-      saveRDS(xx,"testMta.rds")
+
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+      dtMta <- data()
+      inputFormulation <- inputFormula()
+      saveRDS(inputFormulation, file = "inputFormulation.rds")
+      # run the modeling, but before test if sta was done
+      if(sum(dtMta$status$module %in% "sta") == 0) {
+        output$qaQcMtaInfo <- renderUI({
+          if (hideAll$clearAll)
+            return()
+          else
+            req(dtMta)
+          HTML(as.character(div(style="color: brown;",
+                                "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
+          )
+        })
+      }else{ # sta is available
+
+        output$qaQcMtaInfo <- renderUI({return(NULL)})
+        if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
+          if(input$versionMarker2Mta == '' | is.null(input$versionMarker2Mta) ){ # user didn't provide a modifications id
+            if(!is.null(dtMta$data$geno)){ # if user actually has marker data
+              shinybusy::remove_modal_spinner()
+              cat("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.")
+              # stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
+            }else{ # if user does NOT have marker data and wanted a marker-based model
+              shinybusy::remove_modal_spinner()
+              cat("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+              # stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+            }
+          }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
+        }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
+
+        result <- try(
+
+          cgiarPipeline::mtaLmmFlex(
+            phenoDTfile= dtMta, # analysis to be picked from predictions database
+            analysisId=input$version2Mta,
+            analysisIdForGenoModifications=markerVersionToUse,
+            inputFormulation=inputFormulation,
+            envsToInclude=NULL, # x$df
+            trait= input$trait2Mta, traitFamily=NULL, # myFamily
+            useWeights=input$useWeights,
+            heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
+            heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
+            meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
+            meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
+            modelType=input$modelMet, # either "blup", "pblup", "gblup", "rrblup"
+            nMarkersRRBLUP=input$nMarkersRRBLUP,
+            deregress=input$deregressMet,
+            maxIters=input$maxitMet, batchSizeToPredict=500, tolParInv=1e-4,
+            verbose=TRUE
+          ),
+          silent=TRUE
+        )
+        if(!inherits(result,"try-error")) {
+          data(result) # update data with results
+          cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+        }else{
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        }
+      }
+
+      shinybusy::remove_modal_spinner()
 
     }) ## end eventReactive
 
