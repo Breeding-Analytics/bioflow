@@ -79,7 +79,15 @@ app_ui <- function(request) {
                                         tabPanel(div("(optional) On Farm Trial Decision (", icon("seedling"), ")" ), mod_oftStaApp_ui("oftStaApp_1") ),
                           )
                  ),
-                 tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain") ,")" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
+
+                 tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
+                          navlistPanel( widths = c(1, 11),
+                                        tabPanel(div("Finlay" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
+                                        tabPanel(div("Flex" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
+
+                          )
+                 ),
+
                  tabPanel(div(icon("calculator"), icon("dice-three"), "Selection Indices (", icon("seedling"), ")"),
                           navlistPanel( widths = c(1, 11),
                                         tabPanel(div("Desire Index (", icon("seedling"), ")"),  mod_indexDesireApp_ui("indexDesireApp_1") ),
@@ -113,18 +121,18 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Other functions", icon = icon("medal"),
-                 tabPanel(strong("DATA CONSISTENCY")  ),
-                 tabPanel(div(icon("circle-check"), "(optional) Consistency (", icon("seedling"),")" ),
-                          navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("Potato (", icon("seedling"),")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
-                                        tabPanel(div("Maize (", icon("seedling"),")" ) ),
-                                        tabPanel(div("Wheat (", icon("seedling"),")" ) ),
-                                        tabPanel(div("Rice (", icon("seedling"),")" ) ),
-                                        tabPanel(div("Cassava (", icon("seedling"),")" ) ),
-                                        tabPanel(div("Banana (", icon("seedling"),")" ) ),
-                                        tabPanel(div("Beans (", icon("seedling"),")" ) ),
-                          )
-                 ),
+                 # tabPanel(strong("DATA CONSISTENCY")  ),
+                 # tabPanel(div(icon("circle-check"), "(optional) Consistency (", icon("seedling"),")" ),
+                 #          navlistPanel( widths = c(1, 11),
+                 #                        tabPanel(div("Potato (", icon("seedling"),")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
+                 #                        tabPanel(div("Maize (", icon("seedling"),")" ) ),
+                 #                        tabPanel(div("Wheat (", icon("seedling"),")" ) ),
+                 #                        tabPanel(div("Rice (", icon("seedling"),")" ) ),
+                 #                        tabPanel(div("Cassava (", icon("seedling"),")" ) ),
+                 #                        tabPanel(div("Banana (", icon("seedling"),")" ) ),
+                 #                        tabPanel(div("Beans (", icon("seedling"),")" ) ),
+                 #          ),
+                 # ),
                  tabPanel(strong("FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),

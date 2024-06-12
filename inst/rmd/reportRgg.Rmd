@@ -54,8 +54,8 @@ printTable <- function(DT, pageLength = 7,
   table <- DT::datatable(data = DT, 
                          filter = "top", 
                          extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
@@ -137,9 +137,44 @@ if (is.null(result)){
                                                 rownames = FALSE,
                                                 class = 'cell-border stripe',
                                                 extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                               lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
     ),numeric.output)
+    })
+  }
+  
+}
+
+```
+
+### Summary metrics (wide-format)
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  wide1 <- reshape(met[,c("trait","parameter","value")], direction = "wide", idvar = "trait",
+                   timevar = "parameter", v.names = "value", sep= "_")
+  colnames(wide1) <- gsub("value_","",colnames(wide1))
+  wide2 <- reshape(met[which(met$parameter %in% c("gg%","ggInter","ggSlope") ),c("trait","parameter","stdError")], direction = "wide", idvar = "trait",
+                   timevar = "parameter", v.names = "stdError", sep= "_")
+  wide <- merge(wide1, wide2, by="trait")
+  
+  if("params" %in% ls()){ # we will download the document
+    # cat("\n\n## Table       \n\n")
+    printTable(wide)
+    # cat("\n")
+  }else{
+    # h2("Table")
+    numeric.output2 <- setdiff(colnames(wide), "trait")
+    DT::renderDT({DT::formatRound(DT::datatable(wide,
+                                                rownames = FALSE,
+                                                class = 'cell-border stripe',
+                                                extensions = 'Buttons',
+                                                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                               lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    ),numeric.output2)
     })
   }
   

@@ -63,7 +63,6 @@ rsconnect::setAccountInfo(name='',
                           token='',
                           secret='')
 
-
 rsconnect::deployApp(account = "cgiar-market-intelligence")
 
 #

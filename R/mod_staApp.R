@@ -107,15 +107,11 @@ mod_staApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:420px; overflow-y: scroll;overflow-x: scroll;", # height:420px;
-                                               # p(span("Boxplot of trait dispersion by environment", style="color:black")),
                                                tags$span(id = ns('holder1'),
-                                                         selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                         shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                         column(width=9, selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                         column(width=3, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
+                                                         column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                ),
-                                               #                     ),
-                                               # )
                                       ),
                                       tabPanel("Pick effect(s)", icon = icon("dice-three"),
                                                br(),
@@ -123,7 +119,7 @@ mod_staApp_ui <- function(id){
                                                       column(width=4, selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s) (required)", choices = NULL, multiple = TRUE) ),
                                                       column( width=8,
                                                               br(),
-                                                              shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                              shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
                                                                                   selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
                                                                                   numericInput(ns("maxitSta"),"Number of iterations",value=35),
                                                                                   selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
@@ -555,13 +551,18 @@ mod_staApp_server <- function(id,data){
             if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
             mydata$predictedValue <- mydata[,input$trait3Sta]
             mydata <- mydata[,which(!duplicated(colnames(mydata)))]
-            ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+            p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
               ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
               ggplot2::theme_classic() + ggplot2::ggtitle("Boxplot of trait dispersion by environment") +
               ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
               ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
-              ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
               ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
+            if(input$checkbox){
+              p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+            }else{
+              p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+            }
+            p
           }else{}
         })
         ## render raw data

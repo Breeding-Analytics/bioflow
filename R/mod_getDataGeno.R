@@ -27,7 +27,7 @@ mod_getDataGeno_ui <- function(id){
                                     inputId = ns('geno_input'),
                                     label   = 'Genotypic SNPs Source*:',
                                     choices = list('HapMap Upload' = 'file', 'HapMap URL' = 'url',
-                                                   'Table Upload' = 'matfile', 'Table URL' = 'matfileurl',
+                                                   'Table Upload (.csv or .txt)' = 'matfile', 'Table URL (.csv or .txt)' = 'matfileurl',
                                                    'VCF Upload' = 'vcf.file', 'VCF URL' = 'vcf.url'),
                                     width   = '200px'
                                   ),
@@ -299,7 +299,19 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
           for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
           ## check if the data is in single letter format
-          markersToSample <- sample(which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp),  min(c(ncol(tempG),20)) )
+          indexMarkers <- which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)
+          markersToSample <- sample( indexMarkers,  min(c(length(indexMarkers),20)) )
+          ## check if user provided letter format markers, if not return an error
+          columnClasses <- sort(table(unlist(lapply(tempG[,markersToSample], class))), decreasing = TRUE)
+          if( names(columnClasses)[1] %in% c("integer","numeric") ){
+            shinybusy::remove_modal_spinner()
+            shinyWidgets::show_alert(title = 'Error !!', text = 'Markers need to be provided in a letter format. Please upload in the right format.', type = 'error')
+            updateSelectizeInput(session, "geno_table_firstsnp", choices = colnames(tempG)[1:min(c(ncol(tempG),100))], selected = character(0))
+            updateSelectizeInput(session, "geno_table_lastsnp", choices = colnames(tempG)[max(c(1,ncol(tempG)-100)):ncol(tempG)], selected = character(0))
+            updateSelectizeInput(session, "geno_table_designation", choices = colnames(tempG)[1:min(c(ncol(tempG),100))], selected = character(0))
+            return(NULL)
+          }
+          ## if markers were letter proceed
           nCharList <- list()
           for(iMark in 1:length(markersToSample)){nCharList[[iMark]] <- na.omit(unique(nchar(tempG[,markersToSample[iMark]])))}
           singleLetter <- which(unique(unlist(nCharList)) == 1)
