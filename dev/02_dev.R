@@ -70,6 +70,8 @@
 # usethis::use_dev_package("async", type = "Imports", remote = "r-lib/async")
 # usethis::use_package("QBMS")
 # usethis::use_package("vcfR")
+# usethis::use_package("future")
+# usethis::use_package("promises")
 #
 # usethis::use_package( "shinymanager" )
 #

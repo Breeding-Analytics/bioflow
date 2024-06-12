@@ -4,6 +4,9 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @noRd
+
+future::plan(future::multisession)
+
 options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
 users <- readRDS("users.rds")
 app_server <- function(input, output, session) {
