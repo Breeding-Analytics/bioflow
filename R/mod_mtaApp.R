@@ -16,7 +16,7 @@ mod_mtaApp_ui <- function(id){
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
-                           tabPanel(div(icon("book"), "Information-MTA") ,
+                           tabPanel(div(icon("book"), "Information-MTA-FW") ,
                                     br(),
                                     # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                     #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
@@ -38,7 +38,6 @@ mod_mtaApp_ui <- function(id){
                                            p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
                                            p(strong("Fixed effects.-")," Columns to be fitted as fixed effects."),
                                            p(strong("Random effects.-")," Columns to be fitted as random effects."),
-                                           # p(strong("Residuals by.-")," Column to decide at which level the residuals should be fitted by."),
                                            p(strong("Interactions to fit with genotype.-")," Column to fit as interactions with the genotype effect. This only be fitted if the number of environments is 4 or more."),
                                            p(strong("Genetic evaluation model.-"),"One of the following models to use: BLUP, PBLUP, GBLUP, rrBLUP, ssBLUP."),
                                            p(strong("Additional settings:")),
@@ -77,16 +76,9 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                               # p(span("Network plot of current analyses available.", style="color:black")),
                                                column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                               # p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
                                                DT::DTOutput(ns("statusMta")), # modeling table
-                                               # p(span("STA predictions table to be used as input.", style="color:black")),
                                                DT::DTOutput(ns("phenoMta")), # predictions data table
-                                               #                     )
-                                               # )
                                       ),
                                       tabPanel("Select traits", icon = icon("dice-two"),
                                                br(),
@@ -105,24 +97,18 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                               # p(span("Metrics associated to the STA stamp selected.", style="color:black")),
                                                tags$span(id = ns('holder1'),
                                                          column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
                                                          column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
                                                          column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
                                                ),
-                                               # p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
                                                tags$span(id = ns('holder2'),
                                                          column(width=5, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                          column(width=5, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
                                                          column(width=2, checkboxInput(ns("checkbox2"), label = "Include x-axis labels", value = TRUE) ),
                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
                                                ),
-                                               #                     ),
-                                               # )
                                       ),
 
                                       tabPanel("Pick the model", icon = icon("dice-three"),
@@ -151,16 +137,10 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:380px; overflow-y: scroll;overflow-x: scroll;",
-                                               # p(span("Available data.", style="color:black")),
                                                tags$span(id = ns('holder3'),
                                                          selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
                                                          shiny::plotOutput(ns("evaluationUnits")) ,
                                                ),
-
-                                               #                     )
-                                               # )
                                       ),
                                       tabPanel("Specify GxE", icon = icon("dice-four"),
                                                br(),
@@ -184,8 +164,6 @@ mod_mtaApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                tags$span(id = ns('holder4'),
                                                          column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
                                                          column(width = 3,
@@ -213,8 +191,6 @@ mod_mtaApp_ui <- function(id){
                                                          column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
                                                ),
-                                               #                     ),
-                                               # )
                                       ),
                                       tabPanel("Run analysis", icon = icon("play"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
@@ -231,24 +207,14 @@ mod_mtaApp_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               # column(width=12,
                                                DT::DTOutput(ns("predictionsMta")),
-                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               # )
                                       ),
                                       tabPanel("Metrics", icon = icon("table"),
                                                br(),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               # column(width=12,br(),
                                                DT::DTOutput(ns("metricsMta")),
-                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               # )
                                       ),
                                       tabPanel("Modeling", icon = icon("table"),
                                                br(),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               # column(width=12,
                                                DT::DTOutput(ns("modelingMta")),
                                                # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
                                                # )
@@ -669,7 +635,6 @@ mod_mtaApp_server <- function(id, data){
       entryTypeMtaInput <- unique(dtMta$entryType)
       updateSelectInput(session, "entryTypeMta", choices = c(entryTypeMtaInput,"Generic"), selected = "Generic")
     })
-
     output$plotPredictionsSparsity <- shiny::renderPlot({
       req(data())
       req(input$version2Mta)

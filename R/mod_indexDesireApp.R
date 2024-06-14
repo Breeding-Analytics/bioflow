@@ -69,21 +69,16 @@ mod_indexDesireApp_ui <- function(id){
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
-                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                # column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                # p(span("Network plot of current analyses available.", style="color:black")),
                                                 column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                # p(span("Past modeling parameters from MTA stamp selected.", style="color:black")),
                                                 DT::DTOutput(ns("statusIndex")),
-                                                # p(span("MTA predictions to be used as input.", style="color:black")),
                                                 DT::DTOutput(ns("tablePredictionsTraitsWide")),
-                                                #                     )
-                                                # )
                                        ),
-                                       tabPanel("Pick traits", icon = icon("dice-two"),
+                                       tabPanel("Pick parameters", icon = icon("dice-two"),
                                                 br(),
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
                                                        selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("env2IdxD"), "Environment to use", choices = NULL, multiple = FALSE),
+                                                       selectInput(ns("entryType2IdxD"), "Entry type to use", choices = NULL, multiple = TRUE),
                                                        selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                        uiOutput(ns("SliderDesireIndex"))
                                                 ),
@@ -95,12 +90,10 @@ mod_indexDesireApp_ui <- function(id){
                                                        ),
                                                        tags$span(id = ns('holder1'),
                                                                  column(width = 12,
-                                                                        # p(span("Radar plot to inspect population values versus target values.", style="color:black")),
                                                                         numericInput(ns("fontSizeRadar"), label = "Font size", value = 12),
                                                                         plotly::plotlyOutput(ns("plotPredictionsRadar")),
                                                                  ),
                                                                  column(width = 12,
-                                                                        # p(span("Expected response to selection using current desire changes.", style="color:black")),
                                                                         numericInput(ns("proportion"), label = "Selected proportion for graphs", value = 0.1, min=0.001,max=1, step=0.05),
                                                                         shiny::plotOutput(ns("plotPotentialResponse")),
                                                                  ),
@@ -256,17 +249,49 @@ mod_indexDesireApp_server <- function(id, data){
       traitsIdxD <- unique(dtIdxD$trait)
       updateSelectInput(session, "trait2IdxD", choices = traitsIdxD)
     })
+    #################
+    ## environments
+    observeEvent(c(data(), input$version2IdxD, input$trait2IdxD), {
+      req(data())
+      req(input$version2IdxD)
+      req(input$trait2IdxD)
+      dtIdxD <- data()
+      dtIdxD <- dtIdxD$predictions
+      dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
+      dtIdxD <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD),]
+      traitsIdxD <- unique(dtIdxD$environment)
+      updateSelectInput(session, "env2IdxD", choices = traitsIdxD)
+    })
+    #################
+    ## entry types
+    observeEvent(c(data(), input$version2IdxD, input$env2IdxD), {
+      req(data())
+      req(input$version2IdxD)
+      req(input$env2IdxD)
+      dtIdxD <- data()
+      dtIdxD <- dtIdxD$predictions
+      dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
+      # if(input$env2IdxD != "(Intercept)"){}
+      dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
+      traitsIdxD <- unique(dtIdxD$entryType)
+      updateSelectInput(session, "entryType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
+    })
     ####################
     ## desired changes for Desire Index
     output$SliderDesireIndex <- renderUI({
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
+      req(input$env2IdxD)
+      # req(input$entryType2IdxD)
       req(input$scaledIndex)
       trait2IdxD <- input$trait2IdxD # trait2IdxD <- c("Yield_Mg_ha_QTL","Ear_Height_cm") # list(trait2IdxD=c("Yield_Mg_ha","Ear_Height_cm"))
       dtIdxD <- data()
       dtIdxD <- dtIdxD$predictions
       dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
+      dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
+      if(!is.null(input$entryType2IdxD)){dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$entryType2IdxD),]}
+
       if(input$scaledIndex){ # if user wants traits scaled
         lapply(1:length(trait2IdxD), function(i) {
           sliderInput(
@@ -423,9 +448,14 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
+      req(input$env2IdxD)
       dtIdxD <- data();
       dtIdxD <- dtIdxD$predictions
       mydata <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+      mydata <- mydata[which(mydata$environment %in% input$env2IdxD),]
+      if(!is.null(input$entryType2IdxD)){
+        dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$entryType2IdxD),]
+      }
       values <- desireValues()
       if(!is.null(values)){
         ## ensure product profile means come sorted
@@ -435,7 +465,7 @@ mod_indexDesireApp_server <- function(id, data){
           desireRp <- dd[,"value"]
           traitRp <- dd[,"trait"]
         }else{desireRp <- values; traitRp <- input$trait2IdxD}
-        radarPlot(mydata, environmentPredictionsRadar2="across",traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
+        radarPlot(mydata=mydata, environmentPredictionsRadar2=input$env2IdxD,traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
                   fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE, title="Radar plot to inspect population values versus target values.") # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
       }
     })
@@ -444,10 +474,11 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
+      req(input$env2IdxD)
       dtIdxD <- data();
       values <- desireValues()
       if(!is.null(values)){
-        plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2="across", traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
+        plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2=input$env2IdxD, traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
                             analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex, title="Expected response to selection using current desire changes")
       }
 
@@ -457,7 +488,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
-      # req(input$desirev)
+      req(input$env2IdxD)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtIdxD <- data()
       # define values for slider all traits for base index
@@ -479,6 +510,8 @@ mod_indexDesireApp_server <- function(id, data){
           phenoDTfile= dtIdxD, # input data structure
           analysisId=input$version2IdxD, # analysis to be picked from predictions database
           trait= input$trait2IdxD, # traits to include in the index
+          environmentToUse =input$env2IdxD ,
+          entryTypeToUse = input$entryType2IdxD,
           desirev = values, # as.numeric(unlist(strsplit(input$desirev,","))), # vector of desired values
           scaled=input$scaledIndex, # whether predicted values should be scaled or not
           verbose=input$verboseIndex # should we print logs or not

@@ -50,8 +50,8 @@ printTable <- function(DT, pageLength = 7,
   table <- DT::datatable(data = DT, 
                          filter = "top", 
                          extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
@@ -98,6 +98,8 @@ if (is.null(result)){
   idIndex <- idIndex[length(idIndex)]
   idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
   mydata <- mydata[which(mydata$analysisId %in% c(idMta,idIndex)),]
+  envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
+  mydata <- mydata[which(mydata$environment %in% envsUsed),]
   wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue", "entryType"))], direction = "wide", idvar = c("designation"),
                          timevar = "trait", v.names = c("predictedValue"), sep= "_")
   colnames(wide) <- gsub("predictedValue_","",colnames(wide))
@@ -164,18 +166,18 @@ if (is.null(result)){
   dtIdxD <- result$predictions
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
-  # idIndex <- modelingAbi[modelingAbi$parameter == "indexD", "value"]
-  # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"] 
   idMta <- result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
-  mydata <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  mydata <- dtIdxD[which(dtIdxD$analysisId %in% idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
+  envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
+  mydata <- mydata[which(mydata$environment %in% envsUsed),]
   # subset to only traits being part of the index
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
   uTraits <- gsub("_scaled","",uTraits)
   dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
   ##
-  environmentPredictionsRadar2="across"
-  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMta),"trait"])
+  environmentPredictionsRadar2=envsUsed
+  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId %in% idMta),"trait"])
   ## ensure product profile means come sorted
   meanGroupPredictionsRadar= result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),c("trait","value")]
   meanGroupPredictionsRadar <- meanGroupPredictionsRadar[with(meanGroupPredictionsRadar, order(as.numeric(as.factor(trait)))), ]
@@ -316,6 +318,8 @@ if (is.null(result)){
   mydataMta <- dtIdxD[which(dtIdxD$analysisId == idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
   mydataIndex <- dtIdxD[which(dtIdxD$analysisId == idIndex),setdiff(colnames(dtIdxD),c("module","analysisId"))]
   mydata <- rbind(mydataMta,mydataIndex)
+  envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
+  mydata <- mydata[which(mydata$environment %in% envsUsed),]
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- unique(mydata$trait)#result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
   uTraits <- gsub("_scaled","",uTraits)
@@ -451,6 +455,8 @@ if (is.null(result)){
   idMta <- modeling[modeling$analysisId == idIndex & modeling$trait == "inputObject","value"]
   predTrait <- result$predictions
   predTrait <- predTrait[predTrait$analysisId %in% c(idMta, idIndex),]
+  envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
+  predTrait <- predTrait[which(predTrait$environment %in% envsUsed),]
   predTrait$cross <- paste(predTrait$mother, predTrait$father, sep="x")
   
   traitsForBoxplot <- na.omit(unique(predTrait$trait))
@@ -460,10 +466,10 @@ if (is.null(result)){
   }else{
     if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTrait$father)))>0 ){
       shiny::selectInput(ns("traitIndexBox"), 
-                       label = "Trait:", 
-                       multiple = FALSE,
-                       choices = traitsForBoxplot, 
-    )
+                         label = "Trait:", 
+                         multiple = FALSE,
+                         choices = traitsForBoxplot, 
+      )
     }
     
   }
@@ -476,53 +482,13 @@ if (is.null(result)){
 
 if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTrait$father)))>0 ){
   if("params" %in% ls()){ # we will download the document
-  
-  cat("\n\n###  {.tabset .tabset-pills}       \n\n")
-  
-  for (iTrait in traitsForBoxplot){ # 
-    cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
     
-    dd <- predTrait[which(predTrait$trait %in% iTrait),]
+    cat("\n\n###  {.tabset .tabset-pills}       \n\n")
     
-    p1 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(father, -predictedValue), y=predictedValue) ) + 
-      # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
-      ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=father)) +
-      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-      ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
-    p2 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(mother, -predictedValue), y=predictedValue) ) + 
-      # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
-      ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=mother)) +
-      ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                     axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-      ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
-    
-    ply1 <- plotly::ggplotly(p1)
-    ply2 <- plotly::ggplotly(p2)
-    myPlots <- list(ply1, ply2)
-    if(length(unique(dd$cross)) < 300){ # if there's more than 300 crosses don't plot
-      p3 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(cross, -predictedValue), y=predictedValue) ) + 
-        # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=cross)) +
-        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
-                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
-      ply3 <- plotly::ggplotly(p3)
-      myPlots <- c(myPlots, ply3)
-    }
-    print(htmltools::tagList( plotly::subplot( myPlots, nrows=1) ) )
-    
-    cat("\n")
-  }
-  
-  cat("\n")
-  
-}else{
-  
-  # shiny::renderPlot({
-  plotly::renderPlotly({
-    if(length(input$traitIndexBox) > 0){
-      dd <- predTrait[which(predTrait$trait %in% input$traitIndexBox),]
+    for (iTrait in traitsForBoxplot){ # 
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
+      dd <- predTrait[which(predTrait$trait %in% iTrait),]
       
       p1 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(father, -predictedValue), y=predictedValue) ) + 
         # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
@@ -550,12 +516,52 @@ if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTra
         ply3 <- plotly::ggplotly(p3)
         myPlots <- c(myPlots, ply3)
       }
-      plotly::subplot(myPlots, nrows=1)
+      print(htmltools::tagList( plotly::subplot( myPlots, nrows=1) ) )
       
+      cat("\n")
     }
-  })
-  
-}
+    
+    cat("\n")
+    
+  }else{
+    
+    # shiny::renderPlot({
+    plotly::renderPlotly({
+      if(length(input$traitIndexBox) > 0){
+        dd <- predTrait[which(predTrait$trait %in% input$traitIndexBox),]
+        
+        p1 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(father, -predictedValue), y=predictedValue) ) + 
+          # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
+          ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=father)) +
+          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                         axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+          ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+        p2 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(mother, -predictedValue), y=predictedValue) ) + 
+          # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
+          ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=mother)) +
+          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                         axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+          ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+        
+        ply1 <- plotly::ggplotly(p1)
+        ply2 <- plotly::ggplotly(p2)
+        myPlots <- list(ply1, ply2)
+        if(length(unique(dd$cross)) < 300){ # if there's more than 300 crosses don't plot
+          p3 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(cross, -predictedValue), y=predictedValue) ) + 
+            # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
+            ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=cross)) +
+            ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                           axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+            ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+          ply3 <- plotly::ggplotly(p3)
+          myPlots <- c(myPlots, ply3)
+        }
+        plotly::subplot(myPlots, nrows=1)
+        
+      }
+    })
+    
+  }
 }
 
 ```
