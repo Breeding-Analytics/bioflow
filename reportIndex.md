@@ -37,7 +37,7 @@ The following table allows you to inspect the across-environment predictions for
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-outc4898324031a078b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out9bb4799d86280b8c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -47,7 +47,7 @@ This spider plot allows you to visualize the distance between the population mea
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out57df0bffa79a94b7" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out9358646f7a789fd1" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Expected Response Plot
 
@@ -60,7 +60,7 @@ The following plot allows the user to visualize the expected response in the new
 <input id="indexDesireApp_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out45c15640a10a4378" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out859cd0e779964995" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Index versus Trait Plot
 
@@ -71,14 +71,12 @@ The following plot allows you to visualize the relationship between the selectio
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="indexDesireApp_1-traitMtaScatter-label" for="indexDesireApp_1-traitMtaScatter">Trait:</label>
 <div>
-<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
+<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="indexDesireApp_1-traitMtaScatter" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out06887f289aaedb5f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out4ecf536336c531c8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Performance of crosses
 
@@ -89,14 +87,12 @@ The following plots allow the user to review the performance of crosses, mothers
 <label class="control-label" id="indexDesireApp_1-traitIndexBox-label" for="indexDesireApp_1-traitIndexBox">Trait:</label>
 <div>
 <select id="indexDesireApp_1-traitIndexBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option>
 <option value="desireIndex">desireIndex</option></select>
 <script type="application/json" data-for="indexDesireApp_1-traitIndexBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out9dc4928c42ae0bba" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out808fd4bb316a6a14" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### References of methods used
 

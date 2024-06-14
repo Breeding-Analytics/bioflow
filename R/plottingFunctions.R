@@ -1,39 +1,3 @@
-goodLevels <- function(object, analysisId){
-  '%!in%' <- function(x,y)!('%in%'(x,y))
-  metaPheno <- object$metadata$pheno
-  predictions <- object$predictions[which(object$predictions$analysisId == analysisId ),]
-  # add missing columns
-  keep <- which(metaPheno$parameter %!in% c("trait","designation","environment","rep","row","col","iBlock") )
-  if(length(keep) > 0){
-    toExtractFromData <- metaPheno[keep, "value"]
-    tpe <- unique(object$data$pheno[,c("environment",toExtractFromData)])
-    colnames(tpe) <- cgiarBase::replaceValues(colnames(tpe), Search = metaPheno$value, Replace = metaPheno$parameter )
-    predictions <- merge(predictions, tpe, by="environment", all.x = TRUE)
-  }
-  # add missing weather
-  weather <- object$metadata$weather
-  if(!is.null(weather)){
-    weather$traitParameter <- paste(weather$trait, weather$parameter, sep="_")
-    wide <- reshape(weather[,-which(colnames(weather)%in%c("trait","parameter"))], direction = "wide", idvar = "environment",
-                    timevar = c("traitParameter"), v.names = "value", sep= "_")
-    colnames(wide) <- gsub("value_","",colnames(wide))
-    predictions <- merge(predictions, wide, by="environment", all.x = TRUE)
-  }
-  # extract
-  availableTraits <- metaPheno[which(metaPheno$parameter %in% c("trait")),"value"]
-  factorPerTrait <- vector(mode="list", length = length(availableTraits)); names(factorPerTrait) <- availableTraits
-  availableFactors <- metaPheno[which(metaPheno$parameter %in% c("environment","year","season","location","trial","study","management")),"parameter"]
-
-  for(iTrait in availableTraits){ # iTrait = availableTraits[1]
-    provPred <- predictions[which(predictions$trait == iTrait),]
-    provPred <- provPred[which(!is.na(provPred$predictedValue)),]
-    for(iFactor in availableFactors){ # iFactor = availableFactors[1]
-      if(length(na.omit(unique(provPred[,iFactor]))) > 1){factorPerTrait[[iTrait]] <- c(factorPerTrait[[iTrait]] , iFactor)}
-    }
-  }
-  return(factorPerTrait)
-}
-
 dependencyPlot <- function(){
   mm <- matrix(
     NA, nrow = 5, ncol = 8

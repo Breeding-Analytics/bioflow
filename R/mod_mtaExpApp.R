@@ -292,7 +292,7 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$trait2Mta)
       req(input$nTerms)
       dtMta <- data()
-      gg <- goodLevels(dtMta, input$version2Mta)
+      gg <- cgiarBase::goodLevels(object=dtMta, analysisId=input$version2Mta)
       choices <- c( "1", gg[[input$trait2Mta]])
       lapply(1:input$nTerms, function(i) {
         selectInput(
@@ -324,7 +324,7 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$trait2Mta)
       req(input$nTerms)
       dtMta <- data()
-      gg <- goodLevels(dtMta, input$version2Mta)
+      gg <- cgiarBase::goodLevels(dtMta, input$version2Mta, includeCovars = FALSE)
       choices <- c("designation",gg[[input$trait2Mta]])
       lapply(1:input$nTerms, function(i) {
         selectInput(
@@ -395,11 +395,7 @@ mod_mtaExpApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
-      # if("designation" %in% input$rightSides ){
-      #   traitsMta <- list(BLUE="blue")
-      # }else{
-        traitsMta <- list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
-      # }
+      traitsMta <- list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
       updateSelectInput(session, "modelMet", choices = traitsMta, selected = traitsMta[1])
     })
     #################
