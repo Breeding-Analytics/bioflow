@@ -101,7 +101,7 @@ mod_mtaExpApp_ui <- function(id){
                                                                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
                                                                           numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 1000),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
-                                                                          numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
+
                                                       ),
                                                ),
                                                column(width=12,
@@ -621,7 +621,7 @@ mod_mtaExpApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtMta <- data()
       inputFormulation <- inputFormula()
-      # saveRDS(inputFormulation, file = "inputFormulation.rds")
+      saveRDS(inputFormulation, file = "inputFormulation.rds")
       # run the modeling, but before test if sta was done
       if(sum(dtMta$status$module %in% "sta") == 0) {
         output$qaQcMtaInfo <- renderUI({
@@ -687,7 +687,7 @@ mod_mtaExpApp_server <- function(id, data){
         ## predictions table
         output$predictionsMta <-  DT::renderDT({
           predictions <- result$predictions
-          predictions <- predictions[predictions$module=="mta",]
+          predictions <- predictions[predictions$module=="mtaFlex",]
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -702,7 +702,7 @@ mod_mtaExpApp_server <- function(id, data){
         output$metricsMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             metrics <- result$metrics
-            mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
             metrics <- metrics[which(metrics$analysisId == mtaId),]
             metrics <- subset(metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
@@ -716,7 +716,7 @@ mod_mtaExpApp_server <- function(id, data){
         output$modelingMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             modeling <- result$modeling
-            mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',

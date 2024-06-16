@@ -82,8 +82,8 @@ app_ui <- function(request) {
 
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
                           navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("Finlay" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
-                                        tabPanel(div("Flex" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
+                                        tabPanel(div("FinlayW" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
+                                        tabPanel(div("Flexible" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
 
                           )
                  ),

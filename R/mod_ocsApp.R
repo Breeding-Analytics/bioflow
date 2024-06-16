@@ -225,7 +225,7 @@ mod_ocsApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("mta" %in% data()$status$module){
+          if(  any(c("mta","mtaFlex") %in% data()$status$module) ){
             if( ("qaGeno" %in% data()$status$module) | (!is.null(data()$metadata$pedigree) ) ){ # user has markers or pedigree
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) specifying your input parameters under the Input tabs.")) )
             }else{
@@ -495,7 +495,7 @@ mod_ocsApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtOcs <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtOcs$status$module %in% c("mta","indexD")) == 0) {
+      if(sum(dtOcs$status$module %in% c("mta","mtaFlex","indexD")) == 0) {
         output$qaQcOcsInfo <- renderUI({
           if (hideAll$clearAll){
             return()
