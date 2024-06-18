@@ -87,6 +87,7 @@
 # golem::add_module(name = "getData", with_test = FALSE) # extracting raw data
 # golem::add_module(name = "getDataPheno", with_test = FALSE)
 # golem::add_module(name = "getDataGeno", with_test = FALSE)
+# golem::add_module(name = "getDataGenoCustom", with_test = FALSE)
 # golem::add_module(name = "getDataPed", with_test = FALSE)
 # golem::add_module(name = "getDataQTL", with_test = FALSE)
 # golem::add_module(name = "getDataWeather", with_test = FALSE) # extracting raw data
