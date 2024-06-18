@@ -1,20 +1,25 @@
 Package: bioflow
 Title: PKG_TITLE
-Description: PKG_DESC.
 Version: 0.0.0.9000
-Authors@R: person('AUTHOR_FIRST', 'AUTHOR_LAST', email = 'AUTHOR@MAIL.COM', role = c('cre', 'aut'))
+Authors@R: 
+    person("AUTHOR_FIRST", "AUTHOR_LAST", , "AUTHOR@MAIL.COM", role = c("cre", "aut"))
+Description: PKG_DESC.
 License: MIT + file LICENSE
 URL: https://github.com/Breeding-Analytics/bioflow/
 BugReports: https://github.com/Breeding-Analytics/bioflow/issues
 Imports: 
+    adegenet,
     ape,
-    async (>= 0.0.0.9004),
+    async (>= 0.3.2),
     cgiarBase (>= 1.0.2),
+    cgiarGenomics,
     cgiarOcs (>= 1.1),
     cgiarPipeline (>= 1.0.4),
     config (>= 0.3.2),
     data.table,
     dendextend,
+    devtools,
+    dplyr,
     DT,
     ggnetwork,
     ggplot2,
@@ -25,9 +30,11 @@ Imports:
     inline,
     janitor,
     kableExtra,
+    knitr,
     LMMsolver,
     magrittr,
     markdown,
+    Matrix,
     nasapower,
     network,
     pedigreemm,
@@ -36,6 +43,8 @@ Imports:
     psych,
     QBMS (>= 1.0.0),
     RColorBrewer,
+    reshape2,
+    rmarkdown,
     rmdformats,
     RSpectra,
     shiny (>= 1.7.5),
@@ -53,27 +62,23 @@ Imports:
     st4gi (>= 3.1.1),
     stats,
     stringi,
-    stringr,
     textshape,
     tibble,
     tidyr,
     utils,
     vcfR
 Suggests: 
-    knitr,
-    rmarkdown,
-    spelling,
-    testthat (>= 3.0.0)
+    spelling
 VignetteBuilder: 
     knitr
+Remotes: 
+    Breeding-Analytics/cgiarBase,
+    Breeding-Analytics/cgiarPipeline,
+    Breeding-Analytics/cgiarOcs,
+    reyzaguirre/st4gi,
+    r-lib/async
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.1.9000
-Remotes: 
-    Breeding-Analytics/cgiarBase,
-    Breeding-Analytics/cgiarPipeline,
-    Breeding-Analytics/cgiarOcs,
-    r-lib/async,
-    reyzaguirre/st4gi
