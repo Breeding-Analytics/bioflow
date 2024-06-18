@@ -29,6 +29,8 @@ Imports:
     inline,
     janitor,
     kableExtra,
+    lme4,
+    lme4breeding (>= 1.0.1),
     LMMsolver,
     magrittr,
     markdown,
@@ -81,4 +83,5 @@ Remotes:
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
     r-lib/async,
-    reyzaguirre/st4gi
+    reyzaguirre/st4gi,
+    covaruber/lme4breeding

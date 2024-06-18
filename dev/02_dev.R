@@ -58,12 +58,14 @@
 # usethis::use_package("gridExtra")
 # usethis::use_package("rmdformats")
 # usethis::use_package("grafify")
+# usethis::use_package("lme4")
 # # usethis::use_package("tidyverse")
 # usethis::use_pipe()
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
 # usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 # usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
 # usethis::use_dev_package("st4gi", type = "Imports", remote = "reyzaguirre/st4gi")
+# usethis::use_dev_package("lme4breeding", type = "Imports", remote = "covaruber/lme4breeding")
 #
 # # https://icarda-git.github.io/QBMS/#boosting-big-queries-performance
 # # https://github.com/gaborcsardi/async/issues/70
