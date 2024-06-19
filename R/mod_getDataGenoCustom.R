@@ -333,6 +333,7 @@ mod_getDataGenoCustom_server <-
           geno_data <- get_geno_data()
           # Recoded 0,1,2 into -1,0,1
           temp$data$geno <- as.matrix(geno_data) - 1
+          temp$data$gl <- geno_data
 
           geno_metadata <- data.frame(
              'rs#' = adegenet::locNames(geno_data),
