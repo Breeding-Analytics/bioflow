@@ -28,12 +28,7 @@ mod_reportBuilder_ui <- function(id){
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
-                                               #                     column(width=12,
-                                                                          # p(span("Current analyses available.", style="color:black")),
                                                                           shiny::plotOutput(ns("plotTimeStamps")),
-                                               #                     )
-                                               # ),
                                       ),
                                       tabPanel("Build dashboard", icon = icon("play"),
                                                br(),
@@ -66,8 +61,6 @@ mod_reportBuilder_ui <- function(id){
                            )
               )) # end mainpanel
 
-
-
   )
 }
 
@@ -90,7 +83,7 @@ mod_reportBuilder_server <- function(id, data){
       req(data()) # list(QA="qaRaw" , QAmarkers="qaGeno" , STA="sta" ,   MTA="mta",    Index="indexD", OCS="ocs",    RGG="rgg" ,   PGG="pgg" )
       if(!is.null(data()$status)){
         traitsBuilder <- unique(data()$status$module)
-        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","sta","mta","indexD","ocs","rgg","pgg" ) , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Trial Analysis (sta)", "Multi Trial Analysis (mta)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)") )
+        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg" ) , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Trial Analysis (sta)", "Multi Trial Analysis (mta)", "Multi Trial Analysis (mtaFlex)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)") )
         updateSelectInput(session, "module", choices = traitsBuilder )
       }
     })
@@ -201,8 +194,8 @@ mod_reportBuilder_server <- function(id, data){
       moveTotheEnd <- which(result$status$analysisId == input$timestamp)
       keepAtTop <- setdiff(1:nrow(result$status), moveTotheEnd)
       result$status <- result$status[c(keepAtTop,moveTotheEnd),]
-      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","indexD","ocs","rgg","pgg" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportRgg.Rmd","reportPgg.Rmd") )
-      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","indexD","ocs","rgg","pgg" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData","resultIndex.RData","resultOcs.RData","resultRgg.RData","resultPgg.RData") )
+      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportRgg.Rmd","reportPgg.Rmd") )
+      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultIndex.RData","resultOcs.RData","resultRgg.RData","resultPgg.RData") )
       ## end
       shinybusy::remove_modal_spinner()
       if(!inherits(result,"try-error")) {

@@ -79,7 +79,7 @@ mod_mtaExpApp_ui <- function(id){
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
 
                                                       column(width=12,
-                                                             column(width=4, selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = FALSE) ),
+                                                             column(width=4, selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE) ),
                                                              column(width=2, numericInput(ns("nTerms"), label = "nTerms", value = 3, step = 1, min = 1, max=100) ),
                                                              column(width=3, selectInput(ns("modelMet"), "Designation model", choices = NULL, multiple = FALSE) ),
                                                              column(width=3, tags$span(id = ns('ismarkermodel'), selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE), ),  ),
@@ -311,7 +311,7 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$nTerms)
       dtMta <- data()
       gg <- cgiarBase::goodLevels(object=dtMta, analysisId=input$version2Mta)
-      choices <- c( "1", gg[[input$trait2Mta]])
+      choices <- c( "1", gg[[ input$trait2Mta[1] ]])
       if(length(input$cs_model) > 0){
         if (input$cs_model) { # CS model
           lapply(1:input$nTerms, function(i) {
@@ -321,7 +321,7 @@ mod_mtaExpApp_server <- function(id, data){
               choices = choices, multiple = TRUE, selected = "1"
             )
           })
-        }else if(input$csdg_model | input$uns_model | input$fa_model | input$dg_model ){ # CS+DIAG model
+        }else if(input$csdg_model | input$uns_model | input$dg_model ){ # CS+DIAG model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('leftSides',i)),
@@ -334,7 +334,15 @@ mod_mtaExpApp_server <- function(id, data){
             selectInput(
               session$ns(paste0('leftSides',i)),
               label = ifelse(i==1, "Intercepts",""),
-              choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0("envIndex_",input$trait2Mta) ))
+              choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0("envIndex_",input$trait2Mta[1] ) ))
+            )
+          })
+        }else if(input$fa_model){ # FW model
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              session$ns(paste0('leftSides',i)),
+              label = ifelse(i==1, "Intercepts",""),
+              choices = choices, multiple = TRUE, selected = ifelse(i==1, '1', 'environment'  )
             )
           })
         }else{ # no model specified
@@ -362,7 +370,7 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$trait2Mta)
       req(input$nTerms)
       if(length(input$cs_model) > 0){
-        if (input$cs_model | input$fw_model | input$uns_model | input$fa_model) { # CS model
+        if (input$cs_model | input$fw_model | input$uns_model) { # CS model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('center',i)),
@@ -378,6 +386,15 @@ mod_mtaExpApp_server <- function(id, data){
               label = ifelse(i==1, "Structure",""),
               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
               selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
+            )
+          })
+        }else if(input$fa_model ){ # CS+DIAG model
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              session$ns(paste0('center',i)),
+              label = ifelse(i==1, "Structure",""),
+              choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+              selected = ifelse(i==1, '|', ifelse(i==2, '||', '|'))
             )
           })
         }else{ # no model specified
@@ -408,7 +425,7 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$nTerms)
       dtMta <- data()
       gg <- cgiarBase::goodLevels(dtMta, input$version2Mta, includeCovars = FALSE)
-      choices <- c("designation",gg[[input$trait2Mta]])
+      choices <- c("designation",gg[[ input$trait2Mta[1] ]])
       if(length(input$cs_model) > 0){
         if (input$cs_model) { # CS model
           lapply(1:input$nTerms, function(i) {
@@ -428,13 +445,22 @@ mod_mtaExpApp_server <- function(id, data){
               selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('designation')}else{choices[i]} } }
             )
           })
-        }else if(input$uns_model | input$fa_model | input$dg_model){
+        }else if(input$uns_model | input$dg_model){
           lapply(1:input$nTerms, function(i) {
             selectInput(
               inputId=session$ns(paste0('rightSides',i)),
               label = ifelse(i==1, "Slopes",""),
               choices = choices, multiple = TRUE,
               selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
+            )
+          })
+        }else if(input$fa_model){
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              inputId=session$ns(paste0('rightSides',i)),
+              label = ifelse(i==1, "Slopes",""),
+              choices = choices, multiple = TRUE,
+              selected = if(i==1){'environment'}else{list('designation')}
             )
           })
         }else{ # no model specified
@@ -867,35 +893,35 @@ mod_mtaExpApp_server <- function(id, data){
             )
           }
         })
-        # ## Report tab
-        # output$reportMta <- renderUI({
-        #   HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        #   # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
-        # })
-        #
-        # output$downloadReportMta <- downloadHandler(
-        #   filename = function() {
-        #     paste('my-report', sep = '.', switch(
-        #       "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-        #     ))
-        #   },
-        #   content = function(file) {
-        #     src <- normalizePath(system.file("rmd","reportMta.Rmd",package="bioflow"))
-        #     src2 <- normalizePath('data/resultMta.RData')
-        #     # temporarily switch to the temp dir, in case you do not have write
-        #     # permission to the current working directory
-        #     owd <- setwd(tempdir())
-        #     on.exit(setwd(owd))
-        #     file.copy(src, 'report.Rmd', overwrite = TRUE)
-        #     file.copy(src2, 'resultMta.RData', overwrite = TRUE)
-        #     out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-        #       "HTML",
-        #       HTML = rmdformats::robobook(toc_depth = 4)
-        #       # HTML = rmarkdown::html_document()
-        #     ))
-        #     file.rename(out, file)
-        #   }
-        # )
+        ## Report tab
+        output$reportMta <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
+
+        output$downloadReportMta <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            src <- normalizePath(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultMtaFlex.RData')
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultMtaFlex.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmdformats::robobook(toc_depth = 4)
+              # HTML = rmarkdown::html_document()
+            ))
+            file.rename(out, file)
+          }
+        )
 
       } else {
         output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
