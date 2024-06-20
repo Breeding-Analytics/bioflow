@@ -815,7 +815,9 @@ if (is.null(result)){
   traitsvc <- setdiff(traitsvc,"inputObject")
   df2 <- result$metrics
   df2 <- df2[df2$analysisId==idMtaVC,]
-  df2 <- df2[df2$parameter %in% c(paste0("V.",result$metadata$pheno$parameter),"V.Residual"), ]
+  grid <- expand.grid(result$metadata$pheno$parameter,result$metadata$pheno$parameter)
+  inters <- apply(grid,1, function(x){paste(x,collapse = ":")})
+  df2 <- df2[df2$parameter %in% c(paste0("V.",c(result$metadata$pheno$parameter, inters)),"V.Residual"), ]
   df2$traitOriginal <-  df2$trait
   covariatesvc <- unique(result$metadata$weather$trait)
   for(iCov in covariatesvc){
