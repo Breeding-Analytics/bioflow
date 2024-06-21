@@ -85,12 +85,16 @@ mod_mtaExpApp_ui <- function(id){
                                                              column(width=3, tags$span(id = ns('ismarkermodel'), selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE), ),  ),
                                                       ),
                                                       column(width=12,
-                                                             column(width=2, shinyWidgets::prettySwitch( inputId = ns('dg_model'), label = "Diagonal Model", status = "success") ),
-                                                             column(width=2, shinyWidgets::prettySwitch( inputId = ns('cs_model'), label = "Compound Symmetry", status = "success") ),
-                                                             column(width=2, shinyWidgets::prettySwitch( inputId = ns('csdg_model'), label = "Main + Diagonal", status = "success") ),
-                                                             column(width=2, shinyWidgets::prettySwitch( inputId = ns('fw_model'), label = "Finlay-Wilkinson Reg", status = "success") ),
-                                                             column(width=2, shinyWidgets::prettySwitch( inputId = ns('uns_model'), label = "Unstructured", status = "success") ),
-                                                             column(width=2, shinyWidgets::prettySwitch( inputId = ns('fa_model'), label = "Reduced Rank (FA)", status = "success") ),
+                                                             radioButtons(ns("radio"), label = "Popular genetic evaluation models",
+                                                                          choices = list("Main-effect" = "mn_model",
+                                                                                         "Diagonal" = "dg_model",
+                                                                                         "Compound Symmetry" = "cs_model",
+                                                                                         "Main + Diagonal" = "csdg_model",
+                                                                                         "Finlay-Wilkinson"="fw_model",
+                                                                                         "Unstructured"="uns_model",
+                                                                                         "Reduced Rank (FA)"
+                                                                                         ),
+                                                                          selected = "mn_model", inline=TRUE),
                                                       ),
                                                       column(width=12,
                                                              column(width=4, uiOutput(ns("leftSides")) ),
@@ -312,8 +316,8 @@ mod_mtaExpApp_server <- function(id, data){
       dtMta <- data()
       gg <- cgiarBase::goodLevels(object=dtMta, analysisId=input$version2Mta)
       choices <- c( "1", gg[[ input$trait2Mta[1] ]])
-      if(length(input$cs_model) > 0){
-        if (input$cs_model) { # CS model
+      # if(length(input$cs_model) > 0){
+        if ( input$radio == "cs_model") { # CS model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('leftSides',i)),
@@ -321,7 +325,7 @@ mod_mtaExpApp_server <- function(id, data){
               choices = choices, multiple = TRUE, selected = "1"
             )
           })
-        }else if(input$csdg_model | input$uns_model | input$dg_model ){ # CS+DIAG model
+        }else if( input$radio == "csdg_model" ){ # main + dg
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('leftSides',i)),
@@ -329,7 +333,23 @@ mod_mtaExpApp_server <- function(id, data){
               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
             )
           })
-        }else if(input$fw_model){ # FW model
+        }else if( input$radio == "uns_model" ){ # UNS model
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              session$ns(paste0('leftSides',i)),
+              label = ifelse(i==1, "Intercepts",""),
+              choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
+            )
+          })
+        }else if( input$radio == "dg_model" ){ # DIAG model
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              session$ns(paste0('leftSides',i)),
+              label = ifelse(i==1, "Intercepts",""),
+              choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
+            )
+          })
+        }else if(input$radio == "fw_model"){ # FW model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('leftSides',i)),
@@ -337,7 +357,7 @@ mod_mtaExpApp_server <- function(id, data){
               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0("envIndex_",input$trait2Mta[1] ) ))
             )
           })
-        }else if(input$fa_model){ # FW model
+        }else if(input$radio == "fa_model"){ # FW model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('leftSides',i)),
@@ -345,13 +365,7 @@ mod_mtaExpApp_server <- function(id, data){
               choices = choices, multiple = TRUE, selected = ifelse(i==1, '1', 'environment'  )
             )
           })
-        }else{ # no model specified
-          shinyWidgets::updatePrettySwitch(session, "cs_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "dg_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "csdg_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fw_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "uns_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fa_model", value = FALSE)
+        }else { # no model specified
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('leftSides',i)),
@@ -360,7 +374,7 @@ mod_mtaExpApp_server <- function(id, data){
             )
           })
         }
-      }
+      # }
 
     })
     # covariance structure
@@ -369,8 +383,8 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$trait2Mta)
       req(input$nTerms)
-      if(length(input$cs_model) > 0){
-        if (input$cs_model | input$fw_model | input$uns_model) { # CS model
+      # if(length(input$cs_model) > 0){
+        if (input$radio == "cs_model" ) { # CS model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('center',i)),
@@ -379,7 +393,25 @@ mod_mtaExpApp_server <- function(id, data){
               selected = '|'
             )
           })
-        }else if(input$csdg_model | input$dg_model){ # CS+DIAG model
+        }else if ( input$radio == "fw_model" ) { # FW model
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              session$ns(paste0('center',i)),
+              label = ifelse(i==1, "Structure",""),
+              choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+              selected = '|'
+            )
+          })
+        }else if ( input$radio == "uns_model" ) { # UNS model
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              session$ns(paste0('center',i)),
+              label = ifelse(i==1, "Structure",""),
+              choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+              selected = '|'
+            )
+          })
+        }else if( input$radio == "csdg_model" ){ # CS+DIAG model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('center',i)),
@@ -388,7 +420,16 @@ mod_mtaExpApp_server <- function(id, data){
               selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
             )
           })
-        }else if(input$fa_model ){ # CS+DIAG model
+        }else if( input$radio == "dg_model" ){ # DIAG model
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              session$ns(paste0('center',i)),
+              label = ifelse(i==1, "Structure",""),
+              choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+              selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
+            )
+          })
+        }else if( input$radio == "fa_model"){ # FA model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('center',i)),
@@ -397,13 +438,7 @@ mod_mtaExpApp_server <- function(id, data){
               selected = ifelse(i==1, '|', ifelse(i==2, '||', '|'))
             )
           })
-        }else{ # no model specified
-          shinyWidgets::updatePrettySwitch(session, "cs_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "dg_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "csdg_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fw_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "uns_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fa_model", value = FALSE)
+        }else { # no model specified
           lapply(1:input$nTerms, function(i) {
             selectInput(
               session$ns(paste0('center',i)),
@@ -414,7 +449,7 @@ mod_mtaExpApp_server <- function(id, data){
           })
           # updateSelectizeInput(session, 'qtl_table_markers', selected = '')
         }
-      }
+      # }
 
     })
     # right-side equation
@@ -426,8 +461,8 @@ mod_mtaExpApp_server <- function(id, data){
       dtMta <- data()
       gg <- cgiarBase::goodLevels(dtMta, input$version2Mta, includeCovars = FALSE)
       choices <- c("designation",gg[[ input$trait2Mta[1] ]])
-      if(length(input$cs_model) > 0){
-        if (input$cs_model) { # CS model
+      # if(length(input$cs_model) > 0){
+        if (input$radio == "cs_model") { # CS model
           lapply(1:input$nTerms, function(i) {
             selectInput(
               inputId=session$ns(paste0('rightSides',i)),
@@ -436,7 +471,7 @@ mod_mtaExpApp_server <- function(id, data){
               selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('environment','designation')}else{choices[i]} } }
             )
           })
-        }else if(input$csdg_model | input$fw_model){
+        }else if( input$radio == "csdg_model" ){
           lapply(1:input$nTerms, function(i) {
             selectInput(
               inputId=session$ns(paste0('rightSides',i)),
@@ -445,7 +480,16 @@ mod_mtaExpApp_server <- function(id, data){
               selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('designation')}else{choices[i]} } }
             )
           })
-        }else if(input$uns_model | input$dg_model){
+        }else if(input$radio == "fw_model"){
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              inputId=session$ns(paste0('rightSides',i)),
+              label = ifelse(i==1, "Slopes",""),
+              choices = choices, multiple = TRUE,
+              selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('designation')}else{choices[i]} } }
+            )
+          })
+        }else if( input$radio == "uns_model" ){
           lapply(1:input$nTerms, function(i) {
             selectInput(
               inputId=session$ns(paste0('rightSides',i)),
@@ -454,7 +498,16 @@ mod_mtaExpApp_server <- function(id, data){
               selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
             )
           })
-        }else if(input$fa_model){
+        }else if( input$radio == "dg_model" ){
+          lapply(1:input$nTerms, function(i) {
+            selectInput(
+              inputId=session$ns(paste0('rightSides',i)),
+              label = ifelse(i==1, "Slopes",""),
+              choices = choices, multiple = TRUE,
+              selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
+            )
+          })
+        }else if(input$radio == "fa_model"){
           lapply(1:input$nTerms, function(i) {
             selectInput(
               inputId=session$ns(paste0('rightSides',i)),
@@ -463,13 +516,7 @@ mod_mtaExpApp_server <- function(id, data){
               selected = if(i==1){'environment'}else{list('designation')}
             )
           })
-        }else{ # no model specified
-          shinyWidgets::updatePrettySwitch(session, "cs_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "dg_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "csdg_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fw_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "uns_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fa_model", value = FALSE)
+        }else { # no model specified
           lapply(1:input$nTerms, function(i) {
             selectInput(
               inputId=session$ns(paste0('rightSides',i)),
@@ -480,7 +527,7 @@ mod_mtaExpApp_server <- function(id, data){
           })
           #
         }
-      }
+      # }
 
     })
     # n pricipal components
@@ -489,8 +536,8 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$trait2Mta)
       req(input$nTerms)
-      if(length(input$fa_model) > 0){
-        if(input$fa_model){
+      # if(length(input$fa_model) > 0){
+        if(input$radio == "fa_model"){
           lapply(1:input$nTerms, function(i) {
             numericInput(
               session$ns(paste0('nPC',i)),
@@ -500,11 +547,6 @@ mod_mtaExpApp_server <- function(id, data){
             )
           })
         }else{ # no model specified
-          shinyWidgets::updatePrettySwitch(session, "cs_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "csdg_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fw_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "uns_model", value = FALSE)
-          shinyWidgets::updatePrettySwitch(session, "fa_model", value = FALSE)
           lapply(1:input$nTerms, function(i) {
             numericInput(
               session$ns(paste0('nPC',i)),
@@ -514,7 +556,7 @@ mod_mtaExpApp_server <- function(id, data){
           })
           #
         }
-      }
+      # }
 
     })
     # inputFormula
