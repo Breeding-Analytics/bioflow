@@ -104,6 +104,12 @@ mod_mtaExpApp_ui <- function(id){
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (OPTIONAL)...",
+                                                                          p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                                                          DT::dataTableOutput(ns("fieldsMet")),
+                                                      ),
+                                               ),
+                                               column(width=6, style = "background-color:grey; color: #FFFFFF",
                                                       shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
                                                                           selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
@@ -114,6 +120,13 @@ mod_mtaExpApp_ui <- function(id){
                                                                           numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP or GBLUP", value = 1000),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
 
+                                                      ),
+                                               ),
+                                               column(width = 6, style = "background-color:grey; color: #FFFFFF",
+                                                      # br(),
+                                                      shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                                          p(span("Trait distributions (double click in the cells and type a '1' if you would like to model a trait with a different response distribution).", style="color:black")),
+                                                                          DT::DTOutput(ns("traitDistMet")),
                                                       ),
                                                ),
                                                column(width=12,
@@ -598,7 +611,73 @@ mod_mtaExpApp_server <- function(id, data){
         golem::invoke_js('hideid', ns('ismarkermodel'))
       }
     )
+    #################
+    # reactive table for trait family distributions
+    dtDistTrait = reactive({
+      traitNames = input$trait2Mta
+      mm = matrix(0,nrow = 5, ncol = length(traitNames));
+      rownames(mm) <- c(
+        "gaussian(link = 'identity')", "binomial(link = 'logit')",  "Gamma(link = 'inverse')",
+        "inverse.gaussian(link = '1/mu^2')", "poisson(link = 'log')"
+      );
+      colnames(mm) <- traitNames
+      dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
+      return(dtProvTable)
+    })
+    xx = reactiveValues(df = NULL)
+    observe({
+      df <- dtDistTrait()
+      xx$df <- df
+    })
+    output$traitDistMet = DT::renderDT(xx$df,
+                                       selection = 'none',
+                                       editable = TRUE,
+                                       options = list(paging=FALSE,
+                                                      searching=FALSE,
+                                                      initComplete = I("function(settings, json) {alert('Done.');}")
+                                       )
+    )
+    proxy = DT::dataTableProxy('traitDistMet')
+    observeEvent(input$traitDistMet_cell_edit, {
+      info = input$traitDistMet_cell_edit
+      utils::str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+    })
 
+    #################
+    # reactive table for environments to be included
+    dtFieldMet = reactive({
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtProv = dtMta$predictions
+      if(!is.null(dtProv)){
+        dtProv <- dtProv[which(dtProv$analysisId %in% input$version2Mta),]
+        dtProvTable=  as.data.frame( do.call( rbind, list (with(dtProv, table(environment,trait)) ) ) )
+        bad <- which(dtProvTable <= 1, arr.ind = TRUE)
+        if(nrow(bad) > 0){dtProvTable[bad] = 0}
+        dtProvTable[which(dtProvTable > 1, arr.ind = TRUE)] = 1
+      }else{dtProvTable <- data.frame()}
+      return(dtProvTable)
+    })
+    x = reactiveValues(df = NULL)
+    observe({
+      df <- dtFieldMet()
+      x$df <- df
+    })
+    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE)
+    proxy = DT::dataTableProxy('fieldsMet')
+    observeEvent(input$fieldsMet_cell_edit, {
+      info = input$fieldsMet_cell_edit
+      utils::str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      x$df[i, j] <- isolate(DT::coerceValue(v, x$df[i, j]))
+    })
     #################
     ## model types
     observeEvent(c(data(), input$version2Mta, input$trait2Mta), {
@@ -860,6 +939,11 @@ mod_mtaExpApp_server <- function(id, data){
           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
 
+        # family distributions input
+        myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
+        dontHaveDist <- which(is.na(myFamily))
+        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
+
         result <- try(
 
           cgiarPipeline::mtaLmmFlex(
@@ -867,8 +951,8 @@ mod_mtaExpApp_server <- function(id, data){
             analysisId=input$version2Mta,
             analysisIdForGenoModifications=markerVersionToUse,
             inputFormulation=inputFormulation,
-            envsToInclude=NULL, # x$df
-            trait= input$trait2Mta, traitFamily=NULL, # myFamily
+            envsToInclude=x$df,
+            trait= input$trait2Mta, traitFamily=myFamily, # myFamily
             useWeights=input$useWeights,
             heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
             heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),

@@ -1,7 +1,7 @@
 ---
 title: "Realized Genetic Gain Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "June 03, 2024"  
+date: "June 24, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -21,11 +21,11 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out35b77464aaab5a5a" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-outafc9d1da6a1db802" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Summary metrics (wide-format)
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out177c7561348228e6" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out7a013f8293228e04" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Regression plot
 
@@ -39,7 +39,7 @@ The following table allows you to review the different metrics calculated for th
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-outb9924f2db6c704e6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-out8c15ce6d39a4811d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References on methods used

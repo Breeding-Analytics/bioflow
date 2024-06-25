@@ -204,8 +204,9 @@ mod_qaRawApp_server <- function(id, data){
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
         mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+        mo <- mo[which(is.na(mo$analysisId)),]
         mydata$color <- "valid"
-        if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+        if(nrow(mo) > 1){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
         mydata$predictedValue <- mydata[,input$traitOutqPheno]
         mydata <- mydata[,which(!duplicated(colnames(mydata)))]
         p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
