@@ -74,6 +74,9 @@
 # usethis::use_package("vcfR")
 # usethis::use_package("future")
 # usethis::use_package("promises")
+# usethis::use_package("rlang")
+# usethis::use_package("httr2")
+# usethis::use_package("jsonlite")
 #
 # usethis::use_package( "shinymanager" )
 #
