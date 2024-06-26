@@ -56,7 +56,7 @@ mod_homeApp_ui <- function(id){
         class = "landing-block background-content",
         # images: top -> bottom, left -> right
         tags$div(tags$img(src = "www/homeImageAsia.JPG")),
-        tags$div(tags$img(src = "www/homeImageAfrica4.png")),
+        tags$div(tags$img(src = "www/homeImageAfrica4.jpg")),
         tags$div(tags$img(src = "www/homeImageAmericas2.jpg")),
         tags$div(tags$img(src = "www/homeImageEurope3.jpg"))
       ),
