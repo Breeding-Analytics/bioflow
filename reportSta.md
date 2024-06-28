@@ -1,7 +1,7 @@
 ---
 title: "Single Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "May 27, 2024"  
+date: "June 26, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -33,12 +33,9 @@ The objective of this dashboard is to help scientist to understand the following
 Understanding these data features should allow the scientist to identify trait by environments combinations that have enough genetic signal and take the decision of which to include in the multi-trial analysis. It should also allow the scientist to assess the quality of the trials conducted and take corrective measures (e.g., change service providers, improve practices, etc.).  
 
 
-### Map of trials planted
-
-The following map allows you to assess the location where trials are planted.
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out1afd765ebc58b555" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
 
 ### Entries and traits by environment table
 
@@ -50,47 +47,270 @@ The following table allows to see how many locations had data for the different 
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Yield_Mg_ha </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLDTONF </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> 2021_NYH3 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:left;"> 2018_DS_Bogura, Bangladesh_IRSEA-BD_BG-IYT-2018-DS-1 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:right;"> 384 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_NYS1 </td>
+   <td style="text-align:left;"> 2019_DS_BRRI Regional Station Cumilla_IRSEA-BD_CG_CM_BRRI-IYT-2019-DS-1 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:right;"> 359 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_SCH1 </td>
+   <td style="text-align:left;"> 2019_DS_Gazipur, Bangladesh_IRSEA-BD_DA_GZ-IYT-2019-DS-1 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 423 </td>
+   <td style="text-align:right;"> 359 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH1 </td>
+   <td style="text-align:left;"> 2019_DS_Rajshahi, Bangladesh_IRSEA-BD_RS_RS-IYT-2019-DS-1 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 270 </td>
+   <td style="text-align:right;"> 359 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2021_TXH2 </td>
+   <td style="text-align:left;"> 2019_DS_Sathkira, Bangladesh_IRSEA-BD_KH_ST-IYT-2019-DS-1 </td>
    <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 359 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_BINA Regional Station Barishal_IRSEA-BD_BA_BS_BINA-IYT-2019-WS-1 </td>
    <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 374 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_BRRI Regional Station Cumilla_IRSEA-BD_CG_CM_BRRI-IYT-2019-WS-1 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 249 </td>
+   <td style="text-align:right;"> 384 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_BRRI, Rajshahi, Rajshahi, Bangladesh_IRSEA-BD_RS_RS_BRRI-IYT-2019-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 372 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_BSMRAU, Gazipur, Dhaka, Bangladesh_IRSEA-BD_DA_GZ_BSMRAU-IYT-2019-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 383 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Ayodhya, UP, India_IRSEA-IN_UP_AY_CORT-IYT-2019-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 397 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Ayodhya, UP, India_IRSEA-IN_UP_AY_CORT-IYT-2019-WS-2 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 373 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Gosaigunj, UP, India_IRSEA-IN_UP_GO_CORT-IYT-2019-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 397 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Gosaigunj, UP, India_IRSEA-IN_UP_GO_CORT-IYT-2019-WS-2 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 373 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Lucknow, UP, India_IRSEA-IN_UP_LU_CORT-IYT-2019-WS-2 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 397 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Lucknow, UP, India_IRSEA-IN_UP_LU_CORT-IYT-2019-WS-3 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 373 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Prayagraj, UP, India_IRSEA-IN_UP_PR_CORT-IYT-2019-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 397 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_Corteva, Prayagraj, UP, India_IRSEA-IN_UP_PR_CORT-IYT-2019-WS-2 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 373 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_IGKV, Raipur, Chhattisgarh, India_IRSEA-IN_CT_RP_IGKV-IYT-2019-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 386 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2019_WS_RARS, Maruteru, West Godavari, Andhra Pradesh, India_IRSEA-IN_AD_WG_RARS-IYT-2019-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 386 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_DS_ACI Research Field RDA Bogura_IRSEA-BD_RS_BO_SP-IYT-2020-DS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 362 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_DS_BINA Regional Station Barishal_IRSEA-BD_BA_BS_BINA-IYT-2020-DS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 362 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_DS_BRRI Regional Station Habiganj_IRSEA-BD_SY_HA_BN-IYT-2020-DS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 362 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2020_DS_BSMRAU, Gazipur, Dhaka, Bangladesh_IRSEA-BD_DA_GZ_BSMRAU-IYT-2020-DS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 362 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2021_WS_BRRI, Rajshahi, Rajshahi, Bangladesh_IRRIGATED-BD_RS_RS_BRRI-AYT-2021-WS-1 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 100 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_BD_CG_CM_BRRI_2022WS EST006 BD BRRI Cumilla TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 215 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_BD_DA_GZ_BSMRAU_2022WS EST006 BD BSMRAU TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 215 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_BD_DA_GZ_BSMRAU_2022WS TMeLS-I S2 BD BSMRAU </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 54 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_BD_RS_RS_BRRI_2022WS EST006 BD BRRI Rajshahi TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 215 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_BD_RS_RS_BRRI_2022WS TMeLS-I S2 BD BRRI Rajshahi </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 54 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_IN_AD_KR_ANGRAU_2022WS EST006 IN ANGRAU TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_IN_CT_RP_IGKV_2022WS EST006 IN IGKV TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_IN_OR_CU_NRRI_2022WS EST006 IN NRRI TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_IN_TG_HY_IIRR_2022WS EST006 IN IIRR TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_IN_TG_NA_PJTSAU_2022WS EST006 IN PJTSAU TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2022_WS_IN_UP_VA_BHU_2022WS EST006 IN BHU TMeLS-I </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 235 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-I EST006 S2 BD BINA_BD-KH-ST-BINA </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 48 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-I EST006 S2 BD BRRI Cumilla_BD-CG-CM-BRRI </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 48 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-I EST006 S2 BD BRRI HQ_BD-DA-GZ-BRRI </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 48 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-I EST006 S2 BD BRRI Rangpur_BD-RP-RP-BRRI </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 48 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-I EST006 S2 BD BSMRAU_BD-DA-GZ-BSMRAU </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 48 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN BAU Nonstress_IN-JH-RN-BAU-NON-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN BAU Stress_IN-JH-RN-BAU-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN CRURRS Nonstress_IN-JH-HZ-CRURRS-NON-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN CRURRS Stress_IN-JH-HZ-CRURRS-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN IGKV Nonstress_IN-CT-RP-IGKV-NON-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN IGKV Stress_IN-CT-RP-IGKV-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN JDA-RRS Nonstress_IN-WB-BN-JDA-RRS-NON-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN JDA-RRS Stress_IN-WB-BN-JDA-RRS-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN SHUATS Nonstress_IN-UP-PY-SHUATS-NON-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN SHUATS Stress_IN-UP-PY-SHUATS-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN ZDRPRS Nonstress_IN-WB-PU-ZDRPRS-NON-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 35 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2023WS TMeLS-R (Drt) EST006 S2 IN ZDRPRS Stress_IN-WB-PU-ZDRPRS-STRESS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 35 </td>
   </tr>
 </tbody>
 </table></div>
@@ -104,26 +324,33 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitSta-label" for="reportBuilder_1-traitSta">Trait to filter:</label>
+<label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitSta" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="YLDTONF" selected>YLDTONF</option></select>
+<script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outb72c082f8b1fd805" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outb0b90383f26fa151" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
+### Field view
+
+The following heatmaps allow you to inspect the spatial trends in the different fields to take corrective measures in the next season and understand why some variance components may look the way they look.
 
 
 <p>&nbsp;</p>
 
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="staApp_1-traitStaFieldView-label" for="staApp_1-traitStaFieldView">Trait to filter:</label>
+<div>
+<select id="staApp_1-traitStaFieldView" class="shiny-input-select"><option value="YLDTONF" selected>YLDTONF</option></select>
+<script type="application/json" data-for="staApp_1-traitStaFieldView" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
 
-
-
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out6ced334b0ba91319" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Output parameters 
 
@@ -134,29 +361,32 @@ This barplot allows you to see the variance components values and ratios for the
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitSta0-label" for="reportBuilder_1-traitSta0">Trait to filter:</label>
+<label class="control-label" id="staApp_1-traitSta0-label" for="staApp_1-traitSta0">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitSta0" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="YLDTONF" selected>YLDTONF</option></select>
+<script type="application/json" data-for="staApp_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outae7a94a9411fce8d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outaa58915c4951b6f2" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-parameterMetrics-label" for="reportBuilder_1-parameterMetrics">Parameter to filter:</label>
+<label class="control-label" id="staApp_1-parameterMetrics-label" for="staApp_1-parameterMetrics">Parameter to filter:</label>
 <div>
-<select id="reportBuilder_1-parameterMetrics" class="shiny-input-select"><option value="plotH2" selected>plotH2</option>
+<select id="staApp_1-parameterMetrics" class="shiny-input-select"><option value="plotH2" selected>plotH2</option>
 <option value="CV" selected>CV</option>
 <option value="r2" selected>r2</option>
-<option value="Vg" selected>Vg</option>
-<option value="Vr" selected>Vr</option>
+<option value="V_designation" selected>V_designation</option>
+<option value="V_rowF" selected>V_rowF</option>
+<option value="V_colF" selected>V_colF</option>
+<option value="V_repF" selected>V_repF</option>
+<option value="V_iBlockF" selected>V_iBlockF</option>
+<option value="V_s(row, col)" selected>V_s(row, col)</option>
+<option value="V_residual" selected>V_residual</option>
 <option value="mean" selected>mean</option></select>
-<script type="application/json" data-for="reportBuilder_1-parameterMetrics" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="staApp_1-parameterMetrics" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 <p>&nbsp;</p>
@@ -165,7 +395,7 @@ The following barplot is designed to provide a high-level view of estimated para
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out05e0f00f23827a5b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out56693f7c952014df" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions
 
@@ -176,18 +406,65 @@ The following table allows you to check the trait by environment adjusted means 
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-envSta-label" for="reportBuilder_1-envSta">Environment to filter:</label>
+<label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment to filter:</label>
 <div>
-<select id="reportBuilder_1-envSta" class="shiny-input-select"><option value="2021_NYH3" selected>2021_NYH3</option>
-<option value="2021_SCH1">2021_SCH1</option>
-<option value="2021_TXH2">2021_TXH2</option>
-<option value="2021_TXH1">2021_TXH1</option>
-<option value="2021_NYS1">2021_NYS1</option></select>
-<script type="application/json" data-for="reportBuilder_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="2019_WS_Corteva, Ayodhya, UP, India_IRSEA-IN_UP_AY_CORT-IYT-2019-WS-2" selected>2019_WS_Corteva, Ayodhya, UP, India_IRSEA-IN_UP_AY_CORT-IYT-2019-WS-2</option>
+<option value="2019_WS_Corteva, Gosaigunj, UP, India_IRSEA-IN_UP_GO_CORT-IYT-2019-WS-2">2019_WS_Corteva, Gosaigunj, UP, India_IRSEA-IN_UP_GO_CORT-IYT-2019-WS-2</option>
+<option value="2019_WS_Corteva, Lucknow, UP, India_IRSEA-IN_UP_LU_CORT-IYT-2019-WS-3">2019_WS_Corteva, Lucknow, UP, India_IRSEA-IN_UP_LU_CORT-IYT-2019-WS-3</option>
+<option value="2019_WS_Corteva, Prayagraj, UP, India_IRSEA-IN_UP_PR_CORT-IYT-2019-WS-1">2019_WS_Corteva, Prayagraj, UP, India_IRSEA-IN_UP_PR_CORT-IYT-2019-WS-1</option>
+<option value="2019_WS_Corteva, Lucknow, UP, India_IRSEA-IN_UP_LU_CORT-IYT-2019-WS-2">2019_WS_Corteva, Lucknow, UP, India_IRSEA-IN_UP_LU_CORT-IYT-2019-WS-2</option>
+<option value="2019_WS_Corteva, Ayodhya, UP, India_IRSEA-IN_UP_AY_CORT-IYT-2019-WS-1">2019_WS_Corteva, Ayodhya, UP, India_IRSEA-IN_UP_AY_CORT-IYT-2019-WS-1</option>
+<option value="2019_WS_Corteva, Prayagraj, UP, India_IRSEA-IN_UP_PR_CORT-IYT-2019-WS-2">2019_WS_Corteva, Prayagraj, UP, India_IRSEA-IN_UP_PR_CORT-IYT-2019-WS-2</option>
+<option value="2019_WS_Corteva, Gosaigunj, UP, India_IRSEA-IN_UP_GO_CORT-IYT-2019-WS-1">2019_WS_Corteva, Gosaigunj, UP, India_IRSEA-IN_UP_GO_CORT-IYT-2019-WS-1</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN CRURRS Stress_IN-JH-HZ-CRURRS-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN CRURRS Stress_IN-JH-HZ-CRURRS-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN CRURRS Nonstress_IN-JH-HZ-CRURRS-NON-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN CRURRS Nonstress_IN-JH-HZ-CRURRS-NON-STRESS</option>
+<option value="2020_DS_BINA Regional Station Barishal_IRSEA-BD_BA_BS_BINA-IYT-2020-DS-1">2020_DS_BINA Regional Station Barishal_IRSEA-BD_BA_BS_BINA-IYT-2020-DS-1</option>
+<option value="2022_WS_BD_CG_CM_BRRI_2022WS EST006 BD BRRI Cumilla TMeLS-I">2022_WS_BD_CG_CM_BRRI_2022WS EST006 BD BRRI Cumilla TMeLS-I</option>
+<option value="2022_WS_BD_RS_RS_BRRI_2022WS EST006 BD BRRI Rajshahi TMeLS-I">2022_WS_BD_RS_RS_BRRI_2022WS EST006 BD BRRI Rajshahi TMeLS-I</option>
+<option value="2022_WS_BD_DA_GZ_BSMRAU_2022WS EST006 BD BSMRAU TMeLS-I">2022_WS_BD_DA_GZ_BSMRAU_2022WS EST006 BD BSMRAU TMeLS-I</option>
+<option value="2023WS TMeLS-I EST006 S2 BD BRRI Cumilla_BD-CG-CM-BRRI">2023WS TMeLS-I EST006 S2 BD BRRI Cumilla_BD-CG-CM-BRRI</option>
+<option value="2023WS TMeLS-I EST006 S2 BD BSMRAU_BD-DA-GZ-BSMRAU">2023WS TMeLS-I EST006 S2 BD BSMRAU_BD-DA-GZ-BSMRAU</option>
+<option value="2023WS TMeLS-I EST006 S2 BD BINA_BD-KH-ST-BINA">2023WS TMeLS-I EST006 S2 BD BINA_BD-KH-ST-BINA</option>
+<option value="2023WS TMeLS-I EST006 S2 BD BRRI HQ_BD-DA-GZ-BRRI">2023WS TMeLS-I EST006 S2 BD BRRI HQ_BD-DA-GZ-BRRI</option>
+<option value="2023WS TMeLS-I EST006 S2 BD BRRI Rangpur_BD-RP-RP-BRRI">2023WS TMeLS-I EST006 S2 BD BRRI Rangpur_BD-RP-RP-BRRI</option>
+<option value="2022_WS_IN_AD_KR_ANGRAU_2022WS EST006 IN ANGRAU TMeLS-I">2022_WS_IN_AD_KR_ANGRAU_2022WS EST006 IN ANGRAU TMeLS-I</option>
+<option value="2022_WS_IN_CT_RP_IGKV_2022WS EST006 IN IGKV TMeLS-I ">2022_WS_IN_CT_RP_IGKV_2022WS EST006 IN IGKV TMeLS-I </option>
+<option value="2022_WS_IN_UP_VA_BHU_2022WS EST006 IN BHU TMeLS-I">2022_WS_IN_UP_VA_BHU_2022WS EST006 IN BHU TMeLS-I</option>
+<option value="2022_WS_IN_TG_NA_PJTSAU_2022WS EST006 IN PJTSAU TMeLS-I ">2022_WS_IN_TG_NA_PJTSAU_2022WS EST006 IN PJTSAU TMeLS-I </option>
+<option value="2022_WS_IN_TG_HY_IIRR_2022WS EST006 IN IIRR TMeLS-I">2022_WS_IN_TG_HY_IIRR_2022WS EST006 IN IIRR TMeLS-I</option>
+<option value="2022_WS_IN_OR_CU_NRRI_2022WS EST006 IN NRRI TMeLS-I">2022_WS_IN_OR_CU_NRRI_2022WS EST006 IN NRRI TMeLS-I</option>
+<option value="2020_DS_ACI Research Field RDA Bogura_IRSEA-BD_RS_BO_SP-IYT-2020-DS-1">2020_DS_ACI Research Field RDA Bogura_IRSEA-BD_RS_BO_SP-IYT-2020-DS-1</option>
+<option value="2020_DS_BRRI Regional Station Habiganj_IRSEA-BD_SY_HA_BN-IYT-2020-DS-1">2020_DS_BRRI Regional Station Habiganj_IRSEA-BD_SY_HA_BN-IYT-2020-DS-1</option>
+<option value="2020_DS_BSMRAU, Gazipur, Dhaka, Bangladesh_IRSEA-BD_DA_GZ_BSMRAU-IYT-2020-DS-1">2020_DS_BSMRAU, Gazipur, Dhaka, Bangladesh_IRSEA-BD_DA_GZ_BSMRAU-IYT-2020-DS-1</option>
+<option value="2019_DS_Sathkira, Bangladesh_IRSEA-BD_KH_ST-IYT-2019-DS-1">2019_DS_Sathkira, Bangladesh_IRSEA-BD_KH_ST-IYT-2019-DS-1</option>
+<option value="2019_DS_Gazipur, Bangladesh_IRSEA-BD_DA_GZ-IYT-2019-DS-1">2019_DS_Gazipur, Bangladesh_IRSEA-BD_DA_GZ-IYT-2019-DS-1</option>
+<option value="2019_DS_BRRI Regional Station Cumilla_IRSEA-BD_CG_CM_BRRI-IYT-2019-DS-1">2019_DS_BRRI Regional Station Cumilla_IRSEA-BD_CG_CM_BRRI-IYT-2019-DS-1</option>
+<option value="2019_DS_Rajshahi, Bangladesh_IRSEA-BD_RS_RS-IYT-2019-DS-1">2019_DS_Rajshahi, Bangladesh_IRSEA-BD_RS_RS-IYT-2019-DS-1</option>
+<option value="2022_WS_BD_DA_GZ_BSMRAU_2022WS TMeLS-I S2 BD BSMRAU">2022_WS_BD_DA_GZ_BSMRAU_2022WS TMeLS-I S2 BD BSMRAU</option>
+<option value="2021_WS_BRRI, Rajshahi, Rajshahi, Bangladesh_IRRIGATED-BD_RS_RS_BRRI-AYT-2021-WS-1">2021_WS_BRRI, Rajshahi, Rajshahi, Bangladesh_IRRIGATED-BD_RS_RS_BRRI-AYT-2021-WS-1</option>
+<option value="2019_WS_BRRI Regional Station Cumilla_IRSEA-BD_CG_CM_BRRI-IYT-2019-WS-1">2019_WS_BRRI Regional Station Cumilla_IRSEA-BD_CG_CM_BRRI-IYT-2019-WS-1</option>
+<option value="2019_WS_BSMRAU, Gazipur, Dhaka, Bangladesh_IRSEA-BD_DA_GZ_BSMRAU-IYT-2019-WS-1">2019_WS_BSMRAU, Gazipur, Dhaka, Bangladesh_IRSEA-BD_DA_GZ_BSMRAU-IYT-2019-WS-1</option>
+<option value="2019_WS_BINA Regional Station Barishal_IRSEA-BD_BA_BS_BINA-IYT-2019-WS-1">2019_WS_BINA Regional Station Barishal_IRSEA-BD_BA_BS_BINA-IYT-2019-WS-1</option>
+<option value="2019_WS_BRRI, Rajshahi, Rajshahi, Bangladesh_IRSEA-BD_RS_RS_BRRI-IYT-2019-WS-1">2019_WS_BRRI, Rajshahi, Rajshahi, Bangladesh_IRSEA-BD_RS_RS_BRRI-IYT-2019-WS-1</option>
+<option value="2022_WS_BD_RS_RS_BRRI_2022WS TMeLS-I S2 BD BRRI Rajshahi">2022_WS_BD_RS_RS_BRRI_2022WS TMeLS-I S2 BD BRRI Rajshahi</option>
+<option value="2018_DS_Bogura, Bangladesh_IRSEA-BD_BG-IYT-2018-DS-1">2018_DS_Bogura, Bangladesh_IRSEA-BD_BG-IYT-2018-DS-1</option>
+<option value="2019_WS_RARS, Maruteru, West Godavari, Andhra Pradesh, India_IRSEA-IN_AD_WG_RARS-IYT-2019-WS-1">2019_WS_RARS, Maruteru, West Godavari, Andhra Pradesh, India_IRSEA-IN_AD_WG_RARS-IYT-2019-WS-1</option>
+<option value="2019_WS_IGKV, Raipur, Chhattisgarh, India_IRSEA-IN_CT_RP_IGKV-IYT-2019-WS-1">2019_WS_IGKV, Raipur, Chhattisgarh, India_IRSEA-IN_CT_RP_IGKV-IYT-2019-WS-1</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN BAU Stress_IN-JH-RN-BAU-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN BAU Stress_IN-JH-RN-BAU-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN ZDRPRS Stress_IN-WB-PU-ZDRPRS-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN ZDRPRS Stress_IN-WB-PU-ZDRPRS-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN BAU Nonstress_IN-JH-RN-BAU-NON-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN BAU Nonstress_IN-JH-RN-BAU-NON-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN ZDRPRS Nonstress_IN-WB-PU-ZDRPRS-NON-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN ZDRPRS Nonstress_IN-WB-PU-ZDRPRS-NON-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN IGKV Stress_IN-CT-RP-IGKV-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN IGKV Stress_IN-CT-RP-IGKV-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN IGKV Nonstress_IN-CT-RP-IGKV-NON-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN IGKV Nonstress_IN-CT-RP-IGKV-NON-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN JDA-RRS Nonstress_IN-WB-BN-JDA-RRS-NON-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN JDA-RRS Nonstress_IN-WB-BN-JDA-RRS-NON-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN SHUATS Nonstress_IN-UP-PY-SHUATS-NON-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN SHUATS Nonstress_IN-UP-PY-SHUATS-NON-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN JDA-RRS Stress_IN-WB-BN-JDA-RRS-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN JDA-RRS Stress_IN-WB-BN-JDA-RRS-STRESS</option>
+<option value="2023WS TMeLS-R (Drt) EST006 S2 IN SHUATS Stress_IN-UP-PY-SHUATS-STRESS">2023WS TMeLS-R (Drt) EST006 S2 IN SHUATS Stress_IN-UP-PY-SHUATS-STRESS</option></select>
+<script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out2f562e01f5087af6" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out8670cb78277ec019" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -196,16 +473,14 @@ The following boxplot allows you to see the distribution of predicted values by 
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitStaBox-label" for="reportBuilder_1-traitStaBox">Trait to filter:</label>
+<label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="YLDTONF" selected>YLDTONF</option></select>
+<script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out16207796a38b05bd" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out6807d618779bca5d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -214,16 +489,14 @@ The following boxplot allows you to see the distribution of predicted values by 
 In the following plot you can observe the comparison between the top 30 entries from each entry type category for the different traits. If a category has less than a 30 entries all individuals are displayed. This should allow you to identify the top entries in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi-trial analysis and selection indices.
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitStaComp-label" for="reportBuilder_1-traitStaComp">Trait to filter:</label>
+<label class="control-label" id="staApp_1-traitStaComp-label" for="staApp_1-traitStaComp">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaComp" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitStaComp" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="staApp_1-traitStaComp" class="shiny-input-select"><option value="YLDTONF" selected>YLDTONF</option></select>
+<script type="application/json" data-for="staApp_1-traitStaComp" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outd9bed5df709e6f3f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out442af683407166d3" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Correlation between environments
@@ -233,16 +506,14 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitStaCor-label" for="reportBuilder_1-traitStaCor">Trait to filter:</label>
+<label class="control-label" id="staApp_1-traitStaCor-label" for="staApp_1-traitStaCor">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaCor" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="YLDTONF" selected>YLDTONF</option></select>
+<script type="application/json" data-for="staApp_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out0aade3a6be9728ad" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-oute1b943b468ac9f33" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References of methods used

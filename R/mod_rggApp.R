@@ -136,7 +136,8 @@ mod_rggApp_ui <- function(id){
                                                                                                    numericInput(ns("bootstrappingN"), label = "Number of bootstrapping per samples", value = 10),
                                                                                          ),
                                                                                          selectInput(ns("deregress"), "Should deregress estimates", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
-                                                                                         selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                                                         selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                                                                         selectInput(ns("forceRules"), label = "#Years rule applied?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE)
                                                                      ),
                                                               ),
                                                        ),
@@ -489,7 +490,8 @@ mod_rggApp_server <- function(id, data){
             yearsToUse=input$yearsToUse,
             sampleN = input$sampleN,
             bootstrappingN = input$bootstrappingN,
-            verbose=input$verbose
+            verbose=input$verbose,
+            forceRules = input$forceRules
           ),
           silent=TRUE
           )
@@ -502,7 +504,8 @@ mod_rggApp_server <- function(id, data){
             deregress=input$deregress,
             partition=input$partition,
             yearsToUse=input$yearsToUse,
-            verbose=input$verbose
+            verbose=input$verbose,
+            forceRules = input$forceRules
           ),
           silent=TRUE
           )
