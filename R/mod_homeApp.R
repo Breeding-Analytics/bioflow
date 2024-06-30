@@ -46,7 +46,19 @@ mod_homeApp_ui <- function(id){
         type = "text/css",
         rel = "stylesheet",
         href = "css/styles.css"
-      )
+      ),
+
+      ### START: OAuth2 JS helper functions ####################################
+
+      tags$script('Shiny.addCustomMessageHandler("redirect", function(url) {window.location.href = (url);});'),
+      tags$script('$(document).on("shiny:connected", function() {Shiny.setInputValue("cookies", document.cookie)});'),
+
+      if (local_server) {
+        # ensure using localhost domain instead of 127.0.0.1 to match redirect uri registered for the oauth2 client
+        tags$script('if(location.hostname == "127.0.0.1") {window.location.href = location.protocol+"//localhost:"+location.port;}')
+      }
+
+      ### END: OAuth2 JS helper functions ######################################
     ),
 
     tags$div(
