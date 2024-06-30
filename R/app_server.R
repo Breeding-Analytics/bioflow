@@ -89,6 +89,109 @@ app_server <- function(input, output, session) {
   ## HOME
   mod_homeApp_server("homeApp_1")
 
+  ### START: OAuth2 flow mechanism #############################################
+  use_login <- reactive({
+    decision <- session$clientData$url_hostname == "shiny-analytics.ebsproject.org"
+    decision <- FALSE
+    return(decision)
+  })
+
+  observe({ if(use_login()){
+    observeEvent(input$login, {
+      shinybusy::show_modal_spinner()
+
+      oauth_state <- httr2:::base64_url_rand()
+
+      pkce <- httr2::oauth_flow_auth_code_pkce()
+
+      set_cookie(session, "oauth_state", oauth_state)
+      set_cookie(session, "pkce_verifier", pkce$verifier)
+
+      auth_url <- httr2::oauth_flow_auth_code_url(
+        client = scriptoria_client,
+        auth_url = authorize_url,
+        redirect_uri = redirect_uri,
+        state = oauth_state,
+        auth_params = list(
+          scope = oauth2_scope,
+          code_challenge = pkce$challenge,
+          code_challenge_method = pkce$method
+        )
+      )
+
+      session$sendCustomMessage("redirect", auth_url)
+    })
+
+    observeEvent(input$cookies, {
+      query <- parseQueryString(session$clientData$url_search)
+      temp  <- data()
+
+      if (!is.null(query$code) && !is.null(query$state)) {
+        shinybusy::show_modal_spinner()
+
+        oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", input$cookies)
+        pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", input$cookies)
+
+        # NOTE: checkpoint to interrupt Shiny app execution to inspect env vars!
+        # browser()
+
+        code <- httr2:::oauth_flow_auth_code_parse(query, oauth_state)
+
+        token <- httr2:::oauth_client_get_token(client = scriptoria_client,
+                                                grant_type = "authorization_code",
+                                                code = query$code,
+                                                state = query$state,
+                                                code_verifier = pkce_verifier,
+                                                redirect_uri = redirect_uri)
+
+        jwt <- strsplit(token$access_token, ".", fixed = TRUE)[[1]]
+
+        payload <- jsonlite::base64url_dec(jwt[2]) |> rawToChar() |> jsonlite::fromJSON()
+
+        updateQueryString(redirect_uri, mode = "replace", session = session)
+
+        temp$user <- payload$email
+        data(temp)
+
+        shinybusy::remove_modal_spinner()
+      } else if (is.null(temp$user)) {
+        showModal(modalDialog(
+          tags$div(align = "center",
+                   tags$img(src = "www/cgiar.png", height = 136, width = 480),
+                   tags$h2(span("Biometrical Genetics Workflow (bioflow)", tags$a(href="https://www.youtube.com/playlist?list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX", icon("youtube") , target="_blank"), style="color:darkcyan")),
+                   tags$p(
+                     "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods for understanding or using evolutionary forces",
+                     "(mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force) in decision-making.",
+                     "Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase),",
+                     "genotypic databases (GIGWA), and environmental databases (NASAPOWER), and carry the analytical procedures."
+                   ),
+          ),
+
+          tags$hr(),
+
+          fluidRow(
+            column(width = 10, p(strong("Note:"), "You can sign in to the Bioflow Portal using your Service Portal login details.")),
+            column(width = 2, actionButton("login", "Sign In")),
+          ),
+          tags$br(),
+          fluidRow(
+            column(width = 10, p("Alternatively, you can sign up by submitting a new request to create a Service Portal account before gaining access to the Bioflow Portal. Once you submit an account request, you will have to wait for it to be approved.")),
+            column(width = 2, actionButton("register", "Sign Up")),
+          ),
+
+          size = "l",
+          easyClose = FALSE,
+          footer = NULL
+        ))
+      }
+    })
+
+    observeEvent(input$register, {
+      session$sendCustomMessage("redirect", "https://cgiar-service-portal-prd.azurewebsites.net/register")
+    })
+  }})
+  ### END: OAuth2 flow mechanism ###############################################
+
   ## DATA extraction
   # mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)
   mod_getDataPheno_server("getDataPheno_1", map = required_mapping, data = data, res_auth = res_auth)
