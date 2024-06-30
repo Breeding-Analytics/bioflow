@@ -1,3 +1,68 @@
+
+### START: OAuth2 utility functions ############################################
+
+production_server <- TRUE
+
+if (production_server) {
+  authorize_url <- "https://serviceportal-authentication-prd.azurewebsites.net/connect/authorize"
+  access_url    <- "https://serviceportal-authentication-prd.azurewebsites.net/connect/token"
+  get_user_info <- "https://serviceportal-authentication-prd.azurewebsites.net/connect/userinfo"
+  client_secret <- "SrVvPpmRdN&41@"
+} else {
+  authorize_url <- "https://serviceportal-authentication-tst.azurewebsites.net/connect/authorize"
+  access_url    <- "https://serviceportal-authentication-tst.azurewebsites.net/connect/token"
+  get_user_info <- "https://serviceportal-authentication-tst.azurewebsites.net/connect/userinfo"
+  client_secret <- "secret"
+}
+
+oauth2_scope <- "openid profile"
+local_server <- Sys.getenv("SHINY_PORT") == ""
+
+# NOTE: check if we run it on localhost!
+if (local_server) {
+  client_id     <- "shiny_local"
+  redirect_uri  <- "http://localhost:1410"
+} else {
+  client_id     <- "shiny_test"
+  redirect_uri  <- "https://shiny-analytics.ebsproject.org/sandbox"
+}
+
+use_login <- TRUE
+
+scriptoria_client <- httr2::oauth_client(
+  id = client_id,
+  secret = client_secret,
+  token_url = access_url,
+  name = "serviceportal"
+)
+
+# NOTE: set cookie function
+set_cookie <- function(session, name, value){
+  stopifnot(is.character(name) && length(name) == 1)
+  stopifnot(is.null(value) || (is.character(value) && length(value) == 1))
+  if(is.null(value)) { value <- "" }
+
+  cookie_options <- list(path = "/", same_site = "None", secure = TRUE)
+  parts <- rlang::list2(!!name := value, !!!cookie_options)
+  parts <- parts[!vapply(parts, is.null, logical(1))]
+
+  names  <- names(parts)
+  sep    <- ifelse(vapply(parts, isTRUE, logical(1)), "", "=")
+  values <- ifelse(vapply(parts, isTRUE, logical(1)), "", as.character(parts))
+  header <- paste(collapse = "; ", paste0(names, sep, values))
+  hdr    <- list("Set-Cookie" = header)
+
+  script_url <- session$registerDataObj(
+    name = paste("type", "cookie", httr2:::base64_url_rand(), sep = "_"),
+    data = httpResponse(headers = hdr),
+    filterFunc = function(data, req) {data}
+  )
+
+  insertUI("body", where = "afterBegin", ui = tagList(tags$script(src = script_url)), immediate = TRUE, session = session)
+}
+
+### END: OAuth2 utility functions ##############################################
+
 #' The application server-side
 #'
 #' @param input,output,session Internal parameters for {shiny}.
