@@ -51,6 +51,7 @@ mod_homeApp_ui <- function(id){
       ### START: OAuth2 JS helper functions ####################################
 
       tags$script('Shiny.addCustomMessageHandler("redirect", function(url) {window.location.href = (url);});'),
+      tags$script('Shiny.addCustomMessageHandler("popup", function(url) {window.open(url);});'),
       tags$script('$(document).on("shiny:connected", function() {Shiny.setInputValue("cookies", document.cookie)});'),
 
       if (local_server) {
