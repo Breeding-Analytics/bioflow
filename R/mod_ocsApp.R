@@ -343,7 +343,8 @@ mod_ocsApp_server <- function(id, data){
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
-    ## render trait distribution plot
+    ##############################################################################################
+    ## render plots
     observeEvent(c(data(),input$version2Ocs), { # update trait
       req(data())
       req(input$version2Ocs)
@@ -487,29 +488,17 @@ mod_ocsApp_server <- function(id, data){
       )
     })
     ## render result of "run" button click
-    outOcs <- eventReactive(input$runOcs, {
-      req(data())
-      req(input$version2Ocs)
-      req(input$trait2Ocs)
-      req(input$env2Ocs)
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      dtOcs <- data()
-      # run the modeling, but before test if mta was done
-      if(sum(dtOcs$status$module %in% c("mta","mtaFlex","indexD")) == 0) {
-        output$qaQcOcsInfo <- renderUI({
-          if (hideAll$clearAll){
-            return()
-          }else{
-            req(dtOcs)
-            HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
-            )
-          }
-        })
-      }else{
-        output$qaQcOcsInfo <- renderUI({return(NULL)})
+    ##############################################################################################
+    ##############################################################################################
+    ##############################################################################################
+    ##############################################################################################
+    ## actual run
+
+    my_ocs <- ExtendedTask$new(function(input, data) {
+      promises::future_promise({
+        # some long process
         result <- try(cgiarPipeline::ocs(
-          phenoDTfile= dtOcs, # analysis to be picked from predictions database
+          phenoDTfile= data, # analysis to be picked from predictions database
           analysisId=input$version2Ocs,
           relDTfile= input$relType,
           trait= input$trait2Ocs, # per trait
@@ -522,117 +511,581 @@ mod_ocsApp_server <- function(id, data){
         ),
         silent=TRUE
         )
+        return(result)
+      })
+    })
+
+    observeEvent(input$runOcs, {
+
+      req(data())
+      req(input$version2Ocs)
+      req(input$trait2Ocs)
+      req(input$env2Ocs)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+      ui_inputs <- shiny::reactiveValuesToList(input)
+      data_obj  <- data()
+
+      my_ocs$invoke(ui_inputs, data_obj)
+    })
+
+    output$outOcs <- renderPrint({
+
+      # run the modeling, but before test if mta was done
+      if(sum(data()$status$module %in% c("mta","mtaFlex","indexD")) == 0) {
+        output$qaQcOcsInfo <- renderUI({
+          if (hideAll$clearAll){
+            return()
+          }else{
+            req(data())
+            HTML(as.character(div(style="color: brown;",
+                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+            )
+          }
+        })
+      }else{
+        output$qaQcOcsInfo <- renderUI({return(NULL)})
+        result <- my_ocs$result()
+        shinybusy::remove_modal_spinner()
+
         if(!inherits(result,"try-error")) {
+
           data(result) # update data with results
           cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+
+          # view predictions
+          output$predictionsOcs <-  DT::renderDT({
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+            predictions <- result$predictions
+            predictions <- predictions[predictions$module=="ocs",]
+            predictions$analysisId <- as.numeric(predictions$analysisId)
+            predictions <- predictions[!is.na(predictions$analysisId),]
+            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+            numeric.output <- c("predictedValue", "stdError", "reliability")
+            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            ), numeric.output)
+            # }
+          })
+          # view metrics
+          output$metricsOcs <-  DT::renderDT({
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+            metrics <- result$metrics
+            metrics <- metrics[metrics$module=="ocs",]
+            metrics$analysisId <- as.numeric(metrics$analysisId)
+            metrics <- metrics[!is.na(metrics$analysisId),]
+            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+            numeric.output <- c("value", "stdError")
+            DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            ), numeric.output)
+            # }
+          })
+          # view modeling
+          output$modelingOcs <-  DT::renderDT({
+            # if ( hideAll$clearAll){
+            #   return()
+            # }else{
+            modeling <- result$modeling
+            modeling <- modeling[modeling$module=="ocs",]
+            modeling$analysisId <- as.numeric(modeling$analysisId)
+            modeling <- modeling[!is.na(modeling$analysisId),]
+            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+            DT::datatable(current.modeling, extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            )
+            # }
+          })
+          ## Report tab
+          output$reportOcs <- renderUI({
+            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOcs.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          })
+
+          output$downloadReportOcs <- downloadHandler(
+            filename = function() {
+              paste('my-report', sep = '.', switch(
+                "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+              ))
+            },
+            content = function(file) {
+              src <- normalizePath(system.file("rmd","reportOcs.Rmd",package="bioflow"))
+              src2 <- normalizePath('data/resultOcs.RData')
+              # temporarily switch to the temp dir, in case you do not have write
+              # permission to the current working directory
+              owd <- setwd(tempdir())
+              on.exit(setwd(owd))
+              file.copy(src, 'report.Rmd', overwrite = TRUE)
+              file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
+              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+                "HTML",
+                HTML = rmdformats::robobook(toc_depth = 4)
+                # HTML = rmarkdown::html_document()
+              ))
+              file.rename(out, file)
+            }
+          )
+
         }else{
+          output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
+          output$metricsOcs <- DT::renderDT({DT::datatable(NULL)})
+          output$modelingOcs <- DT::renderDT({DT::datatable(NULL)})
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
-      }
-      shinybusy::remove_modal_spinner()
-
-      if(!inherits(result,"try-error")) {
-        # view predictions
-        output$predictionsOcs <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          predictions <- result$predictions
-          predictions <- predictions[predictions$module=="ocs",]
-          predictions$analysisId <- as.numeric(predictions$analysisId)
-          predictions <- predictions[!is.na(predictions$analysisId),]
-          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-          numeric.output <- c("predictedValue", "stdError", "reliability")
-          DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          ), numeric.output)
-          # }
-        })
-        # view metrics
-        output$metricsOcs <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          metrics <- result$metrics
-          metrics <- metrics[metrics$module=="ocs",]
-          metrics$analysisId <- as.numeric(metrics$analysisId)
-          metrics <- metrics[!is.na(metrics$analysisId),]
-          current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-          current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-          numeric.output <- c("value", "stdError")
-          DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          ), numeric.output)
-          # }
-        })
-        # view modeling
-        output$modelingOcs <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          modeling <- result$modeling
-          modeling <- modeling[modeling$module=="ocs",]
-          modeling$analysisId <- as.numeric(modeling$analysisId)
-          modeling <- modeling[!is.na(modeling$analysisId),]
-          current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-          current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-          DT::datatable(current.modeling, extensions = 'Buttons',
-                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          )
-          # }
-        })
-        ## Report tab
-        output$reportOcs <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOcs.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        output$downloadReportOcs <- downloadHandler(
-          filename = function() {
-            paste('my-report', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            src <- normalizePath(system.file("rmd","reportOcs.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultOcs.RData')
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmdformats::robobook(toc_depth = 4)
-              # HTML = rmarkdown::html_document()
-            ))
-            file.rename(out, file)
-          }
-        )
-
-      } else {
-        output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
-        output$metricsOcs <- DT::renderDT({DT::datatable(NULL)})
-        output$modelingOcs <- DT::renderDT({DT::datatable(NULL)})
+        hideAll$clearAll <- FALSE
       }
 
-
-      hideAll$clearAll <- FALSE
-
-    }) ## end eventReactive
-
-    output$outOcs <- renderPrint({
-      outOcs()
     })
 
   })
 }
 
+# mod_ocsApp_server <- function(id, data){
+#   moduleServer( id, function(input, output, session){
+#     ns <- session$ns
+#
+#     output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+#     ############################################################################ clear the console
+#     hideAll <- reactiveValues(clearAll = TRUE)
+#     observeEvent(data(), {
+#       hideAll$clearAll <- TRUE
+#     })
+#     ############################################################################
+#     # show shinyWidgets until the user can use the module
+#     observeEvent(c(data(), input$version2Ocs ), {
+#       req(data())
+#       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+#       if(mappedColumns == 3 & length(input$version2Ocs)>0 ){
+#         golem::invoke_js('showid', ns('holder1'))
+#       }else{
+#         golem::invoke_js('hideid', ns('holder1'))
+#       }
+#     })
+#     ############################################################################
+#     # warning message
+#     output$warningMessage <- renderUI(
+#       if(is.null(data())){
+#         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+#       }else{ # data is there
+#         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+#         if(mappedColumns == 3){
+#           if(  any(c("mta","mtaFlex") %in% data()$status$module) ){
+#             if( ("qaGeno" %in% data()$status$module) | (!is.null(data()$metadata$pedigree) ) ){ # user has markers or pedigree
+#               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) specifying your input parameters under the Input tabs.")) )
+#             }else{
+#               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers or pedigree information (and QA the data) to run this module.")) )
+#             }
+#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
+#         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+#       }
+#     )
+#     ## data example loading
+#     observeEvent(
+#       input$launch,
+#       if(length(input$launch) > 0){
+#         if (input$launch) {
+#           shinyWidgets::ask_confirmation(
+#             inputId = ns("myconfirmation"),
+#             text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+#             title = "Data replacement warning"
+#           )
+#         }
+#       }
+#     )
+#     observeEvent(input$myconfirmation, {
+#       if (isTRUE(input$myconfirmation)) {
+#         shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+#         ## replace tables
+#         data(cgiarBase::create_getData_object())
+#         tmp <- data()
+#         utils::data(DT_example, package = "cgiarPipeline")
+#         if(!is.null(result$data)){tmp$data <- result$data}
+#         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+#         if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+#         if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+#         if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+#         if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+#         if(!is.null(result$status)){tmp$status <- result$status}
+#         data(tmp) # update data with results
+#         shinybusy::remove_modal_spinner()
+#       }else{
+#         shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+#       }
+#     }, ignoreNULL = TRUE)
+#     #################
+#     ## version
+#     observeEvent(c(data()), {
+#       req(data())
+#       dtOcs <- data()
+#       dtOcs <- dtOcs$status
+#       dtOcs <- dtOcs[which(dtOcs$module %in% c("indexD")),]
+#       traitsOcs <- unique(dtOcs$analysisId)
+#       if(length(traitsOcs) > 0){names(traitsOcs) <- as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT")}
+#       updateSelectInput(session, "version2Ocs", choices = traitsOcs)
+#     })
+#     #################
+#     ## traits
+#     observeEvent(c(data(), input$version2Ocs), {
+#       req(data())
+#       req(input$version2Ocs)
+#       dtOcs <- data()
+#       dtOcs <- dtOcs$predictions
+#       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
+#       traitsOcs <- unique(dtOcs$trait)
+#       updateSelectInput(session, "trait2Ocs", choices = traitsOcs)
+#     })
+#     observeEvent(c(data(), input$version2Ocs), {
+#       req(data())
+#       req(input$version2Ocs)
+#       dtOcs <- data()
+#       dtOcs <- dtOcs$predictions
+#       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
+#       traitsOcs <- unique(dtOcs$trait)
+#       updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsOcs)
+#     })
+#     ##############
+#     # treatments
+#     observeEvent(c(data(), input$version2Ocs, input$nCrossOcs, input$targetAngleOcs, input$traitFilterPredictions2D2), {
+#       req(data())
+#       req(input$version2Ocs)
+#       req(input$traitFilterPredictions2D2)
+#       req(input$nCrossOcs)
+#       req(input$targetAngleOcs)
+#       a <- as.numeric(gsub(" ","",unlist(strsplit(input$nCrossOcs,","))))
+#       b <- as.numeric(gsub(" ","",unlist(strsplit(input$targetAngleOcs,","))))
+#       forLoop <- expand.grid(a, b)
+#       traitsOcs <- apply(forLoop,1, function(x){ paste(input$traitFilterPredictions2D2,"~", paste(x[1],"crosses *",x[2], "degrees"))})
+#       updateSelectInput(session, "environment", choices = traitsOcs)
+#     })
+#     ##############
+#     ## entry type
+#     observeEvent(c(data(), input$version2Ocs, input$trait2Ocs), {
+#       req(data())
+#       req(input$version2Ocs)
+#       req(input$trait2Ocs)
+#       dtOcs <- data()
+#       dtOcs <- dtOcs$predictions
+#       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
+#       dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
+#       traitsOcs <- unique(dtOcs$entryType)
+#       updateSelectInput(session, "entryType2Ocs", choices = traitsOcs, selected = traitsOcs)
+#     })
+#     ##############
+#     ## environment
+#     observeEvent(c(data(), input$version2Ocs, input$trait2Ocs), {
+#       req(data())
+#       req(input$version2Ocs)
+#       req(input$trait2Ocs)
+#       dtOcs <- data()
+#       dtOcs <- dtOcs$predictions
+#       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
+#       dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
+#       traitsOcs <- unique(dtOcs$environment)
+#       updateSelectInput(session, "env2Ocs", choices = traitsOcs)
+#     })
+#
+#     ##############################################################################################
+#     ##############################################################################################
+#     ##############################################################################################
+#     ## render trait distribution plot
+#     observeEvent(c(data(),input$version2Ocs), { # update trait
+#       req(data())
+#       req(input$version2Ocs)
+#       dtOcs <- data()
+#       dtOcs <- dtOcs$predictions
+#       dtOcs <- dtOcs[which(dtOcs$analysisId %in% input$version2Ocs),] # only traits that have been QA
+#       traitOcsInput <- unique(dtOcs$trait)
+#       updateSelectInput(session, "trait3Ocs", choices = traitOcsInput)
+#     })
+#     output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
+#       req(data())
+#       req(input$trait3Ocs)
+#       req(input$fontSize)
+#       req(input$groupOcsInputPlot)
+#       mydata <- data()$predictions
+#       if(input$groupOcsInputPlot == "entryType"){mydata <- mydata[which(mydata$entryType %in% input$entryType2Ocs),]}
+#       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Ocs),]
+#       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+#       mydata <- mydata[,which(!duplicated(colnames(mydata)))]
+#       mydata$myEntryType <- mydata[,input$groupOcsInputPlot]
+#       ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(myEntryType), y=predictedValue)) +
+#         ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
+#         ggplot2::theme_classic() + ggplot2::ggtitle("Boxplot of trait dispersion by entry type") +
+#         ggplot2::geom_jitter(ggplot2::aes(colour = myEntryType), alpha = 0.5) +
+#         ggplot2::xlab("Entry type") + ggplot2::ylab("Trait value") +
+#         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
+#         ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))
+#
+#     })
+#     ## render evaluation units
+#     output$evaluationUnits <-  DT::renderDT({
+#       req(data())
+#       req(input$version2Ocs)
+#       object <- data()
+#       # get the total number of individuals possible to estimate
+#       metaPed <- object$metadata$pedigree
+#       pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+#       pedCols <- setdiff(pedCols,"")
+#       metaCols <- metaPed[which(metaPed$value %in% pedCols), "parameter"]
+#       n <- apply(object$data$pedigree[,pedCols, drop=FALSE],2,function(x){length(na.omit(unique(x)))})
+#       # check how many have phenotypes
+#       dtMta <- object$predictions
+#       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Ocs),] # only traits that have been QA
+#       nPheno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
+#         length(intersect(na.omit(unique(x)) , unique(dtMta$designation)))
+#       })
+#       # check how many have marker
+#       nGeno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
+#         length(intersect(na.omit(unique(x)) , rownames(object$data$geno)))
+#       })
+#       final <- data.frame(cbind(metaCols,n, nPheno, nGeno))
+#       colnames(final) <- c("Evaluation unit", "N", "With phenotype", "With markers")
+#       rownames(final) <- NULL
+#       DT::datatable(final, extensions = 'Buttons',
+#                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+#                     caption = htmltools::tags$caption(
+#                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+#                       htmltools::em('Summary of selection units and marker availability.')
+#                     )
+#       )
+#     })
+#     ## render the data to be analyzed
+#     output$phenoOcs <-  DT::renderDT({
+#       req(data())
+#       req(input$version2Ocs)
+#       dtOcs <- data()
+#       dtOcs <- dtOcs$predictions
+#       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),setdiff(colnames(dtOcs),c("module","analysisId"))]
+#       numeric.output <- c("predictedValue", "stdError", "reliability")
+#       DT::formatRound(DT::datatable(dtOcs, extensions = 'Buttons',
+#                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+#                                     caption = htmltools::tags$caption(
+#                                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+#                                       htmltools::em('Index predictions table to be used as input.')
+#                                     )
+#       ), numeric.output)
+#     })
+#     ## render timestamps flow
+#     output$plotTimeStamps <- shiny::renderPlot({
+#       req(data()) # req(input$version2Sta)
+#       xx <- data()$status;  yy <- data()$modeling
+#       v <- which(yy$parameter == "analysisId")
+#       if(length(v) > 0){
+#         yy <- yy[v,c("analysisId","value")]
+#         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
+#       }else{ zz <- xx; zz$value <- NA}
+#       if(!is.null(xx)){
+#         colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+#         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+#         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+#         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+#           X <- with(zz, sommer::overlay(outputId, inputId))
+#         }else{
+#           if(nLevelsCheck1 == 1){
+#             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+#           }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+#           if(nLevelsCheck2 == 1){
+#             X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+#           }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+#           mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+#           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+#           X[,colnames(X1)] <- X1
+#           X[,colnames(X2)] <- X2
+#         };  rownames(X) <- as.character(zz$outputId)
+#         rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+#         colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+#         # make the network plot
+#         n <- network::network(X, directed = FALSE)
+#         network::set.vertex.attribute(n,"family",zz$module)
+#         network::set.vertex.attribute(n,"importance",1)
+#         e <- network::network.edgecount(n)
+#         network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
+#         network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+#         library(ggnetwork)
+#         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+#           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
+#           ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
+#           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
+#                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
+#           ggnetwork::theme_blank()
+#       }
+#     })
+#     ## render modeling
+#     output$statusOcs <-  DT::renderDT({
+#       req(data())
+#       req(input$version2Ocs)
+#       dtSta <- data() # dtSta<- result
+#       ### change column names for mapping
+#       paramsPheno <- data()$modeling
+#       paramsPheno <- paramsPheno[which(paramsPheno$analysisId %in% input$version2Ocs),, drop=FALSE]
+#       paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
+#       DT::datatable(paramsPheno, extensions = 'Buttons',
+#                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+#                     caption = htmltools::tags$caption(
+#                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+#                       htmltools::em('Past modeling parameters from Index stamp selected.')
+#                     )
+#       )
+#     })
+#     ## render result of "run" button click
+#     outOcs <- eventReactive(input$runOcs, {
+#       req(data())
+#       req(input$version2Ocs)
+#       req(input$trait2Ocs)
+#       req(input$env2Ocs)
+#       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+#       dtOcs <- data()
+#       # run the modeling, but before test if mta was done
+#       if(sum(dtOcs$status$module %in% c("mta","mtaFlex","indexD")) == 0) {
+#         output$qaQcOcsInfo <- renderUI({
+#           if (hideAll$clearAll){
+#             return()
+#           }else{
+#             req(dtOcs)
+#             HTML(as.character(div(style="color: brown;",
+#                                   "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+#             )
+#           }
+#         })
+#       }else{
+#         output$qaQcOcsInfo <- renderUI({return(NULL)})
+#         result <- try(cgiarPipeline::ocs(
+#           phenoDTfile= dtOcs, # analysis to be picked from predictions database
+#           analysisId=input$version2Ocs,
+#           relDTfile= input$relType,
+#           trait= input$trait2Ocs, # per trait
+#           environment=input$env2Ocs,
+#           nCross=as.numeric(gsub(" ","",unlist(strsplit(input$nCrossOcs,",")))),
+#           targetAngle=as.numeric(gsub(" ","",unlist(strsplit(input$targetAngleOcs,",")))), # in radians
+#           verbose=input$verboseOcs, maxRun = input$maxRun,
+#           entryType=input$entryType2Ocs,
+#           numberBest = input$numberBest
+#         ),
+#         silent=TRUE
+#         )
+#         if(!inherits(result,"try-error")) {
+#           data(result) # update data with results
+#           cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
+#           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+#         }else{
+#           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+#         }
+#       }
+#       shinybusy::remove_modal_spinner()
+#
+#       if(!inherits(result,"try-error")) {
+#         # view predictions
+#         output$predictionsOcs <-  DT::renderDT({
+#           # if ( hideAll$clearAll){
+#           #   return()
+#           # }else{
+#           predictions <- result$predictions
+#           predictions <- predictions[predictions$module=="ocs",]
+#           predictions$analysisId <- as.numeric(predictions$analysisId)
+#           predictions <- predictions[!is.na(predictions$analysisId),]
+#           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+#           current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+#           numeric.output <- c("predictedValue", "stdError", "reliability")
+#           DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+#                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+#           ), numeric.output)
+#           # }
+#         })
+#         # view metrics
+#         output$metricsOcs <-  DT::renderDT({
+#           # if ( hideAll$clearAll){
+#           #   return()
+#           # }else{
+#           metrics <- result$metrics
+#           metrics <- metrics[metrics$module=="ocs",]
+#           metrics$analysisId <- as.numeric(metrics$analysisId)
+#           metrics <- metrics[!is.na(metrics$analysisId),]
+#           current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+#           current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+#           numeric.output <- c("value", "stdError")
+#           DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+#                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+#           ), numeric.output)
+#           # }
+#         })
+#         # view modeling
+#         output$modelingOcs <-  DT::renderDT({
+#           # if ( hideAll$clearAll){
+#           #   return()
+#           # }else{
+#           modeling <- result$modeling
+#           modeling <- modeling[modeling$module=="ocs",]
+#           modeling$analysisId <- as.numeric(modeling$analysisId)
+#           modeling <- modeling[!is.na(modeling$analysisId),]
+#           current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+#           current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+#           DT::datatable(current.modeling, extensions = 'Buttons',
+#                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+#           )
+#           # }
+#         })
+#         ## Report tab
+#         output$reportOcs <- renderUI({
+#           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOcs.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+#         })
+#
+#         output$downloadReportOcs <- downloadHandler(
+#           filename = function() {
+#             paste('my-report', sep = '.', switch(
+#               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+#             ))
+#           },
+#           content = function(file) {
+#             src <- normalizePath(system.file("rmd","reportOcs.Rmd",package="bioflow"))
+#             src2 <- normalizePath('data/resultOcs.RData')
+#             # temporarily switch to the temp dir, in case you do not have write
+#             # permission to the current working directory
+#             owd <- setwd(tempdir())
+#             on.exit(setwd(owd))
+#             file.copy(src, 'report.Rmd', overwrite = TRUE)
+#             file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
+#             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+#               "HTML",
+#               HTML = rmdformats::robobook(toc_depth = 4)
+#               # HTML = rmarkdown::html_document()
+#             ))
+#             file.rename(out, file)
+#           }
+#         )
+#
+#       } else {
+#         output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
+#         output$metricsOcs <- DT::renderDT({DT::datatable(NULL)})
+#         output$modelingOcs <- DT::renderDT({DT::datatable(NULL)})
+#       }
+#
+#
+#       hideAll$clearAll <- FALSE
+#
+#     }) ## end eventReactive
+#
+#     output$outOcs <- renderPrint({
+#       outOcs()
+#     })
+#
+#   })
+# }
 ## To be copied in the UI
 # mod_ocsApp_ui("ocsApp_1")
 
