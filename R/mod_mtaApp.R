@@ -1078,8 +1078,6 @@ mod_mtaApp_server <- function(id, data){
       my_mta$invoke(ui_inputs, data_obj, x_inputs, xx_inputs)
     })
     ## render result of "run" button click
-
-
     output$outMta <- renderPrint({
 
       # run the modeling, but before test if sta was done
@@ -1095,8 +1093,6 @@ mod_mtaApp_server <- function(id, data){
         })
       }else{ # sta is available
         output$qaQcMtaInfo <- renderUI({return(NULL)})
-
-
         result <- my_mta$result()
         shinybusy::remove_modal_spinner()
         if(!inherits(result,"try-error")) {
@@ -1105,9 +1101,6 @@ mod_mtaApp_server <- function(id, data){
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
           ## predictions table
           output$predictionsMta <-  DT::renderDT({
-            # if ( hideAll$clearAll){
-            #   return()
-            # }else{
             predictions <- result$predictions
             predictions <- predictions[predictions$module=="mta",]
             predictions$analysisId <- as.numeric(predictions$analysisId)
@@ -1119,14 +1112,10 @@ mod_mtaApp_server <- function(id, data){
                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             ), numeric.output)
-            # }
           })
           # metrics table
           output$metricsMta <-  DT::renderDT({
             if(!inherits(result,"try-error") ){
-              # if ( hideAll$clearAll){
-              #   return()
-              # }else{
               metrics <- result$metrics
               mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
               metrics <- metrics[which(metrics$analysisId == mtaId),]
@@ -1136,15 +1125,11 @@ mod_mtaApp_server <- function(id, data){
                                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
               ), numeric.output)
-              # }
             }
           })
           # modeling table
           output$modelingMta <-  DT::renderDT({
             if(!inherits(result,"try-error") ){
-              # if ( hideAll$clearAll){
-              #   return()
-              # }else{
               modeling <- result$modeling
               mtas <- result$status[which(result$status$module == "mta"),"analysisId"]; mtaId <- mtas[length(mtas)]
               modeling <- modeling[which(modeling$analysisId == mtaId),]
@@ -1154,7 +1139,6 @@ mod_mtaApp_server <- function(id, data){
                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
               )
-              # }
             }
           })
           # ## Report tab
