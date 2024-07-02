@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Genotype Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "June 17, 2024"  
+date: "July 01, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -29,7 +29,7 @@ The following table shows the modifications that have been saved in your analysi
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaGenoApp_1-out4dfa36b2abf6b6c9" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaGenoApp_1-outeb5ed49309997271" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
