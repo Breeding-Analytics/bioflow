@@ -327,7 +327,7 @@ mod_rggApp_server <- function(id, data){
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
-    ## render trait distribution plot
+    ##  render plots
     observeEvent(c(data(),input$version2Rgg), { # update trait
       req(data())
       req(input$version2Rgg)
@@ -457,33 +457,18 @@ mod_rggApp_server <- function(id, data){
                                     )
       ), numeric.output)
     })
+    ##############################################################################################
+    ##############################################################################################
+    ##############################################################################################
+    ##  actual run
     ## render result of "run" button click
-    outRgg <- eventReactive(input$runRgg, {
-      req(data())
-      req(input$methodRgg)
-      req(input$version2Rgg)
-      req(input$trait2Rgg)
-      req(input$yearsToUse)
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      dtRgg <- data()
 
-      # run the modeling, but before test if mta was done
-      if(sum(dtRgg$status$module %in% c("mta","indexD")) == 0) {
-        output$qaQcRggInfo <- renderUI({
-          if (hideAll$clearAll){
-            return()
-          }else{
-            req(dtRgg)
-            HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
-            )
-          }
-        })
-      }else{
-        output$qaQcRggInfo <- renderUI({return(NULL)})
+    my_rgg <- ExtendedTask$new(function(input, data) {
+      promises::future_promise({
+        # some long process
         if(input$methodRgg == "piepho"){
           result <- try(cgiarPipeline::rggPiepho(
-            phenoDTfile= dtRgg,
+            phenoDTfile= data,
             analysisId=input$version2Rgg,
             trait=input$trait2Rgg, # per trait
             deregress=input$deregress,
@@ -497,7 +482,7 @@ mod_rggApp_server <- function(id, data){
           )
         }else if(input$methodRgg == "mackay"){
           result <- try(cgiarPipeline::rggMackay(
-            phenoDTfile= dtRgg,
+            phenoDTfile= data,
             analysisId=input$version2Rgg,
             trait=input$trait2Rgg, # per trait
             deregressWeight=input$deregressWeight,
@@ -510,97 +495,111 @@ mod_rggApp_server <- function(id, data){
           silent=TRUE
           )
         }
+        return(result)
+      })
+    })
+
+    observeEvent(input$runRgg, {
+      req(data())
+      req(input$methodRgg)
+      req(input$version2Rgg)
+      req(input$trait2Rgg)
+      req(input$yearsToUse)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+      ui_inputs <- shiny::reactiveValuesToList(input)
+      data_obj  <- data()
+
+      my_rgg$invoke(ui_inputs, data_obj)
+    })
+
+    output$outRgg <- renderPrint({
+      # run the modeling, but before test if mta was done
+      if(sum(data()$status$module %in% c("mta","indexD")) == 0) {
+        output$qaQcRggInfo <- renderUI({
+          if (hideAll$clearAll){
+            return()
+          }else{
+            req(data())
+            HTML(as.character(div(style="color: brown;",
+                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+            )
+          }
+        })
+      }else{
+        output$qaQcRggInfo <- renderUI({return(NULL)})
+        result <- my_rgg$result()
+        shinybusy::remove_modal_spinner()
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultRgg.RData")
           cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+
+          # view metrics
+          output$metricsRgg <-  DT::renderDT({
+            metrics <- result$metrics
+            metrics <- metrics[metrics$module=="rgg",]
+            metrics$analysisId <- as.numeric(metrics$analysisId)
+            metrics <- metrics[!is.na(metrics$analysisId),]
+            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+            numeric.output <- c("value", "stdError")
+            DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            ), numeric.output)
+          })
+          # view modeling
+          output$modelingRgg <-  DT::renderDT({
+            modeling <- result$modeling
+            modeling <- modeling[modeling$module=="rgg",]
+            modeling$analysisId <- as.numeric(modeling$analysisId)
+            modeling <- modeling[!is.na(modeling$analysisId),]
+            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+            DT::datatable(current.modeling, extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            )
+          })
+          ## Report tab
+          output$reportRgg <- renderUI({
+            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          })
+
+          output$downloadReportRgg <- downloadHandler(
+            filename = function() {
+              paste('my-report', sep = '.', switch(
+                "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+              ))
+            },
+            content = function(file) {
+              src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
+              src2 <- normalizePath('data/resultRgg.RData')
+              # temporarily switch to the temp dir, in case you do not have write
+              # permission to the current working directory
+              owd <- setwd(tempdir())
+              on.exit(setwd(owd))
+              file.copy(src, 'report.Rmd', overwrite = TRUE)
+              file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
+              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+                "HTML",
+                HTML = rmdformats::robobook(toc_depth = 4)
+                # HTML = rmarkdown::html_document()
+              ))
+              file.rename(out, file)
+            }
+          )
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)})
+          output$metricsRgg <- DT::renderDT({DT::datatable(NULL)})
+          output$modelingRgg <- DT::renderDT({DT::datatable(NULL)})
         }
+        hideAll$clearAll <- FALSE
+
       }
-      shinybusy::remove_modal_spinner()
-
-      if(!inherits(result,"try-error")) {
-
-        # view metrics
-        output$metricsRgg <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          metrics <- result$metrics
-          metrics <- metrics[metrics$module=="rgg",]
-          metrics$analysisId <- as.numeric(metrics$analysisId)
-          metrics <- metrics[!is.na(metrics$analysisId),]
-          current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-          current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-          numeric.output <- c("value", "stdError")
-          DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
-                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          ), numeric.output)
-          # }
-        })
-        # view modeling
-        output$modelingRgg <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          modeling <- result$modeling
-          modeling <- modeling[modeling$module=="rgg",]
-          modeling$analysisId <- as.numeric(modeling$analysisId)
-          modeling <- modeling[!is.na(modeling$analysisId),]
-          current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-          current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-          DT::datatable(current.modeling, extensions = 'Buttons',
-                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-          )
-          # }
-        })
-
-        ## Report tab
-        # output$reportRgg <- renderUI({
-        output$reportRgg <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        output$downloadReportRgg <- downloadHandler(
-          filename = function() {
-            paste('my-report', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultRgg.RData')
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmdformats::robobook(toc_depth = 4)
-              # HTML = rmarkdown::html_document()
-            ))
-            file.rename(out, file)
-          }
-        )
-
-      } else {
-        output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)})
-        output$metricsRgg <- DT::renderDT({DT::datatable(NULL)})
-        output$modelingRgg <- DT::renderDT({DT::datatable(NULL)})
-      }
-
-      hideAll$clearAll <- FALSE
-
-    }) ## end eventReactive
-
-    output$outRgg <- renderPrint({
-      outRgg()
     })
 
 

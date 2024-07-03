@@ -531,11 +531,11 @@ mod_indexDesireApp_server <- function(id, data){
           }
         })
       }else{
+        output$qaQcIdxDInfo <- renderUI({return(NULL)})
+        result <- my_desire$result()
+        shinybusy::remove_modal_spinner()
         if(!inherits(result,"try-error")) {
-          output$qaQcIdxDInfo <- renderUI({return(NULL)})
-          result <- my_desire$result()
           data(result) # update data with results
-          shinybusy::remove_modal_spinner()
           cat(paste("Selection index step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to select the best crosses using the OCS module using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 
