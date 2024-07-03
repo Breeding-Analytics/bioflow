@@ -160,8 +160,11 @@ if (is.null(result)){
 } else {
   
   if(!is.null(result$data$weather)){ # if weather data was extracted
-    xx <- result$metadata$weather
-    xx <- xx[which(xx$trait %in% c("latitude","longitude")),c("environment","trait","value")]
+    yy <- result$metadata$weather
+    yy <- yy[yy$parameter != "trait",]
+    xx <- cgiarPipeline::summaryWeather(result)
+    xx$trait <- cgiarBase::replaceValues(xx$trait, Search = yy$value, Replace = yy$parameter)
+    xx <- xx[which( (xx$trait %in% c("latitude","longitude") ) & (xx$parameter == "mean") ),c("environment","trait","value")]
     xx <- reshape(xx, direction = "wide", idvar = "environment",
                   timevar = "trait", v.names = "value", sep= "_")
     colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
@@ -210,6 +213,8 @@ if (is.null(result)){
       })
       
     }
+  }else{
+    cat("No coordinates available. Skipping planting map.")
   }
   
 }
@@ -845,7 +850,7 @@ if (is.null(result)){
   idMtaVC <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMtaVC <- idMtaVC[length(idMtaVC)]
   traitsvc <- unique(result$modeling[which(result$modeling$analysisId == idMtaVC  & result$modeling$environment == "across"),"trait"])
-  covariatesvc <- unique(result$metadata$weather$trait)
+  covariatesvc <- unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) # unique(result$metadata$weather$trait)
   df2 <- result$metrics
   idMta <- result$status[which(result$status$module == "mta"),"analysisId"];
   idMta <- idMta[length(idMta)]
@@ -1077,7 +1082,7 @@ traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & re
 traitsInPreds <- unique(pred$trait)
 ```
 
-`r if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+`r if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
 sum(grepl(x,traitsInPreds))
 })) > 0 )
 ) {"### Trait by trait-sensitivity plots\n
@@ -1095,14 +1100,14 @@ if (is.null(result)){
   traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
   # traits <- unique(pred$trait)
   traitsInPreds <- unique(pred$trait)
-  covariates <- unique(result$metadata$weather$trait)
+  covariates <- unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) # unique(result$metadata$weather$trait)
   modelUsed <- result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$parameter == "randomFormula"),"value"]
   isRRBLUP <- ifelse(length(grep("QTL",modelUsed)) > 0, TRUE, FALSE)
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+    if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
       sum(grepl(x,traitsInPreds))
     })) > 0 )    ){ # if there is envIndex fitted
       
@@ -1126,7 +1131,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+  if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
     sum(grepl(x,traitsInPreds))
   })) > 0 )
   ){ # if there is envIndex fitted
@@ -1369,7 +1374,7 @@ if (is.null(result)){
       }
       long <- do.call(rbind, byCheck)
       wideBench <- reshape(long[, c("benchmark", "designation","predictedValue2")], direction = "wide", idvar = "designation",
-                      timevar = c("benchmark"), v.names = c("predictedValue2"), sep= "_")
+                           timevar = c("benchmark"), v.names = c("predictedValue2"), sep= "_")
       colnames(wideBench) <- paste0(names(predListBenchForTable)[iTrait], gsub("predictedValue2","",colnames(wideBench)))
       colnames(wideBench)[1] <- "designation"
       if(iTrait == 1){

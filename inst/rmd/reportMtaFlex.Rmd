@@ -160,8 +160,11 @@ if (is.null(result)){
 } else {
   
   if(!is.null(result$data$weather)){ # if weather data was extracted
-    xx <- result$metadata$weather
-    xx <- xx[which(xx$trait %in% c("latitude","longitude")),c("environment","trait","value")]
+    yy <- result$metadata$weather
+    yy <- yy[yy$parameter != "trait",]
+    xx <- cgiarPipeline::summaryWeather(result)
+    xx$trait <- cgiarBase::replaceValues(xx$trait, Search = yy$value, Replace = yy$parameter)
+    xx <- xx[which( (xx$trait %in% c("latitude","longitude") ) & (xx$parameter == "mean") ),c("environment","trait","value")]
     xx <- reshape(xx, direction = "wide", idvar = "environment",
                   timevar = "trait", v.names = "value", sep= "_")
     colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
@@ -819,7 +822,7 @@ if (is.null(result)){
   inters <- apply(grid,1, function(x){paste(x,collapse = ":")})
   df2 <- df2[df2$parameter %in% c(paste0("V.",c(result$metadata$pheno$parameter, inters)),"V.Residual"), ]
   df2$traitOriginal <-  df2$trait
-  covariatesvc <- unique(result$metadata$weather$trait)
+  covariatesvc <- unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) #unique(result$metadata$weather$trait)
   for(iCov in covariatesvc){
     df2$traitOriginal <- gsub(paste0("-",iCov),"",df2$traitOriginal)
     df2$traitOriginal <- gsub(paste0(iCov),"",df2$traitOriginal)
@@ -1065,7 +1068,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+  if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
     sum(grepl(x,traitsInPreds))
   })) > 0 )
   ){
@@ -1077,14 +1080,14 @@ if (is.null(result)){
     traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
     # traits <- unique(pred$trait)
     traitsInPreds <- unique(pred$trait)
-    covariates <- unique(result$metadata$weather$trait)
+    covariates <- unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) # unique(result$metadata$weather$trait)
     modelUsed <- result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$parameter == "randomFormula"),"value"]
     isRRBLUP <- ifelse(length(grep("QTL",modelUsed)) > 0, TRUE, FALSE)
     
     if("params" %in% ls()){ # we will download the document
       shinyjs::hide()
     }else{
-      if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+      if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
         sum(grepl(x,traitsInPreds))
       })) > 0 )    ){ # if there is envIndex fitted
         
@@ -1110,7 +1113,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if( any( unlist(lapply( as.list(unique(result$metadata$weather$trait)), function(x){
+  if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
     sum(grepl(x,traitsInPreds))
   })) > 0 )
   ){ # if there is envIndex fitted
