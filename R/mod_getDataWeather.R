@@ -280,8 +280,8 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
                                                           environments=xx$environment,
                                                           temporal=input$temporal
             )
-            result$data$weather <- weather$WTH
-            result$metadata$weather <- unique(rbind(result$metadata$weather, weather$descriptive))
+            result$data$weather <- weather$data
+            result$metadata$weather <- weather$metadata # unique(rbind(result$metadata$weather, weather$descriptive))
             data(result)
             cat(paste("Weather data saved succesfully."))
 

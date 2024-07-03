@@ -365,7 +365,7 @@ mod_mtaExpApp_server <- function(id, data){
           selectInput(
             session$ns(paste0('leftSides',i)),
             label = ifelse(i==1, "Intercepts",""),
-            choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0("envIndex_",input$trait2Mta[1] ) ))
+            choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0(input$trait2Mta[1], "_envIndex" ) ))
           )
         })
       }else if(input$radio == "fa_model"){ # FW model
@@ -959,7 +959,7 @@ mod_mtaExpApp_server <- function(id, data){
       xx_inputs <- shiny::reactiveValuesToList(xx)
       data_obj  <- data()
       inputFormulation <- inputFormula()
-      # saveRDS(inputFormulation, file = "inputFormulation.rds")
+      saveRDS(inputFormulation, file = "inputFormulation.rds")
       my_mta$invoke(ui_inputs, data_obj, x_inputs, xx_inputs,inputFormulation)
     })
     ## render print
@@ -1232,7 +1232,7 @@ mod_mtaExpApp_server <- function(id, data){
 #             selectInput(
 #               session$ns(paste0('leftSides',i)),
 #               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0("envIndex_",input$trait2Mta[1] ) ))
+#               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0(input$trait2Mta[1], "_envIndex" ) ))
 #             )
 #           })
 #         }else if(input$radio == "fa_model"){ # FW model
