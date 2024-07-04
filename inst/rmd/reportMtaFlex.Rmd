@@ -265,19 +265,22 @@ if (is.null(result)){
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==iTrait & pred.sta.boxplot$environment %in% c("(Intercept)",goodFields, paste0("L.",goodFields) ),]
-      meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
-      temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
+      if(length(goodFields) > 0){
+        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==iTrait & pred.sta.boxplot$environment %in% c("(Intercept)",goodFields, paste0("L.",goodFields) ),]
+        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+        temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
+        
+        p <- temp.pred.box %>%
+          ggplot2::ggplot() +
+          ggplot2::aes(x=envMean, y=predictedValue, fill = environment) +
+          ggplot2::geom_boxplot() +
+          ggplot2::labs(x = "Environmental mean", y = "Trait value") +
+          ggplot2::scale_fill_discrete(name = "") +
+          ggplot2::theme(legend.position = "bottom")  +
+          ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
+        print(p)
+      }
       
-      p <- temp.pred.box %>%
-        ggplot2::ggplot() +
-        ggplot2::aes(x=envMean, y=predictedValue, fill = environment) +
-        ggplot2::geom_boxplot() +
-        ggplot2::labs(x = "Environmental mean", y = "Trait value") +
-        ggplot2::scale_fill_discrete(name = "") +
-        ggplot2::theme(legend.position = "bottom")  +
-        ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
-      print(p)
       
     }
     
@@ -285,18 +288,21 @@ if (is.null(result)){
     
     shiny::renderPlot({
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMta, "environment"]
-      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% c("(Intercept)",goodFields, paste0("L.",goodFields) ),]
-      meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
-      temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
-      p <- temp.pred.box %>%
-        ggplot() +
-        aes(x=envMean, y=predictedValue, fill = environment) +
-        geom_boxplot() +
-        labs(x = "Environmental mean", y = "Trait value") +
-        scale_fill_discrete(name = "") +
-        theme(legend.position = "bottom") +
-        guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
-      p
+      if(length(goodFields) > 0){
+        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% c("(Intercept)",goodFields, paste0("L.",goodFields) ),]
+        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+        temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
+        p <- temp.pred.box %>%
+          ggplot() +
+          aes(x=envMean, y=predictedValue, fill = environment) +
+          geom_boxplot() +
+          labs(x = "Environmental mean", y = "Trait value") +
+          scale_fill_discrete(name = "") +
+          theme(legend.position = "bottom") +
+          guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
+        p
+      }
+      
     })
     
   }
@@ -344,41 +350,44 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      mydata2 <- mydata[which(mydata$trait == iTrait & mydata$environment %in% goodFields), ]
-      splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
-      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
-      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
-      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
-        for(j in 1:i){
-          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+      if(length(goodFields) > 0){
+        mydata2 <- mydata[which(mydata$trait == iTrait & mydata$environment %in% goodFields), ]
+        splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
+        splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+        nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+        for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+          for(j in 1:i){
+            nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+          }
         }
+        nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+        
+        mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+        maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                        midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                        name="Connectivity") +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
+          ggplot2::coord_fixed() + 
+          ggplot2::coord_fixed() + 
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
+        if(nrow(nagm) < 15){ # if user wants to add text to the cells
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+        }
+        # Basic histogram
+        mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
+        group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
+        ub <- max(mydata4$Freq, na.rm = TRUE)
+        p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+          geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+          scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+        # combine plots
+        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       }
-      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       
-      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
-      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
-                                      name="Connectivity") +
-        ggplot2::theme_minimal()+
-        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-        ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + 
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-      if(nrow(nagm) < 15){ # if user wants to add text to the cells
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
-      }
-      # Basic histogram
-      mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
-      group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
-      ub <- max(mydata4$Freq, na.rm = TRUE)
-      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
-      # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       
     }
     
@@ -387,43 +396,46 @@ if (is.null(result)){
     # shiny::renderPlot({ # static
     plotly::renderPlotly({ # dynamic
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMtaConnect, "environment"]
-      mydata2 <- mydata[which(mydata$trait == input$traitMtaConnect & mydata$environment %in% goodFields), ]
-      splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
-      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
-      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
-      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
-        for(j in 1:i){
-          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+      if(length(goodFields) > 0){
+        mydata2 <- mydata[which(mydata$trait == input$traitMtaConnect & mydata$environment %in% goodFields), ]
+        splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
+        splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+        nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+        for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+          for(j in 1:i){
+            nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+          }
         }
+        nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+        
+        mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+        maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                        midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                        name="Connectivity") +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
+          ggplot2::coord_fixed() + 
+          ggplot2::coord_fixed() + 
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+        if(nrow(nagm) < 15){ # if user wants to add text to the cells
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+        }
+        # Basic histogram
+        mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
+        group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
+        ub <- max(mydata4$Freq, na.rm = TRUE)
+        p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+          geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+          scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+        # combine plots
+        ply1 <- plotly::ggplotly(p)
+        ply2 <- plotly::ggplotly(p2)
+        plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
       }
-      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       
-      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
-      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
-                                      name="Connectivity") +
-        ggplot2::theme_minimal()+
-        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-        ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + 
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
-      if(nrow(nagm) < 15){ # if user wants to add text to the cells
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
-      }
-      # Basic histogram
-      mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
-      group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
-      ub <- max(mydata4$Freq, na.rm = TRUE)
-      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
-      # combine plots
-      ply1 <- plotly::ggplotly(p)
-      ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
       
     })
     
