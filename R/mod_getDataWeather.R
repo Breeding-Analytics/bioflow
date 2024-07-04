@@ -14,47 +14,93 @@ mod_getDataWeather_ui <- function(id){
     tags$br(),
 
     navlistPanel( widths = c(2, 10),
-                  tabPanel(div("1. Provide coordinates" ),
-                           tabPanel("Specify coordinates", icon = icon("magnifying-glass-chart"),
-                                    br(),
-                                    tags$span(id = ns('weather_message_holder'),
-                                              uiOutput(ns("warningMessage")),
-                                    ),
-
-                                    tags$span(id = ns('weather_file_holder'),
-                                              column(width = 12, style = "background-color:green; color: #FFFFFF",
-                                                     column(width = 2, p(strong("Environment")) ),
-                                                     column(width = 2, p(strong("Latitude")) ),
-                                                     column(width = 2, p(strong("Longitude")) ),
-                                                     column(width = 2, p(strong("Planting Date")) ),
-                                                     column(width = 2, p(strong("Harvesting Date")) ),
-                                                     column(width = 2, p(strong("Extraction interval")) ),
-                                              ),
-                                              column(width = 12, style = "background-color:green; color: #FFFFFF",
-                                                     column(width = 2, uiOutput(ns("environment")) ),
-                                                     column(width = 2, uiOutput(ns("latitude")) ),
-                                                     column(width = 2, uiOutput(ns("longitude")) ),
-                                                     column(width = 2, uiOutput(ns("plantingDate")) ),
-                                                     column(width = 2, uiOutput(ns("harvestingDate")) ),
-                                                     column(width = 2,
-                                                            selectInput(ns("temporal"),label=NULL, choices = list("hourly","daily","monthly"), selected = "daily"  ),
-                                                     ),
-                                              ),
-                                              shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                  column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                                                         p(span("Preview of coordinates selected for extraction.", style="color:black")),
-                                                                         plotly::plotlyOutput(ns("plotMeteo")),
-                                                                  ),
-                                              )
-                                    ),
+                  tabPanel(div("1. Select source" ),
+                           tags$br(),
+                           selectInput(
+                             inputId = ns('weather_input'),
+                             label   = 'Data Source*:',
+                             choices = list('Table Upload' = 'weatherfile', 'API' = 'weatherapi' ),
+                             width   = '200px'
                            ),
                   ),
-                  tabPanel(div("2. Retrieve data" ),
-                           tags$br(),
-                           actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
-                           textOutput(ns("outgetWeather")),
+                  tabPanel(div("2. Input parameters" ),
+                           tags$span(id = ns('apiOptionsInput'),
+                                     tabPanel("Specify coordinates", icon = icon("magnifying-glass-chart"),
+                                              br(),
+                                              tags$span(id = ns('weather_message_holder'),
+                                                        uiOutput(ns("warningMessage")),
+                                              ),
+
+                                              tags$span(id = ns('weather_file_holder'),
+                                                        column(width = 12, style = "background-color:green; color: #FFFFFF",
+                                                               column(width = 2, p(strong("Environment")) ),
+                                                               column(width = 2, p(strong("Latitude")) ),
+                                                               column(width = 2, p(strong("Longitude")) ),
+                                                               column(width = 2, p(strong("Planting Date")) ),
+                                                               column(width = 2, p(strong("Harvesting Date")) ),
+                                                               column(width = 2, p(strong("Extraction interval")) ),
+                                                        ),
+                                                        column(width = 12, style = "background-color:green; color: #FFFFFF",
+                                                               column(width = 2, uiOutput(ns("environment")) ),
+                                                               column(width = 2, uiOutput(ns("latitude")) ),
+                                                               column(width = 2, uiOutput(ns("longitude")) ),
+                                                               column(width = 2, uiOutput(ns("plantingDate")) ),
+                                                               column(width = 2, uiOutput(ns("harvestingDate")) ),
+                                                               column(width = 2,
+                                                                      selectInput(ns("temporal"),label=NULL, choices = list("hourly","daily","monthly"), selected = "daily"  ),
+                                                               ),
+                                                        ),
+                                                        shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
+                                                                            column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                                                                   p(span("Preview of coordinates selected for extraction.", style="color:black")),
+                                                                                   plotly::plotlyOutput(ns("plotMeteo")),
+                                                                            ),
+                                                        )
+                                              ),
+                                     ),
+                           ), # end of API options
+                           tags$span(id = ns('fileOptionsInput'),
+                                     column(width=8,
+                                     # tags$span(id = ns('weather_file_holder'),
+                                               fileInput(
+                                                 inputId = ns('weather_file'),
+                                                 label   = NULL,
+                                                 width   = '400px',
+                                                 accept  = c('.txt', '.csv')
+                                               ),
+                                     # ),
+                                     ),
+                                     column(width=4,
+                                     shinydashboard::box(width=12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                                         shinyWidgets::prettyRadioButtons(ns('weather_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                                          choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+
+                                                         shinyWidgets::prettyRadioButtons(ns('weather_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                                          choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+
+                                                         shinyWidgets::prettyRadioButtons(ns('weather_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                                          choices = c('Dot' = '.', 'Comma' = ',')),
+                                     ),
+                                     ),
+                           ), # end of file upload options
                   ),
-                  tabPanel(div("3. Check status" ),
+                  tabPanel(div("3. Retrieve/Match data" ),
+                           tags$span(id = ns('apiOptionsRetrieve'),
+                                     tags$br(),
+                                     actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
+                                     textOutput(ns("outgetWeather")),
+                           ),
+                           tags$span(id = ns('fileOptionsRetrieve'),
+
+                                     column(width=12,
+                                            shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                                                                DT::DTOutput(ns('preview_weather')),
+                                            ),
+                                     ),
+
+                           ),
+                  ),
+                  tabPanel(div("4. Check status" ),
                            tags$br(),
                            uiOutput(ns("warningMessage2")),
                   ),
@@ -70,6 +116,24 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    observeEvent(
+      input$weather_input,
+      if(length(input$weather_input) > 0){ # added
+        if (input$weather_input == 'weatherfile') {
+          golem::invoke_js('showid', ns('fileOptionsInput'))
+          golem::invoke_js('hideid', ns('apiOptionsInput'))
+
+          golem::invoke_js('showid', ns('fileOptionsRetrieve'))
+          golem::invoke_js('hideid', ns('apiOptionsRetrieve'))
+        } else if (input$weather_input == 'weatherapi') {
+          golem::invoke_js('showid', ns('apiOptionsInput'))
+          golem::invoke_js('hideid', ns('fileOptionsInput'))
+
+          golem::invoke_js('showid', ns('apiOptionsRetrieve'))
+          golem::invoke_js('hideid', ns('fileOptionsRetrieve'))
+        }
+      }
+    )
 
     output$warningMessage <- renderUI(
       if(is.null(data()$data$pheno)){

@@ -17,10 +17,6 @@ mod_getDataQTL_ui <- function(id){
     navlistPanel( widths = c(2, 10),
                   tabPanel(div("1. Load data" ),
                            column(width=8,
-                                  # fluidRow(
-                                  #   style = 'padding: 30px;',
-                                  # Source: Upload (web interface to temp local directory) or URL (optional username/password to access)
-                                  # Accept *.gz format (7-Zip how-to reference), average genomic file size after compression is 5%
                                   selectInput(
                                     inputId = ns('qtl_input'),
                                     label   = 'QTL Source*:',
@@ -43,16 +39,8 @@ mod_getDataQTL_ui <- function(id){
                                     placeholder = 'https://example.com/path/file.csv'
                                   ),
                                   if (!is.null(qtl_example)) {
-                                    # checkboxInput(
-                                    #   inputId = ns('qtl_example'),
-                                    #   label = span('Load example ',
-                                    #                a('QTL data', target = '_blank',
-                                    #                  href = qtl_example)),
-                                    #   value = FALSE
-                                    # )
                                     shinyWidgets::prettySwitch( inputId = ns('qtl_example'), label = "Load example", status = "success")
                                   },
-                                  # ),
                            ),
 
                            column(width=4,
