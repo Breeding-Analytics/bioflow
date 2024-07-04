@@ -125,13 +125,7 @@ mod_getDataPheno_ui <- function(id){
                                            ),
                                   ),
                                   if (!is.null(pheno_example)) {
-                                    # checkboxInput(
-                                    #   inputId = ns('pheno_example'),
-                                    #   label = span('Load example ',
-                                    #                a('phenotypic data', target = '_blank',
-                                    #                  href = pheno_example)),
-                                    #   value = FALSE
-                                    # )
+
                                     shinyWidgets::prettySwitch( inputId = ns('pheno_example'), label = "Load example", status = "success")
 
                                   },
@@ -197,6 +191,12 @@ mod_getDataPheno_ui <- function(id){
                                                       uiOutput(ns('pheno_map')),
                                   ),
                            ),
+                           column(width=12,
+                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                                                      hr(),
+                                                      DT::DTOutput(ns('preview_pheno2')),
+                                  ),
+                           ),
 
                   ),
                   tabPanel(div("3. Define environments" ),
@@ -209,7 +209,7 @@ mod_getDataPheno_ui <- function(id){
                            column(width=12,
                                   shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
                                                       hr(),
-                                                      DT::DTOutput(ns('preview_pheno2')),
+                                                      DT::DTOutput(ns('preview_pheno3')),
                                   ),
                            ),
 
@@ -327,7 +327,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
         }
 
-        output$preview_pheno <- output$preview_pheno2 <- DT::renderDT(NULL)
+        output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT(NULL)
       }
     )
 
@@ -406,7 +406,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               shinybusy::remove_modal_spinner()
             }
 
-            output$preview_pheno <- output$preview_pheno2 <- DT::renderDT(NULL)
+            output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT(NULL)
 
           },
           error = function(e) {
@@ -652,7 +652,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
         } # make sure if an user uploads a new dataset the qaRaw starts empty
 
-        output$preview_pheno <- output$preview_pheno2 <- DT::renderDT({
+        output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT({
           DT::datatable(temp$data$pheno,
                         extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',
@@ -944,7 +944,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
     # change color of updated study column
     observeEvent(input$concatenateEnv,{
-      output$preview_pheno <- output$preview_pheno2 <- DT::renderDT({
+      output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT({
         myObject <- data()
         phenoColnames <- colnames(myObject$data$pheno)
         if("environment" %in% phenoColnames){

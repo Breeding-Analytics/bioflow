@@ -67,6 +67,9 @@ app_server <- function(input, output, session) {
                         "country", "location", "trial","study", "management","rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 
+  equired_mapping_weather <- c("environment", "latitude","longitude",
+                               "year", "month","day","date", "trait")
+
   ## HOME
   mod_homeApp_server("homeApp_1")
 
@@ -214,7 +217,7 @@ app_server <- function(input, output, session) {
   mod_getDataPheno_server("getDataPheno_1", map = required_mapping, data = data, res_auth = res_auth)
   mod_getDataGeno_server("getDataGeno_1", data = data, res_auth = res_auth)
   mod_getDataPed_server("getDataPed_1", data = data, res_auth = res_auth)
-  mod_getDataWeather_server("getDataWeather_1", data = data, res_auth = res_auth)
+  mod_getDataWeather_server("getDataWeather_1", map = required_mapping_weather, data = data, res_auth = res_auth)
   mod_getDataQTL_server("getDataQTL_1", data = data, res_auth = res_auth)
 
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)

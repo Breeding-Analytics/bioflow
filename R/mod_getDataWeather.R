@@ -19,7 +19,7 @@ mod_getDataWeather_ui <- function(id){
                            selectInput(
                              inputId = ns('weather_input'),
                              label   = 'Data Source*:',
-                             choices = list('Table Upload' = 'weatherfile', 'API' = 'weatherapi' ),
+                             choices = list('Table Upload' = 'weatherfile', 'API NASAPOWER' = 'weatherapi' ),
                              width   = '200px'
                            ),
                   ),
@@ -61,26 +61,31 @@ mod_getDataWeather_ui <- function(id){
                            ), # end of API options
                            tags$span(id = ns('fileOptionsInput'),
                                      column(width=8,
-                                     # tags$span(id = ns('weather_file_holder'),
-                                               fileInput(
-                                                 inputId = ns('weather_file'),
-                                                 label   = NULL,
-                                                 width   = '400px',
-                                                 accept  = c('.txt', '.csv')
-                                               ),
-                                     # ),
+                                            # tags$span(id = ns('weather_file_holder'),
+                                            fileInput(
+                                              inputId = ns('weather_file'),
+                                              label   = NULL,
+                                              width   = '400px',
+                                              accept  = c('.txt', '.csv')
+                                            ),
+                                            # ),
                                      ),
                                      column(width=4,
-                                     shinydashboard::box(width=12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
-                                                         shinyWidgets::prettyRadioButtons(ns('weather_sep'), 'Separator Character', selected = ',', inline = TRUE,
-                                                                                          choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
+                                            shinydashboard::box(width=12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                                                shinyWidgets::prettyRadioButtons(ns('weather_sep'), 'Separator Character', selected = ',', inline = TRUE,
+                                                                                                 choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
-                                                         shinyWidgets::prettyRadioButtons(ns('weather_quote'), 'Quoting Character', selected = '"', inline = TRUE,
-                                                                                          choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
+                                                                shinyWidgets::prettyRadioButtons(ns('weather_quote'), 'Quoting Character', selected = '"', inline = TRUE,
+                                                                                                 choices = c('None' = '', 'Double Quote' = '"', 'Single Quote' = "'")),
 
-                                                         shinyWidgets::prettyRadioButtons(ns('weather_dec'), 'Decimal Points', selected = '.', inline = TRUE,
-                                                                                          choices = c('Dot' = '.', 'Comma' = ',')),
+                                                                shinyWidgets::prettyRadioButtons(ns('weather_dec'), 'Decimal Points', selected = '.', inline = TRUE,
+                                                                                                 choices = c('Dot' = '.', 'Comma' = ',')),
+                                            ),
                                      ),
+                                     column(width=12,
+                                            shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
+                                                                DT::DTOutput(ns('preview_weather2')),
+                                            ),
                                      ),
                            ), # end of file upload options
                   ),
@@ -92,6 +97,12 @@ mod_getDataWeather_ui <- function(id){
                            ),
                            tags$span(id = ns('fileOptionsRetrieve'),
 
+                                     column(width=12,
+                                            shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
+                                                                hr(),
+                                                                uiOutput(ns('weather_map')),
+                                            ),
+                                     ),
                                      column(width=12,
                                             shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
                                                                 DT::DTOutput(ns('preview_weather')),
@@ -112,7 +123,7 @@ mod_getDataWeather_ui <- function(id){
 #' getDataWeather Server Functions
 #'
 #' @noRd
-mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
+mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -171,6 +182,8 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
 
     )
 
+    #####################################################
+    # inputs for API
     output$environment <- renderUI({
       req(data())
       dtProv = data()$data$pheno
@@ -256,9 +269,7 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
         })
       }
     })
-
-    ##
-    dataWeather = reactive({
+    dataWeather = reactive({ ## function to return input parameters (env, latitude, longitude, etc.)
       req(data())
       dtProv = data()$data$pheno
       paramsPheno <- data()$metadata$pheno
@@ -361,6 +372,92 @@ mod_getDataWeather_server <- function(id, data = NULL, res_auth=NULL){
     output$outgetWeather <- renderPrint({
       outgetWeather()
     })
+
+    ########################################################
+    # input for FILE
+    weather_data_table = reactive({ # function to purely just read a csv when we need to match the table file
+      if(length(input$weather_input) > 0){ # added
+        if (input$weather_input == 'weatherfile' ) {
+
+          if (is.null(input$weather_file)) {return(NULL)}else{
+            weather_file <- input$weather_file$datapath
+            shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+            df <- as.data.frame(data.table::fread(weather_file, sep = input$weather_sep, quote = input$weather_quote, dec = input$weather_dec, header = TRUE))
+            shinybusy::remove_modal_spinner()
+            return(df)
+          }
+
+        } else {
+          return(NULL);
+        }
+      }else{
+        return(NULL)
+      }
+    })
+
+    observeEvent(c(weather_data_table()), { # display preview of weather data
+      req(weather_data_table())
+      provweather <- weather_data_table()
+      output$preview_weather <- output$preview_weather2 <- DT::renderDT({
+        req(weather_data_table())
+        DT::datatable(weather_data_table()[,1:min(c(50,ncol(weather_data_table())))],
+                      extensions = 'Buttons',
+                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
+                      caption = htmltools::tags$caption(
+                        style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
+                        htmltools::em('Data preview.')
+                      )
+        )
+      })
+      # read the data and save in the data object
+      temp <- data()
+      temp$data$weather <- weather_data_table()
+      data(temp)
+    })
+
+    output$weather_map <- renderUI({
+      if (is.null(weather_data_table())) return(NULL)
+
+      header <- colnames(weather_data_table())
+      weather_map <- lapply(map, function(x) {
+        column(3,
+               selectInput(
+                 inputId  = ns(paste0('select', x)),
+                 label    = HTML(ifelse(x %in% c('environment','latitude','longitude','trait'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('year','month','day'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
+                 multiple = ifelse(x == 'trait', TRUE, FALSE),
+                 choices  = as.list(c('', header)),
+                 selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
+               ),
+
+               # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
+
+               renderPrint({
+                 # req(input[[paste0('select', x)]])
+                 temp <- data()
+                 if (x == 'trait') {
+                   temp$metadata$weather <- temp$metadata$weather[temp$metadata$weather$parameter != 'trait',]
+                   for (i in input[[paste0('select', x)]]) {
+                     temp$metadata$weather <- rbind(temp$metadata$weather, data.frame(parameter = 'trait', value = i))
+                     # if(!is.numeric(temp$data$weather[,i])){temp$data$weather[,i] <- as.numeric(gsub(",","",temp$data$weather[,i]))}
+                   }
+                 } else { # is any other column other than trait
+                   if (x %in% temp$metadata$weather$parameter & input[[paste0('select', x)]] != '') {
+                     temp$metadata$weather[temp$metadata$weather$parameter == x, 'value'] <- input[[paste0('select', x)]]
+                   } else {
+                     temp$metadata$weather <- rbind(temp$metadata$weather, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                   }
+                   if(input[[paste0('select', x)]] == ''){
+                     temp$metadata$weather <- temp$metadata$weather[-which(temp$metadata$weather$parameter == x), ]
+                   }
+                 }
+                 data(temp)
+               }),
+        )
+      })
+      fluidRow(do.call(tagList, weather_map))
+    })
+
+
   })
 }
 
