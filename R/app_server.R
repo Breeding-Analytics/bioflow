@@ -27,8 +27,6 @@ if (local_server) {
   redirect_uri  <- "https://shiny-analytics.ebsproject.org/sandbox"
 }
 
-use_login <- TRUE
-
 scriptoria_client <- httr2::oauth_client(
   id = client_id,
   secret = client_secret,
@@ -92,7 +90,7 @@ app_server <- function(input, output, session) {
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "shiny-analytics.ebsproject.org"
-    decision <- FALSE
+    # decision <- TRUE
     return(decision)
   })
 
