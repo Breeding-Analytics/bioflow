@@ -292,56 +292,61 @@ if (is.null(result)){
 } else {
   
   if(!is.null(result$data$weather)){ # if weather data was extracted
-xx <- result$metadata$weather
-  xx <- xx[which(xx$trait %in% c("latitude","longitude")),c("environment","trait","value")]
-  xx <- reshape(xx, direction = "wide", idvar = "environment",
-                timevar = "trait", v.names = "value", sep= "_")
-  colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
-  
-  if("params" %in% ls()){ # we will download the document
+    yy <- result$metadata$weather
+    yy <- yy[yy$parameter != "trait",]
+    xx <- cgiarPipeline::summaryWeather(result)
+    xx$trait <- cgiarBase::replaceValues(xx$trait, Search = yy$value, Replace = yy$parameter)
+    xx <- xx[which( (xx$trait %in% c("latitude","longitude") ) & (xx$parameter == "mean") ),c("environment","trait","value")]
+    xx <- reshape(xx, direction = "wide", idvar = "environment",
+                  timevar = "trait", v.names = "value", sep= "_")
+    colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
     
-    world <- ggplot2::map_data("world")
-    p <- ggplot2::ggplot() + # + 
-      ggplot2::theme(legend.position="bottom", legend.text = ggplot2::element_text(size=4), legend.title = ggplot2::element_text(size=0)) +
-      ggplot2::geom_map(
-        data = world, map = world,
-        ggplot2::aes(long, lat, map_id = region),
-        color = "black", fill = "lightgray", linewidth=0.1
-      )  + ggplot2::ylab(" Latitude") + ggplot2::xlab("Longitude") +
-      ggplot2::geom_point(
-        data = xx,
-        ggplot2::aes(longitude, latitude, color = environment),
-        alpha = 0.7
-      ) 
-    print(p)
-    # plotly::ggplotly(p)
-    
-  }else{
-    
-    plotly::renderPlotly({
+    if("params" %in% ls()){ # we will download the document
       
-      fig <- xx
-      fig <- fig %>%
-        plotly::plot_ly(
-          lat = ~latitude,
-          lon = ~longitude,
-          type = "scattermapbox",
-          hovertext = ~environment, #us_cities[,"City"],
-          marker = list(color = "fuchsia"))
-      fig <- fig %>%
-        plotly::layout(
-          mapbox = list(
-            style = 'open-street-map',
-            zoom =1,
-            center = list(lon = 0, lat = 0)
+      world <- ggplot2::map_data("world")
+      p <- ggplot2::ggplot() + # + 
+        ggplot2::theme(legend.position="bottom", legend.text = ggplot2::element_text(size=4), legend.title = ggplot2::element_text(size=0)) +
+        ggplot2::geom_map(
+          data = world, map = world,
+          ggplot2::aes(long, lat, map_id = region),
+          color = "black", fill = "lightgray", linewidth=0.1
+        )  + ggplot2::ylab(" Latitude") + ggplot2::xlab("Longitude") +
+        ggplot2::geom_point(
+          data = xx,
+          ggplot2::aes(longitude, latitude, color = environment),
+          alpha = 0.7
+        ) 
+      print(p)
+      # plotly::ggplotly(p)
+      
+    }else{
+      
+      plotly::renderPlotly({
+        
+        fig <- xx
+        fig <- fig %>%
+          plotly::plot_ly(
+            lat = ~latitude,
+            lon = ~longitude,
+            type = "scattermapbox",
+            hovertext = ~environment, #us_cities[,"City"],
+            marker = list(color = "fuchsia"))
+        fig <- fig %>%
+          plotly::layout(
+            mapbox = list(
+              style = 'open-street-map',
+              zoom =1,
+              center = list(lon = 0, lat = 0)
+            )
           )
-        )
-      # }
-      fig
+        # }
+        fig
+        
+      })
       
-    })
-    
-  }
+    }
+  }else{
+    cat("No coordinates available. Skipping planting map.")
   }
   
 }

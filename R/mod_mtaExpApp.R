@@ -104,7 +104,7 @@ mod_mtaExpApp_ui <- function(id){
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (OPTIONAL)...",
+                                                      shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (optional)...",
                                                                           p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
                                                                           DT::dataTableOutput(ns("fieldsMet")),
                                                       ),
