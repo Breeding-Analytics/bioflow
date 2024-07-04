@@ -90,7 +90,7 @@ app_server <- function(input, output, session) {
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "shiny-analytics.ebsproject.org"
-    # decision <- TRUE
+    decision <- FALSE
     return(decision)
   })
 
