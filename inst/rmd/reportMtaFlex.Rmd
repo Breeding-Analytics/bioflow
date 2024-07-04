@@ -828,7 +828,7 @@ if (is.null(result)){
     df2$traitOriginal <- gsub(paste0(iCov),"",df2$traitOriginal)
     df2$traitOriginal <- gsub("_QTL","",df2$traitOriginal) # remove the QTL legend in this particular case
   }
-  df2$parameterOriginal <- df2$trait
+  df2$parameterOriginal <- df2$parameter
   for(iCov in covariatesvc){ 
     provTrait <- gsub(paste0( "*",iCov), "", df2$parameterOriginal)
     df2$parameterOriginal <- apply(data.frame(provTrait,df2$parameterOriginal),1,function(x){gsub(x[1], "", x[2])})
