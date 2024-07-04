@@ -90,6 +90,9 @@ app_server <- function(input, output, session) {
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "shiny-analytics.ebsproject.org"
+    warning(session$clientData$url_hostname)
+    warning(client_id)
+    warning(Sys.getenv("SHINY_PORT"))
     #decision <- FALSE
     return(decision)
   })
