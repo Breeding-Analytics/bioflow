@@ -16,23 +16,6 @@ if (production_server) {
 }
 
 oauth2_scope <- "openid profile"
-local_server <- Sys.getenv("SHINY_PORT") == ""
-
-# NOTE: check if we run it on localhost!
-if (local_server) {
-  client_id     <- "shiny_local"
-  redirect_uri  <- "http://localhost:1410"
-} else {
-  client_id     <- "shiny_test"
-  redirect_uri  <- "https://shiny-analytics.ebsproject.org/bioflow"
-}
-
-scriptoria_client <- httr2::oauth_client(
-  id = client_id,
-  secret = client_secret,
-  token_url = access_url,
-  name = "serviceportal"
-)
 
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
@@ -90,13 +73,31 @@ app_server <- function(input, output, session) {
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "shiny-analytics.ebsproject.org"
-    decision <- FALSE
+    # decision <- FALSE
     return(decision)
   })
 
   observe({ if(use_login()){
     observeEvent(input$login, {
       shinybusy::show_modal_spinner()
+
+      local_server <- Sys.getenv("SHINY_PORT") == ""
+
+      # NOTE: check if we run it on localhost!
+      if (local_server) {
+        client_id     <- "shiny_local"
+        redirect_uri  <- "http://localhost:1410"
+      } else {
+        client_id     <- "shiny_test"
+        redirect_uri  <- "https://shiny-analytics.ebsproject.org/bioflow"
+      }
+
+      scriptoria_client <- httr2::oauth_client(
+        id = client_id,
+        secret = client_secret,
+        token_url = access_url,
+        name = "serviceportal"
+      )
 
       oauth_state <- httr2:::base64_url_rand()
 
@@ -126,6 +127,24 @@ app_server <- function(input, output, session) {
 
       if (!is.null(query$code) && !is.null(query$state)) {
         shinybusy::show_modal_spinner()
+
+        local_server <- Sys.getenv("SHINY_PORT") == ""
+
+        # NOTE: check if we run it on localhost!
+        if (local_server) {
+          client_id     <- "shiny_local"
+          redirect_uri  <- "http://localhost:1410"
+        } else {
+          client_id     <- "shiny_test"
+          redirect_uri  <- "https://shiny-analytics.ebsproject.org/bioflow"
+        }
+
+        scriptoria_client <- httr2::oauth_client(
+          id = client_id,
+          secret = client_secret,
+          token_url = access_url,
+          name = "serviceportal"
+        )
 
         oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", input$cookies)
         pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", input$cookies)

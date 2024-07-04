@@ -54,7 +54,7 @@ mod_homeApp_ui <- function(id){
       tags$script('Shiny.addCustomMessageHandler("popup", function(url) {window.open(url);});'),
       tags$script('$(document).on("shiny:connected", function() {Shiny.setInputValue("cookies", document.cookie)});'),
 
-      if (local_server) {
+      if (Sys.getenv("SHINY_PORT") == "") {
         # ensure using localhost domain instead of 127.0.0.1 to match redirect uri registered for the oauth2 client
         tags$script('if(location.hostname == "127.0.0.1") {window.location.href = location.protocol+"//localhost:"+location.port;}')
       }
