@@ -108,8 +108,11 @@ if (is.null(result)){
 } else {
   
   if(!is.null(result$data$weather)){ # if weather data was extracted
-    xx <- result$metadata$weather
-    xx <- xx[which(xx$trait %in% c("latitude","longitude")),c("environment","trait","value")]
+    yy <- result$metadata$weather
+    yy <- yy[yy$parameter != "trait",]
+    xx <- cgiarPipeline::summaryWeather(result)
+    xx$trait <- cgiarBase::replaceValues(xx$trait, Search = yy$value, Replace = yy$parameter)
+    xx <- xx[which( (xx$trait %in% c("latitude","longitude") ) & (xx$parameter == "mean") ),c("environment","trait","value")]
     xx <- reshape(xx, direction = "wide", idvar = "environment",
                   timevar = "trait", v.names = "value", sep= "_")
     colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = c("value_latitude","value_longitude") , Replace = c("latitude","longitude") )
@@ -158,6 +161,8 @@ if (is.null(result)){
       })
       
     }
+  }else{
+    cat("No coordinates available. Skipping planting map.")
   }
   
 }
