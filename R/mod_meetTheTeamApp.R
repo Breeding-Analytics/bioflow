@@ -35,7 +35,18 @@ mod_meetTheTeamApp_ui <- function(id){
                                                        br(),
                                                        br(),
                                                        br()
-                                   )
+                                   ),
+                                   shinydashboard::box(status="success", width = 12,
+                                                       title = "Team members across centers:", solidHeader = TRUE,
+                                                       p(strong("AfricaRice:"), "Aubin Amagnide (A.Amagnide@cgiar.org)"),
+                                                       p(strong("CIAT:"),"Sergio Cruz (S.Cruz@cgiar.org), Christian Cadena (C.C.Cadena@cgiar.org) "),
+                                                       p(strong("CIMMYT: "),"Keith Gardner (K.GARDNER@cgiar.org), Angela Pacheco (r.a.pacheco@cgiar.org), Juan Burgueno (j.burgueno@cgiar.org), Abishek Rathore (ABHISHEK.RATHORE@cgiar.org), Roma Das (r.das@cgiar.org), Christian Werner (C.WERNER@cgiar.org), Dorcus Gemenet (d.gemenet@cgiar.org) "),
+                                                       p(strong("CIP: "),"Bert de Boeck (B.DeBoeck@cgiar.org), Raul Eizaguirre (r.eyzaguirre@cgiar.org) "),
+                                                       p(strong("ICARDA: "),"Khaled Al-Shamaa (K.EL-SHAMAA@cgiar.org)"),
+                                                       p(strong("ICRISAT: "),"Anitha Raman (Anitha.raman@icrisat.org) "),
+                                                       p(strong("IITA: "),"Ibnou Dieng (i.dieng@cgiar.org) "),
+                                                       p(strong("IRRI: "),"Giovanny Covarrubias-Pazaran (g.covarrubias@irri.org), Alaine Guilles (a.gulles@irri.org), Justine Bonifacio (j.bonifacio@irri.org), Daniel Pisano(d.pisano@irri.org), Leilani Nora (l.nora@irri.org)"),
+                                   ),
 
                                    ),
                             # shinydashboard::box(status="success", width = 12,
