@@ -67,7 +67,7 @@ app_server <- function(input, output, session) {
                         "country", "location", "trial","study", "management","rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 
-  equired_mapping_weather <- c("environment", "latitude","longitude",
+  required_mapping_weather <- c("environment", "latitude","longitude",
                                "year", "month","day","date", "trait")
 
   ## HOME

@@ -410,9 +410,12 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$trait2Mta)
       dtMta <- data() # dtMta <- result
-      dtMta <- dtMta$metadata$weather
-      validWeatherVars <- c("RH2M","T2M","PRECTOTCORR", "latitude", "longitude", "plantingDate", "harvestingDate" )
-      traitsMta <- unique(c("envIndex",intersect(unique(dtMta$trait), validWeatherVars )))
+      weather <- cgiarPipeline::summaryWeather(dtMta)
+      weather$traitParameter <- paste(weather$trait, weather$parameter, sep="_")
+      # dtMta <- dtMta$metadata$weather
+      # invalidWeatherVars <- c("environment")# c("RH2M","T2M","PRECTOTCORR", "latitude", "longitude", "plantingDate", "harvestingDate" )
+      # traitsMta <- unique(c("envIndex",setdiff(unique(dtMta$value), invalidWeatherVars )))
+      traitsMta <- unique(weather$traitParameter)
       updateSelectInput(session, "interactionTermMta2", choices = traitsMta)
     })
     #################
