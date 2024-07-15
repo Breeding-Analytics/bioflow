@@ -42,17 +42,27 @@
 </div>
 
 <script>
+  function setCookie(cname, cvalue, exmin) {
+    const d = new Date();
+    d.setTime(d.getTime() + (exmin*60*60*1000));
+    let expires = "expires="+ d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+  }
+
   const params = new URLSearchParams(location.search);
   const code = params.get("code");
   const state = params.get("state");
 
   if (code && state) {
-    document.getElementById("output").value = btoa(JSON.stringify({code, state}));
+    const token = btoa(JSON.stringify({code, state}));
+
+    setCookie("ebs_token", token, 15);
+    document.getElementById("output").value = token;
 
     document.getElementById("btn-copy").addEventListener("click", () => {
       navigator.clipboard.write([
         new ClipboardItem({
-          "text/plain": new Blob([document.getElementById("output").value], {type: "text/plain"})
+          "text/plain": new Blob([token], {type: "text/plain"})
         })
       ]);
     });
