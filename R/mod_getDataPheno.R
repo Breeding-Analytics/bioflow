@@ -364,34 +364,43 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                    client_id     = ebs_client_id,
                                    client_secret = ebs_client_secret)
               } else {
-                shiny_app_uri <- paste0(session$clientData$url_protocol, '//',
-                                        session$clientData$url_hostname,
-                                        session$clientData$url_pathname)
+                golem::invoke_js("getCookie")
+                Sys.sleep(1)
+                ebs_token <- sub(".*ebs_token=([^;]*).*", "\\1", input$cookies)
 
-                ebs_redirect_uri <- paste0(shiny_app_uri, 'www/callback/')
+                if (ebs_token == input$cookies) {
+                  shiny_app_uri <- paste0(session$clientData$url_protocol, '//',
+                                          session$clientData$url_hostname,
+                                          session$clientData$url_pathname)
 
-                EBS_client <- httr2::oauth_client(
-                  id        = ebs_client_id,
-                  secret    = ebs_client_secret,
-                  token_url = ebs_access_url,
-                  name      = "EBS"
-                )
+                  ebs_redirect_uri <- paste0(shiny_app_uri, 'www/callback/')
 
-                ebs_oauth_state <- httr2:::base64_url_rand()
+                  EBS_client <- httr2::oauth_client(
+                    id        = ebs_client_id,
+                    secret    = ebs_client_secret,
+                    token_url = ebs_access_url,
+                    name      = "EBS"
+                  )
 
-                set_cookie(session, "ebs_oauth_state", ebs_oauth_state)
+                  ebs_oauth_state <- httr2:::base64_url_rand()
 
-                ebs_auth_url <- httr2::oauth_flow_auth_code_url(
-                  client       = EBS_client,
-                  auth_url     = ebs_authorize_url,
-                  redirect_uri = ebs_redirect_uri,
-                  state        = ebs_oauth_state
-                )
+                  set_cookie(session, "ebs_oauth_state", ebs_oauth_state)
 
-                session$sendCustomMessage("popup", paste0(shiny_app_uri,
-                                                          '?redirect=',
-                                                          jsonlite::base64_enc(ebs_auth_url)))
-                return()
+                  ebs_auth_url <- httr2::oauth_flow_auth_code_url(
+                    client       = EBS_client,
+                    auth_url     = ebs_authorize_url,
+                    redirect_uri = ebs_redirect_uri,
+                    state        = ebs_oauth_state
+                  )
+
+                  session$sendCustomMessage("popup", paste0(shiny_app_uri,
+                                                            '?redirect=',
+                                                            jsonlite::base64_enc(ebs_auth_url)))
+                  return()
+                } else {
+                  QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
+                  QBMS::set_token(ebs_token)
+                }
               }
 
             } else if (input$pheno_db_type == 'bms') {
