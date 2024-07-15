@@ -84,10 +84,10 @@ app_server <- function(input, output, session) {
     observeEvent(input$login, {
       shinybusy::show_modal_spinner()
 
-      local_server <- Sys.getenv("SHINY_PORT") == ""
+      is_local <- Sys.getenv("SHINY_PORT") == ""
 
       # NOTE: check if we run it on localhost!
-      if (local_server) {
+      if (is_local) {
         client_id     <- "shiny_local"
         redirect_uri  <- "http://localhost:1410"
       } else {
@@ -131,10 +131,10 @@ app_server <- function(input, output, session) {
       if (!is.null(query$code) && !is.null(query$state)) {
         shinybusy::show_modal_spinner()
 
-        local_server <- Sys.getenv("SHINY_PORT") == ""
+        is_local <- Sys.getenv("SHINY_PORT") == ""
 
         # NOTE: check if we run it on localhost!
-        if (local_server) {
+        if (is_local) {
           client_id     <- "shiny_local"
           redirect_uri  <- "http://localhost:1410"
         } else {
