@@ -52,6 +52,7 @@ mod_homeApp_ui <- function(id){
 
       tags$script('Shiny.addCustomMessageHandler("redirect", function(url) {window.location.href = (url);});'),
       tags$script('Shiny.addCustomMessageHandler("popup", function(url) {window.open(url);});'),
+      tags$script('if(window.location.href.indexOf("redirect=") !== -1) {window.location.href = decodeURIComponent(atob(window.location.href.split("redirect=")[1]));};'),
       tags$script('$(document).on("shiny:connected", function() {Shiny.setInputValue("cookies", document.cookie)});'),
 
       if (Sys.getenv("SHINY_PORT") == "") {
