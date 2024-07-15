@@ -364,10 +364,10 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                    client_id     = ebs_client_id,
                                    client_secret = ebs_client_secret)
               } else {
-                golem::invoke_js("getCookie")
-                ebs_token <- sub(".*ebs_token=([^;]*).*", "\\1", input$client_cookies)
+                # golem::invoke_js("getCookie")
+                ebs_token <- sub(".*ebs_token=([^;]*).*", "\\1", input$cookies)
 
-                if (ebs_token == input$client_cookies) {
+                if (ebs_token == input$cookies) {
                   shiny_app_uri <- paste0(session$clientData$url_protocol, '//',
                                           session$clientData$url_hostname,
                                           session$clientData$url_pathname)
