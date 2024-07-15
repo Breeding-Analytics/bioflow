@@ -61,6 +61,7 @@
     const token = btoa(JSON.stringify({code, state}));
 
     setCookie("ebs_token", token, 15);
+    setCookie("ebs_state", state, 15);
     setCookie("ebs_code", code, 15);
 
     document.getElementById("output").value = token;

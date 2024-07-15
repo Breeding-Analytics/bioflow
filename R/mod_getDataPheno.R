@@ -382,7 +382,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
                   ebs_oauth_state <- httr2:::base64_url_rand()
 
-                  set_cookie(session, "ebs_oauth_state", ebs_oauth_state)
+                  # set_cookie(session, "ebs_oauth_state", ebs_oauth_state)
 
                   ebs_auth_url <- httr2::oauth_flow_auth_code_url(
                     client       = EBS_client,
