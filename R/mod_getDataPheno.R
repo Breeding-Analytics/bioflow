@@ -55,7 +55,7 @@ mod_getDataPheno_ui <- function(id){
                                                                          textInput(
                                                                            inputId = ns('pheno_db_url'),
                                                                            label = 'Server URL:',
-                                                                           placeholder = 'https://cb-qa.ebsproject.org'
+                                                                           placeholder = 'https://cb-wee.ebsproject.org'
                                                                          ),
                                                                          actionButton(
                                                                            inputId = ns('pheno_db_save'),
@@ -364,22 +364,20 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                    client_secret = ebs_client_secret)
               } else {
                 # golem::invoke_js("getCookie")
-                # ebs_token <- sub(".*ebs_token=([^;]*).*", "\\1", input$cookies)
+                shiny_app_uri <- paste0(session$clientData$url_protocol, '//',
+                                        session$clientData$url_hostname,
+                                        session$clientData$url_pathname)
+
+                ebs_redirect_uri <- paste0(shiny_app_uri, 'www/callback/')
+
+                EBS_client <- httr2::oauth_client(
+                  id        = ebs_client_id,
+                  secret    = ebs_client_secret,
+                  token_url = ebs_access_url,
+                  name      = "EBS"
+                )
 
                 if (TRUE) {
-                  shiny_app_uri <- paste0(session$clientData$url_protocol, '//',
-                                          session$clientData$url_hostname,
-                                          session$clientData$url_pathname)
-
-                  ebs_redirect_uri <- paste0(shiny_app_uri, 'www/callback/')
-
-                  EBS_client <- httr2::oauth_client(
-                    id        = ebs_client_id,
-                    secret    = ebs_client_secret,
-                    token_url = ebs_access_url,
-                    name      = "EBS"
-                  )
-
                   ebs_oauth_state <- httr2:::base64_url_rand()
 
                   # set_cookie(session, "ebs_oauth_state", ebs_oauth_state)
@@ -396,8 +394,16 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                                             jsonlite::base64_enc(ebs_auth_url)))
                   return()
                 } else {
+                  # ebs_token <- sub(".*ebs_token=([^;]*).*", "\\1", input$cookies)
+                  # payload <- jsonlite::base64_dec(ebs_token) |> rawToChar() |> jsonlite::fromJSON()
+                  token <- httr2:::oauth_client_get_token(client = EBS_client,
+                                                          grant_type = "authorization_code",
+                                                          code = payload$code,
+                                                          state = payload$state,
+                                                          redirect_uri = redirect_uri)
+
                   QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
-                  QBMS::set_token(ebs_token)
+                  QBMS::set_token(token$id_token)
                 }
               }
 
@@ -426,7 +432,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             } else {
               shinybusy::show_modal_spinner('fading-circle', text = 'Loading Programs...')
 
-              pheno_db_programs <- QBMS::list_programs()
+              pheno_db_programs <- QBMS::list_programs()$programName
 
               updateSelectizeInput(session,
                                    inputId = 'pheno_db_program',
@@ -453,7 +459,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         QBMS::set_crop(input$pheno_db_crop)
 
-        pheno_db_programs <- QBMS::list_programs()
+        pheno_db_programs <- QBMS::list_programs()$programName
 
         updateSelectizeInput(session,
                              inputId = 'pheno_db_program',
@@ -475,7 +481,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         QBMS::set_program(input$pheno_db_program)
 
-        pheno_db_trials <- QBMS::list_trials()
+        pheno_db_trials <- QBMS::list_trials()$trialName
 
         if (input$pheno_db_type == 'breedbase') {
           output$pheno_db_folder <- renderUI({
