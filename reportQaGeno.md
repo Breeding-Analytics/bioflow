@@ -23,6 +23,8 @@ The following table shows the modifications that have been saved in your analysi
 <label class="control-label" id="qaGenoApp_1-traitQa-label" for="qaGenoApp_1-traitQa">Reason for QA:</label>
 <div>
 <select id="qaGenoApp_1-traitQa" class="shiny-input-select"><option value="%missing" selected>%missing</option>
+<option value="MAF">MAF</option>
+<option value="inbreeding">inbreeding</option>
 <option value="impute">impute</option></select>
 <script type="application/json" data-for="qaGenoApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -30,7 +32,6 @@ The following table shows the modifications that have been saved in your analysi
 
 
 <!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaGenoApp_1-oute1b2f4d4b30933b4" style="width:100%;height:auto;"></div><!--/html_preserve-->
-
 
 <p>&nbsp;</p>
 
