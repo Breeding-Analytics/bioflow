@@ -67,6 +67,12 @@ mod_getDataPheno_ui <- function(id){
 
                                            tags$span(id = ns('auth_server_holder'),
                                                      shinydashboard::box(width = 4, title = span(icon('key'), ' Authentication'), status = 'success', solidHeader = TRUE,
+                                                                         tags$span(id = ns('pheno_db_token_holder'),
+                                                                                   textInput(
+                                                                                     inputId = ns('pheno_token_user'),
+                                                                                     label = 'Token:'
+                                                                                   )
+                                                                         ),
                                                                          tags$span(id = ns('pheno_db_user_holder'),
                                                                                    textInput(
                                                                                      inputId = ns('pheno_db_user'),
@@ -286,6 +292,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         golem::invoke_js('showid', ns('auth_server_holder'))
         golem::invoke_js('hideid', ns('data_server_holder'))
+        golem::invoke_js('hideid', ns('pheno_db_token_holder'))
 
         if (input$pheno_db_type == 'ebs') {
           golem::invoke_js('hideid', ns('pheno_db_user_holder'))
@@ -363,6 +370,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                    client_id     = ebs_client_id,
                                    client_secret = ebs_client_secret)
               } else {
+                golem::invoke_js('showid', ns('pheno_db_token_holder'))
+
                 # golem::invoke_js("getCookie")
                 shiny_app_uri <- paste0(session$clientData$url_protocol, '//',
                                         session$clientData$url_hostname,
@@ -377,7 +386,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                   name      = "EBS"
                 )
 
-                if (TRUE) {
+                if (input$pheno_token_user == "") {
                   ebs_oauth_state <- httr2:::base64_url_rand()
 
                   # set_cookie(session, "ebs_oauth_state", ebs_oauth_state)
@@ -395,7 +404,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                   return()
                 } else {
                   # ebs_token <- sub(".*ebs_token=([^;]*).*", "\\1", input$cookies)
-                  # payload <- jsonlite::base64_dec(ebs_token) |> rawToChar() |> jsonlite::fromJSON()
+                  ebs_token <- input$pheno_token_user
+                  payload <- jsonlite::base64_dec(ebs_token) |> rawToChar() |> jsonlite::fromJSON()
                   token <- httr2:::oauth_client_get_token(client = EBS_client,
                                                           grant_type = "authorization_code",
                                                           code = payload$code,
