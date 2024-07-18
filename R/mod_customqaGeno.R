@@ -2,52 +2,63 @@ mod_customqaGenoApp_ui <- function(id) {
   ns <- NS(id)
   tagList(shiny::mainPanel(
     width = 12,
-    tabsetPanel(
-      id = ns("tabsMain"),
-      type = "tabs",
-      tabPanel(
-        "Information-QA-Geno",
-        icon = icon("book"),
-        br(),
-        tags$body(uiOutput(ns("warningMessage")), )
-      ),
-      tabPanel("Input",
-               icon = icon("book"),
-               br(),
-               tags$body(
-                 tabsetPanel(
-                   id = "QA_panel",
-                   type = "tabs",
-                   tabPanel(
-                     "Filtering",
-                     icon = icon("magnifying-glass-chart"),
-                     tags$body(fluidRow(
-                       column(
-                         width = 4,
-                         titlePanel("Filtering Parameters"),
-                         h4("By locus"),
-                         uiOutput(ns("by_locus_filter_params")),
-
-                       ),
-                       column(width = 4,
-                              h4("By individual"),
-                              uiOutput(ns("by_ind_filter_params")),
-                              actionButton(inputId = ns('filter_btn'), "Filter")
-                              ),
-                       column(width = 4,
-                              titlePanel("Summary"),
-                                uiOutput(ns("genoSummaryStats"))
-                              ),
-                     ))
-                   ),
-                   tabPanel("Run Analysis", icon = icon("play"), ),
+      tabsetPanel(
+        id = ns("tabsMain"),
+        type = "tabs",
+        tabPanel(
+          "Information-QA-Geno",
+          icon = icon("book"),
+          br(),
+          tags$body(uiOutput(ns("warningMessage")), )
+        ),
+        tabPanel("Input",
+                 icon = icon("book"),
+                 br(),
+                 titlePanel("Filtering Parameters"),
+                 tags$body(
+                   fluidRow(
+                     column(width = 8,
+                            tabsetPanel(id = ns("filter_panel"),
+                                        type = "tabs",
+                                        tabPanel("Ind. Miss",
+                                                 uiOutput(ns("ind_miss_filter_params")),
+                                                 plotly::plotlyOutput(ns("hist_ind_miss")),
+                                                 actionButton(inputId = ns('filter_btn'), "Filter")
+                                                 ),
+                                        tabPanel("Loc. Miss",
+                                                 uiOutput(ns("loc_miss_filter_params")),
+                                                 plotly::plotlyOutput(ns("hist_loc_miss")),
+                                                 actionButton(inputId = ns('filter_btn'), "Filter")
+                                                 ),
+                                        tabPanel("MAF",
+                                                 uiOutput(ns("maf_filter_params")),
+                                                 plotly::plotlyOutput(ns("hist_maf")),
+                                                 actionButton(inputId = ns('filter_btn'), "Filter")
+                                                 ),
+                                        tabPanel("Loc. Het",
+                                                 uiOutput(ns("loc_het_filter_params")),
+                                                 plotly::plotlyOutput(ns("hist_loc_het")),
+                                                 actionButton(inputId = ns('filter_btn'), "Filter")
+                                                 ),
+                                        tabPanel("Ind. Het",
+                                                 uiOutput(ns("ind_het_filter_params")),
+                                                 plotly::plotlyOutput(ns("hist_ind_het")),
+                                                 actionButton(inputId = ns('filter_btn'), "Filter")
+                                                 ),
+                              )
+                            ),
+                     column(width = 4,
+                            uiOutput(ns("genoSummaryStats"))
+                            ),
+                   )
+                 ),
+                 ),
+        tabPanel("Output",
+                 icon = icon("book"),
+                 br(),
+                 tags$body()
                  )
-               )),
-      tabPanel("Output",
-               icon = icon("book"),
-               br(),
-               tags$body(), )
-    ),
+      )
   ))
 }
 
@@ -91,6 +102,37 @@ mod_customqaGenoApp_server <- function(id, data) {
     })
 
 
+
+    # get_geno <- reactive({
+    #   req(data()$data$gl)
+    #   gl <- data()$data$gl
+    #   return(gl)
+    # })
+
+    get_geno_filtered <- reactive({
+      req(data()$data$gl)
+      gl <- data()$data$gl
+
+      # if(!is.null(input$ind_missing_slider) & input$ind_missing_slider > 0){
+      #   print("enter here?")
+      #   gl <- cgiarGenomics::filter_missing_rate_by_indv(gl, input$ind_missing_slider)
+      # }
+      # if(!is.null(input$loc_missing_slider) & input$loc_missing_slider > 0){
+      #   gl <- cgiarGenomics::filter_missing_rate_by_marker(gl, input$loc_missing_slider)
+      # }
+      # if(!is.null(input$maf_slider) & input$maf_slider > 0){
+      #   gl <- cgiarGenomics::filter_MAF(gl, input$maf_slider)
+      # }
+      # if(!is.null(input$loc_het_slider) & input$loc_het_slider > 0){
+      #   gl <- cgiarGenomics::filter_heterozygosis_by_loc(gl, input$loc_het_slider)
+      # }
+      # if(!is.null(input$ind_het_slider) & input$ind_het_slider > 0){
+      #   gl <- cgiarGenomics::filter_heterozygosis_by_ind(gl, input$ind_het_slider)
+      # }
+      # print("genlight produced")
+      return(gl)
+    })
+
     get_geno_stats <- reactive({
       req(data()$data$gl)
       gl <- data()$data$gl
@@ -117,6 +159,165 @@ mod_customqaGenoApp_server <- function(id, data) {
       ))
 
     })
+
+    # Slider for missingness by individual
+    output$ind_miss_filter_params <- renderUI({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+
+      tags$span(
+        sliderInput(ns("ind_missing_slider"),
+                    "Minimum percentage of genotyped loci by individual:",
+                    0,
+                    round(max(gl@other$ind.metrics$ind_miss),2),
+                    step = 0.01,
+                    value = 0),
+      )
+    })
+    # Histogram for missingness by individual
+    output$hist_ind_miss <- plotly::renderPlotly({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+      fig <- plotly::plot_ly(alpha = 0.6)
+      fig <- fig %>% plotly::add_histogram(x = gl@other$ind.metrics$ind_miss,
+                                           name="Missing data by indivudual" )
+
+    })
+
+#
+#     ind_miss_filtered <- eventReactive(
+#       input$ind_miss_btn,
+#       {gl<-get_geno()
+#       return(cgiarGenomics::filter_missing_rate_by_indv(gl, input$ind_missing_slider))}
+#     )
+
+    # Slider for missingness by locus
+    output$loc_miss_filter_params <- renderUI({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+
+      tags$span(
+        sliderInput(ns("loc_missing_slider"),
+                    "Minimum missing rate by locus:",
+                    0,
+                    round(max(gl@other$loc.metrics$loc_miss),2),
+                    step = 0.01,
+                    value = 0),
+      )
+    })
+
+    # Histogram for missingness by locus
+    output$hist_loc_miss <- plotly::renderPlotly({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+      fig <- plotly::plot_ly(alpha = 0.6)
+      fig <- fig %>% plotly::add_histogram(x = gl@other$loc.metrics$loc_miss,
+                                           name="Missing rate by locus" )
+
+    })
+
+    # loc_miss_filtered <- eventReactive(
+    #   input$loc_miss_btn,
+    #   {gl<-ind_miss_filtered()
+    #   return(cgiarGenomics::filter_missing_rate_by_marker(gl, input$loc_missing_slider))}
+    # )
+
+    # Slider for maf
+    output$maf_filter_params <- renderUI({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+
+      tags$span(
+        sliderInput(ns("maf_slider"),
+                    "Minimum minor allele frequency (MAF):",
+                    0,
+                    round(max(gl@other$loc.metrics$maf),2),
+                    step = 0.01,
+                    value = 0),
+      )
+    })
+    # Histogram for maf
+    output$hist_maf <- plotly::renderPlotly({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+      fig <- plotly::plot_ly(alpha = 0.6)
+      fig <- fig %>% plotly::add_histogram(x = gl@other$loc.metrics$maf,
+                                           name="Minor allele frequency" )
+
+    })
+#
+#     maf_filtered <- eventReactive(
+#       input$maf_btn,
+#       {gl<-loc_miss_filtered()
+#       return(cgiarGenomics::filter_MAF(gl, input$maf_slider))}
+#     )
+
+    # Slider for heterozygosis by locus
+    output$loc_het_filter_params <- renderUI({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+
+      tags$span(
+        sliderInput(ns("loc_het_slider"),
+                    "Maximum Heterozygosity by locus:",
+                    0,
+                    round(max(gl@other$loc.metrics$loc_het),2),
+                    step = 0.01,
+                    value = 0),
+      )
+    })
+    # Histogram for heterozygosis by locus
+    output$hist_loc_het <- plotly::renderPlotly({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+      fig <- plotly::plot_ly(alpha = 0.6)
+      fig <- fig %>% plotly::add_histogram(x = gl@other$loc.metrics$loc_het,
+                                           name="Heterozygosity by locus" )
+
+    })
+#
+#     het_loc_filtered <- eventReactive(
+#       input$loc_het_btn,
+#       {gl<-maf_filtered()
+#       return(cgiarGenomics::filter_heterozygosis_by_loc(gl, input$loc_het_slider))}
+#     )
+
+    # Slider for heterozygosis by individual
+    output$ind_het_filter_params <- renderUI({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+
+      tags$span(
+        sliderInput(ns("ind_het_slider"),
+                    "Maximum Heterozygosity by individual:",
+                    0,
+                    round(max(gl@other$ind.metrics$ind_het),2),
+                    step = 0.01,
+                    value = 0),
+      )
+    })
+    # Histogram for heterozygosis by individual
+    output$hist_ind_het <- plotly::renderPlotly({
+      req(get_geno_filtered())
+      gl<-get_geno_filtered()
+      fig <- plotly::plot_ly(alpha = 0.6)
+      fig <- fig %>% plotly::add_histogram(x = gl@other$ind.metrics$ind_het,
+                                           name="Heterozygosity by individual" )
+
+    })
+
+    # het_ind_filtered <- eventReactive(
+    #   input$ind_het_btn,
+    #   {gl<-het_loc_filtered()
+    #   return(cgiarGenomics::filter_heterozygosis_by_ind(gl, input$ind_het_slider))}
+    # )
+
+    # filter_data <- eventReactive(
+    #   input$filter_btn,
+    #   {
+    #     get_geno_filtered()
+    #   }
+    # )
 
 
 
@@ -167,53 +368,9 @@ mod_customqaGenoApp_server <- function(id, data) {
     })
 
 
-    output$by_ind_filter_params <- renderUI({
-
-      geno_stats <- get_geno_stats()
 
 
-      tags$span(
-        sliderInput(ns("ind_missing"),
-                    " Minimum percentage of genotyped loci by individual:",
-                    round(min(geno_stats$ind_miss),2),
-                    round(max(geno_stats$ind_miss),2),
-                    step = 0.01,
-                    value = round(min(geno_stats$ind_miss), 2)),
-        sliderInput(ns("ind_he"),
-                    " Minimum percentage of heterozygosity by individual:",
-                    round(min(geno_stats$ind_het), 2),
-                    round(max(geno_stats$ind_het),2),
-                    step = 0.01,
-                    value = round(min(geno_stats$ind_het), 2))
-      )
-    })
 
-    output$by_locus_filter_params <- renderUI({
-      gl <- data()$data$gl
-      geno_stats <- get_geno_stats()
-
-      tags$span(
-        sliderInput(ns("loc_missing"),
-                    " Minimum number of genotyped individuals by marker:",
-                    round(min(geno_stats$loc_miss)*adegenet::nInd(gl)),
-                    round(max(geno_stats$loc_miss)*adegenet::nInd(gl)),
-                    step = 1,
-                    value = round(min(geno_stats$loc_miss)*adegenet::nInd(gl))),
-        sliderInput(ns("loc_he"),
-                    " Minimum heterozygosity by locus:",
-                    round(min(geno_stats$loc_het),2),
-                    round(max(geno_stats$loc_het),2),
-                    step = 0.01,
-                    value = round(min(geno_stats$loc_het), 2)),
-        sliderInput(ns("maf"),
-                    " Minimum minor allele frequency (MAF):",
-                    min = 0,
-                    max = round(max(geno_stats$maf),2),
-                    step = 0.01,
-                    value = 0)
-        # ADD multiple select to remove target locus
-      )
-    })
 
 
 
