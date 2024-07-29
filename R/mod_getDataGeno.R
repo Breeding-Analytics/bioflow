@@ -90,7 +90,7 @@ mod_getDataGeno_ui <- function(id){
                                       solidHeader = TRUE,
                                       status = 'success',
                                       tags$ul(
-                                        tags$li('Accept HapMap, VCF, CSV formats (tab-delimited text file with a header row).
+                                        tags$li('Accept HapMap, VCF, CSV formats (tab-delimited text file with a single-header row).
                          The HapMap and VCF files list SNPs in rows and Accessions (individual samples)
                          in columns, and viceversa in the case of the CSV. The first 11 columns of the HapMap
                          describe attributes of the SNP, but only the first 4 columns data are required for processing:
@@ -98,8 +98,8 @@ mod_getDataGeno_ui <- function(id){
 
                                         tags$li(
                                           tags$span(
-                                            'Accept numeric coding ([0,1, and 2] or [-1,0, and 1] for reference/major,
-                     heterozygous, and alternative/minor alleles respectively), or the ',
+                     #                        'Accept numeric coding ([0,1, and 2] or [-1,0, and 1] for reference/major,
+                     # heterozygous, and alternative/minor alleles respectively), or the ',
                                             tags$a('IUPAC single-letter', target = '_blank', href = 'https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation'),
                                             'code (ref. ',
                                             tags$a('https://doi.org/10.1093/nar/13.9.3021', target = '_blank', href = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC341218/'),
@@ -189,7 +189,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab. Make sure you use the right data format (e.g., single header, etc.).")) )
       }else{ # data is there
         if(!is.null(data()$data$geno)){
           if(!is.null(data()$metadata$geno)){
@@ -197,7 +197,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           }else{
             HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
           }
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. Make sure you use the right data format (e.g., single header, etc.). ")) )}
       }
     )
 
@@ -293,9 +293,10 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
             if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
           } # make sure if an user uploads a new dataset the qaGeno starts empty
 
+          # keep unique individuals (remove duplcated genotypes)
           tempG <- tempG[which(!duplicated(tempG[,which(colnames(tempG)==input$geno_table_designation)[1]])),]
           rownamestempG <- tempG[,which(colnames(tempG)==input$geno_table_designation)[1] ]
-          missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","")
+          missingData=c("NN","FAIL","FAILED","Uncallable","Unused","NA","--","-:-","")
           shinybusy::show_modal_spinner('fading-circle', text = 'Converting...')
           for(iMiss in missingData){tempG[which(tempG==iMiss, arr.ind = TRUE)] <- NA}
           ## check if the data is in single letter format
@@ -311,8 +312,24 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
             updateSelectizeInput(session, "geno_table_designation", choices = colnames(tempG)[1:min(c(ncol(tempG),100))], selected = character(0))
             return(NULL)
           }
+          ##
+          # make sure user is using a single header file
+          checkOnCols <- apply(tempG,2,function(x){
+            var(nchar(x), na.rm=TRUE)
+          })
+          badMarks <- which(checkOnCols > 0)
+          if(length(badMarks) > ncol(tempG)*.9){
+            # cat("Are you sure that you are uploading a table with single header? data looks strange")
+            shinybusy::remove_modal_spinner()
+            return(NULL)
+          }
+          # remove markers that have invalid calling (except for the designation column)
+          badMarks <- setdiff(badMarks, which(colnames(tempG)==input$geno_table_designation)[1])
+          tempG <- tempG[,-badMarks]
           ## if markers were letter proceed
           nCharList <- list()
+          indexMarkers <- which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)
+          markersToSample <- sample( indexMarkers,  min(c(length(indexMarkers),20)) )
           for(iMark in 1:length(markersToSample)){nCharList[[iMark]] <- na.omit(unique(nchar(tempG[,markersToSample[iMark]])))}
           singleLetter <- which(unique(unlist(nCharList)) == 1)
           if(length(singleLetter) > 0){
@@ -326,9 +343,11 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           temp$data$geno <- tempG$M
           refAlleles <- tempG$ref.alleles
           map <- data.frame(a=colnames(tempG$M), chrom=1, pos=1:ncol(tempG$M))
-          map$refAllele <- tempG$ref.alleles[2,]
-          map$altAllele <- tempG$ref.alleles[1,]
+          rownames(map) <- colnames(tempG$M)
+          map[colnames(tempG$ref.alleles),"refAllele"] <- tempG$ref.alleles[2,]
+          map[colnames(tempG$ref.alleles),"altAllele"] <- tempG$ref.alleles[1,]
           colnames(map) <- c('marker', 'chr', 'pos', 'refAllele', 'altAllele')
+          rownames(map) <- NULL
           temp$metadata$geno <- map
           data(temp)
         }else{return(NULL)}

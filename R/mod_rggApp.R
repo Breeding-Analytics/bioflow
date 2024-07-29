@@ -118,7 +118,6 @@ mod_rggApp_ui <- function(id){
                                                                                                    numericInput(ns("sampleN"), label = "Number of entries per environment to sample", value = 50),
                                                                                                    numericInput(ns("bootstrappingN"), label = "Number of bootstrapping per samples", value = 10),
                                                                                          ),
-                                                                                         selectInput(ns("deregress"), "Should deregress estimates", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                                          selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                                          selectInput(ns("forceRules"), label = "#Years rule applied?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE)
                                                                      ),
@@ -437,7 +436,6 @@ mod_rggApp_server <- function(id, data){
             phenoDTfile= data,
             analysisId=input$version2Rgg,
             trait=input$trait2Rgg, # per trait
-            deregress=input$deregress,
             yearsToUse=input$yearsToUse,
             sampleN = input$sampleN,
             bootstrappingN = input$bootstrappingN,
@@ -452,7 +450,6 @@ mod_rggApp_server <- function(id, data){
             analysisId=input$version2Rgg,
             trait=input$trait2Rgg, # per trait
             deregressWeight=input$deregressWeight,
-            deregress=input$deregress,
             partition=input$partition,
             yearsToUse=input$yearsToUse,
             verbose=input$verbose,
