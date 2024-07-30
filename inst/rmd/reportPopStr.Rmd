@@ -73,8 +73,9 @@ The following table allows you to inspect the principal statistics for the diver
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
-    load(normalizePath("R/outputs/resultPopStr.RData"))
+  if(file.exists("./outputs/resultPopStr.RData")){
+    load("./outputs/resultPopStr.RData")
+    # load(normalizePath("R/outputs/resultPopStr.RData"))
   }else{
     load("resultPopStr.RData")
   }
