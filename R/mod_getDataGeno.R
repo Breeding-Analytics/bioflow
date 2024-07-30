@@ -325,7 +325,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           }
           # remove markers that have invalid calling (except for the designation column)
           badMarks <- setdiff(badMarks, which(colnames(tempG)==input$geno_table_designation)[1])
-          tempG <- tempG[,-badMarks]
+          if(length(badMarks) > 0){tempG <- tempG[,-badMarks]}
           ## if markers were letter proceed
           nCharList <- list()
           indexMarkers <- which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)

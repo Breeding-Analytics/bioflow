@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Phenotypic Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "July 10, 2024"  
+date: "July 30, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -22,14 +22,15 @@ The following table shows the modifications that have been saved in your analysi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQa-label" for="qaRawApp_1-traitQa">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="YLD_CONT_TON" selected>YLD_CONT_TON</option>
-<option value="FLW50">FLW50</option></select>
+<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="Yield (t/ha)" selected>Yield (t/ha)</option>
+<option value="Avarage fertility">Avarage fertility</option>
+<option value="Plant height (cm)">Plant height (cm)</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-outc06b548663db39d8" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out897afe63442a4014" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -44,13 +45,14 @@ The following boxplot allows you to visualize which records were tagged as outli
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaRawApp_1-traitQaBox-label" for="qaRawApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="YLD_CONT_TON" selected>YLD_CONT_TON</option>
-<option value="FLW50">FLW50</option></select>
+<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="Yield (t/ha)" selected>Yield (t/ha)</option>
+<option value="Avarage fertility">Avarage fertility</option>
+<option value="Plant height (cm)">Plant height (cm)</option></select>
 <script type="application/json" data-for="qaRawApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out68ff8babdffe4249" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out91dff88df5bb736d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 
