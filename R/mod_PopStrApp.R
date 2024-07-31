@@ -100,7 +100,7 @@ mod_PopStrApp_ui <- function(id){
                                            br(),
                                            shinydashboardPlus::box(title="Heatmap Distance Matrix",closable = FALSE, width=12, solidHeader = TRUE, collapsible = TRUE, status="success",
                                                                    sidebar = shinydashboardPlus::boxSidebar(id="Heatmap",width = 25,
-                                                                                                            selectInput(ns('colorheat'), 'Scale color',choices =c("Reds","Jet","Blues","Viridis"), selected="Reds")
+                                                                                                            selectInput(ns('colorheat'), 'Scale color',choices =c("Jet","Reds","Blues","Viridis"), selected="Jet")
                                                                    ),
                                                                    #grafico heatmap
                                                                    div(plotly::plotlyOutput(ns("heat"),height = "750px",width = "950px"),align="center")
@@ -257,7 +257,8 @@ mod_PopStrApp_server <- function(id, data){
           rm(result)
       if(!inherits(uno,"try-error")) {
           result <- list(PopStr=uno[[4]])
-          result$PopStr$AMOVA=uno[[7]]
+          result$PopStr$AMOVA=uno[[7]]		  
+		  result$PopStr$Plots=list(uno[[3]],uno[[5]],uno[[6]])
           save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
 
           if(length(names(uno[[5]]))>5) catv<-names(uno[[5]])[6]
@@ -280,7 +281,11 @@ mod_PopStrApp_server <- function(id, data){
 
       #For report
       output$reportPopStr <- renderUI({
-        HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+		parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
+		parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
+		plist=list(parmBi,parmlist)
+		save(plist,file=normalizePath("R/outputs/parmDendMDS.RData"))		  
+        #HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
       })
       ## Report tab
       output$downloadReportPopStr <- downloadHandler(
@@ -294,15 +299,17 @@ mod_PopStrApp_server <- function(id, data){
           # src2 <- normalizePath('./R/outputs/resultPopStr.RData')
 
           src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-          src2 <- normalizePath('data/resultPopStr.RData')
-
+          src2 <- normalizePath('R/outputs/resultPopStr.RData')
+		  src3 <- normalizePath('R/outputs/parmDendMDS.RData')
+		  
           # temporarily switch to the temp dir, in case you do not have write
           # permission to the current working directory
           owd <- setwd(tempdir())
           on.exit(setwd(owd))
           file.copy(src, 'report.Rmd', overwrite = TRUE)
           file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-          out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+		  file.copy(src3, 'parmDendMDS.RData', overwrite = TRUE)
+		  out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
             "HTML",
             # HTML = rmarkdown::html_document()
             HTML = rmdformats::robobook(toc_depth = 4)
@@ -372,7 +379,7 @@ mod_PopStrApp_server <- function(id, data){
           if(input$ycol=="Factor2") tylab2=tylab
           if(input$ycol=="Factor3") tylab2=tzlab
 
-          mydata<-data()$data$geno
+		  mydata<-data()$data$geno
           if(!is.null(mydata)){
             p=plotly::plot_ly(data=uno[[5]],x=uno[[5]][,input$xcol],y=uno[[5]][,input$ycol],color=uno[[5]][,catv],
                               type="scatter",mode="markers",colors = input$color,xaxis=F, yaxis=F,
@@ -383,11 +390,13 @@ mod_PopStrApp_server <- function(id, data){
             p= p %>% plotly::layout(title=input$tp,titlefont=list(size=input$ts,color=input$pnc), xaxis = list(title = txlab2, titlefont=list(size=input$szl,color=input$ac)),
                                     yaxis = list(title = tylab2,titlefont=list(size=input$szl,color=input$ac)))
             p
+			
           }else{
             fig = plotly::plot_ly()
             fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
             fig
           }
+		  
         })
 
         #Plot heatmap
@@ -396,7 +405,7 @@ mod_PopStrApp_server <- function(id, data){
           if(!is.null(distMat)){
             names=as.character(distMat[,2])
             distMat=as.matrix(distMat[,-c(1,2)])
-            distplot=plotly::plot_ly(x=names,y=names,z = distMat, colorscale="viridis",type = "heatmap")
+            distplot=plotly::plot_ly(x=names,y=names,z = distMat, colorscale=input$colorheat,type = "heatmap")
             distplot=distplot %>% plotly::layout(xaxis = list(showticklabels = F), yaxis = list(showticklabels = F))
             distplot
           }else{
@@ -422,6 +431,7 @@ mod_PopStrApp_server <- function(id, data){
               plot(tree, type = "fan", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
               legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
             }
+			
           }
         })
 
