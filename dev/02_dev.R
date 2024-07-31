@@ -135,6 +135,11 @@
 # golem::add_module(name = "sectionInfoTransformApp", with_test = FALSE) # for transformations
 # golem::add_module(name = "sectionInfoGEApp", with_test = FALSE) # for genetic evaluation
 # golem::add_module(name = "sectionInfoSHApp", with_test = FALSE) # for selection history
+# golem::add_module(name = "sectionInfoGDApp", with_test = FALSE) # for gene discovery
+# golem::add_module(name = "sectionInfoMHApp", with_test = FALSE) # for mutation history
+# golem::add_module(name = "sectionInfoGFDApp", with_test = FALSE) # for gene frequencies
+# golem::add_module(name = "sectionInfoGFDHApp", with_test = FALSE) # for drift history
+# golem::add_module(name = "sectionInfoDASHApp", with_test = FALSE) # for dashboards
 #
 # golem::add_module(name = "abiDashboard", with_test = FALSE) # abi dashboard
 # golem::add_module(name = "reportBuilder", with_test = FALSE) # abi dashboard

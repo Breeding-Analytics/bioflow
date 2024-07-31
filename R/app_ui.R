@@ -76,7 +76,7 @@ app_ui <- function(request) {
                           navlistPanel( widths = c(1, 11),
                                         tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
                                         tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
-                                        tabPanel(div("(optional) On Farm Trial Decision (", icon("seedling"), ")" ), mod_oftStaApp_ui("oftStaApp_1") ),
+                                        tabPanel(div("(optional) On-Farm Trial Decision (", icon("seedling"), ")" ), mod_oftStaApp_ui("oftStaApp_1") ),
                           )
                  ),
 
@@ -104,19 +104,19 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Mutation", icon = icon("disease"),
-                 tabPanel(strong("DISCOVERY")),
+                 tabPanel(strong("DISCOVERY"), mod_sectionInfoGDApp_ui("sectionInfoGDApp_1") ),
                  tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")", style = "color:red")), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
-                 tabPanel(strong("MUTATION HISTORY") ),
+                 tabPanel(strong("MUTATION HISTORY"), mod_sectionInfoMHApp_ui("sectionInfoMHApp_1") ),
                  tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red")) #  icon = icon("disease")) # may include
       ),
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
-                 tabPanel(strong("GENE FREQUENCIES")), # plus, shuffle, barcode, people-group
+                 tabPanel(strong("FREQUENCY-BASED SELECTION"), mod_sectionInfoGFDApp_ui("sectionInfoGFDApp_1") ), # plus, shuffle, barcode, people-group
                  tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")", style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("barcode"), "Marker-assisted backcross (", icon("anchor"), ")", style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("barcode"), "Hybridity test (", icon("dna"), ")", style = "color:red")),
                  tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")", style = "color:red")), #  icon = icon("filter")),
-                 tabPanel(strong("DRIFT & FLOW HISTORY") ),
+                 tabPanel(strong("DRIFT & FLOW HISTORY"), mod_sectionInfoGFDHApp_ui("sectionInfoGFDHApp_1") ),
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
                  tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red")) # stpga
@@ -141,7 +141,7 @@ app_ui <- function(request) {
                  tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
-                 tabPanel(strong("DASHBOARDS")  ),
+                 tabPanel(strong("DASHBOARDS"), mod_sectionInfoDASHApp_ui("sectionInfoDASHApp_1")  ),
                  tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
                  tabPanel("Analytical Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
       ),

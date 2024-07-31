@@ -270,6 +270,11 @@ app_server <- function(input, output, session) {
   mod_sectionInfoTransformApp_server("sectionInfoTransformApp_1") # info for data transformations
   mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # info for genetic evaluation
   mod_sectionInfoSHApp_server("sectionInfoSHApp_1") # info for selection history
+  mod_sectionInfoGDApp_server("sectionInfoGDApp_1") # info for gene discovery
+  mod_sectionInfoMHApp_server("sectionInfoMHApp_1") # info for mutation history
+  mod_sectionInfoGFDApp_server("sectionInfoGFDApp_1") # info for gene frequency modules
+  mod_sectionInfoGFDHApp_server("sectionInfoGFDHApp_1") # info for gene flow and drift history
+  mod_sectionInfoDASHApp_server("sectionInfoDASHApp_1") # infor for dashboard creation
 
   ## agronomic evaluation
   mod_sectionInfoAEApp_server("sectionInfoAEApp_1")
