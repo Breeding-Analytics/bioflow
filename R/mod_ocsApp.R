@@ -388,10 +388,12 @@ mod_ocsApp_server <- function(id, data){
     })
     output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
       req(data())
+      req(input$version2Ocs)
       req(input$trait3Ocs)
       req(input$fontSize)
       req(input$groupOcsInputPlot)
       mydata <- data()$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Ocs),] # only traits that have been QA
       if(input$groupOcsInputPlot == "entryType"){mydata <- mydata[which(mydata$entryType %in% input$entryType2Ocs),]}
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Ocs),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
