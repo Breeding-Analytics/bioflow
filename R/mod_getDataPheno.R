@@ -813,7 +813,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                  inputId  = ns(paste0('select', x)),
                  label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
                  multiple = ifelse(x == 'trait', TRUE, FALSE),
-                 choices  = as.list(c('', header)),
+                 choices  = as.list(c('', header )),
                  selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
                ),
 
@@ -829,9 +829,10 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                      if(!is.numeric(temp$data$pheno[,i])){temp$data$pheno[,i] <- as.numeric(gsub(",","",temp$data$pheno[,i]))}
                    }
                  } else { # is any other column other than trait
+                   # if x is already in the metadata for pheno
                    if (x %in% temp$metadata$pheno$parameter & input[[paste0('select', x)]] != '') {
                      temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
-                   } else {
+                   } else { # if is not in the metadata
                      temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
                    }
                    if(x %in% c("designation","study") & input[[paste0('select', x)]] != ''){

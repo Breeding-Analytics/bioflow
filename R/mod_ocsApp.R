@@ -114,7 +114,7 @@ mod_ocsApp_ui <- function(id){
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4,textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="70") ),
                                                       column(width=4, textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30") ),
-                                                      column(width=4, selectInput(ns("relType"), "Relationship to use", choices = list(GRM="grm",NRM="nrm", BOTH="both"), multiple = FALSE) ),
+                                                      column(width=4, selectInput(ns("relType"), "Relationship to use",  choices = NULL, multiple = FALSE ) ),
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -325,6 +325,38 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
       traitsOcs <- unique(dtOcs$entryType)
       updateSelectInput(session, "entryType2Ocs", choices = traitsOcs, selected = traitsOcs)
+    })
+
+    ##############
+    ## rel type
+    observeEvent(c(data(), input$version2Ocs, input$trait2Ocs), {
+      req(data())
+      req(input$version2Ocs)
+      req(input$trait2Ocs)
+      availableTypes <- list()
+      dtOcs <- data()
+      if(!is.null(dtOcs$metadata$pedigree)){
+        needed <- which(dtOcs$metadata$pedigree$parameter %in% c("designation","mother","father") )
+        valueOfNeeded <- dtOcs$metadata$pedigree$value[needed]
+        valueOfNeeded <- na.omit( setdiff(valueOfNeeded,"") )
+        if(length(valueOfNeeded) == 3){
+          # now check that there are parents
+          pedMeta <- dtOcs$metadata$pedigree
+          mom <- pedMeta[dtOcs$metadata$pedigree$parameter == "mother","value"]
+          dad <- pedMeta[dtOcs$metadata$pedigree$parameter == "father","value"]
+          parents <- na.omit(unique(c( dtOcs$data$pedigree[,mom ],  dtOcs$data$pedigree[,dad ] )))
+          if(length(parents) > 2){
+            availableTypes[["NRM"]] <- "nrm"
+          }
+        }
+      }
+      if(!is.null(dtOcs$metadata$geno)){
+        availableTypes[["GRM"]] <- "grm"
+      }
+      if( length(which(c("GRM","NRM") %in% names(availableTypes))) == 2 ){
+        availableTypes[["BOTH"]] <- "both"
+      }
+      updateSelectInput(session, "relType", choices = availableTypes, selected = availableTypes[1])
     })
     ##############
     ## environment
