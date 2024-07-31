@@ -271,4 +271,8 @@ app_server <- function(input, output, session) {
   mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # info for genetic evaluation
   mod_sectionInfoSHApp_server("sectionInfoSHApp_1") # info for selection history
 
+  ## agronomic evaluation
+  mod_sectionInfoAEApp_server("sectionInfoAEApp_1")
+  mod_agrAnova_server("agrAnova_1") #anova
+
 }
