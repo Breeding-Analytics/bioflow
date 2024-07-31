@@ -242,16 +242,29 @@ app_server <- function(input, output, session) {
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
-  mod_mtaExpApp_server("mtaExpApp_1", data = data)
+  mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
   # SELECTION - selection history
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
   mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
+  mod_selSignApp_server("selSignApp_1")
 
-  # GENE FLOW AND DRIFT
+  # MUTATION - mutation discovery
+  mod_gwasqkApp_server("gwasqkApp_1") # GWAS Q+K method
+  # MUTATION - mutation history
+  mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
+
+  # GENE FLOW AND DRIFT - frequency-based selection
+  mod_masApp_server("masApp_1") # MAS
+  mod_mabcApp_server("mabcApp_1") # MABC
+  mod_hybridityApp_server("hybridityApp_1") # hybridity test
+  mod_neApp_server("neApp_1") # effective size
+  # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
+  mod_poolFormApp_server("poolFormApp_1") # pool formation
+  mod_subsetSelApp_server("subsetSelApp_1") # subset selection
 
   ## SAVE results tab
   mod_saveData_server("saveData_1", data = data, res_auth=res_auth)
@@ -278,6 +291,6 @@ app_server <- function(input, output, session) {
 
   ## agronomic evaluation
   mod_sectionInfoAEApp_server("sectionInfoAEApp_1")
-  mod_agrAnova_server("agrAnova_1") #anova
+  mod_agrAnova_server("agrAnova_1") #anova for agronomic experiments
 
 }

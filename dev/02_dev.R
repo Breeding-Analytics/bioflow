@@ -122,7 +122,16 @@
 # golem::add_module(name = "ocsApp", with_test = FALSE) # optimal cross selection
 # golem::add_module(name = "rggApp", with_test = FALSE) # realized genetic gain
 # golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "selSignApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "dataConsistPotatoApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "gwasqkApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "mutatioRateApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "masApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "mabcApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "hybridityApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "neApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "poolFormApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "subsetSelApp", with_test = FALSE) # predicted genetic gain
 #
 # golem::add_module(name = "homeApp", with_test = FALSE) # home
 #

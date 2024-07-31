@@ -98,28 +98,28 @@ app_ui <- function(request) {
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
                  tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("chart-line"), "Predicted Genetic Gain (", icon("seedling"),  icon("network-wired"),")"), mod_pggApp_ui("pggApp_1")),# user needs to perfor m a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div(icon("chart-line"), "Selection signatures (", icon("dna"),")", style = "color:red") ), # icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
+                 tabPanel(div(icon("chart-line"), "Selection signatures (", icon("dna"),")", style = "color:red"), mod_selSignApp_ui("selSignApp_1") ), # icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
                  tabPanel(strong("AGRONOMIC EVALUATION"), mod_sectionInfoAEApp_ui("sectionInfoAEApp_1") ),
                  tabPanel(div(icon("chart-line"), "Analysis of Variance (", icon("seedling"),")", style = "color:red"), mod_agrAnova_ui("agrAnova_1") )
       ),
 
       navbarMenu("Mutation", icon = icon("disease"),
                  tabPanel(strong("DISCOVERY"), mod_sectionInfoGDApp_ui("sectionInfoGDApp_1") ),
-                 tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")", style = "color:red")), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
+                 tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")", style = "color:red"), mod_gwasqkApp_ui("gwasqkApp_1") ), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
                  tabPanel(strong("MUTATION HISTORY"), mod_sectionInfoMHApp_ui("sectionInfoMHApp_1") ),
-                 tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red")) #  icon = icon("disease")) # may include
+                 tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red"), mod_mutatioRateApp_ui("mutatioRateApp_1") ) #  icon = icon("disease")) # may include
       ),
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
                  tabPanel(strong("FREQUENCY-BASED SELECTION"), mod_sectionInfoGFDApp_ui("sectionInfoGFDApp_1") ), # plus, shuffle, barcode, people-group
-                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")", style = "color:red")), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div(icon("barcode"), "Marker-assisted backcross (", icon("anchor"), ")", style = "color:red")), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div(icon("barcode"), "Hybridity test (", icon("dna"), ")", style = "color:red")),
-                 tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")", style = "color:red")), #  icon = icon("filter")),
+                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")", style = "color:red"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("barcode"), "Marker-assisted backcross (", icon("anchor"), ")", style = "color:red"), mod_mabcApp_ui("mabcApp_1") ), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("barcode"), "Hybridity test (", icon("dna"), ")", style = "color:red"), mod_hybridityApp_ui("hybridityApp_1") ),
+                 tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")", style = "color:red"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
                  tabPanel(strong("DRIFT & FLOW HISTORY"), mod_sectionInfoGFDHApp_ui("sectionInfoGFDHApp_1") ),
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
-                 tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red")), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
-                 tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red")) # stpga
+                 tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
+                 tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ) # stpga
       ),
 
       navbarMenu("Other functions", icon = icon("medal"),
