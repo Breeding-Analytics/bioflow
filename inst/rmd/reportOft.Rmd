@@ -6,7 +6,6 @@ output: html_document
 params:
  fieldinst: NULL
  traits: NULL
- yldTrait: NULL
  mdisease: NULL
  tdisease: NULL
  sdisease: NULL
@@ -100,10 +99,10 @@ get_h <- function() {
 
 ```{r loadData, results='asis', include=FALSE}
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultSta.RData")){
-    load("./outputs/resultSta.RData")
+  if(file.exists("./outputs/resultOft.RData")){
+    load("./outputs/resultOft.RData")
   }else{
-    load("resultSta.RData")
+    load("resultOft.RData")
   }
 }, error = function(e) {
   # NULL
@@ -114,7 +113,21 @@ suppressWarnings(tryCatch({
 ```{r getData, results='asis', error = FALSE}
 ### loading the RData
 # result <- params$data
+
 dt_orig <- result$data$pheno
+
+# check if pheno data also has pedigree data columns, keep pedigree info
+if(any(c(result$metadata$pedigree[result$metadata$pedigree$parameter=="yearOfOrigin","value"],
+         "yearOfOrigin",
+         result$metadata$pedigree[result$metadata$pedigree$parameter=="mother","value"],"mother",
+         result$metadata$pedigree[result$metadata$pedigree$parameter=="father","value"],"father") %in% colnames(dt_orig))){
+  dropVar <- c(result$metadata$pedigree[result$metadata$pedigree$parameter=="yearOfOrigin","value"],
+               "yearOfOrigin",
+               result$metadata$pedigree[result$metadata$pedigree$parameter=="mother","value"],"mother",
+               result$metadata$pedigree[result$metadata$pedigree$parameter=="father","value"],"father")
+  dt_orig = dt_orig[,!(names(dt_orig) %in% dropVar)]
+}
+
 dt_orig <- merge(dt_orig, result$data$pedigree, 
                  by.x = result$metadata$pheno[result$metadata$pheno$parameter=="designation","value"], 
                  by.y = result$metadata$pedigree[result$metadata$pedigree$parameter=="designation","value"], all.x = TRUE)
@@ -129,8 +142,11 @@ colnames(dt_orig) <- cgiarBase::replaceValues(colnames(dt_orig),
 
 ### remove the outliers
 dt_clean <- dt_orig
-rowPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == params$version),"row"]
-traitPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == params$version),"trait"]
+
+qaID <- result$modeling[which(result$modeling$module == "sta" & result$modeling$analysisId == params$version & result$modeling$parameter == "analysisId"), "value"]
+
+rowPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == qaID),"row"]
+traitPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == qaID),"trait"]
 
 if(length(rowPheno)>0){
   for(i in 1:length(rowPheno)){
@@ -139,13 +155,15 @@ if(length(rowPheno)>0){
 }
 
 ### standardize disease info naming
-colnames(dt_orig)[which(names(dt_orig) == params$mdisease)] <- "MDiseases"
-colnames(dt_orig)[which(names(dt_orig) == params$tdisease)] <- "Type_Disease"
-colnames(dt_orig)[which(names(dt_orig) == params$sdisease)] <- "Disease_Severity"
+if(!is.null(params$mdisease)){
+  colnames(dt_orig)[which(names(dt_orig) == params$mdisease)] <- "MDiseases"
+  colnames(dt_orig)[which(names(dt_orig) == params$tdisease)] <- "Type_Disease"
+  colnames(dt_orig)[which(names(dt_orig) == params$sdisease)] <- "Disease_Severity"
+}
 
 ### get fieldinst input
 if(is.null(params$fieldinst)){
-  fieldinst <- environment
+  fieldinst <- unique(dt_orig$environment)
 } else{
   fieldinst <- params$fieldinst
 }
@@ -162,9 +180,11 @@ dt_sta_met <- result$metrics[which(result$metrics$module == "sta"),]
 dt_sta_met <- dt_sta_met[which(dt_sta_met$environment %in% fieldinst),]
 dt_sta_met <- dt_sta_met[which(dt_sta_met$analysisId == params$version),]
 
-traits <- unique(dt_sta_met$trait)
-if(!is.null(params$traits)){
-  traits <- traits[which(traits %in% params$traits)]
+### get traits input
+if(is.null(params$traits)){
+  traits <- unique(dt_sta_met$trait)
+} else{
+  traits <- params$traits
 }
 numTraits <- length(traits)
 
@@ -174,11 +194,9 @@ numTraits <- length(traits)
 
 ### Dataset
 
-<p>&nbsp;</p>
-
 Summary of Number of Varieties per Variety Class; and Number of Trials in each Market Segment.
 
-```{r dataInfo, echo = FALSE, message = FALSE, warning = FALSE}
+```{r dataInfo, results='asis', echo = FALSE, message = FALSE, warning = FALSE}
 varInfo <- dt_clean %>% count(environment,entryType,designation,yearOfOrigin) %>% 
   mutate(color = case_when(entryType == "TEST VARIETY" ~ "#2835e6",
                            entryType == "LOCAL VARIETY" ~ "#038542",
@@ -191,7 +209,7 @@ studyInfo1 <- dt_clean %>% group_by(environment, entryType) %>% count(designatio
   tidyr::spread(entryType, n)
 studyInfo2 <- dt_clean %>% group_by(environment) %>%count(designation)  %>% count() %>%
   rename('Total Number of Variety'= n)
-studyInfo3 <- dt_clean %>% group_by(environment) %>%  count() %>%rename('Number of Farmers'= n)
+studyInfo3 <- dt_clean %>% group_by(environment) %>% count(iBlock) %>% count() %>%rename('Number of Farmers'= n)
 
 studyInfo <- cbind(studyInfo1,studyInfo2[-1],studyInfo3[-1])
 
@@ -200,6 +218,7 @@ printTable(studyInfo, scrollXOpt = FALSE,
                         "Total Number of Variety", "Number of Trials"))
 
 ```
+
 <p>&nbsp;</p>
 
 ### Data Quality Control
@@ -209,8 +228,6 @@ printTable(studyInfo, scrollXOpt = FALSE,
 ### Summary statistics
 
 The following table allows you to verify some quality metrics (KPIs) for the different trait by environment combinations.
-
-<p>&nbsp;</p>
 
 ```{r }
 if (is.null(result)){
@@ -241,40 +258,19 @@ if (is.null(result)){
   ## Min
   pred.traits.min <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) min(x,na.rm=T))
   colnames(pred.traits.min)[3] <- "min"
-  ## Mean
-  pred.traits.mean <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
-  colnames(pred.traits.mean)[3] <- "mean"
-  ## H2
+  
   metrics <- dt_sta_met
   metrics <- metrics[metrics$analysisId == params$version,]
-  metrics.h2 <- metrics[metrics$parameter=="plotH2",]
-  metrics.h2 <- subset(metrics.h2, select = c(trait,environment,value))
-  colnames(metrics.h2)[3] <- "H2"
-  ## CV
-  metrics.CV <- metrics[metrics$parameter=="CV",]
-  metrics.CV <- subset(metrics.CV, select = c(trait,environment,value))
-  colnames(metrics.CV)[3] <- "CV"
-  ## r2
-  metrics.r2 <- metrics[metrics$parameter=="r2",]
-  metrics.r2 <- subset(metrics.r2, select = c(trait,environment,value))
-  colnames(metrics.r2)[3] <- "r2"
-  ## Vg
-  metrics.Vg <- metrics[metrics$parameter=="Vg",]
-  metrics.Vg <- subset(metrics.Vg, select = c(trait,environment,value))
-  colnames(metrics.Vg)[3] <- "Vg"
-  ## Vr
-  metrics.Vr <- metrics[metrics$parameter=="Vr",]
-  metrics.Vr <- subset(metrics.Vr, select = c(trait,environment,value))
-  colnames(metrics.Vr)[3] <- "Vr"
+  metrics <- subset(metrics, select = c(trait,environment,parameter,value))
+  metrics <- reshape(metrics, idvar = c("trait","environment"), timevar = "parameter", direction = "wide")
+  colnames(metrics) <- gsub("value.", "", colnames(metrics)) 
   
-  pred.traits.summary <- merge(x = pred.traits.min, y = pred.traits.mean, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = pred.traits.max, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.h2, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.CV, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.r2, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vg, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vr, by = c("environment","trait"), all.x = TRUE)
-  numeric.output <- c("min","mean","max","H2","CV","r2","Vg","Vr")
+  pred.traits.summary <- merge(x = pred.traits.min, y = pred.traits.max, by = c("environment","trait"), all.x = TRUE)
+  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics, by = c("environment","trait"), all.x = TRUE)
+  
+  pred.traits.summary <- pred.traits.summary[,c("trait", "environment","min", "mean", "max", setdiff(colnames(metrics),c("trait", "environment","mean")))]
+  
+  numeric.output <- setdiff(colnames(pred.traits.summary),c("trait", "environment"))
   
   if(params$toDownload == TRUE){ # we will download the document
     printTable(unique(pred.traits.summary),
@@ -597,8 +593,8 @@ for (i in 1:numTraits) {
 
 <div style = "width:100%; height:auto;">
 ```{r bargRE, echo = FALSE, message = FALSE, warning = FALSE, include=FALSE}
-
-bar_dse <- vector(mode = "list", length = length(traits)*length(RiceEnvs))            
+if(!is.null(params$mdisease)){
+  bar_dse <- vector(mode = "list", length = length(traits)*length(RiceEnvs))            
 TDse_tempHMP  <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
 TDse_tempHMP2  <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
 DseSev_temp <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
@@ -685,7 +681,7 @@ for (i in 1:numTraits){
                       layout(title = "Type of Major Disease", margin = m)  
 }
 }
-
+}
 
 ```
 <p>&nbsp;</p>
@@ -743,8 +739,6 @@ if(params$toDownload == TRUE){
                                ))
     m <- list(l = 40,r = 40,b = 40,  t = 40)
     
-    t1 <- list(color = "blue", size=20)
-    
     BLUPsBG[[i]][[j]] <- plot_ly(BLUPs_BG, x = ~reorder(designation, -predictedValue),
                                  width = 800, height = 800) %>% 
                          add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","designation"],
@@ -789,12 +783,13 @@ if(params$toDownload == TRUE){
                                    textfont = list(color = 'white', size = 12)) %>%
                          layout(xaxis = list(title = "Variety"), 
                                 yaxis = list(title = "Predicted Value"))  %>% 
-                         layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, font = list(size = 14))) %>% layout(title = list(text = "Predicted performance", font = t1), margin = m)
+                         layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, font = list(size = 14))) %>% layout(title = list(text = "Predicted performance"), margin = m)
 
     print(htmltools::tagList(BLUPsBG[[i]][[j]]))
     cat("\\linebreak")
     cat("\\linebreak")
-    print(htmltools::tagList(bar_dse[[i]][[j]]))
+    if(!is.null(params$mdisease)){
+      print(htmltools::tagList(bar_dse[[i]][[j]]))
     cat("\\linebreak")
     cat("\\linebreak")
     if(nrow(TDse_temp <- dt_orig %>% filter(environment == RiceEnvs[j]) %>% 
@@ -814,6 +809,7 @@ if(params$toDownload == TRUE){
                  colNames = colnames(DseSev_temp[[i]][[j]]),
                  scrollXOpt = FALSE,
                  numRound = 4))))
+    }
     }
     cat("\\linebreak")
     cat("\\linebreak")
@@ -1082,8 +1078,6 @@ if(params$toDownload == TRUE){
                                ))
     m <- list(l = 40,r = 40,b = 40,  t = 40)
 
-    t1 <- list(color = "blue", size=20)
-
     BLUPsBG <- plot_ly(BLUPs_BG, x = ~reorder(designation, -predictedValue),
                                  width = 800, height = 800) %>%
                          add_trace(x = BLUPs_BG[BLUPs_BG$entryType == "TEST VARIETY","designation"],
@@ -1128,7 +1122,7 @@ if(params$toDownload == TRUE){
                                    textfont = list(color = 'white', size = 12)) %>%
                          layout(xaxis = list(title = "Variety"),
                                 yaxis = list(title = "Predicted Value"))  %>%
-                         layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, font = list(size = 14))) %>% layout(title = list(text = "Predicted performance", font = t1), margin = m)
+                         layout(legend = list(orientation = 'h', xanchor = "center", x = 0.5, font = list(size = 14))) %>% layout(title = list(text = "Predicted performance"), margin = m)
 
     BLUPsBG
     } else if(input$graphOft2 == "Error Graph"){
@@ -1377,7 +1371,8 @@ if (is.null(result)){
   if(params$toDownload == TRUE){ # we will download the document
     shinyjs::hide()
   }else{
-    inputPanel(
+    if(!is.null(params$mdisease)){
+      inputPanel(
       shiny::selectInput(ns("traitOft3"),
                          label = "Trait to filter:", 
                          multiple = FALSE,
@@ -1395,13 +1390,15 @@ if (is.null(result)){
                          choices = c("Bargraph", "Heatmap", "Summary Count"),
                          )
     )
+    }
   }
 }
 
 ```
 
 ```{r , results = "asis", echo = FALSE}
-if(params$toDownload == FALSE){
+if(!is.null(params$mdisease)){
+  if(params$toDownload == FALSE){
   bar_dse <- NULL            
   TDse_tempHMP  <- NULL
   TDse_tempHMP2  <- NULL
@@ -1492,5 +1489,5 @@ if(params$toDownload == FALSE){
     }
   })
 }
-
+}
 ```

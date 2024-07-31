@@ -139,6 +139,9 @@
 # golem::add_module(name = "abiDashboard", with_test = FALSE) # abi dashboard
 # golem::add_module(name = "reportBuilder", with_test = FALSE) # abi dashboard
 #
+# golem::add_module(name = "sectionInfoAEApp", with_test = FALSE)
+# golem::add_module(name = "agrAnova", with_test = FALSE) # anova for agri data
+#
 # ## Add helper functions ----
 # ## Creates fct_* and utils_*
 # golem::add_fct("helpers", with_test = TRUE)

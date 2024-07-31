@@ -33,6 +33,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                p(strong("Trait(s) to include.-")," Traits to be included in the dashboard. It only includes analyzed traits from sta."),
                                                                p(strong("Year of origin.-")," The name of the column containing the year when the genotype originated."),
                                                                p(strong("Entry type.-")," The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
+                                                               p(strong("iBlock.-")," The name of the column containing the farm information."),
                                                                p(strong("Major Diseases.-")," The name of the column containing whether a major disease was observed or not."),
                                                                p(strong("Type of Disease.-")," The name of the column containing the type of major disease observed."),
                                                                p(strong("Disease Severity.-")," The name of the column containing the severity of major disease observed."),
@@ -87,11 +88,12 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-                                      tabPanel("Select year of origin & entry type", icon = icon("table"),
+                                      tabPanel("Select year of origin, entry type & iBlock", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=6, selectInput(ns("yearsToUse"), "Year of origin", choices = NULL, multiple = TRUE) ),
-                                                      column(width=6, selectInput(ns("entryTypeToUse"), "Entry type", choices = NULL, multiple = TRUE) ),
+                                                      column(width=4, selectInput(ns("yearsToUse"), "Year of origin", choices = NULL, multiple = FALSE) ),
+                                                      column(width=4, selectInput(ns("entryTypeToUse"), "Entry type", choices = NULL, multiple = FALSE) ),
+                                                      column(width=4, selectInput(ns("iBlockToUse"), "iBlock", choices = NULL, multiple = FALSE) ),
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -110,10 +112,10 @@ that perform well under farmers’ conditions before these are announced to the 
                                       tabPanel("Select Disease Information", icon = icon("table"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=4, selectInput(ns("mDisease"), "Major Disease", choices = NULL, multiple = FALSE) ),
-                                                      column(width=4, selectInput(ns("typeDisease"), "Type of Disease", choices = NULL, multiple = FALSE) ),
-                                                      column(width=4, selectInput(ns("diseaseSeverity"), "Disease Severity", choices = NULL, multiple = FALSE) ),
+                                                      column(width=12, tags$br(),
+                                                             shinyWidgets::prettySwitch( inputId = ns('withDisease'), label = "With Disease Information?", status = "success")),
                                                ),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF", uiOutput(ns('diseaseInfo')) ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -138,7 +140,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
                                                                           column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
                                                                           column(width=3, selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=3, selectInput(ns("entryTypeOft"), "Entry type to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=3, selectInput(ns("entryTypeOft"), "Entry type to visualize", choices = NULL, multiple = FALSE) ),
                                                                           column(width=2, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
                                                                           column(width=2, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
                                                                           column(width=2, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
@@ -189,8 +191,8 @@ mod_oftStaApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
-        mappedColumns <- length(which(c("environment","designation","trait","entryType") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 4){
+        mappedColumns <- length(which(c("environment","designation","trait","entryType","iBlock") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 5){
           if("sta" %in% data()$status$module){
             mappedColName <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree$",mappedColName)))),NA))
@@ -200,7 +202,16 @@ mod_oftStaApp_server <- function(id, data){
               HTML( as.character(div(style="color: red; font-size: 20px;", "To generate OFT Dashboard, please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )
             }
           }else{ HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single trial analysis before generating OFT dashboard.")) ) }
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation', 'entryType' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation', 'entryType', 'iBlock' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+      }
+    )
+
+    output$diseaseInfo <- renderUI(
+      if(input$withDisease){
+        column(width=12, style = "background-color:grey; color: #FFFFFF",
+               column(width=4, selectInput(ns("mDisease"), "Major Disease", choices = NULL, multiple = FALSE) ),
+               column(width=4, selectInput(ns("typeDisease"), "Type of Disease", choices = NULL, multiple = FALSE) ),
+               column(width=4, selectInput(ns("diseaseSeverity"), "Disease Severity", choices = NULL, multiple = FALSE) ))
       }
     )
 
@@ -281,36 +292,48 @@ mod_oftStaApp_server <- function(id, data){
       traitsOft <- dtOft$metadata$pheno[dtOft$metadata$pheno$parameter=="entryType","value"]
       updateSelectInput(session, "entryTypeToUse", choices = traitsOft, selected = traitsOft )
     })
-    ## mDisease
+    ## iBlock
     observeEvent(c(data(),input$version2Oft,input$trait2Oft), {
       req(data())
       req(input$version2Oft)
       req(input$trait2Oft)
+      dtOft <- data()
+      traitsOft <- dtOft$metadata$pheno[dtOft$metadata$pheno$parameter=="iBlock","value"]
+      updateSelectInput(session, "iBlockToUse", choices = traitsOft, selected = traitsOft )
+    })
+    ## mDisease
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$withDisease), {
+      req(data())
+      req(input$version2Oft)
+      req(input$trait2Oft)
+      req(input$withDisease)
       dtOft <- data()
       traitsOft <- setdiff(colnames(dtOft$data$pheno), dtOft$metadata$pheno$value)
       updateSelectInput(session, "mDisease", choices = traitsOft, selected = ifelse("MDiseases" %in% traitsOft, "MDiseases", traitsOft[1]))
     })
     ## typeDisease
-    observeEvent(c(data(),input$version2Oft,input$trait2Oft), {
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$withDisease), {
       req(data())
       req(input$version2Oft)
       req(input$trait2Oft)
+      req(input$withDisease)
       dtOft <- data()
       traitsOft <- setdiff(colnames(dtOft$data$pheno), dtOft$metadata$pheno$value)
       updateSelectInput(session, "typeDisease", choices = traitsOft, selected = ifelse("Type_Disease" %in% traitsOft, "Type_Disease", traitsOft[1]))
     })
     ## diseaseSeverity
-    observeEvent(c(data(),input$version2Oft,input$trait2Oft), {
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$withDisease), {
       req(data())
       req(input$version2Oft)
       req(input$trait2Oft)
+      req(input$withDisease)
       dtOft <- data()
       traitsOft <- setdiff(colnames(dtOft$data$pheno), dtOft$metadata$pheno$value)
       updateSelectInput(session, "diseaseSeverity", choices = traitsOft, selected = ifelse("Disease_Severity" %in% traitsOft, "Disease_Severity", traitsOft[1]))
     })
     ## environment
-    observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$yearsToUse,input$entryTypeToUse,
-                   input$mDisease,input$typeDisease,input$diseaseSeverity), {
+    observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$yearsToUse,input$entryTypeToUse,input$iBlockToUse,
+                   input$withDisease), {
       req(data())
       req(input$version2Oft)
       req(input$trait2Oft)
@@ -450,11 +473,11 @@ mod_oftStaApp_server <- function(id, data){
       # res <- plotly::plot_ly(y = mydata[,"predictedValue"], type = "box", boxpoints = "all", jitter = 0.3, #color = mydata[,input$groupMtaInputPlot],
       #                        x = mydata[,input$groupMtaInputPlot], text=mydata[,"designation"], pointpos = -1.8)
       # res = res %>% plotly::layout(showlegend = FALSE); res
-      ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+      ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(mydata[,input$groupOftInputPlot]), y=predictedValue)) +
         ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
         ggplot2::theme_classic()+
         ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
-        ggplot2::xlab("Environment") + ggplot2::ylab("Predicted value") +
+        ggplot2::xlab(input$groupOftInputPlot) + ggplot2::ylab("Predicted value") +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45))
     })
 
@@ -557,6 +580,7 @@ mod_oftStaApp_server <- function(id, data){
       req(input$trait2Oft)
       req(input$yearsToUse)
       req(input$entryTypeToUse)
+      req(input$iBlockToUse)
       req(input$env2Oft)
       result <- data()
 
@@ -564,19 +588,59 @@ mod_oftStaApp_server <- function(id, data){
         ## report OFT
         shinybusy::show_modal_spinner(spin = "fading-circle",
                                       text = "Generating Dashboard...")
-        out <- rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
-                                 output_format = rmarkdown::html_fragment(),
-                                 params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
-                                               mdisease = input$mDisease, tdisease = input$typeDisease,
-                                               sdisease = input$diseaseSeverity, version = input$version2Oft),
-                                 quiet = TRUE)
+        if(input$withDisease){
+          out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
+                                   output_format = rmarkdown::html_fragment(),
+                                   params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
+                                                 mdisease = input$mDisease, tdisease = input$typeDisease,
+                                                 sdisease = input$diseaseSeverity, version = input$version2Oft),
+                                   quiet = TRUE),silent=TRUE)
+
+          if(!inherits(out,"try-error")) {
+            oftAnalysisId <- as.numeric(Sys.time())
+            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId))
+            modelingOft <- data.frame(module = rep("oft",6), analysisId = rep(oftAnalysisId,6),
+                                      trait = rep("inputObject",6), environment = rep("general",6),
+                                      parameter = c("traits", "fieldinst", "mdisease", "tdisease", "sdisease", "version"),
+                                      value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
+                                                paste(capture.output(dput(input$env2Oft)), collapse = ""),
+                                                input$mDisease, input$typeDisease, input$diseaseSeverity,
+                                                input$version2Oft))
+            result$modeling <- rbind(result$modeling, modelingOft)
+            data(result)
+          }
+
+        } else{
+          out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
+                                   output_format = rmarkdown::html_fragment(),
+                                   params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
+                                                 version = input$version2Oft),
+                                   quiet = TRUE),silent=TRUE)
+
+          if(!inherits(out,"try-error")) {
+            oftAnalysisId <- as.numeric(Sys.time())
+            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId))
+            modelingOft <- data.frame(module = rep("oft",3), analysisId = rep(oftAnalysisId,3),
+                                      trait = rep("inputObject",3), environment = rep("general",3),
+                                      parameter = c("traits", "fieldinst", "version"),
+                                      value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
+                                                paste(capture.output(dput(input$env2Oft)), collapse = ""),
+                                                input$version2Oft))
+            result$modeling <- rbind(result$modeling, modelingOft)
+            data(result)
+          }
+        }
+
         output$reportOft <- renderUI({
           shiny::withMathJax(HTML(readLines(out)))
           # HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOft.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
-        cat(paste("Dashboard Generated Successfully."))
-        shinybusy::remove_modal_spinner()
-        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+
+        if(!inherits(result,"try-error")) {
+          cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          shinybusy::remove_modal_spinner()
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+        }
 
         ## report OFT
         output$downloadReportOft <- downloadHandler(
@@ -589,19 +653,39 @@ mod_oftStaApp_server <- function(id, data){
             shinybusy::show_modal_spinner(spin = "fading-circle",
                                           text = "Downloading Dashboard...")
             src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
-            # src2 <- normalizePath('data/resultSta.RData')
+            src2 <- normalizePath('data/resultOft.RData')
 
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
             file.copy(src, 'report2.Rmd', overwrite = TRUE)
-            # file.copy(src2, 'resultSta.RData', overwrite = TRUE)
-            out2 <- rmarkdown::render('report2.Rmd',
-                                     params = list(traits = input$trait2Oft, fieldinst=input$env2Oft, toDownload=TRUE,
-                                                   mdisease = input$mDisease, tdisease = input$typeDisease,
-                                                   sdisease = input$diseaseSeverity, version = input$version2Oft),
-                                     switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
+            file.copy(src2, 'resultOft.RData', overwrite = TRUE)
+
+            if(input$withDisease){
+              # out2 <- rmarkdown::render('report2.Rmd',
+              #                           params = list(traits = input$trait2Oft, fieldinst=input$env2Oft, toDownload=TRUE,
+              #                                         mdisease = input$mDisease, tdisease = input$typeDisease,
+              #                                         sdisease = input$diseaseSeverity, version = input$version2Oft),
+              #                           switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
+              out2 <- rmarkdown::render('report2.Rmd',
+                                        params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
+                                                      fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
+                                                      toDownload=TRUE,
+                                                      mdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "mdisease"), "value"],
+                                                      tdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "tdisease"), "value"],
+                                                      sdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "sdisease"), "value"],
+                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "version"), "value"]),
+                                        switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
+            } else{
+              out2 <- rmarkdown::render('report2.Rmd',
+                                        params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
+                                                      fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
+                                                      toDownload=TRUE,
+                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "version"), "value"]),
+                                        switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
+            }
+
             file.rename(out2, file)
             shinybusy::remove_modal_spinner()
           }
