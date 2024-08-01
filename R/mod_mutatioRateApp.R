@@ -11,7 +11,7 @@ mod_mutatioRateApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    HTML( as.character(div(style="color: red; font-size: 30px;", "Under construction.")) ),
+    HTML( as.character(div(style="color: red; font-size: 30px;", "Module under construction.")) ),
     img(src = "www/bongo.gif", height = 400, width = 200), # add an image
 
   )

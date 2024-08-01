@@ -68,12 +68,13 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                               DT::DTOutput(ns("statusMta")), # modeling table
-                                               DT::DTOutput(ns("phenoMta")), # predictions data table
+                                               column( width=4, DT::DTOutput(ns("tableTraitTimeStamps")), br(),br(),  ),
+                                               column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(),br(), ),
+                                               column( width=12, DT::DTOutput(ns("statusMta")), br(),br(),  ),# modeling table
+                                               column( width=12, DT::DTOutput(ns("phenoMta")), br(),br(),  ),# predictions data table
                                       ),
                                       tabPanel("Select traits", icon = icon("dice-two"),
                                                br(),
@@ -89,7 +90,7 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
                                                tags$span(id = ns('holder1'),
@@ -129,7 +130,7 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
                                                tags$span(id = ns('holder3'),
@@ -156,7 +157,7 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
                                                tags$span(id = ns('holder4'),
@@ -532,6 +533,31 @@ mod_mtaApp_server <- function(id, data){
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
           ggnetwork::theme_blank()
       }
+    })
+    ## render the table of traits and analysisID being selected
+    output$tableTraitTimeStamps <-  DT::renderDT({
+      req(data())
+      # req(input$version2Mta)
+      ### change column names for mapping
+      if(length(input$version2Mta) > 0){
+        status <- data()$status
+        modeling <- data()$modeling
+        statusPlusModel <- merge(status, unique(modeling[,c("analysisId","trait")]), by="analysisId", all.x = TRUE)
+        '%!in%' <- function(x,y)!('%in%'(x,y))
+        statusPlusModel <- statusPlusModel[which(statusPlusModel$trait %!in% c("inputObject",NA)),]
+        statusPlusModel <- statusPlusModel[which(statusPlusModel$analysisId %in% input$version2Mta),]
+        statusPlusModel$analysisId <- as.POSIXct(statusPlusModel$analysisId, origin="1970-01-01", tz="GMT")
+      }else{
+        statusPlusModel <- data.frame(analysisId=NA, module=NA, trait=NA)
+      }
+      DT::datatable(statusPlusModel, extensions = 'Buttons', # I changed Blfrtip to lfrtip and silenced the buttons
+                    options = list(dom = 'lfrtip',scrollX = TRUE, #buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Traits available in the STA-IDs selected.')
+                    )
+      )
     })
     ## render the input data to be analyzed
     output$statusMta <-  DT::renderDT({

@@ -60,12 +60,13 @@ mod_indexDesireApp_ui <- function(id){
                                                 ),
                                                 column(width=12,
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                 ),
-                                                column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                DT::DTOutput(ns("statusIndex")),
-                                                DT::DTOutput(ns("tablePredictionsTraitsWide")),
+                                                column( width=4, DT::DTOutput(ns("tableTraitTimeStamps")), br(),br(),  ),
+                                                column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(), br(), ),
+                                                column( width=12, DT::DTOutput(ns("statusIndex")),br(), br(), ),
+                                                column( width=12,DT::DTOutput(ns("tablePredictionsTraitsWide")),br(), br(), ),
                                        ),
                                        tabPanel("Pick parameters", icon = icon("dice-two"),
                                                 br(),
@@ -79,7 +80,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 column(width=9, #style = "height:550px; overflow-y: scroll;overflow-x: scroll;",
                                                        column(width=12,
                                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                              h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey box in the left", style="color:green"))),
+                                                              h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey box in the left", style="color:green"))),
                                                               hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        ),
                                                        tags$span(id = ns('holder1'),
@@ -314,6 +315,30 @@ mod_indexDesireApp_server <- function(id, data){
     ######################################################################################
     ########################################### plots
     #################
+    ## render the table of traits and analysisID being selected
+    output$tableTraitTimeStamps <-  DT::renderDT({
+      req(data())
+      ### change column names for mapping
+      if(length(input$version2IdxD) > 0){
+        status <- data()$status
+        modeling <- data()$modeling
+        statusPlusModel <- merge(status, unique(modeling[,c("analysisId","trait")]), by="analysisId", all.x = TRUE)
+        '%!in%' <- function(x,y)!('%in%'(x,y))
+        statusPlusModel <- statusPlusModel[which(statusPlusModel$trait %!in% c("inputObject",NA)),]
+        statusPlusModel <- statusPlusModel[which(statusPlusModel$analysisId %in% input$version2IdxD),]
+        statusPlusModel$analysisId <- as.POSIXct(statusPlusModel$analysisId, origin="1970-01-01", tz="GMT")
+      }else{
+        statusPlusModel <- data.frame(analysisId=NA, module=NA, trait=NA)
+      }
+      DT::datatable(statusPlusModel, extensions = 'Buttons', # I changed Blfrtip to lfrtip and silenced the buttons
+                    options = list(dom = 'lfrtip',scrollX = TRUE, #buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Traits available in the STA-IDs selected.')
+                    )
+      )
+    })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)

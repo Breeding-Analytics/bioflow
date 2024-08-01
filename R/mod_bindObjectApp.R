@@ -43,9 +43,15 @@ mod_bindObjectApp_ui <- function(id){
                            ),
                   ),
                   tabPanel(div("2. Load object(s)" ),
-                           br(),
+
+                           column( width=12,
+                                   br(),
                            actionButton(ns("runBind"), "Load object(s)", icon = icon("play-circle")),
                            textOutput(ns("outBind")),
+                           ),
+                           column( width=12,
+                                   br(),
+                                   shiny::plotOutput(ns("plotTimeStamps")) ),
                   ),
     ),
 
@@ -70,6 +76,51 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
     #   HTML( as.character(div(style="color: green; font-size: 20px;", "Please proceed to load the data objects that you want to bind.")) )
     # )
     ####################
+    ## render timestamps flow
+    output$plotTimeStamps <- shiny::renderPlot({
+      req(data()) # req(input$version2Sta)
+      xx <- data()$status;  yy <- data()$modeling
+      v <- which(yy$parameter == "analysisId")
+      if(length(v) > 0){
+        yy <- yy[v,c("analysisId","value")]
+        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
+      }else{ zz <- xx; zz$value <- NA}
+      if(!is.null(xx)){
+        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+          X <- with(zz, sommer::overlay(outputId, inputId))
+        }else{
+          if(nLevelsCheck1 <= 1){
+            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+          if(nLevelsCheck2 <= 1){
+            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+          if(!is.null(X1)){X[,colnames(X1)] <- X1}
+          if(!is.null(X2)){X[,colnames(X2)] <- X2}
+        };  rownames(X) <- as.character(zz$outputId)
+        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        # make the network plot
+        n <- network::network(X, directed = FALSE)
+        network::set.vertex.attribute(n,"family",zz$module)
+        network::set.vertex.attribute(n,"importance",1)
+        e <- network::network.edgecount(n)
+        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
+        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+        library(ggnetwork)
+        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of analyses available in object loaded. Please proceed to use the modules.") +
+          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
+                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
+          ggnetwork::theme_blank()
+      }
+    })
     ## load the objects
     observeEvent(
       input$previous_object_input,
