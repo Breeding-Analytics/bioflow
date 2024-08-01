@@ -171,7 +171,7 @@ suppressWarnings(tryCatch({
 }))
 
       uno=as.data.frame(result[["PopStr"]][["Plots"]][[2]])
-	if(length(names(uno)>5)){catv<-names(uno)[6]}else{catv <-"GroupClust"}
+	if(length(names(uno))>5){catv<-names(uno)[6]}else{catv <-"GroupClust"}
 	eti="Gen"
 
 	txlab <- paste0('Factor 1 (',result[["PopStr"]][["Plots"]][[1]][1],'%)')
@@ -217,7 +217,7 @@ suppressWarnings(tryCatch({
 }))
 
       data=as.data.frame(result[["PopStr"]][["Plots"]][[2]])
-      if(length(names(data)>5)){catv<-names(data)[6]}else{catv <-"GroupClust"}
+      if(length(names(data))>5){catv<-names(data)[6]}else{catv <-"GroupClust"}
 	  txlab <- paste0('Factor 1 (',result[["PopStr"]][["Plots"]][[1]][1],'%)')
 	  tylab <- paste0('Factor 2 (',result[["PopStr"]][["Plots"]][[1]][2],'%)')
 	  tzlab <- paste0('Factor 3 (',result[["PopStr"]][["Plots"]][[1]][3],'%)')
