@@ -131,6 +131,14 @@ mod_rggApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                      tabsetPanel(
+                                       tabPanel("Dashboard", icon = icon("file-image"),
+                                                br(),
+                                                textOutput(ns("outRgg2")),
+                                                br(),
+                                                downloadButton(ns("downloadReportRgg"), "Download dashboard"),
+                                                br(),
+                                                uiOutput(ns('reportRgg'))
+                                       ),
                                        tabPanel("Metrics", icon = icon("table"),
                                                 br(),
                                                 DT::DTOutput(ns("metricsRgg")),
@@ -139,12 +147,7 @@ mod_rggApp_ui <- function(id){
                                                 br(),
                                                 DT::DTOutput(ns("modelingRgg")),
                                        ),
-                                       tabPanel("Dashboard", icon = icon("file-image"),
-                                                br(),
-                                                downloadButton(ns("downloadReportRgg"), "Download dashboard"),
-                                                br(),
-                                                uiOutput(ns('reportRgg'))
-                                       )
+
                                      )
                             )# end of output panel
                )) # end mainpanel
@@ -477,7 +480,7 @@ mod_rggApp_server <- function(id, data){
       my_rgg$invoke(ui_inputs, data_obj)
     })
 
-    output$outRgg <- renderPrint({
+    output$outRgg <- output$outRgg2 <- renderPrint({
       # run the modeling, but before test if mta was done
       if(sum(data()$status$module %in% c("mta","indexD")) == 0) {
         output$qaQcRggInfo <- renderUI({

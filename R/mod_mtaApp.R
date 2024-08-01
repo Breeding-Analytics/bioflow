@@ -202,6 +202,14 @@ mod_mtaApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                     tabsetPanel(
+                                      tabPanel("Dashboard", icon = icon("file-image"),
+                                               br(),
+                                               textOutput(ns("outMta2")),
+                                               br(),
+                                               downloadButton(ns("downloadReportMta"), "Download dashboard"),
+                                               br(),
+                                               uiOutput(ns('reportMta'))
+                                      ),
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
                                                DT::DTOutput(ns("predictionsMta")),
@@ -214,12 +222,7 @@ mod_mtaApp_ui <- function(id){
                                                br(),
                                                DT::DTOutput(ns("modelingMta")),
                                       ),
-                                      tabPanel("Dashboard", icon = icon("file-image"),
-                                               br(),
-                                               downloadButton(ns("downloadReportMta"), "Download dashboard"),
-                                               br(),
-                                               uiOutput(ns('reportMta'))
-                                      )
+
                                     ) # end of tabset
                            )# end of output panel
               )) # end mainpanel
@@ -913,7 +916,7 @@ mod_mtaApp_server <- function(id, data){
       my_mta$invoke(ui_inputs, data_obj, x_inputs, xx_inputs)
     })
     ## render result of "run" button click
-    output$outMta <- renderPrint({
+    output$outMta <- output$outMta2 <- renderPrint({
 
       # run the modeling, but before test if sta was done
       if(sum(data()$status$module %in% "sta") == 0) {

@@ -1,7 +1,7 @@
 ---
 title: "Selection Index Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "July 02, 2024"  
+date: "August 01, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -37,7 +37,7 @@ The following table allows you to inspect the across-environment predictions for
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-outeb207aa920bd9bf7" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out05866f892c4d7e5c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -47,7 +47,7 @@ This spider plot allows you to visualize the distance between the population mea
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outf3bbc5fa763f3b0c" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outd4d37e88f1046f09" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Expected Response Plot
 
@@ -60,7 +60,7 @@ The following plot allows the user to visualize the expected response in the new
 <input id="indexDesireApp_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out52e7574881b72309" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out1787ef4cec5dd75a" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Index versus Trait Plot
 
@@ -78,7 +78,7 @@ The following plot allows you to visualize the relationship between the selectio
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out19fabbe2c7c02170" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out4179ccf0060e15d7" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Performance of crosses
 
@@ -96,7 +96,7 @@ The following plots allow the user to review the performance of crosses, mothers
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out02a7b7c1629aa895" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out83dbeca07600b415" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### References of methods used
 

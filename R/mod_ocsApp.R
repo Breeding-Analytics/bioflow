@@ -133,6 +133,14 @@ mod_ocsApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                     tabsetPanel(
+                                      tabPanel("Dashboard", icon = icon("file-image"),
+                                               br(),
+                                               textOutput(ns("outOcs2")),
+                                               br(),
+                                               downloadButton(ns("downloadReportOcs"), "Download dashboard"),
+                                               br(),
+                                               uiOutput(ns('reportOcs'))
+                                      ),
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
                                                DT::DTOutput(ns("predictionsOcs")),
@@ -145,12 +153,7 @@ mod_ocsApp_ui <- function(id){
                                                br(),
                                                DT::DTOutput(ns("modelingOcs")),
                                       ),
-                                      tabPanel("Dashboard", icon = icon("file-image"),
-                                               br(),
-                                               downloadButton(ns("downloadReportOcs"), "Download dashboard"),
-                                               br(),
-                                               uiOutput(ns('reportOcs'))
-                                      )
+
                                     )
                            )
               )) # end mainpanel
@@ -529,7 +532,7 @@ mod_ocsApp_server <- function(id, data){
       my_ocs$invoke(ui_inputs, data_obj)
     })
 
-    output$outOcs <- renderPrint({
+    output$outOcs <- output$outOcs2 <- renderPrint({
 
       # run the modeling, but before test if mta was done
       if(sum(data()$status$module %in% c("mta","mtaFlex","indexD")) == 0) {

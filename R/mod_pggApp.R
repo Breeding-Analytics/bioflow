@@ -93,6 +93,14 @@ mod_pggApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                      tabsetPanel(
+                                       tabPanel("Dashboard", icon = icon("file-image"),
+                                                br(),
+                                                textOutput(ns("outPgg2")),
+                                                br(),
+                                                downloadButton(ns("downloadReportPgg"), "Download dashboard"),
+                                                br(),
+                                                uiOutput(ns('reportPgg'))
+                                       ),
                                        tabPanel("Metrics", icon = icon("table"),
                                                 br(),
                                                 DT::DTOutput(ns("metricsPgg")),
@@ -101,12 +109,7 @@ mod_pggApp_ui <- function(id){
                                                 br(),
                                                 DT::DTOutput(ns("modelingPgg")),
                                        ),
-                                       tabPanel("Dashboard", icon = icon("file-image"),
-                                                br(),
-                                                downloadButton(ns("downloadReportPgg"), "Download dashboard"),
-                                                br(),
-                                                uiOutput(ns('reportPgg'))
-                                       )
+
                                      )
                             )# end of output panel
                )) # end mainpanel
@@ -456,7 +459,7 @@ mod_pggApp_server <- function(id, data){
 
     }) ## end eventReactive
 
-    output$outPgg <- renderPrint({
+    output$outPgg <- output$outPgg2 <- renderPrint({
       outPgg()
     })
 

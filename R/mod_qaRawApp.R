@@ -62,9 +62,6 @@ mod_qaRawApp_ui <- function(id){
                                                              h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
                                                       ),
-                                                      # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                      # column(width=12, style = "height:475px; overflow-y: scroll;overflow-x: scroll;",
-                                                      # p(span("Preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                       tags$span(id = ns('holder'),
                                                                 column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                 column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
@@ -73,11 +70,8 @@ mod_qaRawApp_ui <- function(id){
                                                       ),
                                                       column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                       column(width=12,
-                                                             # p(span("Table preview of outliers that would be tagged using current input parameters above for the trait selected.", style="color:black")),
                                                              DT::DTOutput(ns("modificationsQa")),
                                                       )
-                                                      # )
-                                                      # ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("play"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
@@ -93,6 +87,8 @@ mod_qaRawApp_ui <- function(id){
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
+                                                      br(),
+                                                      textOutput(ns("outQaRaw2")),
                                                       br(),
                                                       downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
                                                       br(),
@@ -347,7 +343,7 @@ mod_qaRawApp_server <- function(id, data){
 
     ## save when user clicks
 
-    outQaRaw <- eventReactive(input$runQaRaw, {
+    outQaRaw <- outQaRaw2 <- eventReactive(input$runQaRaw, {
       req(data())
       req(input$traitOutqPhenoMultiple)
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))

@@ -122,6 +122,15 @@ mod_indexDesireApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                      tabsetPanel(
+                                       tabPanel("Dashboard", icon = icon("file-image"),
+                                                br(),
+                                                textOutput(ns("outIdxD2")),
+                                                br(),
+                                                downloadButton(ns("downloadReportIndex"), "Download dashboard"),
+                                                br(),
+                                                uiOutput(ns('reportIndex'))
+
+                                       ),
                                        tabPanel("Predictions", icon = icon("table"),
                                                 br(),
                                                 DT::DTOutput(ns("predictionsIdxD"))
@@ -130,13 +139,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 br(),
                                                 DT::DTOutput(ns("modelingIdxD"))
                                        ),
-                                       tabPanel("Dashboard", icon = icon("file-image"),
-                                                br(),
-                                                downloadButton(ns("downloadReportIndex"), "Download dashboard"),
-                                                br(),
-                                                uiOutput(ns('reportIndex'))
 
-                                       )
                                      )
                             )# end of output panel
                )) # end mainpanel
@@ -542,7 +545,7 @@ mod_indexDesireApp_server <- function(id, data){
     })
 
     ## render
-    output$outIdxD <- renderPrint({
+    output$outIdxD <- output$outIdxD2 <- renderPrint({
 
       if(sum(data()$status$module %in% c("mta","mtaFlex") ) == 0) {
         output$qaQcIdxDInfo <- renderUI({

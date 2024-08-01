@@ -86,7 +86,7 @@ mod_staApp_ui <- function(id){
                                                       column(width=6,selectInput(ns("fixedTermSta2"), "Covariable(s) (optional)", choices = NULL, multiple = TRUE) ),
                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
                                                              shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
-                                                                                 p(span("Family of response variable to be fitted.", style="color:black"), span("(double click in the cells if you would like to model a trait with a different distribution other than normal).", style="color:black")), # table of families to assume
+                                                                                 p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
                                                                                  DT::DTOutput(ns("traitDistSta")),
                                                              ),
                                                       ),
@@ -144,6 +144,14 @@ mod_staApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                     tabsetPanel(
+                                      tabPanel("Dashboard", icon = icon("file-image"),
+                                               br(),
+                                               textOutput(ns("outSta2")),
+                                               br(),
+                                               downloadButton(ns("downloadReportSta"), "Download dashboard"),
+                                               br(),
+                                               uiOutput(ns('reportSta')),
+                                      ),
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
                                                DT::DTOutput(ns("predictionsSta")),
@@ -155,12 +163,6 @@ mod_staApp_ui <- function(id){
                                       tabPanel("Modeling", icon = icon("table"),
                                                br(),
                                                DT::DTOutput(ns("modelingSta")),
-                                      ),
-                                      tabPanel("Dashboard", icon = icon("file-image"),
-                                               br(),
-                                               downloadButton(ns("downloadReportSta"), "Download dashboard"),
-                                               br(),
-                                               uiOutput(ns('reportSta')),
                                       ),
                                     ) # of of tabsetPanel
                            )# end of output panel
@@ -605,7 +607,7 @@ mod_staApp_server <- function(id,data){
 
     }) ## end eventReactive
 
-    output$outSta <- renderPrint({
+    output$outSta <- output$outSta2 <- renderPrint({
 
       # run the modeling, but before test if qa/qc done
       if(sum(data()$status$module %in% "qaRaw") == 0) {

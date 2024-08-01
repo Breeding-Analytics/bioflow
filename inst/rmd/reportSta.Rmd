@@ -1046,7 +1046,7 @@ if (is.null(result)){
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
       p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
         geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
+        scale_fill_manual(values=group.colors) + ggplot2::xlab("Correlation Value")
       # combine plots
       ply1 <- plotly::ggplotly(p)
       ply2 <- plotly::ggplotly(p2)

@@ -31,7 +31,9 @@ mod_mtaExpApp_ui <- function(id){
                                            h2(strong("Details")),
                                            p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
-                              analysis and optionally a relationship matrix between individuals.
+                              analysis and optionally a relationship matrix between individuals. This module allows the flexibility to build your own customized module by specifying the
+                              random slopes and random intercepts. In addition, the most popular GxE models can be selected with a single click to help the user understand how a
+                              specific model could be specified.
                                 The way the arguments are used is the following:"),
 
                                            p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
@@ -125,7 +127,7 @@ mod_mtaExpApp_ui <- function(id){
                                                column(width = 6, style = "background-color:grey; color: #FFFFFF",
                                                       # br(),
                                                       shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
-                                                                          p(span("Trait distributions (double click in the cells and type a '1' if you would like to model a trait with a different response distribution).", style="color:black")),
+                                                                          p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
                                                                           DT::DTOutput(ns("traitDistMet")),
                                                       ),
                                                ),
@@ -180,6 +182,14 @@ mod_mtaExpApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                     tabsetPanel(
+                                      tabPanel("Dashboard", icon = icon("file-image"),
+                                               br(),
+                                               textOutput(ns("outMta2")),
+                                               br(),
+                                               downloadButton(ns("downloadReportMta"), "Download dashboard"),
+                                               br(),
+                                               uiOutput(ns('reportMta'))
+                                      ),
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
                                                DT::DTOutput(ns("predictionsMta")),
@@ -192,12 +202,7 @@ mod_mtaExpApp_ui <- function(id){
                                                br(),
                                                DT::DTOutput(ns("modelingMta")),
                                       ),
-                                      tabPanel("Dashboard", icon = icon("file-image"),
-                                               br(),
-                                               downloadButton(ns("downloadReportMta"), "Download dashboard"),
-                                               br(),
-                                               uiOutput(ns('reportMta'))
-                                      )
+
                                     ) # end of tabset
                            )# end of output panel
               )) # end mainpanel
@@ -963,7 +968,7 @@ mod_mtaExpApp_server <- function(id, data){
       my_mta$invoke(ui_inputs, data_obj, x_inputs, xx_inputs,inputFormulation)
     })
     ## render print
-    output$outMta <- renderPrint({
+    output$outMta <- output$outMta2 <- renderPrint({
 
       if(sum(data()$status$module %in% "sta") == 0) {
         output$qaQcMtaInfo <- renderUI({
