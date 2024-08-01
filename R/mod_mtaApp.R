@@ -397,11 +397,27 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
-      # req(input$fixedTermMta2)
       if('designation'%in%input$fixedTermMta2){
         traitsMta <- list(BLUE="blue")
       }else{
-        traitsMta <- list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
+        traitsMta <- list(BLUP="blup")#,pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
+        if(!is.null(object$data$geno)){
+          traitsMta <- c(traitsMta, list(gBLUP="gblup"),  list(rrBLUP="rrblup") )
+        }
+        if(!is.null(object$data$pedigree)){
+          metaPed <- object$metadata$pedigree
+          dataPed <- object$data$pedigree
+          pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+          pedCols <- setdiff(pedCols,"")
+          fatherCol <- which(metaPed$parameter == "father")
+          if(length(fatherCol) > 0){dataPed <- dataPed[which(!is.na(dataPed[,fatherCol])),]}
+          motherCol <- which(metaPed$parameter == "mother")
+          if(length(motherCol) > 0){dataPed <- dataPed[which(!is.na(dataPed[,motherCol])),]}
+          if(nrow(dataPed) > 0){
+            traitsMta <- c(traitsMta, list(pBLUP="pblup") )
+          }
+        }
+        if( all(c("pBLUP","gBLUP") %in% names(traitsMta)) ){ traitsMta <- c(traitsMta, list( ssGBLUP="ssgblup" ) ) }
       }
       updateSelectInput(session, "modelMet", choices = traitsMta, selected = traitsMta[1])
     })
@@ -592,9 +608,14 @@ mod_mtaApp_server <- function(id, data){
 
       if(!is.null(object$data$pedigree)){
         metaPed <- object$metadata$pedigree
+        dataPed <- object$data$pedigree
         pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
         pedCols <- setdiff(pedCols,"")
-        pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+        fatherCol <- which(metaPed$parameter == "father")
+        if(length(fatherCol) > 0){dataPed <- dataPed[which(!is.na(dataPed[,fatherCol])),]}
+        motherCol <- which(metaPed$parameter == "mother")
+        if(length(motherCol) > 0){dataPed <- dataPed[which(!is.na(dataPed[,motherCol])),]}
+        pedNames <- na.omit(unique(unlist(as.vector(dataPed[,pedCols, drop=FALSE]))))
       }else{ pedNames <- character() }
 
       if(!is.null(object$data$qtl)){
