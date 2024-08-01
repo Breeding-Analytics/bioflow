@@ -98,8 +98,9 @@ mod_staApp_ui <- function(id){
                                                ),
                                                tags$span(id = ns('holder1'),
                                                          column(width=9, selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                         column(width=3, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
-                                                         column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                         # column(width=3, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
+                                                         column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
+                                                         column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), # ,  shiny::plotOutput(ns("plotPredictionsCleanOut"))
                                                ),
                                       ),
                                       tabPanel("Pick effect(s)", icon = icon("dice-three"),
@@ -502,7 +503,7 @@ mod_staApp_server <- function(id,data){
           traitsSta <- unique(dtSta$trait)
           updateSelectInput(session, "trait3Sta", choices = traitsSta)
         })
-        output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
+        output$plotPredictionsCleanOut <- plotly::renderPlotly({ # shiny::renderPlot({ #
           req(data())
           req(input$version2Sta)
           req(input$trait3Sta)
@@ -522,18 +523,20 @@ mod_staApp_server <- function(id,data){
             if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
             mydata$predictedValue <- mydata[,input$trait3Sta]
             mydata <- mydata[,which(!duplicated(colnames(mydata)))]
-            p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
-              ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
-              ggplot2::theme_classic() + ggplot2::ggtitle("Boxplot of trait dispersion by environment") +
-              ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
-              ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
-              ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
-            if(input$checkbox){
-              p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
-            }else{
-              p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
-            }
-            p
+            p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
+              ggplot2::geom_histogram(aes(y=..density..), position="identity", alpha=input$transparency ) +
+              # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
+              ggplot2::theme_classic() + ggplot2::ggtitle("Histogram of trait dispersion by environment") +
+              # ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
+              ggplot2::ylab("Density") + ggplot2::xlab("Trait value") + ggplot2::scale_color_brewer(palette="Accent")
+              # ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
+            # if(input$checkbox){
+            #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+            # }else{
+            #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+            # }
+            # p
+            plotly::ggplotly(p)
           }else{}
         })
         ## render raw data

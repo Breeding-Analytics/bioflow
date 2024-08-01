@@ -82,7 +82,7 @@ mod_mtaApp_ui <- function(id){
                                                       column(width=4, selectInput(ns("trait2Mta"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE) ),
                                                       column(width = 8, style = "background-color:grey; color: #FFFFFF",
                                                              br(),
-                                                             shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                             shinydashboard::box(width = 12, status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions to fit...",
                                                                                  p(span("Trait distributions (double click in the cells if you would like to model the traits with a different trait distribution).", style="color:black")),
                                                                                  DT::DTOutput(ns("traitDistMet")),
                                                              ),
@@ -100,10 +100,11 @@ mod_mtaApp_ui <- function(id){
                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
                                                ),
                                                tags$span(id = ns('holder2'),
-                                                         column(width=5, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                         column(width=5, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                                         column(width=2, checkboxInput(ns("checkbox2"), label = "Include x-axis labels", value = TRUE) ),
-                                                         column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
+                                                         column(width=9, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                         column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
+                                                         # column(width=5, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                                         # column(width=2, checkboxInput(ns("checkbox2"), label = "Include x-axis labels", value = TRUE) ),
+                                                         column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), #   shiny::plotOutput(ns("plotPredictionsCleanOut"))
                                                ),
                                       ),
 
@@ -823,26 +824,28 @@ mod_mtaApp_server <- function(id, data){
       traitMtaInput <- unique(dtMta$trait)
       updateSelectInput(session, "trait3Mta", choices = traitMtaInput)
     })
-    output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
+    output$plotPredictionsCleanOut <- plotly::renderPlotly({ # shiny::renderPlot({ #
       req(data())
       req(input$version2Mta)
       req(input$trait3Mta)
-      req(input$groupMtaInputPlot)
+      # req(input$groupMtaInputPlot)
       mydata <- data()$predictions
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
-        ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
-        ggplot2::theme_classic()+ ggplot2::ggtitle("Dispersal of predictions associated to the STA stamp selected") +
-        ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
-        ggplot2::xlab("Environment") + ggplot2::ylab("Predicted value")
-      if(input$checkbox2){
-        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
-      }else{
-        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
-      }
-      p
+      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
+        ggplot2::geom_histogram(aes(y=..density..), position="identity", alpha=input$transparency ) +
+        # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+        ggplot2::theme_classic() + ggplot2::ggtitle("Dispersal of predictions associated to the STA stamp selected") +
+        # ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
+        ggplot2::xlab("Trait Predicted Value") + ggplot2::ylab("Density") + ggplot2::scale_color_brewer(palette="Accent")
+      # if(input$checkbox2){
+      #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      # }else{
+      #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      # }
+      # p
+      plotly::ggplotly(p)
     })
 
     ##############################################################################################
