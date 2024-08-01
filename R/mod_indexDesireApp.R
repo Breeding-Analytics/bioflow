@@ -332,7 +332,7 @@ mod_indexDesireApp_server <- function(id, data){
       }
       DT::datatable(statusPlusModel, extensions = 'Buttons', # I changed Blfrtip to lfrtip and silenced the buttons
                     options = list(dom = 'lfrtip',scrollX = TRUE, #buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                   lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                       htmltools::em('Traits available in the STA-IDs selected.')
@@ -395,7 +395,7 @@ mod_indexDesireApp_server <- function(id, data){
       paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                       htmltools::em('Past modeling parameters from MTA stamp(s) selected.')
@@ -435,7 +435,7 @@ mod_indexDesireApp_server <- function(id, data){
       numeric.output <- colnames(wide)[-c(1)]
       DT::formatRound(DT::datatable(wide, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                                     caption = htmltools::tags$caption(
                                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                                       htmltools::em('MTA predictions to be used as input.')

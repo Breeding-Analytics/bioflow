@@ -398,7 +398,7 @@ mod_staApp_server <- function(id,data){
           paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
           DT::datatable(paramsPheno, extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                         caption = htmltools::tags$caption(
                           style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                           htmltools::em('Past modeling parameters from QA stamp selected.')
@@ -551,7 +551,7 @@ mod_staApp_server <- function(id,data){
           numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
           DT::formatRound(DT::datatable(dtSta, extensions = 'Buttons',
                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                                         caption = htmltools::tags$caption(
                                           style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                                           htmltools::em('Raw phenotypic data to be used as input.')

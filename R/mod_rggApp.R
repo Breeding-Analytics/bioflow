@@ -415,7 +415,7 @@ mod_rggApp_server <- function(id, data){
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtRgg, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                                     caption = htmltools::tags$caption(
                                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                                       htmltools::em('Predictions table.')

@@ -18,8 +18,6 @@ mod_ocsApp_ui <- function(id){
                            type = "tabs",
                            tabPanel( div(icon("book"), "Information-OCS") ,
                                      br(),
-                                     # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                     #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                      column(width = 6,
                                             h1(strong(span("Optimal Cross Selection", tags$a(href="https://www.youtube.com/watch?v=LTiN7G6zCtM&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=9", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                             h2(strong("Status:")),
@@ -55,8 +53,6 @@ mod_ocsApp_ui <- function(id){
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                             p("https://github.com/gaynorr/QuantGenResources"),
                                      ),
-                                     #                     )
-                                     # )
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
@@ -73,16 +69,9 @@ mod_ocsApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;",solidHeader = TRUE,
-                                               # column(width=12,
-                                               # p(span("Network plot of current analyses available.", style="color:black")),
                                                column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                               # p(span("Past modeling parameters from Index stamp selected.", style="color:black")),
                                                DT::DTOutput(ns("statusOcs")),
-                                               # p(span("Index predictions table to be used as input.", style="color:black")),
                                                DT::DTOutput(ns("phenoOcs")),
-                                               #                     )
-                                               # )
                                       ),
                                       tabPanel("Pick trait", icon = icon("dice-two"),
                                                br(),
@@ -95,9 +84,6 @@ mod_ocsApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:430px; overflow-y: scroll;overflow-x: scroll;",
-                                               # p(span("Boxplot of trait dispersion by entry type.", style="color:black")),
                                                tags$span(id = ns('holder1'),
                                                          column(width=6, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ) ,
                                                          column(width=6, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
@@ -106,8 +92,6 @@ mod_ocsApp_ui <- function(id){
                                                                              numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1),
                                                          ),
                                                ),
-                                               #                     ),
-                                               # )
                                       ),
                                       tabPanel("Set contribution", icon = icon("dice-three"),
                                                br(),
@@ -121,13 +105,8 @@ mod_ocsApp_ui <- function(id){
                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                ),
-                                               # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                               #                     column(width=12, style = "height:440px; overflow-y: scroll;overflow-x: scroll;",
-                                               # p(span("Summary of selection units and marker availability.", style="color:black")),
                                                DT::DTOutput(ns("evaluationUnits")),
                                                img(src = "www/ocs.png", height = 400, width = 250), # add an image
-                                               #                     )
-                                               # )
                                       ),
                                       tabPanel("Run analysis", icon = icon("play"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
@@ -156,31 +135,18 @@ mod_ocsApp_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Predictions", icon = icon("table"),
                                                br(),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               # column(width=12,
                                                DT::DTOutput(ns("predictionsOcs")),
-                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               # )
                                       ),
                                       tabPanel("Metrics", icon = icon("table"),
                                                br(),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               # column(width=12,br(),
                                                DT::DTOutput(ns("metricsOcs")),
-                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               # )
                                       ),
                                       tabPanel("Modeling", icon = icon("table"),
                                                br(),
-                                               # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                               # column(width=12,
                                                DT::DTOutput(ns("modelingOcs")),
-                                               # style = "height:530px; overflow-y: scroll;overflow-x: scroll;")
-                                               # )
                                       ),
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               # div(tags$p("Please download the report below:") ),
                                                downloadButton(ns("downloadReportOcs"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportOcs'))
@@ -451,7 +417,7 @@ mod_ocsApp_server <- function(id, data){
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtOcs, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                                     caption = htmltools::tags$caption(
                                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                                       htmltools::em('Index predictions table to be used as input.')
@@ -514,7 +480,7 @@ mod_ocsApp_server <- function(id, data){
       paramsPheno$analysisId <- as.POSIXct(paramsPheno$analysisId, origin="1970-01-01", tz="GMT")
       DT::datatable(paramsPheno, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                       htmltools::em('Past modeling parameters from Index stamp selected.')
