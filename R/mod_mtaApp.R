@@ -405,12 +405,12 @@ mod_mtaApp_server <- function(id, data){
         traitsMta <- list(BLUE="blue")
       }else{
         traitsMta <- list(BLUP="blup")#,pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
-        if(!is.null(object$data$geno)){
+        if(!is.null(data()$data$geno)){
           traitsMta <- c(traitsMta, list(gBLUP="gblup"),  list(rrBLUP="rrblup") )
         }
-        if(!is.null(object$data$pedigree)){
-          metaPed <- object$metadata$pedigree
-          dataPed <- object$data$pedigree
+        if(!is.null(data()$data$pedigree)){
+          metaPed <- data()$metadata$pedigree
+          dataPed <- data()$data$pedigree
           pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
           pedCols <- setdiff(pedCols,"")
           fatherCol <- which(metaPed$parameter == "father")
