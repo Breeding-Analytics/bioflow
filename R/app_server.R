@@ -73,6 +73,12 @@ app_server <- function(input, output, session) {
   ## HOME
   mod_homeApp_server("homeApp_1")
 
+  ## about tabs
+  mod_aboutApp_server("aboutApp_1") # about the application
+  mod_meetTheTeamApp_server("meetTheTeamApp_1") # about the team
+  mod_contactUsApp_server("contactUsApp_1") # link to contact us
+  mod_faqUsApp_server("faqUsApp_1")
+
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "shiny-analytics.ebsproject.org"
@@ -272,11 +278,6 @@ app_server <- function(input, output, session) {
   ## DASHBOARDS
   mod_abiDashboard_server("abiDashboard_1", data = data)
   mod_reportBuilder_server("reportBuilder_1", data = data)
-
-  ## about tabs
-  mod_aboutApp_server("aboutApp_1") # about the application
-  mod_meetTheTeamApp_server("meetTheTeamApp_1") # about the team
-  mod_contactUsApp_server("contactUsApp_1") # link to contact us
 
   ## info section tabs
   mod_sectionInfoQAApp_server("sectionInfoQAApp_1") # info for quality assurance

@@ -40,6 +40,7 @@ app_ui <- function(request) {
                             tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
                             tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),
                             tabPanel("Contact & Development", mod_contactUsApp_ui("contactUsApp_1"), icon = icon("envelope") ),
+                            tabPanel("FAQ", mod_faqUsApp_ui("faqUsApp_1"), icon = icon("question") ),
                           )
                  ),
       ),
