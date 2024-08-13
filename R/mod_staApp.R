@@ -526,7 +526,7 @@ mod_staApp_server <- function(id,data){
             mydata$predictedValue <- mydata[,input$trait3Sta]
             mydata <- mydata[,which(!duplicated(colnames(mydata)))]
             p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
-              ggplot2::geom_histogram(aes(y=..density..), position="identity", alpha=input$transparency ) +
+              ggplot2::geom_histogram(aes(y=after_stat(density)), position="identity", alpha=input$transparency ) +
               # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
               ggplot2::theme_classic() + ggplot2::ggtitle("Histogram of trait dispersion by environment") +
               # ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
