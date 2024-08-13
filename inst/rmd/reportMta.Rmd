@@ -862,14 +862,14 @@ if (is.null(result)){
     df2$traitOriginal <- gsub(paste0(iCov),"",df2$traitOriginal)
     df2$traitOriginal <- gsub("_QTL","",df2$traitOriginal) # remove the QTL legend in this particular case
   }
-  df2$parameterOriginal <- df2$trait
+  df2$parameterOriginal <- df2$parameter
   for(iCov in covariatesvc){ 
     provTrait <- gsub(paste0( "*",iCov), "", df2$parameterOriginal)
     df2$parameterOriginal <- apply(data.frame(provTrait,df2$parameterOriginal),1,function(x){gsub(x[1], "", x[2])})
   }
   # for(iCov in traitsvc){ df2$parameterOriginal <- gsub(iCov,"",df2$parameterOriginal)}
   df2$parameterOriginal <- gsub("_QTL","",df2$parameterOriginal)
-  df2$parameterOriginal <- paste0(df2$parameter, df2$parameterOriginal)
+  df2$parameterOriginal <- ifelse(df2$parameter != df2$parameterOriginal, paste0(df2$parameter, df2$parameterOriginal), df2$parameterOriginal )
   df2$value[which(df2$value < 0)]=0
   total <- try( aggregate(value~traitOriginal, FUN = sum, data=df2), silent = TRUE)
   if(!inherits(total, "try-error")){
@@ -1473,9 +1473,9 @@ if (is.null(result)){
           ggplot2::coord_fixed() + 
           ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                          axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-        if(nrow(corr) < 20){ # if user wants to fill cell values
-          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-        }
+        # if(nrow(corr) < 10){ # if user wants to fill cell values
+        #   p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+        # }
         
         # Basic histogram
         mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))

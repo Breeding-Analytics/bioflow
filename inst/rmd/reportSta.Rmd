@@ -560,12 +560,22 @@ if (is.null(result)){
   if("params" %in% ls()){  # if user will download the report
     shinyjs::hide()
   }else{
-    shiny::selectInput(ns("parameterMetrics"), 
-                       label = "Parameter to filter:", 
-                       multiple = FALSE,
-                       selected = unique(parameters),
-                       choices = unique(parameters)
+    
+    inputPanel(
+      shiny::selectInput(ns("parameterMetrics"), 
+                         label = "Parameter to filter:", 
+                         multiple = FALSE,
+                         selected = unique(parameters),
+                         choices = unique(parameters)
+      ),
+      selectInput(ns("parameterMetricsBy"),
+                  label = "View x-axis by:",
+                  selected = "environment",
+                  choices = c("environment","trait")
+      ),
     )
+    
+    
   }
 }
 ```
@@ -589,15 +599,31 @@ if (is.null(result)){
     counter <- 1
     # for(iTrait in staTraits){
     for(iParam in unique(parameters)){
-      cat("\n\n####", iParam, "{.tabset .tabset-pills}       \n\n")
+      
       mydata2 = mydata[which(mydata$parameter %in% iParam),]
-      number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
-      p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
-        ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-        ggplot2::labs(x="Environment", y="Parameter value") +
-        facet_wrap(~trait, scales = "free_y", nrow = number_rows)
-      print(htmltools::tagList(plotly::ggplotly(p)))
+      for(iView in c("environment","trait") ){
+        cat("\n\n####", paste0("by-",iView,"-" ,iParam), "{.tabset .tabset-pills}       \n\n")
+        # cat("\n\n#####", iView, "{.tabset .tabset-pills}       \n\n")
+        if(iView == "environment"){
+          number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
+          p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
+            ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
+            ggplot2::labs(x="Environment", y="Parameter value") +
+            facet_wrap(~trait, scales = "free_y", nrow = number_rows)
+        }else{
+          number_rows <- ceiling(length(unique(mydata2$environment))/3) # 3 is the number of columns we want
+          p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
+            ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
+            ggplot2::labs(x="trait", y="Parameter value") +
+            facet_wrap(~environment, scales = "free_y", nrow = number_rows)
+        }
+        print(htmltools::tagList(plotly::ggplotly(p)))
+      }
+      
+      # combine plots
+      # print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       cat("\n")
       
     }
@@ -610,11 +636,21 @@ if (is.null(result)){
       
       mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
-      p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
-        ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-        ggplot2::labs(x="Environment", y="Parameter value") +
-        facet_wrap(~trait, scales = "free_y", nrow = number_rows)
+      if(input$parameterMetricsBy == "trait"){
+        number_rows <- ceiling(length(unique(mydata2$environment))/3) # 3 is the number of columns we want
+        p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
+          ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
+          ggplot2::labs(x="trait", y="Parameter value") +
+          facet_wrap(~environment, scales = "free_y", nrow = number_rows)
+      }else{
+        number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
+        p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
+          ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
+          ggplot2::labs(x="Environment", y="Parameter value") +
+          facet_wrap(~trait, scales = "free_y", nrow = number_rows) 
+      }
       plotly::ggplotly(p)
     })
     
@@ -855,8 +891,8 @@ if (is.null(result)){
                                width = 0.10) +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), 
-          # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
-          legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
+                       # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
+                       legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) ) )
@@ -918,8 +954,8 @@ if (is.null(result)){
                                width = 0.10) + ggplot2::facet_grid(~environment, scales = "free_x") +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
         ggplot2::theme( axis.text.x = ggplot2::element_blank(), 
-          # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
-          legend.position = "bottom", legend.title = element_blank() ) +  
+                        # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
+                        legend.position = "bottom", legend.title = element_blank() ) +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) + 
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       

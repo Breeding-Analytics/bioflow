@@ -179,7 +179,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
         result <- data()
         ## apply the function
 
-        if(input$cropConsist %in% c("spotato")){
+        if(input$cropConsist %in% c("spotato","potato")){
 
           if(input$cropConsist == "spotato"){
             outlier <- st4gi::check.data.sp(result$data$pheno)
