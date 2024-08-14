@@ -13,7 +13,7 @@ mod_dataConsistPotatoApp_ui <- function(id){
 
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel( id=ns("tabsMain"),
                        type = "tabs",
 
                        tabPanel(div(icon("book"), "Information") ,
@@ -38,21 +38,27 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                   tabPanel("Select crop", icon = icon("dice-one"),
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=4, selectInput(ns("cropConsist"), "Crop", choices = list(Banana="banana", Beans="beans",  Cassava="cassava", Maize="maize", PearMillet="pmillet", Plantain="plantain", Potato="potato", Rice="rice", Soybean="soybean", SweetPotato="spotato", Sorghum="sorghum", Wheat="wheat"), multiple = FALSE) ),
+                                                  column(width=4, selectInput(ns("cropConsist"), "Select your crop filter:", choices = list(Banana="banana", Beans="beans",  Cassava="cassava", Maize="maize", PearMillet="pmillet", Plantain="plantain", Potato="potato", Rice="rice", Soybean="soybean", SweetPotato="spotato", Sorghum="sorghum", Wheat="wheat"), multiple = FALSE) ),
                                                   column(width=4, tags$br(),
                                                          shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
                                                   ),
                                            ),
                                            br(),
+                                           br(),
+                                           DT::DTOutput(ns("phenoConsist")),
                                   ),
-                                  tabPanel("Design and extreme value", icon = icon("dice-one"),
+                                  tabPanel("Design and extreme value", icon = icon("dice-two"),
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=4, selectInput(ns("designConsist"), "Design expected", choices = list(None="none", RCBD="rcbd", MET="met"), multiple = TRUE) ),
+                                                  column(width=4, selectInput(ns("designConsist"), "Design expected", choices = list(None="none", RCBD="rcbd", MET="met"), multiple = FALSE) ),
                                                   column(width=4, numericInput(ns("fConsist"), "Extreme value allowed", value = 5, max = 100000, min = -100000, step = 1) ),
                                            ),
                                            br(),
-                                           DT::DTOutput(ns("phenoConsist")),
+                                           column(width=12, p(span("Matrix of issues (transposed dataset).", style="color:black")) ),
+                                           column(width=6, sliderInput(ns("slider1"), label = "Records", min = 1, max = 2000, value = c(1, 200)) ),
+                                           column(width=6, sliderInput(ns("slider2"), label = "Columns/traits", min = 1, max = 500, value = c(1, 250)) ),
+                                           column(width=12, shiny::plotOutput(ns("plotConsistencySparsity")) ),
+
                                   ),
                                   tabPanel("Tag inconsistencies", icon = icon("play"),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
@@ -90,6 +96,10 @@ mod_dataConsistPotatoApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    hideAll <- reactiveValues(clearAll = TRUE)
+    observeEvent(data(), {
+      hideAll$clearAll <- TRUE
+    })
     ######################################
     # warning message
     output$warningMessage <- renderUI(
@@ -137,8 +147,32 @@ mod_dataConsistPotatoApp_server <- function(id, data){
       }
     }, ignoreNULL = TRUE)
 
-    ## pheno
-    ## render raw data
+    ####################################################
+    ## INPUT VISUALIZATIONS
+
+    ## SPARISTY PLOT
+    output$plotConsistencySparsity <- shiny::renderPlot({
+      req(data())
+      dtMta <- data()
+
+      if(input$cropConsist == "spotato"){
+        main <- "Sweet potato consistency flags"
+        out <- st4gi::check.data.sp(dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
+      }else if(input$cropConsist == "potato"){
+        main <- "Potato consistency flags"
+        out <- st4gi::check.data.pt(dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
+      }else{
+        main <- "Crop not available, no consistency flags"
+        out <- matrix(0, nrow=nrow(dtMta$data$pheno), ncol=ncol(dtMta$data$pheno))
+      }
+
+      M2 <- as.matrix(out)
+      M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
+      M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
+      Matrix::image(as(t(M2), Class = "dgCMatrix"), ylab="Columns/traits", xlab="Records", main=main, colorkey=TRUE)
+    })
+
+    ## pheno data TABLE
     output$phenoConsist <-  DT::renderDT({
       req(data())
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
@@ -182,15 +216,22 @@ mod_dataConsistPotatoApp_server <- function(id, data){
         if(input$cropConsist %in% c("spotato","potato")){
 
           if(input$cropConsist == "spotato"){
-            outlier <- st4gi::check.data.sp(result$data$pheno)
+            out <- st4gi::check.data.sp(result$data$pheno,out.mod=input$designConsist, f=input$fConsist)
           }else if(input$cropConsist == "potato"){
-            outlier <- st4gi::check.data.pt(result$data$pheno)
+            out <- st4gi::check.data.pt(result$data$pheno, out.mod=input$designConsist, f=input$fConsist)
           }
+          outs <- which(out$Inconsist.Matrix > 0 , arr.ind = TRUE)
+          if(nrow(outs) > 0){
+            traitsInOuts <- colnames(result$data$pheno)[outs[,2]]
+            rows <- outs[,1]
+            vals <- as.numeric(result$data$pheno[outs])
+            outlier <- data.frame(module="qaConsist", analysisId=analysisId, trait=traitsInOuts, row=rows, value=vals )
+          }else{outlier <- data.frame(module = "qaConsist", analysisId = analysisId, trait = "none", reason = "none", row = NA, value = NA)}
 
           ## bind new parameters
           result$modifications$pheno <- outlier
           # add status table
-          newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
+          newStatus <- data.frame(module="qaConsist", analysisId=analysisId )
           result$status <- rbind(result$status, newStatus)
           myId <- result$status
           # add modeling table
@@ -201,9 +242,10 @@ mod_dataConsistPotatoApp_server <- function(id, data){
           # cat(crayon::green(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis.")))
           cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"saved. Now you can move to another module."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+          shinybusy::remove_modal_spinner()
         }else{
           shinybusy::remove_modal_spinner()
-          stop("Crop not available yet", call. = FALSE)
+          stop("Consistency rules for selected crop not available yet", call. = FALSE)
         }
 
 

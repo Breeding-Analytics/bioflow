@@ -124,11 +124,10 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Other functions", icon = icon("medal"),
-                 tabPanel(strong("DATA CONSISTENCY")  ),
-                 tabPanel(div("Consistency (", icon("seedling"),")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
                  tabPanel(strong("FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
                  tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),

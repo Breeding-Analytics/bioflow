@@ -856,7 +856,7 @@ mod_mtaExpApp_server <- function(id, data){
       p
 
     })
-    # render connectivity plot
+    # render sparsity plot
     output$plotPredictionsConnectivity <-  shiny::renderPlot({ # plotly::renderPlotly({
       req(data())
       req(input$version2Mta)
