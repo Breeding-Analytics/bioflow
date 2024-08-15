@@ -33,34 +33,80 @@ library(shiny)
 ```
 
 ```{r printfxn, include=FALSE}
-
 # functions ####
 # for printing tables (data.frames) - DT::datatable()
-printTable <- function(DT, pageLength = 7, 
+printTable <- function(DT, rows = c('same', 'different'), pageLength = 7,
                        numericColNames = NULL, numRound = 3, ...) {
+
+  rows = match.arg(rows)
+
+  # For data.frames with rows for the same type of data (table of predictions)
+
+  if (rows == 'same') {
+
+    DT <- data.frame(lapply(X = DT,
+                            FUN = function(x) {
+                              if(is.numeric(x)){
+                                n1 <- lapply(x, function(x) nchar(strsplit(as.character(x), "\\.")[[1]][1]))
+                                n1 <- min(unlist(n1), na.rm = TRUE)
+                                if (n1 >= numRound) {
+                                  round(x, 0)
+                                } else {
+                                  if (min(x, na.rm = TRUE) >= 1) {
+                                    round(x, numRound - n1)
+                                  } else {
+                                    tmp <- signif(x, numRound)
+                                    n2 <- lapply(tmp, function(x) nchar(strsplit(as.character(x), "\\.")[[1]][2]))
+                                    n2 <- max(unlist(n2), na.rm = TRUE)
+                                    round(x, n2)
+                                  }
+                                }
+                              } else {
+                                x
+                              }
+                            }))
+    
+  }
   
-  DT <- data.frame(lapply(X = DT, 
-                          FUN = function(x) {
-                            if(is.numeric(x)){
-                              round(x, numRound)
-                            } else {
-                              x
-                            }
-                          }))
-  
-  table <- DT::datatable(data = DT, 
-                         filter = "top", 
+  table <- DT::datatable(data = DT,
+                         filter = "top",
                          extensions = 'Buttons',
                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
-  if (length(numericColNames) > 0){
-    table <- table %>% formatRound(columns = numericColNames,
-                                   digits = numRound)
+
+  # For data.frames with rows for different type of data (summary statistics)
+
+  if (rows == 'different') {
+
+    x <- table$x$data
+    numericColNames <- unlist(lapply(x, is.numeric))
+
+    for (i in 1:length(numericColNames)) {
+
+      if (numericColNames[i]) {
+
+        n1 <- lapply(x[, i], function(x) nchar(strsplit(as.character(x), "\\.")[[1]][1]))
+        n1 <- unlist(n1)
+
+        for (j in 1:dim(x)[1]) {
+
+          if (n1[j] >= numRound)
+            table$x$data[j, names(numericColNames[i])] <- round(x[j, names(numericColNames[i])], 0)
+          if (n1[j] < numRound)
+            table$x$data[j, names(numericColNames[i])] <- signif(x[j, names(numericColNames[i])], numRound)
+
+        }
+        
+      }
+      
+    }
+
   }
-  
+
   table
+  
 }
 ```
 
@@ -318,7 +364,7 @@ if (is.null(result)){
   numeric.output <- c("min","mean","max","H2","CV","r2","V_designation","V_residual")
   
   if("params" %in% ls()){ # we will download the document
-    printTable(unique(pred.traits.summary))
+    printTable(unique(pred.traits.summary), 'different')
   }else{
     DT::renderDT({DT::formatRound(DT::datatable(
       unique(pred.traits.summary[pred.traits.summary$trait==input$traitSta,]),
