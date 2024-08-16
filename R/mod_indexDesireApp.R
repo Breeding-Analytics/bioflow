@@ -101,7 +101,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 ),
 
                                        ),
-                                       tabPanel("Run analysis", icon = icon("play"),
+                                       tabPanel("Run analysis", icon = icon("dice-three"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                        column(width=4,
                                                               br(),

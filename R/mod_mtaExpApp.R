@@ -169,7 +169,7 @@ mod_mtaExpApp_ui <- function(id){
                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
                                                ),
                                       ),
-                                      tabPanel("Run analysis", icon = icon("play"),
+                                      tabPanel("Run analysis", icon = icon("dice-three"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runMta"), "Run MTA (click)", icon = icon("play-circle")),

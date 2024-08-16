@@ -108,7 +108,7 @@ mod_ocsApp_ui <- function(id){
                                                DT::DTOutput(ns("evaluationUnits")),
                                                img(src = "www/ocs.png", height = 400, width = 250), # add an image
                                       ),
-                                      tabPanel("Run analysis", icon = icon("play"),
+                                      tabPanel("Run analysis", icon = icon("dice-four"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
 
                                                       column( width = 2,

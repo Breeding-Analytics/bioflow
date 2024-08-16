@@ -43,7 +43,7 @@ that perform well under farmers’ conditions before these are announced to the 
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
-                                      tabPanel("Pick STA-stamp", icon = icon("table"),
+                                      tabPanel("Pick STA-stamp", icon = icon("dice-one"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2Oft"), "STA version to use", choices = NULL, multiple = FALSE) ),
@@ -67,7 +67,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     )
                                                # )
                                       ),
-                                      tabPanel("Select traits", icon = icon("table"),
+                                      tabPanel("Select traits", icon = icon("dice-two"),
                                                br(),
                                                column(width=12, selectInput(ns("trait2Oft"), "Trait(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12,
@@ -88,7 +88,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-                                      tabPanel("Select year of origin, entry type & iBlock", icon = icon("table"),
+                                      tabPanel("Select year of origin, entry type & iBlock", icon = icon("dice-three"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4, selectInput(ns("yearsToUse"), "Year of origin", choices = NULL, multiple = FALSE) ),
@@ -109,7 +109,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-                                      tabPanel("Select Disease Information", icon = icon("table"),
+                                      tabPanel("Select Disease Information", icon = icon("dice-four"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12, tags$br(),
@@ -128,7 +128,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-                                      tabPanel("Select Environments", icon = icon("table"),
+                                      tabPanel("Select Environments", icon = icon("dice-five"),
                                                br(),
                                                column(width=12, selectInput(ns("env2Oft"), "Environment(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12,
@@ -148,7 +148,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    ),
                                                )
                                       ),
-                                      tabPanel("Generate dashboard", icon = icon("play"),
+                                      tabPanel("Generate dashboard", icon = icon("dice-six"),
                                                br(),
                                                actionButton(ns("runOft"), "Generate OFT Dashboard", icon = icon("play-circle")),
                                                uiOutput(ns("outOft"))

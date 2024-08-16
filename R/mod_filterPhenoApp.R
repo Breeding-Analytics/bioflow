@@ -38,7 +38,7 @@ mod_filterPhenoApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Set filters", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Set filters", icon = icon("dice-one"),
                                            br(),
                                            column(width=6, style = "background-color:grey; color: #FFFFFF",
                                                   selectInput(ns("traitFilterPheno"), "Trait to filter", choices = NULL, multiple = FALSE),
@@ -62,7 +62,7 @@ mod_filterPhenoApp_ui <- function(id){
                                            )
 
                                   ),
-                                  tabPanel("Pick trait(s)", icon = icon("table"),
+                                  tabPanel("Pick trait(s)", icon = icon("dice-two"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=3, selectInput(ns("multiTraitFilter"), label = "Apply same filter to other trait(s)?", choices = list(TRUE, FALSE), selected = FALSE, multiple=FALSE) ),
@@ -73,7 +73,7 @@ mod_filterPhenoApp_ui <- function(id){
                                                   ),
                                            ),
                                   ),
-                                  tabPanel("Run analysis", icon = icon("play"),
+                                  tabPanel("Run analysis", icon = icon("dice-three"),
                                            br(),
                                            actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
                                            textOutput(ns("outFilterRaw")),

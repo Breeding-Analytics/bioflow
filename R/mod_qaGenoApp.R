@@ -52,7 +52,7 @@ mod_qaGenoApp_ui <- function(id){
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            tabsetPanel(
-                                             tabPanel("Set thresholds", icon = icon("magnifying-glass-chart"),
+                                             tabPanel("Set thresholds", icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=4, numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
@@ -85,7 +85,7 @@ mod_qaGenoApp_ui <- function(id){
                                                       #                     ),
                                                       # )
                                              ),
-                                             tabPanel("Run analysis", icon = icon("play"),
+                                             tabPanel("Run analysis", icon = icon("dice-two"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                              column(width=4,
                                                                     br(),

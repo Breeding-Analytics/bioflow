@@ -80,7 +80,7 @@ mod_pggApp_ui <- function(id){
                                                           ),
                                                 ),
                                        ),
-                                       tabPanel("Run analysis", icon = icon("play"),
+                                       tabPanel("Run analysis", icon = icon("dice-three"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                        br(),
                                                        actionButton(ns("runPgg"), "Run PGG", icon = icon("play-circle")),

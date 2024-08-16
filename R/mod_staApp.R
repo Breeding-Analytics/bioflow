@@ -131,7 +131,7 @@ mod_staApp_ui <- function(id){
                                                          DT::dataTableOutput(ns("dtFieldTraC")), # design units
                                                ),
                                       ),
-                                      tabPanel("Run analysis", icon = icon("play"),
+                                      tabPanel("Run analysis", icon = icon("dice-four"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runSta"), "Run STA (click)", icon = icon("play-circle")),
