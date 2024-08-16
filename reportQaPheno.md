@@ -39,7 +39,7 @@ The following table shows the modifications that have been saved in your analysi
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="dataConsistPotatoApp_1-oute83c992709020f81" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="dataConsistPotatoApp_1-outa0923bbf874dbbb3" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -70,7 +70,7 @@ The following boxplot allows you to visualize which records were tagged as outli
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="dataConsistPotatoApp_1-out62b15247a88f6441" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="dataConsistPotatoApp_1-out6fa5fe7a87e605e9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 
