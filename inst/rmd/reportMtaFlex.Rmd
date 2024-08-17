@@ -1136,7 +1136,7 @@ if (is.null(result)){
         for(iCovariate in "(Intercept)"){ 
           for(jCovariate in setdiff(covariates,iCovariate)){ 
             cat("\n\n#####", paste(iCovariate,jCovariate,sep="-"), "{.tabset .tabset-pills}       \n\n")
-            subPred <- pred[which(pred$trait == input$traitMta3),]
+            subPred <- pred[which(pred$trait == iTrait),]
             subPred <- subPred[which(subPred$environment %in% c(iCovariate,jCovariate) ),]
             
             wide <- reshape(subPred[,c("environment","designation","predictedValue","entryType")], 
