@@ -266,7 +266,7 @@ app_server <- function(input, output, session) {
   mod_masApp_server("masApp_1") # MAS
   mod_mabcApp_server("mabcApp_1") # MABC
   mod_hybridityApp_server("hybridityApp_1") # hybridity test
-  mod_neApp_server("neApp_1") # effective size
+  mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
   mod_poolFormApp_server("poolFormApp_1") # pool formation
