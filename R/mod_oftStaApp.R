@@ -251,6 +251,7 @@ mod_oftStaApp_server <- function(id, data){
 
     ## version
     observeEvent(c(data()), {
+      req(input$version2Oft)
       req(data())
       dtOft <- data()
       dtOft <- dtOft$status
@@ -261,8 +262,8 @@ mod_oftStaApp_server <- function(id, data){
     })
     ## traits
     observeEvent(c(data(),input$version2Oft), {
-      req(data())
       req(input$version2Oft)
+      req(data())
       dtOft <- data()
       dtOft <- dtOft$predictions
       dtOft <- dtOft[which(dtOft$analysisId == input$version2Oft),]
@@ -278,7 +279,8 @@ mod_oftStaApp_server <- function(id, data){
       dtOft <- data()
       traitsOft <- dtOft$metadata$pedigree[dtOft$metadata$pedigree$parameter=="yearOfOrigin","value"]
       if(!is.null(traitsOft)){
-        if(length(setdiff(unique(eval(parse(text=paste0("dtOft$data$pedigree$",traitsOft)))),NA))>0){
+        pick <- which(colnames(dtOft$data$pedigree) %in% traitsOft)
+        if(length(setdiff(unique(eval(parse(text=paste0("dtOft$data$pedigree[,",pick,"]") ))),NA))>0){
           updateSelectInput(session, "yearsToUse", choices = traitsOft, selected = traitsOft )
         }
       }
