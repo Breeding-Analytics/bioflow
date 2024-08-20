@@ -98,7 +98,7 @@ app_server <- function(input, output, session) {
         redirect_uri  <- "http://localhost:1410"
       } else {
         client_id     <- "bioflow_ebs"
-        redirect_uri  <- "https://bioflow.ebsproject.org/"
+        redirect_uri  <- "https://bioflow.ebsproject.org"
       }
 
       scriptoria_client <- httr2::oauth_client(
@@ -145,7 +145,7 @@ app_server <- function(input, output, session) {
           redirect_uri  <- "http://localhost:1410"
         } else {
           client_id     <- "bioflow_ebs"
-          redirect_uri  <- "https://bioflow.ebsproject.org/"
+          redirect_uri  <- "https://bioflow.ebsproject.org"
         }
 
         scriptoria_client <- httr2::oauth_client(
