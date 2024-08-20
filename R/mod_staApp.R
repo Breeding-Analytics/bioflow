@@ -131,7 +131,7 @@ mod_staApp_ui <- function(id){
                                                          DT::dataTableOutput(ns("dtFieldTraC")), # design units
                                                ),
                                       ),
-                                      tabPanel("Run analysis", icon = icon("play"),
+                                      tabPanel("Run analysis", icon = icon("dice-four"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runSta"), "Run STA (click)", icon = icon("play-circle")),
@@ -214,7 +214,7 @@ mod_staApp_server <- function(id,data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("qaRaw" %in% data()$status$module){
+          if( any(c("qaRaw","qaFilter","qaDesign","qaConsist") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis specifying your input parameters under the 'Input' tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -259,7 +259,7 @@ mod_staApp_server <- function(id,data){
       req(data())
       dtMta <- data()
       dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
+      dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign","qaConsist")),]
       traitsMta <- unique(dtMta$analysisId)
       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Sta", choices = traitsMta)
@@ -389,7 +389,7 @@ mod_staApp_server <- function(id,data){
     })
     ## render the data to be analyzed
     observeEvent(data(),{
-      if(sum(data()$status$module %in% c("qaRaw", "qaMb")) != 0) {
+      if(sum(data()$status$module %in% c("qaRaw", "qaMb", "qaFilter","qaDesign","qaConsist" )) != 0) {
         ## render status
         output$statusSta <-  DT::renderDT({
           req(data())
@@ -610,7 +610,7 @@ mod_staApp_server <- function(id,data){
     output$outSta <- output$outSta2 <- renderPrint({
 
       # run the modeling, but before test if qa/qc done
-      if(sum(data()$status$module %in% "qaRaw") == 0) {
+      if(sum(data()$status$module %in% c("qaRaw","qaConsist","qaFilter","qaDesign")) == 0) {
         output$qaQcStaInfo <- renderUI({
           if (hideAll$clearAll){
             return()

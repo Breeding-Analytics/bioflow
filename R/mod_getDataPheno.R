@@ -414,6 +414,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
                   QBMS::set_qbms_config(url = ebs_brapi, engine = 'ebs', brapi_ver = 'v2')
                   QBMS::set_token(token$id_token)
+                  shinyWidgets::show_alert(title = 'EBS Token!', text = token$id_token, type = 'info')
                 }
               }
 

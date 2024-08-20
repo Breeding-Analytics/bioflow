@@ -98,7 +98,7 @@ mod_rggApp_ui <- function(id){
                                                           plotly::plotlyOutput(ns("plotPredictionsCleanOut2")),
                                                 ),
                                        ),
-                                       tabPanel("Run analysis", icon = icon("play"),
+                                       tabPanel("Run analysis", icon = icon("dice-four"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                        column(width=3,
                                                               br(),

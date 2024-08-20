@@ -60,7 +60,7 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                            column(width=12, shiny::plotOutput(ns("plotConsistencySparsity")) ),
 
                                   ),
-                                  tabPanel("Tag inconsistencies", icon = icon("play"),
+                                  tabPanel("Tag inconsistencies", icon = icon("dice-three"),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                   br(),
                                                   actionButton(ns("runConsist"), "Run consistency check (click)", icon = icon("play-circle")),

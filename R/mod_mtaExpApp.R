@@ -20,7 +20,7 @@ mod_mtaExpApp_ui <- function(id){
                            tabPanel(div(icon("book"), "Information-MTA-Flex") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Multi Trial Analysis", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                           h1(strong(span("Flexible Multi Trial Analysis (experimental)", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                            h2(strong("Status:")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
@@ -94,7 +94,7 @@ mod_mtaExpApp_ui <- function(id){
                                                                                          "Main + Diagonal" = "csdg_model",
                                                                                          "Finlay-Wilkinson"="fw_model",
                                                                                          "Unstructured"="uns_model",
-                                                                                         "Reduced Rank (FA)"
+                                                                                         "Reduced Rank (FA)"="fa_model"
                                                                           ),
                                                                           selected = "mn_model", inline=TRUE),
                                                       ),
@@ -169,7 +169,7 @@ mod_mtaExpApp_ui <- function(id){
                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
                                                ),
                                       ),
-                                      tabPanel("Run analysis", icon = icon("play"),
+                                      tabPanel("Run analysis", icon = icon("dice-three"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runMta"), "Run MTA (click)", icon = icon("play-circle")),
@@ -349,12 +349,20 @@ mod_mtaExpApp_server <- function(id, data){
             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
           )
         })
-      }else if( input$radio == "uns_model" ){ # UNS model
+      }else if( input$radio == "uns_model"  ){ # UNS model
         lapply(1:input$nTerms, function(i) {
           selectInput(
             session$ns(paste0('leftSides',i)),
             label = ifelse(i==1, "Intercepts",""),
             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
+          )
+        })
+      }else if( input$radio == "fa_model"  ){ # UNS model
+        lapply(1:input$nTerms, function(i) {
+          selectInput(
+            session$ns(paste0('leftSides',i)),
+            label = ifelse(i==1, "Intercepts",""),
+            choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2 | i==3,  'environment', '1' ))
           )
         })
       }else if( input$radio == "dg_model" ){ # DIAG model
@@ -371,14 +379,6 @@ mod_mtaExpApp_server <- function(id, data){
             session$ns(paste0('leftSides',i)),
             label = ifelse(i==1, "Intercepts",""),
             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0(input$trait2Mta[1], "_envIndex" ) ))
-          )
-        })
-      }else if(input$radio == "fa_model"){ # FW model
-        lapply(1:input$nTerms, function(i) {
-          selectInput(
-            session$ns(paste0('leftSides',i)),
-            label = ifelse(i==1, "Intercepts",""),
-            choices = choices, multiple = TRUE, selected = ifelse(i==1, '1', 'environment'  )
           )
         })
       }else { # no model specified
@@ -427,6 +427,15 @@ mod_mtaExpApp_server <- function(id, data){
             selected = '|'
           )
         })
+      }else if ( input$radio == "fa_model" ) { # UNS model
+        lapply(1:input$nTerms, function(i) {
+          selectInput(
+            session$ns(paste0('center',i)),
+            label = ifelse(i==1, "Structure",""),
+            choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+            selected = ifelse(i==1, '|', ifelse(i==2, '||', '|'))
+          )
+        })
       }else if( input$radio == "csdg_model" ){ # CS+DIAG model
         lapply(1:input$nTerms, function(i) {
           selectInput(
@@ -443,15 +452,6 @@ mod_mtaExpApp_server <- function(id, data){
             label = ifelse(i==1, "Structure",""),
             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
             selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
-          )
-        })
-      }else if( input$radio == "fa_model"){ # FA model
-        lapply(1:input$nTerms, function(i) {
-          selectInput(
-            session$ns(paste0('center',i)),
-            label = ifelse(i==1, "Structure",""),
-            choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-            selected = ifelse(i==1, '|', ifelse(i==2, '||', '|'))
           )
         })
       }else { # no model specified
@@ -514,6 +514,15 @@ mod_mtaExpApp_server <- function(id, data){
             selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
           )
         })
+      }else if( input$radio == "fa_model" ){
+        lapply(1:input$nTerms, function(i) {
+          selectInput(
+            inputId=session$ns(paste0('rightSides',i)),
+            label = ifelse(i==1, "Slopes",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){'environment'}else{if(i%in%c(2,3)){ list('designation')}else{  list(setdiff(choices,'designation')[1] )  } }
+          )
+        })
       }else if( input$radio == "dg_model" ){
         lapply(1:input$nTerms, function(i) {
           selectInput(
@@ -521,15 +530,6 @@ mod_mtaExpApp_server <- function(id, data){
             label = ifelse(i==1, "Slopes",""),
             choices = choices, multiple = TRUE,
             selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
-          )
-        })
-      }else if(input$radio == "fa_model"){
-        lapply(1:input$nTerms, function(i) {
-          selectInput(
-            inputId=session$ns(paste0('rightSides',i)),
-            label = ifelse(i==1, "Slopes",""),
-            choices = choices, multiple = TRUE,
-            selected = if(i==1){'environment'}else{list('designation')}
           )
         })
       }else { # no model specified
@@ -552,13 +552,17 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$trait2Mta)
       req(input$nTerms)
+      preds <- data()$predictions
+      preds <- preds[which(preds$analysisId %in% input$version2Mta),]
+      preds <- preds[which(preds$trait %in% input$trait2Mta),]
+      nEnv <- length(unique(preds$environment))
       # if(length(input$fa_model) > 0){
       if(input$radio == "fa_model"){
         lapply(1:input$nTerms, function(i) {
           numericInput(
             session$ns(paste0('nPC',i)),
             label = ifelse(i==1, "nPC",""),
-            value = if(i==1){0}else{if(i==2){ 0 }else{if(i==3){2}else{0} } },
+            value = if(i==1){0}else{if(i==2){ 0 }else{if(i==3){min(c(nEnv,2))}else{0} } },
             min = 0, max = Inf, step = 1
           )
         })

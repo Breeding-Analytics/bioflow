@@ -43,7 +43,7 @@ that perform well under farmers’ conditions before these are announced to the 
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
-                                      tabPanel("Pick STA-stamp", icon = icon("table"),
+                                      tabPanel("Pick STA-stamp", icon = icon("dice-one"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2Oft"), "STA version to use", choices = NULL, multiple = FALSE) ),
@@ -67,7 +67,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     )
                                                # )
                                       ),
-                                      tabPanel("Select traits", icon = icon("table"),
+                                      tabPanel("Select traits", icon = icon("dice-two"),
                                                br(),
                                                column(width=12, selectInput(ns("trait2Oft"), "Trait(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12,
@@ -88,7 +88,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-                                      tabPanel("Select year of origin, entry type & iBlock", icon = icon("table"),
+                                      tabPanel("Select year of origin, entry type & iBlock", icon = icon("dice-three"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4, selectInput(ns("yearsToUse"), "Year of origin", choices = NULL, multiple = FALSE) ),
@@ -109,7 +109,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-                                      tabPanel("Select Disease Information", icon = icon("table"),
+                                      tabPanel("Select Disease Information", icon = icon("dice-four"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12, tags$br(),
@@ -128,7 +128,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                #                     ),
                                                # )
                                       ),
-                                      tabPanel("Select Environments", icon = icon("table"),
+                                      tabPanel("Select Environments", icon = icon("dice-five"),
                                                br(),
                                                column(width=12, selectInput(ns("env2Oft"), "Environment(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12,
@@ -148,7 +148,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    ),
                                                )
                                       ),
-                                      tabPanel("Generate dashboard", icon = icon("play"),
+                                      tabPanel("Generate dashboard", icon = icon("dice-six"),
                                                br(),
                                                actionButton(ns("runOft"), "Generate OFT Dashboard", icon = icon("play-circle")),
                                                uiOutput(ns("outOft"))
@@ -195,7 +195,8 @@ mod_oftStaApp_server <- function(id, data){
         if(mappedColumns == 5){
           if("sta" %in% data()$status$module){
             mappedColName <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
-            mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree$",mappedColName)))),NA))
+            pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
+            mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),NA))
             if(mappedColumns > 0){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to generation of OFT Dashboard.")) )
             } else{
@@ -251,6 +252,7 @@ mod_oftStaApp_server <- function(id, data){
 
     ## version
     observeEvent(c(data()), {
+      req(input$version2Oft)
       req(data())
       dtOft <- data()
       dtOft <- dtOft$status
@@ -261,8 +263,8 @@ mod_oftStaApp_server <- function(id, data){
     })
     ## traits
     observeEvent(c(data(),input$version2Oft), {
-      req(data())
       req(input$version2Oft)
+      req(data())
       dtOft <- data()
       dtOft <- dtOft$predictions
       dtOft <- dtOft[which(dtOft$analysisId == input$version2Oft),]
@@ -278,7 +280,8 @@ mod_oftStaApp_server <- function(id, data){
       dtOft <- data()
       traitsOft <- dtOft$metadata$pedigree[dtOft$metadata$pedigree$parameter=="yearOfOrigin","value"]
       if(!is.null(traitsOft)){
-        if(length(setdiff(unique(eval(parse(text=paste0("dtOft$data$pedigree$",traitsOft)))),NA))>0){
+        pick <- which(colnames(dtOft$data$pedigree) %in% traitsOft)
+        if(length(setdiff(unique(eval(parse(text=paste0("dtOft$data$pedigree[,",pick,"]") ))),NA))>0){
           updateSelectInput(session, "yearsToUse", choices = traitsOft, selected = traitsOft )
         }
       }

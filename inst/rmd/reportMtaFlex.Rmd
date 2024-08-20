@@ -104,7 +104,7 @@ The objective of this dashboard is to help scientist to understand the following
 
 5. Individual across environment predictions for each trait (output) 
 
-6. Individual sensitivity values according to the Finlay-Wilkinson model (Finlay & Wilkinson, 1963) (output)
+6. Individual sensitivity and stability values across environments (output)
 
 7. Percent check comparison against the different benchmark varieties present in the dataset (output)
 
@@ -763,8 +763,8 @@ if (is.null(result)){
   }else{
     shiny::selectInput(ns("parameterMetrics2"), 
                        label = "Parameter:", 
-                       multiple = FALSE,
-                       selected = parameters,
+                       multiple = TRUE,
+                       selected = parameters[grep("r2",parameters)],
                        choices = parameters
     )
   }
@@ -1080,43 +1080,40 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
-    sum(grepl(x,traitsInPreds))
-  })) > 0 )
-  ){
+  if( length(unique(result$predictions[which(result$predictions$analysisId==idMta),"environment"])) > 1 ){
     result$status <- result$status#[1:6,]
     idMta <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]
     idMta <- idMta[length(idMta)]
     pred <- result$predictions
     pred <- pred[pred$analysisId == idMta,]
-    traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
-    # traits <- unique(pred$trait)
     traitsInPreds <- unique(pred$trait)
-    covariates <- unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) # unique(result$metadata$weather$trait)
-    modelUsed <- result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$parameter == "randomFormula"),"value"]
-    isRRBLUP <- ifelse(length(grep("QTL",modelUsed)) > 0, TRUE, FALSE)
+    covariatesOps <- unique(pred$environment)
     
     if("params" %in% ls()){ # we will download the document
       shinyjs::hide()
     }else{
-      if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
-        sum(grepl(x,traitsInPreds))
-      })) > 0 )    ){ # if there is envIndex fitted
+      if( length(unique(result$predictions[which(result$predictions$analysisId==idMta),"environment"])) > 1 ){ # if there is envIndex fitted
         
         inputPanel(
           selectInput(ns("traitMta3"),
                       label = "Trait",
-                      choices = traits
+                      multiple=FALSE,
+                      choices = traitsInPreds
           ),
           selectInput(ns("envCovMta3"),
-                      label = "Covariate",
-                      choices = covariates
+                      label = "Level 1",
+                      multiple=FALSE,
+                      choices = covariatesOps# unique(pred[which(pred$trait==input$traitMta3),"environment"])
+          ),
+          selectInput(ns("envCovMta4"),
+                      label = "Level 2",
+                      multiple=FALSE,
+                      choices = covariatesOps#unique(pred[which(pred$trait==input$traitMta3),"environment"])
           ),
         )
       }
     }
   }
-  
 }
 ```
 
@@ -1125,10 +1122,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if( any( unlist(lapply( as.list( unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) ), function(x){
-    sum(grepl(x,traitsInPreds))
-  })) > 0 )
-  ){ # if there is envIndex fitted
+  if( length(unique(result$predictions[which(result$predictions$analysisId==idMta),"environment"])) > 1 ){ # if there is envIndex fitted
     
     if("params" %in% ls()){ # we will download the document
       
@@ -1137,19 +1131,21 @@ if (is.null(result)){
       for(iTrait in traits){ # iTrait="Yield_Mg_ha"
         cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
         
-        temp.pred.box <- pred[pred$trait== ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait),]
+        covariates <- unique(pred[which(pred$trait == iTrait), "environment"])
         # for each possible environmental covariate iCovariate = covariates[1]
-        for(iCovariate in covariates){ 
-          cat("\n\n#####", iCovariate, "{.tabset .tabset-pills}       \n\n")
-          stabilityTrait <- ifelse(isRRBLUP, paste0(iTrait,"_QTL", iCovariate), paste0(iTrait,"-", iCovariate) ) # paste0(ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait),"-",iCovariate)
-          if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-            subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(iTrait,"_QTL"), iTrait), stabilityTrait)),]
-            wide <- reshape(subPred[,c("trait","designation","predictedValue", "entryType")], 
+        for(iCovariate in "(Intercept)"){ 
+          for(jCovariate in setdiff(covariates,iCovariate)){ 
+            cat("\n\n#####", paste(iCovariate,jCovariate,sep="-"), "{.tabset .tabset-pills}       \n\n")
+            subPred <- pred[which(pred$trait == iTrait),]
+            subPred <- subPred[which(subPred$environment %in% c(iCovariate,jCovariate) ),]
+            
+            wide <- reshape(subPred[,c("environment","designation","predictedValue","entryType")], 
                             direction = "wide", idvar = "designation",
-                            timevar = "trait", v.names = "predictedValue", sep= "_")
+                            timevar = "environment", v.names = "predictedValue", sep= "_")
+            if(ncol(wide) == 3){wide <- cbind(wide,wide[,3])}
             colnames(wide)[3:4] <- c("trait1","trait2")
-            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
-              geom_point(size=2, ggplot2::aes(shape=entryType)) + ylab(iTrait) + xlab(stabilityTrait) 
+            p <- ggplot(wide, aes(x=trait1, y=trait2, text=designation)) + 
+              geom_point(size=2, ggplot2::aes(shape=entryType)) + ylab(jCovariate) + xlab(iCovariate) 
             if(length(unique(temp.pred.box$designation)) > 1000){ # go fixed format
               print(p)
             }else{ # go dynamic if there is less than 1000 genotypes in the plot
@@ -1166,33 +1162,31 @@ if (is.null(result)){
         
         shiny::renderPlot({ # regular ggplot
           
-          stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", input$envCovMta3), paste0(input$traitMta3,"-", input$envCovMta3) )
-          if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-            subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
-            wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
-                            direction = "wide", idvar = "designation",
-                            timevar = "trait", v.names = "predictedValue", sep= "_")
-            colnames(wide)[3:4] <- c("trait1","trait2")
-            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
-              geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$traitMta3) + xlab(stabilityTrait) 
-            p
-          }
+          subPred <- pred[which(pred$trait == input$traitMta3),]
+          subPred <- subPred[which(subPred$environment %in% c(input$envCovMta3,input$envCovMta4) ),]
+          wide <- reshape(subPred[,c("environment","designation","predictedValue","entryType")], 
+                          direction = "wide", idvar = "designation",
+                          timevar = "environment", v.names = "predictedValue", sep= "_")
+          if(ncol(wide) == 3){wide <- cbind(wide,wide[,3])}
+          colnames(wide)[3:4] <- c("trait1","trait2")
+          p <- ggplot(wide, aes(x=trait1, y=trait2, text=designation)) + 
+            geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$traitMta4) + xlab(input$envCovMta3) 
+          p
           
         })
       }else{ # go dynamic
         plotly::renderPlotly({
           
-          stabilityTrait <- ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL", input$envCovMta3), paste0(input$traitMta3,"-", input$envCovMta3) )
-          if(stabilityTrait %in% traitsInPreds){ # if the user modeled that existing covariate in the GxE
-            subPred <- pred[which(pred[,"trait"] %in% c(ifelse(isRRBLUP, paste0(input$traitMta3,"_QTL"), input$traitMta3), stabilityTrait)),]
-            wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
-                            direction = "wide", idvar = "designation",
-                            timevar = "trait", v.names = "predictedValue", sep= "_")
-            colnames(wide)[3:4] <- c("trait1","trait2")
-            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
-              geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$traitMta3) + xlab(stabilityTrait) 
-            plotly::ggplotly(p)
-          }
+          subPred <- pred[which(pred$trait == input$traitMta3),]
+          subPred <- subPred[which(subPred$environment %in% c(input$envCovMta3,input$envCovMta4) ),]
+          wide <- reshape(subPred[,c("environment","designation","predictedValue","entryType")], 
+                          direction = "wide", idvar = "designation",
+                          timevar = "environment", v.names = "predictedValue", sep= "_")
+          if(ncol(wide) == 3){wide <- cbind(wide,wide[,3])}
+          colnames(wide)[3:4] <- c("trait1","trait2")
+          p <- ggplot(wide, aes(x=trait1, y=trait2, text=designation)) + 
+            geom_point(size=2, alpha = 0.6, ggplot2::aes(shape=entryType) ) + ylab(input$envCovMta4) + xlab(input$envCovMta3) 
+          plotly::ggplotly(p)
           
         })
       }
@@ -1461,26 +1455,27 @@ if (is.null(result)){
                                        timevar = "trait", v.names = "predictedValue", sep= "")
         colnames(wideCorTrait) <- gsub("predictedValue","",colnames(wideCorTrait))
         wideCorTrait2 <- as.data.frame(wideCorTrait[,-c(1:2)]); colnames(wideCorTrait2) <- colnames(wideCorTrait)[-c(1:2)]
-        corr <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
+        corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
         
-        mydata4CorTraits <- cgiarBase::matToTab(corr)
-        p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq))+
-          ggplot2::geom_tile(color = "white")+
+        mydata4CorTraits <- cgiarBase::matToTab(corrX)
+        p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq)) +
+          # ggplot2::geom_tile(color = "white")+
           ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
                                         midpoint = 0, limit = c(-1,1), space = "Lab",
                                         name="Pearson\nCorrelation") +
           ggplot2::theme_minimal()+
-          ggplot2::ylab("") + ggplot2::xlab("") +
-          ggplot2::coord_fixed() + 
-          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+          ggplot2::ylab("Level 1") + ggplot2::xlab("Level 2") +
+          ggplot2::coord_fixed() +
+          ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"),
                          axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
         mydata4CorTraits$Group <- ifelse(mydata4CorTraits$Freq < 0, "Low", ifelse(mydata4CorTraits$Freq < 0.2, "Medium", "High"))
         group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-        p2 <- ggplot2::ggplot(mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], ggplot2::aes(x=Freq, fill=Group)) + 
+        p2 <- ggplot2::ggplot(mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], ggplot2::aes(x=Freq, fill=Group)) +
           ggplot2::geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
           ggplot2::scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
         # combine plots
         print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+        # plotly::ggplotly(p2)
         
       }
       
@@ -1502,8 +1497,8 @@ if (is.null(result)){
                                        timevar = "trait", v.names = "predictedValue", sep= "")
         colnames(wideCorTrait) <- gsub("predictedValue","",colnames(wideCorTrait))
         wideCorTrait2 <- as.data.frame(wideCorTrait[,-c(1:2)]); colnames(wideCorTrait2) <- colnames(wideCorTrait)[-c(1:2)]
-        corr <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
-        mydata4CorTraits <- cgiarBase::matToTab(corr)
+        corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
+        mydata4CorTraits <- cgiarBase::matToTab(corrX)
         
         p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq))+
           ggplot2::geom_tile(color = "white")+
@@ -1515,7 +1510,7 @@ if (is.null(result)){
           ggplot2::coord_fixed() + 
           ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                          axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-        if(nrow(corr) < 20){ # if user wants to fill cell values
+        if(nrow(corrX) < 20){ # if user wants to fill cell values
           p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
         }
         

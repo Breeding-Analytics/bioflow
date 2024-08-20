@@ -55,7 +55,7 @@ mod_qaStaApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Set traits & thresholds", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Set traits & thresholds", icon = icon("dice-one"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait to QA", choices = NULL, multiple = TRUE) ),
@@ -77,7 +77,7 @@ mod_qaStaApp_ui <- function(id){
                                            ),
                                            DT::DTOutput(ns("modificationsQa"))
                                   ),
-                                  tabPanel("Run analysis", icon = icon("play"),
+                                  tabPanel("Run analysis", icon = icon("dice-two"),
                                            br(),
                                            actionButton(ns("runQaMb"), "Tag outliers", icon = icon("play-circle")),
                                            textOutput(ns("outQaMb")),

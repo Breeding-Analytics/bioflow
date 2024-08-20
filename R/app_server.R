@@ -81,7 +81,7 @@ app_server <- function(input, output, session) {
 
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
-    decision <- session$clientData$url_hostname == "shiny-analytics.ebsproject.org"
+    decision <- session$clientData$url_hostname == "bioflow.ebsproject.org"
     # decision <- FALSE
     return(decision)
   })
@@ -97,8 +97,8 @@ app_server <- function(input, output, session) {
         client_id     <- "shiny_local"
         redirect_uri  <- "http://localhost:1410"
       } else {
-        client_id     <- "shiny_test"
-        redirect_uri  <- "https://shiny-analytics.ebsproject.org/bioflow"
+        client_id     <- "bioflow_ebs"
+        redirect_uri  <- "https://bioflow.ebsproject.org"
       }
 
       scriptoria_client <- httr2::oauth_client(
@@ -144,8 +144,8 @@ app_server <- function(input, output, session) {
           client_id     <- "shiny_local"
           redirect_uri  <- "http://localhost:1410"
         } else {
-          client_id     <- "shiny_test"
-          redirect_uri  <- "https://shiny-analytics.ebsproject.org/bioflow"
+          client_id     <- "bioflow_ebs"
+          redirect_uri  <- "https://bioflow.ebsproject.org"
         }
 
         scriptoria_client <- httr2::oauth_client(
@@ -266,7 +266,7 @@ app_server <- function(input, output, session) {
   mod_masApp_server("masApp_1") # MAS
   mod_mabcApp_server("mabcApp_1") # MABC
   mod_hybridityApp_server("hybridityApp_1") # hybridity test
-  mod_neApp_server("neApp_1") # effective size
+  mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
   mod_poolFormApp_server("poolFormApp_1") # pool formation

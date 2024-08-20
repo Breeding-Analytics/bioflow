@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Phenotypic Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "August 14, 2024"  
+date: "August 20, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -20,26 +20,15 @@ params:
 The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw phenotypic data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., single trial analysis module).
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="dataConsistPotatoApp_1-traitQa-label" for="dataConsistPotatoApp_1-traitQa">Trait:</label>
+<label class="control-label" id="qaRawApp_1-traitQa-label" for="qaRawApp_1-traitQa">Trait:</label>
 <div>
-<select id="dataConsistPotatoApp_1-traitQa" class="shiny-input-select"><option value="ACRW" selected>ACRW</option>
-<option value="fe">fe</option>
-<option value="mg">mg</option>
-<option value="prot">prot</option>
-<option value="DMF">DMF</option>
-<option value="RF">RF</option>
-<option value="DMRY">DMRY</option>
-<option value="TRW">TRW</option>
-<option value="VPP">VPP</option>
-<option value="CRW">CRW</option>
-<option value="NCRW">NCRW</option>
-<option value="VW">VW</option></select>
-<script type="application/json" data-for="dataConsistPotatoApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
+<script type="application/json" data-for="qaRawApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="dataConsistPotatoApp_1-oute83c992709020f81" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-outb9e63f933c9891f1" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -52,25 +41,14 @@ The following boxplot allows you to visualize which records were tagged as outli
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="dataConsistPotatoApp_1-traitQaBox-label" for="dataConsistPotatoApp_1-traitQaBox">Trait:</label>
+<label class="control-label" id="qaRawApp_1-traitQaBox-label" for="qaRawApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="dataConsistPotatoApp_1-traitQaBox" class="shiny-input-select"><option value="ACRW" selected>ACRW</option>
-<option value="fe">fe</option>
-<option value="mg">mg</option>
-<option value="prot">prot</option>
-<option value="DMF">DMF</option>
-<option value="RF">RF</option>
-<option value="DMRY">DMRY</option>
-<option value="TRW">TRW</option>
-<option value="VPP">VPP</option>
-<option value="CRW">CRW</option>
-<option value="NCRW">NCRW</option>
-<option value="VW">VW</option></select>
-<script type="application/json" data-for="dataConsistPotatoApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
+<script type="application/json" data-for="qaRawApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="dataConsistPotatoApp_1-out62b15247a88f6441" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-out0b7df54ea3d55278" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

@@ -39,7 +39,7 @@ mod_expDesignEditApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
-                                  tabPanel("Pick factors", icon = icon("magnifying-glass-chart"),
+                                  tabPanel("Pick factors", icon = icon("dice-one"),
                                            br(),
                                            column(width = 12, style = "overflow-y: scroll;overflow-x: scroll;"), # height:300px;
                                            tags$span(id = ns('holder1'),
@@ -65,7 +65,7 @@ mod_expDesignEditApp_ui <- function(id){
                                            ),
                                            # )
                                   ),
-                                  tabPanel("Run analysis", icon = icon("play"),
+                                  tabPanel("Run analysis", icon = icon("dice-two"),
                                            br(),
                                            actionButton(ns("runFieldClean"), "Tag factors", icon = icon("play-circle")),
                                            textOutput(ns("outExp"))

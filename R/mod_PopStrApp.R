@@ -47,7 +47,7 @@ mod_PopStrApp_ui <- function(id){
 
                                 tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
-                                         tabPanel("Run analysis", icon = icon("play"),
+                                         tabPanel("Run analysis", icon = icon("dice-one"),
                                                   br(),
                                                   actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
                                                   uiOutput(ns("outPopStr")),
@@ -257,7 +257,7 @@ mod_PopStrApp_server <- function(id, data){
           rm(result)
       if(!inherits(uno,"try-error")) {
           result <- list(PopStr=uno[[4]])
-          result$PopStr$AMOVA=uno[[7]]		  
+          result$PopStr$AMOVA=uno[[7]]
 		  result$PopStr$Plots=list(uno[[3]],uno[[5]],uno[[6]])
           save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
 
@@ -284,7 +284,7 @@ mod_PopStrApp_server <- function(id, data){
 		parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
 		parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
 		plist=list(parmBi,parmlist)
-		save(plist,file=normalizePath("R/outputs/parmDendMDS.RData"))		  
+		save(plist,file=normalizePath("R/outputs/parmDendMDS.RData"))
         #HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
       })
       ## Report tab
@@ -301,7 +301,7 @@ mod_PopStrApp_server <- function(id, data){
           src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
           src2 <- normalizePath('R/outputs/resultPopStr.RData')
 		  src3 <- normalizePath('R/outputs/parmDendMDS.RData')
-		  
+
           # temporarily switch to the temp dir, in case you do not have write
           # permission to the current working directory
           owd <- setwd(tempdir())
@@ -390,13 +390,13 @@ mod_PopStrApp_server <- function(id, data){
             p= p %>% plotly::layout(title=input$tp,titlefont=list(size=input$ts,color=input$pnc), xaxis = list(title = txlab2, titlefont=list(size=input$szl,color=input$ac)),
                                     yaxis = list(title = tylab2,titlefont=list(size=input$szl,color=input$ac)))
             p
-			
+
           }else{
             fig = plotly::plot_ly()
             fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
             fig
           }
-		  
+
         })
 
         #Plot heatmap
@@ -431,7 +431,7 @@ mod_PopStrApp_server <- function(id, data){
               plot(tree, type = "fan", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
               legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
             }
-			
+
           }
         })
 

@@ -69,7 +69,7 @@ mod_indexBaseApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
-                                       tabPanel("Pick MTA-stamp", icon = icon("table"),
+                                       tabPanel("Pick MTA-stamp", icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=8, selectInput(ns("version2IdxB"), "MTA version to analyze (required)", choices = NULL, multiple = TRUE)),
@@ -86,7 +86,7 @@ mod_indexBaseApp_ui <- function(id){
                                                 DT::DTOutput(ns("statusIndex")),
                                                 DT::DTOutput(ns("tablePredictionsTraitsWide")),
                                        ),
-                                       tabPanel("Pick traits", icon = icon("table"),
+                                       tabPanel("Pick traits", icon = icon("dice-two"),
                                                 br(),
 
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
@@ -119,7 +119,7 @@ mod_indexBaseApp_ui <- function(id){
                                                 # ),
 
                                        ),
-                                       tabPanel("Run analysis", icon = icon("play"),
+                                       tabPanel("Run analysis", icon = icon("dice-three"),
                                                 br(),
                                                 actionButton(ns("runIdxB"), "Calculate index", icon = icon("play-circle")),
                                                 uiOutput(ns("qaQcIdxBInfo")),

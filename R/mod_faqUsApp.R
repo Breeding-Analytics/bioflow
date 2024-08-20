@@ -25,7 +25,7 @@ mod_faqUsApp_ui <- function(id){
 
                             br(),
 
-                            p("There are three main areas where breeding analytics is relevant for your research:"),
+                            p("There are three main areas where breeding analytics is relevant for your organization (among others):"),
 
                             p(strong("Parental selection:"), "The selection for complex traits managed by hundreds or thousands of genes requires more than a trained eye.
                               Biometrical genetics models allow to dissect the genetic signal from the environmental effects to allow the select parents with high breeding value.

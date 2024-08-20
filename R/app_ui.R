@@ -84,7 +84,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
                           navlistPanel( widths = c(1, 11),
                                         tabPanel(div("FinlayW" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
-                                        tabPanel(div("Flexible (experimental)" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
+                                        tabPanel(div("Flexible (expm)" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
 
                           )
                  ),
@@ -116,9 +116,9 @@ app_ui <- function(request) {
                  tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")", style = "color:red"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("barcode"), "Marker-assisted backcross (", icon("anchor"), ")", style = "color:red"), mod_mabcApp_ui("mabcApp_1") ), # icon = icon("shuffle")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("barcode"), "Hybridity test (", icon("dna"), ")", style = "color:red"), mod_hybridityApp_ui("hybridityApp_1") ),
-                 tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")", style = "color:red"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
                  tabPanel(strong("DRIFT & FLOW HISTORY"), mod_sectionInfoGFDHApp_ui("sectionInfoGFDHApp_1") ),
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
+                 tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
                  tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ) # stpga
       ),
