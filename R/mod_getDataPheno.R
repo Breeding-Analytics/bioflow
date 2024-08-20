@@ -456,7 +456,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
           },
           error = function(e) {
-            shinyWidgets::show_alert(title = 'Invalid Credentials!', type = 'error')
+            shinyWidgets::show_alert(title = 'Invalid Credentials!', text = token$id_token, type = 'error')
           }
         )
       }
