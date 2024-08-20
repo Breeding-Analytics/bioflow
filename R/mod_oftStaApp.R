@@ -195,7 +195,8 @@ mod_oftStaApp_server <- function(id, data){
         if(mappedColumns == 5){
           if("sta" %in% data()$status$module){
             mappedColName <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
-            mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree$",mappedColName)))),NA))
+            pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
+            mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),NA))
             if(mappedColumns > 0){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to generation of OFT Dashboard.")) )
             } else{
@@ -251,6 +252,7 @@ mod_oftStaApp_server <- function(id, data){
 
     ## version
     observeEvent(c(data()), {
+      req(input$version2Oft)
       req(data())
       dtOft <- data()
       dtOft <- dtOft$status
@@ -261,8 +263,8 @@ mod_oftStaApp_server <- function(id, data){
     })
     ## traits
     observeEvent(c(data(),input$version2Oft), {
-      req(data())
       req(input$version2Oft)
+      req(data())
       dtOft <- data()
       dtOft <- dtOft$predictions
       dtOft <- dtOft[which(dtOft$analysisId == input$version2Oft),]
@@ -278,7 +280,8 @@ mod_oftStaApp_server <- function(id, data){
       dtOft <- data()
       traitsOft <- dtOft$metadata$pedigree[dtOft$metadata$pedigree$parameter=="yearOfOrigin","value"]
       if(!is.null(traitsOft)){
-        if(length(setdiff(unique(eval(parse(text=paste0("dtOft$data$pedigree$",traitsOft)))),NA))>0){
+        pick <- which(colnames(dtOft$data$pedigree) %in% traitsOft)
+        if(length(setdiff(unique(eval(parse(text=paste0("dtOft$data$pedigree[,",pick,"]") ))),NA))>0){
           updateSelectInput(session, "yearsToUse", choices = traitsOft, selected = traitsOft )
         }
       }
