@@ -195,7 +195,8 @@ mod_oftStaApp_server <- function(id, data){
         if(mappedColumns == 5){
           if("sta" %in% data()$status$module){
             mappedColName <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
-            mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree$",mappedColName)))),NA))
+            pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
+            mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),NA))
             if(mappedColumns > 0){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to generation of OFT Dashboard.")) )
             } else{
