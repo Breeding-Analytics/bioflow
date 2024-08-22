@@ -157,10 +157,10 @@ mod_dataConsistPotatoApp_server <- function(id, data){
 
       if(input$cropConsist == "spotato"){
         main <- "Sweet potato consistency flags"
-        out <- st4gi::check.data.sp(dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
+        out <- st4gi::check.data.sp(dfr=dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
       }else if(input$cropConsist == "potato"){
         main <- "Potato consistency flags"
-        out <- st4gi::check.data.pt(dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
+        out <- st4gi::check.data.pt(dfr=dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
       }else{
         main <- "Crop not available, no consistency flags"
         out <- matrix(0, nrow=nrow(dtMta$data$pheno), ncol=ncol(dtMta$data$pheno))

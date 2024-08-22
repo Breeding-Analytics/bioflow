@@ -21,23 +21,30 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out3c18faf40984acf0" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outc1e8d38e56b365a6" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Summary metrics (wide-format)
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out710aa337c7b3a092" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out5483f176483a4979" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Regression plot
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="rggApp_1-traitSta3-label" for="rggApp_1-traitSta3">Trait:</label>
+<label class="control-label" id="reportBuilder_1-traitSta3-label" for="reportBuilder_1-traitSta3">Trait:</label>
 <div>
-<select id="rggApp_1-traitSta3" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
-<script type="application/json" data-for="rggApp_1-traitSta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="reportBuilder_1-traitSta3" class="shiny-input-select"><option value="PL" selected>PL</option>
+<option value="UGPP">UGPP</option>
+<option value="FGPP">FGPP</option>
+<option value="TSW">TSW</option>
+<option value="PH">PH</option>
+<option value="DM">DM</option>
+<option value="DH">DH</option>
+<option value="Grain.yield">Grain.yield</option></select>
+<script type="application/json" data-for="reportBuilder_1-traitSta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-out4cc9d9f93e218500" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out1786bbb040820444" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References on methods used

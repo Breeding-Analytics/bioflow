@@ -33,9 +33,7 @@ mod_neApp_ui <- function(id){
                                                     be sampled with n individuals. This can be thought as a surrogate of efective number of individuals behind the population.
                                 The way arguments are used is the following:"),
 
-                                                    p(strong("minNe.-")," The minimum number of potential founders to investigate in the sampling process of percentage of alleles recovered."),
                                                     p(strong("maxNe.-")," The maximum number of potential founders to investigate in the sampling process of percentage of alleles recovered."),
-                                                    p(strong("stepNe.-")," The step at which the number of potential founders to investigate in the sampling process of percentage of alleles recovered should be generated."),
                                                     p(strong("maxMarker.-"),"  The maximum number of markers to sample for the exercise."),
                                                     p(strong("nSamples.-")," number of independent runs for each value of maxNe for the Ne calculation."),
                                                     h2(strong("References")),
@@ -65,11 +63,9 @@ mod_neApp_ui <- function(id){
                                              tabPanel("Set thresholds", icon = icon("dice-two"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=4, numericInput(ns("minNe"), label = "Minimum Number of Founders to Explore", value = 10, step = 5, max = 1000, min = 2) ),
-                                                             column(width=4, numericInput(ns("maxNe"), label = "Maximum Number of Founders to Explore", value = 60, step = 5, max = 1000, min = 2) ),
-                                                             column(width=4, numericInput(ns("stepNe"), label = "Step for min and max Ne", value = 5, step = 5, max = 1000, min = 2) ),
-                                                             column(width=4, numericInput(ns("maxMarker"), label = "Number of markers to use", value = 1000, step = 50, max = 20000, min = 10) ),
-                                                             column(width=4, numericInput(ns("nSamples"), label = "Number of iterations per combination", value = 10, step = 5, max = 5, min = 500) ),
+                                                             column(width=3, numericInput(ns("maxNe"), label = "Maximum Number of Founders to Explore", value = 100, step = 5, max = 1000, min = 2) ),
+                                                             column(width=3, numericInput(ns("maxMarker"), label = "Number of markers to use", value = 1000, step = 50, max = 20000, min = 10) ),
+                                                             column(width=3, numericInput(ns("nSamples"), label = "Number of iterations per combination", value = 10, step = 5, max = 5, min = 500) ),
                                                       ),
                                                       column(width=12,
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -87,12 +83,11 @@ mod_neApp_ui <- function(id){
                                                              column(width=12,
                                                                     br(),
                                                                     actionButton(ns("runQaMb"), "Run (click)", icon = icon("play-circle")),
-                                                                    textOutput(ns("outQaMb")),
                                                                     br(),
                                                              ),
                                                              br(),
                                                       ),
-
+                                                      textOutput(ns("outQaMb")),
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel
@@ -263,9 +258,7 @@ mod_neApp_server <- function(id, data){
 
       req(data())
       req(input$versionMarker2Mta)
-      req(input$minNe)
       req(input$maxNe)
-      req(input$stepNe)
       req(input$maxMarker)
       req(input$nSamples)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
@@ -275,21 +268,17 @@ mod_neApp_server <- function(id, data){
       dt <- data()
       # save(result, file = "./R/outputs/resultQaGeno.RData")
       result <- try( cgiarPipeline::numberFounders(
-        object= dt,
-        analysisIdForGenoModifications=input$versionMarker2Mta,
-        neExplore=seq(input$minNe, input$maxNe, input$stepNe),
-        maxMarker=input$maxMarker,
-        nSamples=input$nSamples,
+        object= NULL,
+        analysisIdForGenoModifications=NULL,
+        maxNe=100,
+        maxMarker=1000,
+        nSamples=5,
         verbose=FALSE
       ), silent = TRUE)
       ## write the new status table
-      if(!inherits(result,"try-error")) {
-        data(result) # update data with results
-        cat(paste("Number of Founders analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to inspect the dashboard."))
-        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-      }else{
-        cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-      }
+      data(result)
+      cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to inspect results."))
+      updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 
       shinybusy::remove_modal_spinner()
 
