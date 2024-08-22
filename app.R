@@ -4,4 +4,10 @@
 
 pkgload::load_all(export_all = FALSE,helpers = FALSE,attach_testthat = FALSE)
 options( "golem.app.prod" = TRUE)
-bioflow::run_app() # add parameters here (if any)
+
+# Run the application (use port 1410 if run on localhost)
+if (Sys.getenv('SHINY_PORT') == "") {
+  bioflow::run_app(options = list(launch.browser = TRUE, port = 1410))
+} else {
+  bioflow::run_app(options = list(launch.browser = TRUE))
+}

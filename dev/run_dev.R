@@ -11,7 +11,11 @@ golem::detach_all_attached()
 # Document and reload your package
 golem::document_and_reload()
 
-# Run the application
-run_app(options = list(launch.browser = TRUE)) # port = 1410
+# Run the application (use port 1410 if run on localhost)
+if (Sys.getenv('SHINY_PORT') == "") {
+  run_app(options = list(launch.browser = TRUE, port = 1410))
+} else {
+  run_app(options = list(launch.browser = TRUE))
+}
 
 #profvis::profvis(print(run_app()))
