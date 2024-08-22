@@ -14,6 +14,11 @@ run_app <- function(
   uiPattern = "/",
   ...
 ) {
+  options$launch.browser <- TRUE
+  if (Sys.getenv('SHINY_PORT') == "") {
+    options$port <- 1410
+  }
+
   with_golem_options(
     app = shinyApp(
       ui = app_ui, # shinymanager::secure_app(app_ui),
