@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "August 20, 2024"  
+date: "August 23, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -43,7 +43,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out303ab999d0a7a210" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-out7ea08250f3b5eebd" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -57,21 +57,22 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMta-label" for="reportBuilder_1-traitMta"></label>
+<label class="control-label" id="mtaApp_1-traitMta-label" for="mtaApp_1-traitMta"></label>
 <div>
-<select id="reportBuilder_1-traitMta" class="shiny-input-select"><option value="PL" selected>PL</option>
-<option value="PH">PH</option>
-<option value="TSW">TSW</option>
-<option value="FGPP">FGPP</option>
-<option value="UGPP">UGPP</option>
-<option value="DM">DM</option>
-<option value="Grain.yield">Grain.yield</option>
-<option value="DH">DH</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaApp_1-traitMta" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Days to Flowering">Days to Flowering</option>
+<option value="Lodging Score (1-5)">Lodging Score (1-5)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option>
+<option value="Seed Weight (g)">Seed Weight (g)</option>
+<option value="Days to Maturity">Days to Maturity</option>
+<option value="Protein (%)">Protein (%)</option>
+<option value="Shattering Score (1-5)">Shattering Score (1-5)</option>
+<option value="Plant Height (cm)">Plant Height (cm)</option></select>
+<script type="application/json" data-for="mtaApp_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out1780de0245cfc0e0" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out1b3e27849fb2fd6c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between environments
 
@@ -80,21 +81,22 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMtaConnect-label" for="reportBuilder_1-traitMtaConnect"></label>
+<label class="control-label" id="mtaApp_1-traitMtaConnect-label" for="mtaApp_1-traitMtaConnect"></label>
 <div>
-<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="PL" selected>PL</option>
-<option value="PH">PH</option>
-<option value="TSW">TSW</option>
-<option value="FGPP">FGPP</option>
-<option value="UGPP">UGPP</option>
-<option value="DM">DM</option>
-<option value="Grain.yield">Grain.yield</option>
-<option value="DH">DH</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaApp_1-traitMtaConnect" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Days to Flowering">Days to Flowering</option>
+<option value="Lodging Score (1-5)">Lodging Score (1-5)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option>
+<option value="Seed Weight (g)">Seed Weight (g)</option>
+<option value="Days to Maturity">Days to Maturity</option>
+<option value="Protein (%)">Protein (%)</option>
+<option value="Shattering Score (1-5)">Shattering Score (1-5)</option>
+<option value="Plant Height (cm)">Plant Height (cm)</option></select>
+<script type="application/json" data-for="mtaApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out53d1828ffce41dee" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out41f9d8de90448148" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Genetic correlations between environments
 
@@ -103,21 +105,22 @@ The following heatmap and histogram allows to assess the genetic correlations am
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitPredictionsCorrelation-label" for="reportBuilder_1-traitPredictionsCorrelation"></label>
+<label class="control-label" id="mtaApp_1-traitPredictionsCorrelation-label" for="mtaApp_1-traitPredictionsCorrelation"></label>
 <div>
-<select id="reportBuilder_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="PL" selected>PL</option>
-<option value="PH">PH</option>
-<option value="TSW">TSW</option>
-<option value="FGPP">FGPP</option>
-<option value="UGPP">UGPP</option>
-<option value="DM">DM</option>
-<option value="Grain.yield">Grain.yield</option>
-<option value="DH">DH</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Days to Flowering">Days to Flowering</option>
+<option value="Lodging Score (1-5)">Lodging Score (1-5)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option>
+<option value="Seed Weight (g)">Seed Weight (g)</option>
+<option value="Days to Maturity">Days to Maturity</option>
+<option value="Protein (%)">Protein (%)</option>
+<option value="Shattering Score (1-5)">Shattering Score (1-5)</option>
+<option value="Plant Height (cm)">Plant Height (cm)</option></select>
+<script type="application/json" data-for="mtaApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outd7a2c6307308f028" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out31902f15cb13777b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -129,21 +132,22 @@ The following graph allows to see the clustering of different genotypes in the T
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitBiplot-label" for="reportBuilder_1-traitBiplot"></label>
+<label class="control-label" id="mtaApp_1-traitBiplot-label" for="mtaApp_1-traitBiplot"></label>
 <div>
-<select id="reportBuilder_1-traitBiplot" class="shiny-input-select"><option value="PL" selected>PL</option>
-<option value="PH">PH</option>
-<option value="TSW">TSW</option>
-<option value="FGPP">FGPP</option>
-<option value="UGPP">UGPP</option>
-<option value="DM">DM</option>
-<option value="Grain.yield">Grain.yield</option>
-<option value="DH">DH</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaApp_1-traitBiplot" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Days to Flowering">Days to Flowering</option>
+<option value="Lodging Score (1-5)">Lodging Score (1-5)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option>
+<option value="Seed Weight (g)">Seed Weight (g)</option>
+<option value="Days to Maturity">Days to Maturity</option>
+<option value="Protein (%)">Protein (%)</option>
+<option value="Shattering Score (1-5)">Shattering Score (1-5)</option>
+<option value="Plant Height (cm)">Plant Height (cm)</option></select>
+<script type="application/json" data-for="mtaApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out7204d9e567b48434" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out2659d449912e8285" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -152,18 +156,18 @@ The following graph allows to see the clustering of different genotypes in the T
 The following barplot aims to help you inspect the across environment estimates for multiple parameters from the multi-trial analysis such as across-environment reliability.
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-parameterMetrics2-label" for="reportBuilder_1-parameterMetrics2">Parameter:</label>
+<label class="control-label" id="mtaApp_1-parameterMetrics2-label" for="mtaApp_1-parameterMetrics2">Parameter:</label>
 <div>
-<select id="reportBuilder_1-parameterMetrics2" class="shiny-input-select"><option value="mean" selected>mean</option>
+<select id="mtaApp_1-parameterMetrics2" class="shiny-input-select"><option value="mean" selected>mean</option>
 <option value="r2" selected>r2</option>
 <option value="Vg" selected>Vg</option>
 <option value="nEnv" selected>nEnv</option>
 <option value="Vr" selected>Vr</option></select>
-<script type="application/json" data-for="reportBuilder_1-parameterMetrics2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaApp_1-parameterMetrics2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out56a490e6eac1d7a0" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out6a93f94e59a6d695" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -171,7 +175,7 @@ The following graph allows you to assess the proportion of variance going to dif
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out8265b9ba91df267e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out4536a5bcb2245daf" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -181,21 +185,23 @@ In the left-side plot you can observe the comparison between the top 100 entries
 
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMta2-label" for="reportBuilder_1-traitMta2"></label>
+<label class="control-label" id="mtaApp_1-traitMta2-label" for="mtaApp_1-traitMta2"></label>
 <div>
-<select id="reportBuilder_1-traitMta2" class="shiny-input-select"><option value="PL" selected>PL</option>
-<option value="UGPP">UGPP</option>
-<option value="FGPP">FGPP</option>
-<option value="TSW">TSW</option>
-<option value="PH">PH</option>
-<option value="DM">DM</option>
-<option value="DH">DH</option>
-<option value="Grain.yield">Grain.yield</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="Protein (%)" selected>Protein (%)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option>
+<option value="Protein (%)-GrainYieldtonhaenvIndex">Protein (%)-GrainYieldtonhaenvIndex</option>
+<option value="Oil (%)-GrainYieldtonhaenvIndex">Oil (%)-GrainYieldtonhaenvIndex</option>
+<option value="Oil (%)">Oil (%)</option>
+<option value="Grain Yield (ton/ha)-GrainYieldtonhaenvIndex">Grain Yield (ton/ha)-GrainYieldtonhaenvIndex</option>
+<option value="Seed Weight (g)-GrainYieldtonhaenvIndex">Seed Weight (g)-GrainYieldtonhaenvIndex</option>
+<option value="Plant Height (cm)-GrainYieldtonhaenvIndex">Plant Height (cm)-GrainYieldtonhaenvIndex</option>
+<option value="Seed Weight (g)">Seed Weight (g)</option>
+<option value="Plant Height (cm)">Plant Height (cm)</option></select>
+<script type="application/json" data-for="mtaApp_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out04f08f1a623ff98b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outc9aaea9f912d0d60" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -225,7 +231,7 @@ The following heatmap and histogram allows to see the genetic correlations among
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out65938c19c3c7daa2" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-out219438e66a507bd6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -235,7 +241,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outc721d9d2ea64fdd3" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-out41c41e43ab30f1f0" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used

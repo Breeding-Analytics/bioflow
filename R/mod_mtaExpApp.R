@@ -378,7 +378,7 @@ mod_mtaExpApp_server <- function(id, data){
           selectInput(
             session$ns(paste0('leftSides',i)),
             label = ifelse(i==1, "Intercepts",""),
-            choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0(input$trait2Mta[1], "_envIndex" ) ))
+            choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', grep("envIndex",gg[[ input$trait2Mta[1] ]],value=TRUE)[1] ))
           )
         })
       }else { # no model specified
