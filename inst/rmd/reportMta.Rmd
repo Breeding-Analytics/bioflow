@@ -263,30 +263,33 @@ if (is.null(result)){
     cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
     
     for(iTrait in traits){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==iTrait & pred.sta.boxplot$environment %in% goodFields,]
-      meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
-      temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE) # merge env means
-      temp.r2Sta <- r2Sta[r2Sta$trait ==iTrait & r2Sta$environment %in% goodFields, ] # reliabilities
-      temp.pred.box <- merge(temp.pred.box,temp.r2Sta[,c("environment","value")], by="environment", all.x = TRUE) # merge reliabilities
-      # vv <- rep(1000, seq(0.5,1.5,0.5))
-      # temp.pred.box$vjust1 <- vv[1:nrow(temp.pred.box)]
-      p <- temp.pred.box %>%
-        ggplot2::ggplot() +
-        ggplot2::aes(x=envMean, y=predictedValue, fill = environment) +
-        ggplot2::geom_boxplot() +
-        ggplot2::labs(x = "Environmental mean", y = "Trait value") +
-        ggplot2::scale_fill_discrete(name = "") +
-        ggplot2::theme(legend.position = "bottom")  +
-        ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) #+
-      # ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 3, vjust = 0.5,colour="black") 
-      
-      # if(length(unique(temp.pred.box$designation)) > 200){ # go fixed format
-      print(p)
-      # }else{ # go dynamic
-      #   print(htmltools::tagList(plotly::ggplotly(p)))
-      # }
+      if(length(goodFields) > 0){
+        cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+        
+        temp.pred.box.merit <- as.data.frame(pred.sta.boxplot[pred.sta.boxplot$trait==iTrait & pred.sta.boxplot$environment %in% goodFields,])
+        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box.merit, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+        temp.pred.box.merit <- merge(temp.pred.box.merit,meansEnv, by="environment", all.x = TRUE) # merge env means
+        temp.r2Sta <- r2Sta[r2Sta$trait ==iTrait & r2Sta$environment %in% goodFields, ] # reliabilities
+        temp.pred.box.merit <- merge(temp.pred.box.merit,temp.r2Sta[,c("environment","value")], by="environment", all.x = TRUE) # merge reliabilities
+        # vv <- rep(1000, seq(0.5,1.5,0.5))
+        # temp.pred.box.merit$vjust1 <- vv[1:nrow(temp.pred.box.merit)]
+        p <- temp.pred.box.merit %>%
+          ggplot2::ggplot() +
+          ggplot2::aes(x=envMean, y=predictedValue, fill = environment) +
+          ggplot2::geom_boxplot() +
+          ggplot2::labs(x = "Environmental mean", y = "Trait value") +
+          ggplot2::scale_fill_discrete(name = "") +
+          ggplot2::theme(legend.position = "bottom")  +
+          ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) #+
+        # ggplot2::geom_text(data=temp.pred.box.merit,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 3, vjust = 0.5,colour="black") 
+        
+        # if(length(unique(temp.pred.box.merit$designation)) > 200){ # go fixed format
+        print(p)
+        # }else{ # go dynamic
+        #   print(htmltools::tagList(plotly::ggplotly(p)))
+        # }
+      }
       
     }
     
@@ -295,12 +298,12 @@ if (is.null(result)){
     if(length(unique(pred$designation)) > 200){ # go fixed format
       shiny::renderPlot({
         goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMta, "environment"]
-        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% goodFields,]
-        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
-        temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
+        temp.pred.box.merit <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% goodFields,]
+        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box.merit, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+        temp.pred.box.merit <- merge(temp.pred.box.merit,meansEnv, by="environment", all.x = TRUE)
         temp.r2Sta <- r2Sta[r2Sta$trait ==input$traitMta & r2Sta$environment %in% goodFields, ] # reliabilities
-        temp.pred.box <- merge(temp.pred.box,temp.r2Sta[,c("environment","value")], by="environment", all.x = TRUE) # merge reliabilities
-        p <- temp.pred.box %>%
+        temp.pred.box.merit <- merge(temp.pred.box.merit,temp.r2Sta[,c("environment","value")], by="environment", all.x = TRUE) # merge reliabilities
+        p <- temp.pred.box.merit %>%
           ggplot() +
           aes(x=envMean, y=predictedValue, fill = environment) +
           geom_boxplot() +
@@ -308,16 +311,16 @@ if (is.null(result)){
           scale_fill_discrete(name = "") +
           theme(legend.position = "bottom") +
           guides(fill=guide_legend(nrow=3,byrow=TRUE)) # +
-        # ggplot2::geom_text(data=temp.pred.box,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 5, vjust = 0.5,colour="black")
+        # ggplot2::geom_text(data=temp.pred.box.merit,aes(x= envMean, y = max(predictedValue) , label =round(value,2) ), position=position_dodge(width = 0.8),size = 5, vjust = 0.5,colour="black")
         p
       })
     } else { # go dynamic
       plotly::renderPlotly({
         goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == input$traitMta, "environment"]
-        temp.pred.box <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% goodFields,]
-        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
-        temp.pred.box <- merge(temp.pred.box,meansEnv, by="environment", all.x = TRUE)
-        p <- plotly::plot_ly( data = temp.pred.box, y = ~predictedValue,
+        temp.pred.box.merit <- pred.sta.boxplot[pred.sta.boxplot$trait==input$traitMta & pred.sta.boxplot$environment %in% goodFields,]
+        meansEnv <- aggregate(predictedValue~environment, data=temp.pred.box.merit, FUN=mean, na.rm=TRUE); colnames(meansEnv)[2] <- "envMean"
+        temp.pred.box.merit <- merge(temp.pred.box.merit,meansEnv, by="environment", all.x = TRUE)
+        p <- plotly::plot_ly( data = temp.pred.box.merit, y = ~predictedValue,
                               x = ~envMean,  type = "box", color = ~environment
         ) %>%  plotly::layout(# font=font.plot_ly,
           xaxis=list( title="Environmental mean"), yaxis=list( title="Trait value") )
@@ -367,48 +370,51 @@ if (is.null(result)){
     cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
     
     for(iTrait in traits){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
       
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      mydata2 <- mydata[which(mydata$trait == iTrait & mydata$environment %in% goodFields), ]
-      splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
-      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
-      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
-      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
-        for(j in 1:i){
-          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+      if(length(goodFields) > 0){
+        cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+        mydata2 <- mydata[which(mydata$trait == iTrait & mydata$environment %in% goodFields), ]
+        splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
+        splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+        nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+        for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+          for(j in 1:i){
+            nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+          }
         }
+        nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+        
+        mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+        maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                        midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                        name="Connectivity") +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
+          ggplot2::coord_fixed() + 
+          ggplot2::coord_fixed() + 
+          # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
+          # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
+        if(nrow(nagm) < 15){ # if user wants to add text to the cells
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+        }
+        # Basic histogram
+        mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
+        group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
+        ub <- max(mydata4$Freq, na.rm = TRUE)
+        p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+          geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+          scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+        # combine plots
+        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+        # print(p) # static
+        # print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       }
-      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
-      
-      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
-      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
-                                      name="Connectivity") +
-        ggplot2::theme_minimal()+
-        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-        ggplot2::coord_fixed() + 
-        ggplot2::coord_fixed() + 
-        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
-        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-      if(nrow(nagm) < 15){ # if user wants to add text to the cells
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
-      }
-      # Basic histogram
-      mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
-      group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
-      ub <- max(mydata4$Freq, na.rm = TRUE)
-      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
-      # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
-      # print(p) # static
-      # print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       
     }
     
@@ -513,42 +519,46 @@ if (is.null(result)){
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
     for(iTrait in traits){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      
       
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait & predictions.gcorrE$environment %in% goodFields , ]
-      wide <- stats::reshape(predictions.gcorrE2,
-                             direction = "wide", idvar = "designation",
-                             timevar = "environment", v.names = "predictedValue", sep= "")
-      colnames(wide) <- gsub("predictedValue","",colnames(wide))
-      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
-      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
-      mydata4 <- cgiarBase::matToTab(corr)
-      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
-        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
-                                      midpoint = 0, limit = c(-1,1), space = "Lab",
-                                      name="Pearson\nCorrelation") +
-        ggplot2::theme_minimal()+
-        ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-        ggplot2::coord_fixed() + 
-        # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-        #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-      if(nrow(corr) < 15){ # if user wants to fill cell values
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-      }
-      # Basic histogram
-      mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
-      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
-      # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
-      # print(p) # static
-      # print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
       
+      if(length(goodFields)>0){
+        cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+        
+        predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait & predictions.gcorrE$environment %in% goodFields , ]
+        wide <- stats::reshape(predictions.gcorrE2,
+                               direction = "wide", idvar = "designation",
+                               timevar = "environment", v.names = "predictedValue", sep= "")
+        colnames(wide) <- gsub("predictedValue","",colnames(wide))
+        wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+        corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+        mydata4 <- cgiarBase::matToTab(corr)
+        p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+          ggplot2::geom_tile(color = "white")+
+          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                        midpoint = 0, limit = c(-1,1), space = "Lab",
+                                        name="Pearson\nCorrelation") +
+          ggplot2::theme_minimal()+
+          ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
+          ggplot2::coord_fixed() + 
+          # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+          #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
+        if(nrow(corr) < 15){ # if user wants to fill cell values
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+        }
+        # Basic histogram
+        mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
+        group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+        p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+          geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+          scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+        # combine plots
+        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+        # print(p) # static
+        # print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+      }
     }
     
   }else{
@@ -652,54 +662,59 @@ if (is.null(result)){
       cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
       
       for(iTrait in traitsBiplotAll){
-        cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+        
         
         goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
-        pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
-                                   direction = "wide", idvar = "designation", timevar = "environment")
         
-        rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
-        pred.mta.biplot <- pred.mta.biplot[,-1]
-        names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
-        
-        # keep only 
-        missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
-        pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
-        missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
-        pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
-        pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-        # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
-        prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-        components <- prin_comp[["x"]]
-        components <- data.frame(components)
-        components$PC2 <- -components$PC2
-        
-        explained_variance <- summary(prin_comp)[["sdev"]]
-        explained_variance <- explained_variance[1:2]
-        comp <- prin_comp[["rotation"]]
-        comp[,'PC2'] <- - comp[,'PC2']
-        loadings <- comp
-        for (i in seq(explained_variance) ){
-          loadings[,i] <- comp[,i] * explained_variance[i]
-        }
-        p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-        p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                          x=components$PC1,
-                                          y=components$PC2,
-                                          text=rownames(components),
-                                          marker=list(color="blue"),
-                                          hoverinfo='text',
-                                          showlegend=FALSE
-        )
-        for (i in 1:ncol(pred.mta.biplot)){
-          p.mta.biplot <- p.mta.biplot %>%
-            plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-          if(ncol(pred.mta.biplot) < 20){
-            p.mta.biplot <- p.mta.biplot %>%
-              plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+        if(length(goodFields) > 0){
+          cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+          
+          pred.mta.biplot <- reshape(pred.sta[which(pred.sta$trait == iTrait & pred.sta$environment %in% goodFields ),c("designation","environment","predictedValue")], 
+                                     direction = "wide", idvar = "designation", timevar = "environment")
+          
+          rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
+          pred.mta.biplot <- pred.mta.biplot[,-1]
+          names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
+          
+          # keep only 
+          missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
+          pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
+          missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
+          pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
+          pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+          # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
+          prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+          components <- prin_comp[["x"]]
+          components <- data.frame(components)
+          components$PC2 <- -components$PC2
+          
+          explained_variance <- summary(prin_comp)[["sdev"]]
+          explained_variance <- explained_variance[1:2]
+          comp <- prin_comp[["rotation"]]
+          comp[,'PC2'] <- - comp[,'PC2']
+          loadings <- comp
+          for (i in seq(explained_variance) ){
+            loadings[,i] <- comp[,i] * explained_variance[i]
           }
+          p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+          p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                            x=components$PC1,
+                                            y=components$PC2,
+                                            text=rownames(components),
+                                            marker=list(color="blue"),
+                                            hoverinfo='text',
+                                            showlegend=FALSE
+          )
+          for (i in 1:ncol(pred.mta.biplot)){
+            p.mta.biplot <- p.mta.biplot %>%
+              plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+            if(ncol(pred.mta.biplot) < 20){
+              p.mta.biplot <- p.mta.biplot %>%
+                plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+            }
+          }
+          print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
         }
-        print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
         
       }
       
@@ -958,30 +973,30 @@ if (is.null(result)){
     for(iTrait in traits){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      temp.pred.box <- pred[pred$trait== iTrait,]
-      temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
+      temp.pred.box.top <- pred[pred$trait== iTrait,]
+      temp.pred.box.top$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top$entryType))]
       
-      ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
-      lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
+      ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
+      lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
       
-      p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+      p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = ggplot2::element_blank() ) + 
         ggplot2::labs(x="", y="Trait value", color="Entry type") +  
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
-      temp.pred.box.list <- split(temp.pred.box, temp.pred.box$entryType)
-      temp.pred.box.list <- lapply(temp.pred.box.list, function(x){
+      temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$entryType)
+      temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
         x <- x[with(x, order(-predictedValue)), ]
         x <- x[1:min(c(nrow(x), 100)),]
         return(x)
       })
-      temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
-      temp.pred.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box2$entryType))]
+      temp.pred.box.top2 <- do.call(rbind, temp.pred.box.top.list)
+      temp.pred.box.top2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top2$entryType))]
       
       p2 <- ggplot2::ggplot(
-        data = temp.pred.box2,
+        data = temp.pred.box.top2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
@@ -1001,7 +1016,7 @@ if (is.null(result)){
                                width = 0.10) +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = TRUE, nrows=1, widths = c(0.75,0.25) ) ) )
       
@@ -1013,30 +1028,30 @@ if (is.null(result)){
     
     plotly::renderPlotly({
       
-      temp.pred.box <- pred[pred$trait== input$traitMta2,]
-      temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
+      temp.pred.box.top <- pred[pred$trait== input$traitMta2,]
+      temp.pred.box.top$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top$entryType))]
       
-      ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
-      lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
+      ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
+      lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
       
-      p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+      p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) + 
         ggplot2::labs(x="", y="Trait value", color="Entry type") +  
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       # plot 2
-      temp.pred.box.list <- split(temp.pred.box, temp.pred.box$entryType)
-      temp.pred.box.list <- lapply(temp.pred.box.list, function(x){
+      temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$entryType)
+      temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
         x <- x[with(x, order(-predictedValue)), ]
         x <- x[1:min(c(nrow(x), 100)),]
         return(x)
       })
-      temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
-      temp.pred.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box2$entryType))]
+      temp.pred.box.top2 <- as.data.frame(do.call(rbind, temp.pred.box.top.list))
+      temp.pred.box.top2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top2$entryType))]
       
       p2 <- ggplot2::ggplot(
-        data = temp.pred.box2,
+        data = temp.pred.box.top2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
@@ -1056,7 +1071,7 @@ if (is.null(result)){
                                width = 0.10) +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) + 
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       ply1 <- plotly::ggplotly(p1)
@@ -1149,18 +1164,18 @@ if (is.null(result)){
           cat("\n\n#####", iCovariate, "{.tabset .tabset-pills}       \n\n")
           
           subPred <- pred[which(pred$trait %in% c(input$traitMta3,input$envCovMta3) ),]
-            wide <- reshape(subPred[,c("trait","designation","predictedValue", "entryType")], 
-                            direction = "wide", idvar = "designation",
-                            timevar = "trait", v.names = "predictedValue", sep= "_")
-            if(ncol(wide) == 3){wide <- cbind(wide,wide[,3])}
-            colnames(wide)[3:4] <- c("trait1","trait2")
-            p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
-              geom_point(size=2, ggplot2::aes(shape=entryType)) + ylab(iTrait) + xlab(input$envCovMta3) 
-            if(length(unique(subPred$designation)) > 1000){ # go fixed format
-              print(p)
-            }else{ # go dynamic if there is less than 1000 genotypes in the plot
-              print(htmltools::tagList(plotly::ggplotly(p)))
-            }
+          wide <- reshape(subPred[,c("trait","designation","predictedValue", "entryType")], 
+                          direction = "wide", idvar = "designation",
+                          timevar = "trait", v.names = "predictedValue", sep= "_")
+          if(ncol(wide) == 3){wide <- cbind(wide,wide[,3])}
+          colnames(wide)[3:4] <- c("trait1","trait2")
+          p <- ggplot(wide, aes(x=trait2, y=trait1, text=designation)) + 
+            geom_point(size=2, ggplot2::aes(shape=entryType)) + ylab(iTrait) + xlab(input$envCovMta3) 
+          if(length(unique(subPred$designation)) > 1000){ # go fixed format
+            print(p)
+          }else{ # go dynamic if there is less than 1000 genotypes in the plot
+            print(htmltools::tagList(plotly::ggplotly(p)))
+          }
           
         }
         
