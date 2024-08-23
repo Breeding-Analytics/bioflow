@@ -909,7 +909,7 @@ if (is.null(result)){
   result$status <- result$status#[1:6,]
   idMta <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred <- result$predictions
+  pred <- as.data.frame(result$predictions)
   pred <- pred[pred$analysisId == idMta,]
   traits <- unique(pred$trait)
   envs2 <- unique(pred$environment)
@@ -944,34 +944,30 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       for(iEnv in envs2){
         cat("\n\n#####", iEnv, "{.tabset .tabset-pills}       \n\n")
-        temp.pred.box <- pred[pred$trait== iTrait,]
-        temp.pred.box <- temp.pred.box[temp.pred.box$environment== iEnv,]
-        temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
+        temp.pred.box.top <- pred[pred$trait== iTrait,]
+        temp.pred.box.top <- temp.pred.box.top[temp.pred.box.top$environment== iEnv,]
+        temp.pred.box.top$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top$entryType))]
         
-        ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
-        lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
+        ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
+        lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
         
-        p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+        p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
           ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
           ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = ggplot2::element_blank() ) + 
           ggplot2::labs(x="", y="Trait value", color="Entry type") +  
-          ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +
+          ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +
           ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
         
-        temp.pred.box.list <- split(temp.pred.box, temp.pred.box$entryType)
-        temp.pred.box.list <- lapply(temp.pred.box.list, function(x){
+        temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$entryType)
+        temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
           x <- x[with(x, order(-predictedValue)), ]
           x <- x[1:min(c(nrow(x), 100)),]
           return(x)
         })
-        temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
-        temp.pred.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box2$entryType))]
+        temp.pred.box.top2 <- as.data.frame(do.call(rbind, temp.pred.box.top.list))
+        temp.pred.box.top2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top2$entryType))]
         
-        p2 <- ggplot2::ggplot(
-          data = temp.pred.box2,
-          mapping = ggplot2::aes(
-            x = reorder(designation, -predictedValue),
-            y = predictedValue,
+        p22 <- ggplot2::ggplot(temp.pred.box.top2, ggplot2::aes( x = reorder(designation, -predictedValue), y = predictedValue,
             col = entryTypeSimple,
             text = paste(
               paste0('<br>', "designation: ", designation),
@@ -981,16 +977,16 @@ if (is.null(result)){
               # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
               #        round(predictedValue + CI, 2), ")")))) +
               paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                     round(predictedValue + stdError, 4), ")")))) +
+                     round(predictedValue + stdError, 4), ")"))) ) +
           ggplot2::theme_classic() +  ggplot2::geom_point() +
           ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                               ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                  width = 0.10) +
           ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
           ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
-          ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+          ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
         
-        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = TRUE, nrows=1, widths = c(0.75,0.25) ) ) )
+        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p22), plotly::ggplotly(p1), shareX = TRUE, nrows=1, widths = c(0.75,0.25) ) ) )
         
         cat("\n")
         cat("\n")
@@ -1001,30 +997,30 @@ if (is.null(result)){
     
     plotly::renderPlotly({
       
-      temp.pred.box <- pred[pred$trait== input$traitMta2 & pred$environment == input$envCovMta2,]
-      temp.pred.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box$entryType))]
+      temp.pred.box.top <- pred[pred$trait== input$traitMta2 & pred$environment == input$envCovMta2,]
+      temp.pred.box.top$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top$entryType))]
       
-      ub <- max(temp.pred.box$predictedValue + temp.pred.box$stdError, na.rm = TRUE)
-      lb <- min(temp.pred.box$predictedValue - temp.pred.box$stdError, na.rm = TRUE)
+      ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
+      lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
       
-      p1 <- ggplot2::ggplot(temp.pred.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+      p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) + 
         ggplot2::labs(x="", y="Trait value", color="Entry type") +  
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       # plot 2
-      temp.pred.box.list <- split(temp.pred.box, temp.pred.box$entryType)
-      temp.pred.box.list <- lapply(temp.pred.box.list, function(x){
+      temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$entryType)
+      temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
         x <- x[with(x, order(-predictedValue)), ]
         x <- x[1:min(c(nrow(x), 100)),]
         return(x)
       })
-      temp.pred.box2 <- do.call(rbind, temp.pred.box.list)
-      temp.pred.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box2$entryType))]
+      temp.pred.box.top2 <- do.call(rbind, temp.pred.box.top.list)
+      temp.pred.box.top2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top2$entryType))]
       
       p2 <- ggplot2::ggplot(
-        data = temp.pred.box2,
+        data = temp.pred.box.top2,
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
@@ -1044,7 +1040,7 @@ if (is.null(result)){
                                width = 0.10) +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
         ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box2$entryType))/3) )) + 
+        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       ply1 <- plotly::ggplotly(p1)
@@ -1146,7 +1142,7 @@ if (is.null(result)){
             colnames(wide)[3:4] <- c("trait1","trait2")
             p <- ggplot(wide, aes(x=trait1, y=trait2, text=designation)) + 
               geom_point(size=2, ggplot2::aes(shape=entryType)) + ylab(jCovariate) + xlab(iCovariate) 
-            if(length(unique(temp.pred.box$designation)) > 1000){ # go fixed format
+            if(length(unique(temp.pred.box.top$designation)) > 1000){ # go fixed format
               print(p)
             }else{ # go dynamic if there is less than 1000 genotypes in the plot
               print(htmltools::tagList(plotly::ggplotly(p)))

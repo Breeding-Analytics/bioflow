@@ -43,7 +43,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaExpApp_1-out47cbc66e99bbaf41" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaExpApp_1-out00f9d436a73b6540" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Map of trials planted
 
@@ -60,14 +60,13 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaExpApp_1-traitMta-label" for="mtaExpApp_1-traitMta"></label>
 <div>
-<select id="mtaExpApp_1-traitMta" class="shiny-input-select"><option value="Grain Yield (ton/ha)" selected>Grain Yield (ton/ha)</option>
-<option value="Oil (%)">Oil (%)</option>
-<option value="Days to Flowering">Days to Flowering</option></select>
+<select id="mtaExpApp_1-traitMta" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option></select>
 <script type="application/json" data-for="mtaExpApp_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-out821fa79fca6a3d84" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-out61aa63a725ece41b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between environments
 
@@ -78,14 +77,13 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaExpApp_1-traitMtaConnect-label" for="mtaExpApp_1-traitMtaConnect"></label>
 <div>
-<select id="mtaExpApp_1-traitMtaConnect" class="shiny-input-select"><option value="Grain Yield (ton/ha)" selected>Grain Yield (ton/ha)</option>
-<option value="Oil (%)">Oil (%)</option>
-<option value="Days to Flowering">Days to Flowering</option></select>
+<select id="mtaExpApp_1-traitMtaConnect" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option></select>
 <script type="application/json" data-for="mtaExpApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out08b68fe2d1b2df11" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out6b7effe51e9cdd5e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Genetic correlations between environments
 
@@ -96,14 +94,13 @@ The following heatmap and histogram allows to assess the genetic correlations am
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaExpApp_1-traitPredictionsCorrelation-label" for="mtaExpApp_1-traitPredictionsCorrelation"></label>
 <div>
-<select id="mtaExpApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Grain Yield (ton/ha)" selected>Grain Yield (ton/ha)</option>
-<option value="Oil (%)">Oil (%)</option>
-<option value="Days to Flowering">Days to Flowering</option></select>
+<select id="mtaExpApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option></select>
 <script type="application/json" data-for="mtaExpApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-outdef7a9af0c667154" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out0ec85a8018d9d410" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -139,16 +136,12 @@ The following barplot aims to help you inspect the across environment estimates 
 <option value="r2.designation" selected>r2.designation</option>
 <option value="r2.environment" selected>r2.environment</option>
 <option value="r2.Residual" selected>r2.Residual</option>
-<option value="nEnv">nEnv</option>
-<option value="mean">mean</option>
-<option value="r2" selected>r2</option>
-<option value="Vg">Vg</option>
-<option value="Vr">Vr</option></select>
+<option value="nEnv">nEnv</option></select>
 <script type="application/json" data-for="mtaExpApp_1-parameterMetrics2">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-out9e03bc4d3abe6368" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-outaba57e2da08c68f8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -157,7 +150,7 @@ The following graph allows you to assess the proportion of variance going to dif
 <p>&nbsp;</p>
 
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-out6f6c206806325dba" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-out06dce09952254e24" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -172,9 +165,8 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaExpApp_1-traitMta2-label" for="mtaExpApp_1-traitMta2">Trait</label>
 <div>
-<select id="mtaExpApp_1-traitMta2" class="shiny-input-select"><option value="Grain Yield (ton/ha)" selected>Grain Yield (ton/ha)</option>
-<option value="Oil (%)">Oil (%)</option>
-<option value="Days to Flowering">Days to Flowering</option></select>
+<select id="mtaExpApp_1-traitMta2" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option></select>
 <script type="application/json" data-for="mtaExpApp_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -192,7 +184,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out4c02e62dbf3f38be" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-outf435684f38b81c77" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -209,9 +201,8 @@ The following plots allow you to identify individuals with high performance for 
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaExpApp_1-traitMta3-label" for="mtaExpApp_1-traitMta3">Trait</label>
 <div>
-<select id="mtaExpApp_1-traitMta3" class="shiny-input-select"><option value="Grain Yield (ton/ha)" selected>Grain Yield (ton/ha)</option>
-<option value="Oil (%)">Oil (%)</option>
-<option value="Days to Flowering">Days to Flowering</option></select>
+<select id="mtaExpApp_1-traitMta3" class="shiny-input-select"><option value="Oil (%)" selected>Oil (%)</option>
+<option value="Grain Yield (ton/ha)">Grain Yield (ton/ha)</option></select>
 <script type="application/json" data-for="mtaExpApp_1-traitMta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -239,7 +230,7 @@ The following plots allow you to identify individuals with high performance for 
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out3ec07e5e90d7ae5f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out61652239405c2811" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
@@ -274,7 +265,7 @@ The following heatmap and histogram allows to see the genetic correlations among
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out75e4e810b6fe22d9" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out06641210c8c8b73e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -284,7 +275,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaExpApp_1-oute42a907a57ec3407" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaExpApp_1-out7b7f4889e15d04db" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used
