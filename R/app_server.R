@@ -82,7 +82,7 @@ app_server <- function(input, output, session) {
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "bioflow.ebsproject.org"
-    # decision <- FALSE
+    decision <- FALSE
     return(decision)
   })
 
