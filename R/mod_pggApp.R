@@ -24,7 +24,7 @@ mod_pggApp_ui <- function(id){
                                              uiOutput(ns("warningMessage")),
                                              tags$br(),
                                              # column(width=4, tags$br(),
-                                                    shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                              # ),
                                              tags$br(),
                                              img(src = "www/pgg.png", height = 250, width = 500), # add an image
@@ -52,7 +52,7 @@ mod_pggApp_ui <- function(id){
                                        tabPanel("Pick Index-stamp", icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2Pgg"), "Index or MTA version to analyze", choices = NULL, multiple = FALSE)),
+                                                       column(width=8, selectInput(ns("version2Pgg"), "STA version to analyze", choices = NULL, multiple = FALSE)),
 
                                                 ),
                                                 column(width=12,
@@ -63,20 +63,22 @@ mod_pggApp_ui <- function(id){
                                                 column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
                                                 DT::DTOutput(ns("phenoPgg")),
                                        ),
-                                       tabPanel("Select trait(s)", icon = icon("dice-two"),
+                                       tabPanel("Select parameters(s)", icon = icon("dice-two"),
                                                 br(),
                                                 column(width=12,  style = "background-color:grey; color: #FFFFFF",
 
-                                                       column(width=3, selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE), ),
-                                                       column(width=9,
-                                                              br(),
-                                                              shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                                  selectInput(ns("environmentToUse"), "Environments to use", choices = NULL, multiple = TRUE),
-                                                                                  numericInput(ns("proportion"), label = "Proportion selected (%)", value = 10, step = 10, max = 100, min = 1),
-                                                                                  selectInput(ns("verbose"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
-                                                              ),
+                                                       column(width=3,
+                                                              selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
+                                                       ),
+                                                       column(width=3,
+                                                              selectInput(ns("environmentToUse"), "Do analysis by:", choices = NULL, multiple = FALSE),
+                                                       ),
+                                                       column(width=3,
+                                                              numericInput(ns("proportion"), label = "Assumed percentage selected (%)", value = 10, step = 10, max = 100, min = 1),
                                                        ),
                                                 ),
+                                                tags$br(),
+                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid...",
                                                 column(width=12,
                                                        hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -86,6 +88,7 @@ mod_pggApp_ui <- function(id){
                                                           column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
                                                           column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
                                                           column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                ),
                                                 ),
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
@@ -199,7 +202,7 @@ mod_pggApp_server <- function(id, data){
       req(data())
       dtPgg <- data()
       dtPgg <- dtPgg$status
-      dtPgg <- dtPgg[which(dtPgg$module %in% c("mta","indexD")),]
+      dtPgg <- dtPgg[which(dtPgg$module %in% c("sta")),]
       traitsPgg <- unique(dtPgg$analysisId)
       if(length(traitsPgg) > 0){names(traitsPgg) <- as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Pgg", choices = traitsPgg)
@@ -241,9 +244,12 @@ mod_pggApp_server <- function(id, data){
       req(data())
       req(input$version2Pgg)
       req(input$trait2Pgg)
-      dtPgg <- data()$predictions
-      dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
-      traitsPgg <- unique(dtPgg$environment)
+      dtPgg <- data()
+      metaPheno <- dtPgg$metadata$pheno
+      traitsPgg <- setdiff(metaPheno$parameter[metaPheno$parameter != "trait"], c("rep","iBlock","row","col","designation") )
+      # dtPgg <- data()$predictions
+      # dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
+      # traitsPgg <- unique(dtPgg$environment)
       updateSelectInput(session, "environmentToUse", choices = traitsPgg, selected =traitsPgg )
     })
     ##############################################################################################
@@ -374,9 +380,9 @@ mod_pggApp_server <- function(id, data){
           phenoDTfile= dtPgg,
           analysisId=input$version2Pgg,
           trait=input$trait2Pgg, # per trait
-          environment=input$environmentToUse,
-          proportion=input$proportion,
-          verbose=input$verbose
+          by=input$environmentToUse,
+          percentage=input$proportion,
+          verbose=FALSE
         ),
         silent=TRUE
         )

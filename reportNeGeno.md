@@ -19,14 +19,14 @@ params:
 
 The following table shows the summary of the allele coverage and the standard errors for the different number of founders sampled.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="neApp_1-out035aeec899e25933" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="neApp_1-out3d9ff124e0e15fda" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Graph of allele coverage
 <p>&nbsp;</p>
 
 The following graph shows the allele coverage (y axis) at different number of founders sampled (x-axis). It should be understood that once we hit the golden line (0.95) and the green line (0.975) we have probably hit the number of founders of our population. Still, if you notice that the line follows a consistent steep you may want to declare the number of founders as the number where the line stabilizes.
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="neApp_1-out15dfe40bd7af9ce8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="neApp_1-out96298c52c82716ae" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 

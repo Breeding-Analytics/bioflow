@@ -128,13 +128,13 @@ if (is.null(result)){
   modeling <- result$modeling
   idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
   idPgg <- idPgg[length(idPgg)]
-  modeling <- modeling[which(modeling$analysisId == idPgg & modeling$environment == "across"),"trait"]
+  modeling <- setdiff( unique(modeling[which(modeling$analysisId == idPgg),"trait"]), "inputObject")
   if("params" %in% ls()){
     shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitFilterPredictions2D2"),
                        label = "Trait:",
-                       choices = unique(modeling),
+                       choices = modeling,
     )
   }
 }
