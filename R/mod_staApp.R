@@ -21,7 +21,7 @@ mod_staApp_ui <- function(id){
                                     br(),
                                     column(width = 6,
                                            h1(strong(span("Single Trial Analysis", tags$a(href="https://www.youtube.com/watch?v=fqUTdvbzNSE&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=6", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                           h2(strong("Status:")),
+                                           h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
                                            # column(width=4, tags$br(),

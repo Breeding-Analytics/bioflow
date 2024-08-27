@@ -20,17 +20,17 @@ mod_indexBaseApp_ui <- function(id){
                                      br(),
                                      column(width = 6,
                                             h1(strong(span("Selection indices", tags$a(href="https://www.youtube.com/watch?v=YhveKqd0q4s&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=8", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                            h2(strong("Status:")),
+                                            h2(strong("Data Status (wait to be displayed):")),
                                             uiOutput(ns("warningMessage")),
                                             tags$br(),
                                             # column(width=4, tags$br(),
-                                                   shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                            shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                             # ),
                                             tags$br(),
                                             # img(src = "www/indexDesire.png", height = 300, width = 600), # add an image
                                      ),
-                                     column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                     column(width = 12,
+
+                                     column(width = 6,
                                             h2(strong("Details")),
                                             p("Genetic evaluation has as final purpose to select the individuals with highest genetic merit across
                                             all traits of interest. In order to select for multiple traits at the same time a selection index is
@@ -54,22 +54,16 @@ mod_indexBaseApp_ui <- function(id){
 
                                             p("The way the options are used is the following:"),
 
-                                            # p(strong("Type of selection index.-")," One of the two options; a) desire (user expresses desired change), b) base (user specifies weights directly)."),
                                             p(strong("Traits to include in the index-")," Traits to be considered in the index."),
                                             p(strong("Base values.-")," Vector of values indicating the desired change in traits."),
-                                            #             p(strong("Scale traits.-")," A TRUE or FALSE value indicating if the table of traits should be
-                                            # scaled or not. If TRUE is selected, the values of the desire vector are expected to be expressed in
-                                            # standard deviations. If FALSE, the values of the desire vector are expected to be expressed in
-                                            # original-scale units."),
                                             h2(strong("References:")),
                                             p("Brim, C. A., Johnson, H. W., & Cockerham, C. C. (1959). Multiple selection criteria in soybeans 1. Agronomy Journal, 51(1), 42-46."),
                                             p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
                                             h2(strong("Software used:")),
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
+                                            column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                      ),
-                                     #                     )
-                                     # )
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
@@ -79,14 +73,17 @@ mod_indexBaseApp_ui <- function(id){
                                                        column(width=8, selectInput(ns("version2IdxB"), "MTA version to analyze (required)", choices = NULL, multiple = TRUE)),
 
                                                 ),
-                                                # column(width=12,
-                                                #        hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                #        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                #        hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                # ),
-                                                column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                DT::DTOutput(ns("statusIndex")),
-                                                DT::DTOutput(ns("tablePredictionsTraitsWide")),
+                                                column(width=12),
+                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                    column(width=12,
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                    ),
+                                                                    column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                                    DT::DTOutput(ns("statusIndex")),
+                                                                    DT::DTOutput(ns("tablePredictionsTraitsWide")),
+                                                ),
                                        ),
                                        tabPanel("Pick traits", icon = icon("dice-two"),
                                                 br(),

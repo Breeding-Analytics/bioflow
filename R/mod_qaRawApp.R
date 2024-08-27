@@ -21,7 +21,7 @@ mod_qaRawApp_ui <- function(id){
                                            br(),
                                            column(width = 6,
                                                   h1(strong(span("Outlier detection", tags$a(href="https://www.youtube.com/watch?v=X8lYQ8_LmSg&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=4", icon("youtube") , target="_blank")  ,style="color:darkcyan"))),
-                                                  h2(strong("Status:")),
+                                                  h2(strong("Data Status (wait to be displayed):")),
                                                   uiOutput(ns("warningMessage")),
                                                   tags$br(),
                                                   # column(width=4, tags$br(),

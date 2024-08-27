@@ -20,7 +20,7 @@ mod_pggApp_ui <- function(id){
                                       br(),
                                       column(width = 6,
                                              h1(strong(span("Predicted Genetic Gain", tags$a(href="https://www.youtube.com/watch?v=nc4_SddPjjo&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=11", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                             h2(strong("Status:")),
+                                             h2(strong("Data Status (wait to be displayed):")),
                                              uiOutput(ns("warningMessage")),
                                              tags$br(),
                                              # column(width=4, tags$br(),

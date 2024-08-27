@@ -21,7 +21,7 @@ mod_qaStaApp_ui <- function(id){
                                 column(width=6,   #style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
                                        tags$body(
                                          h1(strong(span("Model-based outlier detection", style="color:darkcyan"))),
-                                         h2(strong("Status:")),
+                                         h2(strong("Data Status (wait to be displayed):")),
                                          uiOutput(ns("warningMessage")),
 
                                          tags$br(),

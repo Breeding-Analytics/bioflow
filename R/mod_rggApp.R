@@ -20,7 +20,7 @@ mod_rggApp_ui <- function(id){
                                      br(),
                                      column(width = 6,
                                             h1(strong(span("Realized Genetic Gain", tags$a(href="https://www.youtube.com/watch?v=5kkS98iJECs&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=10", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                            h2(strong("Status:")),
+                                            h2(strong("Data Status (wait to be displayed):")),
                                             uiOutput(ns("warningMessage")),
                                             tags$br(),
                                             # column(width=3, tags$br(),

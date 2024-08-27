@@ -21,39 +21,42 @@ mod_PopStrApp_ui <- function(id){
                                 br(),
                                 shinydashboard::box(status="success",width = 12,
                                                     solidHeader = TRUE,
-                                                    column(width=12,   style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
+                                                    column(width=6,   #style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h1(strong(span("Population structure", style="color:green"))),
-                                                             h2(strong("Status:")),
+                                                             h2(strong("Data Status (wait to be displayed):")),
                                                              uiOutput(ns("warningMessage")),
-                                                             h2(strong("Details")),
-                                                             p("calculate heterozygosity,diversity among and within groups, shannon index, number of effective allele,
+
+                                                           )
+                                                    ),
+                                                    column(width=6,
+                                                           h2(strong("Details")),
+                                                           p("calculate heterozygosity,diversity among and within groups, shannon index, number of effective allele,
 																                                percent of polymorphic loci, Rogers distance, Nei distance, cluster analysis and multidimensional scaling 2D plot and 3D plot; you can included external groups for colored the
 																                                dendogram or MDS plots"),
 
-                                                             p(strong("Add external group.- "),"When you have passport information, you can include this information like a groups. You must load a *.csv file, this should contain in the first column the same names of designation, in the next columns the passport information."),
-                                                             p(strong("Remove monomorphic markers.-"),"When we conform groups by cluster analysis or by external file, this new groups will be contain monomorphics markers, so you can decide if delete or not from the analysis."),
-                                                             p(strong("No. Clusters.-"),"For the cluster analysis, you must write the number of groups that you need to divide the population."),
-                                                             p(strong("Genetic distance to be calculate.-"),"You can decide wich genetic distance will be calculate"),
+                                                           p(strong("Add external group.- "),"When you have passport information, you can include this information like a groups. You must load a *.csv file, this should contain in the first column the same names of designation, in the next columns the passport information."),
+                                                           p(strong("Remove monomorphic markers.-"),"When we conform groups by cluster analysis or by external file, this new groups will be contain monomorphics markers, so you can decide if delete or not from the analysis."),
+                                                           p(strong("No. Clusters.-"),"For the cluster analysis, you must write the number of groups that you need to divide the population."),
+                                                           p(strong("Genetic distance to be calculate.-"),"You can decide wich genetic distance will be calculate"),
 
-                                                             h2(strong("References")),
-                                                             p("de Vicente, M.C., Lopez, C. y Fulton, T. (eds.). 2004. Analisis de la Diversidad Genetica Utilizando
+                                                           h2(strong("References")),
+                                                           p("de Vicente, M.C., Lopez, C. y Fulton, T. (eds.). 2004. Analisis de la Diversidad Genetica Utilizando
                                                                 Datos de Marcadores Moleculares: Modulo de Aprendizaje. Instituto Internacional
                                                                 de Recursos Fitogeneticos (IPGRI), Roma, Italia.")
-                                                              )
-                                                          ),
-                                                    )
-                                ),
+                                                    ),
+                                )
+                       ),
 
-                                tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
-                                    tabsetPanel(
-                                         tabPanel("Run analysis", icon = icon("dice-one"),
-                                                  br(),
-                                                  actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
-                                                  uiOutput(ns("outPopStr")),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                tabsetPanel(
+                                  tabPanel("Run analysis", icon = icon("dice-one"),
+                                           br(),
+                                           actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
+                                           uiOutput(ns("outPopStr")),
 
-                                         ),
-                                         tabPanel("Additional settings...", icon = icon("table"),
+                                  ),
+                                  tabPanel("Additional settings...", icon = icon("table"),
                                            br(),
                                            br(),
                                            column(width=12, style = "background-color:#d6d4d4; color: black",
@@ -66,7 +69,7 @@ mod_PopStrApp_ui <- function(id){
                                                               accept  = c('.csv')
                                                             )
                                                   ),
-												                        if (!is.null(geno_groupPopStr)) {
+                                                  if (!is.null(geno_groupPopStr)) {
                                                     checkboxInput(
                                                       inputId = ns('geno_groupPopStr'),
                                                       label = span('Load example ',
@@ -175,7 +178,7 @@ mod_PopStrApp_ui <- function(id){
                                                                                                                                   "moccasin","oldlace","palegoldenrod","papayawhip","peachpuff","seashell","snow",
                                                                                                                                   "tan","thistle","whitesmoke"),selected=NULL),
                                                                                                             tags$hr(),
-                                                                                                           # selectInput(ns('eti'),'Label points',choices=''),
+                                                                                                            # selectInput(ns('eti'),'Label points',choices=''),
                                                                                                             sliderInput(ns('size'),'Points size',min=5,max=25,value=7)
                                                                    ),
                                                                    #grafico 2d
@@ -228,7 +231,7 @@ mod_PopStrApp_server <- function(id, data){
           HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data Retrieval' tab. ")) )
         }
       }
-   })
+    })
 
     output$outPopStr <- renderUI({
       outPopStr()
@@ -236,89 +239,89 @@ mod_PopStrApp_server <- function(id, data){
 
 
     outPopStr <- eventReactive(input$runPopStr, {
-          req(data())
-          result <- data()
-          distk <- as.character(input$distk)
-          nclust <- input$nclust
-          dfenvbio <- NULL
-          catv <-"GroupClust"
-          if(input$geno_groupPopStr!=FALSE) {
-			        src <- normalizePath("inst/app/www/example/Groupgeno.csv")
-			        dfenvbio <- read.csv(src)
-		      }
-          if(length(input$fileenvbio$datapath)!=0) dfenvbio <- read.csv(input$fileenvbio$datapath)
-          #print(str(dfenvbio))
-          shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-          #source("Biodv.R")
-          #uno <- Biodv(result,distk, nclust, dfenvbio, catv)
-		      uno <- cgiarBase::Biodv(result,distk, nclust, dfenvbio, catv)
-          shinybusy::remove_modal_spinner()
+      req(data())
+      result <- data()
+      distk <- as.character(input$distk)
+      nclust <- input$nclust
+      dfenvbio <- NULL
+      catv <-"GroupClust"
+      if(input$geno_groupPopStr!=FALSE) {
+        src <- normalizePath("inst/app/www/example/Groupgeno.csv")
+        dfenvbio <- read.csv(src)
+      }
+      if(length(input$fileenvbio$datapath)!=0) dfenvbio <- read.csv(input$fileenvbio$datapath)
+      #print(str(dfenvbio))
+      shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
+      #source("Biodv.R")
+      #uno <- Biodv(result,distk, nclust, dfenvbio, catv)
+      uno <- cgiarBase::Biodv(result,distk, nclust, dfenvbio, catv)
+      shinybusy::remove_modal_spinner()
 
-          rm(result)
+      rm(result)
       if(!inherits(uno,"try-error")) {
-          result <- list(PopStr=uno[[4]])
-          result$PopStr$AMOVA=uno[[7]]
-		  result$PopStr$Plots=list(uno[[3]],uno[[5]],uno[[6]])
-          save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
+        result <- list(PopStr=uno[[4]])
+        result$PopStr$AMOVA=uno[[7]]
+        result$PopStr$Plots=list(uno[[3]],uno[[5]],uno[[6]])
+        save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
 
-          if(length(names(uno[[5]]))>5) catv<-names(uno[[5]])[6]
-          txlab <- paste0('Factor 1 (',uno[[3]][1],'%)')
-          tylab <- paste0('Factor 2 (',uno[[3]][2],'%)')
-          tzlab <- paste0('Factor 3 (',uno[[3]][3],'%)')
-          eti <- "Gen"
+        if(length(names(uno[[5]]))>5) catv<-names(uno[[5]])[6]
+        txlab <- paste0('Factor 1 (',uno[[3]][1],'%)')
+        tylab <- paste0('Factor 2 (',uno[[3]][2],'%)')
+        tzlab <- paste0('Factor 3 (',uno[[3]][3],'%)')
+        eti <- "Gen"
 
-          #Actualiza la variable catv (grupos) en conjunto con la seleccion de colores
-          observeEvent(catv,{
-            set.seed(7)
-            colores=colors()[-c(1,3:12,13:25,24,37:46,57:67,80,82,83,85:89,101:106,108:113,126:127,138,140:141,152:253,260:366,377:392,
-                                394:447,449,478:489,492,513:534,536:546,557:561,579:583,589:609,620:629,418,436,646:651)]
-            d=sample(colores,100)
-            var=as.factor(uno[[5]][,catv])
-            grupos=nlevels(var)
-            updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
-            updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
-          })
+        #Actualiza la variable catv (grupos) en conjunto con la seleccion de colores
+        observeEvent(catv,{
+          set.seed(7)
+          colores=colors()[-c(1,3:12,13:25,24,37:46,57:67,80,82,83,85:89,101:106,108:113,126:127,138,140:141,152:253,260:366,377:392,
+                              394:447,449,478:489,492,513:534,536:546,557:561,579:583,589:609,620:629,418,436,646:651)]
+          d=sample(colores,100)
+          var=as.factor(uno[[5]][,catv])
+          grupos=nlevels(var)
+          updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
+          updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
+        })
 
-      #For report
-      output$reportPopStr <- renderUI({
-		parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
-		parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
-		plist=list(parmBi,parmlist)
-		save(plist,file=normalizePath("R/outputs/parmDendMDS.RData"))
-        #HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-      })
-      ## Report tab
-      output$downloadReportPopStr <- downloadHandler(
-        filename = function() {
-          paste('my-report', sep = '.', switch(
-            "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-          ))
-        },
-        content = function(file) {
-          # src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-          # src2 <- normalizePath('./R/outputs/resultPopStr.RData')
+        #For report
+        output$reportPopStr <- renderUI({
+          parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
+          parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
+          plist=list(parmBi,parmlist)
+          save(plist,file=normalizePath("R/outputs/parmDendMDS.RData"))
+          #HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+        })
+        ## Report tab
+        output$downloadReportPopStr <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            # src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
+            # src2 <- normalizePath('./R/outputs/resultPopStr.RData')
 
-          src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-          src2 <- normalizePath('R/outputs/resultPopStr.RData')
-		  src3 <- normalizePath('R/outputs/parmDendMDS.RData')
+            src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
+            src2 <- normalizePath('R/outputs/resultPopStr.RData')
+            src3 <- normalizePath('R/outputs/parmDendMDS.RData')
 
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-		  file.copy(src3, 'parmDendMDS.RData', overwrite = TRUE)
-		  out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-            "HTML",
-            # HTML = rmarkdown::html_document()
-            HTML = rmdformats::robobook(toc_depth = 4)
-          ))
-          file.rename(out, file)
-          shinybusy::remove_modal_spinner()
-        }
-      )
-      #Ver datos en tabla dinamica Summary Diversity
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
+            file.copy(src3, 'parmDendMDS.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              # HTML = rmarkdown::html_document()
+              HTML = rmdformats::robobook(toc_depth = 4)
+            ))
+            file.rename(out, file)
+            shinybusy::remove_modal_spinner()
+          }
+        )
+        #Ver datos en tabla dinamica Summary Diversity
         output$seeDataDiver<-DT::renderDT({
           allInfo=result[["PopStr"]]
           seedatosum<-as.data.frame(allInfo[["SummaryDiversityAnalysis"]])
@@ -379,7 +382,7 @@ mod_PopStrApp_server <- function(id, data){
           if(input$ycol=="Factor2") tylab2=tylab
           if(input$ycol=="Factor3") tylab2=tzlab
 
-		  mydata<-data()$data$geno
+          mydata<-data()$data$geno
           if(!is.null(mydata)){
             p=plotly::plot_ly(data=uno[[5]],x=uno[[5]][,input$xcol],y=uno[[5]][,input$ycol],color=uno[[5]][,catv],
                               type="scatter",mode="markers",colors = input$color,xaxis=F, yaxis=F,

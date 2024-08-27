@@ -19,7 +19,7 @@ mod_oftStaApp_ui <- function(id){
                                     column(width=6,
                                            br(),
                                            h1(strong(span("On Farm Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
-                                           h2(strong("Status:")),
+                                           h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
                                            shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),

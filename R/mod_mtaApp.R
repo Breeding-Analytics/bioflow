@@ -20,17 +20,17 @@ mod_mtaApp_ui <- function(id){
                                     br(),
                                     column(width = 6,
                                            h1(strong(span("Multi Trial Analysis", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                           h2(strong("Status:")),
+                                           h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
                                            # column(width=4, tags$br(),
-                                                  shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                           shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                            # ),
                                            tags$br(),
                                            img(src = "www/mta.png", height = 300, width = 450), # add an image
                                     ),
-                                    column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                    column(width = 12,
+
+                                    column(width = 6,
                                            h2(strong("Details")),
                                            p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
@@ -58,6 +58,7 @@ mod_mtaApp_ui <- function(id){
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                            p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
                                            p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                           column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                     ),
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -68,15 +69,18 @@ mod_mtaApp_ui <- function(id){
                                                       column(width=8, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE)),
 
                                                ),
-                                               column(width=12,
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                               column(width=12),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   column( width=4, DT::DTOutput(ns("tableTraitTimeStamps")), br(),br(),  ),
+                                                                   column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(),br(), ),
+                                                                   column( width=12, DT::DTOutput(ns("statusMta")), br(),br(),  ),# modeling table
+                                                                   column( width=12, DT::DTOutput(ns("phenoMta")), br(),br(),  ),# predictions data table
                                                ),
-                                               column( width=4, DT::DTOutput(ns("tableTraitTimeStamps")), br(),br(),  ),
-                                               column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(),br(), ),
-                                               column( width=12, DT::DTOutput(ns("statusMta")), br(),br(),  ),# modeling table
-                                               column( width=12, DT::DTOutput(ns("phenoMta")), br(),br(),  ),# predictions data table
                                       ),
                                       tabPanel("Select traits", icon = icon("dice-two"),
                                                br(),
@@ -90,23 +94,26 @@ mod_mtaApp_ui <- function(id){
                                                              ),
                                                       ),
                                                ),
-                                               column(width=12,
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               ),
-                                               tags$span(id = ns('holder1'),
-                                                         column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                                         column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                         column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
-                                                         column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                               ),
-                                               tags$span(id = ns('holder2'),
-                                                         column(width=9, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                         column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
-                                                         # column(width=5, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                                         # column(width=2, checkboxInput(ns("checkbox2"), label = "Include x-axis labels", value = TRUE) ),
-                                                         column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), #   shiny::plotOutput(ns("plotPredictionsCleanOut"))
+                                               column(width=12),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   tags$span(id = ns('holder1'),
+                                                                             column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                                             column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                             column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
+                                                                             column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                   ),
+                                                                   tags$span(id = ns('holder2'),
+                                                                             column(width=9, selectInput(ns("trait3Mta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                             column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
+                                                                             # column(width=5, selectInput(ns("groupMtaInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                                                             # column(width=2, checkboxInput(ns("checkbox2"), label = "Include x-axis labels", value = TRUE) ),
+                                                                             column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), #   shiny::plotOutput(ns("plotPredictionsCleanOut"))
+                                                                   ),
                                                ),
                                       ),
 
@@ -131,14 +138,17 @@ mod_mtaApp_ui <- function(id){
                                                                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
                                                       ),
                                                ),
-                                               column(width=12,
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               ),
-                                               tags$span(id = ns('holder3'),
-                                                         selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                         shiny::plotOutput(ns("evaluationUnits")) ,
+                                               column(width=12),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   tags$span(id = ns('holder3'),
+                                                                             selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                             shiny::plotOutput(ns("evaluationUnits")) ,
+                                                                   ),
                                                ),
                                       ),
                                       tabPanel("Specify GxE", icon = icon("dice-four"),
@@ -158,37 +168,40 @@ mod_mtaApp_ui <- function(id){
                                                              ),
                                                       ),
                                                ),
-                                               column(width=12,
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               ),
-                                               tags$span(id = ns('holder4'),
-                                                         column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
-                                                         column(width = 3,
-                                                                selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE),
-                                                                checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
-                                                                checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
-                                                                numericInput(ns("heatmapFontSize"), label = "Font size", value = 6),
-                                                         ),
-                                                         column(width = 9, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
-                                               ),
-                                               tags$span(id = ns('holder5'),
-                                                         column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
-                                                         column(width=3,
-                                                                selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE),
-                                                                checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
-                                                                numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6),
-                                                         ),
-                                                         column(width=9, shiny::plotOutput(ns("plotPredictionsCor")) ),
-                                               ),
-                                               tags$span(id = ns('holder6'),
-                                                         column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
-                                                         column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 100)) ),
-                                                         column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
-                                                         column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
+                                               column(width=12),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   tags$span(id = ns('holder4'),
+                                                                             column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
+                                                                             column(width = 3,
+                                                                                    selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                                    selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE),
+                                                                                    checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
+                                                                                    checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                                                    numericInput(ns("heatmapFontSize"), label = "Font size", value = 6),
+                                                                             ),
+                                                                             column(width = 9, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
+                                                                   ),
+                                                                   tags$span(id = ns('holder5'),
+                                                                             column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
+                                                                             column(width=3,
+                                                                                    selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                                    checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE),
+                                                                                    checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                                                    numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6),
+                                                                             ),
+                                                                             column(width=9, shiny::plotOutput(ns("plotPredictionsCor")) ),
+                                                                   ),
+                                                                   tags$span(id = ns('holder6'),
+                                                                             column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
+                                                                             column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 100)) ),
+                                                                             column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
+                                                                             column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
+                                                                   ),
                                                ),
                                       ),
                                       tabPanel("Run analysis", icon = icon("dice-five"),
@@ -1543,23 +1556,23 @@ mod_mtaApp_server <- function(id, data){
       updateSelectInput(session, "parameterMetrics", choices = metricsMtaInput)
     })
     output$barplotPredictionsMetrics <- plotly::renderPlotly({
-          req(data())
-          req(input$version2Mta)
-          dtMta <- data()
-          mydata <- dtMta$metrics
-          mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
-          mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
-          mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
-          p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
-            ggplot2::geom_bar(stat="identity", position=position_dodge())+
-            ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
-          if(input$checkbox1){
-            p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
-          }else{
-            p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
-          }
-          plotly::ggplotly(p)
-        })
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      mydata <- dtMta$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
+      mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
+      p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
+        ggplot2::geom_bar(stat="identity", position=position_dodge())+
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
+      if(input$checkbox1){
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      }else{
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      }
+      plotly::ggplotly(p)
+    })
     ## render trait distribution plot
     observeEvent(c(data(),input$version2Mta), { # update trait
       req(data())
@@ -1570,29 +1583,29 @@ mod_mtaApp_server <- function(id, data){
       traitMtaInput <- unique(dtMta$trait)
       updateSelectInput(session, "trait3Mta", choices = traitMtaInput)
     })
-output$plotPredictionsCleanOut <- plotly::renderPlotly({ # shiny::renderPlot({ #
-  req(data())
-  req(input$version2Mta)
-  req(input$trait3Mta)
-  # req(input$groupMtaInputPlot)
-  mydata <- data()$predictions
-  mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
-  mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
-  mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
-  p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
-    ggplot2::geom_histogram(aes(y=..density..), position="identity", alpha=input$transparency ) +
-    # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
-    ggplot2::theme_classic() + ggplot2::ggtitle("Dispersal of predictions associated to the STA stamp selected") +
-    # ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
-    ggplot2::xlab("Trait Predicted Value") + ggplot2::ylab("Density") + ggplot2::scale_color_brewer(palette="Accent")
-  # if(input$checkbox2){
-  #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
-  # }else{
-  #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
-  # }
-  # p
-  plotly::ggplotly(p)
-})
+    output$plotPredictionsCleanOut <- plotly::renderPlotly({ # shiny::renderPlot({ #
+      req(data())
+      req(input$version2Mta)
+      req(input$trait3Mta)
+      # req(input$groupMtaInputPlot)
+      mydata <- data()$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only traits that have been QA
+      mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
+      mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
+        ggplot2::geom_histogram(aes(y=..density..), position="identity", alpha=input$transparency ) +
+        # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
+        ggplot2::theme_classic() + ggplot2::ggtitle("Dispersal of predictions associated to the STA stamp selected") +
+        # ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),
+        ggplot2::xlab("Trait Predicted Value") + ggplot2::ylab("Density") + ggplot2::scale_color_brewer(palette="Accent")
+      # if(input$checkbox2){
+      #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      # }else{
+      #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      # }
+      # p
+      plotly::ggplotly(p)
+    })
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {
       req(data())

@@ -21,7 +21,7 @@ mod_qaGenoApp_ui <- function(id){
                                            tags$body(
                                              column(width = 6,
                                                     h1(strong(span("QA for genetic markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                                    h2(strong("Status:")),
+                                                    h2(strong("Data Status (wait to be displayed):")),
                                                     uiOutput(ns("warningMessage")),
                                                     tags$br(),
                                                     # column(width=4, tags$br(), tags$br(),
