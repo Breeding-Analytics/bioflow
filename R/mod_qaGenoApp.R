@@ -24,6 +24,10 @@ mod_qaGenoApp_ui <- function(id){
                                                     h2(strong("Status:")),
                                                     uiOutput(ns("warningMessage")),
                                                     tags$br(),
+                                                    # column(width=4, tags$br(), tags$br(),
+                                                           shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                                    # ),
+                                                    tags$br(),
                                                     img(src = "www/qaGeno.png", height = 300, width = 650), # add an image
                                              ),
                                              column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -60,9 +64,7 @@ mod_qaGenoApp_ui <- function(id){
                                                              column(width=4, numericInput(ns("maf"), label = "Upper threshold for minor allele frequency (< will be removed)", value = 0, step = .05, max = 1, min = 0) ),
                                                              column(width=4, numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
                                                              column(width=4, numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, tags$br(), tags$br(),
-                                                                    shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
-                                                             ),
+
                                                       ),
                                                       column(width=12,
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),

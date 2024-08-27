@@ -26,6 +26,10 @@ mod_qaRawApp_ui <- function(id){
                                                   h2(strong("Status:")),
                                                   uiOutput(ns("warningMessage")),
                                                   tags$br(),
+                                                  # column(width=4, tags$br(),
+                                                         shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                                  # ),
+                                                  tags$br(),
                                                   img(src = "www/qaRaw.png", height = 300, width = 700), # add an image
                                            ),
                                            column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -53,9 +57,7 @@ mod_qaRawApp_ui <- function(id){
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
                                                              column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 2.5) ),
-                                                             column(width=4, tags$br(),
-                                                                    shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
-                                                                    ),
+
                                                       ),
                                                       column(width=12,
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),

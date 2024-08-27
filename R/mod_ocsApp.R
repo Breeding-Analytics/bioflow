@@ -23,6 +23,10 @@ mod_ocsApp_ui <- function(id){
                                             h2(strong("Status:")),
                                             uiOutput(ns("warningMessage")),
                                             tags$br(),
+                                            # column(width=4, tags$br(),
+                                                   shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                            # ),
+                                            tags$br(),
                                             img(src = "www/ocs.png", height = 400, width = 250), # add an image
                                      ),
                                      column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -60,9 +64,7 @@ mod_ocsApp_ui <- function(id){
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2Ocs"), "Index version to analyze (required)", choices = NULL, multiple = FALSE)),
-                                                      column(width=4, tags$br(),
-                                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
-                                                      ),
+
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
