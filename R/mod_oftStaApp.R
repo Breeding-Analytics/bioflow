@@ -18,11 +18,16 @@ mod_oftStaApp_ui <- function(id){
                                     br(),
                                     # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                     #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                               h1(strong(span("On Farm Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
-                                                               h2(strong("Status:")),
-                                                               uiOutput(ns("warningMessage")),
-                                                               h2(strong("Details")),
-                                                               p("Given the high yield gap
+                                    h1(strong(span("On Farm Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
+                                    h2(strong("Status:")),
+                                    uiOutput(ns("warningMessage")),
+                                    tags$br(),
+                                    # column(width=4, tags$br(),
+                                    shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                    # ),
+                                    tags$br(),
+                                    h2(strong("Details")),
+                                    p("Given the high yield gap
 between controlled conditions on experimental stations and farmers’ fields, the best hybrids need to be
 evaluated under farmers’ conditions, together with appropriate commercial benchmark hybrids and internal
 checks. The On-Farm Trials (OFT) are implemented in collaboration with partners from national agricultural research
@@ -30,14 +35,14 @@ systems (NARS), seed companies, and non-governmental organizations (NGOs). The o
 from a rigorous stage-gate advancement process, under farmers’ conditions to identify promising hybrids
 that perform well under farmers’ conditions before these are announced to the partners for further uptake.
                                 The way the options are used is the following:"),
-                                                               p(strong("Trait(s) to include.-")," Traits to be included in the dashboard. It only includes analyzed traits from sta."),
-                                                               p(strong("Year of origin.-")," The name of the column containing the year when the genotype originated."),
-                                                               p(strong("Entry type.-")," The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
-                                                               p(strong("iBlock.-")," The name of the column containing the farm information."),
-                                                               p(strong("Major Diseases.-")," The name of the column containing whether a major disease was observed or not."),
-                                                               p(strong("Type of Disease.-")," The name of the column containing the type of major disease observed."),
-                                                               p(strong("Disease Severity.-")," The name of the column containing the severity of major disease observed."),
-                                                               p(strong("Environment(s) to include.-")," Environments to be included in the dashboard. It only includes analyzed environments from sta."),
+                                    p(strong("Trait(s) to include.-")," Traits to be included in the dashboard. It only includes analyzed traits from sta."),
+                                    p(strong("Year of origin.-")," The name of the column containing the year when the genotype originated."),
+                                    p(strong("Entry type.-")," The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
+                                    p(strong("iBlock.-")," The name of the column containing the farm information."),
+                                    p(strong("Major Diseases.-")," The name of the column containing whether a major disease was observed or not."),
+                                    p(strong("Type of Disease.-")," The name of the column containing the type of major disease observed."),
+                                    p(strong("Disease Severity.-")," The name of the column containing the severity of major disease observed."),
+                                    p(strong("Environment(s) to include.-")," Environments to be included in the dashboard. It only includes analyzed environments from sta."),
                                     #                     )
                                     # )
                            ),
@@ -47,9 +52,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2Oft"), "STA version to use", choices = NULL, multiple = FALSE) ),
-                                                      column(width=4, tags$br(),
-                                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
-                                                      )
+
                                                ),
                                                column(width=12,
                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -58,12 +61,12 @@ that perform well under farmers’ conditions before these are announced to the 
                                                ),
                                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Network plot of current analyses available.", style="color:black")),
-                                                                          shiny::plotOutput(ns("plotTimeStamps")),
-                                                                          p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
-                                                                          DT::DTOutput(ns("statusOft")), # modeling table
-                                                                          p(span("STA predictions table to be used as input.", style="color:black")),
-                                                                          DT::DTOutput(ns("phenoOft")), # predictions data table
+                                               p(span("Network plot of current analyses available.", style="color:black")),
+                                               shiny::plotOutput(ns("plotTimeStamps")),
+                                               p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
+                                               DT::DTOutput(ns("statusOft")), # modeling table
+                                               p(span("STA predictions table to be used as input.", style="color:black")),
+                                               DT::DTOutput(ns("phenoOft")), # predictions data table
                                                #                     )
                                                # )
                                       ),
@@ -77,14 +80,14 @@ that perform well under farmers’ conditions before these are announced to the 
                                                ),
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Metrics associated to the STA stamp selected.", style="color:black")),
-                                                                          column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                                                          column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                                                          p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
-                                                                          column(width=6, selectInput(ns("trait3Oft"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                          column(width=6, selectInput(ns("groupOftInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
-                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
+                                               p(span("Metrics associated to the STA stamp selected.", style="color:black")),
+                                               column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                               column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                               column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                               p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
+                                               column(width=6, selectInput(ns("trait3Oft"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                               column(width=6, selectInput(ns("groupOftInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
+                                               column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
                                                #                     ),
                                                # )
                                       ),
@@ -102,10 +105,10 @@ that perform well under farmers’ conditions before these are announced to the 
                                                ),
                                                # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                          p(span("Preview of Pedigree data associated to the STA stamp selected.", style="color:black")),
-                                                                          column(width=12, DT::DTOutput(ns('preview_ped'))  ),
-                                                                          p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
-                                                                          column(width=12, DT::DTOutput(ns('preview_pheno')) )
+                                               p(span("Preview of Pedigree data associated to the STA stamp selected.", style="color:black")),
+                                               column(width=12, DT::DTOutput(ns('preview_ped'))  ),
+                                               p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
+                                               column(width=12, DT::DTOutput(ns('preview_pheno')) )
                                                #                     ),
                                                # )
                                       ),
@@ -337,15 +340,15 @@ mod_oftStaApp_server <- function(id, data){
     ## environment
     observeEvent(c(data(),input$version2Oft,input$trait2Oft,input$yearsToUse,input$entryTypeToUse,input$iBlockToUse,
                    input$withDisease), {
-      req(data())
-      req(input$version2Oft)
-      req(input$trait2Oft)
-      dtOft <- data()
-      dtOft <- dtOft$predictions
-      dtOft <- dtOft[which(dtOft$analysisId == input$version2Oft),]
-      traitsOft <- unique(dtOft$environment)
-      updateSelectInput(session, "env2Oft", choices = traitsOft)
-    })
+                     req(data())
+                     req(input$version2Oft)
+                     req(input$trait2Oft)
+                     dtOft <- data()
+                     dtOft <- dtOft$predictions
+                     dtOft <- dtOft[which(dtOft$analysisId == input$version2Oft),]
+                     traitsOft <- unique(dtOft$environment)
+                     updateSelectInput(session, "env2Oft", choices = traitsOft)
+                   })
 
 
     ## -------- Select STA Version to use --------- ##
@@ -593,11 +596,11 @@ mod_oftStaApp_server <- function(id, data){
                                       text = "Generating Dashboard...")
         if(input$withDisease){
           out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
-                                   output_format = rmarkdown::html_fragment(),
-                                   params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
-                                                 mdisease = input$mDisease, tdisease = input$typeDisease,
-                                                 sdisease = input$diseaseSeverity, version = input$version2Oft),
-                                   quiet = TRUE),silent=TRUE)
+                                       output_format = rmarkdown::html_fragment(),
+                                       params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
+                                                     mdisease = input$mDisease, tdisease = input$typeDisease,
+                                                     sdisease = input$diseaseSeverity, version = input$version2Oft),
+                                       quiet = TRUE),silent=TRUE)
 
           if(!inherits(out,"try-error")) {
             oftAnalysisId <- as.numeric(Sys.time())
@@ -615,10 +618,10 @@ mod_oftStaApp_server <- function(id, data){
 
         } else{
           out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
-                                   output_format = rmarkdown::html_fragment(),
-                                   params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
-                                                 version = input$version2Oft),
-                                   quiet = TRUE),silent=TRUE)
+                                       output_format = rmarkdown::html_fragment(),
+                                       params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
+                                                     version = input$version2Oft),
+                                       quiet = TRUE),silent=TRUE)
 
           if(!inherits(out,"try-error")) {
             oftAnalysisId <- as.numeric(Sys.time())

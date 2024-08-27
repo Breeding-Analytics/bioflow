@@ -20,6 +20,11 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                 br(),
                                 h2(strong("Status:")),
                                 uiOutput(ns("warningMessage")),
+                                tags$br(),
+                                # column(width=4, tags$br(),
+                                       shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                # ),
+                                tags$br(),
                                 tags$body(
                                   h2(strong("Details")),
                                   p("Some additional checks for data consistency are benefitial to ensure a high quality analysis. These can include:"),
@@ -39,9 +44,7 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                   column(width=4, selectInput(ns("cropConsist"), "Select your crop filter:", choices = list(Banana="banana", Beans="beans",  Cassava="cassava", Maize="maize", PearMillet="pmillet", Plantain="plantain", Potato="potato", Rice="rice", Soybean="soybean", SweetPotato="spotato", Sorghum="sorghum", Wheat="wheat"), multiple = FALSE) ),
-                                                  column(width=4, tags$br(),
-                                                         shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
-                                                  ),
+
                                            ),
                                            br(),
                                            br(),

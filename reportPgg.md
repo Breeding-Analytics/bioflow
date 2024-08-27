@@ -18,7 +18,7 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="pggApp_1-out969a1110fb7292b9" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="pggApp_1-out4b70943df7eb2ae9" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predicted genetic gain
 
@@ -35,7 +35,7 @@ The following density plot allows you to see the expected change in the next gen
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-outf90f08329208eeac" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-outdc6f011e89c993b9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

@@ -37,6 +37,11 @@ mod_qaStaApp_ui <- function(id){
                                          h1(strong(span("Model-based outlier detection", style="color:darkcyan"))),
                                          h2(strong("Status:")),
                                          uiOutput(ns("warningMessage")),
+                                         tags$br(),
+                                         # column(width=3, tags$br(),
+                                                shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                         # ),
+                                         tags$br(),
                                          h2(strong("Details")),
                                          p("The two-step approach of genetic evaluation allows to identify noisy records after the single trial analysis.
                                                              This option aims to allow users to select model-based outliers based on plot whiskers and absolute values applied on conditional residuals.
@@ -60,9 +65,7 @@ mod_qaStaApp_ui <- function(id){
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait to QA", choices = NULL, multiple = TRUE) ),
                                                   column(width=3, numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 5) ),
-                                                  column(width=3, tags$br(),
-                                                         shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
-                                                  ),
+
                                            ),
                                            column(width=12,
                                                   hr(style = "border-top: 3px solid #4c4c4c;"),
