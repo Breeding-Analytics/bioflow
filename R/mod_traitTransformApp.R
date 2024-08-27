@@ -133,10 +133,17 @@ mod_traitTransformApp_server <- function(id, data){
     )
     ## function to create the table of possibilities
     dtFieldTraC = reactive({
+      req(data())
       dtProv = data()$metadata$pheno
-      traitNames = dtProv[dtProv$parameter == "trait","value"]
-      mm = matrix(0,nrow = 4, ncol = length(traitNames)); rownames(mm) <- c("I","log","sqrt","cbrt"); colnames(mm) <- traitNames
-      dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
+      traitsFound <- which(dtProv$parameter == "trait")
+      if(length(traitsFound) > 0){
+        traitNames = dtProv[traitsFound,"value"]
+        mm = matrix(0,nrow = 4, ncol = length(traitNames)); rownames(mm) <- c("I","log","sqrt","cbrt"); colnames(mm) <- traitNames
+        dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
+      }else{
+        mm = matrix(0,nrow = 4, ncol = 0); rownames(mm) <- c("I","log","sqrt","cbrt");
+        dtProvTable = as.data.frame(mm);
+      }
       return(dtProvTable)
     })
     xx = reactiveValues(df = NULL)

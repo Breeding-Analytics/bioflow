@@ -67,7 +67,7 @@ mod_neApp_ui <- function(id){
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=3, numericInput(ns("maxNe"), label = "Maximum Number of Founders to Explore", value = 100, step = 5, max = 1000, min = 2) ),
                                                              column(width=3, numericInput(ns("maxMarker"), label = "Number of markers to use", value = 1000, step = 50, max = 20000, min = 10) ),
-                                                             column(width=3, numericInput(ns("nSamples"), label = "Number of iterations per combination", value = 10, step = 5, max = 5, min = 500) ),
+                                                             column(width=3, numericInput(ns("nSamples"), label = "Number of bootstraps", value = 10, step = 5, max = 5, min = 500) ),
                                                       ),
                                                       column(width=12,
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -82,14 +82,14 @@ mod_neApp_ui <- function(id){
                                              ),
                                              tabPanel("Run analysis", icon = icon("dice-three"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=12,
-                                                                    br(),
+                                                             tags$br(),
+                                                             column(width=3,
                                                                     actionButton(ns("runQaMb"), "Run (click)", icon = icon("play-circle")),
-                                                                    br(),
                                                              ),
-                                                             br(),
+                                                             tags$br(),
+                                                             textOutput(ns("outQaMb")),
                                                       ),
-                                                      textOutput(ns("outQaMb")),
+
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel
@@ -140,7 +140,7 @@ mod_neApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
       }else{ # data is there
         if(!is.null(data()$data$geno)){
-          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the marker QA specifying your input parameters under the Input tabs.")) )
+          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to specify your input parameters under the Input tabs.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
       }
     )
@@ -267,14 +267,14 @@ mod_neApp_server <- function(id, data){
       ##
 
       ## store the new modifications table
-      dt <- data()
+      # dt <- data()
       # save(result, file = "./R/outputs/resultQaGeno.RData")
       result <- try( cgiarPipeline::numberFounders(
-        object= NULL,
-        analysisIdForGenoModifications=NULL,
-        maxNe=100,
-        maxMarker=1000,
-        nSamples=5,
+        object= data(),
+        analysisIdForGenoModifications=input$versionMarker2Mta,
+        neExplore = seq(10,input$maxNe,round(input$maxNe/10)),
+        maxMarker=input$maxMarker,
+        nSamples=input$nSamples,
         verbose=FALSE
       ), silent = TRUE)
       ## write the new status table
