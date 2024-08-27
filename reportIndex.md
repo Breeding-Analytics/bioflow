@@ -1,7 +1,7 @@
 ---
 title: "Selection Index Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "August 02, 2024"  
+date: "August 27, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -37,7 +37,7 @@ The following table allows you to inspect the across-environment predictions for
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-outfd453f1b9e5eefbd" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out5a45be7ae317ab9c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -47,7 +47,7 @@ This spider plot allows you to visualize the distance between the population mea
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out34b9e6f3be5a3349" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outf3e4183af2f136f4" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Expected Response Plot
 
@@ -60,7 +60,7 @@ The following plot allows the user to visualize the expected response in the new
 <input id="indexDesireApp_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out54964a9693d0c0e5" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outaf290b835b96e8fd" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Index versus Trait Plot
 
@@ -71,14 +71,12 @@ The following plot allows you to visualize the relationship between the selectio
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="indexDesireApp_1-traitMtaScatter-label" for="indexDesireApp_1-traitMtaScatter">Trait:</label>
 <div>
-<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
+<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
 <script type="application/json" data-for="indexDesireApp_1-traitMtaScatter" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outf7f0b4d897a8a8d8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out0c4e3ba79959cbc5" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Performance of crosses
 
@@ -89,14 +87,12 @@ The following plots allow the user to review the performance of crosses, mothers
 <label class="control-label" id="indexDesireApp_1-traitIndexBox-label" for="indexDesireApp_1-traitIndexBox">Trait:</label>
 <div>
 <select id="indexDesireApp_1-traitIndexBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option>
 <option value="desireIndex">desireIndex</option></select>
 <script type="application/json" data-for="indexDesireApp_1-traitIndexBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out19c906b4be85f19d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out0f29e1287ed224f7" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### References of methods used
 

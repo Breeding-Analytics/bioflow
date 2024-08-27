@@ -212,10 +212,880 @@ mod_mtaExpApp_ui <- function(id){
 #' mtaExpApp Server Functions
 #'
 #' @noRd
+# mod_mtaExpApp_server <- function(id, data){
+#   moduleServer( id, function(input, output, session){
+#     ns <- session$ns
+#
+#
+#     output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+#     ############################################################################ clear the console
+#     hideAll <- reactiveValues(clearAll = TRUE)
+#     observeEvent(data(), {
+#       hideAll$clearAll <- TRUE
+#     })
+#     #################
+#     ## version
+#     observeEvent(c(data()), {
+#       req(data())
+#       dtMta <- data()
+#       dtMta <- dtMta$status
+#       dtMta <- dtMta[which(dtMta$module == "sta"),]
+#       traitsMta <- unique(dtMta$analysisId)
+#       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+#       updateSelectInput(session, "version2Mta", choices = traitsMta)
+#     })
+#     # ## version qa marker
+#     observeEvent(c(data()), {
+#       req(data())
+#       dtMta <- data()
+#       dtMta <- dtMta$status
+#       dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
+#       traitsMta <- unique(dtMta$analysisId)
+#       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+#       updateSelectInput(session, "versionMarker2Mta", choices = traitsMta)
+#     })
+#     #################
+#     ## data example loading
+#     observeEvent(
+#       input$launch,
+#       if(length(input$launch) > 0){
+#         if (input$launch) {
+#           shinyWidgets::ask_confirmation(
+#             inputId = ns("myconfirmation"),
+#             text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+#             title = "Data replacement warning"
+#           )
+#         }
+#       }
+#     )
+#     observeEvent(input$myconfirmation, {
+#       if (isTRUE(input$myconfirmation)) {
+#         shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+#         ## replace tables
+#         data(cgiarBase::create_getData_object())
+#         tmp <- data()
+#         utils::data(DT_example, package = "cgiarPipeline")
+#         if(!is.null(result$data)){tmp$data <- result$data}
+#         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+#         if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+#         if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+#         if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+#         if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+#         if(!is.null(result$status)){tmp$status <- result$status}
+#         data(tmp) # update data with results
+#         shinybusy::remove_modal_spinner()
+#       }else{
+#         shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+#       }
+#     }, ignoreNULL = TRUE)
+#     #################
+#     # show shinyWidgets until the user can use the module
+#     observeEvent(c(data(), input$version2Mta), {
+#       req(data())
+#       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+#       if(mappedColumns == 3 & length(input$version2Mta)>0 ){
+#         golem::invoke_js('showid', ns('holder3'))
+#         golem::invoke_js('showid', ns('holder4'))
+#         golem::invoke_js('showid', ns('holder5'))
+#         golem::invoke_js('showid', ns('holder6'))
+#       }else{
+#         golem::invoke_js('hideid', ns('holder3'))
+#         golem::invoke_js('hideid', ns('holder4'))
+#         golem::invoke_js('hideid', ns('holder5'))
+#         golem::invoke_js('hideid', ns('holder6'))
+#       }
+#     })
+#     #################
+#     # warning message
+#     output$warningMessage <- renderUI(
+#       if(is.null(data())){
+#         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+#       }else{ # data is there
+#         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+#         if(mappedColumns == 3){
+#           if("sta" %in% data()$status$module){
+#             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
+#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
+#         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+#       }
+#     )
+#     #################
+#     ## traits
+#     observeEvent(c(data(), input$version2Mta), {
+#       req(data())
+#       req(input$version2Mta)
+#       dtMta <- data()
+#       dtMta <- dtMta$predictions
+#       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
+#       traitsMta <- unique(dtMta$trait)
+#       updateSelectInput(session, "trait2Mta", choices = traitsMta)
+#       updateSelectInput(session, "traitCor", choices = traitsMta)
+#       updateSelectInput(session, "traitConnect", choices = traitsMta)
+#       updateSelectInput(session, "evaluationUnitsTrait", choices = traitsMta)
+#     })
+#     ## left formula
+#     output$leftSides <- renderUI({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$trait2Mta)
+#       req(input$nTerms)
+#       dtMta <- data()
+#       gg <- cgiarBase::goodLevels(object=dtMta, analysisId=input$version2Mta)
+#       choices <- c( "1", gg[[ input$trait2Mta[1] ]])
+#       # if(length(input$cs_model) > 0){
+#       if ( input$radio == "cs_model") { # CS model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('leftSides',i)),
+#             label = ifelse(i==1, "Intercepts",""),
+#             choices = choices, multiple = TRUE, selected = "1"
+#           )
+#         })
+#       }else if( input$radio == "csdg_model" ){ # main + dg
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('leftSides',i)),
+#             label = ifelse(i==1, "Intercepts",""),
+#             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
+#           )
+#         })
+#       }else if( input$radio == "uns_model"  ){ # UNS model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('leftSides',i)),
+#             label = ifelse(i==1, "Intercepts",""),
+#             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
+#           )
+#         })
+#       }else if( input$radio == "fa_model"  ){ # UNS model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('leftSides',i)),
+#             label = ifelse(i==1, "Intercepts",""),
+#             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2 | i==3,  'environment', '1' ))
+#           )
+#         })
+#       }else if( input$radio == "dg_model" ){ # DIAG model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('leftSides',i)),
+#             label = ifelse(i==1, "Intercepts",""),
+#             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
+#           )
+#         })
+#       }else if(input$radio == "fw_model"){ # FW model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('leftSides',i)),
+#             label = ifelse(i==1, "Intercepts",""),
+#             choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', grep("envIndex",gg[[ input$trait2Mta[1] ]],value=TRUE)[1] ))
+#           )
+#         })
+#       }else { # no model specified
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('leftSides',i)),
+#             label = ifelse(i==1, "Intercepts",""),
+#             choices = choices, multiple = TRUE, selected = "1"
+#           )
+#         })
+#       }
+#       # }
+#
+#     })
+#     # covariance structure
+#     output$center <- renderUI({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$trait2Mta)
+#       req(input$nTerms)
+#       # if(length(input$cs_model) > 0){
+#       if (input$radio == "cs_model" ) { # CS model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('center',i)),
+#             label = ifelse(i==1, "Structure",""),
+#             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+#             selected = '|'
+#           )
+#         })
+#       }else if ( input$radio == "fw_model" ) { # FW model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('center',i)),
+#             label = ifelse(i==1, "Structure",""),
+#             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+#             selected = '|'
+#           )
+#         })
+#       }else if ( input$radio == "uns_model" ) { # UNS model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('center',i)),
+#             label = ifelse(i==1, "Structure",""),
+#             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+#             selected = '|'
+#           )
+#         })
+#       }else if ( input$radio == "fa_model" ) { # UNS model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('center',i)),
+#             label = ifelse(i==1, "Structure",""),
+#             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+#             selected = ifelse(i==1, '|', ifelse(i==2, '||', '|'))
+#           )
+#         })
+#       }else if( input$radio == "csdg_model" ){ # CS+DIAG model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('center',i)),
+#             label = ifelse(i==1, "Structure",""),
+#             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+#             selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
+#           )
+#         })
+#       }else if( input$radio == "dg_model" ){ # DIAG model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('center',i)),
+#             label = ifelse(i==1, "Structure",""),
+#             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+#             selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
+#           )
+#         })
+#       }else { # no model specified
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             session$ns(paste0('center',i)),
+#             label = ifelse(i==1, "Structure",""),
+#             choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
+#             selected = '|'
+#           )
+#         })
+#         # updateSelectizeInput(session, 'qtl_table_markers', selected = '')
+#       }
+#       # }
+#
+#     })
+#     # right-side equation
+#     output$rightSides <- renderUI({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$trait2Mta)
+#       req(input$nTerms)
+#       dtMta <- data()
+#       gg <- cgiarBase::goodLevels(dtMta, input$version2Mta, includeCovars = FALSE)
+#       choices <- c("designation",gg[[ input$trait2Mta[1] ]])
+#       # if(length(input$cs_model) > 0){
+#       if (input$radio == "cs_model") { # CS model
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             inputId=session$ns(paste0('rightSides',i)),
+#             label = ifelse(i==1, "Slopes",""),
+#             choices = choices, multiple = TRUE,
+#             selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('environment','designation')}else{choices[i]} } }
+#           )
+#         })
+#       }else if( input$radio == "csdg_model" ){
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             inputId=session$ns(paste0('rightSides',i)),
+#             label = ifelse(i==1, "Slopes",""),
+#             choices = choices, multiple = TRUE,
+#             selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('designation')}else{choices[i]} } }
+#           )
+#         })
+#       }else if(input$radio == "fw_model"){
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             inputId=session$ns(paste0('rightSides',i)),
+#             label = ifelse(i==1, "Slopes",""),
+#             choices = choices, multiple = TRUE,
+#             selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('designation')}else{choices[i]} } }
+#           )
+#         })
+#       }else if( input$radio == "uns_model" ){
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             inputId=session$ns(paste0('rightSides',i)),
+#             label = ifelse(i==1, "Slopes",""),
+#             choices = choices, multiple = TRUE,
+#             selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
+#           )
+#         })
+#       }else if( input$radio == "fa_model" ){
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             inputId=session$ns(paste0('rightSides',i)),
+#             label = ifelse(i==1, "Slopes",""),
+#             choices = choices, multiple = TRUE,
+#             selected = if(i==1){'environment'}else{if(i%in%c(2,3)){ list('designation')}else{  list(setdiff(choices,'designation')[1] )  } }
+#           )
+#         })
+#       }else if( input$radio == "dg_model" ){
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             inputId=session$ns(paste0('rightSides',i)),
+#             label = ifelse(i==1, "Slopes",""),
+#             choices = choices, multiple = TRUE,
+#             selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
+#           )
+#         })
+#       }else { # no model specified
+#         lapply(1:input$nTerms, function(i) {
+#           selectInput(
+#             inputId=session$ns(paste0('rightSides',i)),
+#             label = ifelse(i==1, "Slopes",""),
+#             choices = choices, multiple = TRUE,
+#             selected = choices[i]
+#           )
+#         })
+#         #
+#       }
+#       # }
+#
+#     })
+#     # n pricipal components
+#     output$nPC <- renderUI({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$trait2Mta)
+#       req(input$nTerms)
+#       preds <- data()$predictions
+#       preds <- preds[which(preds$analysisId %in% input$version2Mta),]
+#       preds <- preds[which(preds$trait %in% input$trait2Mta),]
+#       nEnv <- length(unique(preds$environment))
+#       # if(length(input$fa_model) > 0){
+#       if(input$radio == "fa_model"){
+#         lapply(1:input$nTerms, function(i) {
+#           numericInput(
+#             session$ns(paste0('nPC',i)),
+#             label = ifelse(i==1, "nPC",""),
+#             value = if(i==1){0}else{if(i==2){ 0 }else{if(i==3){min(c(nEnv,2))}else{0} } },
+#             min = 0, max = Inf, step = 1
+#           )
+#         })
+#       }else{ # no model specified
+#         lapply(1:input$nTerms, function(i) {
+#           numericInput(
+#             session$ns(paste0('nPC',i)),
+#             label = ifelse(i==1, "nPC",""),
+#             value = 0, min = 0, max = Inf, step = 1
+#           )
+#         })
+#         #
+#       }
+#       # }
+#
+#     })
+#     # inputFormula
+#     inputFormula = reactive({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$trait2Mta)
+#       req(input$nTerms)
+#       if (length(input$trait2Mta) != 0) {
+#         values <- vector(mode = "list", length = input$nTerms)
+#         for (i in 1:input$nTerms) {
+#           # left
+#           tempval <- reactive({paste0('input$','leftSides',i)})
+#           s1 <- eval( parse(text = tempval() ) )
+#           # center
+#           tempval <- reactive({paste0('input$','center',i)})
+#           s2 <- eval( parse(text = tempval() ) )
+#           # right
+#           tempval <- reactive({paste0('input$','rightSides',i)})
+#           s3 <- eval( parse(text = tempval() ) )
+#           # nPC
+#           tempval <- reactive({paste0('input$','nPC',i)})
+#           s4 <- eval( parse(text = tempval() ) )
+#           # join
+#           prov <- list(s1, s2, s3, s4)
+#           names(prov) <- c("left","center","right","nPC")
+#           values[[i]] <- prov
+#         }
+#         names(values) <- paste("vcov",1:input$nTerms)
+#         return(values)
+#       }
+#     })
+#     ## show or not id marker to select
+#     observeEvent(
+#       input$modelMet,
+#       if (input$modelMet %in% c('gblup','rrblup','ssgblup') ) {
+#         golem::invoke_js('showid', ns('ismarkermodel'))
+#       } else {
+#         golem::invoke_js('hideid', ns('ismarkermodel'))
+#       }
+#     )
+#     #################
+#     # reactive table for trait family distributions
+#     dtDistTrait = reactive({
+#       traitNames = input$trait2Mta
+#       mm = matrix(0,nrow = 5, ncol = length(traitNames));
+#       rownames(mm) <- c(
+#         "gaussian(link = 'identity')", "binomial(link = 'logit')",  "Gamma(link = 'inverse')",
+#         "inverse.gaussian(link = '1/mu^2')", "poisson(link = 'log')"
+#       );
+#       colnames(mm) <- traitNames
+#       dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
+#       return(dtProvTable)
+#     })
+#     xx = reactiveValues(df = NULL)
+#     observe({
+#       df <- dtDistTrait()
+#       xx$df <- df
+#     })
+#     output$traitDistMet = DT::renderDT(xx$df,
+#                                        selection = 'none',
+#                                        editable = TRUE,
+#                                        options = list(paging=FALSE,
+#                                                       searching=FALSE,
+#                                                       initComplete = I("function(settings, json) {alert('Done.');}")
+#                                        )
+#     )
+#     proxy = DT::dataTableProxy('traitDistMet')
+#     observeEvent(input$traitDistMet_cell_edit, {
+#       info = input$traitDistMet_cell_edit
+#       utils::str(info)
+#       i = info$row
+#       j = info$col
+#       v = info$value
+#       xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+#     })
+#
+#     #################
+#     # reactive table for environments to be included
+#     dtFieldMet = reactive({
+#       req(data())
+#       req(input$version2Mta)
+#       dtMta <- data()
+#       dtProv = dtMta$predictions
+#       if(!is.null(dtProv)){
+#         dtProv <- dtProv[which(dtProv$analysisId %in% input$version2Mta),]
+#         dtProvTable=  as.data.frame( do.call( rbind, list (with(dtProv, table(environment,trait)) ) ) )
+#         bad <- which(dtProvTable <= 1, arr.ind = TRUE)
+#         if(nrow(bad) > 0){dtProvTable[bad] = 0}
+#         dtProvTable[which(dtProvTable > 1, arr.ind = TRUE)] = 1
+#       }else{dtProvTable <- data.frame()}
+#       return(dtProvTable)
+#     })
+#     x = reactiveValues(df = NULL)
+#     observe({
+#       df <- dtFieldMet()
+#       x$df <- df
+#     })
+#     output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE)
+#     proxy = DT::dataTableProxy('fieldsMet')
+#     observeEvent(input$fieldsMet_cell_edit, {
+#       info = input$fieldsMet_cell_edit
+#       utils::str(info)
+#       i = info$row
+#       j = info$col
+#       v = info$value
+#       x$df[i, j] <- isolate(DT::coerceValue(v, x$df[i, j]))
+#     })
+#     #################
+#     ## model types
+#     observeEvent(c(data(), input$version2Mta, input$trait2Mta), {
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$trait2Mta)
+#       traitsMta <- list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
+#       updateSelectInput(session, "modelMet", choices = traitsMta, selected = traitsMta[1])
+#     })
+#     #################
+#     ## render timestamps flow plot
+#     output$plotTimeStamps <- shiny::renderPlot({
+#       req(data()) # req(input$version2Sta)
+#       xx <- data()$status;  yy <- data()$modeling
+#       v <- which(yy$parameter == "analysisId")
+#       if(length(v) > 0){
+#         yy <- yy[v,c("analysisId","value")]
+#         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
+#       }else{ zz <- xx; zz$value <- NA}
+#       if(!is.null(xx)){
+#         colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+#         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
+#         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
+#         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
+#           X <- with(zz, sommer::overlay(outputId, inputId))
+#         }else{
+#           if(nLevelsCheck1 <= 1){
+#             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
+#           }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
+#           if(nLevelsCheck2 <= 1){
+#             X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
+#           }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
+#           mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
+#           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
+#           if(!is.null(X1)){X[,colnames(X1)] <- X1}
+#           if(!is.null(X2)){X[,colnames(X2)] <- X2}
+#         };  rownames(X) <- as.character(zz$outputId)
+#         rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+#         colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+#         # make the network plot
+#         n <- network::network(X, directed = FALSE)
+#         network::set.vertex.attribute(n,"family",zz$module)
+#         network::set.vertex.attribute(n,"importance",1)
+#         e <- network::network.edgecount(n)
+#         network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
+#         network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+#         library(ggnetwork)
+#         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+#           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
+#           ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
+#           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
+#                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
+#           ggnetwork::theme_blank()
+#       }
+#     })
+#     #################
+#     ## render table of evaluation units
+#     output$evaluationUnits <-  shiny::renderPlot({ #DT::renderDT({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$evaluationUnitsTrait)
+#       object <- data()
+#       if(!is.null(object$predictions)){
+#         phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId %in% input$version2Mta  &  object$predictions$trait == input$evaluationUnitsTrait),"designation"]))
+#       }else{ phenoNames <- character() }
+#
+#       if(!is.null(object$data$geno)){
+#         genoNames <- rownames(object$data$geno)
+#       }else{ genoNames <- character() }
+#
+#       if(!is.null(object$data$pedigree)){
+#         metaPed <- object$metadata$pedigree
+#         pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+#         pedCols <- setdiff(pedCols,"")
+#         pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+#       }else{ pedNames <- character() }
+#
+#       if(!is.null(object$data$qtl)){
+#         metaQtl <- object$metadata$qtl
+#         qtlCols <- metaQtl[which(metaQtl$parameter %in% c("designation")), "value"]
+#         qtlCols <- setdiff(qtlCols,"")
+#         qtlNames <- na.omit(unique(object$data$qtl[,qtlCols]))
+#       }else{ qtlNames <- character() }
+#
+#       splitAggregate <- list(phenoNames, genoNames, pedNames, qtlNames)
+#       names(splitAggregate) <- c("With-Phenotype","With-Genotype","With-Pedigree","With-QTL")
+#
+#       nagm <- matrix(0,length(splitAggregate),length(splitAggregate)); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+#       for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+#         for(j in 1:i){
+#           nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+#         }
+#       }
+#       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+#       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+#       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+#       midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
+#       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+#         ggplot2::geom_tile(color = "white")+ ggplot2::ggtitle("Available data for this trait.") +
+#         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+#                                       midpoint = midval, limit = c(0,maxVal), space = "Lab",
+#                                       name="Connectivity (data types)") +
+#         ggplot2::theme_minimal()+
+#         ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
+#         ggplot2::ylab("") + ggplot2::xlab("") +
+#         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,  hjust = 1, face = "bold"))+
+#         ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1,  hjust = 1, face = "bold")) +
+#         ggplot2::coord_fixed()
+#       p
+#     })
+#     #####################
+#     ## render connectivity plot
+#     observeEvent(c(data(),input$version2Mta), { # update entry types included in the plot
+#       req(data())
+#       req(input$version2Mta)
+#       dtMta <- data()
+#       dtMta <- dtMta$predictions
+#       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
+#       entryTypeMtaInput <- unique(dtMta$entryType)
+#       updateSelectInput(session, "entryTypeMta", choices = c(entryTypeMtaInput,"Generic"), selected = "Generic")
+#     })
+#     output$plotPredictionsSparsity <- shiny::renderPlot({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$entryTypeMta)
+#       dtMta <- data()
+#       mydata <- dtMta$predictions
+#       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+#       if(input$entryTypeMta != "Generic"){
+#         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
+#       }
+#       M <- table(mydata$designation, mydata$environment)
+#       M2 <- matrix(M, nrow = nrow(M), ncol = ncol(M))
+#       M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
+#       M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
+#       Matrix::image(as(t(M2), Class = "dgCMatrix"), xlab="Genotypes", ylab="Environments", colorkey=TRUE)
+#     })
+#     # render correlation plot
+#     output$plotPredictionsCor <-  shiny::renderPlot({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$traitCor)
+#       req(input$heatmapFontSizeCor)
+#       dtMta <- data()
+#       mydata <- dtMta$predictions
+#       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+#       predictions.gcorrE <- subset(mydata, select = c(trait,designation,environment,predictedValue))
+#       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitCor, ]
+#       wide <- stats::reshape(predictions.gcorrE2,
+#                              direction = "wide", idvar = "designation",
+#                              timevar = "environment", v.names = "predictedValue", sep= "")
+#       colnames(wide) <- gsub("predictedValue","",colnames(wide))
+#       wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+#       corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+#       mydata4 <- cgiarBase::matToTab(corr)
+#       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+#         ggplot2::geom_tile(color = "white")+
+#         ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+#                                       midpoint = 0, limit = c(-1,1), space = "Lab",
+#                                       name="Pearson\nCorrelation") +
+#         ggplot2::theme_minimal()+
+#         ggplot2::ylab("") + ggplot2::xlab("") +
+#         ggplot2::coord_fixed()
+#       if(!is.null(input$checkboxTextCor)){ # if user wants to fill cell values
+#         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = max(c(input$heatmapFontSizeCor-3, 1)))
+#       }
+#       if(!is.null(input$checkboxAxisCor)){ # if user wants to add axis labels
+#         p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face="bold"))+
+#           ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face = "bold"))
+#       }else{
+#         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
+#       }
+#       p
+#
+#     })
+#     # render sparsity plot
+#     output$plotPredictionsConnectivity <-  shiny::renderPlot({ # plotly::renderPlotly({
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$traitConnect)
+#       req(input$entryTypeMta)
+#       req(input$heatmapFontSize)
+#       dtMta <- data()
+#       mydata <- dtMta$predictions # extract predictions
+#       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+#       mydata <- mydata[which(mydata$trait %in% input$traitConnect),] # only PREDICTIONS FROM Trait selected
+#       if(input$entryTypeMta != "Generic"){ # use an specific type of entries
+#         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
+#       }
+#       splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) ) # split by environment
+#       splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+#       nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+#       for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+#         for(j in 1:i){
+#           nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+#         }
+#       }
+#       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+#       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+#       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+#       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+#         ggplot2::geom_tile(color = "white")+
+#         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+#                                       midpoint = 60, limit = c(0,maxVal), space = "Lab",
+#                                       name="Connectivity") +
+#         ggplot2::theme_minimal()+
+#         ggplot2::ylab("") + ggplot2::xlab("") +
+#         ggplot2::coord_fixed()
+#       if(!is.null(input$checkboxText)){ # if user wants to add text to the cells
+#         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = max(c(input$heatmapFontSize-3,1)))
+#       }
+#       if(!is.null(input$checkboxAxis)){ # if user wants to add labels to the axis
+#         p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))+
+#           ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))
+#       }else{
+#         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
+#       }
+#       p
+#     })
+#
+#     ############################################################################
+#     ########################################################## actual run
+#     ############################################################################
+#     my_mta <- ExtendedTask$new(function(input, data, x, xx, inputFormulation) {
+#       promises::future_promise({
+#
+#         if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
+#           if(input$versionMarker2Mta == '' | is.null(input$versionMarker2Mta) ){ # user didn't provide a modifications id
+#             if(!is.null(data$data$geno)){ # if user actually has marker data
+#               shinybusy::remove_modal_spinner()
+#               cat("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.")
+#               # stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
+#             }else{ # if user does NOT have marker data and wanted a marker-based model
+#               shinybusy::remove_modal_spinner()
+#               cat("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+#               # stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+#             }
+#           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
+#         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
+#
+#         # family distributions input
+#         myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
+#         dontHaveDist <- which(is.na(myFamily))
+#         if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
+#
+        # result <- try(
+        #   cgiarPipeline::mtaLmmFlex(
+        #     phenoDTfile= data, # analysis to be picked from predictions database
+        #     analysisId=input$version2Mta,
+        #     analysisIdForGenoModifications=markerVersionToUse,
+        #     inputFormulation=inputFormulation,
+        #     envsToInclude=x$df,
+        #     trait= input$trait2Mta, traitFamily=myFamily, # myFamily
+        #     useWeights=input$useWeights,
+        #     heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
+        #     heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
+        #     meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
+        #     meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
+        #     modelType=input$modelMet, # either "blup", "pblup", "gblup", "rrblup"
+        #     nMarkersRRBLUP=input$nMarkersRRBLUP,
+        #     deregress=input$deregressMet,
+        #     maxIters=input$maxitMet, batchSizeToPredict=500, tolParInv=1e-4,
+        #     verbose=FALSE
+        #   ),
+#           silent=TRUE
+#         )
+#
+#         return(result)
+#       })
+#     })
+#     ## run button
+#     observeEvent(input$runMta, {
+#       req(data())
+#       req(input$version2Mta)
+#       req(input$trait2Mta)
+#       req(input$nTerms)
+#       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+#
+#       ui_inputs <- shiny::reactiveValuesToList(input)
+#       x_inputs <- shiny::reactiveValuesToList(x)
+#       xx_inputs <- shiny::reactiveValuesToList(xx)
+#       data_obj  <- data()
+#       inputFormulation <- inputFormula()
+#       saveRDS(inputFormulation, file = "inputFormulation.rds")
+#       my_mta$invoke(ui_inputs, data_obj, x_inputs, xx_inputs,inputFormulation)
+#     })
+#     ## render print
+#     output$outMta <- output$outMta2 <- renderPrint({
+#
+#       if(sum(data()$status$module %in% "sta") == 0) {
+#         output$qaQcMtaInfo <- renderUI({
+#           if (hideAll$clearAll){
+#             return()
+#           }else{
+#             req(data())
+#             HTML(as.character(div(style="color: brown;",
+#                                   "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
+#             )
+#           }
+#         })
+#       }else{ # sta is available
+#
+#         output$qaQcMtaInfo <- renderUI({return(NULL)})
+#         result <- my_mta$result()
+#         shinybusy::remove_modal_spinner()
+#
+#         if(!inherits(result,"try-error")) {
+#           data(result) # update data with results
+#           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+#           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+#
+#           ## predictions table
+#           output$predictionsMta <-  DT::renderDT({
+#             predictions <- result$predictions
+#             predictions <- predictions[predictions$module=="mtaFlex",]
+#             predictions$analysisId <- as.numeric(predictions$analysisId)
+#             predictions <- predictions[!is.na(predictions$analysisId),]
+#             current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+#             current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+#             numeric.output <- c("predictedValue", "stdError", "reliability")
+#             DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+#                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+#             ), numeric.output)
+#           })
+#           # metrics table
+#           output$metricsMta <-  DT::renderDT({
+#             if(!inherits(result,"try-error") ){
+#               metrics <- result$metrics
+#               mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
+#               metrics <- metrics[which(metrics$analysisId == mtaId),]
+#               metrics <- subset(metrics, select = -c(module,analysisId))
+#               numeric.output <- c("value", "stdError")
+#               DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
+#                                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+#               ), numeric.output)
+#             }
+#           })
+#           # modeling table
+#           output$modelingMta <-  DT::renderDT({
+#             if(!inherits(result,"try-error") ){
+#               modeling <- result$modeling
+#               mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
+#               modeling <- modeling[which(modeling$analysisId == mtaId),]
+#               modeling <- subset(modeling, select = -c(module,analysisId))
+#               DT::datatable(modeling, extensions = 'Buttons',
+#                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+#               )
+#             }
+#           })
+#           ## Report tab
+#           output$reportMta <- renderUI({
+#             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+#             # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
+#           })
+#
+#           output$downloadReportMta <- downloadHandler(
+#             filename = function() {
+#               paste('my-report', sep = '.', switch(
+#                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+#               ))
+#             },
+#             content = function(file) {
+#               src <- normalizePath(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"))
+#               src2 <- normalizePath('data/resultMtaFlex.RData')
+#               # temporarily switch to the temp dir, in case you do not have write
+#               # permission to the current working directory
+#               owd <- setwd(tempdir())
+#               on.exit(setwd(owd))
+#               file.copy(src, 'report.Rmd', overwrite = TRUE)
+#               file.copy(src2, 'resultMtaFlex.RData', overwrite = TRUE)
+#               out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+#                 "HTML",
+#                 HTML = rmdformats::robobook(toc_depth = 4)
+#                 # HTML = rmarkdown::html_document()
+#               ))
+#               file.rename(out, file)
+#             }
+#           )
+#
+#         }else{
+#           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+#           output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
+#           output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
+#           output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
+#           hideAll$clearAll <- TRUE
+#         }
+#       }
+#
+#       hideAll$clearAll <- FALSE
+#
+#     })
+#
+#
+#   })
+# }
 mod_mtaExpApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-
 
     output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
@@ -905,15 +1775,43 @@ mod_mtaExpApp_server <- function(id, data){
       p
     })
 
-    ############################################################################
-    ########################################################## actual run
-    ############################################################################
-    my_mta <- ExtendedTask$new(function(input, data, x, xx, inputFormulation) {
-      promises::future_promise({
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ## render result of "run" button click
+    outMta <- eventReactive(input$runMta, {
 
+      req(data())
+      req(input$version2Mta)
+      req(input$trait2Mta)
+      req(input$nTerms)
+
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+      dtMta <- data()
+      inputFormulation <- inputFormula()
+      saveRDS(inputFormulation, file = "inputFormulation.rds")
+      # run the modeling, but before test if sta was done
+      if(sum(dtMta$status$module %in% "sta") == 0) {
+        output$qaQcMtaInfo <- renderUI({
+          if (hideAll$clearAll)
+            return()
+          else
+            req(dtMta)
+          HTML(as.character(div(style="color: brown;",
+                                "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
+          )
+        })
+      }else{ # sta is available
+
+        output$qaQcMtaInfo <- renderUI({return(NULL)})
         if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
           if(input$versionMarker2Mta == '' | is.null(input$versionMarker2Mta) ){ # user didn't provide a modifications id
-            if(!is.null(data$data$geno)){ # if user actually has marker data
+            if(!is.null(dtMta$data$geno)){ # if user actually has marker data
               shinybusy::remove_modal_spinner()
               cat("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.")
               # stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
@@ -932,7 +1830,7 @@ mod_mtaExpApp_server <- function(id, data){
 
         result <- try(
           cgiarPipeline::mtaLmmFlex(
-            phenoDTfile= data, # analysis to be picked from predictions database
+            phenoDTfile= dtMta, # analysis to be picked from predictions database
             analysisId=input$version2Mta,
             analysisIdForGenoModifications=markerVersionToUse,
             inputFormulation=inputFormulation,
@@ -951,996 +1849,107 @@ mod_mtaExpApp_server <- function(id, data){
           ),
           silent=TRUE
         )
-
-        return(result)
-      })
-    })
-    ## run button
-    observeEvent(input$runMta, {
-      req(data())
-      req(input$version2Mta)
-      req(input$trait2Mta)
-      req(input$nTerms)
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-
-      ui_inputs <- shiny::reactiveValuesToList(input)
-      x_inputs <- shiny::reactiveValuesToList(x)
-      xx_inputs <- shiny::reactiveValuesToList(xx)
-      data_obj  <- data()
-      inputFormulation <- inputFormula()
-      saveRDS(inputFormulation, file = "inputFormulation.rds")
-      my_mta$invoke(ui_inputs, data_obj, x_inputs, xx_inputs,inputFormulation)
-    })
-    ## render print
-    output$outMta <- output$outMta2 <- renderPrint({
-
-      if(sum(data()$status$module %in% "sta") == 0) {
-        output$qaQcMtaInfo <- renderUI({
-          if (hideAll$clearAll){
-            return()
-          }else{
-            req(data())
-            HTML(as.character(div(style="color: brown;",
-                                  "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
-            )
-          }
-        })
-      }else{ # sta is available
-
-        output$qaQcMtaInfo <- renderUI({return(NULL)})
-        result <- my_mta$result()
-        shinybusy::remove_modal_spinner()
-
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-
-          ## predictions table
-          output$predictionsMta <-  DT::renderDT({
-            predictions <- result$predictions
-            predictions <- predictions[predictions$module=="mtaFlex",]
-            predictions$analysisId <- as.numeric(predictions$analysisId)
-            predictions <- predictions[!is.na(predictions$analysisId),]
-            current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-            current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-            numeric.output <- c("predictedValue", "stdError", "reliability")
-            DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            ), numeric.output)
-          })
-          # metrics table
-          output$metricsMta <-  DT::renderDT({
-            if(!inherits(result,"try-error") ){
-              metrics <- result$metrics
-              mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              metrics <- metrics[which(metrics$analysisId == mtaId),]
-              metrics <- subset(metrics, select = -c(module,analysisId))
-              numeric.output <- c("value", "stdError")
-              DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
-                                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-              ), numeric.output)
-            }
-          })
-          # modeling table
-          output$modelingMta <-  DT::renderDT({
-            if(!inherits(result,"try-error") ){
-              modeling <- result$modeling
-              mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
-              modeling <- modeling[which(modeling$analysisId == mtaId),]
-              modeling <- subset(modeling, select = -c(module,analysisId))
-              DT::datatable(modeling, extensions = 'Buttons',
-                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                           lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-              )
-            }
-          })
-          ## Report tab
-          output$reportMta <- renderUI({
-            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-            # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
-          })
-
-          output$downloadReportMta <- downloadHandler(
-            filename = function() {
-              paste('my-report', sep = '.', switch(
-                "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-              ))
-            },
-            content = function(file) {
-              src <- normalizePath(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"))
-              src2 <- normalizePath('data/resultMtaFlex.RData')
-              # temporarily switch to the temp dir, in case you do not have write
-              # permission to the current working directory
-              owd <- setwd(tempdir())
-              on.exit(setwd(owd))
-              file.copy(src, 'report.Rmd', overwrite = TRUE)
-              file.copy(src2, 'resultMtaFlex.RData', overwrite = TRUE)
-              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-                "HTML",
-                HTML = rmdformats::robobook(toc_depth = 4)
-                # HTML = rmarkdown::html_document()
-              ))
-              file.rename(out, file)
-            }
-          )
-
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-          output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
-          output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
-          output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
-          hideAll$clearAll <- TRUE
         }
       }
 
+      shinybusy::remove_modal_spinner()
+
+      if(!inherits(result,"try-error")) { # if all goes well in the run
+        ## predictions table
+        output$predictionsMta <-  DT::renderDT({
+          predictions <- result$predictions
+          predictions <- predictions[predictions$module=="mtaFlex",]
+          predictions$analysisId <- as.numeric(predictions$analysisId)
+          predictions <- predictions[!is.na(predictions$analysisId),]
+          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+          numeric.output <- c("predictedValue", "stdError", "reliability")
+          DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          ), numeric.output)
+        })
+        # metrics table
+        output$metricsMta <-  DT::renderDT({
+          if(!inherits(result,"try-error") ){
+            metrics <- result$metrics
+            mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            metrics <- metrics[which(metrics$analysisId == mtaId),]
+            metrics <- subset(metrics, select = -c(module,analysisId))
+            numeric.output <- c("value", "stdError")
+            DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            ), numeric.output)
+          }
+        })
+        # modeling table
+        output$modelingMta <-  DT::renderDT({
+          if(!inherits(result,"try-error") ){
+            modeling <- result$modeling
+            mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            modeling <- modeling[which(modeling$analysisId == mtaId),]
+            modeling <- subset(modeling, select = -c(module,analysisId))
+            DT::datatable(modeling, extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            )
+          }
+        })
+        ## Report tab
+        output$reportMta <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
+
+        output$downloadReportMta <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            src <- normalizePath(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultMtaFlex.RData')
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultMtaFlex.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmdformats::robobook(toc_depth = 4)
+              # HTML = rmarkdown::html_document()
+            ))
+            file.rename(out, file)
+          }
+        )
+
+      } else {
+        output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
+        output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
+        output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
+        hideAll$clearAll <- TRUE
+      } ### enf of if(!inherits(result,"try-error"))
+
       hideAll$clearAll <- FALSE
 
+    }) ## end eventReactive
+
+    output$outMta <- renderPrint({
+      outMta()
     })
 
 
   })
 }
-# mod_mtaExpApp_server <- function(id, data){
-#   moduleServer( id, function(input, output, session){
-#     ns <- session$ns
-#
-#
-#     output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
-#     ############################################################################ clear the console
-#     hideAll <- reactiveValues(clearAll = TRUE)
-#     observeEvent(data(), {
-#       hideAll$clearAll <- TRUE
-#     })
-#     #################
-#     ## version
-#     observeEvent(c(data()), {
-#       req(data())
-#       dtMta <- data()
-#       dtMta <- dtMta$status
-#       dtMta <- dtMta[which(dtMta$module == "sta"),]
-#       traitsMta <- unique(dtMta$analysisId)
-#       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
-#       updateSelectInput(session, "version2Mta", choices = traitsMta)
-#     })
-#     # ## version qa marker
-#     observeEvent(c(data()), {
-#       req(data())
-#       dtMta <- data()
-#       dtMta <- dtMta$status
-#       dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
-#       traitsMta <- unique(dtMta$analysisId)
-#       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
-#       updateSelectInput(session, "versionMarker2Mta", choices = traitsMta)
-#     })
-#     #################
-#     ## data example loading
-#     observeEvent(
-#       input$launch,
-#       if(length(input$launch) > 0){
-#         if (input$launch) {
-#           shinyWidgets::ask_confirmation(
-#             inputId = ns("myconfirmation"),
-#             text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
-#             title = "Data replacement warning"
-#           )
-#         }
-#       }
-#     )
-#     observeEvent(input$myconfirmation, {
-#       if (isTRUE(input$myconfirmation)) {
-#         shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
-#         ## replace tables
-#         data(cgiarBase::create_getData_object())
-#         tmp <- data()
-#         utils::data(DT_example, package = "cgiarPipeline")
-#         if(!is.null(result$data)){tmp$data <- result$data}
-#         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
-#         if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
-#         if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
-#         if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
-#         if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
-#         if(!is.null(result$status)){tmp$status <- result$status}
-#         data(tmp) # update data with results
-#         shinybusy::remove_modal_spinner()
-#       }else{
-#         shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
-#       }
-#     }, ignoreNULL = TRUE)
-#     #################
-#     # show shinyWidgets until the user can use the module
-#     observeEvent(c(data(), input$version2Mta), {
-#       req(data())
-#       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-#       if(mappedColumns == 3 & length(input$version2Mta)>0 ){
-#         golem::invoke_js('showid', ns('holder3'))
-#         golem::invoke_js('showid', ns('holder4'))
-#         golem::invoke_js('showid', ns('holder5'))
-#         golem::invoke_js('showid', ns('holder6'))
-#       }else{
-#         golem::invoke_js('hideid', ns('holder3'))
-#         golem::invoke_js('hideid', ns('holder4'))
-#         golem::invoke_js('hideid', ns('holder5'))
-#         golem::invoke_js('hideid', ns('holder6'))
-#       }
-#     })
-#     #################
-#     # warning message
-#     output$warningMessage <- renderUI(
-#       if(is.null(data())){
-#         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
-#       }else{ # data is there
-#         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-#         if(mappedColumns == 3){
-#           if("sta" %in% data()$status$module){
-#             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
-#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
-#         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
-#       }
-#     )
-#     #################
-#     ## traits
-#     observeEvent(c(data(), input$version2Mta), {
-#       req(data())
-#       req(input$version2Mta)
-#       dtMta <- data()
-#       dtMta <- dtMta$predictions
-#       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
-#       traitsMta <- unique(dtMta$trait)
-#       updateSelectInput(session, "trait2Mta", choices = traitsMta)
-#       updateSelectInput(session, "traitCor", choices = traitsMta)
-#       updateSelectInput(session, "traitConnect", choices = traitsMta)
-#       updateSelectInput(session, "evaluationUnitsTrait", choices = traitsMta)
-#     })
-#     ## left formula
-#     output$leftSides <- renderUI({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$trait2Mta)
-#       req(input$nTerms)
-#       dtMta <- data()
-#       gg <- cgiarBase::goodLevels(object=dtMta, analysisId=input$version2Mta)
-#       choices <- c( "1", gg[[ input$trait2Mta[1] ]])
-#       # if(length(input$cs_model) > 0){
-#         if ( input$radio == "cs_model") { # CS model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('leftSides',i)),
-#               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = "1"
-#             )
-#           })
-#         }else if( input$radio == "csdg_model" ){ # main + dg
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('leftSides',i)),
-#               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
-#             )
-#           })
-#         }else if( input$radio == "uns_model" ){ # UNS model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('leftSides',i)),
-#               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
-#             )
-#           })
-#         }else if( input$radio == "dg_model" ){ # DIAG model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('leftSides',i)),
-#               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==2, '1', 'environment' ))
-#             )
-#           })
-#         }else if(input$radio == "fw_model"){ # FW model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('leftSides',i)),
-#               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = ifelse(i==1,"1", ifelse(i==3, '1', paste0(input$trait2Mta[1], "_envIndex" ) ))
-#             )
-#           })
-#         }else if(input$radio == "fa_model"){ # FW model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('leftSides',i)),
-#               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = ifelse(i==1, '1', 'environment'  )
-#             )
-#           })
-#         }else { # no model specified
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('leftSides',i)),
-#               label = ifelse(i==1, "Intercepts",""),
-#               choices = choices, multiple = TRUE, selected = "1"
-#             )
-#           })
-#         }
-#       # }
-#
-#     })
-#     # covariance structure
-#     output$center <- renderUI({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$trait2Mta)
-#       req(input$nTerms)
-#       # if(length(input$cs_model) > 0){
-#         if (input$radio == "cs_model" ) { # CS model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('center',i)),
-#               label = ifelse(i==1, "Structure",""),
-#               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-#               selected = '|'
-#             )
-#           })
-#         }else if ( input$radio == "fw_model" ) { # FW model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('center',i)),
-#               label = ifelse(i==1, "Structure",""),
-#               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-#               selected = '|'
-#             )
-#           })
-#         }else if ( input$radio == "uns_model" ) { # UNS model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('center',i)),
-#               label = ifelse(i==1, "Structure",""),
-#               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-#               selected = '|'
-#             )
-#           })
-#         }else if( input$radio == "csdg_model" ){ # CS+DIAG model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('center',i)),
-#               label = ifelse(i==1, "Structure",""),
-#               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-#               selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
-#             )
-#           })
-#         }else if( input$radio == "dg_model" ){ # DIAG model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('center',i)),
-#               label = ifelse(i==1, "Structure",""),
-#               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-#               selected = ifelse(i==1, '|', ifelse(i==2, '|', '||'))
-#             )
-#           })
-#         }else if( input$radio == "fa_model"){ # FA model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('center',i)),
-#               label = ifelse(i==1, "Structure",""),
-#               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-#               selected = ifelse(i==1, '|', ifelse(i==2, '||', '|'))
-#             )
-#           })
-#         }else { # no model specified
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               session$ns(paste0('center',i)),
-#               label = ifelse(i==1, "Structure",""),
-#               choices = list(' (none)'='','| (UNS)'='|','|| (DIAG)'='||'), multiple = FALSE,
-#               selected = '|'
-#             )
-#           })
-#           # updateSelectizeInput(session, 'qtl_table_markers', selected = '')
-#         }
-#       # }
-#
-#     })
-#     # right-side equation
-#     output$rightSides <- renderUI({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$trait2Mta)
-#       req(input$nTerms)
-#       dtMta <- data()
-#       gg <- cgiarBase::goodLevels(dtMta, input$version2Mta, includeCovars = FALSE)
-#       choices <- c("designation",gg[[ input$trait2Mta[1] ]])
-#       # if(length(input$cs_model) > 0){
-#         if (input$radio == "cs_model") { # CS model
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               inputId=session$ns(paste0('rightSides',i)),
-#               label = ifelse(i==1, "Slopes",""),
-#               choices = choices, multiple = TRUE,
-#               selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('environment','designation')}else{choices[i]} } }
-#             )
-#           })
-#         }else if( input$radio == "csdg_model" ){
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               inputId=session$ns(paste0('rightSides',i)),
-#               label = ifelse(i==1, "Slopes",""),
-#               choices = choices, multiple = TRUE,
-#               selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('designation')}else{choices[i]} } }
-#             )
-#           })
-#         }else if(input$radio == "fw_model"){
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               inputId=session$ns(paste0('rightSides',i)),
-#               label = ifelse(i==1, "Slopes",""),
-#               choices = choices, multiple = TRUE,
-#               selected = if(i==1){'environment'}else{if(i==2){list('designation')}else{if(i==3){list('designation')}else{choices[i]} } }
-#             )
-#           })
-#         }else if( input$radio == "uns_model" ){
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               inputId=session$ns(paste0('rightSides',i)),
-#               label = ifelse(i==1, "Slopes",""),
-#               choices = choices, multiple = TRUE,
-#               selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
-#             )
-#           })
-#         }else if( input$radio == "dg_model" ){
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               inputId=session$ns(paste0('rightSides',i)),
-#               label = ifelse(i==1, "Slopes",""),
-#               choices = choices, multiple = TRUE,
-#               selected = if(i==1){'environment'}else{if(i==2){ list(setdiff(choices,'designation')[1] )}else{if(i==3){list('designation')}else{choices[i]} } }
-#             )
-#           })
-#         }else if(input$radio == "fa_model"){
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               inputId=session$ns(paste0('rightSides',i)),
-#               label = ifelse(i==1, "Slopes",""),
-#               choices = choices, multiple = TRUE,
-#               selected = if(i==1){'environment'}else{list('designation')}
-#             )
-#           })
-#         }else { # no model specified
-#           lapply(1:input$nTerms, function(i) {
-#             selectInput(
-#               inputId=session$ns(paste0('rightSides',i)),
-#               label = ifelse(i==1, "Slopes",""),
-#               choices = choices, multiple = TRUE,
-#               selected = choices[i]
-#             )
-#           })
-#           #
-#         }
-#       # }
-#
-#     })
-#     # n pricipal components
-#     output$nPC <- renderUI({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$trait2Mta)
-#       req(input$nTerms)
-#       # if(length(input$fa_model) > 0){
-#         if(input$radio == "fa_model"){
-#           lapply(1:input$nTerms, function(i) {
-#             numericInput(
-#               session$ns(paste0('nPC',i)),
-#               label = ifelse(i==1, "nPC",""),
-#               value = if(i==1){0}else{if(i==2){ 0 }else{if(i==3){2}else{0} } },
-#               min = 0, max = Inf, step = 1
-#             )
-#           })
-#         }else{ # no model specified
-#           lapply(1:input$nTerms, function(i) {
-#             numericInput(
-#               session$ns(paste0('nPC',i)),
-#               label = ifelse(i==1, "nPC",""),
-#               value = 0, min = 0, max = Inf, step = 1
-#             )
-#           })
-#           #
-#         }
-#       # }
-#
-#     })
-#     # inputFormula
-#     inputFormula = reactive({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$trait2Mta)
-#       req(input$nTerms)
-#       if (length(input$trait2Mta) != 0) {
-#         values <- vector(mode = "list", length = input$nTerms)
-#         for (i in 1:input$nTerms) {
-#           # left
-#           tempval <- reactive({paste0('input$','leftSides',i)})
-#           s1 <- eval( parse(text = tempval() ) )
-#           # center
-#           tempval <- reactive({paste0('input$','center',i)})
-#           s2 <- eval( parse(text = tempval() ) )
-#           # right
-#           tempval <- reactive({paste0('input$','rightSides',i)})
-#           s3 <- eval( parse(text = tempval() ) )
-#           # nPC
-#           tempval <- reactive({paste0('input$','nPC',i)})
-#           s4 <- eval( parse(text = tempval() ) )
-#           # join
-#           prov <- list(s1, s2, s3, s4)
-#           names(prov) <- c("left","center","right","nPC")
-#           values[[i]] <- prov
-#         }
-#         names(values) <- paste("vcov",1:input$nTerms)
-#         return(values)
-#       }
-#     })
-#     ## show or not id marker to select
-#     observeEvent(
-#       input$modelMet,
-#       if (input$modelMet %in% c('gblup','rrblup','ssgblup') ) {
-#         golem::invoke_js('showid', ns('ismarkermodel'))
-#       } else {
-#         golem::invoke_js('hideid', ns('ismarkermodel'))
-#       }
-#     )
-#     #################
-#     # reactive table for trait family distributions
-#     dtDistTrait = reactive({
-#       traitNames = input$trait2Mta
-#       mm = matrix(0,nrow = 5, ncol = length(traitNames));
-#       rownames(mm) <- c(
-#         "gaussian(link = 'identity')", "binomial(link = 'logit')",  "Gamma(link = 'inverse')",
-#         "inverse.gaussian(link = '1/mu^2')", "poisson(link = 'log')"
-#       );
-#       colnames(mm) <- traitNames
-#       dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
-#       return(dtProvTable)
-#     })
-#     xx = reactiveValues(df = NULL)
-#     observe({
-#       df <- dtDistTrait()
-#       xx$df <- df
-#     })
-#     output$traitDistMet = DT::renderDT(xx$df,
-#                                        selection = 'none',
-#                                        editable = TRUE,
-#                                        options = list(paging=FALSE,
-#                                                       searching=FALSE,
-#                                                       initComplete = I("function(settings, json) {alert('Done.');}")
-#                                        )
-#     )
-#     proxy = DT::dataTableProxy('traitDistMet')
-#     observeEvent(input$traitDistMet_cell_edit, {
-#       info = input$traitDistMet_cell_edit
-#       utils::str(info)
-#       i = info$row
-#       j = info$col
-#       v = info$value
-#       xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
-#     })
-#
-#     #################
-#     # reactive table for environments to be included
-#     dtFieldMet = reactive({
-#       req(data())
-#       req(input$version2Mta)
-#       dtMta <- data()
-#       dtProv = dtMta$predictions
-#       if(!is.null(dtProv)){
-#         dtProv <- dtProv[which(dtProv$analysisId %in% input$version2Mta),]
-#         dtProvTable=  as.data.frame( do.call( rbind, list (with(dtProv, table(environment,trait)) ) ) )
-#         bad <- which(dtProvTable <= 1, arr.ind = TRUE)
-#         if(nrow(bad) > 0){dtProvTable[bad] = 0}
-#         dtProvTable[which(dtProvTable > 1, arr.ind = TRUE)] = 1
-#       }else{dtProvTable <- data.frame()}
-#       return(dtProvTable)
-#     })
-#     x = reactiveValues(df = NULL)
-#     observe({
-#       df <- dtFieldMet()
-#       x$df <- df
-#     })
-#     output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE)
-#     proxy = DT::dataTableProxy('fieldsMet')
-#     observeEvent(input$fieldsMet_cell_edit, {
-#       info = input$fieldsMet_cell_edit
-#       utils::str(info)
-#       i = info$row
-#       j = info$col
-#       v = info$value
-#       x$df[i, j] <- isolate(DT::coerceValue(v, x$df[i, j]))
-#     })
-#     #################
-#     ## model types
-#     observeEvent(c(data(), input$version2Mta, input$trait2Mta), {
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$trait2Mta)
-#       traitsMta <- list(BLUP="blup",pBLUP="pblup",gBLUP="gblup",ssGBLUP="ssgblup",rrBLUP="rrblup")
-#       updateSelectInput(session, "modelMet", choices = traitsMta, selected = traitsMta[1])
-#     })
-#     #################
-#     ## render timestamps flow plot
-#     output$plotTimeStamps <- shiny::renderPlot({
-#       req(data()) # req(input$version2Sta)
-#       xx <- data()$status;  yy <- data()$modeling
-#       v <- which(yy$parameter == "analysisId")
-#       if(length(v) > 0){
-#         yy <- yy[v,c("analysisId","value")]
-#         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-#       }else{ zz <- xx; zz$value <- NA}
-#       if(!is.null(xx)){
-#         colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-#         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-#         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-#         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-#           X <- with(zz, sommer::overlay(outputId, inputId))
-#         }else{
-#           if(nLevelsCheck1 <= 1){
-#             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-#           }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-#           if(nLevelsCheck2 <= 1){
-#             X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-#           }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-#           mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-#           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-#           if(!is.null(X1)){X[,colnames(X1)] <- X1}
-#           if(!is.null(X2)){X[,colnames(X2)] <- X2}
-#         };  rownames(X) <- as.character(zz$outputId)
-#         rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-#         colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-#         # make the network plot
-#         n <- network::network(X, directed = FALSE)
-#         network::set.vertex.attribute(n,"family",zz$module)
-#         network::set.vertex.attribute(n,"importance",1)
-#         e <- network::network.edgecount(n)
-#         network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-#         network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-#         library(ggnetwork)
-#         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-#           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-#           ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
-#           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-#                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-#           ggnetwork::theme_blank()
-#       }
-#     })
-#     #################
-#     ## render table of evaluation units
-#     output$evaluationUnits <-  shiny::renderPlot({ #DT::renderDT({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$evaluationUnitsTrait)
-#       object <- data()
-#       if(!is.null(object$predictions)){
-#         phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId %in% input$version2Mta  &  object$predictions$trait == input$evaluationUnitsTrait),"designation"]))
-#       }else{ phenoNames <- character() }
-#
-#       if(!is.null(object$data$geno)){
-#         genoNames <- rownames(object$data$geno)
-#       }else{ genoNames <- character() }
-#
-#       if(!is.null(object$data$pedigree)){
-#         metaPed <- object$metadata$pedigree
-#         pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
-#         pedCols <- setdiff(pedCols,"")
-#         pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
-#       }else{ pedNames <- character() }
-#
-#       if(!is.null(object$data$qtl)){
-#         metaQtl <- object$metadata$qtl
-#         qtlCols <- metaQtl[which(metaQtl$parameter %in% c("designation")), "value"]
-#         qtlCols <- setdiff(qtlCols,"")
-#         qtlNames <- na.omit(unique(object$data$qtl[,qtlCols]))
-#       }else{ qtlNames <- character() }
-#
-#       splitAggregate <- list(phenoNames, genoNames, pedNames, qtlNames)
-#       names(splitAggregate) <- c("With-Phenotype","With-Genotype","With-Pedigree","With-QTL")
-#
-#       nagm <- matrix(0,length(splitAggregate),length(splitAggregate)); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
-#       for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
-#         for(j in 1:i){
-#           nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
-#         }
-#       }
-#       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
-#       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
-#       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-#       midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
-#       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-#         ggplot2::geom_tile(color = "white")+ ggplot2::ggtitle("Available data for this trait.") +
-#         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-#                                       midpoint = midval, limit = c(0,maxVal), space = "Lab",
-#                                       name="Connectivity (data types)") +
-#         ggplot2::theme_minimal()+
-#         ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
-#         ggplot2::ylab("") + ggplot2::xlab("") +
-#         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,  hjust = 1, face = "bold"))+
-#         ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1,  hjust = 1, face = "bold")) +
-#         ggplot2::coord_fixed()
-#       p
-#     })
-#     #####################
-#     ## render connectivity plot
-#     observeEvent(c(data(),input$version2Mta), { # update entry types included in the plot
-#       req(data())
-#       req(input$version2Mta)
-#       dtMta <- data()
-#       dtMta <- dtMta$predictions
-#       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
-#       entryTypeMtaInput <- unique(dtMta$entryType)
-#       updateSelectInput(session, "entryTypeMta", choices = c(entryTypeMtaInput,"Generic"), selected = "Generic")
-#     })
-#     output$plotPredictionsSparsity <- shiny::renderPlot({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$entryTypeMta)
-#       dtMta <- data()
-#       mydata <- dtMta$predictions
-#       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
-#       if(input$entryTypeMta != "Generic"){
-#         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
-#       }
-#       M <- table(mydata$designation, mydata$environment)
-#       M2 <- matrix(M, nrow = nrow(M), ncol = ncol(M))
-#       M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
-#       M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
-#       Matrix::image(as(t(M2), Class = "dgCMatrix"), xlab="Genotypes", ylab="Environments", colorkey=TRUE)
-#     })
-#     # render correlation plot
-#     output$plotPredictionsCor <-  shiny::renderPlot({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$traitCor)
-#       req(input$heatmapFontSizeCor)
-#       dtMta <- data()
-#       mydata <- dtMta$predictions
-#       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
-#       predictions.gcorrE <- subset(mydata, select = c(trait,designation,environment,predictedValue))
-#       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitCor, ]
-#       wide <- stats::reshape(predictions.gcorrE2,
-#                              direction = "wide", idvar = "designation",
-#                              timevar = "environment", v.names = "predictedValue", sep= "")
-#       colnames(wide) <- gsub("predictedValue","",colnames(wide))
-#       wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
-#       corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
-#       mydata4 <- cgiarBase::matToTab(corr)
-#       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-#         ggplot2::geom_tile(color = "white")+
-#         ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
-#                                       midpoint = 0, limit = c(-1,1), space = "Lab",
-#                                       name="Pearson\nCorrelation") +
-#         ggplot2::theme_minimal()+
-#         ggplot2::ylab("") + ggplot2::xlab("") +
-#         ggplot2::coord_fixed()
-#       if(!is.null(input$checkboxTextCor)){ # if user wants to fill cell values
-#         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = max(c(input$heatmapFontSizeCor-3, 1)))
-#       }
-#       if(!is.null(input$checkboxAxisCor)){ # if user wants to add axis labels
-#         p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face="bold"))+
-#           ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face = "bold"))
-#       }else{
-#         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
-#       }
-#       p
-#
-#     })
-#     # render connectivity plot
-#     output$plotPredictionsConnectivity <-  shiny::renderPlot({ # plotly::renderPlotly({
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$traitConnect)
-#       req(input$entryTypeMta)
-#       req(input$heatmapFontSize)
-#       dtMta <- data()
-#       mydata <- dtMta$predictions # extract predictions
-#       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
-#       mydata <- mydata[which(mydata$trait %in% input$traitConnect),] # only PREDICTIONS FROM Trait selected
-#       if(input$entryTypeMta != "Generic"){ # use an specific type of entries
-#         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
-#       }
-#       splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) ) # split by environment
-#       splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
-#       nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
-#       for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
-#         for(j in 1:i){
-#           nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
-#         }
-#       }
-#       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
-#       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
-#       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-#       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-#         ggplot2::geom_tile(color = "white")+
-#         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-#                                       midpoint = 60, limit = c(0,maxVal), space = "Lab",
-#                                       name="Connectivity") +
-#         ggplot2::theme_minimal()+
-#         ggplot2::ylab("") + ggplot2::xlab("") +
-#         ggplot2::coord_fixed()
-#       if(!is.null(input$checkboxText)){ # if user wants to add text to the cells
-#         p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = max(c(input$heatmapFontSize-3,1)))
-#       }
-#       if(!is.null(input$checkboxAxis)){ # if user wants to add labels to the axis
-#         p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))+
-#           ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))
-#       }else{
-#         p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
-#       }
-#       p
-#     })
-#
-#     ###################################
-#     ## render result of "run" button click
-#     outMta <- eventReactive(input$runMta, {
-#
-#       req(data())
-#       req(input$version2Mta)
-#       req(input$trait2Mta)
-#       req(input$nTerms)
-#
-#       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-#       dtMta <- data()
-#       inputFormulation <- inputFormula()
-#       saveRDS(inputFormulation, file = "inputFormulation.rds")
-#       # run the modeling, but before test if sta was done
-#       if(sum(dtMta$status$module %in% "sta") == 0) {
-#         output$qaQcMtaInfo <- renderUI({
-#           if (hideAll$clearAll)
-#             return()
-#           else
-#             req(dtMta)
-#           HTML(as.character(div(style="color: brown;",
-#                                 "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
-#           )
-#         })
-#       }else{ # sta is available
-#
-#         output$qaQcMtaInfo <- renderUI({return(NULL)})
-#         if(input$modelMet %in% c("gblup","rrblup","ssblup") ){ # warning
-#           if(input$versionMarker2Mta == '' | is.null(input$versionMarker2Mta) ){ # user didn't provide a modifications id
-#             if(!is.null(dtMta$data$geno)){ # if user actually has marker data
-#               shinybusy::remove_modal_spinner()
-#               cat("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.")
-#               # stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
-#             }else{ # if user does NOT have marker data and wanted a marker-based model
-#               shinybusy::remove_modal_spinner()
-#               cat("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
-#               # stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
-#             }
-#           }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
-#         }else{ markerVersionToUse <- NULL } # for non marker based model we don't need to provide this
-#
-#         # family distributions input
-#         myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
-#         dontHaveDist <- which(is.na(myFamily))
-#         if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
-#
-#         result <- try(
-#
-#           cgiarPipeline::mtaLmmFlex(
-#             phenoDTfile= dtMta, # analysis to be picked from predictions database
-#             analysisId=input$version2Mta,
-#             analysisIdForGenoModifications=markerVersionToUse,
-#             inputFormulation=inputFormulation,
-#             envsToInclude=x$df,
-#             trait= input$trait2Mta, traitFamily=myFamily, # myFamily
-#             useWeights=input$useWeights,
-#             heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
-#             heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
-#             meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
-#             meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
-#             modelType=input$modelMet, # either "blup", "pblup", "gblup", "rrblup"
-#             nMarkersRRBLUP=input$nMarkersRRBLUP,
-#             deregress=input$deregressMet,
-#             maxIters=input$maxitMet, batchSizeToPredict=500, tolParInv=1e-4,
-#             verbose=FALSE
-#           ),
-#           silent=TRUE
-#         )
-#         if(!inherits(result,"try-error")) {
-#           data(result) # update data with results
-#           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
-#           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-#         }else{
-#           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-#         }
-#       }
-#
-#       shinybusy::remove_modal_spinner()
-#
-#       if(!inherits(result,"try-error")) { # if all goes well in the run
-#         ## predictions table
-#         output$predictionsMta <-  DT::renderDT({
-#           predictions <- result$predictions
-#           predictions <- predictions[predictions$module=="mtaFlex",]
-#           predictions$analysisId <- as.numeric(predictions$analysisId)
-#           predictions <- predictions[!is.na(predictions$analysisId),]
-#           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
-#           current.predictions <- subset(current.predictions, select = -c(module,analysisId))
-#           numeric.output <- c("predictedValue", "stdError", "reliability")
-#           DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
-#                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-#                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-#           ), numeric.output)
-#         })
-#         # metrics table
-#         output$metricsMta <-  DT::renderDT({
-#           if(!inherits(result,"try-error") ){
-#             metrics <- result$metrics
-#             mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
-#             metrics <- metrics[which(metrics$analysisId == mtaId),]
-#             metrics <- subset(metrics, select = -c(module,analysisId))
-#             numeric.output <- c("value", "stdError")
-#             DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
-#                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-#                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-#             ), numeric.output)
-#           }
-#         })
-#         # modeling table
-#         output$modelingMta <-  DT::renderDT({
-#           if(!inherits(result,"try-error") ){
-#             modeling <- result$modeling
-#             mtas <- result$status[which(result$status$module == "mtaFlex"),"analysisId"]; mtaId <- mtas[length(mtas)]
-#             modeling <- modeling[which(modeling$analysisId == mtaId),]
-#             modeling <- subset(modeling, select = -c(module,analysisId))
-#             DT::datatable(modeling, extensions = 'Buttons',
-#                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-#                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-#             )
-#           }
-#         })
-#         ## Report tab
-#         output$reportMta <- renderUI({
-#           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-#           # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
-#         })
-#
-#         output$downloadReportMta <- downloadHandler(
-#           filename = function() {
-#             paste('my-report', sep = '.', switch(
-#               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-#             ))
-#           },
-#           content = function(file) {
-#             src <- normalizePath(system.file("rmd","reportMtaFlex.Rmd",package="bioflow"))
-#             src2 <- normalizePath('data/resultMtaFlex.RData')
-#             # temporarily switch to the temp dir, in case you do not have write
-#             # permission to the current working directory
-#             owd <- setwd(tempdir())
-#             on.exit(setwd(owd))
-#             file.copy(src, 'report.Rmd', overwrite = TRUE)
-#             file.copy(src2, 'resultMtaFlex.RData', overwrite = TRUE)
-#             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-#               "HTML",
-#               HTML = rmdformats::robobook(toc_depth = 4)
-#               # HTML = rmarkdown::html_document()
-#             ))
-#             file.rename(out, file)
-#           }
-#         )
-#
-#       } else {
-#         output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
-#         output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
-#         output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
-#         hideAll$clearAll <- TRUE
-#       } ### enf of if(!inherits(result,"try-error"))
-#
-#       hideAll$clearAll <- FALSE
-#
-#     }) ## end eventReactive
-#
-#     output$outMta <- renderPrint({
-#       outMta()
-#     })
-#
-#
-#   })
-# }
 
 ## To be copied in the UI
 # mod_mtaExpApp_ui("mtaExpApp_1")
