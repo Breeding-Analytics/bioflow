@@ -19,20 +19,20 @@ mod_filterPhenoApp_ui <- function(id){
                                 br(),
                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                 #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                           h1(strong(span("Filter of environments", style="color:darkcyan"))),
-                                                           h2(strong("Status:")),
-                                                           uiOutput(ns("warningMessage")),
-                                                           tags$body(
-                                                             h2(strong("Details")),
-                                                             p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
+                                h1(strong(span("Filter of environments", style="color:darkcyan"))),
+                                h2(strong("Status:")),
+                                uiOutput(ns("warningMessage")),
+                                tags$body(
+                                  h2(strong("Details")),
+                                  p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
                                                              This option allows users to filter (more concretely tag records for exclusion) specific years, seasons, countries, locations, etc. from the posterior analyses. This is just an optional module that most users will not require.
                                 The way arguments are used is the following:"),
-                                                             img(src = "www/dataFilter.png", height = 300, width = 500), # add an image
-                                                             p(strong("label.-")," the different columns to subset the phenotypic dataset to exclude certain years, seasons, countries, locations, trials, or environments for certain traits."),
-                                                             h2(strong("References")),
-                                                             p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                                             p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
-                                                           )
+                                  img(src = "www/dataFilter.png", height = 300, width = 500), # add an image
+                                  p(strong("label.-")," the different columns to subset the phenotypic dataset to exclude certain years, seasons, countries, locations, trials, or environments for certain traits."),
+                                  h2(strong("References")),
+                                  p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                  p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
+                                )
                                 #                     )
                                 # )
                        ),
@@ -48,17 +48,20 @@ mod_filterPhenoApp_ui <- function(id){
                                                   selectInput(ns("locations"), "Locations to keep", choices = NULL, multiple = TRUE),
                                                   selectInput(ns("trials"), "Trials to keep", choices = NULL, multiple = TRUE),
                                                   selectInput(ns("environments"), "Environments to keep", choices = NULL, multiple = TRUE),
-                                                  shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
+                                                  shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Settings...",
                                                                       sliderInput(ns("slider1"), label = "Maximum #of genotypes allowed (trials with more will be removed)", min = 0,max = 500000, value = 500000)
                                                   ),
                                            ),
                                            column(width=6, #style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                  # p(span("Network plot showing the dependencies between years, seasons, locations, trials, etc.", style="color:black")),
-                                                  shiny::plotOutput(ns("plotFilterOut")),
-                                                  DT::DTOutput(ns("modificationsFilter")),
+                                                  column(width=12),
+                                                  shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                      # p(span("Network plot showing the dependencies between years, seasons, locations, trials, etc.", style="color:black")),
+                                                                      shiny::plotOutput(ns("plotFilterOut")),
+                                                                      DT::DTOutput(ns("modificationsFilter")),
+                                                  ),
                                            )
 
                                   ),
@@ -111,11 +114,11 @@ mod_filterPhenoApp_server <- function(id, data){
     })
     ############################################################################
     observeEvent( c(data(), input$multiTraitFilter ),
-      if (input$multiTraitFilter) { # if user wants to apply filter to multiple traits
-        golem::invoke_js('showid', ns('multiTraitFilter_holder'))
-      } else { # if user wants to go trait by trait
-        golem::invoke_js('hideid', ns('multiTraitFilter_holder'))
-      }
+                  if (input$multiTraitFilter) { # if user wants to apply filter to multiple traits
+                    golem::invoke_js('showid', ns('multiTraitFilter_holder'))
+                  } else { # if user wants to go trait by trait
+                    golem::invoke_js('hideid', ns('multiTraitFilter_holder'))
+                  }
     )
     # warning message
     output$warningMessage <- renderUI(
@@ -160,9 +163,9 @@ mod_filterPhenoApp_server <- function(id, data){
           traitsQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="year","value"]) # column for year
           if(length(traitsQaRaw) > 0){
             if( traitsQaRaw %in% colnames(dtQaRaw)  & input$traitFilterPheno %in% colnames(dtQaRaw) ){
-            newLevels <-  na.omit(unique(dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),traitsQaRaw]))
-            if(length(newLevels)==0){newLevels <- "all"}
-          }else{newLevels <- "all"}
+              newLevels <-  na.omit(unique(dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),traitsQaRaw]))
+              if(length(newLevels)==0){newLevels <- "all"}
+            }else{newLevels <- "all"}
           }else{newLevels <- "all"}
 
           updateSelectInput(session, "years",choices = newLevels, selected = newLevels)
@@ -188,11 +191,11 @@ mod_filterPhenoApp_server <- function(id, data){
 
           if(length(seasonQaQaRaw) > 0){
             if(length(seasonQaQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
-            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-            newLevels <- na.omit(unique(reduced2[,seasonQaQaRaw]))
-            if(length(newLevels)==0){newLevels <- "all"}
-          }else{newLevels <- "all"}
+              reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+              if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+              newLevels <- na.omit(unique(reduced2[,seasonQaQaRaw]))
+              if(length(newLevels)==0){newLevels <- "all"}
+            }else{newLevels <- "all"}
           }else{newLevels <- "all"}
 
           updateSelectInput(session, "seasons",choices = newLevels, selected = newLevels)
@@ -217,13 +220,13 @@ mod_filterPhenoApp_server <- function(id, data){
           seasonQaQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="season","value"]) # column for year
           countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
           if(length(countryQaRaw) > 0){
-             if(length(countryQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
-            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-            newLevels <- na.omit(unique(reduced3[,countryQaRaw]))
-            if(length(newLevels)==0){newLevels <- "all"}
-          }else{newLevels <- "all"}
+            if(length(countryQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+              reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+              if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+              if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+              newLevels <- na.omit(unique(reduced3[,countryQaRaw]))
+              if(length(newLevels)==0){newLevels <- "all"}
+            }else{newLevels <- "all"}
           }else{newLevels <- "all"}
 
           updateSelectInput(session, "countries",choices = newLevels, selected = newLevels)
@@ -249,14 +252,14 @@ mod_filterPhenoApp_server <- function(id, data){
           countryQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="country","value"]) # column for year
           locationQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="location","value"]) # column for year
           if(length(locationQaRaw) > 0){
-             if(length(locationQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
-            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-            if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
-            newLevels <- na.omit(unique(reduced4[,locationQaRaw]))
-            if(length(newLevels)==0){newLevels <- "all"}
-          }else{newLevels <- "all"}
+            if(length(locationQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
+              reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+              if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+              if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+              if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
+              newLevels <- na.omit(unique(reduced4[,locationQaRaw]))
+              if(length(newLevels)==0){newLevels <- "all"}
+            }else{newLevels <- "all"}
           }else{newLevels <- "all"}
 
           updateSelectInput(session, "locations",choices = newLevels, selected = newLevels)
@@ -284,14 +287,14 @@ mod_filterPhenoApp_server <- function(id, data){
           trialQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="trial","value"]) # column for year
           if(length(trialQaRaw) > 0){
             if(length(trialQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
-            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-            if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
-            if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
-            newLevels <- na.omit(unique(reduced5[,trialQaRaw]))
-            if(length(newLevels)==0){newLevels <- "all"}
-          }else{newLevels <- "all"}
+              reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+              if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+              if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+              if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
+              if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
+              newLevels <- na.omit(unique(reduced5[,trialQaRaw]))
+              if(length(newLevels)==0){newLevels <- "all"}
+            }else{newLevels <- "all"}
           }else{newLevels <- "all"}
 
           updateSelectInput(session, "trials",choices = newLevels, selected = newLevels)
@@ -320,15 +323,15 @@ mod_filterPhenoApp_server <- function(id, data){
           environmentQaRaw <- unique(mtdtQaRaw[mtdtQaRaw$parameter=="environment","value"]) # column for year
           if(length(environmentQaRaw) > 0){
             if(length(environmentQaRaw)>0 & input$traitFilterPheno %in% colnames(dtQaRaw) ){
-            reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
-            if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
-            if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
-            if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
-            if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
-            if("all" %in%  input$trials){reduced6 <- reduced5}else{reduced6 <- reduced5[which(reduced5[,trialQaRaw] %in% input$trials),]}
-            newLevels <- na.omit(unique(reduced6[,environmentQaRaw]))
-            if(length(newLevels)==0){newLevels <- "all"}
-          }else{newLevels <- "all"}
+              reduced1 <- dtQaRaw[which(!is.na(dtQaRaw[,input$traitFilterPheno])),]
+              if("all" %in%  input$years){reduced2 <- reduced1}else{reduced2 <- reduced1[which(reduced1[,yearQaRaw] %in% input$years),]}
+              if("all" %in%  input$seasons){reduced3 <- reduced2}else{reduced3 <- reduced2[which(reduced2[,seasonQaQaRaw] %in% input$seasons),] }
+              if("all" %in%  input$countries){reduced4 <- reduced3}else{reduced4 <- reduced3[which(reduced3[,countryQaRaw] %in% input$countries),]}
+              if("all" %in%  input$locations){reduced5 <- reduced4}else{reduced5 <- reduced4[which(reduced4[,locationQaRaw] %in% input$locations),]}
+              if("all" %in%  input$trials){reduced6 <- reduced5}else{reduced6 <- reduced5[which(reduced5[,trialQaRaw] %in% input$trials),]}
+              newLevels <- na.omit(unique(reduced6[,environmentQaRaw]))
+              if(length(newLevels)==0){newLevels <- "all"}
+            }else{newLevels <- "all"}
           }else{newLevels <- "all"}
 
           updateSelectInput(session, "environments",choices = newLevels, selected = newLevels)
