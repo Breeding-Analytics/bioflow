@@ -19,8 +19,6 @@ mod_qaRawApp_ui <- function(id){
 
                                   tabPanel(div(icon("book"), "Information-QA") ,
                                            br(),
-                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                           # column(width=12,   style = "height:650px; overflow-y: scroll;overflow-x: scroll;",
                                            column(width = 6,
                                                   h1(strong(span("Outlier detection", tags$a(href="https://www.youtube.com/watch?v=X8lYQ8_LmSg&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=4", icon("youtube") , target="_blank")  ,style="color:darkcyan"))),
                                                   h2(strong("Status:")),
@@ -30,10 +28,9 @@ mod_qaRawApp_ui <- function(id){
                                                          shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                                   # ),
                                                   tags$br(),
-                                                  img(src = "www/qaRaw.png", height = 300, width = 700), # add an image
+                                                  img(src = "www/qaRaw.png", height = 200, width = 470), # add an image
                                            ),
-                                           column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                           column(width = 12,
+                                           column(width = 6,
                                                   tags$body(
                                                     h2(strong("Details")),
                                                     p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
@@ -44,11 +41,10 @@ mod_qaRawApp_ui <- function(id){
                                                     h2(strong("References")),
                                                     p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
                                                     p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
-                                                    p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
+                                                    p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
+                                                    column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                                   )
                                            ),
-                                           # )
-                                           # )
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            tabsetPanel(
@@ -59,6 +55,8 @@ mod_qaRawApp_ui <- function(id){
                                                              column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 2.5) ),
 
                                                       ),
+                                                      column(width=12),
+                                                      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
                                                       column(width=12,
                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
                                                              h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
@@ -74,6 +72,7 @@ mod_qaRawApp_ui <- function(id){
                                                       column(width=12,
                                                              DT::DTOutput(ns("modificationsQa")),
                                                       )
+                                                      ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("dice-one"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",

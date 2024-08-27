@@ -12,51 +12,39 @@ mod_qaStaApp_ui <- function(id){
   tagList(
 
     # input <- list(traitOutqPheno="YLD_TON-residual",traitLBOutqPheno=-4,traitUBOutqPheno=4,outlierCoefOutqPheno=2.5, outlierCoefOutqFont=12 )
-    # shiny::sidebarPanel( style = "height:690px; overflow-y: scroll;overflow-x: scroll;",
-    #   width = 3,
-    #   tags$style(".well {background-color:grey; color: #FFFFFF;}"),
-    #   # div(tags$p( h4(strong("Model-based outlier detection")))),#, style = "color: #817e7e"
-    #   HTML("<img src='www/cgiar3.png' width='42' vspace='10' hspace='10' height='46' align='top'>
-    #               <font size='5'>Model-based outlier detection</font>"),
-    #   hr(style = "border-top: 1px solid #4c4c4c;"),
-    #
-    #
-    #   hr(style = "border-top: 1px solid #4c4c4c;"),
-    #
-    #   hr(style = "border-top: 1px solid #4c4c4c;"),
-    #
-    # ), # end sidebarpanel
+
     shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-QA-MB") ,
                                 br(),
-                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                column(width=12,   style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
+                                column(width=6,   #style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
                                        tags$body(
                                          h1(strong(span("Model-based outlier detection", style="color:darkcyan"))),
                                          h2(strong("Status:")),
                                          uiOutput(ns("warningMessage")),
+
                                          tags$br(),
                                          # column(width=3, tags$br(),
-                                                shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                         shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                          # ),
                                          tags$br(),
-                                         h2(strong("Details")),
-                                         p("The two-step approach of genetic evaluation allows to identify noisy records after the single trial analysis.
-                                                             This option aims to allow users to select model-based outliers based on plot whiskers and absolute values applied on conditional residuals.
-                                The way arguments are used is the following:"),
-                                         img(src = "www/qaSta.png", height = 300, width = 700), # add an image
-                                         p(strong("Trait(s) residuals to QA.-")," Trait(s) residuals to apply jointly the parameter values in the grey box."),
-                                         p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
-                                         h2(strong("References")),
-                                         p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                         p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
-                                         p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
+                                         img(src = "www/qaSta.png", height = 200, width = 470), # add an image
                                        )
                                 ),
+                                column(width=6,   #style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
+                                       h2(strong("Details")),
+                                       p("The two-step approach of genetic evaluation allows to identify noisy records after the single trial analysis.
+                                                             This option aims to allow users to select model-based outliers based on plot whiskers and absolute values applied on conditional residuals.
+                                The way arguments are used is the following:"),
 
-                                # )
+                                       p(strong("Trait(s) residuals to QA.-")," Trait(s) residuals to apply jointly the parameter values in the grey box."),
+                                       p(strong("Outlier coefficient.-")," this determines how far the plot whiskers extend out from the box. If coef is positive, the whiskers extend to the most extreme data point which is no more than coef times the length of the box away from the box. A value of zero causes the whiskers to extend to the data extremes (and no outliers be returned)."),
+                                       h2(strong("References")),
+                                       p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                       p("McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468."),
+                                       p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
+                                ),
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                 tabsetPanel(
@@ -67,18 +55,21 @@ mod_qaStaApp_ui <- function(id){
                                                   column(width=3, numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 5) ),
 
                                            ),
-                                           column(width=12,
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           column(width=12),
+                                           shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                               column(width=12,
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                               ),
+                                                               p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
+                                                               selectInput(ns("traitOutqPheno2"), "", choices = NULL, multiple = FALSE),
+                                                               shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                               shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
+                                                                                   numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
+                                                               ),
+                                                               DT::DTOutput(ns("modificationsQa")),
                                            ),
-                                           p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
-                                           selectInput(ns("traitOutqPheno2"), "", choices = NULL, multiple = FALSE),
-                                           shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                           shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
-                                                               numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
-                                           ),
-                                           DT::DTOutput(ns("modificationsQa"))
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-two"),
                                            br(),

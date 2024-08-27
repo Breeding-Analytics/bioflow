@@ -29,8 +29,7 @@ mod_pggApp_ui <- function(id){
                                              tags$br(),
                                              img(src = "www/pgg.png", height = 250, width = 500), # add an image
                                       ),
-                                      column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                      column(width = 12,
+                                      column(width = 6,
                                              h2(strong("Details")),
                                              p("In order to monitor the efficacy of genetic evaluation in the current cycle of selection the predicted genetic gain formula is used.
                                           This option aims to calculate the predicted genetic gain from the classical breeders' equation
@@ -45,7 +44,10 @@ mod_pggApp_ui <- function(id){
                                              h2(strong("Software used:")),
                                              p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
+
+                                             column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                       ),
+
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                      tabsetPanel(
@@ -55,13 +57,16 @@ mod_pggApp_ui <- function(id){
                                                        column(width=8, selectInput(ns("version2Pgg"), "STA version to analyze", choices = NULL, multiple = FALSE)),
 
                                                 ),
-                                                column(width=12,
-                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                column(width=12),
+                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                    column(width=12,
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                    ),
+                                                                    column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                                    DT::DTOutput(ns("phenoPgg")),
                                                 ),
-                                                column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                DT::DTOutput(ns("phenoPgg")),
                                        ),
                                        tabPanel("Select parameters(s)", icon = icon("dice-two"),
                                                 br(),
@@ -77,18 +82,18 @@ mod_pggApp_ui <- function(id){
                                                               numericInput(ns("proportion"), label = "Assumed percentage selected (%)", value = 10, step = 10, max = 100, min = 1),
                                                        ),
                                                 ),
-                                                tags$br(),
-                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid...",
-                                                column(width=12,
-                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                ),
-                                                tags$span(id = ns('holder1'),
-                                                          column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
-                                                          column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                                ),
+                                                column(width=12),
+                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                    column(width=12,
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                    ),
+                                                                    tags$span(id = ns('holder1'),
+                                                                              column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
+                                                                              column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                    ),
                                                 ),
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
@@ -250,7 +255,7 @@ mod_pggApp_server <- function(id, data){
       # dtPgg <- data()$predictions
       # dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
       # traitsPgg <- unique(dtPgg$environment)
-      updateSelectInput(session, "environmentToUse", choices = traitsPgg, selected =traitsPgg )
+      updateSelectInput(session, "environmentToUse", choices = traitsPgg, selected ="environment" )
     })
     ##############################################################################################
     ##############################################################################################
