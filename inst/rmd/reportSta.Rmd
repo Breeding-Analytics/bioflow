@@ -315,18 +315,20 @@ if (is.null(result)){
   pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.r2, by = c("environment","trait"), all.x = TRUE)
   pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vg, by = c("environment","trait"), all.x = TRUE)
   pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vr, by = c("environment","trait"), all.x = TRUE)
+  numeric.output <- c("min","mean","max","H2","CV","r2","V_designation","V_residual")
 
   if("params" %in% ls()){ # we will download the document
     printTable(unique(pred.traits.summary), 'different')
   }else{
-    DT::renderDT(DT::datatable(
+    DT::renderDT({DT::formatRound( DT::datatable(
       unique(pred.traits.summary[pred.traits.summary$trait==input$traitSta,]),
       rownames = FALSE,
       class = 'cell-border stripe',
       extensions = 'Buttons',
       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-    ))
+    ),numeric.output)
+    })
   }
   
 }
@@ -703,14 +705,15 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     printTable(predictions.designation)
   }else{
-    DT::renderDT(DT::datatable(
+    DT::renderDT({DT::formatRound(DT::datatable(
       predictions.designation[predictions.designation$environment==input$envSta,],
       rownames = FALSE,
       class = 'cell-border stripe',
       extensions = 'Buttons',
       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-    ))
+    ),traits)
+    })
   }
   
 }
