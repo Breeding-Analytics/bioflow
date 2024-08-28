@@ -1304,7 +1304,7 @@ mod_staApp_server <- function(id,data){
 
     }) ## end eventReactive
 
-    output$outSta <- renderPrint({
+    output$outSta <- output$outSta2 <- renderPrint({
       outSta()
     })
   }) ## end moduleserver

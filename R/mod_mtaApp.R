@@ -1773,7 +1773,7 @@ mod_mtaApp_server <- function(id, data){
 
     }) ## end eventReactive
 
-    output$outMta <- renderPrint({
+    output$outMta <- output$outMta2 <- renderPrint({
       outMta()
     })
 

@@ -81,6 +81,7 @@ mod_qaStaApp_ui <- function(id){
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
+                                           textOutput(ns("outQaMb2")),
                                            br(),
                                            downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
                                            br(),
@@ -320,7 +321,7 @@ mod_qaStaApp_server <- function(id, data){
 
       }
     })
-    output$outQaMb <- renderPrint({
+    output$outQaMb <- output$outQaMb2 <- renderPrint({
       outQaMb()
     })
 

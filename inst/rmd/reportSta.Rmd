@@ -36,31 +36,31 @@ library(shiny)
 # functions ####
 
 # for printing tables (data.frames) - DT::datatable()
-printTable <- function(DT, rows = c('same', 'different'), pageLength = 7,
+printTable <- function(DT, pageLength = 7, 
                        numericColNames = NULL, numRound = 3, ...) {
-
-  rows = match.arg(rows)
-
-  # For data.frames with rows for the same type of data (table of predictions)
-
-  if (rows == 'same')
-    DT <- cgiarBase::round.df(DT, numRound)
-    
-  table <- DT::datatable(data = DT,
-                         filter = "top",
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
                          extensions = 'Buttons',
                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
-
-  # For data.frames with rows for different type of data (summary statistics)
-
-  if (rows == 'different')
-    table <- cgiarBase::round.dt(table, numRound)
-
-  table
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
   
+  table
 }
 ```
 
@@ -319,14 +319,14 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     printTable(unique(pred.traits.summary), 'different')
   }else{
-    DT::renderDT(cgiarBase::round.dt(DT::datatable(
+    DT::renderDT(DT::datatable(
       unique(pred.traits.summary[pred.traits.summary$trait==input$traitSta,]),
       rownames = FALSE,
       class = 'cell-border stripe',
       extensions = 'Buttons',
       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-    ), 3))
+    ))
   }
   
 }
@@ -704,7 +704,7 @@ if (is.null(result)){
     printTable(predictions.designation)
   }else{
     DT::renderDT(DT::datatable(
-      cgiarBase::round.df(predictions.designation[predictions.designation$environment==input$envSta,], 3),
+      predictions.designation[predictions.designation$environment==input$envSta,],
       rownames = FALSE,
       class = 'cell-border stripe',
       extensions = 'Buttons',
