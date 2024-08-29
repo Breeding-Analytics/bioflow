@@ -59,7 +59,7 @@ mod_mtaExpApp_ui <- function(id){
                                            p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                            p("COVARRUBIAS PAZARAN, G. E. (2024). lme4breeding: enabling genetic evaluation in the era of genomic data. bioRxiv, 2024-05."),
-                                           column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                           # column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
                                     ),
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -1095,7 +1095,7 @@ mod_mtaExpApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+    # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

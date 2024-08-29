@@ -19,8 +19,7 @@ mod_PopStrApp_ui <- function(id){
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information-Population structure") ,
                                 br(),
-                                shinydashboard::box(status="success",width = 12,
-                                                    solidHeader = TRUE,
+                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                     column(width=6,   #style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                                            tags$body(
                                                              h1(strong(span("Population structure", style="color:green"))),
@@ -45,7 +44,7 @@ mod_PopStrApp_ui <- function(id){
                                                                 Datos de Marcadores Moleculares: Modulo de Aprendizaje. Instituto Internacional
                                                                 de Recursos Fitogeneticos (IPGRI), Roma, Italia.")
                                                     ),
-                                )
+                                # )
                        ),
 
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input"),

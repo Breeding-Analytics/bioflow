@@ -47,7 +47,7 @@ mod_qaGenoApp_ui <- function(id){
                                                     h2(strong("References")),
                                                     p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
                                                     p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
-                                                    column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                                    # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                              ),
                                            )
                                   ),
@@ -124,7 +124,7 @@ mod_qaGenoApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+    # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

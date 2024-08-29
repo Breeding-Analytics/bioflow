@@ -1,0 +1,158 @@
+---
+title: "Genotype Verification Report"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+echo = FALSE,
+cache = FALSE,
+warning = FALSE,
+message = FALSE,
+comment = NA,
+out.width = "100%",
+error = TRUE)
+options(knitr.kable.NA = '')
+
+# loading necessary R packages ####
+## data manipulation
+library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(grafify)
+library(data.table)
+library(shiny)
+```
+
+```{r printfxn, include=FALSE}
+
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         options = list(autoWidth = TRUE, 
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35)),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r }
+
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/result.RData")){
+    load("./outputs/resultQaPheno.RData")
+  }else{
+    load("resultQaPheno.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+```
+
+
+### Table of verification
+<p>&nbsp;</p>
+
+The following table shows the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others.
+
+```{r }
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  predictions <- result$predictions
+  idQa <- result$status[which(result$status$module %in% c("gVerif")),"analysisId"];
+  idQa <- idQa[length(idQa)]
+  predictions <- predictions[which( predictions$analysisId == idQa),]
+  traitsTable <- unique(predictions$trait)
+  
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("traitQa"), 
+                       label = "Verification measure:", 
+                       choices = traitsTable, 
+    )
+  }
+  
+}
+
+```
+
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  numericalColumns <- c("value","row") 
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(predictions)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      predictions[predictions$trait==input$traitQa,],
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      options = list(
+        scrollY = "400px",
+        scrollX = "400px",
+        paging = F)
+    ),numericalColumns)
+    })
+  }
+  
+}
+
+```
+
+
+<p>&nbsp;</p>
+
+### References on methods used
+
+Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C.
+
+Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.
+
+
+<p>&nbsp;</p>
+
+
+

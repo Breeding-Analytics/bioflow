@@ -55,7 +55,7 @@ mod_ocsApp_ui <- function(id){
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                             p("https://github.com/gaynorr/QuantGenResources"),
-                                            column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                            # column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
                                      ),
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -670,7 +670,7 @@ mod_ocsApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+    # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

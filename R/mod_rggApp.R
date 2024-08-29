@@ -53,7 +53,7 @@ mod_rggApp_ui <- function(id){
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
 
-                                            column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                            # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                      ),
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -121,7 +121,7 @@ mod_rggApp_ui <- function(id){
                                                        column(width=9,
                                                               br(),
                                                               column(width=12, #style = "background-color:grey; color: #FFFFFF",
-                                                                     shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                     shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                          tags$span(id = ns('mackayOptions'),
                                                                                                    numericInput(ns("deregressWeight"), label = "Deregression weight", value = 1),
                                                                                                    numericInput(ns("propTopIndsPerYear"), label = "Top proportion individuals to keep per year of origin", value = 1, min = 0.1, max = 1, step = 0.1),
@@ -176,7 +176,7 @@ mod_rggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+    # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

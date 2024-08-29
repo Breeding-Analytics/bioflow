@@ -50,7 +50,7 @@ mod_indexDesireApp_ui <- function(id){
                                             h2(strong("Software used:")),
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                            column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                            # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                      ),
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -649,7 +649,7 @@ mod_indexDesireApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+    # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {

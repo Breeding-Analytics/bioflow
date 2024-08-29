@@ -58,7 +58,7 @@ mod_mtaApp_ui <- function(id){
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                            p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
                                            p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
-                                           column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                           # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                     ),
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
@@ -1043,7 +1043,7 @@ mod_mtaApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+    # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
@@ -1354,6 +1354,31 @@ mod_mtaApp_server <- function(id, data){
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                       htmltools::em('Past modeling parameters from STA stamp(s) selected.')
+                    )
+      )
+    })
+
+    output$tableTraitTimeStamps <-  DT::renderDT({
+      req(data())
+      # req(input$version2Mta)
+      ### change column names for mapping
+      if(length(input$version2Mta) > 0){
+        status <- data()$status
+        modeling <- data()$modeling
+        statusPlusModel <- merge(status, unique(modeling[,c("analysisId","trait")]), by="analysisId", all.x = TRUE)
+        '%!in%' <- function(x,y)!('%in%'(x,y))
+        statusPlusModel <- statusPlusModel[which(statusPlusModel$trait %!in% c("inputObject",NA)),]
+        statusPlusModel <- statusPlusModel[which(statusPlusModel$analysisId %in% input$version2Mta),]
+        statusPlusModel$analysisId <- as.POSIXct(statusPlusModel$analysisId, origin="1970-01-01", tz="GMT")
+      }else{
+        statusPlusModel <- data.frame(analysisId=NA, module=NA, trait=NA)
+      }
+      DT::datatable(statusPlusModel, extensions = 'Buttons', # I changed Blfrtip to lfrtip and silenced the buttons
+                    options = list(dom = 'lfrtip',scrollX = TRUE, #buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Traits available in the STA-IDs selected.')
                     )
       )
     })
