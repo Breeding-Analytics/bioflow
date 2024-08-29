@@ -121,13 +121,13 @@ if (is.null(result)){
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  numericalColumns <- c("value","row") 
+  numericalColumns <- c("predictedValue") 
   
   if("params" %in% ls()){ # we will download the document
     printTable(predictions)
   }else{
     DT::renderDT({DT::formatRound(DT::datatable(
-      predictions[predictions$trait==input$traitQa,],
+      predictions[predictions$trait==input$traitQa,c("trait","gid","designation","mother","father","predictedValue")],
       rownames = FALSE,
       class = 'cell-border stripe',
       options = list(

@@ -70,7 +70,8 @@ mod_hybridityApp_ui <- function(id){
                                              tabPanel("Select markers", icon = icon("dice-two"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=12, selectizeInput(ns("markers2Verif"), "Markers to use", choices = NULL, multiple = TRUE) ),
+                                                             column(width=6, selectizeInput(ns("markers2Verif"), "Markers to use", choices = NULL, multiple = TRUE) ),
+                                                             column(width=6, checkboxInput(ns("checkbox"), label = "Select all markers?", value = FALSE), ),
                                                       ),
                                                       column(width=12),
                                                       shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -116,7 +117,7 @@ mod_hybridityApp_ui <- function(id){
                                              tabPanel("Run analysis", icon = icon("dice-four"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                              br(),
-                                                             actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),
+                                                             actionButton(ns("runQaMb"), "Compute verification", icon = icon("play-circle")),
                                                              uiOutput(ns("qaQcStaInfo")),
                                                              br(),
 
@@ -217,8 +218,8 @@ mod_hybridityApp_server <- function(id, data){
         if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
         if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
         if(!is.null(result$status)){tmp$status <- result$status}
-        result$data$pedigree$Hybrid_Parent1 <- sample(result$data$pedigree$Hybrid)
-        result$data$pedigree$Hybrid_Parent2 <- sample(result$data$pedigree$Hybrid)
+        tmp$data$pedigree$Hybrid_Parent1 <- sample(result$data$pedigree$Hybrid)
+        tmp$data$pedigree$Hybrid_Parent2 <- sample(result$data$pedigree$Hybrid)
         data(tmp) # update data with results
         shinybusy::remove_modal_spinner()
       }else{
@@ -316,10 +317,12 @@ mod_hybridityApp_server <- function(id, data){
     # select markers tab
     observeEvent(c(data(),input$version2Mta), {
       req(data())
+      req(input$checkbox)
       dtVerif <- data()
       dtVerif <- dtVerif$data$geno
       traitsVerif <- colnames(dtVerif)
-      updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = NULL)
+      if(input$checkbox){sel <-NULL}else{sel <- traitsVerif}
+      updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = sel)
     })
     output$genoDT <-  DT::renderDT({
       req(data())
@@ -351,7 +354,7 @@ mod_hybridityApp_server <- function(id, data){
     })
     output$pedigreeDT <-  DT::renderDT({
       req(data())
-      req(input$nCol)
+      # req(input$nCol)
       dtVerif <- data()
       dtVerif <- dtVerif$data$pedigree
       DT::datatable(dtVerif, extensions = 'Buttons', # [,1:min(c(input$nCol2,ncol(dtVerif)))]
@@ -377,20 +380,19 @@ mod_hybridityApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ##
       ## store the new modifications table
-      result <- individualVerification(
+      result <- cgiarPipeline::individualVerification(
         object= data(),
         analysisIdForGenoModifications= input$version2Mta,
         markersToBeUsed=input$markers2Verif,
         colsForExpecGeno=input$units2Verif, ploidy=input$ploidy
       )
       # save(result, file = "./R/outputs/resultVerifGeno.RData")
-      data(result)
-      cat(paste("Genotype verification analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
-      updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-
       shinybusy::remove_modal_spinner()
 
       if(!inherits(result,"try-error")) { # if all goes well in the run
+        cat(paste("Genotype verification analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        data(result)
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         # predictions
         output$predictionsVerif <-  DT::renderDT({
           # if(!inherits(result,"try-error") ){
