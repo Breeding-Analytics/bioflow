@@ -315,14 +315,18 @@ mod_hybridityApp_server <- function(id, data){
     ###############################
     ###############################
     # select markers tab
-    observeEvent(c(data(),input$version2Mta), {
+    observeEvent(c(data(),input$version2Mta,input$checkbox), {
       req(data())
-      req(input$checkbox)
+      req(input$version2Mta)
       dtVerif <- data()
       dtVerif <- dtVerif$data$geno
       traitsVerif <- colnames(dtVerif)
-      if(input$checkbox){sel <-NULL}else{sel <- traitsVerif}
-      updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = sel)
+      if(input$checkbox == FALSE){
+        updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = NULL)
+      }else{
+        updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = traitsVerif)
+      }
+
     })
     output$genoDT <-  DT::renderDT({
       req(data())
