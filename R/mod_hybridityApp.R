@@ -135,6 +135,23 @@ mod_hybridityApp_ui <- function(id){
                                                       br(),
                                                       uiOutput(ns('reportVerifGeno'))
                                              ),
+                                             tabPanel("Verification", icon = icon("table"),
+                                                      br(),
+                                                      column(width = 6, column(width=8, selectizeInput(ns("genoView"), "Progeny", choices = NULL, multiple = FALSE) ), ),
+                                                      column(width=6, sliderInput(ns("slider2"), label = "Markers to display", min = 1, max = 2000, value = c(1, 10)) ),
+                                                      column(width=12, DT::DTOutput(ns("verificationMap")), ),
+                                                      column(width=12),
+                                                      column(width=12),
+                                                      column(width=4, selectizeInput(ns("matrixType"), "Matrix to plot",
+                                                                                     choices = list("ProbabilityMatch"="matchMat","Progeny"="Mprogeny",
+                                                                                                    "Female"="Mfemale","Male"="Mmale", "Expected"="Mexpected"
+                                                                                     ),
+                                                                                     multiple = FALSE) ),
+                                                      column(width=4, sliderInput(ns("slider1b"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 100)) ),
+                                                      column(width=4, sliderInput(ns("slider2b"), label = "Number of markers", min = 1, max = 500, value = c(1, 25)) ),
+                                                      column(width=12, shiny::plotOutput(ns("matrixOfVerifications")) ),
+
+                                             ),
                                              tabPanel("Predictions", icon = icon("table"),
                                                       br(),
                                                       DT::DTOutput(ns("predictionsVerif")),
@@ -372,6 +389,18 @@ mod_hybridityApp_server <- function(id, data){
     })
 
 
+    ###############################
+    # update genoView in output tab
+    observeEvent(c(data(),input$version2Mta), {
+      req(data())
+      dtVerif <- data()
+      dtPed <- dtVerif$data$pedigree
+      metaPed <- dtVerif$metadata$pedigree
+      colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
+      mychoices <- na.omit(unique(dtPed$designation))
+      updateSelectizeInput(session, "genoView", choices = mychoices, selected = mychoices[1])
+    })
+
     ##########################
     ## run button
     outQaMb <- eventReactive(input$runQaMb, {
@@ -390,6 +419,16 @@ mod_hybridityApp_server <- function(id, data){
         markersToBeUsed=input$markers2Verif,
         colsForExpecGeno=input$units2Verif, ploidy=input$ploidy
       )
+      if(!inherits(result,"try-error")) {
+        provitional <- cgiarPipeline::individualVerification(
+          object= data(),
+          analysisIdForGenoModifications= input$version2Mta,
+          markersToBeUsed=input$markers2Verif,
+          colsForExpecGeno=input$units2Verif, ploidy=input$ploidy,
+          onlyMats=TRUE
+        )
+      }
+
       # save(result, file = "./R/outputs/resultVerifGeno.RData")
       shinybusy::remove_modal_spinner()
 
@@ -418,9 +457,7 @@ mod_hybridityApp_server <- function(id, data){
           # if(!inherits(result,"try-error") ){
           metrics <- result$metrics
           metrics <- metrics[metrics$module=="gVerif",]
-          metrics$analysisId <- as.numeric(metrics$analysisId)
-          metrics <- metrics[!is.na(metrics$analysisId),]
-          current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+          current.metrics <- metrics[metrics$analysisId==(metrics$analysisId[length(metrics$analysisId)]),]
           current.metrics <- subset(current.metrics, select = -c(module,analysisId))
           numeric.output <- c("value", "stdError")
           DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
@@ -444,6 +481,37 @@ mod_hybridityApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
+        })
+        # verification graph
+        output$verificationMap <-  DT::renderDT({
+          req(data())
+          req(input$slider2)
+          req(input$genoView)
+          dtVerif <- provitional
+          pick <- which(rownames(dtVerif$Mprogeny) == input$genoView)
+          if(length(pick) > 0){
+            dtVerifx <- rbind(dtVerif$Mfemale[pick,], dtVerif$Mmale[pick,], dtVerif$Mexpected[pick,], dtVerif$Mprogeny[pick,], dtVerif$matchMat[pick,])
+            dtVerifx <- as.matrix(dtVerifx)
+            rownames(dtVerifx) <- c("Female","Male","Expected",input$genoView,"ProbMatch")
+            DT::datatable(dtVerifx[,min(c(input$slider2[1], ncol(dtVerifx) )):min(c(input$slider2[2], ncol(dtVerifx) ))], extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                          caption = htmltools::tags$caption(
+                            style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                            htmltools::em('Raw genotypic data to be used as input.')
+                          )
+            )
+          }
+        })
+        output$matrixOfVerifications <- shiny::renderPlot({
+          req(data())
+          req(input$slider2b)
+          req(input$slider1b)
+          req(input$matrixType)
+          M2 <- as.matrix(provitional[[input$matrixType]])
+          M2 <- M2[,(input$slider2b[1]):min(c(input$slider2b[2], ncol(M2) )), drop=FALSE] # environments
+          M2 <- M2[(input$slider1b[1]):min(c(input$slider1b[2]), nrow(M2) ), ,drop=FALSE] # genotypes
+          Matrix::image(as(M2, Class = "dgCMatrix"), ylab="Genotypes", xlab="Markers", colorkey=TRUE)
         })
         # ## Report tab
         output$reportVerifGeno <- renderUI({

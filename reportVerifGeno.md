@@ -14,7 +14,7 @@ params:
 
 
 
-### Table of verification
+### Verification summaries
 <p>&nbsp;</p>
 
 The following table shows the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others.
@@ -32,7 +32,10 @@ The following table shows the values associated for the individuals on different
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-outc8e7e0f159dbc01e" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-out56973cb09d6619b5" style="width:100%;height:auto;"></div><!--/html_preserve-->
+
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="hybridityApp_1-out34b8c525319f0b25" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
