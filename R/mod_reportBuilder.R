@@ -303,7 +303,7 @@ mod_reportBuilder_server <- function(id, data){
           paramsMdisease <- ifelse(!is.null(subOft[which(subOft$parameter == "mdisease"), "value"]),subOft[which(subOft$parameter == "mdisease"), "value"],NULL)
           paramsTdisease <- ifelse(!is.null(subOft[which(subOft$parameter == "tdisease"), "value"]),subOft[which(subOft$parameter == "tdisease"), "value"],NULL)
           paramsSdisease <- ifelse(!is.null(subOft[which(subOft$parameter == "sdisease"), "value"]),subOft[which(subOft$parameter == "sdisease"), "value"],NULL)
-          paramsVersion <- ifelse(length(subOft[which(subOft$parameter == "version"), "value"])>0,subOft[which(subOft$parameter == "version"), "value"],NULL)
+          paramsVersion <- ifelse(length(subOft[which(subOft$parameter == "analysisId"), "value"])>0,subOft[which(subOft$parameter == "analysisId"), "value"],NULL)
 
           ## Report tab
           out2 <- rmarkdown::render(input = system.file("rmd",markdownType,package="bioflow"),

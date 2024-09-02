@@ -611,7 +611,7 @@ mod_oftStaApp_server <- function(id, data){
             result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId))
             modelingOft <- data.frame(module = rep("oft",6), analysisId = rep(oftAnalysisId,6),
                                       trait = rep("inputObject",6), environment = rep("general",6),
-                                      parameter = c("traits", "fieldinst", "mdisease", "tdisease", "sdisease", "version"),
+                                      parameter = c("traits", "fieldinst", "mdisease", "tdisease", "sdisease", "analysisId"),
                                       value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
                                                 paste(capture.output(dput(input$env2Oft)), collapse = ""),
                                                 input$mDisease, input$typeDisease, input$diseaseSeverity,
@@ -632,7 +632,7 @@ mod_oftStaApp_server <- function(id, data){
             result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId))
             modelingOft <- data.frame(module = rep("oft",3), analysisId = rep(oftAnalysisId,3),
                                       trait = rep("inputObject",3), environment = rep("general",3),
-                                      parameter = c("traits", "fieldinst", "version"),
+                                      parameter = c("traits", "fieldinst", "analysisId"),
                                       value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
                                                 paste(capture.output(dput(input$env2Oft)), collapse = ""),
                                                 input$version2Oft))
@@ -685,14 +685,14 @@ mod_oftStaApp_server <- function(id, data){
                                                       mdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "mdisease"), "value"],
                                                       tdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "tdisease"), "value"],
                                                       sdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "sdisease"), "value"],
-                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "version"), "value"]),
+                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
                                         switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
             } else{
               out2 <- rmarkdown::render('report2.Rmd',
                                         params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
                                                       fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
                                                       toDownload=TRUE,
-                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "version"), "value"]),
+                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
                                         switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
             }
 
