@@ -264,7 +264,7 @@ app_server <- function(input, output, session) {
 
   # GENE FLOW AND DRIFT - frequency-based selection
   mod_masApp_server("masApp_1") # MAS
-  # mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
+  mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
   mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
