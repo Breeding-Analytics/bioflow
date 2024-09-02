@@ -92,7 +92,7 @@ mod_staApp_ui <- function(id){
                                                       column(width=3,selectInput(ns("fixedTermSta2"), "Covariable(s) (optional)", choices = NULL, multiple = TRUE) ),
                                                       column(width = 5, style = "background-color:grey; color: #FFFFFF",
                                                              tags$br(),
-                                                             shinydashboard::box(width = 12, status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                             shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
                                                                                  p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
                                                                                  DT::DTOutput(ns("traitDistSta")),
                                                              ),
@@ -119,7 +119,7 @@ mod_staApp_ui <- function(id){
                                                       column(width=4, selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s) (required)", choices = NULL, multiple = TRUE) ),
                                                       column( width=8,
                                                               br(),
-                                                              shinydashboard::box(width = 12, status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
+                                                              shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
                                                                                   selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
                                                                                   numericInput(ns("maxitSta"),"Number of iterations",value=35),
                                                                                   selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
