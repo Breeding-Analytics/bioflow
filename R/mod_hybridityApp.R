@@ -337,27 +337,30 @@ mod_hybridityApp_server <- function(id, data){
       req(input$version2Mta)
       dtVerif <- data()
       dtVerif <- dtVerif$data$geno
-      traitsVerif <- colnames(dtVerif)
-      if(input$checkbox == FALSE){
-        updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = NULL)
-      }else{
-        updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = traitsVerif)
+      if(!is.null(dtVerif)){
+        traitsVerif <- colnames(dtVerif)
+        if(input$checkbox == FALSE){
+          updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = NULL)
+        }else{
+          updateSelectizeInput(session, "markers2Verif", choices = traitsVerif, selected = traitsVerif)
+        }
       }
-
     })
     output$genoDT <-  DT::renderDT({
       req(data())
       req(input$slider1)
       dtVerif <- data()
       dtVerif <- dtVerif$data$geno
-      DT::datatable(dtVerif[,min(c(input$slider1[1], ncol(dtVerif) )):min(c(input$slider1[2], ncol(dtVerif) ))], extensions = 'Buttons',
-                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
-                    caption = htmltools::tags$caption(
-                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Raw genotypic data to be used as input.')
-                    )
-      )
+      if(!is.null(dtVerif)){
+        DT::datatable(dtVerif[,min(c(input$slider1[1], ncol(dtVerif) )):min(c(input$slider1[2], ncol(dtVerif) ))], extensions = 'Buttons',
+                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                      caption = htmltools::tags$caption(
+                        style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                        htmltools::em('Raw genotypic data to be used as input.')
+                      )
+        )
+      }
     })
 
     ###############################
@@ -368,24 +371,28 @@ mod_hybridityApp_server <- function(id, data){
       req(data())
       dtVerif <- data()
       dtPed <- dtVerif$data$pedigree
-      metaPed <- dtVerif$metadata$pedigree
-      traitsVerif <- colnames(dtPed)
-      first <- metaPed$value[metaPed$parameter=="designation"]
-      updateSelectizeInput(session, "units2Verif", choices = traitsVerif, selected = first)
+      if(!is.null(dtPed)){
+        metaPed <- dtVerif$metadata$pedigree
+        traitsVerif <- colnames(dtPed)
+        first <- metaPed$value[metaPed$parameter=="designation"]
+        updateSelectizeInput(session, "units2Verif", choices = traitsVerif, selected = first)
+      }
     })
     output$pedigreeDT <-  DT::renderDT({
       req(data())
       # req(input$nCol)
       dtVerif <- data()
       dtVerif <- dtVerif$data$pedigree
-      DT::datatable(dtVerif, extensions = 'Buttons', # [,1:min(c(input$nCol2,ncol(dtVerif)))]
-                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
-                    caption = htmltools::tags$caption(
-                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Raw pedigree data to be used as input.')
-                    )
-      )
+      if(!is.null(dtVerif)){
+        DT::datatable(dtVerif, extensions = 'Buttons', # [,1:min(c(input$nCol2,ncol(dtVerif)))]
+                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                      caption = htmltools::tags$caption(
+                        style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                        htmltools::em('Raw pedigree data to be used as input.')
+                      )
+        )
+      }
     })
 
 
@@ -395,10 +402,12 @@ mod_hybridityApp_server <- function(id, data){
       req(data())
       dtVerif <- data()
       dtPed <- dtVerif$data$pedigree
-      metaPed <- dtVerif$metadata$pedigree
-      colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
-      mychoices <- na.omit(unique(dtPed$designation))
-      updateSelectizeInput(session, "genoView", choices = mychoices, selected = mychoices[1])
+      if(!is.null(dtPed)){
+        metaPed <- dtVerif$metadata$pedigree
+        colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
+        mychoices <- na.omit(unique(dtPed$designation))
+        updateSelectizeInput(session, "genoView", choices = mychoices, selected = mychoices[1])
+      }
     })
 
     ##########################
