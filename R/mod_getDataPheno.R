@@ -335,8 +335,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               if (ebs_domain == 'ebs.irri.org') {
 
                 ebs_brapi         <- paste0('https://prod-cbbrapi.', ebs_domain)
-                ebs_authorize_url <- 'https://auth-irri.ebs.irri.org/oauth2/authorize'
-                ebs_access_url    <- 'https://auth-irri.ebs.irri.org/oauth2/token'
+                ebs_authorize_url <- 'https://auth-irri.ebsproject.org/oauth2/authorize'
+                ebs_access_url    <- 'https://auth-irri.ebsproject.org/oauth2/token'
                 ebs_client_id     <- '5qo8e9j6m61bqgbjvudhujpg7'
                 ebs_client_secret <- 'eke3bke2ikcl20955so16lesi7r6sml1mr9qd6ai6abqcpg7ibn'
 
