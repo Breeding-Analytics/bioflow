@@ -630,31 +630,46 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
 
                 if (input$pheno_db_type == 'breedbase') {
-                  QBMS::set_study(input$pheno_db_trial)
-                  data <- QBMS::get_study_data()
+                  for (trial in unlist(strsplit(input$pheno_db_trial, ","))) {
+                    QBMS::set_study(trial)
+                    temp <- QBMS::get_study_data()
 
-                  # get breedbase trait ontology
-                  ontology <- QBMS::get_trial_obs_ontology()
-                  fields   <- colnames(data)
+                    # get breedbase trait ontology
+                    ontology <- QBMS::get_trial_obs_ontology()
+                    fields   <- colnames(temp)
 
-                  # replace long trait names with short ones from the ontology
-                  for (i in 1:length(fields)) {
-                    j <- which(ontology$name %in% fields[i])
-                    if (length(j) > 0) {
-                      if(!is.na(ontology$synonyms[[j]][1])) {
-                        fields[i] <- ontology$synonyms[[j]][1]
+                    # replace long trait names with short ones from the ontology
+                    for (i in 1:length(fields)) {
+                      j <- which(ontology$name %in% fields[i])
+                      if (length(j) > 0) {
+                        if(!is.na(ontology$synonyms[[j]][1])) {
+                          fields[i] <- ontology$synonyms[[j]][1]
+                        }
                       }
                     }
+
+                    colnames(temp) <- fields
+                    temp$trialName <- trial
+
+                    if (is.data.frame(data)) {
+                      data <- plyr::rbind.fill(data, temp)
+                    } else {
+                      data <- temp
+                    }
                   }
-
-                  colnames(data) <- fields
-
                 } else {
-                  QBMS::set_trial(input$pheno_db_trial)
-                  data <- QBMS::get_trial_data()
-                }
+                  for (trial in unlist(strsplit(input$pheno_db_trial, ","))) {
+                    QBMS::set_trial(trial)
+                    temp <- QBMS::get_trial_data()
+                    temp$trialName <- trial
 
-                data$trialName <- input$pheno_db_trial
+                    if (is.data.frame(data)) {
+                      data <- plyr::rbind.fill(data, temp)
+                    } else {
+                      data <- temp
+                    }
+                  }
+                }
 
                 shinybusy::remove_modal_spinner()
 
@@ -668,7 +683,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         error = function(e) {
           shinybusy::remove_modal_spinner()
           if (input$pheno_db_type == 'ebs') {
-            shinyWidgets::show_alert(title = 'Access Denied!', type = 'error', text = 'You do not have permission to access this trial.')
+            shinyWidgets::show_alert(title = 'Access Denied!', type = 'error', text = e)# 'You do not have permission to access this trial.')
           } else {
             shinyWidgets::show_alert(title = 'Error!', type = 'error', text = e)
           }
