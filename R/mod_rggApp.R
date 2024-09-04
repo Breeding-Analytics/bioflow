@@ -437,7 +437,7 @@ mod_rggApp_server <- function(id, data){
                                       htmltools::em('Predictions table.')
                                     )
       ), numeric.output)
-    })
+    }, server = FALSE)
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
@@ -529,7 +529,7 @@ mod_rggApp_server <- function(id, data){
                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             ), numeric.output)
-          })
+          }, server = FALSE)
           # view modeling
           output$modelingRgg <-  DT::renderDT({
             modeling <- result$modeling
@@ -542,7 +542,7 @@ mod_rggApp_server <- function(id, data){
                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             )
-          })
+          }, server = FALSE)
           ## Report tab
           output$reportRgg <- renderUI({
             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -573,9 +573,9 @@ mod_rggApp_server <- function(id, data){
           )
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-          output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)})
-          output$metricsRgg <- DT::renderDT({DT::datatable(NULL)})
-          output$modelingRgg <- DT::renderDT({DT::datatable(NULL)})
+          output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+          output$metricsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+          output$modelingRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         }
         hideAll$clearAll <- FALSE
 

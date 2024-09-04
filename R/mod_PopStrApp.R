@@ -330,7 +330,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        })
+        }, server = FALSE)
 
 
         #Ver datos en tabla dinamica AMOVA
@@ -353,7 +353,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        })
+        }, server = FALSE)
         #Ver datos en tabla dinamica %NA,He,Ho by genotype
         output$seeDataStatGeno<-DT::renderDT({
           seedatosStaG<-as.data.frame(result[["PopStr"]][[5]])
@@ -362,7 +362,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        })
+        }, server = FALSE)
         #Ver datos en tabla dinamica MDS
         output$seeDataMDS<-DT::renderDT({
           seedatosMDS<-as.data.frame(uno[[5]])
@@ -371,7 +371,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        })
+        }, server = FALSE)
         #grafico 2d
         output$try=plotly::renderPlotly({
           txlab2=txlab

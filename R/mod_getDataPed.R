@@ -213,7 +213,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
                         )
           )
 
-        })
+        }, server = FALSE)
 
         data(temp)
       }

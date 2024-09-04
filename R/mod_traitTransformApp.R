@@ -154,6 +154,7 @@ mod_traitTransformApp_server <- function(id, data){
     output$transTableC = DT::renderDT(xx$df,
                                       selection = 'none',
                                       editable = TRUE,
+                                      server = FALSE,
                                       options = list(paging=FALSE,
                                                      searching=FALSE,
                                                      initComplete = I("function(settings, json) {alert('Done.');}")
@@ -208,7 +209,7 @@ mod_traitTransformApp_server <- function(id, data){
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
-    })
+    }, server = FALSE)
 
     ################################################################################################
     ################################################################################################

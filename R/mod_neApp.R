@@ -260,7 +260,7 @@ mod_neApp_server <- function(id, data){
                     )
       )
 
-    })
+    }, server = FALSE)
 
     ##########################
     ## save when user clicks

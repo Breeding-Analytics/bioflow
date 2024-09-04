@@ -358,7 +358,7 @@ mod_pggApp_server <- function(id, data){
                                       htmltools::em('Predictions table to be used as input.')
                                     )
       ), numeric.output)
-    })
+    }, server = FALSE)
     ## render result of "run" button click
     outPgg <- eventReactive(input$runPgg, {
       req(data())
@@ -420,7 +420,7 @@ mod_pggApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # view modeling
         output$modelingPgg <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -437,7 +437,7 @@ mod_pggApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
-        })
+        }, server = FALSE)
         # Report tab
         output$reportPgg <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -469,9 +469,9 @@ mod_pggApp_server <- function(id, data){
 
 
       } else {
-        output$predictionsPgg <- DT::renderDT({DT::datatable(NULL)})
-        output$metricsPgg <- DT::renderDT({DT::datatable(NULL)})
-        output$modelingPgg <- DT::renderDT({DT::datatable(NULL)})
+        output$predictionsPgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsPgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingPgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
       }
 
       hideAll$clearAll <- FALSE

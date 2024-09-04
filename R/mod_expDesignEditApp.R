@@ -244,6 +244,7 @@ mod_expDesignEditApp_server <- function(id, data){
     output$transTableC = DT::renderDT(xx$df,
                                       selection = 'none',
                                       editable = TRUE,
+                                      server = FALSE,
                                       options = list(paging=FALSE,
                                                      searching=FALSE,
                                                      initComplete = I("function(settings, json) {alert('Done.');}")

@@ -474,7 +474,7 @@ mod_qaPedApp_server <- function(id, data){
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
         )
-      })
+      }, server = FALSE)
 
     })
     ##########################

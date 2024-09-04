@@ -226,7 +226,7 @@ mod_reportBuilder_server <- function(id, data){
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             )
           }
-        })
+        }, server = FALSE)
         # metrics table
         output$metricsX <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
@@ -246,7 +246,7 @@ mod_reportBuilder_server <- function(id, data){
               )
             }
           }
-        })
+        }, server = FALSE)
         # modeling table
         output$modelingX <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
@@ -260,7 +260,7 @@ mod_reportBuilder_server <- function(id, data){
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
             )
           }
-        })
+        }, server = FALSE)
 
         if(result$status$module[nrow(result$status)] != "oft"){
           ## Report tab

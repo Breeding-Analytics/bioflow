@@ -13,6 +13,7 @@ mod_getDataPheno_ui <- function(id){
   ns <- NS(id)
   tagList(
     tags$br(),
+    # tags$p("The time is ", textOutput(ns("current_time"))),
 
     navlistPanel( widths = c(2, 10),
                   tabPanel(div("1. Load data" ),
@@ -230,6 +231,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    # output$current_time <- renderText({
+    #   invalidateLater(1000)
+    #   format(Sys.time(), "%H:%M:%S %p")
+    # })
+
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -319,7 +325,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1')
         }
 
-        output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT(NULL)
+        output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT(NULL, server = FALSE)
       }
     )
 
@@ -456,7 +462,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               shinybusy::remove_modal_spinner()
             }
 
-            output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT(NULL)
+            output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT(NULL, server = FALSE)
 
           },
           error = function(e) {
@@ -730,7 +736,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                           htmltools::em('Data preview.')
                         )
           )
-        })
+        }, server = FALSE)
 
         if (input$pheno_input == 'brapi') {
           output$brapi_trait_map <- renderUI({
@@ -1042,7 +1048,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                         )
           )
         }
-      })
+      }, server = FALSE)
     })
 
   })

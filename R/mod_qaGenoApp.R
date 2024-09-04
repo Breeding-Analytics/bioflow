@@ -268,7 +268,7 @@ mod_qaGenoApp_server <- function(id, data){
                     )
       )
 
-    })
+    }, server = FALSE)
     ## display the current outliers
     observeEvent(data(),{
 
@@ -295,7 +295,7 @@ mod_qaGenoApp_server <- function(id, data){
                       )
         )
 
-      })
+      }, server = FALSE)
 
     })
     ##########################

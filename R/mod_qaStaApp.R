@@ -236,7 +236,7 @@ mod_qaStaApp_server <- function(id, data){
                         ),
           )
         }
-      })
+      }, server = FALSE)
     })
 
     ## save when user clicks

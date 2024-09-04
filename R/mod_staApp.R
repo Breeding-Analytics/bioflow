@@ -341,7 +341,7 @@ mod_staApp_ui <- function(id){
 #                                        options = list(paging=FALSE,
 #                                                       searching=FALSE,
 #                                                       initComplete = I("function(settings, json) {alert('Done.');}")
-#                                        )
+#                                        ), server = FALSE
 #     )
 #
 #     ##
@@ -420,7 +420,7 @@ mod_staApp_ui <- function(id){
 #                           htmltools::em('Past modeling parameters from QA stamp selected.')
 #                         )
 #           )
-#         })
+#         }, server = FALSE)
 #         ## render summaries
 #         output$summariesSta <-  DT::renderDT({
 #           req(data())
@@ -466,7 +466,7 @@ mod_staApp_ui <- function(id){
 #                           htmltools::em('Summary of number of individuals, mothers and fathers available in the dataset.')
 #                         )
 #           )
-#         })
+#         }, server = FALSE)
 #         ## render designs
 #         output$dtFieldTraC <-  DT::renderDT({
 #           req(data())
@@ -498,7 +498,7 @@ mod_staApp_ui <- function(id){
 #               )
 #             }
 #           }
-#         })
+#         }, server = FALSE)
 #         ## render plot of trait distribution
 #         observeEvent(c(data(),input$version2Sta), { # update trait
 #           req(data())
@@ -575,10 +575,10 @@ mod_staApp_ui <- function(id){
 #                                           htmltools::em('Raw phenotypic data to be used as input.')
 #                                         )
 #           ), numeric.output)
-#         })
+#         }, server = FALSE)
 #       } else {
-#         output$summariesSta <- DT::renderDT({DT::datatable(NULL)})
-#         output$phenoSta <- DT::renderDT({DT::datatable(NULL)})
+#         output$summariesSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#         output$phenoSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
 #         output$plotPredictionsCleanOut <- plotly::renderPlotly({NULL})
 #       }
 #     })
@@ -664,7 +664,7 @@ mod_staApp_ui <- function(id){
 #               ), numeric.output)
 #               # }
 #             }
-#           })
+#           }, server = FALSE)
 #
 #           # metrics table
 #           output$metricsSta <-  DT::renderDT({
@@ -685,7 +685,7 @@ mod_staApp_ui <- function(id){
 #               ), numeric.output)
 #               # }
 #             }
-#           })
+#           }, server = FALSE)
 #
 #           # modeling table
 #           output$modelingSta <-  DT::renderDT({
@@ -706,7 +706,7 @@ mod_staApp_ui <- function(id){
 #               )
 #               # }
 #             }
-#           })
+#           }, server = FALSE)
 #
 #           ## dashboard STA
 #           output$reportSta <- renderUI({
@@ -744,9 +744,9 @@ mod_staApp_ui <- function(id){
 #           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
 #
 #           # else {
-#           output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})
-#           output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
-#           output$modelingSta <- DT::renderDT({DT::datatable(NULL)})
+#           output$predictionsSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$metricsSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$modelingSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
 #
 #           # }
 #         }
@@ -909,6 +909,7 @@ mod_staApp_server <- function(id,data){
     output$traitDistSta = DT::renderDT(xx$df,
                                        selection = 'none',
                                        editable = TRUE,
+                                       server = FALSE,
                                        options = list(paging=FALSE,
                                                       searching=FALSE,
                                                       initComplete = I("function(settings, json) {alert('Done.');}")
@@ -991,7 +992,7 @@ mod_staApp_server <- function(id,data){
                           htmltools::em('Past modeling parameters from QA stamp selected.')
                         )
           )
-        })
+        }, server = FALSE)
         ## render summaries
         output$summariesSta <-  DT::renderDT({
           req(data())
@@ -1037,7 +1038,7 @@ mod_staApp_server <- function(id,data){
                           htmltools::em('Summary of number of individuals, mothers and fathers available in the dataset.')
                         )
           )
-        })
+        }, server = FALSE)
         ## render designs
         output$dtFieldTraC <-  DT::renderDT({
           req(data())
@@ -1069,7 +1070,7 @@ mod_staApp_server <- function(id,data){
               )
             }
           }
-        })
+        }, server = FALSE)
         ## render plot of trait distribution
         observeEvent(c(data(),input$version2Sta), { # update trait
           req(data())
@@ -1147,10 +1148,10 @@ mod_staApp_server <- function(id,data){
                                           htmltools::em('Raw phenotypic data to be used as input.')
                                         )
           ), numeric.output)
-        })
+        }, server = FALSE)
       } else {
-        output$summariesSta <- DT::renderDT({DT::datatable(NULL)})
-        output$phenoSta <- DT::renderDT({DT::datatable(NULL)})
+        output$summariesSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$phenoSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         output$plotPredictionsCleanOut <- plotly::renderPlotly({NULL})
       }
     })
@@ -1221,7 +1222,7 @@ mod_staApp_server <- function(id,data){
             ), numeric.output)
             # }
           }
-        })
+        }, server = FALSE)
 
         output$metricsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
@@ -1241,7 +1242,7 @@ mod_staApp_server <- function(id,data){
             ), numeric.output)
             # }
           }
-        })
+        }, server = FALSE)
 
         output$modelingSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
@@ -1261,7 +1262,7 @@ mod_staApp_server <- function(id,data){
             )
             # }
           }
-        })
+        }, server = FALSE)
         ## report STA
         output$reportSta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -1295,9 +1296,9 @@ mod_staApp_server <- function(id,data){
         )
 
       } else {
-        output$predictionsSta <- DT::renderDT({DT::datatable(NULL)})
-        output$metricsSta <- DT::renderDT({DT::datatable(NULL)})
-        output$modelingSta <- DT::renderDT({DT::datatable(NULL)})
+        output$predictionsSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingSta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
       }
 
       hideAll$clearAll <- FALSE
