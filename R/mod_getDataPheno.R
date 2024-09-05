@@ -679,7 +679,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
                 shinybusy::remove_modal_spinner()
 
-                shinyWidgets::show_alert(title = 'Done!', type = 'success')
+                if (is.data.frame(data)) {
+                  shinyWidgets::show_alert(title = 'Done!', type = 'success')
+                } else {
+                  shinyWidgets::show_alert(title = 'Empty!', type = 'warning')
+                }
               }
             }
 
@@ -716,6 +720,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         temp <- data()
         temp$data$pheno <- pheno_data()
+        if(!is.data.frame(temp$data$pheno)) { return() }
         if(!is.null(temp$metadata$pheno)){temp$metadata$pheno <- temp$metadata$pheno[0,]} # make sure if an user uploads a new dataset the metadata starts empty
         if(!is.null(temp$modifications$pheno)){temp$modifications$pheno <- temp$modifications$pheno[0,]} # make sure if an user uploads a new dataset the modifications starts empty
         if(!is.null(temp$status)){
