@@ -54,8 +54,8 @@ printTable <- function(DT, pageLength = 7,
   table <- DT::datatable(data = DT, 
                          filter = "top", 
                          extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
@@ -82,10 +82,10 @@ suppressWarnings(tryCatch({
 ```
 
 
-### Table of predictions
+### Table of MAS predictions
 <p>&nbsp;</p>
 
-The following table shows the total merit that has been calculated based on the weights assigned for each trait.
+The following table shows the total merit that has been calculated based on the weights assigned for each QTL.
 
 ```{r }
 
@@ -128,7 +128,7 @@ if (is.null(result)){
       class = 'cell-border stripe',
       extensions = 'Buttons',
       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
     ),numericalColumns)
     }, server = FALSE)
   }
@@ -137,8 +137,36 @@ if (is.null(result)){
 
 ```
 
+### Graph of merit
+<p>&nbsp;</p>
 
+The following graph shows the total merit that has been calculated based on the weights assigned for each QTL.
 
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  p <- ggplot(predictions, aes(x=designation, y=predictedValue, text=designation)) + 
+    geom_point(size=2, alpha = 0.6 ) + ylab("Merit") + xlab("Designation") +
+    theme(axis.text.x=element_blank())
+  plotly::ggplotly(p)
+  
+  if("params" %in% ls()){ # we will download the document
+    print(p)
+  }else{
+    
+    plotly::renderPlotly({
+      p
+    })
+    
+  }
+  
+}
+
+```
+
+### Graph of QTL frequencies
 <p>&nbsp;</p>
 
 

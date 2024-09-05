@@ -124,7 +124,7 @@ mod_mtaExpApp_ui <- function(id){
                                                                           textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
                                                                           textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
                                                                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
-                                                                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP or GBLUP", value = 1000),
+                                                                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP or GBLUP", value = 2000),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
 
                                                       ),

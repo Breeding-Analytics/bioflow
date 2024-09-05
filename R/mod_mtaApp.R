@@ -133,7 +133,7 @@ mod_mtaApp_ui <- function(id){
                                                                           textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
                                                                           textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
                                                                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
-                                                                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 1000),
+                                                                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 2000),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
                                                       ),
@@ -1220,9 +1220,11 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$trait2Mta)
       dtMta <- data() # dtMta <- result
-      dtMta <- dtMta$metadata$weather
-      validWeatherVars <- c("RH2M","T2M","PRECTOTCORR", "latitude", "longitude", "plantingDate", "harvestingDate" )
-      traitsMta <- unique(c("envIndex",intersect(unique(dtMta$trait), validWeatherVars )))
+      # dtMta <- dtMta$metadata$weather
+      xx <- cgiarPipeline::summaryWeather(dtMta)
+      traitsMta <- unique(paste(xx$trait, xx$parameter, sep="_"))
+      # validWeatherVars <- c("RH2M","T2M","PRECTOTCORR", "latitude", "longitude", "plantingDate", "harvestingDate" )
+      # traitsMta <- unique(c("envIndex",intersect(unique(dtMta$trait), validWeatherVars )))
       updateSelectInput(session, "interactionTermMta2", choices = traitsMta)
     })
     #################
