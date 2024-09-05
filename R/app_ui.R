@@ -113,7 +113,7 @@ app_ui <- function(request) {
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
                  tabPanel(strong("FREQUENCY-BASED SELECTION"), mod_sectionInfoGFDApp_ui("sectionInfoGFDApp_1") ), # plus, shuffle, barcode, people-group
-                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")", style = "color:red"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
+                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("barcode"), "Marker-assisted verification (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
                  tabPanel(strong("DRIFT & FLOW HISTORY"), mod_sectionInfoGFDHApp_ui("sectionInfoGFDHApp_1") ),
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering

@@ -1,0 +1,159 @@
+---
+title: "Marker Assisted Selection Report"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+
+# loading necessary R packages ####
+## data manipulation
+library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(grafify)
+library(data.table)
+library(shiny)
+```
+
+```{r printfxn, include=FALSE}
+
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r }
+
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/result.RData")){
+    load("./outputs/result.RData")
+  }else{
+    load("result.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+```
+
+
+### Table of predictions
+<p>&nbsp;</p>
+
+The following table shows the total merit that has been calculated based on the weights assigned for each trait.
+
+```{r }
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  predictions <- result$predictions
+  idQa <- result$status[which(result$status$module %in% c("mas")),"analysisId"];
+  idQa <- idQa[length(idQa)]
+  predictions <- predictions[which( predictions$analysisId == idQa),]
+  # traitsTable <- unique(predictions[,"trait"])
+  
+  
+  # if("params" %in% ls()){ # we will download the document
+  #   shinyjs::hide()
+  # }else{
+  #   shiny::selectInput(ns("traitQa"), 
+  #                      label = "Trait:", 
+  #                      choices = traitsTable, 
+  #   )
+  # }
+  
+}
+
+```
+
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  numericalColumns <- c("predictedValue","stdError") 
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modifications)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      predictions,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    ),numericalColumns)
+    }, server = FALSE)
+  }
+  
+}
+
+```
+
+
+
+<p>&nbsp;</p>
+
+
+### References on methods used
+
+Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C.
+
+McGill, R., Tukey, J. W. and Larsen, W. A. (1978). Variations of box plots. The American Statistician, 32, 12–16. doi:10.2307/2683468.
+
+Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.
+
+
+<p>&nbsp;</p>
+
+
+
+
+

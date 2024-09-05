@@ -1,7 +1,7 @@
 ---
 title: "Single Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "September 02, 2024"  
+date: "September 04, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -47,90 +47,115 @@ The following table allows to see how many locations had data for the different 
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Grain yield </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLDTON </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of entries </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> 2019_Abobo </td>
+   <td style="text-align:left;"> 21WS_IN_BAU_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2019_Assosa </td>
+   <td style="text-align:left;"> 21WS_IN_BAU_NonS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2019_Bako </td>
+   <td style="text-align:left;"> 21WS_IN_BHU_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2019_Fogera </td>
+   <td style="text-align:left;"> 21WS_IN_BHU_NonS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2019_Jimma </td>
+   <td style="text-align:left;"> 21WS_IN_CRURRS_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2019_Metema </td>
+   <td style="text-align:left;"> 21WS_IN_IGKV_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2019_Mytsebri </td>
+   <td style="text-align:left;"> 21WS_IN_IGKV_NonS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2019_Pawe </td>
+   <td style="text-align:left;"> 21WS_IN_IRRI_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Arbaminch </td>
+   <td style="text-align:left;"> 21WS_IN_IRRR_NonS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Assosa </td>
+   <td style="text-align:left;"> 21WS_IN_SHUATS_ModS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Bako </td>
+   <td style="text-align:left;"> 21WS_IN_SHUATS_SevS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Dembia </td>
+   <td style="text-align:left;"> 21WS_IN_ZDRPRS_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 288 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Fogera </td>
+   <td style="text-align:left;"> 22WS_IN_ICAR_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 234 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Jimma </td>
+   <td style="text-align:left;"> 22WS_IN_IGKV_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 235 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Metema </td>
+   <td style="text-align:left;"> 22WS_IN_SHUATS_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 235 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2020_Pawe </td>
+   <td style="text-align:left;"> 22WS_IN_ZDRPRS_DrtS </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 30 </td>
+   <td style="text-align:right;"> 234 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 23WS_IN_BAU_DrtS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 187 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 23WS_IN_CRURRS_DrtS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 23WS_IN_IGKV_DrtS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 23WS_IN_SHUATS_DrtS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 23WS_IN_ZDRPRS_DrtS </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 188 </td>
   </tr>
 </tbody>
 </table></div>
@@ -146,22 +171,31 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="YLDTON" selected>YLDTON</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out0ba347671675bf6a" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out5a63c6999e7d851f" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
+### Field view
+
+The following heatmaps allow you to inspect the spatial trends in the different fields to take corrective measures in the next season and understand why some variance components may look the way they look.
 
 
 <p>&nbsp;</p>
 
+<!--html_preserve--><div class="form-group shiny-input-container">
+<label class="control-label" id="staApp_1-traitStaFieldView-label" for="staApp_1-traitStaFieldView">Trait to filter:</label>
+<div>
+<select id="staApp_1-traitStaFieldView" class="shiny-input-select"><option value="YLDTON" selected>YLDTON</option></select>
+<script type="application/json" data-for="staApp_1-traitStaFieldView" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div><!--/html_preserve-->
 
-
-
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out87b3546eec6881ac" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Output parameters 
 
@@ -174,12 +208,12 @@ This barplot allows you to see the variance components values and ratios for the
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta0-label" for="staApp_1-traitSta0">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
+<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="YLDTON" selected>YLDTON</option></select>
 <script type="application/json" data-for="staApp_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outd6324b25e9c3f47d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out789c7e1fe6130877" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -193,7 +227,10 @@ This barplot allows you to see the variance components values and ratios for the
 <option value="CV" selected>CV</option>
 <option value="r2" selected>r2</option>
 <option value="V_designation" selected>V_designation</option>
+<option value="V_rowF" selected>V_rowF</option>
+<option value="V_colF" selected>V_colF</option>
 <option value="V_repF" selected>V_repF</option>
+<option value="V_s(row, col)" selected>V_s(row, col)</option>
 <option value="V_residual" selected>V_residual</option>
 <option value="mean" selected>mean</option></select>
 <script type="application/json" data-for="staApp_1-parameterMetrics" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
@@ -218,7 +255,7 @@ The following barplot is designed to provide a high-level view of estimated para
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out3c623a900251eda6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out30abda4e93e23bcb" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions
 
@@ -231,27 +268,32 @@ The following table allows you to check the trait by environment adjusted means 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment to filter:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="2019_Abobo" selected>2019_Abobo</option>
-<option value="2020_Jimma">2020_Jimma</option>
-<option value="2020_Assosa">2020_Assosa</option>
-<option value="2019_Metema">2019_Metema</option>
-<option value="2020_Metema">2020_Metema</option>
-<option value="2020_Bako">2020_Bako</option>
-<option value="2019_Mytsebri">2019_Mytsebri</option>
-<option value="2020_Pawe">2020_Pawe</option>
-<option value="2020_Dembia">2020_Dembia</option>
-<option value="2019_Pawe">2019_Pawe</option>
-<option value="2019_Fogera">2019_Fogera</option>
-<option value="2020_Fogera">2020_Fogera</option>
-<option value="2020_Arbaminch">2020_Arbaminch</option>
-<option value="2019_Jimma">2019_Jimma</option>
-<option value="2019_Bako">2019_Bako</option>
-<option value="2019_Assosa">2019_Assosa</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="21WS_IN_CRURRS_DrtS" selected>21WS_IN_CRURRS_DrtS</option>
+<option value="23WS_IN_CRURRS_DrtS">23WS_IN_CRURRS_DrtS</option>
+<option value="23WS_IN_BAU_DrtS">23WS_IN_BAU_DrtS</option>
+<option value="21WS_IN_BAU_DrtS">21WS_IN_BAU_DrtS</option>
+<option value="21WS_IN_BHU_NonS">21WS_IN_BHU_NonS</option>
+<option value="21WS_IN_IRRI_DrtS">21WS_IN_IRRI_DrtS</option>
+<option value="21WS_IN_IGKV_DrtS">21WS_IN_IGKV_DrtS</option>
+<option value="21WS_IN_BAU_NonS">21WS_IN_BAU_NonS</option>
+<option value="21WS_IN_SHUATS_SevS">21WS_IN_SHUATS_SevS</option>
+<option value="23WS_IN_ZDRPRS_DrtS">23WS_IN_ZDRPRS_DrtS</option>
+<option value="21WS_IN_BHU_DrtS">21WS_IN_BHU_DrtS</option>
+<option value="21WS_IN_ZDRPRS_DrtS">21WS_IN_ZDRPRS_DrtS</option>
+<option value="21WS_IN_IGKV_NonS">21WS_IN_IGKV_NonS</option>
+<option value="23WS_IN_SHUATS_DrtS">23WS_IN_SHUATS_DrtS</option>
+<option value="21WS_IN_IRRR_NonS">21WS_IN_IRRR_NonS</option>
+<option value="21WS_IN_SHUATS_ModS">21WS_IN_SHUATS_ModS</option>
+<option value="22WS_IN_ICAR_DrtS">22WS_IN_ICAR_DrtS</option>
+<option value="22WS_IN_ZDRPRS_DrtS">22WS_IN_ZDRPRS_DrtS</option>
+<option value="22WS_IN_SHUATS_DrtS">22WS_IN_SHUATS_DrtS</option>
+<option value="22WS_IN_IGKV_DrtS">22WS_IN_IGKV_DrtS</option>
+<option value="23WS_IN_IGKV_DrtS">23WS_IN_IGKV_DrtS</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out731f51a091480ea7" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outb49260ddf5ca2f36" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -262,12 +304,12 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="YLDTON" selected>YLDTON</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outff5c41afca4653e7" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out14d2ddb7515353cb" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -278,12 +320,12 @@ In the following plot you can observe the comparison between the top 30 entries 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaComp-label" for="staApp_1-traitStaComp">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaComp" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
+<select id="staApp_1-traitStaComp" class="shiny-input-select"><option value="YLDTON" selected>YLDTON</option></select>
 <script type="application/json" data-for="staApp_1-traitStaComp" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outeb59a21ab5287cfe" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out58eca180726ac07d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Correlation between environments
@@ -295,12 +337,12 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCor-label" for="staApp_1-traitStaCor">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="Grain yield" selected>Grain yield</option></select>
+<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="YLDTON" selected>YLDTON</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outc8be9113240d0ee9" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out0e1f4431069c5901" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References of methods used
