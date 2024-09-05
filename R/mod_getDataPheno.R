@@ -501,7 +501,16 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
         QBMS::set_program(input$pheno_db_program)
 
-        pheno_db_trials <- QBMS::list_trials()$trialName
+        tryCatch(
+          expr = {
+            pheno_db_trials <- NULL
+            pheno_db_trials <- QBMS::list_trials()$trialName
+          },
+          error = function(e) {
+            shinybusy::remove_modal_spinner()
+            shinyWidgets::show_alert(title = 'No Trials!', type = 'warning')
+          }
+        )
 
         if (input$pheno_db_type == 'breedbase') {
           output$pheno_db_folder <- renderUI({
