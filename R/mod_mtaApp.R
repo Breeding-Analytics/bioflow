@@ -1279,11 +1279,11 @@ mod_mtaApp_server <- function(id, data){
     output$traitDistMet = DT::renderDT(xx$df,
                                        selection = 'none',
                                        editable = TRUE,
-                                       server = FALSE,
-                                       options = list(paging=FALSE,
-                                                      searching=FALSE,
-                                                      initComplete = I("function(settings, json) {alert('Done.');}")
-                                       )
+                                       server = FALSE
+                                       # options = list(paging=FALSE,
+                                       #                searching=FALSE,
+                                       #                initComplete = I("function(settings, json) {alert('Done.');}")
+                                       # )
     )
     proxy = DT::dataTableProxy('traitDistMet')
     observeEvent(input$traitDistMet_cell_edit, {
