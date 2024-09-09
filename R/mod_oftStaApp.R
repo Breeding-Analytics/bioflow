@@ -412,7 +412,7 @@ mod_oftStaApp_server <- function(id, data){
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       )
-    })
+    }, server = FALSE)
     output$phenoOft <-  DT::renderDT({
       req(data())
       req(input$version2Oft)
@@ -424,7 +424,7 @@ mod_oftStaApp_server <- function(id, data){
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
       ), numeric.output)
-    })
+    }, server = FALSE)
 
 
     ## ----------- Select Trait(s) to use ------------ ##
@@ -502,7 +502,7 @@ mod_oftStaApp_server <- function(id, data){
                                    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
       )
-    })
+    }, server = FALSE)
     output$preview_ped <- DT::renderDT({
       req(data())
       dtOft <- data()
@@ -513,7 +513,7 @@ mod_oftStaApp_server <- function(id, data){
                                    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
       )
-    })
+    }, server = FALSE)
 
     ## -------- Select disease information --------- ##
     output$preview_pheno2 <- DT::renderDT({
@@ -526,7 +526,7 @@ mod_oftStaApp_server <- function(id, data){
                                    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
       )
-    })
+    }, server = FALSE)
 
     ## -------- Select environment(s) to include --------- ##
     ## render connectivity plot

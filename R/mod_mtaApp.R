@@ -133,7 +133,7 @@ mod_mtaApp_ui <- function(id){
                                                                           textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
                                                                           textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
                                                                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
-                                                                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 1000),
+                                                                          numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP", value = 2000),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
                                                       ),
@@ -475,7 +475,7 @@ mod_mtaApp_ui <- function(id){
 #       df <- dtFieldMet()
 #       x$df <- df
 #     })
-#     output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE)
+#     output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE)
 #     proxy = DT::dataTableProxy('fieldsMet')
 #     observeEvent(input$fieldsMet_cell_edit, {
 #       info = input$fieldsMet_cell_edit
@@ -509,7 +509,7 @@ mod_mtaApp_ui <- function(id){
 #                                        options = list(paging=FALSE,
 #                                                       searching=FALSE,
 #                                                       initComplete = I("function(settings, json) {alert('Done.');}")
-#                                        )
+#                                        ), server = FALSE
 #     )
 #     proxy = DT::dataTableProxy('traitDistMet')
 #     observeEvent(input$traitDistMet_cell_edit, {
@@ -593,7 +593,7 @@ mod_mtaApp_ui <- function(id){
 #                       htmltools::em('Traits available in the STA-IDs selected.')
 #                     )
 #       )
-#     })
+#     }, server = FALSE)
 #     ## render the input data to be analyzed
 #     output$statusMta <-  DT::renderDT({
 #       req(data())
@@ -610,7 +610,7 @@ mod_mtaApp_ui <- function(id){
 #                       htmltools::em('Past modeling parameters from STA stamp(s) selected.')
 #                     )
 #       )
-#     })
+#     }, server = FALSE)
 #
 #     output$evaluationUnits <-  shiny::renderPlot({ #DT::renderDT({
 #       req(data())
@@ -686,7 +686,7 @@ mod_mtaApp_ui <- function(id){
 #                                       htmltools::em('STA predictions table to be used as input.')
 #                                     )
 #       ), numeric.output)
-#     })
+#     }, server = FALSE)
 #     ## render connectivity plot
 #     observeEvent(c(data(),input$version2Mta), { # update entry types included in the plot
 #       req(data())
@@ -965,7 +965,7 @@ mod_mtaApp_ui <- function(id){
 #                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
 #                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #             ), numeric.output)
-#           })
+#           }, server = FALSE)
 #           # metrics table
 #           output$metricsMta <-  DT::renderDT({
 #             if(!inherits(result,"try-error") ){
@@ -979,7 +979,7 @@ mod_mtaApp_ui <- function(id){
 #                                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #               ), numeric.output)
 #             }
-#           })
+#           }, server = FALSE)
 #           # modeling table
 #           output$modelingMta <-  DT::renderDT({
 #             if(!inherits(result,"try-error") ){
@@ -993,7 +993,7 @@ mod_mtaApp_ui <- function(id){
 #                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #               )
 #             }
-#           })
+#           }, server = FALSE)
 #           # ## Report tab
 #           output$reportMta <- renderUI({
 #             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -1025,9 +1025,9 @@ mod_mtaApp_ui <- function(id){
 #           )
 #         }else{
 #           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-#           output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
-#           output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
-#           output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
+#           output$predictionsMta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$metricsMta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$modelingMta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
 #           hideAll$clearAll <- TRUE
 #         }
 #
@@ -1220,9 +1220,11 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       req(input$trait2Mta)
       dtMta <- data() # dtMta <- result
-      dtMta <- dtMta$metadata$weather
-      validWeatherVars <- c("RH2M","T2M","PRECTOTCORR", "latitude", "longitude", "plantingDate", "harvestingDate" )
-      traitsMta <- unique(c("envIndex",intersect(unique(dtMta$trait), validWeatherVars )))
+      # dtMta <- dtMta$metadata$weather
+      xx <- cgiarPipeline::summaryWeather(dtMta)
+      traitsMta <- unique(paste(xx$trait, xx$parameter, sep="_"))
+      # validWeatherVars <- c("RH2M","T2M","PRECTOTCORR", "latitude", "longitude", "plantingDate", "harvestingDate" )
+      # traitsMta <- unique(c("envIndex",intersect(unique(dtMta$trait), validWeatherVars )))
       updateSelectInput(session, "interactionTermMta2", choices = traitsMta)
     })
     #################
@@ -1246,7 +1248,7 @@ mod_mtaApp_server <- function(id, data){
       df <- dtFieldMet()
       x$df <- df
     })
-    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE)
+    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE)
     proxy = DT::dataTableProxy('fieldsMet')
     observeEvent(input$fieldsMet_cell_edit, {
       info = input$fieldsMet_cell_edit
@@ -1277,10 +1279,11 @@ mod_mtaApp_server <- function(id, data){
     output$traitDistMet = DT::renderDT(xx$df,
                                        selection = 'none',
                                        editable = TRUE,
-                                       options = list(paging=FALSE,
-                                                      searching=FALSE,
-                                                      initComplete = I("function(settings, json) {alert('Done.');}")
-                                       )
+                                       server = FALSE
+                                       # options = list(paging=FALSE,
+                                       #                searching=FALSE,
+                                       #                initComplete = I("function(settings, json) {alert('Done.');}")
+                                       # )
     )
     proxy = DT::dataTableProxy('traitDistMet')
     observeEvent(input$traitDistMet_cell_edit, {
@@ -1356,7 +1359,7 @@ mod_mtaApp_server <- function(id, data){
                       htmltools::em('Past modeling parameters from STA stamp(s) selected.')
                     )
       )
-    })
+    }, server = FALSE)
 
     output$tableTraitTimeStamps <-  DT::renderDT({
       req(data())
@@ -1381,7 +1384,7 @@ mod_mtaApp_server <- function(id, data){
                       htmltools::em('Traits available in the STA-IDs selected.')
                     )
       )
-    })
+    }, server = FALSE)
 
     output$evaluationUnits <-  shiny::renderPlot({ #DT::renderDT({
       req(data())
@@ -1452,7 +1455,7 @@ mod_mtaApp_server <- function(id, data){
                                       htmltools::em('STA predictions table to be used as input.')
                                     )
       ), numeric.output)
-    })
+    }, server = FALSE)
     ## render connectivity plot
     observeEvent(c(data(),input$version2Mta), { # update entry types included in the plot
       req(data())
@@ -1720,7 +1723,7 @@ mod_mtaApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # metrics table
         output$metricsMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
@@ -1738,7 +1741,7 @@ mod_mtaApp_server <- function(id, data){
             ), numeric.output)
             # }
           }
-        })
+        }, server = FALSE)
         # modeling table
         output$modelingMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
@@ -1756,7 +1759,7 @@ mod_mtaApp_server <- function(id, data){
             )
             # }
           }
-        })
+        }, server = FALSE)
         # ## Report tab
         output$reportMta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -1788,9 +1791,9 @@ mod_mtaApp_server <- function(id, data){
         )
 
       } else {
-        output$predictionsMta <- DT::renderDT({DT::datatable(NULL)})
-        output$metricsMta <- DT::renderDT({DT::datatable(NULL)})
-        output$modelingMta <- DT::renderDT({DT::datatable(NULL)})
+        output$predictionsMta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsMta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingMta <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         hideAll$clearAll <- TRUE
       } ### enf of if(!inherits(result,"try-error"))
 

@@ -215,7 +215,7 @@ mod_getDataQTL_server <- function(id, data = NULL, res_auth=NULL){
                         htmltools::em('Data preview.')
                       )
         )
-      })
+      }, server = FALSE)
     })
     observeEvent( # save data for qtl
       c(qtl_data_table(), input$qtl_table_markers, input$qtl_table_designation),

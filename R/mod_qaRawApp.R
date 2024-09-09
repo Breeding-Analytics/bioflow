@@ -255,7 +255,7 @@ mod_qaRawApp_server <- function(id, data){
                         )
           )
         }
-      })
+      }, server = FALSE)
     })
 
     myTablePrevious <-  reactive({

@@ -123,7 +123,7 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
                                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
         )
       }
-    })
+    }, server = FALSE)
 
   })
 }

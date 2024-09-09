@@ -345,7 +345,7 @@ mod_indexBaseApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # display table of modeling
         output$modelingIdxB <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -360,7 +360,7 @@ mod_indexBaseApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
-        })
+        }, server = FALSE)
         # Report tab
         analysisIdBaseIndex <- result$status[ result$status$module %in% c("mta","indexB"),"analysisId"]
         predBaseIndex <- result$predictions[result$predictions$analysisId %in% analysisIdBaseIndex,]
@@ -392,7 +392,7 @@ mod_indexBaseApp_server <- function(id, data){
                                                        paging=F)
           ), numeric.output)
 
-        })
+        }, server = FALSE)
 
       }
 

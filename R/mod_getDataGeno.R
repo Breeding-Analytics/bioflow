@@ -269,7 +269,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
                         htmltools::em('Data preview.')
                       )
         )
-      })
+      }, server = FALSE)
       updateSelectizeInput(session, "geno_table_firstsnp", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))
       updateSelectizeInput(session, "geno_table_lastsnp", choices = colnames(provGeno)[max(c(1,ncol(provGeno)-100)):ncol(provGeno)], selected = character(0))
       updateSelectizeInput(session, "geno_table_designation", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))

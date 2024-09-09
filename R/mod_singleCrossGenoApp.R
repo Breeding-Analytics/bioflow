@@ -272,7 +272,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
                           htmltools::em('Modifications from QA stamp selected.')
                         )
           )
-        })
+        }, server = FALSE)
         ## render raw data
         output$genoScm <-  DT::renderDT({
           req(data())
@@ -294,9 +294,9 @@ mod_singleCrossGenoApp_server <- function(id, data){
                                           htmltools::em('Raw genotypic data to be used as input.')
                                         )
           ), numeric.output)
-        })
+        }, server = FALSE)
       } else {
-        output$genoScm <- DT::renderDT({DT::datatable(NULL)})
+        output$genoScm <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
       }
     })
     ## render the expected result
@@ -380,7 +380,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
           )
         }
 
-      })
+      }, server = FALSE)
 
     })
 
@@ -464,7 +464,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                       htmltools::em('Market Profile Computed for Hybrids (showing only first 50 Markers). Click Download button to get complete data.')
                     ))
-    })
+    }, server = FALSE)
 
     output$downloadDataScm <- downloadHandler(
       filename = function() {

@@ -350,7 +350,7 @@ mod_indexDesireApp_ui <- function(id){
 #                       htmltools::em('Traits available in the STA-IDs selected.')
 #                     )
 #       )
-#     })
+#     }, server = FALSE)
 #     ## render timestamps flow
 #     output$plotTimeStamps <- shiny::renderPlot({
 #       req(data()) # req(input$version2Sta)
@@ -413,7 +413,7 @@ mod_indexDesireApp_ui <- function(id){
 #                       htmltools::em('Past modeling parameters from MTA stamp(s) selected.')
 #                     )
 #       )
-#     })
+#     }, server = FALSE)
 #     observeEvent(c(data(),input$version2IdxD), { # update parameter
 #       req(data())
 #       req(input$version2IdxD)
@@ -453,7 +453,7 @@ mod_indexDesireApp_ui <- function(id){
 #                                       htmltools::em('MTA predictions to be used as input.')
 #                                     )
 #       ), numeric.output)
-#     })
+#     }, server = FALSE)
 #
 #     desireValues = reactive({
 #       req(data())
@@ -589,7 +589,7 @@ mod_indexDesireApp_ui <- function(id){
 #                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
 #                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #             ), numeric.output)
-#           })
+#           }, server = FALSE)
 #           # display table of modeling
 #           output$modelingIdxD <-  DT::renderDT({
 #             modeling <- result$modeling
@@ -600,7 +600,7 @@ mod_indexDesireApp_ui <- function(id){
 #                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
 #                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #             )
-#           })
+#           }, server = FALSE)
 #           ## Report tab
 #           output$reportIndex <- renderUI({
 #             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportIndex.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -631,9 +631,9 @@ mod_indexDesireApp_ui <- function(id){
 #           )
 #
 #         }else{
-#           output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)})
-#           output$metricsIdxD <- DT::renderDT({DT::datatable(NULL)})
-#           output$modelingIdxD <- DT::renderDT({DT::datatable(NULL)})
+#           output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$metricsIdxD <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$modelingIdxD <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
 #           hideAll$clearAll <- TRUE
 #           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
 #         }
@@ -835,7 +835,7 @@ mod_indexDesireApp_server <- function(id, data){
                       htmltools::em('Traits available in the STA-IDs selected.')
                     )
       )
-    })
+    }, server = FALSE)
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
@@ -898,7 +898,7 @@ mod_indexDesireApp_server <- function(id, data){
                       htmltools::em('Past modeling parameters from MTA stamp(s) selected.')
                     )
       )
-    })
+    }, server = FALSE)
     observeEvent(c(data(),input$version2IdxD), { # update parameter
       req(data())
       req(input$version2IdxD)
@@ -938,7 +938,7 @@ mod_indexDesireApp_server <- function(id, data){
                                       htmltools::em('MTA predictions to be used as input.')
                                     )
       ), numeric.output)
-    })
+    }, server = FALSE)
 
     desireValues = reactive({
       req(data())
@@ -1064,7 +1064,7 @@ mod_indexDesireApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # display table of modeling
         output$modelingIdxD <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -1079,7 +1079,7 @@ mod_indexDesireApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
-        })
+        }, server = FALSE)
         ## Report tab
         output$reportIndex <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportIndex.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -1110,9 +1110,9 @@ mod_indexDesireApp_server <- function(id, data){
         )
 
       } else {
-        output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)})
-        output$metricsIdxD <- DT::renderDT({DT::datatable(NULL)})
-        output$modelingIdxD <- DT::renderDT({DT::datatable(NULL)})
+        output$predictionsIdxD <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsIdxD <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingIdxD <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         hideAll$clearAll <- TRUE
       }
 

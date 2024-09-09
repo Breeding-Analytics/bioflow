@@ -408,7 +408,7 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
                         htmltools::em('Data preview.')
                       )
         )
-      })
+      }, server = FALSE)
       # read the data and save in the data object
       temp <- data()
       temp$data$weather <- weather_data_table()

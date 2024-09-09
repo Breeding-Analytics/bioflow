@@ -422,7 +422,7 @@ mod_ocsApp_ui <- function(id){
 #                       htmltools::em('Summary of selection units and marker availability.')
 #                     )
 #       )
-#     })
+#     }, server = FALSE)
 #     ## render the data to be analyzed
 #     output$phenoOcs <-  DT::renderDT({
 #       req(data())
@@ -439,7 +439,7 @@ mod_ocsApp_ui <- function(id){
 #                                       htmltools::em('Index predictions table to be used as input.')
 #                                     )
 #       ), numeric.output)
-#     })
+#     }, server = FALSE)
 #     ## render timestamps flow
 #     output$plotTimeStamps <- shiny::renderPlot({
 #       req(data()) # req(input$version2Sta)
@@ -502,7 +502,7 @@ mod_ocsApp_ui <- function(id){
 #                       htmltools::em('Past modeling parameters from Index stamp selected.')
 #                     )
 #       )
-#     })
+#     }, server = FALSE)
 #     ## render result of "run" button click
 #     ##############################################################################################
 #     ##############################################################################################
@@ -587,7 +587,7 @@ mod_ocsApp_ui <- function(id){
 #                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #             ), numeric.output)
 #             # }
-#           })
+#           }, server = FALSE)
 #           # view metrics
 #           output$metricsOcs <-  DT::renderDT({
 #             # if ( hideAll$clearAll){
@@ -605,7 +605,7 @@ mod_ocsApp_ui <- function(id){
 #                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #             ), numeric.output)
 #             # }
-#           })
+#           }, server = FALSE)
 #           # view modeling
 #           output$modelingOcs <-  DT::renderDT({
 #             # if ( hideAll$clearAll){
@@ -622,7 +622,7 @@ mod_ocsApp_ui <- function(id){
 #                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
 #             )
 #             # }
-#           })
+#           }, server = FALSE)
 #           ## Report tab
 #           output$reportOcs <- renderUI({
 #             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOcs.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -653,9 +653,9 @@ mod_ocsApp_ui <- function(id){
 #           )
 #
 #         }else{
-#           output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
-#           output$metricsOcs <- DT::renderDT({DT::datatable(NULL)})
-#           output$modelingOcs <- DT::renderDT({DT::datatable(NULL)})
+#           output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$metricsOcs <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+#           output$modelingOcs <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
 #           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
 #         }
 #         hideAll$clearAll <- FALSE
@@ -910,7 +910,7 @@ mod_ocsApp_server <- function(id, data){
                       htmltools::em('Summary of selection units and marker availability.')
                     )
       )
-    })
+    }, server = FALSE)
     ## render the data to be analyzed
     output$phenoOcs <-  DT::renderDT({
       req(data())
@@ -927,7 +927,7 @@ mod_ocsApp_server <- function(id, data){
                                       htmltools::em('Index predictions table to be used as input.')
                                     )
       ), numeric.output)
-    })
+    }, server = FALSE)
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
@@ -990,7 +990,7 @@ mod_ocsApp_server <- function(id, data){
                       htmltools::em('Past modeling parameters from Index stamp selected.')
                     )
       )
-    })
+    }, server = FALSE)
     ###############################################
     ###############################################
     ###############################################
@@ -1060,7 +1060,7 @@ mod_ocsApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # view metrics
         output$metricsOcs <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -1078,7 +1078,7 @@ mod_ocsApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # view modeling
         output$modelingOcs <-  DT::renderDT({
           # if ( hideAll$clearAll){
@@ -1095,7 +1095,7 @@ mod_ocsApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
-        })
+        }, server = FALSE)
         ## Report tab
         output$reportOcs <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOcs.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -1126,9 +1126,9 @@ mod_ocsApp_server <- function(id, data){
         )
 
       } else {
-        output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)})
-        output$metricsOcs <- DT::renderDT({DT::datatable(NULL)})
-        output$modelingOcs <- DT::renderDT({DT::datatable(NULL)})
+        output$predictionsOcs <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsOcs <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingOcs <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
       }
 
 

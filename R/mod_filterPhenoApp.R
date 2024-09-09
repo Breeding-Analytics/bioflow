@@ -499,7 +499,7 @@ mod_filterPhenoApp_server <- function(id, data){
                       htmltools::em('Records identified to be tagged and ignored.')
                     )
       )
-    })
+    }, server = FALSE)
 
     ## save when user clicks
 

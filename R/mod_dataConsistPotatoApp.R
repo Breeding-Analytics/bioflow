@@ -199,7 +199,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
                                       )
         ), numeric.output)
       }
-    })
+    }, server = FALSE)
     ## save when user clicks
 
     outConsist <- eventReactive(input$runConsist, {

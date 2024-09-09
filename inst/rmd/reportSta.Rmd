@@ -84,7 +84,7 @@ get_h <- function() {
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. Overall number of entries and environments included in the single trial analysis (input)
+1. Overall number of designations and environments included in the single trial analysis (input)
 
 2. High-level summary statistics of the phenotypic information included (input)
 
@@ -223,7 +223,7 @@ if (is.null(result)){
   pheno.env <- pheno[,c('environment','designation')]
   pheno.env<- unique(pheno.env[c('designation','environment')]) 
   pheno.env.designation <-  aggregate(designation ~environment, data = pheno.env, FUN = length)
-  colnames(pheno.env.designation)[2] <- "Number of entries"
+  colnames(pheno.env.designation)[2] <- "Number of designations"
   summarySta <- merge(x = summarySta, y = pheno.env.designation, by = "environment", all = TRUE)
   
   if("params" %in% ls()){ # we will download the document
@@ -798,9 +798,9 @@ if("params" %in% ls()){ # we will download the document
 
 <p>&nbsp;</p>
 
-### Per-environment merit estimates of top entries
+### Per-environment merit estimates of top designations (entries)
 
-In the following plot you can observe the comparison between the top 30 entries from each entry type category for the different traits. If a category has less than a 30 entries all individuals are displayed. This should allow you to identify the top entries in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi-trial analysis and selection indices.
+In the following plot you can observe the comparison between the top 30 designations from each entry type category for the different traits. If a category has less than a 30 designations all individuals are displayed. This should allow you to identify the top designations in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi-trial analysis and selection indices.
 
 ```{r }
 if (is.null(result)){
@@ -974,7 +974,7 @@ if (is.null(result)){
 
 ### Correlation between environments
 
-The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments for the traits available in order to identify if there is one or more environments that do not align with the target population of environments (i.e., negatively correlated with the main cluster across most environments). You may want to exclude such environments from the multi-trial analysis (MTA) to ensure that selected entries in the MTA achieve genetic gain in the main cluster of environments.
+The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments for the traits available in order to identify if there is one or more environments that do not align with the target population of environments (i.e., negatively correlated with the main cluster across most environments). You may want to exclude such environments from the multi-trial analysis (MTA) to ensure that selected designations in the MTA achieve genetic gain in the main cluster of environments.
 
 <p>&nbsp;</p>
 

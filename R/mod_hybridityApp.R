@@ -326,7 +326,7 @@ mod_hybridityApp_server <- function(id, data){
                       htmltools::em('Traits available in the STA-IDs selected.')
                     )
       )
-    })
+    }, server = FALSE)
 
     ###############################
     ###############################
@@ -361,7 +361,7 @@ mod_hybridityApp_server <- function(id, data){
                       )
         )
       }
-    })
+    }, server = FALSE)
 
     ###############################
     ###############################
@@ -393,7 +393,7 @@ mod_hybridityApp_server <- function(id, data){
                       )
         )
       }
-    })
+    }, server = FALSE)
 
 
     ###############################
@@ -460,7 +460,7 @@ mod_hybridityApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # metrics
         output$metricsVerif <-  DT::renderDT({
           # if(!inherits(result,"try-error") ){
@@ -474,7 +474,7 @@ mod_hybridityApp_server <- function(id, data){
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           ), numeric.output)
           # }
-        })
+        }, server = FALSE)
         # modeling
         output$modelingVerif <-  DT::renderDT({
           # if(!inherits(result,"try-error") ){
@@ -490,7 +490,7 @@ mod_hybridityApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
           # }
-        })
+        }, server = FALSE)
         # verification graph
         output$verificationMap <-  DT::renderDT({
           req(data())
@@ -511,7 +511,7 @@ mod_hybridityApp_server <- function(id, data){
                           )
             )
           }
-        })
+        }, server = FALSE)
         output$matrixOfVerifications <- shiny::renderPlot({
           req(data())
           req(input$slider2b)
