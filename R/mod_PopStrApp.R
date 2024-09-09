@@ -51,7 +51,7 @@ mod_PopStrApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Run analysis", icon = icon("dice-one"),
                                            br(),
-                                           actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
+                                           actionButton(ns("runPopStr"), "Run analysis (click)", icon = icon("play-circle")),
                                            uiOutput(ns("outPopStr")),
 
                                   ),
@@ -188,10 +188,10 @@ mod_PopStrApp_ui <- function(id){
                                                                column(width=12,DT::DTOutput(ns("seeDataGAMOVA")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   ),
-                                  tabPanel("Report", icon = icon("file-image"),
+                                  tabPanel("Dashboard", icon = icon("file-image"),
                                            br(),
-                                           div(tags$p("Please download the report below:") ),
-                                           downloadButton(ns("downloadReportPopStr"), "Download report"),
+                                           #div(tags$p("Please download the report below:") ),
+                                           downloadButton(ns("downloadReportPopStr"), "Download dashboard"),
                                            uiOutput(ns('reportPopStr'))
                                   )
                                   #termina report
@@ -282,12 +282,8 @@ mod_PopStrApp_server <- function(id, data){
         })
 
         #For report
-        output$reportPopStr <- renderUI({
-          parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
-          parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
-          plist=list(parmBi,parmlist)
-          save(plist,file=normalizePath("./data/parmDendMDS.RData"))
-          #HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+        output$reportPopStr <- renderUI({          
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
         ## Report tab
         output$downloadReportPopStr <- downloadHandler(
@@ -297,9 +293,8 @@ mod_PopStrApp_server <- function(id, data){
             ))
           },
           content = function(file) {
-            # src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-            # src2 <- normalizePath('./data/resultPopStr.RData')
-
+		  shinybusy::show_modal_spinner(spin = "fading-circle",
+                                          text = "Generating Report...")
             src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
             src2 <- normalizePath('./data/resultPopStr.RData')
             src3 <- normalizePath('./data/parmDendMDS.RData')
@@ -330,7 +325,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
 
 
         #Ver datos en tabla dinamica AMOVA
@@ -353,7 +348,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
         #Ver datos en tabla dinamica %NA,He,Ho by genotype
         output$seeDataStatGeno<-DT::renderDT({
           seedatosStaG<-as.data.frame(result[["PopStr"]][[5]])
@@ -362,7 +357,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
         #Ver datos en tabla dinamica MDS
         output$seeDataMDS<-DT::renderDT({
           seedatosMDS<-as.data.frame(uno[[5]])
@@ -371,7 +366,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
         #grafico 2d
         output$try=plotly::renderPlotly({
           txlab2=txlab
@@ -433,7 +428,12 @@ mod_PopStrApp_server <- function(id, data){
               plot(tree, type = "fan", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
               legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
             }
-
+			
+			parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
+          parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
+          plist=list(parmBi,parmlist)
+          save(plist,file=normalizePath("./data/parmDendMDS.RData"))
+		  
           }
         })
 
