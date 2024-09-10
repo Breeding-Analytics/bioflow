@@ -302,6 +302,8 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           ## check if the data is in single letter format
           indexMarkers <- which(colnames(tempG)==input$geno_table_firstsnp):which(colnames(tempG)==input$geno_table_lastsnp)
           markersToSample <- sample( indexMarkers,  min(c(length(indexMarkers),20)) )
+          ## remove whitespace
+          tempG[,indexMarkers] <- apply(tempG[,indexMarkers] , 2, function(z){gsub(" ","",z)})
           ## check if user provided letter format markers, if not return an error
           columnClasses <- sort(table(unlist(lapply(tempG[,markersToSample], class))), decreasing = TRUE)
           if( names(columnClasses)[1] %in% c("integer","numeric") ){
@@ -315,9 +317,9 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           ##
           # make sure user is using a single header file
           checkOnCols <- apply(tempG,2,function(x){
-            var(nchar(x), na.rm=TRUE)
+            max(nchar(x), na.rm = TRUE)
           })
-          badMarks <- which(checkOnCols > 0)
+          badMarks <- which(checkOnCols > 3)
           if(length(badMarks) > ncol(tempG)*.9){
             # cat("Are you sure that you are uploading a table with single header? data looks strange")
             shinybusy::remove_modal_spinner()

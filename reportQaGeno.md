@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Genotype Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "July 07, 2024"  
+date: "September 10, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -22,13 +22,14 @@ The following table shows the modifications that have been saved in your analysi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaGenoApp_1-traitQa-label" for="qaGenoApp_1-traitQa">Reason for QA:</label>
 <div>
-<select id="qaGenoApp_1-traitQa" class="shiny-input-select"><option value="impute" selected>impute</option></select>
+<select id="qaGenoApp_1-traitQa" class="shiny-input-select"><option value="%missing" selected>%missing</option>
+<option value="impute">impute</option></select>
 <script type="application/json" data-for="qaGenoApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaGenoApp_1-outd79d477e87c31842" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaGenoApp_1-out412de158636d41bb" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
