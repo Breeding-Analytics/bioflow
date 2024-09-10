@@ -1,7 +1,7 @@
 ---
 title: "Genotype Verification Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "September 02, 2024"  
+date: "September 10, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -32,10 +32,10 @@ The following table shows the values associated for the individuals on different
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-outf876af544e23bf10" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-outc904cbc0bdf752c2" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="hybridityApp_1-outeac07844eb352ea6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="hybridityApp_1-out48028a5a3783fd68" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>

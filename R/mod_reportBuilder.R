@@ -83,7 +83,7 @@ mod_reportBuilder_server <- function(id, data){
       req(data()) # list(QA="qaRaw" , QAmarkers="qaGeno" , STA="sta" ,   MTA="mta",    Index="indexD", OCS="ocs",    RGG="rgg" ,   PGG="pgg" , OFT="oft")
       if(!is.null(data()$status)){
         traitsBuilder <- unique(data()$status$module)
-        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg","oft","neMarker" ) , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Trial Analysis (sta)", "Multi Trial Analysis (mta)", "Multi Trial Analysis (mtaFlex)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)", "On Farm Trial (oft)", "Number of Founders (ne)") )
+        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg","oft","neMarker","gVerif","mas" ) , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Trial Analysis (sta)", "Multi Trial Analysis (mta)", "Multi Trial Analysis (mtaFlex)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)", "On Farm Trial (oft)", "Number of Founders (ne)", "Genotype verification (gVerif)","Marker assisted selection (mas)") )
         updateSelectInput(session, "module", choices = traitsBuilder )
       }
     })
@@ -194,8 +194,8 @@ mod_reportBuilder_server <- function(id, data){
       moveTotheEnd <- which(result$status$analysisId == input$timestamp)
       keepAtTop <- setdiff(1:nrow(result$status), moveTotheEnd)
       result$status <- result$status[c(keepAtTop,moveTotheEnd),]
-      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg","oft","neMarker" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd") )
-      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg","oft","neMarker") , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultIndex.RData","resultOcs.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData") )
+      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg","oft","neMarker","gVerif","mas" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd") )
+      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","indexD","ocs","rgg","pgg","oft","neMarker","gVerif","mas") , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultIndex.RData","resultOcs.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "reportVerifGeno.Rmd", "reportMas.Rmd") )
       ## end
       if(!inherits(result,"try-error")) {
         data(result) # update data with results
