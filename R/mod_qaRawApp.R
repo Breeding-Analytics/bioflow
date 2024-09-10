@@ -203,7 +203,7 @@ mod_qaRawApp_server <- function(id, data){
         mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         mo <- mo[which(is.na(mo$analysisId)),]
         mydata$color <- "valid"
-        if(nrow(mo) > 1){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+        if(nrow(mo) >= 1){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
         mydata$predictedValue <- mydata[,input$traitOutqPheno]
         mydata <- mydata[,which(!duplicated(colnames(mydata)))]
         p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
@@ -247,7 +247,8 @@ mod_qaRawApp_server <- function(id, data){
           dtQaRaw <- dtQaRaw[,unique(c("outlierRow",setdiff(colnames(dtQaRaw), removeCols)))]
           ## merge
           myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
-          myTable <- myTable[!duplicated(myTable$record),]
+          myTable <- myTable[!duplicated(paste(myTable$record, myTable$trait)),]
+          myTable <- myTable[!is.na(myTable$record),]
           DT::datatable(myTable, filter = "top", # extensions = 'Buttons',
                         caption = htmltools::tags$caption(
                           style = 'color:cadetblue', #caption-side: bottom; text-align: center;
