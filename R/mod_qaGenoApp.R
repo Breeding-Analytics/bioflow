@@ -283,6 +283,7 @@ mod_qaGenoApp_server <- function(id, data){
         ##
         if(!is.null(data()$data$geno)){
           mo <- newModifications()
+          mo <- cgiarBase::summaryGeno(mo)
         }else{
           mo <- data.frame(warningText="Genetic marker data not available")
         }
