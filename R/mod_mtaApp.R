@@ -1592,7 +1592,7 @@ mod_mtaApp_server <- function(id, data){
       mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
       p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
-        ggplot2::geom_bar(stat="identity", position=position_dodge())+
+        ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge())+
         ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
       if(input$checkbox1){
         p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
@@ -1621,7 +1621,7 @@ mod_mtaApp_server <- function(id, data){
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Mta),]
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
       p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
-        ggplot2::geom_histogram(aes(y=..density..), position="identity", alpha=input$transparency ) +
+        ggplot2::geom_histogram(ggplot2::aes(y=..density..), position="identity", alpha=input$transparency ) +
         # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE)+
         ggplot2::theme_classic() + ggplot2::ggtitle("Dispersal of predictions associated to the STA stamp selected") +
         # ggplot2::geom_jitter(alpha = 0.4, colour="cadetblue") + # ggplot2::aes(colour = color),

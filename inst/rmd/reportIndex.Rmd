@@ -151,6 +151,33 @@ if (is.null(result)){
 
 <p>&nbsp;</p>
 
+### Modeling table
+
+The following table aims to keep record of the desire values selected and corresponding weights for this run.
+
+```{r, results='asis'}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  modelingTable <- result$modeling
+  modelingTable <- modelingTable[which(modelingTable$analysisId %in% c(idIndex)),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modelingTable)
+  }else{
+    DT::renderDT(DT::datatable(modelingTable, extensions = 'Buttons',
+                                               options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                              lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+    )
+    )
+  }
+  
+}
+```
+
+
 ### Radar Plot
 
 This spider plot allows you to visualize the distance between the population means and the target values (hopefully coming from your product profile).

@@ -39,6 +39,7 @@ Imports:
     nasapower,
     network,
     pedigreemm,
+    pkgload,
     plotly,
     plyr,
     promises,
@@ -47,6 +48,7 @@ Imports:
     RColorBrewer,
     rlang,
     rmdformats,
+    roxygen2,
     RSpectra,
     shiny (>= 1.7.5),
     shinyAce,
@@ -80,7 +82,7 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
-RoxygenNote: 7.3.1.9000
+RoxygenNote: 7.3.2
 Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,

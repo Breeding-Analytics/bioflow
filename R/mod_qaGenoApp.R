@@ -78,6 +78,7 @@ mod_qaGenoApp_ui <- function(id){
                                                                                            DT::DTOutput(ns("summariesGeno")),
                                                                                            # p(span("Preview of potential modifications to add.", style="color:black")),
                                                                                            DT::DTOutput(ns("modificationsQaMarker")),
+                                                                                           plotly::plotlyOutput(ns("plotAllelesCleanOutMarker")),
                                                                                  ),
                                                                           ),
                                                       ),
@@ -246,6 +247,19 @@ mod_qaGenoApp_server <- function(id, data){
         fig = plotly::plot_ly()
         fig = fig %>% plotly::add_annotations(text = "Genetic marker information not available.", x = 1, y = 1)#
         fig
+      }
+
+    })
+
+    ## render the number of alleles
+    output$plotAllelesCleanOutMarker <- plotly::renderPlotly({
+      req(data())
+      mydata <- data()$data$geno
+      ##
+      if(!is.null(mydata)){
+        p <- ggplot2::ggplot(data.frame(x=as.vector(xx)), ggplot2::aes(x=x)) + ggplot2::geom_histogram() +
+          ggplot2::xlab("Allele dosage") + ggplot2::ylab("Count") + ggplot2::ggtitle("Dosages present in the marker set")
+        plotly::ggplotly(p)
       }
 
     })

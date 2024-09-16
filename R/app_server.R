@@ -249,6 +249,7 @@ app_server <- function(input, output, session) {
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
   mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
+  mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
@@ -268,6 +269,7 @@ app_server <- function(input, output, session) {
   mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
+  mod_poolFormApp_server("poolFormApp_1")
   mod_poolFormApp_server("poolFormApp_1") # pool formation
   mod_subsetSelApp_server("subsetSelApp_1") # subset selection
 

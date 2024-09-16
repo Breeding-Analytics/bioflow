@@ -85,7 +85,7 @@ app_ui <- function(request) {
                           navlistPanel( widths = c(1, 11),
                                         tabPanel(div("FinlayW" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
                                         tabPanel(div("Flexible (expm)" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
-
+                                        tabPanel(div("Cross Valid.", style = "color:red"), mod_mtaCrossValApp_ui("mtaCrossValApp_1") ),
                           )
                  ),
 
@@ -118,6 +118,7 @@ app_ui <- function(request) {
                  tabPanel(strong("DRIFT & FLOW HISTORY"), mod_sectionInfoGFDHApp_ui("sectionInfoGFDHApp_1") ),
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
                  tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
+                 tabPanel(div(icon("chart-line"), "Linkage disequilibrium (",  icon("dna"), ")", style = "color:red"),  mod_linkageDisApp_ui("linkageDisApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ) # stpga
       ),
