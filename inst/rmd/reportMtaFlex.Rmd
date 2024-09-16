@@ -255,6 +255,7 @@ if (is.null(result)){
   pred.sta <- result$predictions
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   pred.sta.boxplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
+  pred.sta.boxplot[,"environment"] <- gsub("[[:punct:]]", "", pred.sta.boxplot[,"environment"] )
   # reliabilities
   r2Sta <- result$metrics[result$metrics$analysisId==idSta & result$metrics$parameter == "r2",]
   
@@ -340,7 +341,7 @@ if (is.null(result)){
 } else {
   
   mydata <- result$predictions # extract predictions
-  
+  mydata[,"environment"] <- gsub("[[:punct:]]", "", mydata[,"environment"] )
   
   if("params" %in% ls()){ # we will download the document
     
@@ -351,6 +352,7 @@ if (is.null(result)){
       
       goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == iTrait, "environment"]
       if(length(goodFields) > 0){
+        
         mydata2 <- mydata[which(mydata$trait == iTrait & mydata$environment %in% goodFields), ]
         splitAggregate <- with(mydata2,  split(mydata2[,"designation"],mydata2[,"environment"]) ) # split by environment
         splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names

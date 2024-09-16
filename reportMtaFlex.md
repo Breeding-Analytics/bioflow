@@ -43,7 +43,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaExpApp_1-out803416ca66947ae8" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out597981c1098e3a50" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Map of trials planted
 
@@ -58,16 +58,16 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-traitMta-label" for="mtaExpApp_1-traitMta"></label>
+<label class="control-label" id="reportBuilder_1-traitMta-label" for="reportBuilder_1-traitMta"></label>
 <div>
-<select id="mtaExpApp_1-traitMta" class="shiny-input-select"><option value="CANOPY_7DAS_AVE" selected>CANOPY_7DAS_AVE</option>
+<select id="reportBuilder_1-traitMta" class="shiny-input-select"><option value="CANOPY_7DAS_AVE" selected>CANOPY_7DAS_AVE</option>
 <option value="CANOPY_21DAS_AVE">CANOPY_21DAS_AVE</option>
 <option value="CANOPY_35DAS_AVE">CANOPY_35DAS_AVE</option></select>
-<script type="application/json" data-for="mtaExpApp_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="reportBuilder_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-out8f7d73f9c547cfe5" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outdcc43a6277181fc6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between environments
 
@@ -76,16 +76,16 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-traitMtaConnect-label" for="mtaExpApp_1-traitMtaConnect"></label>
+<label class="control-label" id="reportBuilder_1-traitMtaConnect-label" for="reportBuilder_1-traitMtaConnect"></label>
 <div>
-<select id="mtaExpApp_1-traitMtaConnect" class="shiny-input-select"><option value="CANOPY_7DAS_AVE" selected>CANOPY_7DAS_AVE</option>
+<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="CANOPY_7DAS_AVE" selected>CANOPY_7DAS_AVE</option>
 <option value="CANOPY_21DAS_AVE">CANOPY_21DAS_AVE</option>
 <option value="CANOPY_35DAS_AVE">CANOPY_35DAS_AVE</option></select>
-<script type="application/json" data-for="mtaExpApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="reportBuilder_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out47776b5480f33800" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out2f1511ae7a14f130" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Genetic correlations between environments
 
@@ -93,17 +93,9 @@ The following heatmap and histogram allows to assess the genetic correlations am
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-traitPredictionsCorrelation-label" for="mtaExpApp_1-traitPredictionsCorrelation"></label>
-<div>
-<select id="mtaExpApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="CANOPY_7DAS_AVE" selected>CANOPY_7DAS_AVE</option>
-<option value="CANOPY_21DAS_AVE">CANOPY_21DAS_AVE</option>
-<option value="CANOPY_35DAS_AVE">CANOPY_35DAS_AVE</option></select>
-<script type="application/json" data-for="mtaExpApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out98104ada8f1e6388" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+Only one level for environment found in predictions (you fitted a main effect model maybe?). Skipping correlation plot.
 
 <p>&nbsp;</p>
 
@@ -113,17 +105,9 @@ The following graph allows to see the clustering of different genotypes in the T
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-traitBiplot-label" for="mtaExpApp_1-traitBiplot"></label>
-<div>
-<select id="mtaExpApp_1-traitBiplot" class="shiny-input-select"><option value="CANOPY_7DAS_AVE" selected>CANOPY_7DAS_AVE</option>
-<option value="CANOPY_21DAS_AVE">CANOPY_21DAS_AVE</option>
-<option value="CANOPY_35DAS_AVE">CANOPY_35DAS_AVE</option></select>
-<script type="application/json" data-for="mtaExpApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out7d202ba0df2e70e5" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+Only one level for environment found in predictions (you fitted a main effect or a Finlay-Wilkinson model maybe?). Skipping biplot.
 
 
 <p>&nbsp;</p>
@@ -133,30 +117,26 @@ The following graph allows to see the clustering of different genotypes in the T
 The following barplot aims to help you inspect the across environment estimates for multiple parameters from the multi-trial analysis such as across-environment reliability.
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-parameterMetrics2-label" for="mtaExpApp_1-parameterMetrics2">Parameter:</label>
+<label class="control-label" id="reportBuilder_1-parameterMetrics2-label" for="reportBuilder_1-parameterMetrics2">Parameter:</label>
 <div>
-<select id="mtaExpApp_1-parameterMetrics2" class="shiny-input-select" multiple="multiple"><option value="V.designation">V.designation</option>
-<option value="V.trial">V.trial</option>
+<select id="reportBuilder_1-parameterMetrics2" class="shiny-input-select" multiple="multiple"><option value="V.designation">V.designation</option>
 <option value="V.environment">V.environment</option>
 <option value="V.Residual">V.Residual</option>
 <option value="mean.designation">mean.designation</option>
-<option value="mean.trial">mean.trial</option>
 <option value="mean.environment">mean.environment</option>
 <option value="mean.Residual">mean.Residual</option>
 <option value="CV.designation">CV.designation</option>
-<option value="CV.trial">CV.trial</option>
 <option value="CV.environment">CV.environment</option>
 <option value="CV.Residual">CV.Residual</option>
 <option value="r2.designation" selected>r2.designation</option>
-<option value="r2.trial" selected>r2.trial</option>
 <option value="r2.environment" selected>r2.environment</option>
 <option value="r2.Residual" selected>r2.Residual</option>
 <option value="nEnv">nEnv</option></select>
-<script type="application/json" data-for="mtaExpApp_1-parameterMetrics2">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="reportBuilder_1-parameterMetrics2">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-out5443fb4bf0c6f905" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out3a3a77c89e98c8bd" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -165,7 +145,7 @@ The following graph allows you to assess the proportion of variance going to dif
 <p>&nbsp;</p>
 
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaExpApp_1-outcd5d08550d554912" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-oute401da30db881c8e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -178,31 +158,28 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-traitMta2-label" for="mtaExpApp_1-traitMta2">Trait</label>
+<label class="control-label" id="reportBuilder_1-traitMta2-label" for="reportBuilder_1-traitMta2">Trait</label>
 <div>
-<select id="mtaExpApp_1-traitMta2" class="shiny-input-select"><option value="CANOPY_35DAS_AVE" selected>CANOPY_35DAS_AVE</option>
+<select id="reportBuilder_1-traitMta2" class="shiny-input-select"><option value="CANOPY_7DAS_AVE" selected>CANOPY_7DAS_AVE</option>
 <option value="CANOPY_21DAS_AVE">CANOPY_21DAS_AVE</option>
-<option value="CANOPY_7DAS_AVE">CANOPY_7DAS_AVE</option></select>
-<script type="application/json" data-for="mtaExpApp_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<option value="CANOPY_35DAS_AVE">CANOPY_35DAS_AVE</option></select>
+<script type="application/json" data-for="reportBuilder_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-envCovMta2-label" for="mtaExpApp_1-envCovMta2">Environment</label>
+<label class="control-label" id="reportBuilder_1-envCovMta2-label" for="reportBuilder_1-envCovMta2">Environment</label>
 <div>
-<select id="mtaExpApp_1-envCovMta2" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="L.DSR23WS17Cycle2">L.DSR23WS17Cycle2</option>
-<option value="L.DSR23DS22Cycle1">L.DSR23DS22Cycle1</option>
-<option value="L.DSR23DS22Cycle3">L.DSR23DS22Cycle3</option></select>
-<script type="application/json" data-for="mtaExpApp_1-envCovMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="reportBuilder_1-envCovMta2" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option></select>
+<script type="application/json" data-for="reportBuilder_1-envCovMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out25a43788ad1f9e4b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out6470001053c70314" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -213,47 +190,9 @@ In the left-side plot you can observe the comparison between the top 100 entries
 
 The following plots allow you to identify individuals with high performance for a trait but also with high or low sensitivity to the environmental means from a weather covariate or just the environmental means.
 
-<!--html_preserve--><div class="shiny-input-panel">
-<div class="shiny-flow-layout">
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-traitMta3-label" for="mtaExpApp_1-traitMta3">Trait</label>
-<div>
-<select id="mtaExpApp_1-traitMta3" class="shiny-input-select"><option value="CANOPY_35DAS_AVE" selected>CANOPY_35DAS_AVE</option>
-<option value="CANOPY_21DAS_AVE">CANOPY_21DAS_AVE</option>
-<option value="CANOPY_7DAS_AVE">CANOPY_7DAS_AVE</option></select>
-<script type="application/json" data-for="mtaExpApp_1-traitMta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-envCovMta3-label" for="mtaExpApp_1-envCovMta3">Level 1</label>
-<div>
-<select id="mtaExpApp_1-envCovMta3" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="L.DSR23WS17Cycle2">L.DSR23WS17Cycle2</option>
-<option value="L.DSR23DS22Cycle1">L.DSR23DS22Cycle1</option>
-<option value="L.DSR23DS22Cycle3">L.DSR23DS22Cycle3</option></select>
-<script type="application/json" data-for="mtaExpApp_1-envCovMta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-envCovMta4-label" for="mtaExpApp_1-envCovMta4">Level 2</label>
-<div>
-<select id="mtaExpApp_1-envCovMta4" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="L.DSR23WS17Cycle2">L.DSR23WS17Cycle2</option>
-<option value="L.DSR23DS22Cycle1">L.DSR23DS22Cycle1</option>
-<option value="L.DSR23DS22Cycle3">L.DSR23DS22Cycle3</option></select>
-<script type="application/json" data-for="mtaExpApp_1-envCovMta4" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out3c0140eabe7e912f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+No random regression model found. Skipping sensitivity plot.
 
 
 <p>&nbsp;</p>
@@ -264,21 +203,21 @@ The following plots allow the user to compare the top 30 entries against the dif
 
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-checkMta-label" for="mtaExpApp_1-checkMta">Check to compare to:</label>
+<label class="control-label" id="reportBuilder_1-checkMta-label" for="reportBuilder_1-checkMta">Check to compare to:</label>
 <div>
-<select id="mtaExpApp_1-checkMta" class="shiny-input-select"><option value="CG 14" selected>CG 14</option>
+<select id="reportBuilder_1-checkMta" class="shiny-input-select"><option value="CG 14" selected>CG 14</option>
 <option value="DINORADO">DINORADO</option>
 <option value="IR 64">IR 64</option>
 <option value="UPLRI 5">UPLRI 5</option>
 <option value="UPLRI 7">UPLRI 7</option>
 <option value="Vandana">Vandana</option></select>
-<script type="application/json" data-for="mtaExpApp_1-checkMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="reportBuilder_1-checkMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out2e5988e9ed50e077" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outb606630f3dffc258" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaExpApp_1-outf9100f742f21989b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out99549dd6a5727872" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Genetic correlations between traits
@@ -291,20 +230,17 @@ The following heatmap and histogram allows to see the genetic correlations among
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="mtaExpApp_1-envCovMtaTraits-label" for="mtaExpApp_1-envCovMtaTraits">Environment</label>
+<label class="control-label" id="reportBuilder_1-envCovMtaTraits-label" for="reportBuilder_1-envCovMtaTraits">Environment</label>
 <div>
-<select id="mtaExpApp_1-envCovMtaTraits" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="L.DSR23WS17Cycle2">L.DSR23WS17Cycle2</option>
-<option value="L.DSR23DS22Cycle1">L.DSR23DS22Cycle1</option>
-<option value="L.DSR23DS22Cycle3">L.DSR23DS22Cycle3</option></select>
-<script type="application/json" data-for="mtaExpApp_1-envCovMtaTraits" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="reportBuilder_1-envCovMtaTraits" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option></select>
+<script type="application/json" data-for="reportBuilder_1-envCovMtaTraits" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaExpApp_1-out8f66b9be8a7aead7" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out572e7b5d51ff1fa9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -314,7 +250,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaExpApp_1-outf9aa8b164b6a968a" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out20fb937bf3f6e55e" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used
