@@ -1,14 +1,34 @@
 ---
-title: "Population structure report"
+title: "Population Structure Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
 params:
-toDownload: FALSE
+  toDownload: FALSE
 ---
   
+  
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE, out.width = "100%")
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+# loading necessary R packages ####
+## data manipulation
+# library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(data.table)
+library(shiny)
 ```
 
 ```{r printfxn, include=FALSE}
@@ -46,12 +66,10 @@ printTable <- function(DT, pageLength = 7,
 }
 ```
 
-```{r plot_init, include = FALSE}
+```{r, include=FALSE}
 # Init Step to make sure that the dependencies are loaded
-# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
 htmltools::tagList(printTable(mtcars))
-#htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
-
+htmltools::tagList(ggplotly(ggplot()))
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -62,7 +80,6 @@ get_h <- function() {
   with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
        fig.height*dpi/fig.retina)
 }
-
 ```
 
 ### Summary diversity
@@ -73,8 +90,8 @@ The following table allows you to inspect the principal statistics for the diver
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
-    load(normalizePath("R/outputs/resultPopStr.RData"))   
+  if(file.exists(normalizePath("./data/resultPopStr.RData"))){
+    load(normalizePath("./data/resultPopStr.RData"))   
   }else{
     load("resultPopStr.RData")
   }
@@ -85,15 +102,27 @@ suppressWarnings(tryCatch({
     seedatosum<-as.data.frame(result[["PopStr"]][["SummaryDiversityAnalysis"]])
     colnames(seedatosum)=c("Parameter","Value")
     seedatosum[,2]=as.numeric(seedatosum[,2])
-    #if("params" %in% ls()){ 
-      printTable(seedatosum)
-    #}else{
-    #  DT::renderDT(DT::datatable(seedatosum, extensions = 'Buttons',
-    #                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv','excel', 'pdf', 'print'),
-    #                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))))
-    #              )
-    #}
-
+if("params" %in% ls()){ # we will download the document
+    DT::formatRound(DT::datatable(
+      seedatosum,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    ),"Value",5)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      seedatosum,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    ),"Value",5)
+    })
+  }
+  
 ```
 
 <p>&nbsp;</p>
@@ -105,8 +134,8 @@ suppressWarnings(tryCatch({
 <p>&nbsp;</p>
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
-    load(normalizePath("R/outputs/resultPopStr.RData"))
+  if(file.exists(normalizePath("./data/resultPopStr.RData"))){
+    load(normalizePath("./data/resultPopStr.RData"))
   }else{
     load("resultPopStr.RData")	
   }
@@ -117,14 +146,25 @@ suppressWarnings(tryCatch({
       NAmark=result[["PopStr"]][["CalculusPerMarker"]][["%NA"]]
       NAgen=result[["PopStr"]][["CalculusPerGenotype"]][["%NA"]]
 
+if("params" %in% ls()){ # we will download the document
       fig <- plotly::plot_ly(y = ~NAmark, type = "box", name="missing values in markers")
       fig <- fig %>% plotly::add_trace(y = ~NAgen, name="missing values in genotypes")
-      fig <- fig %>% plotly::layout(yaxis = list(title = 'Percent'))
-      fig 
-
+      fig <- fig %>% plotly::layout(yaxis = list(title = 'Percent'),height = "550px",width = "750px")
+      fig
+}else{
+	plotly::renderPlotly({
+      fig <- plotly::plot_ly(y = ~NAmark, type = "box", name="missing values in markers")
+      fig <- fig %>% plotly::add_trace(y = ~NAgen, name="missing values in genotypes")
+      fig <- fig %>% plotly::layout(yaxis = list(title = 'Percent'),height = "550px",width = "750px")
+      fig
+	})
+}
 ```
 
 <p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
 ### AMOVA
 
  Is a powerful tool that can help support hypotheses of population structure due to clonal reproduction or isolation without making assumptions about Hardy-Weinberg equilibrium. We have shown that we can reject the Ho
@@ -134,8 +174,8 @@ suppressWarnings(tryCatch({
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
-    load(normalizePath("R/outputs/resultPopStr.RData"))   
+  if(file.exists(normalizePath("./data/resultPopStr.RData"))){
+    load(normalizePath("./data/resultPopStr.RData"))   
   }else{
     load("resultPopStr.RData")
   }
@@ -145,7 +185,26 @@ suppressWarnings(tryCatch({
 
     seeamova<-as.data.frame(result[["PopStr"]][["AMOVA"]])
     colnames(seeamova)=c("source","Df","SumOfSqs","MS","F","Pr.F","Sigma" ,"PercVar","Phi")
-    printTable(seeamova)
+	if("params" %in% ls()){ # we will download the document
+		DT::formatRound(DT::datatable(
+      seeamova,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    ),c("SumOfSqs","MS","F","Pr.F","Sigma" ,"PercVar","Phi"),5)
+	}else{
+		DT::renderDT({DT::formatRound(DT::datatable(
+      seeamova,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    ),c("SumOfSqs","MS","F","Pr.F","Sigma" ,"PercVar","Phi"),5)
+    })
+	}
     
 
 ```
@@ -159,9 +218,9 @@ suppressWarnings(tryCatch({
 <p>&nbsp;</p>
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
-    load(normalizePath("R/outputs/resultPopStr.RData"))
-	load(normalizePath("R/outputs/parmDendMDS.RData"))
+  if(file.exists(normalizePath("./data/resultPopStr.RData"))){
+    load(normalizePath("./data/resultPopStr.RData"))
+	load(normalizePath("./data/parmDendMDS.RData"))
   }else{
     load("resultPopStr.RData")
 	load("parmDendMDS.RData")
@@ -185,16 +244,32 @@ suppressWarnings(tryCatch({
 	if(plist[[1]][[2]]=="Factor2") tylab2=tylab
 	if(plist[[1]][[2]]=="Factor3") tylab2=tzlab
 
+if("params" %in% ls()){ # we will download the document
 	p<-plotly::plot_ly(data=uno,x=uno[,plist[[1]][[1]]],y=uno[,plist[[1]][[2]]],color=uno[,catv],
                    type="scatter",mode="markers",colors = plist[[1]][[3]],xaxis=F, yaxis=F,
                    text=uno[,eti],marker=list(size=plist[[1]][[4]]))
 	#color de fondo del grafico
-	p<-p %>% plotly::layout(plot_bgcolor=plist[[1]][[5]],autosize=F, height = "350px",width = "550px")
+	p<-p %>% plotly::layout(plot_bgcolor=plist[[1]][[5]],autosize=F, height = "550px",width = "750px")
 	#titulo y etiquetas ejes
 	p<-p %>% plotly::layout(title=plist[[1]][[6]],titlefont=list(size=plist[[1]][[7]],color=plist[[1]][[8]]), xaxis = list(title = txlab2, titlefont=list(size=plist[[1]][[9]],color=plist[[1]][[10]])),
                         yaxis = list(title = tylab2,titlefont=list(size=plist[[1]][[9]],color=plist[[1]][[10]])))
 	p
+}else{
+	plotly::renderPlotly({
+		p<-plotly::plot_ly(data=uno,x=uno[,plist[[1]][[1]]],y=uno[,plist[[1]][[2]]],color=uno[,catv],
+                   type="scatter",mode="markers",colors = plist[[1]][[3]],xaxis=F, yaxis=F,
+                   text=uno[,eti],marker=list(size=plist[[1]][[4]]))
+	#color de fondo del grafico
+	p<-p %>% plotly::layout(plot_bgcolor=plist[[1]][[5]],autosize=F, height = "550px",width = "750px")
+	#titulo y etiquetas ejes
+	p<-p %>% plotly::layout(title=plist[[1]][[6]],titlefont=list(size=plist[[1]][[7]],color=plist[[1]][[8]]), xaxis = list(title = txlab2, titlefont=list(size=plist[[1]][[9]],color=plist[[1]][[10]])),
+                        yaxis = list(title = tylab2,titlefont=list(size=plist[[1]][[9]],color=plist[[1]][[10]])))
+	p
+})
+}
 ```
+
+<p>&nbsp;</p>
 
 <p>&nbsp;</p>
 
@@ -205,9 +280,9 @@ suppressWarnings(tryCatch({
 <p>&nbsp;</p>
 ```{r, results='asis',fig.width=14, fig.height=14}
 suppressWarnings(tryCatch({
-  if(file.exists(normalizePath("R/outputs/resultPopStr.RData"))){
-    load(normalizePath("R/outputs/resultPopStr.RData"))
-	load(normalizePath("R/outputs/parmDendMDS.RData"))
+  if(file.exists(normalizePath("./data/resultPopStr.RData"))){
+    load(normalizePath("./data/resultPopStr.RData"))
+	load(normalizePath("./data/parmDendMDS.RData"))
   }else{
     load("resultPopStr.RData")
 	load("parmDendMDS.RData")
@@ -226,14 +301,28 @@ suppressWarnings(tryCatch({
       info<- cbind(ID=info$Gen,info)
       names(info)=c("ID","Gen","Group")
       tree=result[["PopStr"]][["Plots"]][[3]]
-
+	  
+if("params" %in% ls()){ # we will download the document
 	if (plist[[2]][[1]]=="rectangular"){
-		plot(tree, type = "phylogram", cex = plist[[2]][[2]], label.offset = plist[[2]][[3]], show.tip.label = TRUE, edge.color = "black", edge.width =plist[[2]][[4]], edge.lty = 1,tip.color = plist[[2]][[5]][info$Group])
-		legend(plist[[2]][[6]], legend=levels(info$Group), fill=plist[[2]][[5]],box.lty=0)
+			plot(tree, type = "phylogram", cex = plist[[2]][[2]], label.offset = plist[[2]][[3]], show.tip.label = TRUE, edge.color = "black", edge.width =plist[[2]][[4]], edge.lty = 1,tip.color = plist[[2]][[5]][info$Group])
+			legend(plist[[2]][[6]], legend=levels(info$Group), fill=plist[[2]][[5]],box.lty=0)
 	}else{
-		plot(tree, type = "fan", cex = plist[[2]][[2]], label.offset = plist[[2]][[3]], show.tip.label = TRUE, edge.color = "black", edge.width =plist[[2]][[4]], edge.lty = 1,tip.color = plist[[2]][[5]][info$Group])
-		legend(plist[[2]][[6]], legend=levels(info$Group), fill=plist[[2]][[5]],box.lty=0)
+			plot(tree, type = "fan", cex = plist[[2]][[2]], label.offset = plist[[2]][[3]], show.tip.label = TRUE, edge.color = "black", edge.width =plist[[2]][[4]], edge.lty = 1,tip.color = plist[[2]][[5]][info$Group])
+			legend(plist[[2]][[6]], legend=levels(info$Group), fill=plist[[2]][[5]],box.lty=0)
 	}
-
+}else{
+	if (plist[[2]][[1]]=="rectangular"){
+		shiny::renderPlot({
+			plot(tree, type = "phylogram", cex = plist[[2]][[2]], label.offset = plist[[2]][[3]], show.tip.label = TRUE, edge.color = "black", edge.width =plist[[2]][[4]], edge.lty = 1,tip.color = plist[[2]][[5]][info$Group])
+			legend(plist[[2]][[6]], legend=levels(info$Group), fill=plist[[2]][[5]],box.lty=0)
+		},width = 950,height = 850)
+	}else{
+		shiny::renderPlot({
+			plot(tree, type = "fan", cex = plist[[2]][[2]], label.offset = plist[[2]][[3]], show.tip.label = TRUE, edge.color = "black", edge.width =plist[[2]][[4]], edge.lty = 1,tip.color = plist[[2]][[5]][info$Group])
+			legend(plist[[2]][[6]], legend=levels(info$Group), fill=plist[[2]][[5]],box.lty=0)
+		},width = 950,height = 850)
+	}
+}
 ```
+
 

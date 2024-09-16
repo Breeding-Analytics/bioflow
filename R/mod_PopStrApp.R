@@ -51,7 +51,7 @@ mod_PopStrApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Run analysis", icon = icon("dice-one"),
                                            br(),
-                                           actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
+                                           actionButton(ns("runPopStr"), "Run analysis (click)", icon = icon("play-circle")),
                                            uiOutput(ns("outPopStr")),
 
                                   ),
@@ -88,6 +88,12 @@ mod_PopStrApp_ui <- function(id){
 
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
                                 tabsetPanel(
+								  tabPanel("Dashboard", icon = icon("file-image"),
+                                           br(),                                           
+                                           downloadButton(ns("downloadReportPopStr"), "Download dashboard"),
+                                           uiOutput(ns('reportPopStr'))
+                                  ),
+                                  #termina report
                                   tabPanel("Statistics", icon = icon("table"),
                                            br(),
                                            shinydashboard::box(title="By Genotypes",status="success",width = 12, collapsible = TRUE, solidHeader = TRUE,
@@ -187,14 +193,8 @@ mod_PopStrApp_ui <- function(id){
                                            shinydashboard::box(title="AMOVA",status="success",width = 12,solidHeader = TRUE, collapsible = FALSE,
                                                                column(width=12,DT::DTOutput(ns("seeDataGAMOVA")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            )
-                                  ),
-                                  tabPanel("Report", icon = icon("file-image"),
-                                           br(),
-                                           div(tags$p("Please download the report below:") ),
-                                           downloadButton(ns("downloadReportPopStr"), "Download report"),
-                                           uiOutput(ns('reportPopStr'))
                                   )
-                                  #termina report
+                                  
                                 )
                        )# end of output panel
                      )) # end mainpanel
@@ -261,65 +261,29 @@ mod_PopStrApp_server <- function(id, data){
         result <- list(PopStr=uno[[4]])
         result$PopStr$AMOVA=uno[[7]]
         result$PopStr$Plots=list(uno[[3]],uno[[5]],uno[[6]])
-        save(result,file=normalizePath("R/outputs/resultPopStr.RData"))
-
+        save(result,file=normalizePath("./resultPopStr.RData"))
+		
+		
         if(length(names(uno[[5]]))>5) catv<-names(uno[[5]])[6]
         txlab <- paste0('Factor 1 (',uno[[3]][1],'%)')
         tylab <- paste0('Factor 2 (',uno[[3]][2],'%)')
         tzlab <- paste0('Factor 3 (',uno[[3]][3],'%)')
         eti <- "Gen"
-
         #Actualiza la variable catv (grupos) en conjunto con la seleccion de colores
-        observeEvent(catv,{
           set.seed(7)
           colores=colors()[-c(1,3:12,13:25,24,37:46,57:67,80,82,83,85:89,101:106,108:113,126:127,138,140:141,152:253,260:366,377:392,
                               394:447,449,478:489,492,513:534,536:546,557:561,579:583,589:609,620:629,418,436,646:651)]
           d=sample(colores,100)
           var=as.factor(uno[[5]][,catv])
-          grupos=nlevels(var)
+          grupos=nlevels(var)		 
           updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
-          updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
-        })
-
-        #For report
-        output$reportPopStr <- renderUI({
-          parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
-          parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
+          updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos]) 
+		
+		  parmBi=list(input$xcol, input$ycol,  d[1:grupos],  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
+          parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,d[1:grupos],input$poslen)
           plist=list(parmBi,parmlist)
-          save(plist,file=normalizePath("R/outputs/parmDendMDS.RData"))
-          #HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-        ## Report tab
-        output$downloadReportPopStr <- downloadHandler(
-          filename = function() {
-            paste('my-report', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            # src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-            # src2 <- normalizePath('./R/outputs/resultPopStr.RData')
-
-            src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-            src2 <- normalizePath('R/outputs/resultPopStr.RData')
-            src3 <- normalizePath('R/outputs/parmDendMDS.RData')
-
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-            file.copy(src3, 'parmDendMDS.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              # HTML = rmarkdown::html_document()
-              HTML = rmdformats::robobook(toc_depth = 4)
-            ))
-            file.rename(out, file)
-            shinybusy::remove_modal_spinner()
-          }
-        )
+          save(plist,file=normalizePath("./parmDendMDS.RData"))
+        
         #Ver datos en tabla dinamica Summary Diversity
         output$seeDataDiver<-DT::renderDT({
           allInfo=result[["PopStr"]]
@@ -330,7 +294,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
 
 
         #Ver datos en tabla dinamica AMOVA
@@ -353,7 +317,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
         #Ver datos en tabla dinamica %NA,He,Ho by genotype
         output$seeDataStatGeno<-DT::renderDT({
           seedatosStaG<-as.data.frame(result[["PopStr"]][[5]])
@@ -362,7 +326,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
         #Ver datos en tabla dinamica MDS
         output$seeDataMDS<-DT::renderDT({
           seedatosMDS<-as.data.frame(uno[[5]])
@@ -371,7 +335,7 @@ mod_PopStrApp_server <- function(id, data){
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
-        }, server = FALSE)
+        })
         #grafico 2d
         output$try=plotly::renderPlotly({
           txlab2=txlab
@@ -433,9 +397,49 @@ mod_PopStrApp_server <- function(id, data){
               plot(tree, type = "fan", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
               legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
             }
-
+			
+		  parmBi=list(input$xcol, input$ycol,  input$color,  input$size,  input$bkgp,  input$tp,  input$ts,  input$pnc,  input$szl,  input$ac)
+          parmlist=list(input$typeclust,input$sizelab,input$space,input$sizeline,input$colordend,input$poslen)
+          plist=list(parmBi,parmlist)
+          save(plist,file=normalizePath("./parmDendMDS.RData"))
+		  
           }
         })
+		
+		#For report
+        output$reportPopStr <- renderUI({          
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+        })
+        ## Report tab
+        output$downloadReportPopStr <- downloadHandler(
+          filename = function() {
+            paste('my-report', sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+		  shinybusy::show_modal_spinner(spin = "fading-circle",
+                                          text = "Generating Report...")
+            src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
+            src2 <- normalizePath('./resultPopStr.RData')
+            src3 <- normalizePath('./parmDendMDS.RData')
+
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
+            file.copy(src3, 'parmDendMDS.RData', overwrite = TRUE)
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              # HTML = rmarkdown::html_document()
+              HTML = rmdformats::robobook(toc_depth = 4)
+            ))
+            file.rename(out, file)
+            shinybusy::remove_modal_spinner()
+          }
+        )
 
         if(length(input$fileenvbio$datapath)!=0 & catv=="GroupClust"){
           HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready but please check the external groups file, did't find genotype names matches" )) )
