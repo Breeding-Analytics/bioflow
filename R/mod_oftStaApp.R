@@ -259,7 +259,7 @@ mod_oftStaApp_server <- function(id, data){
 
     ## version
     observeEvent(c(data()), {
-      req(input$version2Oft)
+      # req(input$version2Oft)
       req(data())
       dtOft <- data()
       dtOft <- dtOft$status
