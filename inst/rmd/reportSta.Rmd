@@ -659,6 +659,38 @@ if (is.null(result)){
 }
 ```
 
+### Modeling parameters
+
+This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- idSta[length(idSta)]
+  modelingSta <- result$modeling[which(modeling$analysisId == idSta),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modelingSta)
+  }else{
+    DT::renderDT({DT::datatable(
+      modelingSta,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    )
+    })
+  }
+  
+}
+
+```
+
+
 ### Predictions
 
 The adjusted means in the following visuualizations are the result of fitting a experimental-design agnostic mixed model where everything that can be fitted will be fitted in order to remove as much spatial noise as possible. That means that if a trial has block and incomplete block information both will be fitted. If the trial has also row and column information it will also be fitted together with a spatial kernel (Rodriguez-Alvarez et al., 2018). These table of adjusted means will be used as input information for the multi-trial analysis. We recommend you to don't take any selection decision at this point and wait until the multi-trial analysis is fitted.

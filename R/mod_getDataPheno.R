@@ -769,8 +769,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               study = 'studyName',
               rep = 'rep',
               iBlock = 'block',
-              row = 'positionCoordinateY',
-              col = 'positionCoordinateX',
+              row = 'positionCoordinateY', # 'designY',#
+              col =  'positionCoordinateX', # 'designX',
               designation = 'germplasmName',
               gid = 'germplasmDbId',
               location = 'locationName',

@@ -1592,6 +1592,37 @@ if (is.null(result)){
 
 ```
 
+### Modeling parameters
+
+This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  idMta <- result$status[which(result$status$module == "mtaFlex"),"analysisId"];
+  idMta <- idMta[length(idMta)]
+  modelingMta <- result$modeling[which(modeling$analysisId == idMta),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modelingMta)
+  }else{
+    DT::renderDT({DT::datatable(
+      modelingMta,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      extensions = 'Buttons',
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+    )
+    })
+  }
+  
+}
+
+```
+
 
 ### References of methods used
 

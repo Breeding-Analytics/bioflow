@@ -112,7 +112,7 @@
 #
 # golem::add_module(name = "bindObjectApp", with_test = FALSE) # QA after sta
 # golem::add_module(name = "singleCrossGenoApp", with_test = FALSE) # QA after sta
-# golem::add_module(name = "traitTransformApp", with_test = TRUE) # QA after sta
+# golem::add_module(name = "traitTransformApp", with_test = FALSE) # QA after sta
 #
 # golem::add_module(name = "staApp", with_test = FALSE) # single trial analysis
 # golem::add_module(name = "mtaExploreApp", with_test = FALSE) # single trial analysis
@@ -126,6 +126,7 @@
 # golem::add_module(name = "ocsApp", with_test = FALSE) # optimal cross selection
 # golem::add_module(name = "rggApp", with_test = FALSE) # realized genetic gain
 # golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "schemeDesignApp", with_test = FALSE) # QA after sta
 # golem::add_module(name = "selSignApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "dataConsistPotatoApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "gwasqkApp", with_test = FALSE) # predicted genetic gain
