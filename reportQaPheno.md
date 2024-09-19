@@ -20,15 +20,16 @@ params:
 The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw phenotypic data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., single trial analysis module).
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="qaRawApp_1-traitQa-label" for="qaRawApp_1-traitQa">Trait:</label>
+<label class="control-label" id="qaPhenoApp_1-traitQa-label" for="qaPhenoApp_1-traitQa">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQa" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
-<script type="application/json" data-for="qaRawApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="qaPhenoApp_1-traitQa" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<script type="application/json" data-for="qaPhenoApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaRawApp_1-out27a4ece80b71877c" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaPhenoApp_1-out6bbe3bfcc7232b5d" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -41,14 +42,15 @@ The following boxplot allows you to visualize which records were tagged as outli
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="qaRawApp_1-traitQaBox-label" for="qaRawApp_1-traitQaBox">Trait:</label>
+<label class="control-label" id="qaPhenoApp_1-traitQaBox-label" for="qaPhenoApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="qaRawApp_1-traitQaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option></select>
-<script type="application/json" data-for="qaRawApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="qaPhenoApp_1-traitQaBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<script type="application/json" data-for="qaPhenoApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaRawApp_1-outea517ff46166d577" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaPhenoApp_1-out0d72e033fe326aca" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

@@ -229,7 +229,7 @@ app_server <- function(input, output, session) {
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
 
   ## QUALITY ASSURANCE tabs
-  mod_qaRawApp_server("qaRawApp_1", data = data)
+  mod_qaPhenoApp_server("qaPhenoApp_1", data = data)
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
   #mod_qaPedApp_server("qaPedApp_1",data = data)
 

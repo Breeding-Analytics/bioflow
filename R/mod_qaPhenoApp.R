@@ -1,4 +1,4 @@
-#' qaRawApp UI Function
+#' qaPhenoApp UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_qaRawApp_ui <- function(id){
+mod_qaPhenoApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
@@ -25,7 +25,7 @@ mod_qaRawApp_ui <- function(id){
                                                   uiOutput(ns("warningMessage")),
                                                   tags$br(),
                                                   # column(width=4, tags$br(),
-                                                         shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                                  shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                                   # ),
                                                   tags$br(),
                                                   img(src = "www/qaRaw.png", height = 200, width = 470), # add an image
@@ -57,29 +57,29 @@ mod_qaRawApp_ui <- function(id){
                                                       ),
                                                       column(width=12),
                                                       shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                      column(width=12,
-                                                             hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                             h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                             hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      ),
-                                                      tags$span(id = ns('holder'),
-                                                                column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
-                                                                column(width=3, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
-                                                                column(width=2, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
-                                                      ),
-                                                      column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                      column(width=12,
-                                                             DT::DTOutput(ns("modificationsQa")),
-                                                      )
+                                                                          column(width=12,
+                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                 h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          ),
+                                                                          tags$span(id = ns('holder'),
+                                                                                    column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                                    column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
+                                                                                    column(width=3, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
+                                                                                    column(width=2, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
+                                                                          ),
+                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                          column(width=12,
+                                                                                 DT::DTOutput(ns("modificationsQa")),
+                                                                          )
                                                       ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("dice-two"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      br(),
-                                                      actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
-                                                      br(),
-                                                      br(),
+                                                             br(),
+                                                             actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
+                                                             br(),
+                                                             br(),
                                                       ),
                                                       textOutput(ns("outQaRaw")),
                                              ),
@@ -105,7 +105,7 @@ mod_qaRawApp_ui <- function(id){
 #' qaRawApp Server Functions
 #'
 #' @noRd
-mod_qaRawApp_server <- function(id, data){
+mod_qaPhenoApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -172,14 +172,22 @@ mod_qaRawApp_server <- function(id, data){
       }
     }, ignoreNULL = TRUE)
 
-    # Create the fields
+    # Create the available traits
     observeEvent(data(), {
       req(data())
-      dtQaRaw <- data()
-      dtQaRaw <- dtQaRaw$metadata$pheno
-      traitsQaRaw <- unique(dtQaRaw[dtQaRaw$parameter=="trait","value"])
-      updateSelectInput(session, "traitOutqPheno",choices = traitsQaRaw)
-      updateSelectInput(session, "traitOutqPhenoMultiple",choices = traitsQaRaw, selected = NULL)
+      objectQaRaw <- data()
+      metaQaRaw <- objectQaRaw$metadata$pheno
+      traitsQaRaw <- unique(metaQaRaw[metaQaRaw$parameter=="trait","value"])
+      # traits with variance different than zero
+      varsTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw],2,var, na.rm=TRUE)
+      traitsQaRawVar <- names(which(varsTraits > 0))
+      # traits with at least some data in any trial
+      naTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw],2,sommer::propMissing)
+      traitsQaRawNa <- names(which(naTraits < 1))
+      # intersection of both trait types
+      traitsQaRawVarNa <- intersect(traitsQaRawVar,traitsQaRawNa)
+      updateSelectInput(session, "traitOutqPheno",choices = traitsQaRawVarNa)
+      updateSelectInput(session, "traitOutqPhenoMultiple",choices = traitsQaRawVarNa, selected = NULL)
       shinyjs::hide(ns("traitOutqPheno"))
     })
 
@@ -249,12 +257,21 @@ mod_qaRawApp_server <- function(id, data){
           myTable <- base::merge(outlier,dtQaRaw, by.x="record", by.y="outlierRow", all.x=TRUE)
           myTable <- myTable[!duplicated(paste(myTable$record, myTable$trait)),]
           myTable <- myTable[!is.na(myTable$record),]
-          DT::datatable(myTable, filter = "top", # extensions = 'Buttons',
+          DT::datatable(myTable, extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                         caption = htmltools::tags$caption(
                           style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                           htmltools::em('Please check potential outliers and click on relevant data points to keep them in the workflow.')
                         )
           )
+
+          # DT::datatable(myTable, filter = "top", # extensions = 'Buttons',
+          #               caption = htmltools::tags$caption(
+          #                 style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+          #                 htmltools::em('Please check potential outliers and click on relevant data points to keep them in the workflow.')
+          #               )
+          # )
         }
       }, server = FALSE)
     })
@@ -449,7 +466,7 @@ mod_qaRawApp_server <- function(id, data){
 }
 
 ## To be copied in the UI
-# mod_qaRawApp_ui("qaRawApp_1")
+# mod_qaRawApp_ui("qaPhenoApp_1")
 
 ## To be copied in the server
-# mod_qaRawApp_server("qaRawApp_1")
+# mod_qaRawApp_server("qaPhenoApp_1")
