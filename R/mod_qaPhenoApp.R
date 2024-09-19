@@ -179,15 +179,17 @@ mod_qaPhenoApp_server <- function(id, data){
       metaQaRaw <- objectQaRaw$metadata$pheno
       traitsQaRaw <- unique(metaQaRaw[metaQaRaw$parameter=="trait","value"])
       # traits with variance different than zero
-      varsTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw],2,var, na.rm=TRUE)
-      traitsQaRawVar <- names(which(varsTraits > 0))
-      # traits with at least some data in any trial
-      naTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw],2,sommer::propMissing)
-      traitsQaRawNa <- names(which(naTraits < 1))
-      # intersection of both trait types
-      traitsQaRawVarNa <- intersect(traitsQaRawVar,traitsQaRawNa)
-      updateSelectInput(session, "traitOutqPheno",choices = traitsQaRawVarNa)
-      updateSelectInput(session, "traitOutqPhenoMultiple",choices = traitsQaRawVarNa, selected = NULL)
+      if(length(traitsQaRaw) > 0){
+        varsTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw,drop=FALSE],2,var, na.rm=TRUE)
+        traitsQaRawVar <- names(which(varsTraits > 0))
+        # traits with at least some data in any trial
+        naTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw,drop=FALSE],2,sommer::propMissing)
+        traitsQaRawNa <- names(which(naTraits < 1))
+        # intersection of both trait types
+        traitsQaRawVarNa <- intersect(traitsQaRawVar,traitsQaRawNa)
+        updateSelectInput(session, "traitOutqPheno",choices = traitsQaRawVarNa)
+        updateSelectInput(session, "traitOutqPhenoMultiple",choices = traitsQaRawVarNa, selected = NULL)
+      }
       shinyjs::hide(ns("traitOutqPheno"))
     })
 

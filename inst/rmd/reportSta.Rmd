@@ -275,53 +275,63 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  pred.traits <- subset(pred, select = c(trait,designation,environment,predictedValue))
-  ## Max
-  pred.traits.max <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
-  colnames(pred.traits.max)[3] <- "max"
-  ## Min
-  pred.traits.min <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) min(x,na.rm=T))
-  colnames(pred.traits.min)[3] <- "min"
-  ## Mean
-  pred.traits.mean <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
-  colnames(pred.traits.mean)[3] <- "mean"
-  ## H2
-  metrics <- result$metrics
-  metrics <- metrics[metrics$analysisId == idSta,]
-  metrics.h2 <- metrics[metrics$parameter=="plotH2",]
-  metrics.h2 <- subset(metrics.h2, select = c(trait,environment,value))
-  colnames(metrics.h2)[3] <- "H2"
-  ## CV
-  metrics.CV <- metrics[metrics$parameter=="CV",]
-  metrics.CV <- subset(metrics.CV, select = c(trait,environment,value))
-  colnames(metrics.CV)[3] <- "CV"
-  ## r2
-  metrics.r2 <- metrics[metrics$parameter=="r2",]
-  metrics.r2 <- subset(metrics.r2, select = c(trait,environment,value))
-  colnames(metrics.r2)[3] <- "r2"
-  ## Vg
-  metrics.Vg <- metrics[metrics$parameter=="V_designation",]
-  metrics.Vg <- subset(metrics.Vg, select = c(trait,environment,value))
-  colnames(metrics.Vg)[3] <- "V_designation"
-  ## Vr
-  metrics.Vr <- metrics[metrics$parameter=="V_residual",]
-  metrics.Vr <- subset(metrics.Vr, select = c(trait,environment,value))
-  colnames(metrics.Vr)[3] <- "V_residual"
+  metricsSum <- result$metrics[which(result$metrics$analysisId == idSta),]
+  pred.traits.summary <- reshape(metricsSum[,c("trait","environment","parameter","value")], direction = "wide", idvar = c("trait","environment"),
+                  timevar = "parameter", v.names = "value", sep= "_")
+  colnames(pred.traits.summary) <- gsub("value_","", colnames(pred.traits.summary))
   
-  pred.traits.summary <- merge(x = pred.traits.min, y = pred.traits.mean, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = pred.traits.max, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.h2, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.CV, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.r2, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vg, by = c("environment","trait"), all.x = TRUE)
-  pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vr, by = c("environment","trait"), all.x = TRUE)
-  numeric.output <- c("min","mean","max","H2","CV","r2","V_designation","V_residual")
-
+  
+  
+  # pred.traits <- subset(pred, select = c(trait,designation,environment,predictedValue))
+  # ## Max
+  # pred.traits.max <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) max(x,na.rm=T))
+  # colnames(pred.traits.max)[3] <- "max"
+  # ## Min
+  # pred.traits.min <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) min(x,na.rm=T))
+  # colnames(pred.traits.min)[3] <- "min"
+  # ## Mean
+  # pred.traits.mean <- aggregate(predictedValue ~ environment + trait, data = pred.traits, function(x) mean(x,na.rm=T))
+  # colnames(pred.traits.mean)[3] <- "mean"
+  # ## H2
+  # metrics <- result$metrics
+  # metrics <- metrics[metrics$analysisId == idSta,]
+  # metrics.h2 <- metrics[metrics$parameter%in% c("plotH2", paste("plotH2",c("designation","mother","father"), sep="_") ),]
+  # metrics.h2 <- subset(metrics.h2, select = c(trait,environment,value))
+  # colnames(metrics.h2)[3] <- "H2"
+  # ## CV
+  # metrics.CV <- metrics[metrics$parameter %in% c("CV", paste("CV",c("designation","mother","father"), sep="_") ),]
+  # metrics.CV <- subset(metrics.CV, select = c(trait,environment,value))
+  # colnames(metrics.CV)[3] <- "CV"
+  # ## r2
+  # metrics.r2 <- metrics[metrics$parameter %in% c("r2", paste("r2",c("designation","mother","father"), sep="_") ) ,]
+  # metrics.r2 <- subset(metrics.r2, select = c(trait,environment,value))
+  # colnames(metrics.r2)[3] <- "r2"
+  # ## Vg
+  # metrics.Vg <- metrics[metrics$parameter%in% c("V_designation", paste("V_designation",c("designation","mother","father"), sep="_") ),]
+  # metrics.Vg <- subset(metrics.Vg, select = c(trait,environment,value))
+  # colnames(metrics.Vg)[3] <- "V_genetic"
+  # ## Vr
+  # metrics.Vr <- metrics[metrics$parameter%in% c("V_residual", paste("V_residual",c("designation","mother","father"), sep="_") ),]
+  # metrics.Vr <- subset(metrics.Vr, select = c(trait,environment,value))
+  # colnames(metrics.Vr)[3] <- "V_residual"
+  # 
+  # pred.traits.summary <- merge(x = pred.traits.min, y = pred.traits.mean, by = c("environment","trait"), all.x = TRUE)
+  # pred.traits.summary <- merge(x = pred.traits.summary, y = pred.traits.max, by = c("environment","trait"), all.x = TRUE)
+  # pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.h2, by = c("environment","trait"), all.x = TRUE)
+  # pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.CV, by = c("environment","trait"), all.x = TRUE)
+  # pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.r2, by = c("environment","trait"), all.x = TRUE)
+  # pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vg, by = c("environment","trait"), all.x = TRUE)
+  # pred.traits.summary <- merge(x = pred.traits.summary, y = metrics.Vr, by = c("environment","trait"), all.x = TRUE)
+  # numeric.output <- c("min","mean","max","H2","CV","r2","V_designation","V_residual")
+  numeric.output <- colnames(pred.traits.summary)[-c(1:2)]
+  
   if("params" %in% ls()){ # we will download the document
-    printTable(unique(pred.traits.summary), 'different')
+    printTable((pred.traits.summary), 'different')
   }else{
     DT::renderDT({DT::formatRound( DT::datatable(
-      unique(pred.traits.summary[pred.traits.summary$trait==input$traitSta,]),
+      
+      
+      (pred.traits.summary[pred.traits.summary$trait==input$traitSta,]),
       rownames = FALSE,
       class = 'cell-border stripe',
       extensions = 'Buttons',
@@ -490,7 +500,9 @@ if (is.null(result)){
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
   df2 <- df2[df2$analysisId==idSta,]
-  df2 <- df2[df2$parameter %in% c("Vr","Vg","V_designation","V_residual","V_repF","V_iBlockF","V_rowF","V_colF", "V_s(row, col)"), ]
+  df2 <- df2[df2$parameter %in% c("Vr","Vg","V_designation","V_residual","V_repF","V_iBlockF","V_rowF","V_colF", "V_s(row, col)",
+                                  apply(expand.grid( c("Vr","Vg","V_designation","V_residual","V_repF","V_iBlockF","V_rowF","V_colF", "V_s(row, col)"), c("designation","mother","father")),1,function(f){paste(f,collapse = "_")})
+  ), ]
   total <- aggregate(value~environment+trait, FUN = sum, data=df2); 
   colnames(total)[3] <- "totalVar"
   df3 <- merge(df2,total, by=c("environment","trait") )
@@ -505,12 +517,12 @@ if (is.null(result)){
       df4 <- df3[df3$trait == staTraits2[j],]
       p_proportion_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
-        ggplot2::scale_fill_brewer(palette="Accent") +
+        # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") 
       p_value_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
-        ggplot2::scale_fill_brewer(palette="Accent") +
+        # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::guides(fill = "none") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance")
@@ -528,12 +540,12 @@ if (is.null(result)){
       df3 <- df3[df3$trait == input$traitSta0,]
       p_proportion_variance <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
-        ggplot2::scale_fill_brewer(palette="Accent") +
+        # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") 
       p_value_variance <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
-        ggplot2::scale_fill_brewer(palette="Accent") +
+        # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::guides(fill = "none") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance")

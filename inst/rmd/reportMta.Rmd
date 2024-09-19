@@ -256,7 +256,7 @@ if (is.null(result)){
   pred.sta <- pred.sta[pred.sta$analysisId == idSta,]
   pred.sta.boxplot <- subset(pred.sta, select = c(trait,designation,environment,predictedValue))
   # reliabilities
-  r2Sta <- result$metrics[result$metrics$analysisId==idSta & result$metrics$parameter == "r2",]
+  r2Sta <- result$metrics[result$metrics$analysisId==idSta & result$metrics$parameter %in% c("r2",paste("r2",c("designation","mother","father"), sep="_")),]
   
   if("params" %in% ls()){ # we will download the document
     

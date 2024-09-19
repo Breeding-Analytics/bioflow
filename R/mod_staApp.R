@@ -849,22 +849,30 @@ mod_staApp_server <- function(id,data){
       updateSelectInput(session, "version2Sta", choices = traitsMta)
     })
     # genetic evaluation unit
-    observe({
-      req(data())
-      req(input$version2Sta)
-      genetic.evaluation <- c("designation", "mother","father")
-      updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation, selected = "designation")
-    })
+    # observe({
+    #   req(data())
+    #   req(input$version2Sta)
+    #   genetic.evaluation <- c("designation", "mother","father")
+    #   updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation, selected = "designation")
+    # })
     # traits
-    observeEvent(c(data(),input$version2Sta,input$genoUnitSta), {
+    observeEvent(c(data(),input$version2Sta), {
       req(data())
       req(input$version2Sta)
-      req(input$genoUnitSta)
+      # req(input$genoUnitSta)
       dtSta <- data()
       dtSta <- dtSta$modifications$pheno
       dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
       traitsSta <- unique(dtSta$trait)
       updateSelectInput(session, "trait2Sta", choices = traitsSta, selected = traitsSta)
+    })
+    ## pick unit
+    observeEvent(c(data(),input$version2Sta,input$trait2Sta), {
+      req(data())
+      req(input$version2Sta)
+      req(input$trait2Sta)
+      genetic.evaluation <- c("designation", "mother","father")
+      updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation, selected = "designation")
     })
     # fixed effect covariates
     observeEvent(c(data(),input$version2Sta,input$genoUnitSta, input$trait2Sta), {
@@ -1185,7 +1193,8 @@ mod_staApp_server <- function(id,data){
         output$qaQcStaInfo <- renderUI({return(NULL)})
         # save(dtSta, file = "./R/outputs/resultSta.RData")
         result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta, analysisId=input$version2Sta,
-                                            trait=input$trait2Sta, traitFamily = myFamily,
+                                            trait=input$trait2Sta,
+                                            traitFamily = myFamily,
                                             fixedTerm = input$fixedTermSta2,
                                             returnFixedGeno=input$genoAsFixedSta, genoUnit = input$genoUnitSta,
                                             verbose = input$verboseSta, maxit = input$maxitSta),

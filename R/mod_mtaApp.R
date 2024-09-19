@@ -1675,13 +1675,31 @@ mod_mtaApp_server <- function(id, data){
         getOption("spam.cholsymmetrycheck")
         options(spam.cholsymmetrycheck=FALSE)
         getOption("spam.cholsymmetrycheck")
+        save(list(phenoDTfile= dtMta, # analysis to be picked from predictions database
+                  analysisId=input$version2Mta,
+                  analysisIdForGenoModifications = markerVersionToUse, # marker modifications
+                  fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
+                  interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
+                  trait= input$trait2Mta, traitFamily=myFamily,
+                  useWeights=input$useWeights,
+                  heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
+                  heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
+                  meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
+                  meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
+                  modelType=input$modelMet, # either "grm", "nrm", or both
+                  nMarkersRRBLUP=input$nMarkersRRBLUP,
+                  # deregress=input$deregressMet,
+                  nPC=input$nPC,
+                  maxIters=input$maxitMet, batchSizeToPredict=500, tolParInv=1e-4,
+                  minimumNumberEnvsFW =input$minimumNumberEnvsFW,verbose=FALSE), file="inputw.RData")
         result <- try(cgiarPipeline::metLMM(
           phenoDTfile= dtMta, # analysis to be picked from predictions database
           analysisId=input$version2Mta,
           analysisIdForGenoModifications = markerVersionToUse, # marker modifications
           fixedTerm= input$fixedTermMta2,  randomTerm=input$randomTermMta2,  residualBy=NULL,
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
-          trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
+          trait= input$trait2Mta, traitFamily=myFamily,
+          useWeights=input$useWeights,
           heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
           heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
           meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
