@@ -405,7 +405,7 @@ mod_mtaApp_ui <- function(id){
 #       dtMta <- dtMta$predictions
 #       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
 #       dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)
-#       traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation")],2,function(x){length(unique(x))})
+#       traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation","mother","father")],2,function(x){length(unique(x))})
 #       traitsMta <- names(traitsMta)[which(traitsMta > 1)]
 #       traitsMta <- setdiff(traitsMta, input$fixedTermMta2)
 #       updateSelectInput(session, "randomTermMta2", choices = traitsMta, selected = "designation")
@@ -1175,7 +1175,7 @@ mod_mtaApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       dtMta <- merge(dtMta, otherMetaCols, by="environment", all.x = TRUE)
-      traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation")],2,function(x){length(unique(x))})
+      traitsMta <- apply(dtMta[,c(metaPheno$parameter,"designation","mother","father")],2,function(x){length(unique(x))})
       traitsMta <- names(traitsMta)[which(traitsMta > 1)] # remove factors that do not have more than one level
       start <- setdiff(traitsMta,c("designation","entryType","pipeline"))
       updateSelectInput(session, "fixedTermMta2", choices = traitsMta, selected = ifelse('environment'%in%start, 'environment',  start) )

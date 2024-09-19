@@ -1353,8 +1353,15 @@ mod_mtaExpApp_server <- function(id, data){
       req(input$trait2Mta)
       req(input$nTerms)
       dtMta <- data()
+      if(!is.null(dtMta$data$pedigree)){
+        prov <- dtMta$data$pedigree
+        colnames(prov) <- cgiarBase::replaceValues(colnames(prov),  dtMta$metadata$pedigree$value, dtMta$metadata$pedigree$parameter)
+        prov <- prov[,intersect(colnames(prov), dtMta$metadata$pedigree$parameter)]
+        unitsMta <- apply(prov,2,function(x){length(unique(x))})
+        unitsMta <- names(which(unitsMta > 1))
+      }else{unitsMta <- "designation"}
       gg <- cgiarBase::goodLevels(dtMta, input$version2Mta, includeCovars = FALSE)
-      choices <- c("designation",gg[[ input$trait2Mta[1] ]])
+      choices <- c(unitsMta,gg[[ input$trait2Mta[1] ]])
       # if(length(input$cs_model) > 0){
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTerms, function(i) {
