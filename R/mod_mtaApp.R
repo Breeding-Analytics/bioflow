@@ -127,7 +127,7 @@ mod_mtaApp_ui <- function(id){
                                                ),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       shinydashboard::box(width = 12, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
-                                                                          selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                                                          # selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
                                                                           textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
                                                                           textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
@@ -1688,7 +1688,8 @@ mod_mtaApp_server <- function(id, data){
           meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
           modelType=input$modelMet, # either "grm", "nrm", or both
           nMarkersRRBLUP=input$nMarkersRRBLUP,
-          deregress=input$deregressMet,  nPC=input$nPC,
+          # deregress=input$deregressMet,
+          nPC=input$nPC,
           maxIters=input$maxitMet, batchSizeToPredict=500, tolParInv=1e-4,
           minimumNumberEnvsFW =input$minimumNumberEnvsFW,verbose=FALSE
         ),
