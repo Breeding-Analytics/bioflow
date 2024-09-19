@@ -283,7 +283,7 @@ if (is.null(result)){
                                              scrollXOpt = FALSE,
                             colNames = c("Market Segment", "Trait", numeric.output),
                             numericColNames = numeric.output,
-                            numRound = 4))
+                            numRound = 4), server = FALSE)
   }
 }
 ```
@@ -1164,7 +1164,7 @@ if(params$toDownload == TRUE){
                                                           "Overall Rank", "Num Trial"),
                                              caption = paste0(as.factor(input$envOft2),": Predicted performance (BLUPs per Variety in each Market Segment"),
                                              numericColNames = c("predictedValue", "stdError"),
-                                             numRound = 4))
+                                             numRound = 4), server = FALSE)
     } else if(input$graphOft2 == "Genetic Parameters"){
       DT::renderDT(printTable(dt_sta_met %>%  
                                              relocate(analysisId, environment, trait, parameter,
@@ -1177,7 +1177,7 @@ if(params$toDownload == TRUE){
                                                           "Module",
                                                           "Method"),
                                              scrollXOpt = FALSE,
-                                             caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & trial/field instance")))
+                                             caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & trial/field instance")),server = FALSE)
     } else if (input$graphOft2 == "BLUPs Comparison"){
 RG_All <- rbind(BestTest_Local,BestLocal_Benchmark) %>%   
               arrange(environment) %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2))
@@ -1198,7 +1198,7 @@ RG_All <- rbind(BestTest_Local,BestLocal_Benchmark) %>%
                                              numericColNames = c("BLUPs_test",
                                                                  "BLUPs_CTVar","RG", "pctRG",
                                                                  "RG_per_year",
-                                                                 "pctRG_per_year")))
+                                                                 "pctRG_per_year")), server = FALSE)
     } else if(input$graphOft2 == "Comparison With the Control"){
       shiny::selectInput(ns("controlOft2"),
                          label = "Comparison With:", 
@@ -1323,7 +1323,7 @@ if(nrow(sig_TVFV2Tab3)<= 1){
                                                         "Lower Predicted Mean", "Predicted Mean",
                                                         "Upper Predicted Mean"),
                       caption = paste0("Test Varieties Significantly Different with Top Performing Local Variety"),
-                                           numRound = 4))
+                                           numRound = 4), server = FALSE)
 }
       } else if(input$controlOft2 == "Most Frequently Used Local Variety"){
         sig_TVMFU2Tab3 <- sig_TVMFUTab2 %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2)) %>% select(-c(trait))
@@ -1338,7 +1338,7 @@ if(nrow(sig_TVMFU2Tab3) <= 1){
                                            colNames = c("Rice Environment", "Variety","Variety Class",
                                                         "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                       caption = paste0("Test Varieties Significantly Different with Most Frequently Used Local Variety"),
-                                           numRound = 4))
+                                           numRound = 4), server = FALSE)
 }
       } else{
         sig_TVBM2Tab3 <- sig_TVBMTab2 %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2)) %>% select(-c(trait))
@@ -1352,7 +1352,7 @@ if(!("TEST VARIETY" %in% sig_TVBM2Tab3$entryType)){
                                            colNames = c("Rice Environment", "Variety","Variety Class",
                                                         "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                       caption = paste0("Test Varieties Significantly Different with Benchmark Variety"),
-                                           numRound = 4))
+                                           numRound = 4), server = FALSE)
 }
       }
     }
@@ -1483,7 +1483,7 @@ if(!is.null(params$mdisease)){
                  colNames = colnames(DseSev_temp),
                  scrollXOpt = FALSE,
                  caption = "Disease Severity",
-                 numRound = 4))
+                 numRound = 4), server = FALSE)
     }
       
     }

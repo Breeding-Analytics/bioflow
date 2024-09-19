@@ -120,7 +120,7 @@ if("params" %in% ls()){ # we will download the document
       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
     ),"Value",5)
-    })
+    }, server = FALSE)
   }
   
 ```
@@ -203,7 +203,7 @@ suppressWarnings(tryCatch({
       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
     ),c("SumOfSqs","MS","F","Pr.F","Sigma" ,"PercVar","Phi"),5)
-    })
+    }, server = FALSE)
 	}
     
 

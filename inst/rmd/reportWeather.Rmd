@@ -110,7 +110,7 @@ if (is.null(result)){
         scrollX = "400px",
         paging = F)
     ),numericalColumns1)
-    })
+    }, server = FALSE)
   }
   
 }
@@ -142,7 +142,7 @@ if (is.null(result)){
         scrollX = "400px",
         paging = F)
     ),numericalColumns2)
-    })
+    }, server = FALSE)
   }
   
 }

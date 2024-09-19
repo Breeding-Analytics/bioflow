@@ -126,7 +126,7 @@ if (is.null(result)){
                                                extensions = 'Buttons',
                                                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                               lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-    ), numeric.output0)
+    ), numeric.output0), server = FALSE
     )
   }
   
@@ -273,7 +273,7 @@ if (is.null(result)){
     DT::renderDT(DT::formatRound(DT::datatable(wideParents, extensions = 'Buttons',
                                                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                               lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-    ), numeric.output)
+    ), numeric.output), server = FALSE
     )
   }
   
@@ -415,7 +415,7 @@ if (is.null(result)){
     DT::renderDT(DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
                                                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                               lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
-    ), numeric.output2)
+    ), numeric.output2), server = FALSE
     )
   }
   

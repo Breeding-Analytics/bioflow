@@ -140,7 +140,7 @@ if (is.null(result)){
                                                 options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
     ),numeric.output)
-    })
+    }, server = FALSE)
   }
   
 }
@@ -175,7 +175,7 @@ if (is.null(result)){
                                                 options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
     ),numeric.output2)
-    })
+    }, server = FALSE)
   }
   
 }

@@ -119,7 +119,7 @@ if (is.null(result)){
         scrollX = "400px",
         paging = F)
     ),numericalColumns)
-    })
+    }, server = FALSE)
   }
 }
 
