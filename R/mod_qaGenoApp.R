@@ -257,7 +257,7 @@ mod_qaGenoApp_server <- function(id, data){
       mydata <- data()$data$geno
       ##
       if(!is.null(mydata)){
-        p <- ggplot2::ggplot(data.frame(x=as.vector(xx)), ggplot2::aes(x=x)) + ggplot2::geom_histogram() +
+        p <- ggplot2::ggplot(data.frame(x=as.vector(mydata)), ggplot2::aes(x=x)) + ggplot2::geom_histogram() +
           ggplot2::xlab("Allele dosage") + ggplot2::ylab("Count") + ggplot2::ggtitle("Dosages present in the marker set")
         plotly::ggplotly(p)
       }
