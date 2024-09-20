@@ -1,7 +1,7 @@
 ---
 title: "Genotype Verification Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "September 10, 2024"  
+date: "September 20, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -14,7 +14,7 @@ params:
 
 
 
-### Verification summaries
+### Verification results
 <p>&nbsp;</p>
 
 The following table shows the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others.
@@ -32,11 +32,21 @@ The following table shows the values associated for the individuals on different
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-outc904cbc0bdf752c2" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-out7506b2255929f90d" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="hybridityApp_1-out48028a5a3783fd68" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="hybridityApp_1-outf97108021be9cb1c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
+
+### Verification Metrics
+
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-outbb5b805621bedf20" style="width:100%;height:auto;"></div><!--/html_preserve-->
+
+<p>&nbsp;</p>
+
+### Verification Modeling
+
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="hybridityApp_1-out75aa1c1553f965cf" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 

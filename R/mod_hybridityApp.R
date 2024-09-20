@@ -502,6 +502,11 @@ mod_hybridityApp_server <- function(id, data){
             dtVerifx <- rbind(dtVerif$Mfemale[pick,], dtVerif$Mmale[pick,], dtVerif$Mexpected[pick,], dtVerif$Mprogeny[pick,], dtVerif$matchMat[pick,])
             dtVerifx <- as.matrix(dtVerifx)
             rownames(dtVerifx) <- c("Female","Male","Expected",input$genoView,"ProbMatch")
+
+            refAlleles <- t(result$metadata$geno[colnames(dtVerifx),c("altAllele","refAllele")])
+            rownames(refAlleles) <- c("Alt","Ref")
+            dtVerifx[1:4,] <- sommer::atcg1234BackTransform(marks =  dtVerifx[1:4,], refs =  refAlleles)
+
             DT::datatable(dtVerifx[,min(c(input$slider2[1], ncol(dtVerifx) )):min(c(input$slider2[2], ncol(dtVerifx) ))], extensions = 'Buttons',
                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),

@@ -11,13 +11,13 @@ params:
 
 # knitr R markdown chunk options
 knitr::opts_chunk$set(dependson = knitr::all_labels(),
-echo = FALSE,
-cache = FALSE,
-warning = FALSE,
-message = FALSE,
-comment = NA,
-out.width = "100%",
-error = TRUE)
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
 options(knitr.kable.NA = '')
 
 # loading necessary R packages ####
@@ -86,7 +86,7 @@ suppressWarnings(tryCatch({
 ```
 
 
-### Verification summaries
+### Verification results
 <p>&nbsp;</p>
 
 The following table shows the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others.
@@ -110,6 +110,52 @@ if (is.null(result)){
                        label = "Verification measure:", 
                        choices = traitsTable, 
     )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  predictionsX <- result$predictions[which( result$predictions$analysisId == idQa),]
+  
+  if("params" %in% ls()){ # we will download the document
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    
+    
+    for (j in 1:length(traitsTable)){
+      cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
+      
+      predictions2 <- predictionsX[which(predictionsX$trait == traitsTable[j]),]
+      p <- ggplot2::ggplot(predictions2, ggplot2::aes(x=designation, y=predictedValue  ) ) +
+        # geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+        ggplot2::theme_classic()+
+        ggplot2::geom_point(alpha = 0.6)+
+        # geom_jitter(alpha = 0.6, width = 0.3) +
+        ggplot2::labs(x="Genotype", y = traitsTable[j] ) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank()) 
+      print(htmltools::tagList(plotly::ggplotly(p)))
+      
+    }
+    
+  }else{ # regular rendering
+    plotly::renderPlotly({
+      # myPreds <- myResult %>% filter(trait == input$traitQa)
+      predictions2 <- predictionsX[which(predictionsX$trait == input$traitQa),]
+      p <- ggplot(predictions2, aes(x=designation, y=predictedValue  ) ) +
+        # geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+        theme_classic()+
+        geom_point(alpha = 0.6)+
+        # geom_jitter(alpha = 0.6, width = 0.3) +
+        labs(x="Genotype", y = input$traitQa) +
+        theme(axis.text.x = element_blank() ) 
+      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+      fig
+    })
   }
   
 }
@@ -143,51 +189,64 @@ if (is.null(result)){
 ```
 
 
+
+### Verification Metrics
+
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
 } else {
+  numericalColumns2 <- c("value") 
+  metricsVeri <- result$metrics[which( result$metrics$analysisId == idQa),]
   
   if("params" %in% ls()){ # we will download the document
-    cat("\n\n### {.tabset .tabset-pills}       \n\n")
-    
-    
-    for (j in 1:length(traitsTable)){
-      cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
-      
-      predictions2 <- predictions[which(predictions$trait == traitsTable[j]),]
-      p <- ggplot(predictions2, aes(x=designation, y=predictedValue  ) ) +
-        # geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
-        theme_classic()+
-         geom_point(alpha = 0.6)+
-        # geom_jitter(alpha = 0.6, width = 0.3) +
-        labs(x="Genotype", y = traitsTable[j] ) +
-        theme(axis.text.x = element_blank()) 
-      print(htmltools::tagList(plotly::ggplotly(p)))
-      
-    }
-    
-    cat("\n")
-  }else{ # regular rendering
-    plotly::renderPlotly({
-      # myPreds <- myResult %>% filter(trait == input$traitQa)
-      predictions2 <- predictions[which(predictions$trait == input$traitQa),]
-      p <- ggplot(predictions2, aes(x=designation, y=predictedValue  ) ) +
-        # geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
-        theme_classic()+
-         geom_point(alpha = 0.6)+
-        # geom_jitter(alpha = 0.6, width = 0.3) +
-        labs(x="Genotype", y = input$traitQa) +
-        theme(axis.text.x = element_blank() ) 
-      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
-      fig
-    })
+    printTable(metricsVeri)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      metricsVeri,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      options = list(
+        scrollY = "400px",
+        scrollX = "400px",
+        paging = F)
+    ),numericalColumns2)
+    }, server = FALSE)
   }
   
 }
 
 ```
 
+<p>&nbsp;</p>
+
+### Verification Modeling
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  # numericalColumns2 <- c("value") 
+  modelingVeri <- result$modeling[which( result$modeling$analysisId == idQa),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modelingVeri)
+  }else{
+    DT::renderDT({DT::datatable(
+      modelingVeri,
+      rownames = FALSE,
+      class = 'cell-border stripe',
+      options = list(
+        scrollY = "400px",
+        scrollX = "400px",
+        paging = F)
+    )
+    }, server = FALSE)
+  }
+  
+}
+
+```
 
 <p>&nbsp;</p>
 
