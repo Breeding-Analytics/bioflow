@@ -871,7 +871,12 @@ mod_staApp_server <- function(id,data){
       req(data())
       req(input$version2Sta)
       req(input$trait2Sta)
-      genetic.evaluation <- c("designation", "mother","father")
+      dtSta <- data()
+      ped <- dtSta$data$pedigree
+      colnames(ped) <- cgiarBase::replaceValues(colnames(ped),dtSta$metadata$pedigree$value, dtSta$metadata$pedigree$parameter)
+      checkUnits <- apply(ped[,intersect(colnames(ped),c("designation", "mother","father")), drop=FALSE], 2, function(f){length(unique(f))})
+      genetic.evaluation <- names(which(checkUnits > 1))
+      # genetic.evaluation <- c("designation", "mother","father")
       updateSelectInput(session, "genoUnitSta",choices = genetic.evaluation, selected = "designation")
     })
     # fixed effect covariates
