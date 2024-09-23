@@ -49,9 +49,13 @@ mod_bindObjectApp_ui <- function(id){
                            actionButton(ns("runBind"), "Load object(s)", icon = icon("play-circle")),
                            textOutput(ns("outBind")),
                            ),
-                           column( width=12,
+                           column( width=6,
+                                   br(),
+                                   DT::DTOutput(ns('summary_data')) ),
+                           column( width=6,
                                    br(),
                                    shiny::plotOutput(ns("plotTimeStamps")) ),
+
                   ),
     ),
 
@@ -115,12 +119,28 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of analyses available in object loaded. Please proceed to use the modules.") +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of analyses available in object loaded.") +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
           ggnetwork::theme_blank()
       }
     })
+    ## render data summary
+    output$summary_data <- DT::renderDT({
+      req(data())
+      DT::datatable(cgiarBase::summaryData(data()),
+                    extensions = 'Buttons',
+                    options = list(dom = 'lfrtip', # I changed Blfrtip to lfrtip and silenced the buttons
+                                   scrollX = TRUE,
+                                   # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
+                      htmltools::em('Data summaries')
+                    )
+      )
+
+    }, server = FALSE)
     ## load the objects
     observeEvent(
       input$previous_object_input,
