@@ -277,7 +277,7 @@ if (is.null(result)){
   
   metricsSum <- result$metrics[which(result$metrics$analysisId == idSta),]
   pred.traits.summary <- reshape(metricsSum[,c("trait","environment","parameter","value")], direction = "wide", idvar = c("trait","environment"),
-                  timevar = "parameter", v.names = "value", sep= "_")
+                                 timevar = "parameter", v.names = "value", sep= "_")
   colnames(pred.traits.summary) <- gsub("value_","", colnames(pred.traits.summary))
   
   
@@ -501,12 +501,22 @@ if (is.null(result)){
   idSta <- idSta[length(idSta)]
   df2 <- df2[df2$analysisId==idSta,]
   df2 <- df2[df2$parameter %in% c("Vr","Vg","V_designation","V_residual","V_repF","V_iBlockF","V_rowF","V_colF", "V_s(row, col)",
-                                  apply(expand.grid( c("Vr","Vg","V_designation","V_residual","V_repF","V_iBlockF","V_rowF","V_colF", "V_s(row, col)"), c("designation","mother","father")),1,function(f){paste(f,collapse = "_")})
+                                  apply(expand.grid( c("Vr","Vg","V_designation","V_mother","V_father","V_residual","V_repF","V_iBlockF","V_rowF","V_colF", "V_s(row, col)"), c("designation","mother","father")),1,function(f){paste(f,collapse = "_")})
   ), ]
-  total <- aggregate(value~environment+trait, FUN = sum, data=df2); 
-  colnames(total)[3] <- "totalVar"
-  df3 <- merge(df2,total, by=c("environment","trait") )
+  df2$type <- "designation"
+  motherParams <- grep("mother", df2$parameter)
+  if(length(motherParams) > 0){df2$type[motherParams]="mother"}
+  fatherParams <- grep("father", df2$parameter)
+  if(length(fatherParams) > 0){df2$type[fatherParams]="father"}
+  
+  total <- aggregate(value~environment+trait+type, FUN = sum, data=df2); 
+  colnames(total)[4] <- "totalVar"
+  df3 <- merge(df2,total, by=c("environment","trait","type") )
   df3$valueProp <- df3$value/df3$totalVar
+  df3$parameter <- gsub("_designation","", df3$parameter)
+  df3$parameter <- gsub("_mother","", df3$parameter)
+  df3$parameter <- gsub("_father","", df3$parameter)
+  df3$parameter[which(nchar(df3$parameter) == 1)] <- "V_genetics"
   
   if("params" %in% ls()){ # we will download the document
     
@@ -519,13 +529,15 @@ if (is.null(result)){
         ggplot2::geom_bar(stat="identity") +
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
-        ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") 
+        ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") +
+  ggplot2::facet_wrap(~type)
       p_value_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::guides(fill = "none") +
-        ggplot2::xlab("Environment") + ggplot2::ylab("Variance")
+        ggplot2::xlab("Environment") + ggplot2::ylab("Variance") +
+  ggplot2::facet_wrap(~type)
       
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p_proportion_variance), plotly::ggplotly(p_value_variance), nrows=2, shareX = TRUE, shareY = TRUE) ) )
       
@@ -537,21 +549,23 @@ if (is.null(result)){
   }else{
     
     plotly::renderPlotly({
-      df3 <- df3[df3$trait == input$traitSta0,]
-      p_proportion_variance <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
+      df4 <- df3[df3$trait == input$traitSta0,]
+      p_proportion_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=valueProp, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
-        ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") 
-      p_value_variance <- ggplot2::ggplot(data=df3, ggplot2::aes(x=environment, y=value, fill=parameter)) +
+        ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") +
+  ggplot2::facet_wrap(~type)
+      p_value_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::guides(fill = "none") +
-        ggplot2::xlab("Environment") + ggplot2::ylab("Variance")
+        ggplot2::xlab("Environment") + ggplot2::ylab("Variance") +
+  ggplot2::facet_wrap(~type)
       p_proportion_variance <- plotly::ggplotly(p_proportion_variance)
       p_value_variance <- plotly::ggplotly(p_value_variance)
-      plotly::subplot(p_proportion_variance, p_value_variance, nrows=2, shareX = TRUE, shareY = TRUE)
+      plotly::subplot(p_proportion_variance, p_value_variance, nrows=2, shareX = FALSE, shareY = TRUE)
       
     })
   }

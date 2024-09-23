@@ -33,9 +33,12 @@ The objective of this dashboard is to help scientist to understand the following
 Understanding these data features should allow the scientist to identify trait by environments combinations that have enough genetic signal and take the decision of which to include in the multi-trial analysis. It should also allow the scientist to assess the quality of the trials conducted and take corrective measures (e.g., change service providers, improve practices, etc.).  
 
 
+### Map of trials planted
+
+The following map allows you to assess the location where trials are planted.
 
 
-No coordinates available. Skipping planting map.
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out28886eaf28a3cbf8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Entries and traits by environment table
 
@@ -47,69 +50,47 @@ The following table allows to see how many locations had data for the different 
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> GYgrn </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> PH </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> GY </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> EH </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Yield_Mg_ha </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Ear_Height_cm </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Plant_Height_cm </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of designations </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> Bungoma_Optimal </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2021_NYH3 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 345 </td>
+   <td style="text-align:right;"> 384 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Embu_Optimal </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2021_NYS1 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 345 </td>
+   <td style="text-align:right;"> 22 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Kakamega_Optimal </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2021_SCH1 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 345 </td>
+   <td style="text-align:right;"> 423 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Kiboko_Managed Drought </td>
+   <td style="text-align:left;"> 2021_TXH1 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 516 </td>
+   <td style="text-align:right;"> 270 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Kiboko_Managed Low Nitrogen </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2021_TXH2 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 516 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Kiboko_Optimal </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 345 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Kitale_Optimal </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:right;"> 345 </td>
+   <td style="text-align:right;"> 249 </td>
   </tr>
 </tbody>
 </table></div>
@@ -125,37 +106,24 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitSta-label" for="reportBuilder_1-traitSta">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitSta" class="shiny-input-select"><option value="GYgrn" selected>GYgrn</option>
-<option value="PH">PH</option>
-<option value="EH">EH</option>
-<option value="GY">GY</option></select>
+<select id="reportBuilder_1-traitSta" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm">Plant_Height_cm</option>
+<option value="Ear_Height_cm">Ear_Height_cm</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out54aa4ddaab286a51" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outcced95d29d14eca0" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
-### Field view
-
-The following heatmaps allow you to inspect the spatial trends in the different fields to take corrective measures in the next season and understand why some variance components may look the way they look.
 
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitStaFieldView-label" for="reportBuilder_1-traitStaFieldView">Trait to filter:</label>
-<div>
-<select id="reportBuilder_1-traitStaFieldView" class="shiny-input-select"><option value="GYgrn" selected>GYgrn</option>
-<option value="PH">PH</option>
-<option value="GY">GY</option>
-<option value="EH">EH</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitStaFieldView" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outb258980cfa212719" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+
 
 ### Output parameters 
 
@@ -168,15 +136,14 @@ This barplot allows you to see the variance components values and ratios for the
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitSta0-label" for="reportBuilder_1-traitSta0">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitSta0" class="shiny-input-select"><option value="GYgrn" selected>GYgrn</option>
-<option value="PH">PH</option>
-<option value="EH">EH</option>
-<option value="GY">GY</option></select>
+<select id="reportBuilder_1-traitSta0" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm">Plant_Height_cm</option>
+<option value="Ear_Height_cm">Ear_Height_cm</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out402fcd03e7725686" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out9d58d934d9bc2d5d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -186,39 +153,12 @@ This barplot allows you to see the variance components values and ratios for the
 <div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-parameterMetrics-label" for="reportBuilder_1-parameterMetrics">Parameter to filter:</label>
 <div>
-<select id="reportBuilder_1-parameterMetrics" class="shiny-input-select"><option value="plotH2_designation" selected>plotH2_designation</option>
-<option value="CV_designation" selected>CV_designation</option>
-<option value="r2_designation" selected>r2_designation</option>
-<option value="V_designation_designation" selected>V_designation_designation</option>
-<option value="V_rowF_designation" selected>V_rowF_designation</option>
-<option value="V_colF_designation" selected>V_colF_designation</option>
-<option value="V_repF_designation" selected>V_repF_designation</option>
-<option value="V_iBlockF_designation" selected>V_iBlockF_designation</option>
-<option value="V_s(row, col)_designation" selected>V_s(row, col)_designation</option>
-<option value="V_residual_designation" selected>V_residual_designation</option>
-<option value="mean_designation" selected>mean_designation</option>
-<option value="plotH2_mother" selected>plotH2_mother</option>
-<option value="CV_mother" selected>CV_mother</option>
-<option value="r2_mother" selected>r2_mother</option>
-<option value="V_mother_mother" selected>V_mother_mother</option>
-<option value="V_rowF_mother" selected>V_rowF_mother</option>
-<option value="V_colF_mother" selected>V_colF_mother</option>
-<option value="V_repF_mother" selected>V_repF_mother</option>
-<option value="V_iBlockF_mother" selected>V_iBlockF_mother</option>
-<option value="V_s(row, col)_mother" selected>V_s(row, col)_mother</option>
-<option value="V_residual_mother" selected>V_residual_mother</option>
-<option value="mean_mother" selected>mean_mother</option>
-<option value="plotH2_father" selected>plotH2_father</option>
-<option value="CV_father" selected>CV_father</option>
-<option value="r2_father" selected>r2_father</option>
-<option value="V_father_father" selected>V_father_father</option>
-<option value="V_rowF_father" selected>V_rowF_father</option>
-<option value="V_colF_father" selected>V_colF_father</option>
-<option value="V_repF_father" selected>V_repF_father</option>
-<option value="V_iBlockF_father" selected>V_iBlockF_father</option>
-<option value="V_s(row, col)_father" selected>V_s(row, col)_father</option>
-<option value="V_residual_father" selected>V_residual_father</option>
-<option value="mean_father" selected>mean_father</option></select>
+<select id="reportBuilder_1-parameterMetrics" class="shiny-input-select"><option value="plotH2" selected>plotH2</option>
+<option value="CV" selected>CV</option>
+<option value="r2" selected>r2</option>
+<option value="Vg" selected>Vg</option>
+<option value="Vr" selected>Vr</option>
+<option value="mean" selected>mean</option></select>
 <script type="application/json" data-for="reportBuilder_1-parameterMetrics" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -241,13 +181,13 @@ The following barplot is designed to provide a high-level view of estimated para
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outc6790e7f320e6489" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out51c542c2d84aa37f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out22bfc0a1a1153f4a" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out33de7610219de56c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Predictions
@@ -261,18 +201,16 @@ The following table allows you to check the trait by environment adjusted means 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-envSta-label" for="reportBuilder_1-envSta">Environment to filter:</label>
 <div>
-<select id="reportBuilder_1-envSta" class="shiny-input-select"><option value="Kiboko_Managed Drought" selected>Kiboko_Managed Drought</option>
-<option value="Kiboko_Managed Low Nitrogen">Kiboko_Managed Low Nitrogen</option>
-<option value="Kitale_Optimal">Kitale_Optimal</option>
-<option value="Kiboko_Optimal">Kiboko_Optimal</option>
-<option value="Bungoma_Optimal">Bungoma_Optimal</option>
-<option value="Embu_Optimal">Embu_Optimal</option>
-<option value="Kakamega_Optimal">Kakamega_Optimal</option></select>
+<select id="reportBuilder_1-envSta" class="shiny-input-select"><option value="2021_NYH3" selected>2021_NYH3</option>
+<option value="2021_SCH1">2021_SCH1</option>
+<option value="2021_TXH2">2021_TXH2</option>
+<option value="2021_TXH1">2021_TXH1</option>
+<option value="2021_NYS1">2021_NYS1</option></select>
 <script type="application/json" data-for="reportBuilder_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out0e1ce91d299859c2" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out40285d204b13d49a" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -283,15 +221,14 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitStaBox-label" for="reportBuilder_1-traitStaBox">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaBox" class="shiny-input-select"><option value="GYgrn" selected>GYgrn</option>
-<option value="PH" selected>PH</option>
-<option value="EH" selected>EH</option>
-<option value="GY" selected>GY</option></select>
+<select id="reportBuilder_1-traitStaBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out50f336e9f32ab554" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outcb00aba1b5f83633" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -302,15 +239,14 @@ In the following plot you can observe the comparison between the top 30 designat
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitStaComp-label" for="reportBuilder_1-traitStaComp">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaComp" class="shiny-input-select"><option value="GYgrn" selected>GYgrn</option>
-<option value="PH" selected>PH</option>
-<option value="EH" selected>EH</option>
-<option value="GY" selected>GY</option></select>
+<select id="reportBuilder_1-traitStaComp" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitStaComp" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out2b3fe70257eaecd9" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outfef9a451e2b85ad6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Correlation between environments
@@ -322,15 +258,14 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="reportBuilder_1-traitStaCor-label" for="reportBuilder_1-traitStaCor">Trait to filter:</label>
 <div>
-<select id="reportBuilder_1-traitStaCor" class="shiny-input-select"><option value="GYgrn" selected>GYgrn</option>
-<option value="PH" selected>PH</option>
-<option value="EH" selected>EH</option>
-<option value="GY" selected>GY</option></select>
+<select id="reportBuilder_1-traitStaCor" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Ear_Height_cm" selected>Ear_Height_cm</option></select>
 <script type="application/json" data-for="reportBuilder_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out8495fe587f0a7887" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out9fe5c1ccbffe8f09" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References of methods used
