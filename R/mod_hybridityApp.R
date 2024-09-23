@@ -396,19 +396,7 @@ mod_hybridityApp_server <- function(id, data){
     }, server = FALSE)
 
 
-    ###############################
-    # update genoView in output tab
-    observeEvent(c(data(),input$version2Mta), {
-      req(data())
-      dtVerif <- data()
-      dtPed <- dtVerif$data$pedigree
-      if(!is.null(dtPed)){
-        metaPed <- dtVerif$metadata$pedigree
-        colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
-        mychoices <- na.omit(unique(dtPed$designation))
-        updateSelectizeInput(session, "genoView", choices = mychoices, selected = mychoices[1])
-      }
-    })
+
 
     ##########################
     ## run button
@@ -526,6 +514,19 @@ mod_hybridityApp_server <- function(id, data){
           M2 <- M2[,(input$slider2b[1]):min(c(input$slider2b[2], ncol(M2) )), drop=FALSE] # environments
           M2 <- M2[(input$slider1b[1]):min(c(input$slider1b[2]), nrow(M2) ), ,drop=FALSE] # genotypes
           Matrix::image(as(M2, Class = "dgCMatrix"), ylab="Genotypes", xlab="Markers", colorkey=TRUE)
+        })
+        ###############################
+        # update genoView in output tab
+        observeEvent(c(data(),input$version2Mta), {
+          req(data())
+          dtVerif <- data()
+          dtPed <- dtVerif$data$pedigree
+          if(!is.null(dtPed)){
+            metaPed <- dtVerif$metadata$pedigree
+            colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
+            mychoices <- na.omit(unique(dtPed$designation))
+            updateSelectizeInput(session, "genoView", choices = mychoices, selected = mychoices[1])
+          }
         })
         # ## Report tab
         output$reportVerifGeno <- renderUI({

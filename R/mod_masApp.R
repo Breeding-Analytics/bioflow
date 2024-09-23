@@ -455,19 +455,7 @@ mod_masApp_server <- function(id, data){
         ggplot2::xlab("") + ggplot2::ylab("Allele frequencies")
       plotly::ggplotly(pp)
     })
-    ###############################
-    # update genoView in output tab
-    observeEvent(c(data(),input$version2Mta), {
-      req(data())
-      dtMAS <- data()
-      dtPed <- dtMAS$data$pedigree
-      if(!is.null(dtPed)){
-        metaPed <- dtMAS$metadata$pedigree
-        colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
-        mychoices <- na.omit(unique(dtPed$designation))
-        updateSelectizeInput(session, "genoView", choices = mychoices, selected = mychoices[1])
-      }
-    })
+
 
     ##########################
     ## run button
@@ -549,6 +537,19 @@ mod_masApp_server <- function(id, data){
           )
           # }
         }, server = FALSE)
+        ###############################
+        # update genoView in output tab
+        observeEvent(c(data(),input$version2Mta), {
+          req(data())
+          dtMAS <- data()
+          dtPed <- dtMAS$data$pedigree
+          if(!is.null(dtPed)){
+            metaPed <- dtMAS$metadata$pedigree
+            colnames(dtPed) <- cgiarBase::replaceValues(colnames(dtPed), Search = metaPed$value, Replace = metaPed$parameter)
+            mychoices <- na.omit(unique(dtPed$designation))
+            updateSelectizeInput(session, "genoView", choices = mychoices, selected = mychoices[1])
+          }
+        })
 
         # ## Report tab
         output$reportMASGeno <- renderUI({

@@ -738,7 +738,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         } # make sure if an user uploads a new dataset the qaRaw starts empty
 
         output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT({
-          DT::datatable(temp$data$pheno,
+          DT::datatable(temp$data$pheno[1:min(c( round(33000/ncol(temp$data$pheno)) , nrow(temp$data$pheno))),],
                         extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
@@ -1037,7 +1037,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           newPhenoColnames <- c("environment", setdiff(phenoColnames, "environment"))
           myObject$data$pheno <- myObject$data$pheno[, newPhenoColnames]
           environmentColumnName <- myObject$metadata$pheno$value[which(myObject$metadata$pheno$parameter == "environment")]
-          DT::datatable(myObject$data$pheno,
+          # 33K is the maximum number of cells to display in a render DT with server=FALSE
+          DT::datatable(myObject$data$pheno[1:min(c( round(33000/ncol(myObject$data$pheno)) , nrow(myObject$data$pheno))),],
                         extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
@@ -1049,8 +1050,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                         )
           ) %>%
             DT::formatStyle(environmentColumnName, backgroundColor = "#009E60")
-        } else{
-          DT::datatable(myObject$data$pheno,
+        } else{ # 33000 is the maximum number of cells to display
+          DT::datatable(myObject$data$pheno[1:min(c( round(33000/ncol(myObject$data$pheno)) , nrow(myObject$data$pheno))),],
                         extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
