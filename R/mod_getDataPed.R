@@ -201,7 +201,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
         output$preview_ped <- output$preview_ped2  <- DT::renderDT({
           req(ped_data())
 
-          DT::datatable(ped_data(),
+          DT::datatable(temp$data$pedigree[1:min(c( round(33000/ncol(temp$data$pedigree)) , nrow(temp$data$pedigree))),],
                         extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',
                                        scrollX = TRUE,
