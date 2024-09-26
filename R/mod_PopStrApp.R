@@ -364,8 +364,8 @@ mod_PopStrApp_server <- function(id, data){
 		if(length(input$fileenvbio$datapath)!=0) dfenvbio <- read.csv(input$fileenvbio$datapath)
 		if(input$fileenvbio_url!='') dfenvbio <- read.csv(input$fileenvbio_url)
 		shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-		#uno <- cgiarBase::Biodv(mydata,distk, nclust, dfenvbio, catv) 
-		uno <- Biodv(mydata,distk, nclust, dfenvbio, catv) 
+		uno <- cgiarBase::Biodv(mydata,distk, nclust, dfenvbio, catv) 
+		#uno <- Biodv(mydata,distk, nclust, dfenvbio, catv) 
 		# add status table
 		analysisId <- as.numeric(Sys.time())
 		newStatus <- data.frame(module="PopStrM", analysisId=analysisId )
