@@ -530,14 +530,14 @@ if (is.null(result)){
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") +
-  ggplot2::facet_wrap(~type)
+        ggplot2::facet_wrap(~type)
       p_value_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::guides(fill = "none") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance") +
-  ggplot2::facet_wrap(~type)
+        ggplot2::facet_wrap(~type)
       
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p_proportion_variance), plotly::ggplotly(p_value_variance), nrows=2, shareX = TRUE, shareY = TRUE) ) )
       
@@ -555,14 +555,14 @@ if (is.null(result)){
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") +
-  ggplot2::facet_wrap(~type)
+        ggplot2::facet_wrap(~type)
       p_value_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
         ggplot2::geom_bar(stat="identity") +
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::guides(fill = "none") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance") +
-  ggplot2::facet_wrap(~type)
+        ggplot2::facet_wrap(~type)
       p_proportion_variance <- plotly::ggplotly(p_proportion_variance)
       p_value_variance <- plotly::ggplotly(p_value_variance)
       plotly::subplot(p_proportion_variance, p_value_variance, nrows=2, shareX = FALSE, shareY = TRUE)
@@ -623,29 +623,32 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     counter <- 1
-    # for(iTrait in staTraits){
-    for(iParam in unique(parameters)){
-      
-      mydata2 = mydata[which(mydata$parameter %in% iParam),]
-      for(iView in c("environment","trait") ){
-        cat("\n\n####", paste0("by-",iView,"-" ,iParam), "{.tabset .tabset-pills}       \n\n")
-        # cat("\n\n#####", iView, "{.tabset .tabset-pills}       \n\n")
-        if(iView == "environment"){
-          number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
-          p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
-            ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-            ggplot2::labs(x="Environment", y="Parameter value") +
-            facet_wrap(~trait, scales = "free_y", nrow = number_rows)
-        }else{
-          number_rows <- ceiling(length(unique(mydata2$environment))/3) # 3 is the number of columns we want
-          p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
-            ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-            ggplot2::labs(x="trait", y="Parameter value") +
-            facet_wrap(~environment, scales = "free_y", nrow = number_rows)
+    
+    for(iView in c("environment","trait") ){
+      cat("\n\n####", iView, "{.tabset .tabset-pills}       \n\n")
+      # for(iTrait in staTraits){
+      for(iParam in unique(parameters)){
+        cat("\n\n#####", iParam, "{.tabset .tabset-pills}       \n\n")
+        mydata2 = mydata[which(mydata$parameter %in% iParam),]
+        if(nrow(mydata2) > 0){
+          if(iView == "environment"){
+            number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
+            p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
+              ggplot2::labs(x="Environment", y="Parameter value") +
+              facet_wrap(~trait, scales = "free_y", nrow = number_rows)
+          }else{
+            number_rows <- ceiling(length(unique(mydata2$environment))/3) # 3 is the number of columns we want
+            p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
+              ggplot2::labs(x="trait", y="Parameter value") +
+              facet_wrap(~environment, scales = "free_y", nrow = number_rows)
+          }
+          print(htmltools::tagList(plotly::ggplotly(p)))
         }
-        print(htmltools::tagList(plotly::ggplotly(p)))
+        
       }
       
       # combine plots
@@ -867,18 +870,28 @@ if (is.null(result)){
   modeling <- result$modeling
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
-  modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
-  traitsComp <- unique(setdiff(modeling, "inputObject"))
+  modeling <- modeling[which(modeling$analysisId == idSta),]
+  
+  traitsComp <- unique(setdiff(modeling$trait, "inputObject"))
+  traitsCompEnv <- unique(setdiff(modeling$environment, "general"))
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    shiny::selectInput(ns("traitStaComp"), 
-                       label = "Trait to filter:", 
-                       multiple = FALSE,
-                       selected = traitsComp,
-                       choices = traitsComp, 
+    inputPanel(
+      shiny::selectInput(ns("traitStaComp"), 
+                         label = "Trait to filter:", 
+                         multiple = FALSE,
+                         choices = traitsComp
+      ),
+      selectInput(ns("traitStaCompEnv"),
+                  label = "Environment",
+                  multiple = FALSE,
+                  choices = traitsCompEnv
+      ),
     )
+    
+    
   }
   
 }
@@ -899,64 +912,71 @@ if (is.null(result)){
     for(iTrait in traitsComp){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      temp.predComp.box <- predComp[predComp$trait== iTrait,]
-      temp.predComp.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box$entryType))]
-      
-      ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
-      lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
-      
-      p1 <- ggplot2::ggplot(temp.predComp.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
-        ggplot2::labs(x="", y="Trait value") +  
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box$entryType))/3) )) +  ggplot2::facet_grid(~environment) +
-        ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
-      
-      temp.predComp.box.list <- split(temp.predComp.box, temp.predComp.box$entryType)
-      temp.predComp.box.list <- lapply(temp.predComp.box.list, function(x){
-        y <- split(x, x$environment)
+      for(iEnv in traitsCompEnv){
+        cat("\n\n#####", iEnv, "{.tabset .tabset-pills}       \n\n")
         
-        bindByEnv <- lapply(y, function(z){
-          z <- z[with(z, order(-predictedValue)), ]
-          z <- z[1:min(c(nrow(z), 30)),]
-          return(z)
-        })
+        temp.predComp.box <- predComp[predComp$trait== iTrait,]
+        temp.predComp.box <- temp.predComp.box[temp.predComp.box$environment== iEnv,]
+        if(nrow(temp.predComp.box) > 0){
+          temp.predComp.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box$entryType))]
+          
+          ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
+          lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
+          p1 <- ggplot2::ggplot(temp.predComp.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+            ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
+            ggplot2::labs(x="", y="Trait value") +  
+            ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box$entryType))/3) )) +  ggplot2::facet_grid(~environment) +
+            ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+          
+          temp.predComp.box.list <- split(temp.predComp.box, temp.predComp.box$entryType)
+          temp.predComp.box.list <- lapply(temp.predComp.box.list, function(x){
+            y <- split(x, x$environment)
+            
+            bindByEnv <- lapply(y, function(z){
+              z <- z[with(z, order(-predictedValue)), ]
+              z <- z[1:min(c(nrow(z), 30)),]
+              return(z)
+            })
+            
+            res0 <- do.call(rbind, bindByEnv)
+            
+            return(res0)
+          })
+          temp.predComp.box2 <- do.call(rbind, temp.predComp.box.list)
+          temp.predComp.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box2$entryType))]
+          p2 <- ggplot2::ggplot(
+            data = temp.predComp.box2,
+            mapping = ggplot2::aes(
+              x = reorder(designation, -predictedValue),
+              y = predictedValue,
+              col = entryType,
+              text = paste(
+                paste0('<br>', "designation: ", designation),
+                paste0('<br>', "entry type: ", entryType),
+                paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+                paste0('<br>', "standard error: ", round(stdError, 4)),
+                # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+                #        round(predictedValue + CI, 2), ")")))) +
+                paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                       round(predictedValue + stdError, 4), ")")))) +
+            ggplot2::theme_classic() +  ggplot2::geom_point() + 
+            ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                                ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                                   width = 0.10) +
+            ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), 
+                           # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
+                           legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
+            ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+          
+          print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) ) )
+          cat("\n")
+          cat("\n")
+        }
         
-        res0 <- do.call(rbind, bindByEnv)
-        
-        return(res0)
-      })
-      temp.predComp.box2 <- do.call(rbind, temp.predComp.box.list)
-      temp.predComp.box2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box2$entryType))]
-      p2 <- ggplot2::ggplot(
-        data = temp.predComp.box2,
-        mapping = ggplot2::aes(
-          x = reorder(designation, -predictedValue),
-          y = predictedValue,
-          col = entryTypeSimple,
-          text = paste(
-            paste0('<br>', "designation: ", designation),
-            paste0('<br>', "entry type: ", entryType),
-            paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-            paste0('<br>', "standard error: ", round(stdError, 4)),
-            # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
-            #        round(predictedValue + CI, 2), ")")))) +
-            paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                   round(predictedValue + stdError, 4), ")")))) +
-        ggplot2::theme_classic() +  ggplot2::geom_point() + 
-        ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                            ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                               width = 0.10) +
-        ggplot2::labs(title = "", x = "Designation", y = "Predicted value", col = "entry type") +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), 
-                       # axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), 
-                       legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
-        ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+      }
       
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) ) )
-      
-      cat("\n")
-      cat("\n")
     }
     
   }else{
@@ -964,13 +984,14 @@ if (is.null(result)){
     plotly::renderPlotly({
       
       temp.predComp.box <- predComp[predComp$trait== input$traitStaComp,]
+      temp.predComp.box <- temp.predComp.box[temp.predComp.box$environment== input$traitStaCompEnv,]
       temp.predComp.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box$entryType))]
       
       ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
       lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.predComp.box, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +  ggplot2::facet_grid(~environment) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +  ggplot2::facet_grid(~environment) +
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + 
         ggplot2::labs(x="", y="Trait value") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -996,7 +1017,7 @@ if (is.null(result)){
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
-          col = entryTypeSimple,
+          col = entryType,
           text = paste(
             paste0('<br>', "designation: ", designation),
             paste0('<br>', "entry type: ", entryType),
