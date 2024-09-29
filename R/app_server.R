@@ -4,11 +4,13 @@
 production_server <- TRUE
 
 if (production_server) {
+  validate_url  <- "https://serviceportal-authentication-prd.azurewebsites.net/TokenValidation/validate"
   authorize_url <- "https://serviceportal-authentication-prd.azurewebsites.net/connect/authorize"
   access_url    <- "https://serviceportal-authentication-prd.azurewebsites.net/connect/token"
   get_user_info <- "https://serviceportal-authentication-prd.azurewebsites.net/connect/userinfo"
   client_secret <- "SrVvPpmRdN&41@"
 } else {
+  validate_url  <- "https://serviceportal-authentication-tst.azurewebsites.net/TokenValidation/validate"
   authorize_url <- "https://serviceportal-authentication-tst.azurewebsites.net/connect/authorize"
   access_url    <- "https://serviceportal-authentication-tst.azurewebsites.net/connect/token"
   get_user_info <- "https://serviceportal-authentication-tst.azurewebsites.net/connect/userinfo"
@@ -82,11 +84,43 @@ app_server <- function(input, output, session) {
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "bioflow.ebsproject.org"
-    # decision <- FALSE
+    # decision <- TRUE
     return(decision)
   })
 
   observe({ if(use_login()){
+    query <- parseQueryString(session$clientData$url_search)
+
+    if (!is.null(query$token) & FALSE) {
+      shinybusy::show_modal_spinner()
+
+      temp  <- data()
+
+      req  <- httr2::request(validate_url)
+      req  <- httr2::req_body_raw(req, paste0('{"Token": "', query$token, '"}'), type = "application/json")
+
+      resp <- httr2::req_perform(req)
+
+      rslt <- httr2::resp_body_json(resp)
+
+      if (rslt$message == "valid_token") {
+        jwt <- strsplit(query$token, ".", fixed = TRUE)[[1]]
+
+        payload <- jsonlite::base64url_dec(jwt[2]) |> rawToChar() |> jsonlite::fromJSON()
+
+        updateQueryString(redirect_uri, mode = "replace", session = session)
+
+        temp$user <- payload$email
+        data(temp)
+
+        shinyWidgets::show_alert(title = paste("Welcome", temp$user), type = "success")
+      } else {
+        shinyWidgets::show_alert(title = "Invalid Token!", type = "error")
+      }
+
+      shinybusy::remove_modal_spinner()
+    }
+
     observeEvent(input$login, {
       shinybusy::show_modal_spinner()
 
