@@ -400,8 +400,8 @@ if (is.null(result)){
           # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black"))+
           # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black"))
           ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-        if(nrow(nagm) < 15){ # if user wants to add text to the cells
-          p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+        if(nrow(nagm) < 8){ # if user wants to add text to the cells
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white")
         }
         # Basic histogram
         mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
@@ -448,8 +448,8 @@ if (is.null(result)){
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 7, hjust = 1, color="black", face = "bold"))+
         # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 7, hjust = 1, color="black", face="bold"))
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
-      if(nrow(nagm) < 15){ # if user wants to add text to the cells
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+      if(nrow(nagm) < 8){ # if user wants to add text to the cells
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white")
       }
       # print(p) # static
       # plotly::ggplotly(p) #dynamic
@@ -545,8 +545,8 @@ if (is.null(result)){
           # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
           #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
           ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-        if(nrow(corr) < 15){ # if user wants to fill cell values
-          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+        if(nrow(corr) < 8){ # if user wants to fill cell values
+          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black")
         }
         # Basic histogram
         mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
@@ -586,7 +586,7 @@ if (is.null(result)){
         #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
       if(nrow(corr) < 15){ # if user wants to fill cell values
-        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black")
       }
       # Basic histogram
       mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
@@ -974,14 +974,15 @@ if (is.null(result)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       temp.pred.box.top <- pred[pred$trait== iTrait,]
+      temp.pred.box.top$entryType <- substr(temp.pred.box.top$entryType,1,20) # constrain to 20 characters
       temp.pred.box.top$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top$entryType))]
       
       ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
       lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = ggplot2::element_blank() ) + 
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = ggplot2::element_blank() ) + # ggplot2::element_text(angle = 45, vjust = 0.5, size = 7, face = "bold") 
         ggplot2::labs(x="", y="Trait value", color="Entry type") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -1000,7 +1001,7 @@ if (is.null(result)){
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
-          col = entryTypeSimple,
+          col = entryType,
           text = paste(
             paste0('<br>', "designation: ", designation),
             paste0('<br>', "entry type: ", entryType),
@@ -1015,10 +1016,10 @@ if (is.null(result)){
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
+        ggplot2::theme(axis.text.x =  ggplot2::element_blank(), legend.position = "none", legend.title = element_blank() ) + # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = TRUE, nrows=1, widths = c(0.75,0.25) ) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = FALSE, nrows=2, heights = c(0.75,0.25) ) ) )
       
       cat("\n")
       cat("\n")
@@ -1029,14 +1030,15 @@ if (is.null(result)){
     plotly::renderPlotly({
       
       temp.pred.box.top <- pred[pred$trait== input$traitMta2,]
+      temp.pred.box.top$entryType <- substr(temp.pred.box.top$entryType,1,20) # constrain to 20 characters
       temp.pred.box.top$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top$entryType))]
       
       ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
       lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
       
       p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryTypeSimple))) +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) + 
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
         ggplot2::labs(x="", y="Trait value", color="Entry type") +  
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
@@ -1055,7 +1057,7 @@ if (is.null(result)){
         mapping = ggplot2::aes(
           x = reorder(designation, -predictedValue),
           y = predictedValue,
-          col = entryTypeSimple,
+          col = entryType,
           text = paste(
             paste0('<br>', "designation: ", designation),
             paste0('<br>', "entry type: ", entryType),
@@ -1070,13 +1072,13 @@ if (is.null(result)){
                                             ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                width = 0.10) +
         ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
-        ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = 7, face = "bold"), legend.position = "bottom", legend.title = element_blank() ) +  
+        ggplot2::theme(axis.text.x = ggplot2::element_blank() , legend.position = "none", legend.title = element_blank() ) +   # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
         ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
         ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
       
       ply1 <- plotly::ggplotly(p1)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply2, ply1, nrows=1, shareX = TRUE,  widths = c(0.75,0.25))
+      plotly::subplot(ply2, ply1, nrows=2, shareX = FALSE,  heights = c(0.75,0.25))
       
     })
     
@@ -1101,7 +1103,7 @@ sweath$traitParameter <- paste(sweath$trait, sweath$parameter, sep="_")
 possibleIndices <- unique(sweath$traitParameter)
 ```
 
-`r if( sum(unlist(lapply(as.list(possibleIndices), function(x){length(grep(x,pred$trait))})))>0 ) {"### Trait by trait-sensitivity plots\n
+`r if( sum(unlist(lapply(as.list(gsub("[[:punct:]]", "", possibleIndices )), function(x){length(grep(x,pred$trait))})))>0 ) {"### Trait by trait-sensitivity plots\n
 The following plots allow you to identify individuals with high performance for a trait but also with high or low sensitivity to the environmental means from a weather covariate or just the environmental means.\n"}`
 
 ```{r }
@@ -1111,11 +1113,11 @@ if (is.null(result)){
   result$status <- result$status#[1:6,]
   idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
   idMta <- idMta[length(idMta)]
-  pred <- result$predictions
-  pred <- pred[pred$analysisId == idMta,]
-  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
-  # traits <- unique(pred$trait)
-  traitsInPreds <- unique(pred$trait)
+  predSen <- result$predictions
+  predSen <- predSen[predSen$analysisId == idMta,]
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$environment == "across"),"trait"]) # unique(predSen$trait)
+  # traits <- unique(predSen$trait)
+  traitsInPreds <- unique(predSen$trait)
   covariates <- unique(result$metadata$weather[result$metadata$weather$parameter == "trait", "value" ]) # unique(result$metadata$weather$trait)
   modelUsed <- result$modeling[which(result$modeling$analysisId == idMta  & result$modeling$parameter == "randomFormula"),"value"]
   isRRBLUP <- ifelse(length(grep("QTL",modelUsed)) > 0, TRUE, FALSE)
@@ -1127,16 +1129,18 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    if( sum(unlist(lapply(as.list(possibleIndices), function(x){length(grep(x,pred$trait))})))>0  ){ # if there is envIndex fitted
+    if( sum(unlist(lapply(as.list(gsub("[[:punct:]]", "", possibleIndices )), function(x){length(grep(x,predSen$trait))})))>0  ){ # if there is envIndex fitted
       
       inputPanel(
         selectInput(ns("traitMta3"),
                     label = "Trait 1",
-                    choices = traitsInPreds
+                    choices = traitsInPreds,
+                    selected=traitsInPreds[1]
         ),
         selectInput(ns("envCovMta3"),
                     label = "Trait 2",
-                    choices = traitsInPreds
+                    choices = traitsInPreds,
+                    selected=traitsInPreds[1]
         ),
       )
     }
@@ -1149,7 +1153,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if( sum(unlist(lapply(as.list(possibleIndices), function(x){length(grep(x,pred$trait))}))) > 0  ){ # if there is weather info
+  if( sum(unlist(lapply(as.list(gsub("[[:punct:]]", "", possibleIndices )), function(x){length(grep(x,predSen$trait))}))) > 0  ){ # if there is weather info
     
     if("params" %in% ls()){ # we will download the document
       
@@ -1163,7 +1167,7 @@ if (is.null(result)){
         for(iCovariate in covariates){ 
           cat("\n\n#####", iCovariate, "{.tabset .tabset-pills}       \n\n")
           
-          subPred <- pred[which(pred$trait %in% c(input$traitMta3,input$envCovMta3) ),]
+          subPred <- predSen[which(predSen$trait %in% c(input$traitMta3,input$envCovMta3) ),]
           wide <- reshape(subPred[,c("trait","designation","predictedValue", "entryType")], 
                           direction = "wide", idvar = "designation",
                           timevar = "trait", v.names = "predictedValue", sep= "_")
@@ -1183,11 +1187,11 @@ if (is.null(result)){
       
     }else{ # render in screen
       
-      if(length(unique(pred$designation)) > 1000){ # go fixed format
+      if(length(unique(predSen$designation)) > 1000){ # go fixed format
         
         shiny::renderPlot({ # regular ggplot
           
-          subPred <- pred[which(pred$trait %in% c(input$traitMta3,input$envCovMta3) ),]
+          subPred <- predSen[which(predSen$trait %in% c(input$traitMta3,input$envCovMta3) ),]
           wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
                           direction = "wide", idvar = "designation",
                           timevar = "trait", v.names = "predictedValue", sep= "_")
@@ -1201,7 +1205,7 @@ if (is.null(result)){
       }else{ # go dynamic
         plotly::renderPlotly({
           
-          subPred <- pred[which(pred$trait %in% c(input$traitMta3,input$envCovMta3) ),]
+          subPred <- predSen[which(predSen$trait %in% c(input$traitMta3,input$envCovMta3) ),]
           wide <- reshape(subPred[,c("trait","designation","predictedValue","entryType")], 
                           direction = "wide", idvar = "designation",
                           timevar = "trait", v.names = "predictedValue", sep= "_")
@@ -1234,6 +1238,8 @@ if (is.null(result)){
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
   
+  traitChecks <- unique(pred$trait)
+  
   entryTypePresent <- table((unique(pred[,c("designation","entryType")]))$entryType)
   check1 <- which(entryTypePresent < 200)
   check2 <- grep("check|chck|bnchmark|benchmark|chek|chec", names(entryTypePresent), ignore.case = TRUE, value=FALSE)
@@ -1245,10 +1251,17 @@ if (is.null(result)){
     if("params" %in% ls()){ # we will download the document
       shinyjs::hide()
     }else{
+      inputPanel(
       selectInput(ns("checkMta"),
                   label = "Check to compare to:",
                   choices = nameOfChecks
-      )
+      ),
+      selectInput(ns("checkMtaTrait"),
+                  label = "View trait:",
+                  choices = traitChecks
+      ),
+    )
+      
     }
   }else{
     shinyjs::hide()
@@ -1269,9 +1282,14 @@ if (is.null(result)){
       cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
       
       for(iCheck in nameOfChecks){
+        
         cat("\n\n####", iCheck, "{.tabset .tabset-pills}       \n\n")
         
-        predListBench <- split(pred, pred$trait)
+        for(iTrait in traitChecks){
+          
+          cat("\n\n#####", iTrait, "{.tabset .tabset-pills}       \n\n")
+          
+           predListBench <- split(pred, pred$trait)
         predListBench2 <- lapply(predListBench, function(x){ # x <- predListBench[[1]]
           checkSelected <- which(x$designation == iCheck)
           if(length(checkSelected) > 0){
@@ -1285,13 +1303,13 @@ if (is.null(result)){
         })
         temp.pred.box.bench <- do.call(rbind, predListBench2)
         temp.pred.box.bench$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.bench$entryType))]
-        
+        temp.pred.box.bench <- temp.pred.box.bench[which(temp.pred.box.bench$trait == iTrait),]
         pb <- ggplot2::ggplot(
           data = temp.pred.box.bench,
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
-            col = entryTypeSimple,
+            col = entryType,
             text = paste(
               paste0('<br>', "designation: ", designation),
               paste0('<br>', "entry type: ", entryType),
@@ -1305,11 +1323,14 @@ if (is.null(result)){
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) #+ ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         
         print(htmltools::tagList(plotly::ggplotly(pb)))
         
+        }
+        
       }
+      
     }else{
       
       plotly::renderPlotly({
@@ -1328,12 +1349,13 @@ if (is.null(result)){
         })
         temp.pred.box.bench <- do.call(rbind, predListBench2)
         temp.pred.box.bench$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.bench$entryType))]
+        temp.pred.box.bench <- temp.pred.box.bench[which(temp.pred.box.bench$trait == input$checkMtaTrait),]
         pb <- ggplot2::ggplot(
           data = temp.pred.box.bench,
           mapping = ggplot2::aes(
             x = designation, # reorder(designation, -predictedValue2),
             y = predictedValue2,
-            col = entryTypeSimple,
+            col = entryType,
             text = paste(
               paste0('<br>', "designation: ", designation),
               paste0('<br>', "entry type: ", entryType),
@@ -1347,7 +1369,7 @@ if (is.null(result)){
           ), position = ggplot2::position_dodge(0.5),
           width = 0.10) +
           ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
+          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) # + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
         plotly::ggplotly(pb)
         
       })
