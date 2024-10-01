@@ -371,6 +371,13 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                   ebs_client_id     <- '346lau0avcptntd1ksbmgdi5c'
                   ebs_client_secret <- 'q5vnvakfj800ibh5tvqut73vj8klv1tpt6ugtmuneh6d2jb28i3'
 
+                } else if (ebs_instance %in% c('demo')) {
+
+                  ebs_authorize_url <- 'https://auth-sandbox.ebsproject.org/oauth2/authorize'
+                  ebs_access_url    <- 'https://auth-sandbox.ebsproject.org/oauth2/token'
+                  ebs_client_id     <- '14lqul2cds3o917vnu5aaququ4'
+                  ebs_client_secret <- '1mk05qlg0l8lm2vfegj2m6hei0ig9dl80al26r9no771tcfc97mo'
+
                 } else {
                   shinyWidgets::show_alert(title = 'Oops!', type = 'warning', "We can't recognize this EBS instance :-(")
                   return()
