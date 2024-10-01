@@ -27,7 +27,7 @@ mod_ocsApp_ui <- function(id){
                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                             # ),
                                             tags$br(),
-                                            img(src = "www/ocs.png", height = 400, width = 250), # add an image
+                                            img(src = "www/ocs2.png", height = 400, width = 250), # add an image
                                      ),
                                      column(width = 6,
                                             h2(strong("Details")),
@@ -78,7 +78,7 @@ mod_ocsApp_ui <- function(id){
                                                                    DT::DTOutput(ns("phenoOcs")),
                                                ),
                                       ),
-                                      tabPanel("Pick trait", icon = icon("dice-two"),
+                                      tabPanel("Select entries", icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=6, selectInput(ns("trait2Ocs"), "Trait to optimize (required)", choices = NULL, multiple = FALSE) ),
@@ -92,22 +92,25 @@ mod_ocsApp_ui <- function(id){
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                    ),
                                                                    tags$span(id = ns('holder1'),
-                                                                             column(width=6, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ) ,
-                                                                             column(width=6, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
+                                                                             column(width=4, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ) ,
+                                                                             column(width=4, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
+                                                                             column(width=2, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
+                                                                             column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1),),
                                                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")) ),
-                                                                             shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
-                                                                                                 numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1),
-                                                                             ),
                                                                    ),
                                                ),
                                       ),
                                       tabPanel("Set contribution", icon = icon("dice-three"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=4,textInput(ns("nCrossOcs"), label = "Number of crosses [Enter a numeric vector (comma delimited): e.g: 20,30,40 ]", value="70") ),
-                                                      column(width=4, textInput(ns("targetAngleOcs"), label = "Target angle [Enter a numeric vector (comma delimited): e.g: 30,60,90 ]", value="30") ),
                                                       column(width=4,
-                                                             tags$br(),
+                                                             # tags$br(),
+                                                             textInput(ns("nCrossOcs"), label = "Number of crosses to obtain", value="70") ),
+                                                      column(width=4,
+                                                             # tags$br(),
+                                                             textInput(ns("targetAngleOcs"), label = "Target angle (0 is pure gain, 90 more variance)", value="30") ),
+                                                      column(width=4,
+                                                             # tags$br(),
                                                              selectInput(ns("relType"), "Relationship to use",  choices = NULL, multiple = FALSE ) ),
                                                ),
                                                column(width=12),
@@ -117,8 +120,8 @@ mod_ocsApp_ui <- function(id){
                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                    ),
-                                                                   DT::DTOutput(ns("evaluationUnits")),
-                                                                   img(src = "www/ocs.png", height = 400, width = 250), # add an image
+                                                                   column(width=3, img(src = "www/ocs2.png", height = 400, width = 250),), # add an image
+                                                                   column(width=9, DT::DTOutput(ns("evaluationUnits")),),
                                                ),
                                       ),
                                       tabPanel("Run analysis", icon = icon("dice-four"),
@@ -131,7 +134,7 @@ mod_ocsApp_ui <- function(id){
                                                       ),
                                                       br(),
                                                       column( width = 10,
-                                                              shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Optional run settings...",
+                                                              shinydashboard::box(width = 12, status = "success", style = "color: #000000", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Optional run settings...",
                                                                                   numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
                                                                                   numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
                                                                                   selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),
@@ -328,15 +331,15 @@ mod_ocsApp_ui <- function(id){
 #           dad <- pedMeta[dtOcs$metadata$pedigree$parameter == "father","value"]
 #           parents <- na.omit(unique(c( dtOcs$data$pedigree[,mom ],  dtOcs$data$pedigree[,dad ] )))
 #           if(length(parents) > 2){
-#             availableTypes[["NRM"]] <- "nrm"
+#             availableTypes[["Pedigree"]] <- "nrm"
 #           }
 #         }
 #       }
 #       if(!is.null(dtOcs$metadata$geno)){
-#         availableTypes[["GRM"]] <- "grm"
+#         availableTypes[["Marker"]] <- "grm"
 #       }
-#       if( length(which(c("GRM","NRM") %in% names(availableTypes))) == 2 ){
-#         availableTypes[["BOTH"]] <- "both"
+#       if( length(which(c("Pedigree","Marker") %in% names(availableTypes))) == 2 ){
+#         availableTypes[["Both"]] <- "both"
 #       }
 #       updateSelectInput(session, "relType", choices = availableTypes, selected = availableTypes[1])
 #     })
@@ -381,13 +384,19 @@ mod_ocsApp_ui <- function(id){
 #       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 #       mydata <- mydata[,which(!duplicated(colnames(mydata)))]
 #       mydata$myEntryType <- mydata[,input$groupOcsInputPlot]
-#       ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(myEntryType), y=predictedValue)) +
+#       p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(myEntryType), y=predictedValue)) +
 #         ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
 #         ggplot2::theme_classic() + ggplot2::ggtitle("Boxplot of trait dispersion by entry type") +
 #         ggplot2::geom_jitter(ggplot2::aes(colour = myEntryType), alpha = 0.5) +
 #         ggplot2::xlab("Entry type") + ggplot2::ylab("Trait value") +
-#         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
+#        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
 #         ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))
+# if(input$checkbox){
+#   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+# }else{
+#   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+# }
+# p
 #
 #     })
 #     ## render evaluation units
@@ -816,15 +825,15 @@ mod_ocsApp_server <- function(id, data){
           dad <- pedMeta[dtOcs$metadata$pedigree$parameter == "father","value"]
           parents <- na.omit(unique(c( dtOcs$data$pedigree[,mom ],  dtOcs$data$pedigree[,dad ] )))
           if(length(parents) > 2){
-            availableTypes[["NRM"]] <- "nrm"
+            availableTypes[["Pedigree"]] <- "nrm"
           }
         }
       }
       if(!is.null(dtOcs$metadata$geno)){
-        availableTypes[["GRM"]] <- "grm"
+        availableTypes[["Marker"]] <- "grm"
       }
-      if( length(which(c("GRM","NRM") %in% names(availableTypes))) == 2 ){
-        availableTypes[["BOTH"]] <- "both"
+      if( length(which(c("Pedigree","Marker") %in% names(availableTypes))) == 2 ){
+        availableTypes[["Both"]] <- "both"
       }
       updateSelectInput(session, "relType", choices = availableTypes, selected = availableTypes[1])
     })
@@ -869,14 +878,19 @@ mod_ocsApp_server <- function(id, data){
       mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
       mydata <- mydata[,which(!duplicated(colnames(mydata)))]
       mydata$myEntryType <- mydata[,input$groupOcsInputPlot]
-      ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(myEntryType), y=predictedValue)) +
+      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(myEntryType), y=predictedValue)) +
         ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
         ggplot2::theme_classic() + ggplot2::ggtitle("Boxplot of trait dispersion by entry type") +
         ggplot2::geom_jitter(ggplot2::aes(colour = myEntryType), alpha = 0.5) +
         ggplot2::xlab("Entry type") + ggplot2::ylab("Trait value") +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
+        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1)) +
         ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))
-
+      if(input$checkbox){
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      }else{
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      }
+      p
     })
     ## render evaluation units
     output$evaluationUnits <-  DT::renderDT({

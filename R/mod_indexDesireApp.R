@@ -119,7 +119,7 @@ mod_indexDesireApp_ui <- function(id){
                                                        ),
                                                        column(width=8,
                                                               br(),
-                                                                shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
+                                                                shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
                                                                                   selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                                                               ),
                                                        ),

@@ -77,9 +77,11 @@ The objective of this dashboard is to help scientist to understand the following
 
 Understanding these data features should allow the scientist to identify which crosses should be performed in the crossing block. It should also allow the scientist to assess the relationship between the degree selected (aggressiveness) and the number of parents selected and times that each parent shows up.  
 
+Keep in mind that the suggested crosses may over-represent some parents depending on the degrees selected. Some users tend to ask if they can constraint the number of times a parent should be used. Although this is possible, this implies that the user is looking for a lower sub-optimal solution since the specification of that constraint implies that the user is looking for keeping even more variance (higher degrees). 
+
 ### Cross performance table
 
-The following table provides an overview of the performance of the predicted/proposed crosses across different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs.
+The following table provides an overview of the performance of the predicted/proposed crosses across different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs. Remember that zero degree implies more interest in gain and 90 degrees implies more interest in genetic variance.
 
 <p>&nbsp;</p>
 
