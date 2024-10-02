@@ -260,7 +260,7 @@ app_server <- function(input, output, session) {
   mod_getDataWeather_server("getDataWeather_1", map = required_mapping_weather, data = data, res_auth = res_auth)
   mod_getDataQTL_server("getDataQTL_1", data = data, res_auth = res_auth)
 
-  mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
+  mod_bindObjectApp_server("bindObjectApp_1", data = data, res_auth=res_auth)
 
   ## QUALITY ASSURANCE tabs
   mod_qaPhenoApp_server("qaPhenoApp_1", data = data)
