@@ -45,7 +45,7 @@ mod_faqUsApp_ui <- function(id){
 
                             br(),
 
-                            p("The strength of bioflow compared to other platforms is the our flexible data structure that allows the transfer of data among different applications/modules. This way we can
+                            p("The strength of bioflow compared to other platforms is our flexible data structure that allows the transfer of data among different applications/modules. This way we can
                               decouple or make the modules independent, so different biometricians can work in different modules without dependency on another. Certain modules depend on the results
                               of another module (e.g., two stage analysis) but still certain level of independence exist."),
                             ),

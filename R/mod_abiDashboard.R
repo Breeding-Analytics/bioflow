@@ -14,6 +14,30 @@ mod_abiDashboard_ui <- function(id){
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
+                           tabPanel(div(icon("book"), "Information") ,
+                                    br(),
+                                    tags$body(
+                                      column(width = 12,
+                                             h1(strong(span("Accelerated Breeding Dashboard", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+
+                                             br(),
+                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example data", status = "success"),
+
+                                             h2(strong("Details")),
+                                             p("This module has the sole purpose of building a dashboard report for the Accelerated Breeding Initiative (ABI).
+                                             The idea is that the user only has to specify the OCS and RGG analysis time stamps requested and a search for all needed metrics
+                                             by ABI will be executed to build the desired dashboard. The arguments are used in the following way:"),
+
+                                             p(strong("Module report-")," This argument is used to subset the time stamps to specific type of analyisis. For example, if 'sta' is
+                                               selected only time stamps associated to sta analysis will be displayed in the next argument. ."),
+                                             p(strong("Time stamp-"),"  This is a dropdown menu that contains the times stamps associated to the analysis type selected."),
+                                             h2(strong("References")),
+                                             p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                             p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
+
+                                      ),
+                                    )
+                           ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                     tabsetPanel(
                                       tabPanel("Pick time stamps", icon = icon("magnifying-glass-chart"),
@@ -21,9 +45,6 @@ mod_abiDashboard_ui <- function(id){
                                                column(width=12,
                                                       column(width=5,  selectInput(ns("versionSelection"), "OCS analysis (to trace selection history)", choices = NULL, multiple = FALSE) ),
                                                       column(width=5,  selectInput(ns("versionHistory"), "RGG analysis (to link gain)", choices = NULL, multiple = FALSE) ),
-                                                      column(width=2, tags$br(),
-                                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
-                                                      ),
                                                       style = "background-color:grey; color: #FFFFFF"),
                                                hr(style = "border-top: 3px solid #4c4c4c;"),
                                                h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),

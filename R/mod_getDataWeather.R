@@ -15,7 +15,7 @@ mod_getDataWeather_ui <- function(id){
 
     navlistPanel( widths = c(2, 10),
                   tabPanel(div("1. Select source" ),
-                           tags$br(),
+                           # tags$br(),
                            selectInput(
                              inputId = ns('weather_input'),
                              label   = 'Data Source*:',

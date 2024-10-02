@@ -1,7 +1,7 @@
 ---
 title: "Accelerated Breeding Initiative (ABI) Dashboard"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "July 03, 2024"  
+date: "October 02, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -47,7 +47,7 @@ The following visualization shows which data types was used for this pipeline. I
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-oute7261a7ce1bc5c01" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out33a962ac1d1b7f95" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Map of trials planted
@@ -55,7 +55,7 @@ The following visualization shows which data types was used for this pipeline. I
 The following map allows you to assess the location where trials are planted.
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out5912ae6c70158e0d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outceced1a285f79a1d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Base metrics
 
@@ -73,7 +73,7 @@ Variance component proportions
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out208bf5adf9ed14a7" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out9d5c43aa9d66b545" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Barplot for parameter values
 
@@ -88,7 +88,7 @@ Variance component proportions
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out9c94256f1e1bd239" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outd88303c6b1fe630d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between the environments
 
@@ -102,7 +102,7 @@ Variance component proportions
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outc9db7dc73bc753ba" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out80bb47e3897458a1" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Correlation between environments
 
@@ -116,21 +116,21 @@ Variance component proportions
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outa4ed821097407c8f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out8e6f395452991157" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Trait view
 
 The following graphs aim to sow the genetic correlation between traits using across environment estimates of genetic merit. In addition, the radar plot displays the population means and the target values for the product profile to show the differences between these two and see how big are the gaps.
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out0fbe8ae89f6f8b31" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outa50825d4b185f472" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out3d43b81d4ab54767" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out9d37fb1ab36734a2" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Selection effectiveness
 
 The following graph display the expected gain after the selection of parents and crosses for the next generation. The density plots show the base population (red), the selected population of parents (blue), and the predicted distribution of the crosses to be made (green). The distribution of selected parents and future crosses come from the optimal cross selection (OCS) run.
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-outf42f49a43974f912" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out8c151e3bda8edbc7" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 
@@ -151,5 +151,5 @@ The following graph shows the realized genetic gain for this pipeline. The x-axi
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-out9d6e8b52ebd307bf" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="abiDashboard_1-oute8f1ef6c73136f29" style="width:100%;height:400px;"></div><!--/html_preserve-->
 

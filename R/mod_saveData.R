@@ -35,7 +35,7 @@ mod_saveData_ui <- function(id){
                   ),
                   tabPanel(div("2. Assign name" ),
                            tags$br(),
-                           textInput(ns("fileNameUpload"), label = "Name assigned to the analysis", placeholder = "Enter name..."),
+                           textInput(ns("fileNameUpload"), label = "Name assigned to the analysis object", placeholder = "Enter name..."),
                   ),
                   tabPanel(div("3. Save object" ),
                            tags$br(),
@@ -120,7 +120,11 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
         status <- dtMta$status; status$analysisId <- as.POSIXct(status$analysisId, origin="1970-01-01", tz="GMT")
         DT::datatable(status, extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                      caption = htmltools::tags$caption(
+                        style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                        htmltools::em('Preview of analysis available in the current data object')
+                      )
         )
       }
     }, server = FALSE)

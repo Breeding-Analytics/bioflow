@@ -68,7 +68,7 @@ mod_neApp_ui <- function(id){
                                              tabPanel("Set thresholds", icon = icon("dice-two"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=3, numericInput(ns("maxNe"), label = "Maximum Number of Founders to Explore", value = 100, step = 5, max = 1000, min = 2) ),
+                                                             column(width=3, numericInput(ns("maxNe"), label = "Max # of founders to explore", value = 100, step = 5, max = 1000, min = 2) ),
                                                              column(width=3, numericInput(ns("maxMarker"), label = "Number of markers to use", value = 1000, step = 50, max = 20000, min = 10) ),
                                                              column(width=3, numericInput(ns("nSamples"), label = "Number of bootstraps", value = 10, step = 5, max = 5, min = 500) ),
                                                       ),
@@ -89,14 +89,13 @@ mod_neApp_ui <- function(id){
                                              tabPanel("Run analysis", icon = icon("dice-three"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
 
-                                                             column( width = 2,
-                                                                     br(),
-                                                                     actionButton(ns("runQaMb"), "Run (click)", icon = icon("play-circle")),
-                                                                     textOutput(ns("outQaMb")),
-                                                             ),
+                                                             br(),
+                                                             actionButton(ns("runQaMb"), "Run (click)", icon = icon("play-circle")),
+                                                             uiOutput(ns("toIgnore")),
                                                              br(),
 
                                                       ),
+                                                      textOutput(ns("outQaMb")),
 
                                              ),
                                            ) # end of tabset
