@@ -52,7 +52,7 @@ mod_qaPhenoApp_ui <- function(id){
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
-                                                             column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 2.5) ),
+                                                             column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 3.2) ),
 
                                                       ),
                                                       column(width=12),
@@ -82,6 +82,7 @@ mod_qaPhenoApp_ui <- function(id){
                                                              br(),
                                                       ),
                                                       textOutput(ns("outQaRaw")),
+                                                      # fluidRow(column(3, verbatimTextOutput(ns("value"))))
                                              ),
                                            ) # end of tabset
                                   ),# end of input panel
@@ -283,7 +284,7 @@ mod_qaPhenoApp_server <- function(id, data){
       if(mappedColumns == 3){ # all required columns are present
         req(input$traitOutqPhenoMultiple)
         req(input$outlierCoefOutqFont)
-        req(input$outlierCoefOutqPheno)
+        # req(input$outlierCoefOutqPheno)
         # get the outlier table
         outlier <- list()
         for(iTrait in input$traitOutqPhenoMultiple){
@@ -310,7 +311,7 @@ mod_qaPhenoApp_server <- function(id, data){
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
       if(mappedColumns == 3){ # all required columns are present
         req(input$outlierCoefOutqFont)
-        req(input$outlierCoefOutqPheno)
+        # req(input$outlierCoefOutqPheno)
         req(input$traitOutqPheno)
         ## get the outlier table
         outlier <- list()
@@ -338,7 +339,7 @@ mod_qaPhenoApp_server <- function(id, data){
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
       if(mappedColumns == 3){ # all required columns are present
         req(input$outlierCoefOutqFont)
-        req(input$outlierCoefOutqPheno)
+        # req(input$outlierCoefOutqPheno)
         req(input$traitOutqPheno)
         ## get the outlier table
         outlier <- list()
@@ -364,17 +365,23 @@ mod_qaPhenoApp_server <- function(id, data){
 
     ## save when user clicks
 
+    # output$value <- renderPrint({ input$outlierCoefOutqPheno })
+
     outQaRaw <- outQaRaw2 <- eventReactive(input$runQaRaw, {
       req(data())
       req(input$traitOutqPhenoMultiple)
+      # req(input$outlierCoefOutqPheno)
       mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
       if(mappedColumns == 3){ # all required columns are present
+
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         ## get the outlier table
         outlier <- list()
         analysisId <- as.numeric(Sys.time())
+
         for(iTrait in input$traitOutqPhenoMultiple){
           outliers <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+          outliers <- outliers[which(is.na(outliers$analysisId)),,drop=FALSE]
           removeCols <- c("module","analysisId","value")
           outliers <- outliers[, setdiff(colnames(outliers),removeCols)]
           colnames(outliers) <- cgiarBase::replaceValues(Source = colnames(outliers), Search = "row", Replace = "record")
