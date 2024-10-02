@@ -1104,6 +1104,10 @@ if (is.null(result)){
       colnames(wide) <- gsub("predictedValue","",colnames(wide))
       wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
       corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      if(nrow(corr) > 1){
+        ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+        corr <- corr[ord,ord]
+      }
       vv <- cgiarBase::matToTab(corr)
       p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
@@ -1142,6 +1146,10 @@ if (is.null(result)){
       colnames(wide) <- gsub("predictedValue","",colnames(wide))
       wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
       corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      if(nrow(corr) > 1){
+        ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+        corr <- corr[ord,ord]
+      }
       vv <- cgiarBase::matToTab(corr)
       p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+

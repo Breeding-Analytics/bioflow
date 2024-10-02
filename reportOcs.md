@@ -1,7 +1,7 @@
 ---
 title: "Optimal Cross Selection Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "September 19, 2024"  
+date: "October 01, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -30,13 +30,15 @@ The objective of this dashboard is to help scientist to understand the following
 
 Understanding these data features should allow the scientist to identify which crosses should be performed in the crossing block. It should also allow the scientist to assess the relationship between the degree selected (aggressiveness) and the number of parents selected and times that each parent shows up.  
 
+Keep in mind that the suggested crosses may over-represent some parents depending on the degrees selected. Some users tend to ask if they can constraint the number of times a parent should be used. Although this is possible, this implies that the user is looking for a lower sub-optimal solution since the specification of that constraint implies that the user is looking for keeping even more variance (higher degrees). 
+
 ### Cross performance table
 
-The following table provides an overview of the performance of the predicted/proposed crosses across different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs.
+The following table provides an overview of the performance of the predicted/proposed crosses across different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs. Remember that zero degree implies more interest in gain and 90 degrees implies more interest in genetic variance.
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out2c950cde634e01d2" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out4c3e36d62c09c404" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -56,7 +58,7 @@ The following boxplot allows you to see the performance of the different crosses
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out67e11f9e306ca438" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-outb20406ca3878a838" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Parent performance table
 
@@ -64,7 +66,7 @@ This table shows the performance of the parents selected by the OCS algorithm. T
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out72b69fd63cee47a4" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out9c91c26ac949b65d" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -77,12 +79,12 @@ The following barplot allows you to assess the number of times (y-axis) that a g
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="ocsApp_1-environ-label" for="ocsApp_1-environ">Treatment:</label>
 <div>
-<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="desireIndex ~ 70 crosses * 60 degrees" selected>desireIndex ~ 70 crosses * 60 degrees</option></select>
+<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="desireIndex ~ 70 crosses * 30 degrees" selected>desireIndex ~ 70 crosses * 30 degrees</option></select>
 <script type="application/json" data-for="ocsApp_1-environ">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out3cd3b93eebbac212" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-outffe12fb103538494" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -92,7 +94,7 @@ The following table summarizes the trait means for the different OCS runs (numbe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out83f61b74c107f682" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out9975a99354c42b7b" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
