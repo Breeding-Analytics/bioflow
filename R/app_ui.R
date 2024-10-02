@@ -132,8 +132,8 @@ app_ui <- function(request) {
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
                  tabPanel(strong("DASHBOARDS"), mod_sectionInfoDASHApp_ui("sectionInfoDASHApp_1")  ),
-                 tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
                  tabPanel("Analytical Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
+                 tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
       ),
 
     )
