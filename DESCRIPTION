@@ -46,6 +46,8 @@ Imports:
     psych,
     QBMS (>= 1.0.0),
     RColorBrewer,
+    reshape,
+    rhub,
     rlang,
     rmdformats,
     roxygen2,

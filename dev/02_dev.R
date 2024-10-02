@@ -63,6 +63,8 @@
 # usethis::use_package("usethis")
 # usethis::use_package("tidyverse")
 # usethis::use_package("roxygen2")
+# usethis::use_package("reshape")
+# usethis::use_package("rhub")
 # usethis::use_pipe()
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
 # usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
