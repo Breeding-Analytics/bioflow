@@ -110,6 +110,7 @@ mod_staApp_ui <- function(id){
                                                                              # column(width=3, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
                                                                              column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
                                                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), # ,  shiny::plotOutput(ns("plotPredictionsCleanOut"))
+                                                                             column(width=12, plotly::plotlyOutput(ns("plotFieldGrid"))  ),
                                                                    ),
                                                ),
                                       ),
@@ -1124,7 +1125,7 @@ mod_staApp_server <- function(id,data){
             mydata$predictedValue <- mydata[,input$trait3Sta]
             mydata <- mydata[,which(!duplicated(colnames(mydata)))]
             p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
-              ggplot2::geom_histogram(aes(y=after_stat(density)), position="identity", alpha=input$transparency ) +
+              ggplot2::geom_histogram(ggplot2::aes(y=ggplot2::after_stat(density)), position="identity", alpha=input$transparency ) +
               # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
               ggplot2::theme_classic() + ggplot2::ggtitle("Histogram of trait dispersion by environment") +
               # ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
@@ -1137,6 +1138,45 @@ mod_staApp_server <- function(id,data){
             # }
             # p
             plotly::ggplotly(p)
+          }else{}
+        })
+        # render fieldGrid heatmap
+        output$plotFieldGrid <- plotly::renderPlotly({ # shiny::renderPlot({ #
+          req(data())
+          req(input$version2Sta)
+          req(input$trait3Sta)
+          mydata <- data()$data$pheno
+          ### change column names for mapping
+          paramsPheno <- data()$metadata$pheno
+          paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+          colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
+          ###
+          mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+          if(mappedColumns == 3){ # all required columns are present
+
+            mappedCoordColumns <- length(which(c("row","col") %in% paramsPheno$parameter))
+            if(mappedCoordColumns == 2){
+
+              mydata$value <- mydata[, input$trait3Sta]
+              maxVal <- max(mydata$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+              minVal <- min(mydata$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+              meanVal <- mean(mydata$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+
+              if(!is.na(meanVal)){ # there is data
+                pf <- ggplot2::ggplot(data = mydata, ggplot2::aes(row, col, fill = value))+
+                  ggplot2::geom_tile(color = "white")+
+                  ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
+                                                midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
+                                                name=input$trait3Sta) +
+                  ggplot2::theme_minimal()+
+                  ggplot2::ylab("") + ggplot2::xlab("") +
+                  ggplot2::ggtitle("Field view")  +
+                  ggplot2::facet_wrap(~environment, scales = "free") +
+                  ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+                plotly::ggplotly(pf)
+              }
+            }
+
           }else{}
         })
 

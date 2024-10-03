@@ -468,8 +468,8 @@ if (is.null(result)){
 }
 ```
 
-`r if( length(na.omit(unique(result$predictions$mother)))> 0 & length(na.omit(unique(result$predictions$father)))>0 ){"### Performance of crosses\n
-The following plots allow the user to review the performance of crosses, mothers and fathers with respect to the available traits.\n"}`
+`r if( length(na.omit(unique(result$predictions$mother)))> 0 & length(na.omit(unique(result$predictions$father)))>0 ){"### Parental Performance \n
+The following plots allow the user to review the performance of crosses, mothers and fathers for the available traits. If there are too many crosses (more than 150), only mother and fathers will be plotted. \n"}`
 
 ```{r }
 if (is.null(result)){
@@ -522,24 +522,24 @@ if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTra
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=father)) +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+        ggplot2::labs(x="fathers", y="Trait value")  #+ ggplot2::facet_grid(trait~environment, scales = "free")
       p2 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(mother, -predictedValue), y=predictedValue) ) + 
         # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=mother)) +
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+        ggplot2::labs(x="mothers", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
       
       ply1 <- plotly::ggplotly(p1)
       ply2 <- plotly::ggplotly(p2)
       myPlots <- list(ply1, ply2)
-      if(length(unique(dd$cross)) < 300){ # if there's more than 300 crosses don't plot
+      if(length(unique(dd$cross)) < 150){ # if there's more than 300 crosses don't plot
         p3 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(cross, -predictedValue), y=predictedValue) ) + 
           # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
           ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=cross)) +
           ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                          axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-          ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+          ggplot2::labs(x="crosses", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
         ply3 <- plotly::ggplotly(p3)
         myPlots <- c(myPlots, ply3)
       }
@@ -562,24 +562,24 @@ if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTra
           ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=father)) +
           ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                          axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-          ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+          ggplot2::labs(x="fathers", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
         p2 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(mother, -predictedValue), y=predictedValue) ) + 
           # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
           ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=mother)) +
           ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                          axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-          ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+          ggplot2::labs(x="mothers", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
         
         ply1 <- plotly::ggplotly(p1)
         ply2 <- plotly::ggplotly(p2)
         myPlots <- list(ply1, ply2)
-        if(length(unique(dd$cross)) < 300){ # if there's more than 300 crosses don't plot
+        if(length(unique(dd$cross)) < 150){ # if there's more than 300 crosses don't plot
           p3 <- ggplot2::ggplot(dd, ggplot2::aes(x=reorder(cross, -predictedValue), y=predictedValue) ) + 
             # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=father), alpha=0.9) +
             ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=cross)) +
             ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                            axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
-            ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+            ggplot2::labs(x="crosses", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
           ply3 <- plotly::ggplotly(p3)
           myPlots <- c(myPlots, ply3)
         }
