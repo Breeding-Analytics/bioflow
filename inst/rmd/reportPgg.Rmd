@@ -54,8 +54,8 @@ printTable <- function(DT, pageLength = 7,
   table <- DT::datatable(data = DT, 
                          filter = "top", 
                          extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
@@ -94,8 +94,8 @@ if (is.null(result)){
                                                 rownames = FALSE,
                                                 class = 'cell-border stripe',
                                                 extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+                                                options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                               lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
     ),numeric.output)
     }, server = FALSE)
   }
@@ -143,7 +143,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 if (is.null(result)){
-
+  
 } else {
   
   metrics <- result$metrics
@@ -157,40 +157,59 @@ if (is.null(result)){
     # counter <- 1
     for(iTrait in unique(modeling)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"]
-      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"]
-      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"]
-      vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-      vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == iTrait ),"value"]
-      p <- plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-      print(htmltools::tagList(plotly::ggplotly(p)))
-      # l[[counter]] <- tagList(HTML(markdown::mark(text=paste0("\n\n#### ", iTrait, "\n"))),
-      # 
-      #                        plotly::plot_ly(alpha = 0.6) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" ) %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" ) %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-      # 
-      # )
-      # counter <- counter + 1
+      
+      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"];
+      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"];
+      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"];
+      m1 <- mu0 + R
+      envs <- unique(current.metrics$environment[which(current.metrics$trait == iTrait)])
+      
+      vals0 <- as.data.frame(apply(data.frame(mu0,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
+      vals1 <- as.data.frame(apply(data.frame(m1,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
+      vals0$Subject <- vals1$Subject <- paste0("a",1:nrow(vals0))
+      
+      vals0l <- reshape(vals0, idvar = "Subject", varying = list(1:(length(mu0))),
+                        v.names = "conc", direction = "long", times = envs)
+      vals0l$treat <- "original"
+      vals1l <- reshape(vals1, idvar = "Subject", varying = list(1:(length(mu0))),
+                        v.names = "conc", direction = "long", times = envs)
+      vals1l$treat <- "selected"
+      vals <- rbind(vals0l,vals1l)
+      
+      p<-ggplot2::ggplot(vals, ggplot2::aes(x=conc, fill=treat)) +
+        ggplot2::geom_density(alpha=0.4) +  ggplot2::facet_wrap(~time) +
+        ggplot2::xlab("Trait value")
+      
+      print(p)
+      
     }
   }else{
     plotly::renderPlotly({
-      fig <- plotly::plot_ly(alpha = 0.6)
-      ## plot for the general population
+      
       mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
       sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0, sd = sd0 ), histnorm = "probability", name="Current Generation" )
-      ## plot for the expected new population
       R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      fig <- fig %>% plotly::add_histogram(x = rnorm(5000, mean=mu0+R, sd = sd0 ), histnorm = "probability", name="Expected New Generation" )
-      ## add line for the selected population
-      vline <- function(x = 0, color = "darkblue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-      vline2 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      vline3 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color))}
-      # overlay the histograms
-      i0 <-current.metrics[which(current.metrics$parameter == "i" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      fig <- fig %>% plotly::layout(barmode = "overlay",xaxis = list(title = "Trait value"), yaxis = list(title = "Probability" ),  shapes = list(vline(mu0+(sd0*i0)), vline2(mu0), vline3(mu0+R) ) )
-      fig
+      m1 <- mu0 + R
+      envs <- unique(current.metrics$environment[which(current.metrics$trait == input$traitFilterPredictions2D2)])
+      
+      vals0 <- as.data.frame(apply(data.frame(mu0,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
+      vals1 <- as.data.frame(apply(data.frame(m1,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
+      vals0$Subject <- vals1$Subject <- paste0("a",1:nrow(vals0))
+      
+      vals0l <- reshape(vals0, idvar = "Subject", varying = list(1:(length(mu0))),
+                        v.names = "conc", direction = "long", times = envs)
+      vals0l$treat <- "original"
+      vals1l <- reshape(vals1, idvar = "Subject", varying = list(1:(length(mu0))),
+                        v.names = "conc", direction = "long", times = envs)
+      vals1l$treat <- "selected"
+      vals <- rbind(vals0l,vals1l)
+      
+      p<-ggplot2::ggplot(vals, ggplot2::aes(x=conc, fill=treat)) +
+        ggplot2::geom_density(alpha=0.4) +  ggplot2::facet_wrap(~time) + 
+        ggplot2::xlab("Trait value")
+      
+      plotly::ggplotly(p)
+      
     })
   }
 }
