@@ -83,9 +83,9 @@ app_ui <- function(request) {
 
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
                           navlistPanel( widths = c(1, 11),
-                                        tabPanel(div("LMMsolver" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
-                                        tabPanel(div("lme4breeding" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
-                                        tabPanel(div("Cross Valid.", style = "color:red"), mod_mtaCrossValApp_ui("mtaCrossValApp_1") ),
+                                        tabPanel(div("LMMsolve" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
+                                        tabPanel(div("lme4" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
+                                        tabPanel(div("asreml", style = "color:red"), mod_mtaCrossValApp_ui("mtaCrossValApp_1") ),
                           )
                  ),
 

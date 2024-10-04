@@ -20,7 +20,7 @@ mod_mtaExpApp_ui <- function(id){
                            tabPanel(div(icon("book"), "Information-MTA-Flex") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Flexible Multi Trial Analysis (experimental)", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                           h1(strong(span("Flexible Multi Trial Analysis using lme4breeding", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
