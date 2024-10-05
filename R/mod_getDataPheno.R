@@ -15,8 +15,8 @@ mod_getDataPheno_ui <- function(id){
     tags$br(),
     # tags$p("The time is ", textOutput(ns("current_time"))),
 
-    navlistPanel( widths = c(2, 10),
-                  tabPanel(div("1. Load data" ),
+    navlistPanel( "Steps:",widths = c(2, 10),
+                  tabPanel(div("1. Load your data" ),
 
                            column(width=8,
 
@@ -135,11 +135,11 @@ mod_getDataPheno_ui <- function(id){
                            ),
 
                            column(width=4,
-                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", collapsible = TRUE, collapsed = TRUE, solidHeader=FALSE, style = "color: #000000",
                                                       h4(strong(span("", tags$a(href="https://www.youtube.com/watch?v=gFYGIb9fBLQ&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=2", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                   ),
                                   tags$div(id = ns('pheno_csv_options'),
-                                           shinydashboard::box(width = 12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                           shinydashboard::box(width = 12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = FALSE, style = "color: #000000",
                                                                shinyWidgets::prettyRadioButtons(ns('pheno_sep'), 'Separator Character', selected = ',', inline = TRUE,
                                                                                                 choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
@@ -150,7 +150,7 @@ mod_getDataPheno_ui <- function(id){
                                                                                                 choices = c('Dot' = '.', 'Comma' = ',')),
                                            ),
                                   ),
-                                  shinydashboard::box(width = 12, title = span(icon('bookmark'), ' Dictionary of terms'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                  shinydashboard::box(width = 12, title = span(icon('bookmark'), ' Dictionary of terms'), status = "success", collapsible = TRUE, collapsed = TRUE, solidHeader=FALSE, style = "color: #000000",
                                                       p(strong("pipeline.-"),"The name of the column containing the labels describing the breeding effort to satisfy a market segment (e.g., Direct seeded late maturity irrigated)."),
                                                       p(strong("stage.-"),"The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."),
                                                       p(strong("year.-"),"The name of the column containing the labels listing the year when a trial was carried out (e.g., 2024)."),
@@ -171,48 +171,54 @@ mod_getDataPheno_ui <- function(id){
                                   ),
                            ),
 
-                           column(width=12,
-                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
-                                                      hr(),
-                                                      DT::DTOutput(ns('preview_pheno')),
-                                  ),
+                           # column(width=12,
+                           shinydashboard::box(width = 12,  status = 'success', solidHeader = TRUE, collapsible = TRUE, collapsed = FALSE,
+                                               id = ns('preview_data_holder'),
+                                               title = "Preview of uploaded data",
+                                               hr(),
+                                               DT::DTOutput(ns('preview_pheno')),
                            ),
+                           # ),
 
 
                   ),
                   tabPanel(div("2. Match your columns",),
 
-                           column(width=12,
-                                  shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
-                                                      hr(),
-                                                      # tags$div(id = ns('mapping_title_holder'),
-                                                      #          HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "2. Match/map your columns")) ),
-                                                      # ),
-                                                      uiOutput(ns('brapi_trait_map')),
-                                                      uiOutput(ns('pheno_map')),
-                                  ),
+                           # column(width=12,
+                           shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
+                                               hr(),
+                                               # tags$div(id = ns('mapping_title_holder'),
+                                               #          HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "2. Match/map your columns")) ),
+                                               # ),
+                                               uiOutput(ns('brapi_trait_map')),
+                                               uiOutput(ns('pheno_map')),
                            ),
-                           column(width=12,
-                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
-                                                      hr(),
-                                                      DT::DTOutput(ns('preview_pheno2')),
-                                  ),
+                           # ),
+                           # column(width=12,
+                           shinydashboard::box(width = 12,  status = 'success', solidHeader = TRUE, collapsible = TRUE, collapsed = FALSE,
+                                               title = "Preview of uploaded data",
+                                               hr(),
+                                               DT::DTOutput(ns('preview_pheno2')),
                            ),
+                           # ),
 
                   ),
-                  tabPanel(div("3. Define environments" ),
+                  tabPanel(div("3. Define environment" ),
 
-                           tags$div(id = ns('concat_environment_holder'),
-                                    actionButton(ns("concatenateEnv"), div(p(strong('Compute Environment Column', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-                                    selectInput(ns("featuresEnvironment"), "Columns forming environment:", choices = NULL, multiple = TRUE),
-                                    textOutput(ns("outConcatenateEnv")),
-                           ),
                            column(width=12,
-                                  shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
-                                                      hr(),
-                                                      DT::DTOutput(ns('preview_pheno3')),
+                                  tags$div(id = ns('concat_environment_holder'),
+                                           actionButton(ns("concatenateEnv"), div(p(strong('Compute Environment Column', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
+                                           selectInput(ns("featuresEnvironment"), "Columns forming environment:", choices = NULL, multiple = TRUE),
+                                           textOutput(ns("outConcatenateEnv")),
                                   ),
                            ),
+                           # column(width=12,
+                           shinydashboard::box(width = 12,  status = 'success', solidHeader = TRUE, collapsible = TRUE, collapsed = FALSE,
+                                               title = "Preview of uploaded data",
+                                               hr(),
+                                               DT::DTOutput(ns('preview_pheno3')),
+                           ),
+                           # ),
 
                   ),
                   tabPanel(div("4. Check status" ),
@@ -751,11 +757,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                        scrollX = TRUE,
                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))
-                        ),
-                        caption = htmltools::tags$caption(
-                          style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
-                          htmltools::em('Data preview.')
-                        )
+                        )#,
+                        # caption = htmltools::tags$caption(
+                        #   style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                        #   htmltools::em('Data preview.')
+                        # )
           )
         }, server = FALSE)
 

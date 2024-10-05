@@ -17,10 +17,10 @@ mod_qaPhenoApp_ui <- function(id){
                      tabsetPanel( id=ns("tabsMain"),
                                   type = "tabs",
 
-                                  tabPanel(div(icon("book"), "Information-QA") ,
+                                  tabPanel(div(icon("book"), "Information") ,
                                            br(),
                                            column(width = 6,
-                                                  h1(strong(span("Outlier detection", tags$a(href="https://www.youtube.com/watch?v=X8lYQ8_LmSg&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=4", icon("youtube") , target="_blank")  ,style="color:darkcyan"))),
+                                                  h1(strong(span("Raw Phenotype Outlier Detection Module", tags$a(href="https://www.youtube.com/watch?v=X8lYQ8_LmSg&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=4", icon("youtube") , target="_blank")  ,style="color:darkcyan"))),
                                                   h2(strong("Data Status (wait to be displayed):")),
                                                   uiOutput(ns("warningMessage")),
                                                   tags$br(),
@@ -46,9 +46,9 @@ mod_qaPhenoApp_ui <- function(id){
                                                   )
                                            ),
                                   ),
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
-                                             tabPanel("Set traits & thresholds", icon = icon("dice-one"),
+                                             tabPanel(div(icon("dice-one"), "Set traits & thresholds", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
@@ -74,7 +74,7 @@ mod_qaPhenoApp_ui <- function(id){
                                                                           )
                                                       ),
                                              ),
-                                             tabPanel("Run analysis", icon = icon("dice-two"),
+                                             tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                              br(),
                                                              actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
@@ -86,7 +86,7 @@ mod_qaPhenoApp_ui <- function(id){
                                              ),
                                            ) # end of tabset
                                   ),# end of input panel
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
                                                       br(),

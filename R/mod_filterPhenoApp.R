@@ -19,7 +19,7 @@ mod_filterPhenoApp_ui <- function(id){
                                 br(),
                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                 #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                h1(strong(span("Filter of environments", style="color:darkcyan"))),
+                                h1(strong(span("Environment-Pheno Filtering Module", style="color:darkcyan"))),
                                 h2(strong("Status:")),
                                 uiOutput(ns("warningMessage")),
                                 tags$body(
@@ -36,9 +36,9 @@ mod_filterPhenoApp_ui <- function(id){
                                 #                     )
                                 # )
                        ),
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-                                  tabPanel("Set filters", icon = icon("dice-one"),
+                                  tabPanel(div(  icon("dice-one"), "Set filters", icon("arrow-right") ), # icon = icon("dice-one"),
                                            br(),
                                            column(width=6, style = "background-color:grey; color: #FFFFFF",
                                                   selectInput(ns("traitFilterPheno"), "Trait to filter", choices = NULL, multiple = FALSE),
@@ -65,7 +65,7 @@ mod_filterPhenoApp_ui <- function(id){
                                            )
 
                                   ),
-                                  tabPanel("Pick trait(s)", icon = icon("dice-two"),
+                                  tabPanel(div( icon("dice-two"), "Pick trait(s)" , icon("arrow-right") ), # icon = icon("dice-two"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=3, selectInput(ns("multiTraitFilter"), label = "Apply same filter to other trait(s)?", choices = list(TRUE, FALSE), selected = FALSE, multiple=FALSE) ),
@@ -83,7 +83,7 @@ mod_filterPhenoApp_ui <- function(id){
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
                                            br(),

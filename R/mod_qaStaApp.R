@@ -16,11 +16,11 @@ mod_qaStaApp_ui <- function(id){
     shiny::mainPanel(width = 12,
                      tabsetPanel( #width=9,
                        type = "tabs",
-                       tabPanel(div(icon("book"), "Information-QA-MB") ,
+                       tabPanel(div(icon("book"), "Information") ,
                                 br(),
                                 column(width=6,   #style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
                                        tags$body(
-                                         h1(strong(span("Model-based outlier detection", style="color:darkcyan"))),
+                                         h1(strong(span("Model-Based Outlier Detection Module", style="color:darkcyan"))),
                                          h2(strong("Data Status (wait to be displayed):")),
                                          uiOutput(ns("warningMessage")),
 
@@ -46,9 +46,9 @@ mod_qaStaApp_ui <- function(id){
                                        p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
                                 ),
                        ),
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-                                  tabPanel("Set traits & thresholds", icon = icon("dice-one"),
+                                  tabPanel(div(icon("dice-one"), "Set traits & thresholds", icon("arrow-right") ), # icon = icon("dice-one"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                   column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait to QA", choices = NULL, multiple = TRUE) ),
@@ -73,12 +73,12 @@ mod_qaStaApp_ui <- function(id){
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-two"),
                                            br(),
-                                           actionButton(ns("runQaMb"), "Tag outliers", icon = icon("play-circle")),
+                                           actionButton(ns("runQaMb"), "Tag outliers (click button)", icon = icon("play-circle")),
                                            textOutput(ns("outQaMb")),
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
                                            textOutput(ns("outQaMb2")),

@@ -18,7 +18,7 @@ mod_reportBuilder_ui <- function(id){
                                     br(),
                                     tags$body(
                                       column(width = 12,
-                                             h1(strong(span("Report Reconstruction", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                             h1(strong(span("Report Reconstruction Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
 
                                              br(),
                                              shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example data", status = "success"),
@@ -38,9 +38,9 @@ mod_reportBuilder_ui <- function(id){
                                       ),
                                     )
                            ),
-                           tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                           tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel("Pick module and timestamp", icon = icon("magnifying-glass-chart"),
+                                      tabPanel(div(icon("dice-one"), "Pick module and timestamp", icon("arrow-right") ), # icon = icon("magnifying-glass-chart"),
                                                br(),
                                                column(width=12,
                                                       column(width=5,  selectInput(ns("module"), "Module report", choices = NULL, multiple = FALSE) ),
@@ -59,7 +59,7 @@ mod_reportBuilder_ui <- function(id){
                                       ),
                                     )
                            ),
-                           tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                           tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),

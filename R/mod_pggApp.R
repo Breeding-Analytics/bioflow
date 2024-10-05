@@ -16,10 +16,10 @@ mod_pggApp_ui <- function(id){
     mainPanel( width =12,
                tabsetPanel( id=ns("tabsMain"),
                             type = "tabs",
-                            tabPanel( div(icon("book"), "Information-PGG") ,
+                            tabPanel( div(icon("book"), "Information") ,
                                       br(),
                                       column(width = 6,
-                                             h1(strong(span("Predicted Genetic Gain", tags$a(href="https://www.youtube.com/watch?v=nc4_SddPjjo&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=11", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                             h1(strong(span("Predicted Genetic Gain Module", tags$a(href="https://www.youtube.com/watch?v=nc4_SddPjjo&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=11", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                              h2(strong("Data Status (wait to be displayed):")),
                                              uiOutput(ns("warningMessage")),
                                              tags$br(),
@@ -49,9 +49,9 @@ mod_pggApp_ui <- function(id){
                                       ),
 
                             ),
-                            tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                      tabsetPanel(
-                                       tabPanel("Pick Index-stamp", icon = icon("dice-one"),
+                                       tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right")  ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=8, selectInput(ns("version2Pgg"), "STA version to analyze", choices = NULL, multiple = FALSE)),
@@ -68,7 +68,7 @@ mod_pggApp_ui <- function(id){
                                                                     DT::DTOutput(ns("phenoPgg")),
                                                 ),
                                        ),
-                                       tabPanel("Select parameters(s)", icon = icon("dice-two"),
+                                       tabPanel( div( icon("dice-two"), "Select parameters(s)", icon("arrow-right") ) , # icon = icon("dice-two"),
                                                 br(),
                                                 column(width=12,  style = "background-color:grey; color: #FFFFFF",
 
@@ -99,7 +99,7 @@ mod_pggApp_ui <- function(id){
                                        tabPanel("Run analysis", icon = icon("dice-three"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                        br(),
-                                                       actionButton(ns("runPgg"), "Run PGG", icon = icon("play-circle")),
+                                                       actionButton(ns("runPgg"), "Run (click button)", icon = icon("play-circle")),
                                                        uiOutput(ns("qaQcPggInfo")),
                                                        br(),
                                                 ),
@@ -107,7 +107,7 @@ mod_pggApp_ui <- function(id){
                                        ),
                                      )
                             ),
-                            tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                      tabsetPanel(
                                        tabPanel("Dashboard", icon = icon("file-image"),
                                                 br(),

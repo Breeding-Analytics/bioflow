@@ -14,8 +14,8 @@ mod_getDataGeno_ui <- function(id){
   tagList(
     tags$br(),
 
-    navlistPanel( widths = c(2, 10),
-                  tabPanel(div("1. Load data" ),
+    navlistPanel( "Steps:", widths = c(2, 10),
+                  tabPanel(div("1. Load your data" ),
                            column(width=8,
 
                                   # fluidRow(
@@ -63,12 +63,12 @@ mod_getDataGeno_ui <- function(id){
                            ),
 
                            column(width=4,
-                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", collapsible = TRUE, collapsed = TRUE, solidHeader=FALSE, style = "color: #000000",
                                                       h4(strong(span("", tags$a(href="https://www.youtube.com/watch?v=gFYGIb9fBLQ&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=2", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                   ),
 
                                   tags$div(id = ns('geno_table_options'),
-                                           shinydashboard::box(width = 12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = TRUE,
+                                           shinydashboard::box(width = 12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = FALSE, style = "color: #000000",
                                                                shinyWidgets::prettyRadioButtons(ns('geno_sep'), 'Separator Character', selected = ',', inline = TRUE,
                                                                                                 choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
@@ -124,7 +124,7 @@ mod_getDataGeno_ui <- function(id){
                                   ),
                            ),
                   ),
-                  tabPanel(div("2. Match columns" ),
+                  tabPanel(div("2. Match your columns" ),
 
                            column(width=12,
                                   shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,

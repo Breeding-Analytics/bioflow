@@ -17,10 +17,10 @@ mod_mtaExpApp_ui <- function(id){
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
-                           tabPanel(div(icon("book"), "Information-MTA-Flex") ,
+                           tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Flexible Multi Trial Analysis using lme4breeding", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                           h1(strong(span("Flexible Multi Trial Analysis Module Using lme4breeding", tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
@@ -62,9 +62,9 @@ mod_mtaExpApp_ui <- function(id){
                                            # column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
                                     ),
                            ),
-                           tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                           tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel("Pick STA-stamp", icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE)),
@@ -81,7 +81,7 @@ mod_mtaExpApp_ui <- function(id){
                                                                    DT::DTOutput(ns("statusMta")), # modeling table
                                                ),
                                       ),
-                                      tabPanel("Pick the model", icon = icon("dice-two"),
+                                      tabPanel(div(icon("dice-two"), "Pick the model", icon("arrow-right") ), # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
 
@@ -180,7 +180,7 @@ mod_mtaExpApp_ui <- function(id){
                                       tabPanel("Run analysis", icon = icon("dice-three"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
-                                                      actionButton(ns("runMta"), "Run MTA (click)", icon = icon("play-circle")),
+                                                      actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
                                                       uiOutput(ns("qaQcMtaInfo")),
                                                       br(),
                                                ),
@@ -188,7 +188,7 @@ mod_mtaExpApp_ui <- function(id){
                                       ),
                                     )
                            ),
-                           tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                           tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),

@@ -17,7 +17,7 @@ mod_PopStrApp_ui <- function(id){
     shiny::mainPanel(width = 12,
                      tabsetPanel(
                        type = "tabs",
-                       tabPanel(div(icon("book"), "Information-Population structure") ,
+                       tabPanel(div(icon("book"), "Information") ,
                                 br(),
                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                                     column(width=6,   #style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
@@ -47,9 +47,9 @@ mod_PopStrApp_ui <- function(id){
                                 # )
                        ),
 
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-									tabPanel("Pick QA-stamp", icon = icon("dice-one"),
+									tabPanel(div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2PopStr"), "QA-geno stamp to apply (optional)", choices = NULL, multiple = FALSE)),
@@ -63,10 +63,10 @@ mod_PopStrApp_ui <- function(id){
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                    ),
                                                                    column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(),br(), ),
-                                                                   
+
                                                ),
                                       ),
-                                  tabPanel("Additional settings...", icon = icon("dice-two"),
+                                  tabPanel(div(icon("dice-two"), "Additional settings...", icon("arrow-right") ), # icon = icon("dice-two"),
                                            br(),
                                            br(),
                                            column(width=12, style = "background-color:#d6d4d4; color: black",
@@ -101,7 +101,7 @@ mod_PopStrApp_ui <- function(id){
                                                   textInput(ns('nclust'),'No. Clusters (default)',value='3'),
                                                   radioButtons(ns("distk"), "Genetic distance to be calculate",choices = c(Rogers = "Rogers", Nei = "Nei"))
                                            )
-                                  ),                                
+                                  ),
 								tabPanel("Run analysis", icon = icon("dice-three"),
                                            br(),
                                            actionButton(ns("runPopStr"), "Run analysis (click)", icon = icon("play-circle")),
@@ -110,10 +110,10 @@ mod_PopStrApp_ui <- function(id){
                                   )
                        )),
 
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
 								  tabPanel("Dashboard", icon = icon("file-image"),
-                                           br(),                                           
+                                           br(),
                                            downloadButton(ns("downloadReportPopStr"), "Download dashboard"),
                                            uiOutput(ns('reportPopStr'))
                                   ),
@@ -157,7 +157,7 @@ mod_PopStrApp_ui <- function(id){
                                                                                                             #Creacion de color para cambiar el color de los puntos del grafico de acuerdo a una lista de colores generada
                                                                                                             selectInput(ns('colordend'),'Choose a color',choices = '',selected="",multiple=T)
                                                                    ),
-                                                                   div(plotOutput(ns("dend"),height = "750px",width = "1350px"),align="center") 
+                                                                   div(plotOutput(ns("dend"),height = "750px",width = "1350px"),align="center")
 
                                            ),
                                            shinydashboard::box(title="Factors and Groups", status="success",width = 12, solidHeader = TRUE,
@@ -218,7 +218,7 @@ mod_PopStrApp_ui <- function(id){
                                                                column(width=12,DT::DTOutput(ns("seeDataGAMOVA")),style = "overflow-y: scroll;overflow-x: scroll;")
                                            )
                                   )
-                                  
+
                                 )
                        )# end of output panel
                      )) # end mainpanel
@@ -255,9 +255,9 @@ mod_PopStrApp_server <- function(id, data){
         }
       }
     })
-	
+
 	golem::invoke_js('hideid', ns('fileenvbio_url'))
-    
+
 	output$outPopStr <- renderUI({
       outPopStr()
     })
@@ -271,7 +271,7 @@ mod_PopStrApp_server <- function(id, data){
 			)
 		  }
 		)
-		
+
 	observeEvent(input$myconfirmation, {
 		if (isTRUE(input$myconfirmation)) {
 			bio_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/Groupgeno.csv'
@@ -357,20 +357,20 @@ mod_PopStrApp_server <- function(id, data){
 			replacemark=result$modifications$geno[which(result$modifications$geno$module=="qaGeno" & result$modifications$geno$analysisId==input$version2PopStr & result$modifications$geno$reason=="impute" ),4:6]
 			mydata[replacemark[,1],replacemark[,2]]=replacemark[,3]
 			mydata<-mydata[,-deletemarkmiss]
-		}	
+		}
 		distk <- as.character(input$distk)
 		nclust <- input$nclust
 		dfenvbio<-NULL
 		if(length(input$fileenvbio$datapath)!=0) dfenvbio <- read.csv(input$fileenvbio$datapath)
 		if(input$fileenvbio_url!='') dfenvbio <- read.csv(input$fileenvbio_url)
 		shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-		uno <- cgiarBase::Biodv(mydata,distk, nclust, dfenvbio, catv) 
-		#uno <- Biodv(mydata,distk, nclust, dfenvbio, catv) 
+		uno <- cgiarBase::Biodv(mydata,distk, nclust, dfenvbio, catv)
+		#uno <- Biodv(mydata,distk, nclust, dfenvbio, catv)
 		# add status table
 		analysisId <- as.numeric(Sys.time())
 		newStatus <- data.frame(module="PopStrM", analysisId=analysisId )
 		result$status <- rbind(result$status, newStatus)
-		
+
 		if(dim(uno[[5]])[2]==6){
 			tmpMDS=uno[[5]][,c(1:4,6)]
 			names(tmpMDS)=c("Gen","Factor1","Factor2","Factor3",catv)
@@ -380,41 +380,41 @@ mod_PopStrApp_server <- function(id, data){
 			newPredMDS[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="MDS", trait=names(tmpMDS)[f], gid=NA, designation=tmpMDS$Gen, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=tmpMDS[,f], stdError=NA, reliability=NA )
 		}
 		newPredMDS=do.call(rbind,newPredMDS)
-		
+
 		newPredGeno=list()
 		for ( f in 2:7){
 			newPredGeno[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerGenotype",trait=names(uno[[4]][[5]])[f], gid=NA, designation=uno[[4]][[5]]$Genotype, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[5]][,f], stdError=NA, reliability=NA )
 		}
 		newPredGeno=do.call(rbind,newPredGeno)
-		
+
 		newPredMark=list()
 		for ( f in 2:8){
 			newPredMark[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerMarker",trait=names(uno[[4]][[4]])[f], gid=NA, designation=rownames(uno[[4]][[4]]), mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[4]][,f], stdError=NA, reliability=NA )
 		}
 		newPredMark=do.call(rbind,newPredMark)
-		
+
 		newmetricsSum=list()
 		for (f in 1:9){
 		newmetricsSum[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, trait=NA, environment=NA, parameter=uno[[4]][[6]][f,1], method="SummaryDiversityAnalysis", value= uno[[4]][[6]][f,2], stdError=NA)
 		}
 		newmetricsSum=do.call(rbind,newmetricsSum)
-		
+
 		newmetricsAMOVA=list()
 		h=0
-		for (f in 1:3){		
+		for (f in 1:3){
 			for (g in 2:9){
 				h=h+1
 				newmetricsAMOVA[[h]] <- data.frame(module="PopStrM",analysisId=analysisId, trait=paste0(f,uno[[7]][f,1]), environment=NA, parameter=names(uno[[7]])[g], method="AMOVA", value= uno[[7]][f,g], stdError=NA)
 			}
 		}
 		newmetricsAMOVA=do.call(rbind,newmetricsAMOVA)
-				
+
 		newmetricsPerc=list()
 		for (f in 1:3){
 		newmetricsPerc[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, trait=NA, environment=NA, parameter=paste0("Factor",f), method="VarExplained", value= uno[[3]][f], stdError=NA)
 		}
-		newmetricsPerc=do.call(rbind,newmetricsPerc)		
-		
+		newmetricsPerc=do.call(rbind,newmetricsPerc)
+
 		DistMat3=as.matrix(apply(uno[[4]][[7]][,-c(1,2)],2,as.numeric))
 		colnames(DistMat3)=uno[[4]][[7]][,2]
 		rownames(DistMat3)=uno[[4]][[7]][,2]
@@ -422,23 +422,23 @@ mod_PopStrApp_server <- function(id, data){
 		newPredDist=data.frame(module="PopStrM",analysisId=analysisId, pipeline=NA,trait="DistMat", gid=DistMat3[,1], designation=DistMat3[,2], mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=DistMat3[,3], stdError=NA, reliability=NA )
 
 		result$predictions<-rbind(result$predictions,newPredMDS,newPredGeno,newPredMark,newPredDist)
-		result$metrics <- rbind(result$metrics, newmetricsSum,newmetricsAMOVA,newmetricsPerc)		
-		
+		result$metrics <- rbind(result$metrics, newmetricsSum,newmetricsAMOVA,newmetricsPerc)
+
 		rm(newmetricsAMOVA,newmetricsPerc,newmetricsSum,newPredDist,newPredGeno,newPredMark, newPredMDS, DistMat3, uno,tmpMDS)
 		gc()
 		data(result)
-		
+
 		#}
 		shinybusy::remove_modal_spinner()
-      
-      if(!inherits(result,"try-error")) {      
+
+      if(!inherits(result,"try-error")) {
 		idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
-		idMta <- idMta[length(idMta)]   
+		idMta <- idMta[length(idMta)]
 		uno<-as.data.frame(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="MDS" ),])
 		uno$predictedValue=as.numeric(uno$predictedValue)
 		uno<-data.frame(reshape::cast(uno,designation~trait,value= "predictedValue", fun.aggregate = mean))
         if(length(names(uno))>5) {catv<-names(uno)[6]}
-		
+
 		txlab <- paste0('Factor 1 (',result$metrics[which(result$metrics$module=="PopStrM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor1" & result$metrics$method=="VarExplained"),7],'%)')
         tylab <- paste0('Factor 2 (',result$metrics[which(result$metrics$module=="PopStrM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor2" & result$metrics$method=="VarExplained"),7],'%)')
         tzlab <- paste0('Factor 3 (',result$metrics[which(result$metrics$module=="PopStrM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor3" & result$metrics$method=="VarExplained"),7],'%)')
@@ -451,14 +451,14 @@ mod_PopStrApp_server <- function(id, data){
           #var=as.factor(uno[[5]][,catv])
           grupos=nlevels(as.factor(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$trait==catv),11]))
           updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
-          updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos]) 
-		
+          updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
+
 		result$metrics=rbind(result$metrics,data.frame(module="PopStrM",analysisId=idMta, trait=NA, environment=NA, parameter="ColorsDend", method=NA, value= d[1:grupos], stdError=NA))
-                
+
         #Ver datos en tabla dinamica Summary Diversity
-        output$seeDataDiver<-DT::renderDT({          
+        output$seeDataDiver<-DT::renderDT({
           idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
-		  idMta <- idMta[length(idMta)]   
+		  idMta <- idMta[length(idMta)]
 		  seedatosum<-as.data.frame(result$metrics[which(result$metrics$module=="PopStrM" & result$metrics$analysisId==idMta & result$metrics$method=="SummaryDiversityAnalysis"),c(5,7)])
           colnames(seedatosum)=c("Parameter","Value")
           seedatosum[,2]=round(as.numeric(seedatosum[,2]),3)
@@ -471,7 +471,7 @@ mod_PopStrApp_server <- function(id, data){
         #Ver datos en tabla dinamica AMOVA
         output$seeDataGAMOVA<-DT::renderDataTable({
 		  idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
-		  idMta <- idMta[length(idMta)]   
+		  idMta <- idMta[length(idMta)]
           seedatosAV=as.data.frame(result$metrics[which(result$metrics$module=="PopStrM" & result$metrics$analysisId==idMta & result$metrics$method=="AMOVA"),])
 		  seedatosAV$value=as.numeric(seedatosAV$value)
 		  seedatosAV=data.frame(reshape::cast(seedatosAV,trait~parameter,value = "value", fun.aggregate = mean))
@@ -486,7 +486,7 @@ mod_PopStrApp_server <- function(id, data){
         #Ver datos en tabla dinamica %NA, He, Ho by marker
         output$seeDataStatMark<-DT::renderDT({
 		  idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
-		  idMta <- idMta[length(idMta)]   
+		  idMta <- idMta[length(idMta)]
           seedatosStaM<-as.data.frame(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="CalculusPerMarker" ),])
 		  seedatosStaM$predictedValue=as.numeric(seedatosStaM$predictedValue)
 		  seedatosStaM<-data.frame(reshape::cast(seedatosStaM,designation~trait,value = "predictedValue", fun.aggregate = mean))
@@ -501,7 +501,7 @@ mod_PopStrApp_server <- function(id, data){
         #Ver datos en tabla dinamica %NA,He,Ho by genotype
         output$seeDataStatGeno<-DT::renderDT({
 		  idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
-		  idMta <- idMta[length(idMta)]   		
+		  idMta <- idMta[length(idMta)]
           seedatosStaG<-as.data.frame(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="CalculusPerGenotype" ),])
 		  seedatosStaG$predictedValue=as.numeric(seedatosStaG$predictedValue)
 		  seedatosStaG<-data.frame(reshape::cast(seedatosStaG,designation~trait,value = "predictedValue", fun.aggregate = mean))
@@ -515,7 +515,7 @@ mod_PopStrApp_server <- function(id, data){
         #Ver datos en tabla dinamica MDS
         output$seeDataMDS<-DT::renderDT({
 		  idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
-		  idMta <- idMta[length(idMta)]   
+		  idMta <- idMta[length(idMta)]
           seedatosMDS<-as.data.frame(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="MDS" & result$predictions$trait!=catv),])
 		  grupos=as.factor(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$trait==catv),11])
 		  seedatosMDS$predictedValue=as.numeric(seedatosMDS$predictedValue)
@@ -536,10 +536,10 @@ mod_PopStrApp_server <- function(id, data){
           tylab2=txlab
           if(input$ycol=="Factor2") tylab2=tylab
           if(input$ycol=="Factor3") tylab2=tzlab
-          		  
+
           if(!is.null(result$data$geno)){
 			idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
-			idMta <- idMta[length(idMta)]   
+			idMta <- idMta[length(idMta)]
 			seedatosMDS<-as.data.frame(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="MDS" & result$predictions$trait!=catv),])
 		  grupos=as.factor(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$trait==catv),11])
 		  seedatosMDS$predictedValue=as.numeric(seedatosMDS$predictedValue)
@@ -564,7 +564,7 @@ mod_PopStrApp_server <- function(id, data){
         })
 
         #Plot heatmap
-        output$heat=plotly::renderPlotly({ 
+        output$heat=plotly::renderPlotly({
 		  idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
 		  idMta <- idMta[length(idMta)]
 		  distMat=result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$trait=="DistMat"),]
@@ -592,7 +592,7 @@ mod_PopStrApp_server <- function(id, data){
 			info<- cbind(ID=info$Gen,info)
             names(info)=c("ID","Gen","Group")
 			info$Group=as.factor(info$Group)
-			
+
 			distMat=result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$trait=="DistMat"),]
 			distMat$predictedValue=as.numeric(distMat$predictedValue)
 			distMat=data.frame(reshape::cast(distMat,gid~designation,value = "predictedValue", fun.aggregate = mean))
@@ -608,15 +608,15 @@ mod_PopStrApp_server <- function(id, data){
               plot(tree, type = "fan", cex = input$sizelab, label.offset = input$space, show.tip.label = TRUE, edge.color = "black", edge.width =input$sizeline, edge.lty = 1,tip.color = input$colordend[info$Group])
               legend(input$poslen, legend=levels(info$Group), fill=input$colordend,box.lty=0)
             }
-		
+
 		  result$metrics=rbind(result$metrics,data.frame(module="PopStrM",analysisId=analysisId, trait=NA, environment=NA, parameter="ColorsDend", method=NA, value= input$colordend, stdError=NA))
-		  
+
           }
         })
-		
+
 		#For report
-        output$reportPopStr <- renderUI({   
-			HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))			
+        output$reportPopStr <- renderUI({
+			HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
         ## Report tab
         output$downloadReportPopStr <- downloadHandler(
@@ -635,7 +635,7 @@ mod_PopStrApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-            
+
 			out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
             file.rename(out, file)
             shinybusy::remove_modal_spinner()

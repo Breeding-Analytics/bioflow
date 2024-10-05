@@ -18,7 +18,7 @@ mod_neApp_ui <- function(id){
                                            br(),
                                            tags$body(
                                              column(width = 6,
-                                                    h1(strong(span("Number of Founders based on genetic markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                    h1(strong(span("Number of Founders Based on Genetic Markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                     h2(strong("Data Status (wait to be displayed):")),
                                                     uiOutput(ns("warningMessage")),
                                                     tags$br(),
@@ -46,9 +46,9 @@ mod_neApp_ui <- function(id){
                                              ),
                                            )
                                   ),
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
-                                             tabPanel("Pick QA-Geno-stamp", icon = icon("dice-one"),
+                                             tabPanel( div(icon("dice-one"), "Pick QA-Geno-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=8, selectInput(ns("versionMarker2Mta"), "QA-Geno version to use (required)", choices = NULL, multiple = TRUE)),
@@ -65,7 +65,7 @@ mod_neApp_ui <- function(id){
                                                                           # DT::DTOutput(ns("statusMta")), # modeling table
                                                       ),
                                              ),
-                                             tabPanel("Set thresholds", icon = icon("dice-two"),
+                                             tabPanel( div( icon("dice-two"), "Set thresholds", icon("arrow-right") ), # icon = icon("dice-two"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=3, numericInput(ns("maxNe"), label = "Max # of founders to explore", value = 100, step = 5, max = 1000, min = 2) ),
@@ -100,7 +100,7 @@ mod_neApp_ui <- function(id){
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
                                                       br(),

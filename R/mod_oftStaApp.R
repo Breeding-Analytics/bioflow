@@ -14,11 +14,11 @@ mod_oftStaApp_ui <- function(id){
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
-                           tabPanel(div(icon("book"), "Information-OFT") ,
+                           tabPanel(div(icon("book"), "Information") ,
 
                                     column(width=6,
                                            br(),
-                                           h1(strong(span("On Farm Trial Analysis", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
+                                           h1(strong(span("On Farm Trial Analysis Module", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"),  style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
@@ -45,9 +45,9 @@ that perform well under farmers’ conditions before these are announced to the 
                                            p(strong("Environment(s) to include.-")," Environments to be included in the dashboard. It only includes analyzed environments from sta."),
                                     ),
                            ),
-                           tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                           tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel("Pick STA-stamp", icon = icon("dice-one"),
+                                      tabPanel(div(icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2Oft"), "STA version to use", choices = NULL, multiple = FALSE) ),
@@ -72,7 +72,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    # )
                                                ),
                                       ),
-                                      tabPanel("Select traits", icon = icon("dice-two"),
+                                      tabPanel(div( icon("dice-two"), "Select traits", icon("arrow-right") ) , # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, selectInput(ns("trait2Oft"), "Trait(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12),
@@ -94,7 +94,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
                                                ),
                                       ),
-                                      tabPanel("Select year of origin, entry type & iBlock", icon = icon("dice-three"),
+                                      tabPanel(div( icon("dice-three"), "Select year of origin, entry type & iBlock", icon("arrow-right") ), # icon = icon("dice-three"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4, selectInput(ns("yearsToUse"), "Year of origin", choices = NULL, multiple = FALSE) ),
@@ -114,7 +114,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    column(width=12, DT::DTOutput(ns('preview_pheno')) )
                                                ),
                                       ),
-                                      tabPanel("Select Disease Information", icon = icon("dice-four"),
+                                      tabPanel( div( icon("dice-four"), "Select Disease Information", icon("arrow-right") ), # icon = icon("dice-four"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12, tags$br(),
@@ -132,7 +132,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    column(width=12, DT::DTOutput(ns('preview_pheno2')) ),
                                                ),
                                       ),
-                                      tabPanel("Select Environments", icon = icon("dice-five"),
+                                      tabPanel( div( icon("dice-five"), "Select Environments",  icon("arrow-right") ), # icon = icon("dice-five"),
                                                br(),
                                                column(width=12, selectInput(ns("env2Oft"), "Environment(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12),
@@ -157,12 +157,12 @@ that perform well under farmers’ conditions before these are announced to the 
                                       ),
                                       tabPanel("Generate dashboard", icon = icon("dice-six"),
                                                br(),
-                                               actionButton(ns("runOft"), "Generate OFT Dashboard", icon = icon("play-circle")),
+                                               actionButton(ns("runOft"), "Generate OFT Dashboard (click)", icon = icon("play-circle")),
                                                uiOutput(ns("outOft"))
                                       ),
                                     )
                            ),
-                           tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                           tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),

@@ -18,6 +18,8 @@ mod_dataConsistPotatoApp_ui <- function(id){
 
                        tabPanel(div(icon("book"), "Information") ,
                                 br(),
+                                h1(strong(span("Data Consistency QA Module", style="color:darkcyan"))),
+                                br(),
                                 h2(strong("Status:")),
                                 uiOutput(ns("warningMessage")),
                                 tags$br(),
@@ -38,9 +40,9 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                 )
                        ),
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-                                  tabPanel("Select crop", icon = icon("dice-one"),
+                                  tabPanel(div( icon("dice-one"), "Select crop", icon("arrow-right") ) , # icon = icon("dice-one"),
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                   column(width=4, selectInput(ns("cropConsist"), "Select your crop filter:", choices = list(Banana="banana", Beans="beans",  Cassava="cassava", Maize="maize", PearMillet="pmillet", Plantain="plantain", Potato="potato", Rice="rice", Soybean="soybean", SweetPotato="spotato", Sorghum="sorghum", Wheat="wheat"), multiple = FALSE) ),
@@ -50,7 +52,7 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                            br(),
                                            DT::DTOutput(ns("phenoConsist")),
                                   ),
-                                  tabPanel("Design and extreme value", icon = icon("dice-two"),
+                                  tabPanel(div(icon("dice-two"), "Design and extreme value", icon("arrow-right") ) , icon = icon("dice-two"),
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                   column(width=4, selectInput(ns("designConsist"), "Design expected", choices = list(None="none", RCBD="rcbd", MET="met"), multiple = FALSE) ),
@@ -74,7 +76,7 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                   ),
                                 )# of of tabsetPanel
                        ),
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
                                            br(),

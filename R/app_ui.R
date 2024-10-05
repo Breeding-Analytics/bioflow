@@ -66,7 +66,7 @@ app_ui <- function(request) {
       navbarMenu("Selection", icon = icon("bullseye"),
                  tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "Quality Assurance (", icon("seedling"), icon("dna"), icon("network-wired") ,")" ),
-                          navlistPanel( widths = c(1, 11),
+                          navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                                         tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                                         #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
@@ -74,7 +74,7 @@ app_ui <- function(request) {
                  ),
 
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),
-                          navlistPanel( widths = c(1, 11),
+                          navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
                                         tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
                                         tabPanel(div("(optional) On-Farm Trial Decision (", icon("seedling"), ")" ), mod_oftStaApp_ui("oftStaApp_1") ),
@@ -82,7 +82,7 @@ app_ui <- function(request) {
                  ),
 
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
-                          navlistPanel( widths = c(1, 11),
+                          navlistPanel("Engines:", widths = c(1, 11),
                                         tabPanel(div("LMMsolve" ), mod_mtaApp_ui("mtaApp_1") ), # biplot is part of the report in MET
                                         tabPanel(div("lme4" ), mod_mtaExpApp_ui("mtaExpApp_1") ), # biplot is part of the report in MET
                                         tabPanel(div("asreml", style = "color:red"), mod_mtaCrossValApp_ui("mtaCrossValApp_1") ),
@@ -90,12 +90,19 @@ app_ui <- function(request) {
                  ),
 
                  tabPanel(div(icon("calculator"), icon("dice-three"), "Selection Indices (", icon("seedling"), ")"),
-                          navlistPanel( widths = c(1, 11),
+                          navlistPanel("Options:", widths = c(1, 11),
                                         tabPanel(div("Desire Index (", icon("seedling"), ")"),  mod_indexDesireApp_ui("indexDesireApp_1") ),
                                         tabPanel(div("Base Index (", icon("seedling"), ")" ), mod_indexBaseApp_ui("indexBaseApp_1") )
                           )
                  ),
-                 tabPanel(div(icon("calculator"), icon("dice-four"), "Optimal Cross Selection (", icon("seedling"), icon("dna"), icon("network-wired"), ")" ), mod_ocsApp_ui("ocsApp_1") ),
+
+                 tabPanel(div(icon("calculator"), icon("dice-four"), "Mate optimization (", icon("seedling"), icon("dna"), icon("network-wired"), ")"),
+                          navlistPanel("Options:", widths = c(1, 11),
+                                       tabPanel(div("OCS" ), mod_ocsApp_ui("ocsApp_1") ),
+                                       tabPanel(div("GPCP", style = "color:red") ),
+                          )
+                 ),
+
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
                  tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("chart-line"), "Predicted Genetic Gain (", icon("seedling"),  icon("network-wired"),")"), mod_pggApp_ui("pggApp_1")),# user needs to perfor m a multi-year genetic evaluation to provide the MET as input

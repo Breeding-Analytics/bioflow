@@ -19,7 +19,7 @@ mod_expDesignEditApp_ui <- function(id){
                                 br(),
                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                 #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                h1(strong(span("Experimental Design Factor Filtering", style="color:darkcyan"))),
+                                h1(strong(span("Experimental Design Factor Filtering Module", style="color:darkcyan"))),
                                 h2(strong("Status:")),
                                 uiOutput(ns("warningMessage")),
                                 tags$body(
@@ -37,9 +37,9 @@ mod_expDesignEditApp_ui <- function(id){
                                 #                     )
                                 # )
                        ),
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-                                  tabPanel("Pick factors", icon = icon("dice-one"),
+                                  tabPanel(div(  icon("dice-one"), "Pick factors", icon("arrow-right") ), # icon = icon("dice-one"),
                                            br(),
                                            column(width = 12, style = "overflow-y: scroll;overflow-x: scroll;"), # height:300px;
                                            tags$span(id = ns('holder1'),
@@ -72,7 +72,7 @@ mod_expDesignEditApp_ui <- function(id){
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
                                            br(),

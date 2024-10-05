@@ -18,7 +18,7 @@ mod_masApp_ui <- function(id){
                                            br(),
                                            tags$body(
                                              column(width = 6,
-                                                    h1(strong(span("Marker-Assisted Selection", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                    h1(strong(span("Marker-Assisted Selection Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                     h2(strong("Data Status (wait to be displayed):")),
                                                     uiOutput(ns("warningMessage")),
                                                     tags$br(),
@@ -42,9 +42,9 @@ mod_masApp_ui <- function(id){
                                              ),
                                            )
                                   ),
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
-                                             tabPanel("Pick QA-stamp", icon = icon("dice-one"),
+                                             tabPanel( div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=8, selectInput(ns("version2Mta"), "QA-geno stamp to apply", choices = NULL, multiple = TRUE)),
@@ -61,7 +61,7 @@ mod_masApp_ui <- function(id){
                                                                           column( width=8, shiny::plotOutput(ns("plotTimeMASmps")), br(),br(), ),
                                                       ),
                                              ),
-                                             tabPanel("Select markers", icon = icon("dice-two"),
+                                             tabPanel( div(icon("dice-two"), "Select markers", icon("arrow-right") ), # icon = icon("dice-two"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=6, selectizeInput(ns("markers2MAS"), "Markers to use", choices = NULL, multiple = TRUE) ),
@@ -85,7 +85,7 @@ mod_masApp_ui <- function(id){
                                                                           ),
                                                       ),
                                              ),
-                                             tabPanel("Set direction", icon = icon("dice-three"),
+                                             tabPanel(div(icon("dice-three"), "Set direction", icon("arrow-right") ), # icon = icon("dice-three"),
                                                       br(),
                                                       column(width=4, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=6,
@@ -111,7 +111,7 @@ mod_masApp_ui <- function(id){
                                              tabPanel("Run analysis", icon = icon("dice-four"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                              br(),
-                                                             actionButton(ns("runMAS"), "Run", icon = icon("play-circle")),
+                                                             actionButton(ns("runMAS"), "Run (click button)", icon = icon("play-circle")),
                                                              uiOutput(ns("qaQcStaInfo")),
                                                              br(),
 
@@ -121,7 +121,7 @@ mod_masApp_ui <- function(id){
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
                                                       br(),

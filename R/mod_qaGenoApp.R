@@ -14,13 +14,13 @@ mod_qaGenoApp_ui <- function(id){
     shiny::mainPanel(width = 12,
                      tabsetPanel( id=ns("tabsMain"),
                                   type = "tabs",
-                                  tabPanel(div(icon("book"), "Information-QA-Geno") ,
+                                  tabPanel(div(icon("book"), "Information") ,
                                            br(),
                                            # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                            # column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
                                            tags$body(
                                              column(width = 6,
-                                                    h1(strong(span("QA for genetic markers", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                    h1(strong(span("Genetic Markers Curation Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                     h2(strong("Data Status (wait to be displayed):")),
                                                     uiOutput(ns("warningMessage")),
                                                     tags$br(),
@@ -51,9 +51,9 @@ mod_qaGenoApp_ui <- function(id){
                                              ),
                                            )
                                   ),
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
-                                             tabPanel("Set thresholds", icon = icon("dice-one"),
+                                             tabPanel(div( icon("dice-one"), "Set thresholds", icon("arrow-right") ), # icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=4, numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
@@ -83,7 +83,7 @@ mod_qaGenoApp_ui <- function(id){
                                                                           ),
                                                       ),
                                              ),
-                                             tabPanel("Run analysis", icon = icon("dice-two"),
+                                             tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                              column(width=4,
                                                                     br(),
@@ -102,7 +102,7 @@ mod_qaGenoApp_ui <- function(id){
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
                                                       br(),

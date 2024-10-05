@@ -15,9 +15,9 @@ mod_singleCrossGenoApp_ui <- function(id){
                      tabsetPanel(id=ns("tabsMain"), #width=9,
                        type = "tabs",
 
-                       tabPanel( div(icon("book"), "Information-SCM") ,
+                       tabPanel( div(icon("book"), "Information") ,
                                  br(),
-                                 h1(strong(span("Single Cross Marker Matrix Build", style="color:darkcyan"))),
+                                 h1(strong(span("Single Cross Marker Matrix Building Module", style="color:darkcyan"))),
                                  h2(strong("Data Status (wait to be displayed):")),
                                  uiOutput(ns("warningMessage")),
                                  tags$br(),
@@ -49,9 +49,9 @@ mod_singleCrossGenoApp_ui <- function(id){
                                  #                     )
                                  # )
                        ),
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                       tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-                                  tabPanel("Pick QA-stamp(s)", icon = icon("dice-one"),
+                                  tabPanel(div( icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , # icon = icon("dice-one"),
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                   column(width=8, selectInput(ns("version2Scm"), "QA stamp to apply to markers", choices = NULL, multiple = FALSE) ),
@@ -66,7 +66,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                            DT::DTOutput(ns("statusScm")), # modeling table
                                            DT::DTOutput(ns("genoScm")), # data input
                                   ),
-                                  tabPanel("Pick batch size", icon = icon("dice-two"),
+                                  tabPanel(div( icon("dice-two"), "Pick batch size", icon("arrow-right") ), # icon = icon("dice-two"),
                                            br(),
                                            column(width=12, numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000), style = "background-color:grey; color: #FFFFFF"),
                                            h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
@@ -77,7 +77,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                            #                            )
                                            # )
                                   ),
-                                  tabPanel("Pick crosses", icon = icon("dice-three"),
+                                  tabPanel( div(icon("dice-three"), "Pick crosses", icon("arrow-right") ), # icon = icon("dice-three"),
                                            br(),
                                            column(width=12, selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE), style = "background-color:grey; color: #FFFFFF"),
                                            h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
@@ -96,7 +96,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                   ),
                                 ), # end of tabset
                        ),# end of output panel
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) , value = "outputTabs",
+                       tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Data", icon = icon("table"),
                                            br(),

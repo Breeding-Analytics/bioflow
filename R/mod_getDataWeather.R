@@ -13,8 +13,8 @@ mod_getDataWeather_ui <- function(id){
 
     tags$br(),
 
-    navlistPanel( widths = c(2, 10),
-                  tabPanel(div("1. Select source" ),
+    navlistPanel("Steps:", widths = c(2, 10),
+                  tabPanel(div("1. Select the source" ),
                            # tags$br(),
                            selectInput(
                              inputId = ns('weather_input'),
@@ -23,7 +23,7 @@ mod_getDataWeather_ui <- function(id){
                              width   = '200px'
                            ),
                   ),
-                  tabPanel(div("2. Input parameters" ),
+                  tabPanel(div("2. Set coordinates" ),
                            tags$span(id = ns('apiOptionsInput'),
                                      tabPanel("Specify coordinates", icon = icon("magnifying-glass-chart"),
                                               br(),
