@@ -11,7 +11,11 @@ golem::detach_all_attached()
 # Document and reload your package
 golem::document_and_reload()
 
+# press Ctrl + F3 to see the reactive graph and identify where things are blocked or delayed
+# options(shiny.reactlog = TRUE)
+
 # Run the application (use port 1410 if run on localhost)
 run_app()
 
+# profile your Shiny application
 #profvis::profvis(print(run_app()))

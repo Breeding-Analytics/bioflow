@@ -91,11 +91,21 @@ app_server <- function(input, output, session) {
   observe({ if(use_login()){
     query <- parseQueryString(session$clientData$url_search)
 
-    if (!is.null(query$token) & FALSE) {
-      shinybusy::show_modal_spinner()
+    is_local <- Sys.getenv("SHINY_PORT") == ""
 
-      temp  <- data()
+    # NOTE: check if we run it on localhost!
+    if (is_local) {
+      client_id     <- "shiny_local"
+      redirect_uri  <- "http://localhost:1410"
+    } else {
+      client_id     <- "bioflow_ebs"
+      redirect_uri  <- "https://bioflow.ebsproject.org"
+    }
 
+    # get the data object to access the user identifier
+    temp <- data()
+
+    if (!is.null(query$token) && is.null(temp$user)) {
       req  <- httr2::request(validate_url)
       req  <- httr2::req_body_raw(req, paste0('{"Token": "', query$token, '"}'), type = "application/json")
 
@@ -113,27 +123,94 @@ app_server <- function(input, output, session) {
         temp$user <- payload$email
         data(temp)
 
+        removeModal()
+
         shinyWidgets::show_alert(title = paste("Welcome", temp$user), type = "success")
       } else {
         shinyWidgets::show_alert(title = "Invalid Token!", type = "error")
       }
 
-      shinybusy::remove_modal_spinner()
+      updateQueryString(redirect_uri, mode = "replace", session = session)
     }
+
+    if (is.null(temp$user)) {
+      showModal(modalDialog(
+        tags$div(align = "center",
+                 tags$img(src = "www/cgiar.png", height = 136, width = 480),
+                 tags$h2(span("Biometrical Genetics Workflow (bioflow)", tags$a(href="https://www.youtube.com/playlist?list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX", icon("youtube") , target="_blank"), style="color:darkcyan")),
+                 tags$p(
+                   "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods for understanding or using evolutionary forces",
+                   "(mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force) in decision-making.",
+                   "Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase),",
+                   "genotypic databases (GIGWA), and environmental databases (NASAPOWER), and carry the analytical procedures."
+                 ),
+        ),
+
+        tags$hr(),
+
+        fluidRow(
+          column(width = 10, p(strong("Note:"), "You can sign in to the Bioflow Portal using your Service Portal login details.")),
+          column(width = 2, actionButton("login", "Sign In")),
+        ),
+        tags$br(),
+        fluidRow(
+          column(width = 10, p("Alternatively, you can sign up by submitting a new request to create a Service Portal account before gaining access to the Bioflow Portal. Once you submit an account request, you will have to wait for it to be approved.")),
+          column(width = 2, actionButton("register", "Sign Up")),
+        ),
+
+        size = "l",
+        easyClose = FALSE,
+        footer = NULL
+      ))
+    }
+
+    observeEvent(input$cookies, {
+      if (!is.null(query$code) && !is.null(query$state) && is.null(temp$user)) {
+        shinybusy::show_modal_spinner()
+
+        scriptoria_client <- httr2::oauth_client(
+          id = client_id,
+          secret = client_secret,
+          token_url = access_url,
+          name = "serviceportal"
+        )
+
+        # oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", session$request$HTTP_COOKIE)
+        # pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", session$request$HTTP_COOKIE)
+        oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", input$cookies)
+        pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", input$cookies)
+
+        # NOTE: checkpoint to interrupt Shiny app execution to inspect env vars!
+        # browser()
+
+        code <- httr2:::oauth_flow_auth_code_parse(query, oauth_state)
+
+        token <- httr2:::oauth_client_get_token(client = scriptoria_client,
+                                                grant_type = "authorization_code",
+                                                code = query$code,
+                                                state = query$state,
+                                                code_verifier = pkce_verifier,
+                                                redirect_uri = redirect_uri)
+
+        jwt <- strsplit(token$access_token, ".", fixed = TRUE)[[1]]
+
+        payload <- jsonlite::base64url_dec(jwt[2]) |> rawToChar() |> jsonlite::fromJSON()
+
+        updateQueryString(redirect_uri, mode = "replace", session = session)
+
+        temp$user <- payload$email
+        data(temp)
+
+        removeModal()
+
+        shinyWidgets::show_alert(title = paste("Welcome", temp$user), type = "success")
+
+        shinybusy::remove_modal_spinner()
+      }
+    })
 
     observeEvent(input$login, {
       shinybusy::show_modal_spinner()
-
-      is_local <- Sys.getenv("SHINY_PORT") == ""
-
-      # NOTE: check if we run it on localhost!
-      if (is_local) {
-        client_id     <- "shiny_local"
-        redirect_uri  <- "http://localhost:1410"
-      } else {
-        client_id     <- "bioflow_ebs"
-        redirect_uri  <- "https://bioflow.ebsproject.org"
-      }
 
       scriptoria_client <- httr2::oauth_client(
         id = client_id,
@@ -162,88 +239,6 @@ app_server <- function(input, output, session) {
       )
 
       session$sendCustomMessage("redirect", auth_url)
-    })
-
-    observeEvent(input$cookies, {
-      query <- parseQueryString(session$clientData$url_search)
-      temp  <- data()
-
-      if (!is.null(query$code) && !is.null(query$state)) {
-        shinybusy::show_modal_spinner()
-
-        is_local <- Sys.getenv("SHINY_PORT") == ""
-
-        # NOTE: check if we run it on localhost!
-        if (is_local) {
-          client_id     <- "shiny_local"
-          redirect_uri  <- "http://localhost:1410"
-        } else {
-          client_id     <- "bioflow_ebs"
-          redirect_uri  <- "https://bioflow.ebsproject.org"
-        }
-
-        scriptoria_client <- httr2::oauth_client(
-          id = client_id,
-          secret = client_secret,
-          token_url = access_url,
-          name = "serviceportal"
-        )
-
-        oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", input$cookies)
-        pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", input$cookies)
-
-        # NOTE: checkpoint to interrupt Shiny app execution to inspect env vars!
-        # browser()
-
-        code <- httr2:::oauth_flow_auth_code_parse(query, oauth_state)
-
-        token <- httr2:::oauth_client_get_token(client = scriptoria_client,
-                                                grant_type = "authorization_code",
-                                                code = query$code,
-                                                state = query$state,
-                                                code_verifier = pkce_verifier,
-                                                redirect_uri = redirect_uri)
-
-        jwt <- strsplit(token$access_token, ".", fixed = TRUE)[[1]]
-
-        payload <- jsonlite::base64url_dec(jwt[2]) |> rawToChar() |> jsonlite::fromJSON()
-
-        updateQueryString(redirect_uri, mode = "replace", session = session)
-
-        temp$user <- payload$email
-        data(temp)
-
-        shinybusy::remove_modal_spinner()
-      } else if (is.null(temp$user)) {
-        showModal(modalDialog(
-          tags$div(align = "center",
-                   tags$img(src = "www/cgiar.png", height = 136, width = 480),
-                   tags$h2(span("Biometrical Genetics Workflow (bioflow)", tags$a(href="https://www.youtube.com/playlist?list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX", icon("youtube") , target="_blank"), style="color:darkcyan")),
-                   tags$p(
-                     "The OneCGIAR biometrical genetics workflow or pipeline has been built to access methods for understanding or using evolutionary forces",
-                     "(mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force) in decision-making.",
-                     "Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase),",
-                     "genotypic databases (GIGWA), and environmental databases (NASAPOWER), and carry the analytical procedures."
-                   ),
-          ),
-
-          tags$hr(),
-
-          fluidRow(
-            column(width = 10, p(strong("Note:"), "You can sign in to the Bioflow Portal using your Service Portal login details.")),
-            column(width = 2, actionButton("login", "Sign In")),
-          ),
-          tags$br(),
-          fluidRow(
-            column(width = 10, p("Alternatively, you can sign up by submitting a new request to create a Service Portal account before gaining access to the Bioflow Portal. Once you submit an account request, you will have to wait for it to be approved.")),
-            column(width = 2, actionButton("register", "Sign Up")),
-          ),
-
-          size = "l",
-          easyClose = FALSE,
-          footer = NULL
-        ))
-      }
     })
 
     observeEvent(input$register, {
