@@ -1,7 +1,7 @@
 ---
 title: "Predicted Genetic Gain Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 04, 2024"  
+date: "October 07, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -18,7 +18,7 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="pggApp_1-oute879cc291dcacc83" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="pggApp_1-out0366c98836c42a1d" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predicted genetic gain
 
@@ -29,12 +29,12 @@ The following density plot allows you to see the expected change in the next gen
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="pggApp_1-traitFilterPredictions2D2-label" for="pggApp_1-traitFilterPredictions2D2">Trait:</label>
 <div>
-<select id="pggApp_1-traitFilterPredictions2D2" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
+<select id="pggApp_1-traitFilterPredictions2D2" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="pggApp_1-traitFilterPredictions2D2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-outbf68c49ff3a59ebb" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-out4195317ecc38194d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

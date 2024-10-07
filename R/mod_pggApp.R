@@ -251,7 +251,7 @@ mod_pggApp_server <- function(id, data){
       req(input$trait2Pgg)
       dtPgg <- data()
       metaPheno <- dtPgg$metadata$pheno
-      traitsPgg <- setdiff(metaPheno$parameter[metaPheno$parameter != "trait"], c("rep","iBlock","row","col","designation") )
+      traitsPgg <- setdiff(metaPheno$parameter[metaPheno$parameter != "trait"], c("rep","iBlock","row","col","designation","gid","entryType","stage","pipeline") )
       # dtPgg <- data()$predictions
       # dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
       # traitsPgg <- unique(dtPgg$environment)
