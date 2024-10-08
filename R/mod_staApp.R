@@ -1018,33 +1018,29 @@ mod_staApp_server <- function(id,data){
           paramsPheno <- paramsPheno[paramsPheno$parameter != "trait",]
           paramsPheno <- paramsPheno[which(!duplicated(paramsPheno$value)),]
           colnames(dtSta$data$pheno) <- cgiarBase::replaceValues(colnames(dtSta$data$pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-          paramsPed <- data()$metadata$pedigree
-          colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPed$value, Replace = paramsPed$parameter )
           ### avoid columns mother and father in the pehnotype file
           '%!in%' <- function(x,y)!('%in%'(x,y))
-          dtSta$data$pheno <- dtSta$data$pheno[,which(colnames(dtSta$data$pheno) %!in% c("mother","father") )]
-          ## merge data
-          dtSta <- merge(dtSta$data$pheno, dtSta$data$pedigree, by="designation") # merge mother and father info in the pheno data frame
-          dtStaList <- split(dtSta, dtSta[,input$feature]) # split info by environment
-          dtStaListRes <- list()
-          for(i in 1:length(dtStaList)){
-            dtStaListRes[[i]] <- as.data.frame(as.table(apply(dtStaList[[i]][,intersect( c("designation","mother","father"), colnames(dtSta) ), drop= FALSE],2, function(x){length(na.omit(unique(x)))})))
-            dtStaListRes[[i]][,input$feature] <- names(dtStaList)[i]
-            if("mother" %!in% dtStaListRes[[i]]$Var1){
-              prov <- dtStaListRes[[i]]
-              prov$Var1 <- "mother"; prov$Freq <- 0
-            }else{prov <- NULL}
-            if("father" %!in% dtStaListRes[[i]]$Var1){
-              prov2 <- dtStaListRes[[i]]
-              prov2$Var1 <- "father"; prov2$Freq <- 0
-            }else{prov2 <- NULL}
-            if(!is.null(prov) | !is.null(prov2)){dtStaListRes[[i]] <- rbind(dtStaListRes[[i]], prov,prov2)}
-          }
-          dtSta <- do.call(rbind, dtStaListRes)
 
-          colnames(dtSta)[1:2] <- c("geneticUnit", "numberOfUnits")
-          dtSta <- dtSta[with(dtSta, order(geneticUnit)), ]; rownames(dtSta) <- NULL
-          DT::datatable(dtSta, extensions = 'Buttons',
+          if(!is.null(dtSta$data$pedigree)){
+            paramsPed <- data()$metadata$pedigree
+            colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPed$value, Replace = paramsPed$parameter )
+            myped <- unique(dtSta$data$pedigree[,c("designation","mother","father")])
+            mydata <- merge(dtSta$data$pheno, myped, by="designation", all.x = TRUE)
+          }else{
+            mydata <- dtSta$data$pheno
+          }
+
+          if(!is.null(dtSta$data$pedigree)){
+            m1 <- aggregate(as.formula(paste("designation~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
+            m2 <- aggregate(as.formula(paste("mother~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
+            m3 <- aggregate(as.formula(paste("father~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
+            resTable <- cbind(m1,m2[,2,drop=FALSE],m3[,2,drop=FALSE])
+          }else{
+            resTable <- aggregate(as.formula(paste("designation~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
+          }
+
+
+          DT::datatable(resTable, extensions = 'Buttons',
                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                         caption = htmltools::tags$caption(
@@ -1052,6 +1048,7 @@ mod_staApp_server <- function(id,data){
                           htmltools::em('Summary of number of individuals, mothers and fathers available in the dataset.')
                         )
           )
+
         }, server = FALSE)
         ## render designs
         output$dtFieldTraC <-  DT::renderDT({
