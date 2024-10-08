@@ -164,7 +164,7 @@ app_server <- function(input, output, session) {
       ))
     }
 
-    # observeEvent(input$cookies, {
+    observeEvent(input$cookies, {
       if (!is.null(query$code) && !is.null(query$state) && is.null(temp$user)) {
         shinybusy::show_modal_spinner()
 
@@ -175,10 +175,10 @@ app_server <- function(input, output, session) {
           name = "serviceportal"
         )
 
-        oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", session$request$HTTP_COOKIE)
-        pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", session$request$HTTP_COOKIE)
-        # oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", input$cookies)
-        # pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", input$cookies)
+        # oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", session$request$HTTP_COOKIE)
+        # pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", session$request$HTTP_COOKIE)
+        oauth_state   <- sub(".*oauth_state=([^;]*).*", "\\1", input$cookies)
+        pkce_verifier <- sub(".*pkce_verifier=([^;]*).*", "\\1", input$cookies)
 
         # NOTE: checkpoint to interrupt Shiny app execution to inspect env vars!
         # browser()
@@ -207,7 +207,7 @@ app_server <- function(input, output, session) {
 
         shinybusy::remove_modal_spinner()
       }
-    # })
+    })
 
     observeEvent(input$login, {
       shinybusy::show_modal_spinner()
