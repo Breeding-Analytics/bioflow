@@ -240,8 +240,8 @@ mod_oftStaApp_server <- function(id, data){
       if (isTRUE(input$myconfirmation)) {
         shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
         ## replace tables
-        data(cgiarBase::create_getData_object())
         tmp <- data()
+        data(cgiarBase::create_getData_object())
         utils::data(OFT_example, package = "cgiarPipeline")
         if(!is.null(result$data)){tmp$data <- result$data}
         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
