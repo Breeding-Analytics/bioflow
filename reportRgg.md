@@ -1,7 +1,7 @@
 ---
 title: "Realized Genetic Gain Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 04, 2024"  
+date: "October 07, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -21,23 +21,24 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out4b491c73098c4dc5" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out1180d36bdfe1642a" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Summary metrics (wide-format)
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out44407f98a3eba2b4" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out128f1395efdaf1f5" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Regression plot
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="rggApp_1-traitSta3-label" for="rggApp_1-traitSta3">Trait:</label>
 <div>
-<select id="rggApp_1-traitSta3" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option></select>
+<select id="rggApp_1-traitSta3" class="shiny-input-select"><option value="YLDTON" selected>YLDTON</option>
+<option value="YLDKGPHA">YLDKGPHA</option></select>
 <script type="application/json" data-for="rggApp_1-traitSta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-out422df05dfc469352" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-out9ccf63903894dd4a" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References on methods used

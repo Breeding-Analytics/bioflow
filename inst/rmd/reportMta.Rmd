@@ -386,8 +386,11 @@ if (is.null(result)){
         }
         nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
         if(nrow(nagm) > 1){
-          ord2 <- hclust( dist(nagm, method = "euclidean"), method = "ward.D" )$order
+          if( length(which(is.na(nagm))) == 0){
+     ord2 <- hclust( dist(nagm, method = "euclidean"), method = "ward.D" )$order
           nagm <- nagm[ord2,ord2]
+  }
+         
         }
         mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
         maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
@@ -437,8 +440,10 @@ if (is.null(result)){
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       if(nrow(nagm) > 1){
+         if( length(which(is.na(nagm))) == 0){
         ord2 <- hclust( dist(nagm, method = "euclidean"), method = "ward.D" )$order
         nagm <- nagm[ord2,ord2]
+         }
       }
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
@@ -540,8 +545,10 @@ if (is.null(result)){
         wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
         corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
         if(nrow(corr) > 1){
-          ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+           if( length(which(is.na(corr))) == 0){
+             ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
           corr <- corr[ord,ord]
+           }
         }
         mydata4 <- cgiarBase::matToTab(corr)
         p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -584,8 +591,11 @@ if (is.null(result)){
       wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
       corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
       if(nrow(corr) > 1){
-        ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+        if( length(which(is.na(corr))) == 0){
+    ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
         corr <- corr[ord,ord]
+  }
+        
       }
       
       mydata4 <- cgiarBase::matToTab(corr)
@@ -1481,8 +1491,11 @@ if (is.null(result)){
   wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
   corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
   if(nrow(corr) > 1){
+    if( length(which(is.na(corr))) == 0){
     ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
     corr <- corr[ord,ord]
+  }
+    
   }
   mydata4 <- cgiarBase::matToTab(corr)
   if(nrow(corr) > 1){
