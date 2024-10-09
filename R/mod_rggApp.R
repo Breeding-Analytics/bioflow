@@ -296,18 +296,23 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- data()
       dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-      myYears <- data()$data$pedigree
-      paramsPed <- data()$metadata$pedigree
-      colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
-      dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
-      traitsRgg <- sort(unique(dtRgg$yearOfOrigin), decreasing = FALSE)
-      updateSelectInput(session, "yearsToUse", choices = traitsRgg, selected =traitsRgg )
+      if(!is.null(data()$data$pedigree)){
+        myYears <- data()$data$pedigree
+        paramsPed <- data()$metadata$pedigree
+        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
+          dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          traitsRgg <- sort(unique(dtRgg$yearOfOrigin), decreasing = FALSE)
+          updateSelectInput(session, "yearsToUse", choices = traitsRgg, selected =traitsRgg )
+        }
+      }
     })
     ## entry type
-    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg), {
+    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg, input$yearsToUse), {
       req(data())
       req(input$version2Rgg)
       req(input$trait2Rgg)
+      req(input$yearsToUse)
       dtRgg <- data()
       dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
@@ -330,6 +335,7 @@ mod_rggApp_server <- function(id, data){
     })
     output$plotPredictionsCleanOut <- plotly::renderPlotly({ # update plot
       req(data())
+      req(input$version2Rgg)
       req(input$trait3Rgg)
       ##
       mydata <- data()$predictions
@@ -337,19 +343,26 @@ mod_rggApp_server <- function(id, data){
       paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
       colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       ##
-      myYears <- data()$data$pedigree
-      paramsPed <- data()$metadata$pedigree
-      colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+      if(!is.null(data()$data$pedigree)){
 
-      mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
-      mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
-      mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
-      mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+        myYears <- data()$data$pedigree
+        paramsPed <- data()$metadata$pedigree
+        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
 
-      res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
-        ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
-        ggplot2::ggtitle("View of current analyses available")
-      plotly::ggplotly(res)
+        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
+          mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
+          mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
+          mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+
+          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
+            ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
+            ggplot2::ggtitle("View of current analyses available")
+          plotly::ggplotly(res)
+        }
+
+      }
+
     })
     output$plotPredictionsCleanOut2 <- plotly::renderPlotly({ # update plot
       req(data())
@@ -360,22 +373,30 @@ mod_rggApp_server <- function(id, data){
       paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
       colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       ##
-      myYears <- data()$data$pedigree
-      paramsPed <- data()$metadata$pedigree
-      colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
 
-      mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
-      mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg2),]
-      mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
-      mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+      if(!is.null(data()$data$pedigree)){
 
-      if(length(input$yearsToUse) > 0){
-        mydata <- mydata[which(mydata$yearOfOrigin %in% input$yearsToUse),]
+        myYears <- data()$data$pedigree
+        paramsPed <- data()$metadata$pedigree
+        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+
+        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
+          mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg2),]
+          mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
+          mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
+
+          if(length(input$yearsToUse) > 0){
+            mydata <- mydata[which(mydata$yearOfOrigin %in% input$yearsToUse),]
+          }
+          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
+            ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
+            ggplot2::ggtitle("View of current analyses available")
+          plotly::ggplotly(res)
+        }
+
       }
-      res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
-        ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
-        ggplot2::ggtitle("View of current analyses available")
-      plotly::ggplotly(res)
+
     })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({

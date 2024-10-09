@@ -65,9 +65,9 @@ mod_staApp_ui <- function(id){
                                            # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
                                     ),
                            ),
-                           tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
-                                    tabsetPanel(
-                                      tabPanel(div(icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , #icon = icon("dice-one"),
+                           tabPanel(id=ns("tabsInput0"),  type = "tabs", title=div(icon("arrow-right-to-bracket"), "Input steps"),
+                                    tabsetPanel( id=ns("tabsInput1"), type = "tabs",
+                                      tabPanel(value="tabsInputStamp",title=div(icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , #icon = icon("dice-one"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8, selectInput(ns("version2Sta"), "Pheno-modification to apply to the data", choices = NULL, multiple = TRUE) ),
@@ -85,18 +85,18 @@ mod_staApp_ui <- function(id){
                                                                    DT::DTOutput(ns("phenoSta")),
                                                ),
                                       ),
-                                      tabPanel(div( icon("dice-two"), "Pick trait(s)", icon("arrow-right") ) , #icon = icon("dice-two"),
+                                      tabPanel(value="tabsInputTraits",title=div( icon("dice-two"), "Pick trait(s)", icon("arrow-right") ) , #icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=6, selectInput(ns("trait2Sta"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE) ),
-                                                      column(width=6,selectInput(ns("fixedTermSta2"), "Covariable(s) (optional)", choices = NULL, multiple = TRUE) ),
-                                                      column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=4, selectInput(ns("trait2Sta"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE) ),
+                                                      column(width=4,selectInput(ns("fixedTermSta2"), "Covariable(s) (optional)", choices = NULL, multiple = TRUE) ),
+                                                      # column(width = 12, style = "background-color:grey; color: #FFFFFF",
                                                              tags$br(),
-                                                             shinydashboard::box(width = 12, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                             shinydashboard::box(width = 4, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
                                                                                  p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
                                                                                  DT::DTOutput(ns("traitDistSta")),
                                                              ),
-                                                      ),
+                                                      # ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -114,7 +114,7 @@ mod_staApp_ui <- function(id){
                                                                    ),
                                                ),
                                       ),
-                                      tabPanel(div(icon("dice-three"), "Pick effect(s)", icon("arrow-right") ) , #icon = icon("dice-three"),
+                                      tabPanel(value="tabsInputEffects", title=div(icon("dice-three"), "Pick effect(s)", icon("arrow-right") ) , #icon = icon("dice-three"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF" ,
                                                       column(width=4, selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s) (required)", choices = NULL, multiple = TRUE) ),
@@ -145,7 +145,7 @@ mod_staApp_ui <- function(id){
                                                                    ),
                                                ),
                                       ),
-                                      tabPanel(div(icon("dice-four"), "Run analysis" ), # icon = icon("dice-four"),
+                                      tabPanel(value="tabsInputRun", title=div(icon("dice-four"), "Run analysis" ), # icon = icon("dice-four"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runSta"), "Run STA (click button)", icon = icon("play-circle")),
@@ -768,6 +768,7 @@ mod_staApp_server <- function(id,data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
+
     ############################################################################
     # show shinyWidgets until the user can use the module
     observeEvent(c(data(), input$version2Sta), {
@@ -926,6 +927,7 @@ mod_staApp_server <- function(id,data){
                                        server = FALSE,
                                        options = list(paging=FALSE,
                                                       searching=FALSE,
+                                                      scrollX = TRUE,
                                                       initComplete = I("function(settings, json) {alert('Done.');}")
                                        )
     )
