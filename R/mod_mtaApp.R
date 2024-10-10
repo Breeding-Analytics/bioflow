@@ -122,11 +122,10 @@ mod_mtaApp_ui <- function(id){
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=3, selectInput(ns("fixedTermMta2"), "Fixed effect(s)", choices = NULL, multiple = TRUE) ),
                                                       column(width=3, selectInput(ns("randomTermMta2"), "Random effect(s)", choices = NULL, multiple = TRUE) ),
-                                                      column(width=3, selectInput(ns("modelMet"), "Genetic evaluation model", choices = NULL, multiple = FALSE) ),
-                                                      column(width=3, tags$span(id = ns('ismarkermodel'), selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE), ),  ),
-                                               ),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      shinydashboard::box(width = 12, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
+                                                      column(width=2, selectInput(ns("modelMet"), "Evaluation model", choices = NULL, multiple = FALSE) ),
+                                                      column(width=2, tags$span(id = ns('ismarkermodel'), selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE), ),  ),
+                                                      br(),
+                                                      shinydashboard::box(width = 2, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
                                                                           # selectInput(ns("deregressMet"), label = "Deregress Predictions?",  choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                                           textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.2"),
                                                                           textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
@@ -138,6 +137,9 @@ mod_mtaApp_ui <- function(id){
                                                                           numericInput(ns("nPC"), label = "Number of PCs if method is rrBLUP", value = 0)
                                                       ),
                                                ),
+                                               # column(width=12, style = "background-color:grey; color: #FFFFFF",
+
+                                               # ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
                                                                    column(width=12,
@@ -154,19 +156,23 @@ mod_mtaApp_ui <- function(id){
                                       tabPanel(div( icon("dice-four"), "Specify GxE", icon("arrow-right") ), # icon = icon("dice-four"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=4,
-                                                             br(),
+                                                      column(width=3,
+                                                             # br(),
                                                              selectInput(ns("interactionTermMta2"), "GxE term(s) (optional)", choices = NULL, multiple = TRUE),
                                                       ),
-                                                      column(width = 8,
-                                                             numericInput(ns("minimumNumberEnvsFW"), label = "Minimum number of levels in GxE factor to fit a random regression", value = 6),
+                                                      # column(width = 3,
+                                                      br(),
+                                                      shinydashboard::box(width = 3, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
+                                                                          numericInput(ns("minimumNumberEnvsFW"), label = "Minimum number of levels in GxE factor to fit a random regression", value = 6),
                                                       ),
-                                                      column(width=12,
-                                                             shinydashboard::box(width = 12, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (Optional)...",
-                                                                                 p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
-                                                                                 DT::dataTableOutput(ns("fieldsMet")),
-                                                             ),
+                                                      # ),
+                                                      # column(width=6,
+                                                      # br(),
+                                                      shinydashboard::box(width = 6, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (Optional)...",
+                                                                          p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                                                          DT::dataTableOutput(ns("fieldsMet")),
                                                       ),
+                                                      # ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -508,6 +514,7 @@ mod_mtaApp_ui <- function(id){
 #                                        editable = TRUE,
 #                                        options = list(paging=FALSE,
 #                                                       searching=FALSE,
+#                                                       scrollX = TRUE,
 #                                                       initComplete = I("function(settings, json) {alert('Done.');}")
 #                                        ), server = FALSE
 #     )
@@ -1248,7 +1255,12 @@ mod_mtaApp_server <- function(id, data){
       df <- dtFieldMet()
       x$df <- df
     })
-    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE)
+    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE,
+                                    options = list(paging=FALSE,
+                                                   searching=FALSE,
+                                                   scrollX = TRUE,
+                                                   initComplete = I("function(settings, json) {alert('Done.');}")
+                                    ), server = FALSE)
     proxy = DT::dataTableProxy('fieldsMet')
     observeEvent(input$fieldsMet_cell_edit, {
       info = input$fieldsMet_cell_edit
@@ -1279,11 +1291,12 @@ mod_mtaApp_server <- function(id, data){
     output$traitDistMet = DT::renderDT(xx$df,
                                        selection = 'none',
                                        editable = TRUE,
-                                       server = FALSE
-                                       # options = list(paging=FALSE,
-                                       #                searching=FALSE,
-                                       #                initComplete = I("function(settings, json) {alert('Done.');}")
-                                       # )
+                                       server = FALSE,
+                                       options = list(paging=FALSE,
+                                                      searching=FALSE,
+                                                      scrollX = TRUE,
+                                                      initComplete = I("function(settings, json) {alert('Done.');}")
+                                       )
     )
     proxy = DT::dataTableProxy('traitDistMet')
     observeEvent(input$traitDistMet_cell_edit, {
