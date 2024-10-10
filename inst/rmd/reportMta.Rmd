@@ -387,10 +387,10 @@ if (is.null(result)){
         nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
         if(nrow(nagm) > 1){
           if( length(which(is.na(nagm))) == 0){
-     ord2 <- hclust( dist(nagm, method = "euclidean"), method = "ward.D" )$order
-          nagm <- nagm[ord2,ord2]
-  }
-         
+            ord2 <- hclust( dist(nagm, method = "euclidean"), method = "ward.D" )$order
+            nagm <- nagm[ord2,ord2]
+          }
+          
         }
         mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
         maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
@@ -440,10 +440,10 @@ if (is.null(result)){
       }
       nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
       if(nrow(nagm) > 1){
-         if( length(which(is.na(nagm))) == 0){
-        ord2 <- hclust( dist(nagm, method = "euclidean"), method = "ward.D" )$order
-        nagm <- nagm[ord2,ord2]
-         }
+        if( length(which(is.na(nagm))) == 0){
+          ord2 <- hclust( dist(nagm, method = "euclidean"), method = "ward.D" )$order
+          nagm <- nagm[ord2,ord2]
+        }
       }
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
@@ -545,10 +545,10 @@ if (is.null(result)){
         wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
         corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
         if(nrow(corr) > 1){
-           if( length(which(is.na(corr))) == 0){
-             ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
-          corr <- corr[ord,ord]
-           }
+          if( length(which(is.na(corr))) == 0){
+            ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+            corr <- corr[ord,ord]
+          }
         }
         mydata4 <- cgiarBase::matToTab(corr)
         p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -592,9 +592,9 @@ if (is.null(result)){
       corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
       if(nrow(corr) > 1){
         if( length(which(is.na(corr))) == 0){
-    ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
-        corr <- corr[ord,ord]
-  }
+          ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+          corr <- corr[ord,ord]
+        }
         
       }
       
@@ -707,7 +707,7 @@ if (is.null(result)){
           missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
           pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
           pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-          # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
+          # 
           prin_comp <- prcomp(pred.mta.biplot, rank = 2)
           components <- prin_comp[["x"]]
           components <- data.frame(components)
@@ -760,7 +760,6 @@ if (is.null(result)){
         missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
         pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8), drop=FALSE]
         pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
-        # pred.mta.biplot <- na.omit(pred.mta.biplot[,2:min(c(ncol(pred.mta.biplot),5))])
         
         prin_comp <- prcomp(pred.mta.biplot, rank = 2)
         components <- prin_comp[["x"]]
@@ -805,7 +804,73 @@ if (is.null(result)){
 }
 ```
 
-<p>&nbsp;</p>
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  # idMta <- result$status[which(result$status$module == "mta"),"analysisId"]
+  # idMta <- idMta[length(idMta)]
+  # modeling <- result$modeling
+  # modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
+  
+  if(length(result$metrics[result$metrics$analysisId == idMta & result$metrics$parameter == "nEnv" & result$metrics$value > 1, "trait"]) > 0){
+    
+    bpl <- list()
+    
+    for(itt in traitsBiplotAll){
+      idSta <- result$modeling[result$modeling$analysisId == idMta & result$modeling$trait == "inputObject","value"]
+      pred.staDT <- result$predictions
+      pred.staDT <- pred.staDT[pred.staDT$analysisId == idSta,]
+      
+      goodFields <- modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$value == "TRUE" & modelingFieldsIncludedInMta$trait == itt, "environment"]
+      pred.mta.biplotDT <- reshape(pred.staDT[which(pred.staDT$trait == itt & pred.staDT$environment %in% goodFields ),c("designation","environment","predictedValue")], 
+                                   direction = "wide", idvar = "designation", timevar = "environment")
+      
+      rownames(pred.mta.biplotDT) <- pred.mta.biplotDT[,"designation"]
+      pred.mta.biplotDT <- pred.mta.biplotDT[,-1, drop=FALSE]
+      names(pred.mta.biplotDT) <- gsub("predictedValue.","",names(pred.mta.biplotDT))
+      
+      # keep only
+      missing <- apply(pred.mta.biplotDT,1, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplotDT <- pred.mta.biplotDT[which(missing < 0.8),, drop=FALSE]
+      missing <- apply(pred.mta.biplotDT,2, function(x){length(which(is.na(x)))/length(x)})
+      pred.mta.biplotDT <- pred.mta.biplotDT[,which(missing < 0.8), drop=FALSE]
+      pred.mta.biplotDT <- apply(pred.mta.biplotDT,2, sommer::imputev)
+      
+      prin_compDT <- prcomp(pred.mta.biplotDT, rank = 2)
+      componentsDT <- prin_compDT[["x"]]
+      componentsDT <- data.frame(componentsDT)
+      componentsDT$PC2 <- -componentsDT$PC2
+      componentsDT$trait <- itt
+      bpl[[itt]] <- componentsDT
+    }
+    
+    componentsDTFinal <- do.call(rbind, bpl)
+    
+    
+    if("params" %in% ls()){ # we will download the document
+      printTable(componentsDTFinal)
+    }else{
+      DT::renderDT({DT::datatable(
+        componentsDTFinal[which(componentsDTFinal$trait == input$traitBiplot),],
+        rownames = FALSE,
+        class = 'cell-border stripe',
+        extensions = 'Buttons',
+        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All')))
+      )
+      }, server = FALSE)
+    }
+    
+  }
+  
+  
+  
+}
+
+```
 
 ### Across-environment metrics
 
@@ -1492,9 +1557,9 @@ if (is.null(result)){
   corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
   if(nrow(corr) > 1){
     if( length(which(is.na(corr))) == 0){
-    ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
-    corr <- corr[ord,ord]
-  }
+      ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+      corr <- corr[ord,ord]
+    }
     
   }
   mydata4 <- cgiarBase::matToTab(corr)

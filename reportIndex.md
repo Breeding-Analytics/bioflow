@@ -1,7 +1,7 @@
 ---
 title: "Selection Index Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "September 20, 2024"  
+date: "October 10, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -37,7 +37,7 @@ The following table allows you to inspect the across-environment predictions for
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-outf80b05875bbc7081" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out9c344c8dc13a3548" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -45,7 +45,7 @@ The following table allows you to inspect the across-environment predictions for
 
 The following table aims to keep record of the desire values selected and corresponding weights for this run.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-outc340e4ad1ca88e8b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out71bfec70500a54c2" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Radar Plot
@@ -54,7 +54,7 @@ This spider plot allows you to visualize the distance between the population mea
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outedcb439d113519d3" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out5574ab6530e728e2" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Expected Response Plot
 
@@ -67,7 +67,7 @@ The following plot allows the user to visualize the expected response in the new
 <input id="indexDesireApp_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outfddbdf2e9424183d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out58b1a67119c37ef4" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Index versus Trait Plot
 
@@ -78,16 +78,14 @@ The following plot allows you to visualize the relationship between the selectio
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="indexDesireApp_1-traitMtaScatter-label" for="indexDesireApp_1-traitMtaScatter">Trait:</label>
 <div>
-<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="GY" selected>GY</option>
-<option value="DTM">DTM</option>
-<option value="DTH">DTH</option>
-<option value="PH">PH</option>
-<option value="TKW">TKW</option></select>
+<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="Height" selected>Height</option>
+<option value="AreaDron">AreaDron</option>
+<option value="Biomass">Biomass</option></select>
 <script type="application/json" data-for="indexDesireApp_1-traitMtaScatter" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out27fde1a748fcb047" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outd986daa29705448c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 
