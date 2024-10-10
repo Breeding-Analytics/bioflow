@@ -47,7 +47,7 @@ library(textshape)
 # function for printing tables (data.frames) - DT::datatable()
 printTable <- function(DT, pageLength = 7, 
                        numericColNames = NULL, numRound = 3, 
-                       scrollXOpt = FALSE, colNames = NULL,...) {
+                       scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
   
   DT <- data.frame(lapply(X = DT, 
                           FUN = function(x) {
@@ -61,7 +61,7 @@ printTable <- function(DT, pageLength = 7,
   table <- DT::datatable(data = DT, 
                          colnames = colNames,
                          filter = "top", 
-                         options = list(autoWidth = TRUE, 
+                         options = list(autoWidth = autoWidthOpt,
                                         dom = 'l<<t>pB>', 
                                         buttons = c('copy', 'excel'),
                                         pageLength = pageLength,
@@ -128,7 +128,7 @@ if(any(c(result$metadata$pedigree[result$metadata$pedigree$parameter=="yearOfOri
   dt_orig = dt_orig[,!(names(dt_orig) %in% dropVar)]
 }
 
-dt_orig <- merge(dt_orig, result$data$pedigree, 
+dt_orig <- merge(dt_orig, result$data$pedigree[,result$metadata$pedigree$value[result$metadata$pedigree$value!=""]], 
                  by.x = result$metadata$pheno[result$metadata$pheno$parameter=="designation","value"], 
                  by.y = result$metadata$pedigree[result$metadata$pedigree$parameter=="designation","value"], all.x = TRUE)
 
@@ -213,7 +213,7 @@ studyInfo3 <- dt_clean %>% group_by(environment) %>% count(iBlock) %>% count() %
 
 studyInfo <- cbind(studyInfo1,studyInfo2[-1],studyInfo3[-1])
 
-printTable(studyInfo, scrollXOpt = FALSE,
+printTable(studyInfo, autoWidthOpt = TRUE, scrollXOpt = FALSE,
            colNames = c("Market Segment","Benchmark Variety", "Local Variety","Test Variety",
                         "Total Number of Variety", "Number of Trials"))
 
@@ -268,19 +268,19 @@ if (is.null(result)){
   pred.traits.summary <- merge(x = pred.traits.min, y = pred.traits.max, by = c("environment","trait"), all.x = TRUE)
   pred.traits.summary <- merge(x = pred.traits.summary, y = metrics, by = c("environment","trait"), all.x = TRUE)
   
-  pred.traits.summary <- pred.traits.summary[,c("trait", "environment","min", "mean", "max", setdiff(colnames(metrics),c("trait", "environment","mean")))]
+  pred.traits.summary <- pred.traits.summary[,c("trait", "environment","min", "max", setdiff(colnames(metrics),c("trait", "environment")))]
   
   numeric.output <- setdiff(colnames(pred.traits.summary),c("trait", "environment"))
   
   if(params$toDownload == TRUE){ # we will download the document
     printTable(unique(pred.traits.summary),
-               scrollXOpt = FALSE,
+               autoWidthOpt = TRUE, scrollXOpt = FALSE,
                colNames = c("Market Segment", "Trait", numeric.output),
                numericColNames = numeric.output,
                numRound = 4)
   }else{
     DT::renderDT(printTable(unique(pred.traits.summary[pred.traits.summary$trait==input$traitOft,]),
-                                             scrollXOpt = FALSE,
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
                             colNames = c("Market Segment", "Trait", numeric.output),
                             numericColNames = numeric.output,
                             numRound = 4), server = FALSE)
@@ -337,7 +337,10 @@ RiceEnvs <- levels(as.factor(dt_clean$environment))
 
 for (i in 1:numTraits) {
   for (j in seq_along(RiceEnvs)) { 
-    best_test <- BLUPs[[i]] %>% filter(environment == RiceEnvs[j]) %>% 
+    if(nrow(BLUPs[[i]] %>% filter(environment == RiceEnvs[j]))==0){
+      next
+    } else{
+      best_test <- BLUPs[[i]] %>% filter(environment == RiceEnvs[j]) %>% 
                  filter(entryType == "TEST VARIETY" & RankByType == min(RankByType)) %>% 
                  mutate(yearOfOrigin = as.numeric(yearOfOrigin))
     
@@ -461,6 +464,8 @@ for (i in 1:numTraits) {
     TopTVFV_All <- rbind(TestVar_All,TopFV_All) %>% arrange(environment)
     TVBM_All <- rbind(TestVar_All,BM_All) %>% arrange(environment)
     TVMFU_All <- rbind(TestVar_All,MFU_All) %>% arrange(environment)
+    }
+    
   } 
 }
 
@@ -807,7 +812,7 @@ if(params$toDownload == TRUE){
       cat(paste0("Disease Severity"))
       print(htmltools::tagList(list(printTable(DseSev_temp[[i]][[j]],
                  colNames = colnames(DseSev_temp[[i]][[j]]),
-                 scrollXOpt = FALSE,
+                 autoWidthOpt = TRUE, scrollXOpt = FALSE,
                  numRound = 4))))
     }
     }
@@ -850,7 +855,7 @@ if(params$toDownload == TRUE){
                dplyr::select(-Rank)
     print(htmltools::tagList(list(printTable(BLUPsRE[c("environment", "designation", "entryType", 
                                                        "predictedValue", "stdError", "RankByType", "n")],
-                                             scrollXOpt = FALSE,
+                                             autoWidthOpt = TRUE, scrollXOpt = FALSE,
                                              colNames = c("Market Segment", "Variety", 
                                                           "Variety Type", "Predicted Means", 
                                                           "Standard Error",
@@ -872,7 +877,7 @@ if(params$toDownload == TRUE){
                                                           "Parameter", "Value", 
                                                           "Module",
                                                           "Method"),
-                                             scrollXOpt = FALSE,
+                                             autoWidthOpt = TRUE, scrollXOpt = FALSE,
                                              caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & trial/field instance")))))
 
     # BLUPs Comparison best test vs. best local vs. best benchmark
@@ -882,7 +887,7 @@ if(params$toDownload == TRUE){
     #cat('<br>', "\\linebreak ", "\\linebreak ")
     #cat('<br>', "\\linebreak ", "\\linebreak ")
   
-    print(htmltools::tagList(list(printTable(RG_All,scrollXOpt = FALSE,
+    print(htmltools::tagList(list(printTable(RG_All,autoWidthOpt = TRUE, scrollXOpt = FALSE,
                                              caption = "BLUPs Comparison: Best Test variety vs. Best Farmer's and Benchmark Variety",
                                              colNames = c("Market Segment", "Trait", "Comparison",
                                                           "Best Test Variety", "Predicted Mean",
@@ -998,7 +1003,7 @@ if(params$toDownload == TRUE){
     } else{
       cat(paste0("Test Varieties Significantly Different with Top Performing Local Variety"))
       print(htmltools::tagList(list(printTable(sig_TVFV2Tab3,
-                 scrollXOpt = FALSE,
+                 autoWidthOpt = TRUE, scrollXOpt = FALSE,
                  colNames = c("Rice Environment", "Variety","Variety Class", 
                                "Lower Predicted Mean", "Predicted Mean",
                                "Upper Predicted Mean"),
@@ -1016,7 +1021,7 @@ if(params$toDownload == TRUE){
     } else{
       cat(paste0("Test Varieties Significantly Different with Most Frequently Used Local Variety"))
       print(htmltools::tagList(list(printTable(sig_TVMFU2Tab3,
-                 scrollXOpt = FALSE,
+                 autoWidthOpt = TRUE, scrollXOpt = FALSE,
                  colNames = c("Rice Environment", "Variety","Variety Class",
                               "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                  numRound = 4))))
@@ -1040,7 +1045,7 @@ if(params$toDownload == TRUE){
     } else{
       cat(paste0("Test Varieties Significantly Different with Benchmark Variety"))
       print(htmltools::tagList(list(printTable(sig_TVBM2Tab3,
-                 scrollXOpt = FALSE,
+                 autoWidthOpt = TRUE, scrollXOpt = FALSE,
                  colNames = c("Rice Environment", "Variety","Variety Class", 
                               "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                  numRound = 4))))
@@ -1157,7 +1162,7 @@ if(params$toDownload == TRUE){
                dplyr::select(-Rank)
     DT::renderDT(printTable(BLUPsRE[c("environment", "designation", "entryType", 
                                                        "predictedValue", "stdError", "RankByType", "n")],
-                                             scrollXOpt = FALSE,
+                                             autoWidthOpt = FALSE, scrollXOpt = TRUE,
                                              colNames = c("Market Segment", "Variety", 
                                                           "Variety Type", "Predicted Means", 
                                                           "Standard Error",
@@ -1176,13 +1181,13 @@ if(params$toDownload == TRUE){
                                                           "Parameter", "Value", 
                                                           "Module",
                                                           "Method"),
-                                             scrollXOpt = FALSE,
+                                             autoWidthOpt = FALSE, scrollXOpt = TRUE,
                                              caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & trial/field instance")),server = FALSE)
     } else if (input$graphOft2 == "BLUPs Comparison"){
 RG_All <- rbind(BestTest_Local,BestLocal_Benchmark) %>%   
               arrange(environment) %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2))
   
-    DT::renderDT(printTable(RG_All,scrollXOpt = FALSE,
+    DT::renderDT(printTable(RG_All,autoWidthOpt = FALSE, scrollXOpt = TRUE,
                                              caption = "BLUPs Comparison: Best Test variety vs. Best Farmer's and Benchmark Variety",
                                              colNames = c("Market Segment", "Trait", "Comparison",
                                                           "Best Test Variety", "Predicted Mean",
@@ -1318,7 +1323,7 @@ if(nrow(sig_TVFV2Tab3)<= 1){
   shiny::renderText("**Predicted Grain Yield Mean of Test Varieties are not sigficantly different with Top Performing Local Variety**")
 } else{
   DT::renderDT(printTable(sig_TVFV2Tab3,
-                                           scrollXOpt = FALSE,
+                                           autoWidthOpt = FALSE, scrollXOpt = TRUE,
                                            colNames = c("Rice Environment", "Variety","Variety Class",
                                                         "Lower Predicted Mean", "Predicted Mean",
                                                         "Upper Predicted Mean"),
@@ -1334,7 +1339,7 @@ if(nrow(sig_TVMFU2Tab3) <= 1){
 
 } else{
   DT::renderDT(printTable(sig_TVMFU2Tab3,
-                                           scrollXOpt = FALSE,
+                                           autoWidthOpt = FALSE, scrollXOpt = TRUE,
                                            colNames = c("Rice Environment", "Variety","Variety Class",
                                                         "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                       caption = paste0("Test Varieties Significantly Different with Most Frequently Used Local Variety"),
@@ -1348,7 +1353,7 @@ if(!("TEST VARIETY" %in% sig_TVBM2Tab3$entryType)){
   shiny::renderText("**Predicted Grain Yield Mean of Test Varieties are not sigficantly different with Benchmark Variety**")
 } else{
   DT::renderDT(printTable(sig_TVBM2Tab3,
-                                           scrollXOpt = FALSE,
+                                           autoWidthOpt = FALSE, scrollXOpt = TRUE,
                                            colNames = c("Rice Environment", "Variety","Variety Class",
                                                         "Lower Predicted Mean", "Predicted Mean","Upper Predicted Mean"),
                       caption = paste0("Test Varieties Significantly Different with Benchmark Variety"),
@@ -1481,7 +1486,7 @@ if(!is.null(params$mdisease)){
     } else{
       DT::renderDT(printTable(DseSev_temp,
                  colNames = colnames(DseSev_temp),
-                 scrollXOpt = FALSE,
+                 autoWidthOpt = FALSE, scrollXOpt = TRUE,
                  caption = "Disease Severity",
                  numRound = 4), server = FALSE)
     }
