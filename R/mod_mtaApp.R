@@ -164,6 +164,7 @@ mod_mtaApp_ui <- function(id){
                                                       br(),
                                                       shinydashboard::box(width = 3, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
                                                                           numericInput(ns("minimumNumberEnvsFW"), label = "Minimum number of levels in GxE factor to fit a random regression", value = 6),
+                                                                          selectInput(ns("entryType2Mta"), "Entry types to include", choices = NULL, multiple = TRUE),
                                                       ),
                                                       # ),
                                                       # column(width=6,
@@ -1168,6 +1169,17 @@ mod_mtaApp_server <- function(id, data){
       updateSelectInput(session, "evaluationUnitsTrait", choices = traitsMta)
     })
     #################
+    ## entry types to be included
+    observeEvent(c(data(), input$version2Mta), {
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
+      traitsMta <- unique(dtMta$entryType)
+      updateSelectInput(session, "entryType2Mta", choices = traitsMta)
+    })
+    #################
     ## fixed effects
     observeEvent(c(data(),input$version2Mta, input$trait2Mta), {
       req(data())
@@ -1698,7 +1710,7 @@ mod_mtaApp_server <- function(id, data){
           interactionsWithGeno=input$interactionTermMta2, envsToInclude=x$df,
           trait= input$trait2Mta,
           traitFamily=myFamily,
-          useWeights=input$useWeights,
+          useWeights=input$useWeights, entryTypeSubset = input$entryType2Mta,
           heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
           heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
           meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),

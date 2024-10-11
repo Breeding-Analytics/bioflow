@@ -1,7 +1,7 @@
 ---
 title: "Single Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 10, 2024"  
+date: "October 11, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -47,131 +47,47 @@ The following table allows to see how many locations had data for the different 
  <thead>
   <tr>
    <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> environment </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Height </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> AreaDron </th>
-   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> Biomass </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> YLD_TON </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> HT_AVG </th>
+   <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"> FLW50 </th>
    <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"> Number of designations </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> LLanosAlta1 </td>
+   <td style="text-align:left;"> Stage 2_BI_BB_GI-2024-Wet-008 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
+   <td style="text-align:right;"> 56 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> LLanosAlta2 </td>
+   <td style="text-align:left;"> Stage 2_BI_RT-2024-Wet-001 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
+   <td style="text-align:right;"> 56 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> LLanosAlta3 </td>
+   <td style="text-align:left;"> Stage 2_BI_RU-2024-Wet-001 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
+   <td style="text-align:right;"> 56 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> LLanosAlta4 </td>
+   <td style="text-align:left;"> Stage 2_TZ_MO_DK-2024-Wet-009 </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
+   <td style="text-align:left;"> ✅ </td>
+   <td style="text-align:right;"> 52 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> LLanosAlta5 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> LLanosAlta6 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> LLanosBaja1 </td>
+   <td style="text-align:left;"> Stage 2_TZ_PW_KI-2024-Wet-004 </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
    <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> LLanosBaja2 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> LLanosBaja3 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> LLanosBaja4 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> LLanosBaja5 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> LLanosBaja6 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Palmira1 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Palmira2 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Palmira3 </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Palmira4 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Palmira5 </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:left;"> ✅ </td>
-   <td style="text-align:right;"> 2808 </td>
+   <td style="text-align:right;"> 54 </td>
   </tr>
 </tbody>
 </table></div>
@@ -187,14 +103,14 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Height" selected>Height</option>
-<option value="Biomass">Biomass</option>
-<option value="AreaDron">AreaDron</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="FLW50">FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out836ed24700b46935" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out0815a47d0fcb0092" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -208,14 +124,14 @@ The following heatmaps allow you to inspect the spatial trends in the different 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaFieldView-label" for="staApp_1-traitStaFieldView">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaFieldView" class="shiny-input-select"><option value="Height" selected>Height</option>
-<option value="AreaDron">AreaDron</option>
-<option value="Biomass">Biomass</option></select>
+<select id="staApp_1-traitStaFieldView" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="FLW50">FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitStaFieldView" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out2c7f27796f497929" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out8b53b2710df3165c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Output parameters 
 
@@ -228,14 +144,14 @@ This barplot allows you to see the variance components values and ratios for the
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta0-label" for="staApp_1-traitSta0">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="Height" selected>Height</option>
-<option value="Biomass">Biomass</option>
-<option value="AreaDron">AreaDron</option></select>
+<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="FLW50">FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outa7e76b957d95581f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out5765e40f7ad34fbc" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -251,6 +167,8 @@ This barplot allows you to see the variance components values and ratios for the
 <option value="V_designation_designation" selected>V_designation_designation</option>
 <option value="V_rowF_designation" selected>V_rowF_designation</option>
 <option value="V_colF_designation" selected>V_colF_designation</option>
+<option value="V_repF_designation" selected>V_repF_designation</option>
+<option value="V_iBlockF_designation" selected>V_iBlockF_designation</option>
 <option value="V_s(row, col)_designation" selected>V_s(row, col)_designation</option>
 <option value="V_residual_designation" selected>V_residual_designation</option>
 <option value="mean_designation" selected>mean_designation</option></select>
@@ -276,13 +194,13 @@ The following barplot is designed to provide a high-level view of estimated para
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out562bfb5e4e06ed3c" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outf0bf3a6111f42532" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out3f3315e4f6618de7" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out535cf9b5347a8d99" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Predictions
@@ -296,28 +214,16 @@ The following table allows you to check the trait by environment adjusted means 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment to filter:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="LLanosAlta1" selected>LLanosAlta1</option>
-<option value="LLanosAlta2">LLanosAlta2</option>
-<option value="LLanosAlta5">LLanosAlta5</option>
-<option value="LLanosBaja5">LLanosBaja5</option>
-<option value="LLanosAlta4">LLanosAlta4</option>
-<option value="Palmira1">Palmira1</option>
-<option value="LLanosBaja2">LLanosBaja2</option>
-<option value="LLanosBaja3">LLanosBaja3</option>
-<option value="LLanosAlta6">LLanosAlta6</option>
-<option value="LLanosBaja1">LLanosBaja1</option>
-<option value="LLanosAlta3">LLanosAlta3</option>
-<option value="LLanosBaja6">LLanosBaja6</option>
-<option value="LLanosBaja4">LLanosBaja4</option>
-<option value="Palmira5">Palmira5</option>
-<option value="Palmira3">Palmira3</option>
-<option value="Palmira4">Palmira4</option>
-<option value="Palmira2">Palmira2</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="Stage 2_BI_BB_GI-2024-Wet-008" selected>Stage 2_BI_BB_GI-2024-Wet-008</option>
+<option value="Stage 2_TZ_PW_KI-2024-Wet-004">Stage 2_TZ_PW_KI-2024-Wet-004</option>
+<option value="Stage 2_BI_RU-2024-Wet-001">Stage 2_BI_RU-2024-Wet-001</option>
+<option value="Stage 2_BI_RT-2024-Wet-001">Stage 2_BI_RT-2024-Wet-001</option>
+<option value="Stage 2_TZ_MO_DK-2024-Wet-009">Stage 2_TZ_MO_DK-2024-Wet-009</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outfa442ad9bf53d496" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outb0be293ef4c8adf7" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -328,14 +234,14 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Height" selected>Height</option>
-<option value="Biomass" selected>Biomass</option>
-<option value="AreaDron" selected>AreaDron</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<option value="HT_AVG" selected>HT_AVG</option>
+<option value="FLW50" selected>FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outda16e78fb296d639" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out841037f2d80b816e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -349,9 +255,9 @@ In the following plot you can observe the comparison between the top 30 designat
 <div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaComp-label" for="staApp_1-traitStaComp">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaComp" class="shiny-input-select"><option value="Height" selected>Height</option>
-<option value="Biomass">Biomass</option>
-<option value="AreaDron">AreaDron</option></select>
+<select id="staApp_1-traitStaComp" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<option value="HT_AVG">HT_AVG</option>
+<option value="FLW50">FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitStaComp" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -360,23 +266,11 @@ In the following plot you can observe the comparison between the top 30 designat
 <div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCompEnv-label" for="staApp_1-traitStaCompEnv">Environment</label>
 <div>
-<select id="staApp_1-traitStaCompEnv" class="shiny-input-select"><option value="LLanosAlta1" selected>LLanosAlta1</option>
-<option value="LLanosAlta2">LLanosAlta2</option>
-<option value="LLanosAlta3">LLanosAlta3</option>
-<option value="LLanosAlta4">LLanosAlta4</option>
-<option value="LLanosAlta5">LLanosAlta5</option>
-<option value="LLanosAlta6">LLanosAlta6</option>
-<option value="LLanosBaja1">LLanosBaja1</option>
-<option value="LLanosBaja2">LLanosBaja2</option>
-<option value="LLanosBaja3">LLanosBaja3</option>
-<option value="LLanosBaja4">LLanosBaja4</option>
-<option value="LLanosBaja5">LLanosBaja5</option>
-<option value="LLanosBaja6">LLanosBaja6</option>
-<option value="Palmira1">Palmira1</option>
-<option value="Palmira2">Palmira2</option>
-<option value="Palmira4">Palmira4</option>
-<option value="Palmira5">Palmira5</option>
-<option value="Palmira3">Palmira3</option></select>
+<select id="staApp_1-traitStaCompEnv" class="shiny-input-select"><option value="Stage 2_BI_BB_GI-2024-Wet-008" selected>Stage 2_BI_BB_GI-2024-Wet-008</option>
+<option value="Stage 2_BI_RT-2024-Wet-001">Stage 2_BI_RT-2024-Wet-001</option>
+<option value="Stage 2_BI_RU-2024-Wet-001">Stage 2_BI_RU-2024-Wet-001</option>
+<option value="Stage 2_TZ_MO_DK-2024-Wet-009">Stage 2_TZ_MO_DK-2024-Wet-009</option>
+<option value="Stage 2_TZ_PW_KI-2024-Wet-004">Stage 2_TZ_PW_KI-2024-Wet-004</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCompEnv" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -384,7 +278,7 @@ In the following plot you can observe the comparison between the top 30 designat
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outa88c1de6c9dff1e6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out924f495a9d288efd" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Correlation between environments
@@ -396,14 +290,14 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCor-label" for="staApp_1-traitStaCor">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="Height" selected>Height</option>
-<option value="Biomass" selected>Biomass</option>
-<option value="AreaDron" selected>AreaDron</option></select>
+<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option>
+<option value="HT_AVG" selected>HT_AVG</option>
+<option value="FLW50" selected>FLW50</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outbccf924c476edbd4" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outa4ffc316c4cfff9b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References of methods used

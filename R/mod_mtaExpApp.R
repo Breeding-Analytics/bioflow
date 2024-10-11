@@ -126,6 +126,7 @@ mod_mtaExpApp_ui <- function(id){
                                                                           numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
                                                                           numericInput(ns("nMarkersRRBLUP"), label = "Maximum number of markers to use in rrBLUP or GBLUP", value = 2000),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                                                          selectInput(ns("entryType2Mta"), "Entry types to include", choices = NULL, multiple = TRUE),
 
                                                       ),
                                                ),
@@ -1188,6 +1189,17 @@ mod_mtaExpApp_server <- function(id, data){
       }
     )
     #################
+    ## entry types to be included
+    observeEvent(c(data(), input$version2Mta), {
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
+      traitsMta <- unique(dtMta$entryType)
+      updateSelectInput(session, "entryType2Mta", choices = traitsMta)
+    })
+    #################
     ## traits
     observeEvent(c(data(), input$version2Mta), {
       req(data())
@@ -1852,7 +1864,7 @@ mod_mtaExpApp_server <- function(id, data){
             inputFormulation=inputFormulation,
             envsToInclude=x$df,
             trait= input$trait2Mta, traitFamily=myFamily,
-            useWeights=input$useWeights,
+            useWeights=input$useWeights, entryTypeSubset = input$entryType2Mta,
             heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
             heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
             meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
