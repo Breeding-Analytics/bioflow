@@ -610,7 +610,7 @@ if (is.null(result)){
         # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
         #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
         ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-      if(nrow(corr) < 15){ # if user wants to fill cell values
+      if(nrow(corr) < 8){ # if user wants to fill cell values
         p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black")
       }
       # Basic histogram
