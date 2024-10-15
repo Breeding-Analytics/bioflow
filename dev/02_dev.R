@@ -72,9 +72,6 @@
 # usethis::use_dev_package("st4gi", type = "Imports", remote = "reyzaguirre/st4gi")
 # usethis::use_dev_package("lme4breeding", type = "Imports", remote = "covaruber/lme4breeding")
 #
-# # https://icarda-git.github.io/QBMS/#boosting-big-queries-performance
-# # https://github.com/gaborcsardi/async/issues/70
-# usethis::use_dev_package("async", type = "Imports", remote = "r-lib/async")
 # usethis::use_package("QBMS")
 # usethis::use_package("vcfR")
 # usethis::use_package("future")
