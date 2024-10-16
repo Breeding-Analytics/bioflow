@@ -4,15 +4,15 @@ author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' targe
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
 params:
- toDownload: FALSE
+  toDownload: FALSE
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
 get_h <- function() {
-  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
-       fig.height*dpi/fig.retina)
+with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+fig.height*dpi/fig.retina)
 }
 library(dplyr)
 ```
@@ -113,30 +113,30 @@ The following density plot allows you to see the expected change in the next gen
 ```{r }
 
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultPgg.RData")){
-    load("./outputs/resultPgg.RData")
-  }else{
-    load("resultPgg.RData")
-  }
+if(file.exists("./outputs/resultPgg.RData")){
+load("./outputs/resultPgg.RData")
+}else{
+load("resultPgg.RData")
+}
 }, error = function(e) {
-  shinyjs::hide()
+shinyjs::hide()
 }))
 
 if (is.null(result)){
-  
+
 } else {
-  modeling <- result$modeling
-  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
-  idPgg <- idPgg[length(idPgg)]
-  modeling <- setdiff( unique(modeling[which(modeling$analysisId == idPgg),"trait"]), "inputObject")
-  if("params" %in% ls()){
-    shinyjs::hide()
-  }else{
-    shiny::selectInput(ns("traitFilterPredictions2D2"),
-                       label = "Trait:",
-                       choices = modeling,
-    )
-  }
+modeling <- result$modeling
+idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
+idPgg <- idPgg[length(idPgg)]
+modeling <- setdiff( unique(modeling[which(modeling$analysisId == idPgg),"trait"]), "inputObject")
+if("params" %in% ls()){
+shinyjs::hide()
+}else{
+shiny::selectInput(ns("traitFilterPredictions2D2"),
+label = "Trait:",
+choices = modeling,
+)
+}
 }
 
 ```
@@ -215,8 +215,101 @@ if (is.null(result)){
 }
 ```
 
+### Barplot for metrics 
 
+The following barplot allows you to compare the parameters with respect to the classification variables.
 
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  # analysis id
+  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
+  idPgg <- idPgg[length(idPgg)]
+  # tables
+  modelingPgg <- result$modeling[which(result$modeling$analysisId == idPgg),]
+  metricsPgg <- result$metrics[which(result$metrics$analysisId == idPgg),]
+  # choices
+  traitsPgg <- setdiff(unique(metricsPgg$trait),c("inputObject"))
+  paramPgg <- setdiff( unique(metricsPgg$parameter), "min.G" )
+  classPgg <- unique(modelingPgg[which(modelingPgg$parameter == "classifier"),"value"])
+  if("params" %in% ls()){  # if user will download the report
+    shinyjs::hide()
+  }else{
+    
+    inputPanel(
+      selectInput(ns("parameterMetricsBy"),
+                  label = "Trait:",
+                  # selected = "environment",
+                  choices = traitsPgg
+      ),
+      shiny::selectInput(ns("parameterMetrics"), 
+                         label = "Parameter to filter:", 
+                         multiple = FALSE,
+                         # selected = unique(parameters),
+                         choices = paramPgg
+      ),
+      
+    )
+    
+    
+  }
+}
+```
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+if (is.null(result)){
+# invisible(NULL)
+} else {
+
+if("params" %in% ls()){  # if user will download the report
+
+cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+counter <- 1
+
+for(iView in traitsPgg ){
+cat("\n\n####", iView, "{.tabset .tabset-pills}       \n\n")
+# for(iTrait in staTraits){
+for(iParam in paramPgg ){
+cat("\n\n#####", iParam, "{.tabset .tabset-pills}       \n\n")
+
+metricsPgg2 <- metricsPgg[which(metricsPgg$trait == iView ),]
+metricsPgg3 <- metricsPgg2[which(metricsPgg2$parameter == iParam ),]
+
+if(nrow(metricsPgg3) > 0){
+
+p<-ggplot(metricsPgg3, aes(x=environment, y=value)) +
+geom_bar(stat="identity")+theme_minimal()
+
+print(htmltools::tagList(plotly::ggplotly(p)))
+}
+
+}
+cat("\n")
+
+}
+
+cat("\n")
+
+}else{ # display in website
+
+plotly::renderPlotly({
+
+metricsPgg2 <- metricsPgg[which(metricsPgg$trait == input$parameterMetricsBy ),]
+metricsPgg3 <- metricsPgg2[which(metricsPgg2$parameter == input$parameterMetrics ),]
+
+p<-ggplot(metricsPgg3, aes(x=environment, y=value)) +
+geom_bar(stat="identity")+theme_minimal()
+p
+
+plotly::ggplotly(p)
+})
+
+}
+
+}
+```
 
 ### References of methods used
 
