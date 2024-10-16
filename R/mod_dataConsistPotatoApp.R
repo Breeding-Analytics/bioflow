@@ -52,7 +52,7 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                            br(),
                                            DT::DTOutput(ns("phenoConsist")),
                                   ),
-                                  tabPanel(div(icon("dice-two"), "Design and extreme value", icon("arrow-right") ) , icon = icon("dice-two"),
+                                  tabPanel(div(icon("dice-two"), "Design and extreme value", icon("arrow-right") ) ,
                                            br(),
                                            column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                   column(width=4, selectInput(ns("designConsist"), "Design expected", choices = list(None="none", RCBD="rcbd", MET="met"), multiple = FALSE) ),
@@ -162,10 +162,18 @@ mod_dataConsistPotatoApp_server <- function(id, data){
 
       if(input$cropConsist == "spotato"){
         main <- "Sweet potato consistency flags"
-        out <- st4gi::check.data.sp(dfr=dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
+        out <- st4gi::check.data(dfr=st4gi::convert.co(dtMta$data$pheno, 'co.to.labels', crop = 'sp'),
+                                 out.mod=input$designConsist,
+                                 f=input$fConsist,
+                                 print.text = FALSE,
+                                 crop = 'sp')$Inconsist.Matrix
       }else if(input$cropConsist == "potato"){
         main <- "Potato consistency flags"
-        out <- st4gi::check.data.pt(dfr=dtMta$data$pheno, out.mod=input$designConsist, f=input$fConsist)$Inconsist.Matrix
+        out <- st4gi::check.data(dfr=st4gi::convert.co(dtMta$data$pheno, 'co.to.labels', crop = 'pt'),
+                                 out.mod=input$designConsist,
+                                 f=input$fConsist,
+                                 print.text = FALSE,
+                                 crop = 'pt')$Inconsist.Matrix
       }else{
         main <- "Crop not available, no consistency flags"
         out <- matrix(0, nrow=nrow(dtMta$data$pheno), ncol=ncol(dtMta$data$pheno))
@@ -174,7 +182,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
       M2 <- as.matrix(out)
       M2 <- M2[,(input$slider2[1]):min(c(input$slider2[2], ncol(M2) )), drop=FALSE] # environments
       M2 <- M2[(input$slider1[1]):min(c(input$slider1[2]), nrow(M2) ), ,drop=FALSE] # genotypes
-      Matrix::image(as(t(M2), Class = "dgCMatrix"), ylab="Columns/traits", xlab="Records", main=main, colorkey=TRUE)
+      Matrix::image(as(M2, Class = "dgCMatrix"), xlab="Columns/traits", ylab="Records", main=main, colorkey=TRUE)
     })
 
     ## pheno data TABLE
@@ -221,9 +229,17 @@ mod_dataConsistPotatoApp_server <- function(id, data){
         if(input$cropConsist %in% c("spotato","potato")){
 
           if(input$cropConsist == "spotato"){
-            out <- st4gi::check.data.sp(result$data$pheno,out.mod=input$designConsist, f=input$fConsist)
+            out <- st4gi::check.data(dfr=st4gi::convert.co(result$data$pheno, 'co.to.labels', crop = 'sp'),
+                                     out.mod=input$designConsist,
+                                     f=input$fConsist,
+                                     print.text = FALSE,
+                                     crop = 'sp')
           }else if(input$cropConsist == "potato"){
-            out <- st4gi::check.data.pt(result$data$pheno, out.mod=input$designConsist, f=input$fConsist)
+            out <- st4gi::check.data(dfr=st4gi::convert.co(result$data$pheno, 'co.to.labels', crop = 'pt'),
+                                     out.mod=input$designConsist,
+                                     f=input$fConsist,
+                                     print.text = FALSE,
+                                     crop = 'pt')
           }
           outs <- which(out$Inconsist.Matrix > 0 , arr.ind = TRUE)
           if(nrow(outs) > 0){
