@@ -210,7 +210,7 @@ if (is.null(result)){
       mydata$color <- as.factor(mydata$color)
       mydata$predictedValue <- mydata[,iTrait]
       
-      p <- ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
+      p <- ggplot(mydata, aes(x=as.factor(environment), y=as.numeric(predictedValue))) +
         geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
         theme_classic()+
         geom_jitter(aes(colour = color), alpha = 0.6) +
@@ -231,7 +231,7 @@ if (is.null(result)){
       mydata$color <- as.factor(mydata$color)
       mydata$predictedValue <- mydata[,input$traitQaBox]
       
-      ggplot(mydata, aes(x=as.factor(environment), y=predictedValue)) +
+      ggplot(mydata, aes(x=as.factor(environment), y=as.numeric(predictedValue))) +
         geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
         theme_classic()+
         geom_jitter(aes(colour = color), alpha = 0.6) +
