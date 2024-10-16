@@ -220,9 +220,9 @@ if (is.null(result)){
       myMetrics <- met %>% filter(trait == traits[j])
       myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
                         round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
-                        round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+                        round(myMetrics[myMetrics$parameter == "gg%(average.year)","value"],2),"% Gain")
       p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue  ) ) +
-        geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+        geom_smooth(method = "lm", formula = y ~ x) + 
         theme_classic()+
         geom_jitter(alpha = 0.6, width = 0.3) +
         labs(title=myLabel,x="Year of origin", y = "Trait performance") +
@@ -241,7 +241,7 @@ if (is.null(result)){
                         round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
                         round(myMetrics[myMetrics$parameter == "gg%(average.year)","value"],2),"% Gain")
       p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue  ) ) +
-        geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
+        geom_smooth(method = "lm", formula = y ~ x) + 
         theme_classic()+
         geom_jitter(alpha = 0.6, width = 0.3) +
         labs(title=myLabel,x="Year of origin", y = "Trait performance") +
