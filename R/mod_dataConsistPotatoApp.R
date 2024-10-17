@@ -246,7 +246,12 @@ mod_dataConsistPotatoApp_server <- function(id, data){
             traitsInOuts <- colnames(result$data$pheno)[outs[,2]]
             rows <- outs[,1]
             vals <- as.numeric(result$data$pheno[outs])
-            outlier <- data.frame(module="qaConsist", analysisId=analysisId, trait=traitsInOuts, row=rows, value=vals )
+            # Problem detected, short comment
+            reasons <- as.character(out$Inconsist.Matrix[outs])
+            reasons[reasons == '1'] <- 'inconsistency among variables'
+            reasons[reasons == '2'] <- 'out of range value'
+            reasons[reasons == '3'] <- 'extreme value or outlier'
+            outlier <- data.frame(module="qaConsist", analysisId=analysisId, trait=traitsInOuts, reason = reasons, row=rows, value=vals )
           }else{outlier <- data.frame(module = "qaConsist", analysisId = analysisId, trait = "none", reason = "none", row = NA, value = NA)}
 
           ## bind new parameters
