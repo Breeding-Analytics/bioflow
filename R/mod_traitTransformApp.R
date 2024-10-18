@@ -17,25 +17,21 @@ mod_traitTransformApp_ui <- function(id){
 
                        tabPanel(div(icon("book"), "Information-Transform") ,
                                 br(),
-                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                                           h2(strong("Status:")),
-                                                           uiOutput(ns("warningMessage")),
-                                                           tags$body(
-                                                             h2(strong("Details")),
-                                                             p("Some trait transformations are required when data starts to grow or presents modeling challenges. The current
+                                h2(strong("Status:")),
+                                uiOutput(ns("warningMessage")),
+                                tags$body(
+                                  h2(strong("Details")),
+                                  p("Some trait transformations are required when data starts to grow or presents modeling challenges. The current
                                                                implementations include:"),
-                                                             # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                                             p(strong("Conversion-")," The trait is transformed by a function such as cubic root, square root, log., etc.."),
-                                                             p(strong("Equalizing-")," a set of traits with different name are considered to be the same trait and the user needs to equalize them ."),
-                                                             p(strong("Balancing-")," a trait with numerical values in different units depending on the environment needs to be converted to same units across environments ."),
-                                                             h2(strong("References")),
-                                                             h2(strong("Software")),
-                                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                  # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                  p(strong("Conversion-")," The trait is transformed by a function such as cubic root, square root, log., etc.."),
+                                  p(strong("Equalizing-")," a set of traits with different name are considered to be the same trait and the user needs to equalize them ."),
+                                  p(strong("Balancing-")," a trait with numerical values in different units depending on the environment needs to be converted to same units across environments ."),
+                                  h2(strong("References")),
+                                  h2(strong("Software")),
+                                  p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                                           )
-                                #                     )
-                                # )
+                                )
                        ),
                        tabPanel("Conversion", icon = icon("rocket"),
                                 tabsetPanel(
@@ -45,17 +41,13 @@ mod_traitTransformApp_ui <- function(id){
                                                                actionButton(ns("runTra"), "Apply conversions", icon = icon("play-circle")),
                                                                textOutput(ns("outTraC")),
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
-                                                               # column(width=12,
-                                                                      DT::DTOutput(ns("transTableC")),
-                                                                      # style = "height:460px; overflow-y: scroll;overflow-x: scroll;"),
+                                                               DT::DTOutput(ns("transTableC")),
                                            ),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               # column(width=12,
-                                                                      DT::DTOutput(ns("rawPheno")),
-                                                                      # style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
+                                                               DT::DTOutput(ns("rawPheno")),
                                            ),
                                   ),
                                 ),
@@ -64,21 +56,15 @@ mod_traitTransformApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
-                                           # shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
-                                                               textInput(ns("newName"), label="New name for the trait", value=NULL, placeholder = "New trait name"),
-                                                               actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
-                                                               textOutput(ns("outEqual")),
-                                                               hr(style = "border-top: 1px solid #4c4c4c;"),
-                                           # ),
+                                           selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
+                                           textInput(ns("newName"), label="New name for the trait", value=NULL, placeholder = "New trait name"),
+                                           actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
+                                           textOutput(ns("outEqual")),
+                                           hr(style = "border-top: 1px solid #4c4c4c;"),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
-                                           # shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                           #                     column(width=12,
-                                                                      DT::DTOutput(ns("rawPheno2")),
-                                           #                            style = "height:530px; overflow-y: scroll;overflow-x: scroll;"),
-                                           # ),
+                                           DT::DTOutput(ns("rawPheno2")),
                                   ),
                                 ),
                        ), # end of output panel
@@ -86,16 +72,19 @@ mod_traitTransformApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-
-                                           ),
+                                           textInput(ns("newNameCalc"), label="New name for the trait", value=NULL, placeholder = "New trait name"),
+                                           br(),
+                                           uiOutput(ns("buttonsCalc")),
+                                           br(),
+                                           fluidRow(column(2, verbatimTextOutput("valuex"))),
+                                           br(),
+                                           actionButton(ns("runBal"), "Compute new trait", icon = icon("play-circle")),
+                                           br(),
+                                           textOutput(ns("outBal")),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
                                            br(),
-                                           shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-
-
-                                           ),
+                                           DT::DTOutput(ns("rawPheno3")),
                                   ),
                                 ),
                        ), # end of output panel
@@ -194,7 +183,7 @@ mod_traitTransformApp_server <- function(id, data){
     })
 
     ## render raw data
-    output$rawPheno <-  output$rawPheno2 <- DT::renderDT({
+    output$rawPheno <-  output$rawPheno2 <- output$rawPheno3 <- DT::renderDT({
       req(data())
       dtSta <- data()
       dtSta <- dtSta$data$pheno
@@ -245,6 +234,68 @@ mod_traitTransformApp_server <- function(id, data){
     })
     output$outEqual <- renderPrint({
       outEqual()
+    })
+
+    ################################################################################################
+    ################################################################################################
+    ## BALANCING MODULE
+    ################################################################################################
+    ################################################################################################
+
+    output$buttonsCalc <- renderUI({
+      req(data())
+      dtBal <- data()
+      traitsBal <- dtBal$metadata$pheno[which(dtBal$metadata$pheno$parameter == "trait"),"value"]
+      traitsBal <- c(traitsBal,"+","-","/","*","^","1","2","3","4","5","6","7","8","9","0")
+      lapply(1:length(traitsBal), function(i) {
+        actionButton(inputId= session$ns(paste0('buttonsCalc',i)),
+                     paste0(traitsBal[i])
+        )
+      })
+    })
+
+    formulaCalc = reactive({
+      dtBal <- data()
+      traitsBal <- dtBal$metadata$pheno[which(dtBal$metadata$pheno$parameter == "trait"),"value"]
+      traitsBal <- c(traitsBal,"+","-","/","*","^","1","2","3","4","5","6","7","8","9","0")
+      # if (length(traitsBal) != 0) {
+        values <- NULL
+        for (i in 1:length(traitsBal)) {
+          tempval <- reactive({paste0('input$','buttonsCalc',i)})
+          values[i] <- tempval()
+          values[i] <- eval(parse(text = values[i]))
+        }
+        # values <- t(as.numeric(values))
+        values <- as.data.frame(values)
+        colnames(values) <- traitsBal
+        # values <- as.numeric(values)
+        return(values)
+      # }
+    })
+
+    output$valuex <- renderPrint({ formulaCalc() })
+
+    outBal <- eventReactive(input$runBal, {
+      req(data())
+
+      # if( 1 < 3 ){
+
+        formulaCalc()
+
+        # if(!inherits(result,"try-error")) {
+        #   data(result) # update data with results
+        #   cat(paste("Traits", paste(input$traitEqualPheno, collapse = ", "),"equalized. New trait created in the phenotypic dataset."))
+        # }else{
+        #   cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        # }
+
+      # }else{
+      #   print("You need to provide more than one trait")
+      # }
+
+    })
+    output$outBal <- renderPrint({
+      outBal()
     })
 
 

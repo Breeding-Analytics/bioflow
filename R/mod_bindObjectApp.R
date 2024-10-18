@@ -261,7 +261,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       }
 
       header <- colnames(data()$data$pheno)
-      mapp <- c("pipeline", "stage", "year", "season",
+      mapp <- c("pipeline", "stage", "year", "season","timepoint",
                 "country", "location", "trial","study", "management","rep", "iBlock",
                 "row", "col", "designation", "gid", "entryType", "trait")
       pheno_map <- lapply(mapp, function(x) {

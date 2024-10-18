@@ -65,7 +65,7 @@ app_server <- function(input, output, session) {
   data <- reactiveVal()
   observe({data <- cgiarBase::create_getData_object()})
   # Your application server logic
-  required_mapping <- c("pipeline", "stage", "year", "season",
+  required_mapping <- c("pipeline", "stage", "year", "season", "timepoint",
                         "country", "location", "trial","study", "management","rep", "iBlock",
                         "row", "col", "designation", "gid", "entryType", "trait")
 

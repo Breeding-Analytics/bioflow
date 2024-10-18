@@ -155,6 +155,7 @@ mod_getDataPheno_ui <- function(id){
                                                       p(strong("stage.-"),"The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."),
                                                       p(strong("year.-"),"The name of the column containing the labels listing the year when a trial was carried out (e.g., 2024)."),
                                                       p(strong("season-"),"The name of the column containing the labels listing the season when a trial was carried out (e.g., dry-season, wet-season, etc.)."),
+                                                      p(strong("timepoint-"),"The name of the column containing the labels listing the timepoints from time series."),
                                                       p(strong("country.-"),"The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."),
                                                       p(strong("location-"),"The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."),
                                                       p(strong("trial.-"),"The name of the column containing the labels listing the trial of experiment randomized."),
@@ -988,7 +989,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       req(data())
       dtMta <- data()$metadata$pheno
       if(!is.null(dtMta)){
-        traitMtaInput <- intersect( c('pipeline','stage','year', 'season', 'country', 'location', 'trial', 'study','management'), dtMta$parameter )
+        traitMtaInput <- intersect( c('pipeline','stage','year', 'season','timepoint', 'country', 'location', 'trial', 'study','management'), dtMta$parameter )
         updateSelectInput(session, "featuresEnvironment", choices = traitMtaInput, selected = traitMtaInput)
       }
     })
@@ -1015,7 +1016,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           myObject$metadata$pheno <- myObject$metadata$pheno[-which(myObject$metadata$pheno$parameter == "environment"), ]
           myObject$data$pheno <- myObject$data$pheno [,!(names(myObject$data$pheno) %in% c("environment"))]
           data(myObject)
-          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns: 'pipeline', 'stage', 'year', 'season', 'location', 'trial', 'study' or 'management' to be able to compute the environments and perform a genetic evaluation "), type = "error")
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns: 'pipeline', 'stage', 'year', 'season', 'timepoint', 'location', 'trial', 'study' or 'management' to be able to compute the environments and perform a genetic evaluation "), type = "error")
         }
       }else{ # user has not mapped an study column, we will add it
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
@@ -1031,7 +1032,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("No additional columns to concatenate. 'environment' column is equal to", myObject$metadata$pheno[otherEnvironmentColumn, " value"]), type = "success")
         }else{
-          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'location', 'trial', 'study' or 'management' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
+          shinyalert::shinyalert(title = "Error!", text = paste("Please map at least one of the columns 'year', 'season', 'timepoint', 'location', 'trial', 'study' or 'management' to be able to do compute the environments and perform a genetic evaluation "), type = "error")
           # cat(paste("Please map at least one of the columns 'year', 'season', 'location', 'trial' or 'study' to be able to do compute the environments and perform a genetic evaluation "))
         }
       }
