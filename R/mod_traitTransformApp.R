@@ -57,7 +57,7 @@ mod_traitTransformApp_ui <- function(id){
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
                                            selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
-                                           textInput(ns("newName"), label="New name for the trait", value=NULL, placeholder = "New trait name"),
+                                           textInput(ns("newName"), label="Name for the new trait", value=NULL, placeholder = "New trait name"),
                                            actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
                                            textOutput(ns("outEqual")),
                                            hr(style = "border-top: 1px solid #4c4c4c;"),
@@ -68,18 +68,20 @@ mod_traitTransformApp_ui <- function(id){
                                   ),
                                 ),
                        ), # end of output panel
-                       tabPanel("Balancing", icon = icon("scale-balanced"),
+                       tabPanel("Free functions", icon = icon("scale-balanced"),
                                 tabsetPanel(
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
-                                           textInput(ns("newNameCalc"), label="New name for the trait", value=NULL, placeholder = "New trait name"),
-                                           br(),
+                                           h4("Traits available"),
                                            uiOutput(ns("buttonsCalc")),
                                            br(),
-                                           fluidRow(column(2, verbatimTextOutput("valuex"))),
-                                           br(),
+                                           textInput(ns("newNameCalc"), label="Name for the new trait", value=NULL, placeholder = "New trait name"),
+                                           textInput(ns("text"), label = "Formula to compute (write it)", value = "function(x){x...}"),
+                                           # br(),
+                                           # fluidRow(column(2, verbatimTextOutput(ns("valuex")))),
+                                           # br(),
                                            actionButton(ns("runBal"), "Compute new trait", icon = icon("play-circle")),
-                                           br(),
+                                           # br(),
                                            textOutput(ns("outBal")),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
@@ -242,11 +244,12 @@ mod_traitTransformApp_server <- function(id, data){
     ################################################################################################
     ################################################################################################
 
+
     output$buttonsCalc <- renderUI({
       req(data())
       dtBal <- data()
       traitsBal <- dtBal$metadata$pheno[which(dtBal$metadata$pheno$parameter == "trait"),"value"]
-      traitsBal <- c(traitsBal,"+","-","/","*","^","1","2","3","4","5","6","7","8","9","0")
+      # traitsBal <- c(traitsBal,"+","-","/","*","^","1","2","3","4","5","6","7","8","9","0")
       lapply(1:length(traitsBal), function(i) {
         actionButton(inputId= session$ns(paste0('buttonsCalc',i)),
                      paste0(traitsBal[i])
@@ -254,44 +257,37 @@ mod_traitTransformApp_server <- function(id, data){
       })
     })
 
-    formulaCalc = reactive({
-      dtBal <- data()
-      traitsBal <- dtBal$metadata$pheno[which(dtBal$metadata$pheno$parameter == "trait"),"value"]
-      traitsBal <- c(traitsBal,"+","-","/","*","^","1","2","3","4","5","6","7","8","9","0")
-      # if (length(traitsBal) != 0) {
-        values <- NULL
-        for (i in 1:length(traitsBal)) {
-          tempval <- reactive({paste0('input$','buttonsCalc',i)})
-          values[i] <- tempval()
-          values[i] <- eval(parse(text = values[i]))
-        }
-        # values <- t(as.numeric(values))
-        values <- as.data.frame(values)
-        colnames(values) <- traitsBal
-        # values <- as.numeric(values)
-        return(values)
-      # }
-    })
-
-    output$valuex <- renderPrint({ formulaCalc() })
+    # output$valuex <- renderPrint({ input$text })
 
     outBal <- eventReactive(input$runBal, {
       req(data())
+      req(input$newNameCalc)
 
       # if( 1 < 3 ){
 
-        formulaCalc()
+      result <- data()
+      f <- eval(parse(text = input$text )) # transform text into a function
+      # now get variables
+      dep <- deparse(f)
+      dep <- dep[grep("function",dep)]
+      dep <- gsub("function","cbind",dep)
+      responsef <- as.formula(paste(dep,"~1"))
+      mfna <- try(model.frame(responsef, data = result$data$pheno, na.action = na.pass), silent = TRUE)
+      mfna <- as.matrix(mfna) # matrix format to avoid a single column
+      colnames(mfna) <- all.vars(responsef) # assign colnames
+      mfna <- as.data.frame(mfna) # return back to data.frame format
+      # run the function and get the new variable
+      newVar <-  try( do.call(f, as.list(mfna) ), silent = TRUE )
 
-        # if(!inherits(result,"try-error")) {
-        #   data(result) # update data with results
-        #   cat(paste("Traits", paste(input$traitEqualPheno, collapse = ", "),"equalized. New trait created in the phenotypic dataset."))
-        # }else{
-        #   cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-        # }
-
-      # }else{
-      #   print("You need to provide more than one trait")
-      # }
+      if(!inherits(result,"try-error")) {
+        # put the new variable in the dataset
+        result$data$pheno[,input$newNameCalc] <- as.vector(newVar)
+        # save results
+        data(result)
+        print(paste("New variable", input$newNameCalc, "added to the dataset."))
+      }else{
+        print("We could not find the variables specified in your function.")
+      }
 
     })
     output$outBal <- renderPrint({
