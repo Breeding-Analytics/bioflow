@@ -703,42 +703,43 @@ if (is.null(result)){
           
           # keep only 
           missing <- apply(pred.mta.biplot,1, function(x){length(which(is.na(x)))/length(x)})
-          pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),]
+          pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),,drop=FALSE]
           missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
-          pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8)]
+          pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8),drop=FALSE]
           pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
           # 
-          prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-          components <- prin_comp[["x"]]
-          components <- data.frame(components)
-          components$PC2 <- -components$PC2
-          
-          explained_variance <- summary(prin_comp)[["sdev"]]
-          explained_variance <- explained_variance[1:2]
-          comp <- prin_comp[["rotation"]]
-          comp[,'PC2'] <- - comp[,'PC2']
-          loadings <- comp
-          for (i in seq(explained_variance) ){
-            loadings[,i] <- comp[,i] * explained_variance[i]
-          }
-          p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-          p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                            x=components$PC1,
-                                            y=components$PC2,
-                                            text=rownames(components),
-                                            marker=list(color="blue"),
-                                            hoverinfo='text',
-                                            showlegend=FALSE
-          )
-          for (i in 1:ncol(pred.mta.biplot)){
-            p.mta.biplot <- p.mta.biplot %>%
-              plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-            if(ncol(pred.mta.biplot) < 20){
-              p.mta.biplot <- p.mta.biplot %>%
-                plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+          if(ncol(pred.mta.biplot) > 1){
+            prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+            components <- prin_comp[["x"]]
+            components <- data.frame(components)
+            components$PC2 <- -components$PC2
+            explained_variance <- summary(prin_comp)[["sdev"]]
+            explained_variance <- explained_variance[1:2]
+            comp <- prin_comp[["rotation"]]
+            comp[,'PC2'] <- - comp[,'PC2']
+            loadings <- comp
+            for (i in seq(explained_variance) ){
+              loadings[,i] <- comp[,i] * explained_variance[i]
             }
+            p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+            p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                              x=components$PC1,
+                                              y=components$PC2,
+                                              text=rownames(components),
+                                              marker=list(color="blue"),
+                                              hoverinfo='text',
+                                              showlegend=FALSE
+            )
+            for (i in 1:ncol(pred.mta.biplot)){
+              p.mta.biplot <- p.mta.biplot %>%
+                plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+              if(ncol(pred.mta.biplot) < 20){
+                p.mta.biplot <- p.mta.biplot %>%
+                  plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+              }
+            }
+            print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
           }
-          print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
         }
         
       }
@@ -761,40 +762,41 @@ if (is.null(result)){
         pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8), drop=FALSE]
         pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
         
-        prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-        components <- prin_comp[["x"]]
-        components <- data.frame(components)
-        components$PC2 <- -components$PC2
-        
-        explained_variance <- summary(prin_comp)[["sdev"]]
-        explained_variance <- explained_variance[1:2]
-        comp <- prin_comp[["rotation"]]
-        comp[,'PC2'] <- - comp[,'PC2']
-        loadings <- comp
-        for (i in seq(explained_variance) ){
-          loadings[,i] <- comp[,i] * explained_variance[i]
-        }
-        
-        p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-        p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                          x=components$PC1,
-                                          y=components$PC2,
-                                          text=rownames(components),
-                                          marker=list(color="blue"),
-                                          hoverinfo='text',
-                                          showlegend=FALSE
-        )
-        
-        
-        for (i in 1:ncol(pred.mta.biplot)){
-          p.mta.biplot <- p.mta.biplot %>%
-            plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-          if(ncol(pred.mta.biplot) < 20){
-            p.mta.biplot <- p.mta.biplot %>%
-              plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+        if(ncol(pred.mta.biplot) > 1){
+          prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+          components <- prin_comp[["x"]]
+          components <- data.frame(components)
+          components$PC2 <- -components$PC2
+          
+          explained_variance <- summary(prin_comp)[["sdev"]]
+          explained_variance <- explained_variance[1:2]
+          comp <- prin_comp[["rotation"]]
+          comp[,'PC2'] <- - comp[,'PC2']
+          loadings <- comp
+          for (i in seq(explained_variance) ){
+            loadings[,i] <- comp[,i] * explained_variance[i]
           }
+          
+          p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+          p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                            x=components$PC1,
+                                            y=components$PC2,
+                                            text=rownames(components),
+                                            marker=list(color="blue"),
+                                            hoverinfo='text',
+                                            showlegend=FALSE
+          )
+          for (i in 1:ncol(pred.mta.biplot)){
+            p.mta.biplot <- p.mta.biplot %>%
+              plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+            if(ncol(pred.mta.biplot) < 20){
+              p.mta.biplot <- p.mta.biplot %>%
+                plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+            }
+          }
+          plotly::layout(p.mta.biplot) # ,font=font.plot_ly
         }
-        plotly::layout(p.mta.biplot) # ,font=font.plot_ly
+        
       })
       
     }
