@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 20, 2024"  
+date: "October 21, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -43,7 +43,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out299779019997f1a1" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-outb64d51b51d5fb5d3" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -57,16 +57,16 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMta-label" for="reportBuilder_1-traitMta"></label>
+<label class="control-label" id="mtaApp_1-traitMta-label" for="mtaApp_1-traitMta"></label>
 <div>
-<select id="reportBuilder_1-traitMta" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
+<select id="mtaApp_1-traitMta" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
 <option value="PH">PH</option>
 <option value="DTF">DTF</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaApp_1-traitMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outcfd7714152295d92" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outa9506d50e4e3c92c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Connectivity between environments
 
@@ -75,16 +75,16 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMtaConnect-label" for="reportBuilder_1-traitMtaConnect"></label>
+<label class="control-label" id="mtaApp_1-traitMtaConnect-label" for="mtaApp_1-traitMtaConnect"></label>
 <div>
-<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
+<select id="mtaApp_1-traitMtaConnect" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
 <option value="PH">PH</option>
 <option value="DTF">DTF</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out3629bb091247e7ff" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outaacce5fe2f45686f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Phenotypic correlations between environments
 
@@ -93,16 +93,16 @@ The following heatmap and histogram allows to assess the phenotypic correlations
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitPredictionsCorrelation-label" for="reportBuilder_1-traitPredictionsCorrelation"></label>
+<label class="control-label" id="mtaApp_1-traitPredictionsCorrelation-label" for="mtaApp_1-traitPredictionsCorrelation"></label>
 <div>
-<select id="reportBuilder_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
+<select id="mtaApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
 <option value="PH">PH</option>
 <option value="DTF">DTF</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out221b4dccf6e499c7" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outd0db6f2ca081c6a9" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -114,16 +114,16 @@ The following graph allows to see the clustering of different genotypes in the T
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitBiplot-label" for="reportBuilder_1-traitBiplot"></label>
+<label class="control-label" id="mtaApp_1-traitBiplot-label" for="mtaApp_1-traitBiplot"></label>
 <div>
-<select id="reportBuilder_1-traitBiplot" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
+<select id="mtaApp_1-traitBiplot" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
 <option value="PH">PH</option>
 <option value="DTF">DTF</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outb721fac4e458b1f0" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outc3ca77d978d7daa6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Across-environment metrics
@@ -131,18 +131,18 @@ The following graph allows to see the clustering of different genotypes in the T
 The following barplot aims to help you inspect the across environment estimates for multiple parameters from the multi-trial analysis such as across-environment reliability.
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-parameterMetrics2-label" for="reportBuilder_1-parameterMetrics2">Parameter:</label>
+<label class="control-label" id="mtaApp_1-parameterMetrics2-label" for="mtaApp_1-parameterMetrics2">Parameter:</label>
 <div>
-<select id="reportBuilder_1-parameterMetrics2" class="shiny-input-select"><option value="mean" selected>mean</option>
+<select id="mtaApp_1-parameterMetrics2" class="shiny-input-select"><option value="mean" selected>mean</option>
 <option value="r2" selected>r2</option>
 <option value="Vg" selected>Vg</option>
 <option value="nEnv" selected>nEnv</option>
 <option value="Vr" selected>Vr</option></select>
-<script type="application/json" data-for="reportBuilder_1-parameterMetrics2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaApp_1-parameterMetrics2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-outba122a43897dc433" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-outa267b5e0a7a9b107" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -150,7 +150,7 @@ The following graph allows you to assess the proportion of variance going to dif
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out1380fd1e99339f01" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaApp_1-out0d5d55efc44c5c85" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -160,16 +160,16 @@ In the left-side plot you can observe the comparison between the top 100 entries
 
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMta2-label" for="reportBuilder_1-traitMta2"></label>
+<label class="control-label" id="mtaApp_1-traitMta2-label" for="mtaApp_1-traitMta2"></label>
 <div>
-<select id="reportBuilder_1-traitMta2" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
+<select id="mtaApp_1-traitMta2" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
 <option value="PH">PH</option>
 <option value="DTF">DTF</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaApp_1-traitMta2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out95654c7f37ee7905" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outd93b661292af3c8d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -184,13 +184,48 @@ In the left-side plot you can observe the comparison between the top 100 entries
 
 <p>&nbsp;</p>
 
+### Percent check comparison to top 30 entries
+
+The following plots allow the user to compare the top 30 entries against the different checks/benchmarks present in the dataset for each trait. The table below that shows the wide-table of all possible comparisons for all traits.
 
 
+<!--html_preserve--><div class="shiny-input-panel">
+<div class="shiny-flow-layout">
+<div>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="mtaApp_1-checkMta-label" for="mtaApp_1-checkMta">Check to compare to:</label>
+<div>
+<select id="mtaApp_1-checkMta" class="shiny-input-select"><option value="Arize Habilis" selected>Arize Habilis</option>
+<option value="Ciherang">Ciherang</option>
+<option value="DRR Dhan 42">DRR Dhan 42</option>
+<option value="GSR 8">GSR 8</option>
+<option value="Katihan 1">Katihan 1</option>
+<option value="Katihan 2">Katihan 2</option>
+<option value="Mestiso 68">Mestiso 68</option>
+<option value="NSIC RC 222">NSIC RC 222</option>
+<option value="Sahbhagi Dhan">Sahbhagi Dhan</option>
+<option value="Sahod Ulan 6">Sahod Ulan 6</option></select>
+<script type="application/json" data-for="mtaApp_1-checkMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div>
+</div>
+<div>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="mtaApp_1-checkMtaTrait-label" for="mtaApp_1-checkMtaTrait">View trait:</label>
+<div>
+<select id="mtaApp_1-checkMtaTrait" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option>
+<option value="PH">PH</option>
+<option value="DTF">DTF</option></select>
+<script type="application/json" data-for="mtaApp_1-checkMtaTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div>
+</div>
+</div>
+</div><!--/html_preserve-->
 
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outa88279019bb3802f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
-
-
-
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-out8bac60e432456e54" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Genetic correlations between traits
@@ -199,7 +234,7 @@ The following heatmap and histogram allows to see the genetic correlations among
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out7df86c7f91867c19" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaApp_1-outaf21152bdabcb3d8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -209,7 +244,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out7d5e3858c34a23ed" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-outc9ed832c0b64592f" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -217,7 +252,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out071959921fe29165" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaApp_1-outa0b47b87cde5c06c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used

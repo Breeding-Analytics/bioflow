@@ -189,7 +189,7 @@ mod_indexDesireApp_ui <- function(id){
 #       }else{ # data is there
 #         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
 #         if(mappedColumns == 3){
-#           if( any( c("mta","mtaFlex") %in% data()$status$module ) ){
+#           if( any( c("mta","mtaFlex","mtaLmms") %in% data()$status$module ) ){
 #             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
 #           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
 #         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -238,7 +238,7 @@ mod_indexDesireApp_ui <- function(id){
 #       req(data())
 #       dtIdxD <- data()
 #       dtIdxD <- dtIdxD$status
-#       dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaFlex") ),]
+#       dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaFlex","mtaLmms") ),]
 #       traitsIdxD <- unique(dtIdxD$analysisId)
 #       if(length(traitsIdxD) > 0){names(traitsIdxD) <- as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT")}
 #       updateSelectInput(session, "version2IdxD", choices = traitsIdxD)
@@ -556,7 +556,7 @@ mod_indexDesireApp_ui <- function(id){
 #     ## render
 #     output$outIdxD <- output$outIdxD2 <- renderPrint({
 #
-#       if(sum(data()$status$module %in% c("mta","mtaFlex") ) == 0) {
+#       if(sum(data()$status$module %in% c("mta","mtaFlex","mtaLmms") ) == 0) {
 #         output$qaQcIdxDInfo <- renderUI({
 #           if (hideAll$clearAll){
 #             return()
@@ -674,7 +674,7 @@ mod_indexDesireApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if( any( c("mta","mtaFlex") %in% data()$status$module ) ){
+          if( any( c("mta","mtaFlex","mtaLmms") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -723,7 +723,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       dtIdxD <- data()
       dtIdxD <- dtIdxD$status
-      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaFlex") ),]
+      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaFlex","mtaLmms") ),]
       traitsIdxD <- unique(dtIdxD$analysisId)
       if(length(traitsIdxD) > 0){names(traitsIdxD) <- as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2IdxD", choices = traitsIdxD)
@@ -740,7 +740,7 @@ mod_indexDesireApp_server <- function(id, data){
       updateSelectInput(session, "trait2IdxD", choices = traitsIdxD)
     })
     #################
-    ## environments
+    ## environments # input <- list(version2IdxD=result$status$analysisId[9], trait2IdxD=c("Ear_Height_cm","Plant_Height_cm","Yield_Mg_ha"))
     observeEvent(c(data(), input$version2IdxD, input$trait2IdxD), {
       req(data())
       req(input$version2IdxD)
@@ -749,7 +749,9 @@ mod_indexDesireApp_server <- function(id, data){
       dtIdxD <- dtIdxD$predictions
       dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
       dtIdxD <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD),]
-      traitsIdxD <- unique(dtIdxD$environment)
+      props <- apply(table(dtIdxD$trait, dtIdxD$environment),2,function(x){length(which(x>0))/length(x)})
+      traitsIdxD <- names(props)[which(props == 1)]
+      # traitsIdxD <- unique(dtIdxD$environment)
       updateSelectInput(session, "env2IdxD", choices = traitsIdxD)
     })
     #################
@@ -1013,7 +1015,7 @@ mod_indexDesireApp_server <- function(id, data){
       # define values for slider all traits for base index
       values <- desireValues()
       # run the modeling, but before test if mta was done
-      if(sum(dtIdxD$status$module %in% c("mta","mtaFlex") ) == 0) {
+      if(sum(dtIdxD$status$module %in% c("mta","mtaFlex","mtaLmms") ) == 0) {
         output$qaQcIdxDInfo <- renderUI({
           if (hideAll$clearAll)
             return()

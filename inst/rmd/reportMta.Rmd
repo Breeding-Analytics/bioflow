@@ -1286,7 +1286,6 @@ if (is.null(result)){
                     choices = traitChecks
         ),
       )
-      
     }
   }else{
     shinyjs::hide()
