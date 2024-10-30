@@ -137,6 +137,8 @@ if (is.null(result)){
   tableOfTypes$Trait <- rownames(tableOfTypes)
   tableOfTypes <- tableOfTypes[,c("Trait", setdiff(colnames(tableOfTypes), "Trait"))]
   
+  numericTraits <- setdiff("Trait",colnames(tableOfTypes))
+  
   if("params" %in% ls()){ # we will download the document
     printTable(tableOfTypes, autoWidthOpt = TRUE, scrollXOpt = FALSE,
                colNames = colnames(tableOfTypes),
