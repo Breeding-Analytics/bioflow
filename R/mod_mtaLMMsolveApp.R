@@ -88,8 +88,8 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
 
                                                       column(width=12,
-                                                             column(width=4, selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE) ),
-                                                             column(width=8,
+                                                             column(width=3, selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE) ),
+                                                             column(width=6,
                                                                     radioButtons(ns("radio"), label = "Popular genetic evaluation models",
                                                                                  choices = list(
                                                                                    "Main" = "mn_model",
@@ -99,6 +99,15 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                    "Main+Diag" = "csdg_model"
                                                                                  ),
                                                                                  selected = "mn_model", inline=TRUE),
+                                                             ),
+                                                             column(width=3,
+                                                                    radioButtons(ns("radioModel"), label = "Covariance for designation",
+                                                                                 choices = list(
+                                                                                   "None"="none",
+                                                                                   "GBLUP" = "geno_model",
+                                                                                   "PBLUP" = "pedigree_model"
+                                                                                 ),
+                                                                                 selected = "none", inline=TRUE),
                                                              ),
                                                       ),
                                                       column(width=12,
@@ -430,11 +439,12 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
       WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
-      choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
+      choices <- c( setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ), "designation")
       fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
       # selected
       envs <- unique(mydata[,"environment"])
       envsDg <- paste0("env",envs)
+      envsDg2 <- paste0(rep("environment",10),"")
       desDg <-rep("designation",length(envsDg))
       if ( input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {
@@ -442,7 +452,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             session$ns(paste0('leftSidesRandom',i)),
             label = ifelse(i==1, "Random Effects",""),
             choices = choices, multiple = TRUE,
-            selected = if(i==1){"designation"}else if(i==2){c("environment","designation")}else{"designation"}
+            selected = if(i==1){"designation"}else if(i==2){c( desDg[i], envsDg2[i] )}else{"designation"}
           )
         })
       }else if( input$radio == "csdg_model" ){ # main + dg
@@ -492,16 +502,17 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(input$nTermsRandom)
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
-      choices <- c( setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait), "none0", "none1", "none2", "none3")
+      choices <- c(  "none0", "none1", "none2", "none3", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
       envs <- unique(mydata[,"environment"])
       envsDg <- paste0("env",envs)
+      if(input$radioModel == "geno_model"){useMod1 <- "none0"; useMod2 <- "geno"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none0"; useMod2 <- "pedigree"}else{useMod1 <- "none0"; useMod2 <- "none1"}
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
             inputId=session$ns(paste0('rightSidesRandom',i)),
             label = ifelse(i==1, "Covariance of random effect based on:",""),
             choices = choices, multiple = TRUE,
-            selected = if(i==1){"none0"}else if(i==2){c("none0","none1")}else{"none0"}
+            selected = if(i==1){useMod2}else if(i==2){rev(c(useMod1,useMod2))}else{useMod2}
           )
         })
       }else if( input$radio == "csdg_model" ){
@@ -510,7 +521,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             inputId=session$ns(paste0('rightSidesRandom',i)),
             label = ifelse(i==1, "Covariance of random effect based on:",""),
             choices = choices, multiple = TRUE,
-            selected =if( i > length(envsDg) ){"none0" }else{c( "none0", "none1" )}
+            selected =if( i > length(envsDg) ){useMod2 }else{c( useMod2, useMod1 )}
           )
         })
       }else if(input$radio == "fw_model"){
@@ -519,7 +530,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             session$ns(paste0('rightSidesRandom',i)),
             label = ifelse(i==1, "Covariance of random effect based on:",""),
             choices = choices, multiple = TRUE,
-            selected = if(i==1){"none0"}else if(i==2){c("none0", "none1")}else{"none0"}
+            selected = if(i==1){useMod2}else if(i==2){c(useMod2, useMod1)}else{useMod1}
           )
         })
       }else if( input$radio == "dg_model" ){
@@ -528,7 +539,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             inputId=session$ns(paste0('rightSidesRandom',i)),
             label = ifelse(i==1, "Covariance of random effect based on:",""),
             choices = choices, multiple = TRUE,
-            selected = c("none0","none1")
+            selected = c(useMod2,useMod1)
           )
         })
       }else { # main model specified
@@ -537,7 +548,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             inputId=session$ns(paste0('rightSidesRandom',i)),
             label = ifelse(i==1, "Covariance of random effect based on:",""),
             choices = choices, multiple = TRUE,
-            selected = "none0"
+            selected = useMod2
           )
         })
       }

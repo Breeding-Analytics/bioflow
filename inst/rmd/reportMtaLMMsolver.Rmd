@@ -182,7 +182,7 @@ if (is.null(result)){
         scrollX = "400px",
         buttons = c('copy','csv','excel','pdf','print'),
         paging = F)
-    ),c("value","stdError"))
+    ), columns=c("value","stdError"))
     }, server = FALSE)
     
   }
