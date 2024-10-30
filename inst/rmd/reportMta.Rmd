@@ -16,7 +16,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FA
 # functions ####
 # for printing tables (data.frames) - DT::datatable()
 printTable <- function(DT, pageLength = 7, 
-                       numericColNames = NULL, numRound = 3, ...) {
+                       numericColNames = NULL, numRound = 3, 
+                       scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
   
   DT <- data.frame(lapply(X = DT, 
                           FUN = function(x) {
@@ -28,10 +29,16 @@ printTable <- function(DT, pageLength = 7,
                           }))
   
   table <- DT::datatable(data = DT, 
+                         colnames = colNames,
                          filter = "top", 
+                         options = list(autoWidth = autoWidthOpt,
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35),
+                                        scrollX = scrollXOpt),
                          extensions = 'Buttons',
-                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
@@ -130,21 +137,20 @@ if (is.null(result)){
   tableOfTypes$Trait <- rownames(tableOfTypes)
   tableOfTypes <- tableOfTypes[,c("Trait", setdiff(colnames(tableOfTypes), "Trait"))]
   
+  numericTraits <- setdiff("Trait",colnames(tableOfTypes))
+  
   if("params" %in% ls()){ # we will download the document
-    
-    printTable(tableOfTypes)
+    printTable(tableOfTypes, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+               colNames = colnames(tableOfTypes),
+               numericColNames = numericTraits,
+               numRound = 4)
     
   } else{ # display in website
-    numericTraits <- setdiff("Trait",colnames(tableOfTypes))
-    DT::renderDT({DT::formatRound(DT::datatable(
-      tableOfTypes, extensions = 'Buttons', rownames = FALSE, class = 'cell-border',
-      options = list(
-        dom = 'Blfrtip', scrollY = "200px", scrollX = "400px",
-        buttons = c('copy','csv','excel','pdf','print'),
-        paging = F)
-    ),numericTraits)
-    }, server = FALSE)
-    
+    DT::renderDT(printTable(tableOfTypes,
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                            colNames = colnames(tableOfTypes),
+                            numericColNames = numericTraits,
+                            numRound = 4), server = FALSE)
   }
   
 }
@@ -1441,23 +1447,17 @@ if (is.null(result)){
       }
     }
     numCols <- colnames(resBench)[-c(1)]
-    
     if("params" %in% ls()){ # we will download the document
-      printTable(resBench)
+      printTable(resBench, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(resBench),
+             numericColNames = numCols,
+             numRound = 4)
     }else{
-      DT::renderDT({DT::formatRound(DT::datatable(
-        resBench,
-        extensions = 'Buttons',
-        rownames = FALSE,
-        class = 'cell-border',
-        options = list(
-          dom = 'Blfrtip',
-          scrollY = "400px",
-          scrollX = "400px",
-          buttons = c('copy','csv','excel','pdf','print'),
-          paging = F)
-      ),numCols)
-      }, server = FALSE)
+      DT::renderDT(printTable(resBench,
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                            colNames = colnames(resBench),
+                            numericColNames = numCols,
+                            numRound = 4), server = FALSE)
     }
     
   }
@@ -1599,21 +1599,17 @@ if (is.null(result)){
   }
   
   if("params" %in% ls()){ # we will download the document
-    printTable(pred.mta.wide)
+    printTable(pred.mta.wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(pred.mta.wide),
+             numericColNames = traits,
+             numRound = 4)
   }else{
-    DT::renderDT({DT::formatRound(DT::datatable(
-      pred.mta.wide,
-      extensions = 'Buttons',
-      rownames = FALSE,
-      class = 'cell-border',
-      options = list(
-        dom = 'Blfrtip',
-        scrollY = "400px",
-        scrollX = "400px",
-        buttons = c('copy','csv','excel','pdf','print'),
-        paging = F)
-    ),traits)
-    }, server = FALSE)
+    
+    DT::renderDT(printTable(pred.mta.wide,
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                            colNames = colnames(pred.mta.wide),
+                            numericColNames = traits,
+                            numRound = 4), server = FALSE)
   }
   
 }
@@ -1636,17 +1632,12 @@ if (is.null(result)){
   modelingMta <- result$modeling[which(modeling$analysisId == idMta),]
   
   if("params" %in% ls()){ # we will download the document
-    printTable(modelingMta)
+    printTable(modelingMta, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(modelingMta))
   }else{
-    DT::renderDT({DT::datatable(
-      modelingMta,
-      rownames = FALSE,
-      class = 'cell-border stripe',
-      extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-    )
-    }, server = FALSE)
+    DT::renderDT(printTable(modelingMta,
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                            colNames = colnames(modelingMta)), server = FALSE)
   }
   
 }
