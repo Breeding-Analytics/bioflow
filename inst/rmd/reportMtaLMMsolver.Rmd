@@ -570,7 +570,7 @@ if (is.null(result)){
         level2 <- lapply(level1, function(x){x[input$traitPredictionsCorrelation]})
         level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
         N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
-        wide2 <- do.call(cbind,level3[which(N == N[1])])
+        wide2 <- do.call(cbind,level3[ names(N)[which(N == N[1])] ])
         corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
         mydata4 <- cgiarBase::matToTab(corr)
         p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -661,7 +661,7 @@ if (is.null(result)){
         level2 <- lapply(level1, function(x){x[iTrait3]})
         level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
         N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
-        pred.mta.biplot <- do.call(cbind,level3[which(N == N[1])])
+        pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
         rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
         
         if(ncol(pred.mta.biplot) >1){
@@ -712,7 +712,7 @@ if (is.null(result)){
         level2 <- lapply(level1, function(x){x[input$traitBiplot]})
         level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
         N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
-        pred.mta.biplot <- do.call(cbind,level3[which(N == N[1])])
+        pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
         rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
         
         if(ncol(pred.mta.biplot) >1){

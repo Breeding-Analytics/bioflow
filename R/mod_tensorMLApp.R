@@ -32,36 +32,30 @@ mod_tensorMLApp_ui <- function(id) {
                                            shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                            # ),
                                            tags$br(),
-                                           img(src = "www/mta.png", height = 300, width = 450), # add an image
+                                           # img(src = "www/mta.png", height = 300, width = 450), # add an image
                                     ),
                                     column(width = 6,
                                            h2(strong("Details")),
-                                           p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
-                                          This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
-                              analysis and optionally a relationship matrix between levels of the random effects. This module allows the flexibility to build your own customized module by specifying the
-                              random effects and any relationship . In addition, the most popular GxE models can be selected with a single click to help the user understand how a
-                              specific model could be specified.
+                                           p("The ....
                                 The way the arguments are used is the following:"),
 
-                                           p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
-                                           p(strong("Fixed effects.-")," Variables to be fitted as fixed effects. If more than one term is selected the term is assumed to be an interaction."),
-                                           p(strong("Random effects.-")," Variables to be fitted as random effects. If more than one term is selected the term is assumed to be an interaction."),
-                                           p(strong("Additional settings:")),
-                                           p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
-                                           p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
-                                           p(strong("mean(lower bound).-")," Value of trait mean to be used to remove trials with low means"),
-                                           p(strong("mean(upper bound).-"),"  Value of trait mean to be used to remove trials with too high means"),
-                                           p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                           p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
-                                           p(strong("nPC.-")," Number of principal components for the big models. If the value is equal to 0 the kernel is used as is (full relationship matrix). Otherwise a principal component model is run according to Odegard et al. (2019)."),
+                                           p(strong("Epochs.-")," ."),
+                                           p(strong("Learning rate.-")," ."),
+                                           p(strong("Activation function.-")," ."),
+                                           p(strong("Regularization method.-")," ."),
+                                           p(strong("Regularization rate.-"),"  ."),
+                                           p(strong("Ratio of training to test data.-")," "),
+                                           p(strong("Batch size.-"),"  "),
+                                           p(strong("Number of layers.-")," ."),
+                                           p(strong("Number of neurons.-")," ."),
                                            h2(strong("References:")),
-                                           p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
-                                           p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
+                                           p(""),
+                                           p("."),
                                            h2(strong("Software used:")),
                                            p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                           p("COVARRUBIAS PAZARAN, G. E. (2024). lme4breeding: enabling genetic evaluation in the era of genomic data. bioRxiv, 2024-05."),
-                                           # column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                           p("Gulli A, Pal S. Deep learning with Keras. Packt Publishing Ltd; 2017."),
+                                           p("Martin Abadi, Ashish Agarwal, ... Yuan Yu, and Xiaoqiang Zheng. TensorFlow: Large-scale machine learning on heterogeneous systems, 2015. Software available from tensorflow.org."),
                                     ),
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
