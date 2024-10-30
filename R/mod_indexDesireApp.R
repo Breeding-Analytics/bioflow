@@ -997,7 +997,8 @@ mod_indexDesireApp_server <- function(id, data){
       dtIdxD <- data();
       values <- desireValues()
       if(!is.null(values)){
-        plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2=input$env2IdxD, traitFilterPredictionsRadar2=input$trait2IdxD, meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
+        plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2=input$env2IdxD, traitFilterPredictionsRadar2=input$trait2IdxD,
+                            entryTypePredictionRadar2=input$entryType2IdxD,meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
                             analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex, title="Expected response to selection using current desire changes")
       }
 

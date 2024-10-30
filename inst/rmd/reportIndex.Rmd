@@ -199,6 +199,7 @@ if (is.null(result)){
   mydata <- mydata[which(mydata$environment %in% envsUsed),]
   # subset to only traits being part of the index
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+  entryTypes <-result$modeling[which(result$modeling$parameter %in% "entryTypeToUse" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
   uTraits <- gsub("_scaled","",uTraits)
   dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
@@ -213,8 +214,9 @@ if (is.null(result)){
   fontSizeRadar=12; r0Radar=NULL; neRadar=NULL; plotSdRadar=FALSE
   
   mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
-                           (mydata$trait %in% traitFilterPredictionsRadar2)
-  ),]
+                         (mydata$trait %in% traitFilterPredictionsRadar2) &
+                         (mydata$entryType %in% entryTypes)
+),]
   
   if(!is.null(environmentPredictionsRadar2) & !is.null(traitFilterPredictionsRadar2)){
     mm <- stats::aggregate(predictedValue~trait, data=mydata, FUN=mean, na.rm=TRUE)
@@ -348,10 +350,11 @@ if (is.null(result)){
   envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
   mydata <- mydata[which(mydata$environment %in% envsUsed),]
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
+  entryTypes <-result$modeling[which(result$modeling$parameter %in% "entryTypeToUse" & result$modeling$analysisId == idIndex),"value"]
   uTraits <- unique(mydata$trait)#result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
   uTraits <- gsub("_scaled","",uTraits)
   mydata$selected <- "no"
-  
+  mydata <- mydata[which(mydata$entryType %in% entryTypes),]
   
   if("params" %in% ls()){ # we will download the document
     
@@ -369,7 +372,7 @@ if (is.null(result)){
         ggplot2::geom_histogram() +
         ggplot2::ylab("Frequency") +
         ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-        ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
+        ggplot2::facet_wrap(~trait+entryType, ncol=3, scales = "free")
       print(htmltools::tagList(plotly::ggplotly(p)))
     }
     
@@ -388,7 +391,7 @@ if (is.null(result)){
         ggplot2::geom_histogram() +
         ggplot2::ylab("Frequency") +
         ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-        ggplot2::facet_wrap(~trait, ncol=3, scales = "free")
+        ggplot2::facet_wrap(~trait+entryType, ncol=3, scales = "free")
       
       # p
       plotly::ggplotly(p)

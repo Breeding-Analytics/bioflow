@@ -38,6 +38,7 @@ dependencyPlot <- function(){
 }
 
 plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilterPredictionsRadar2,
+                                 entryTypePredictionRadar2,
                                  meanGroupPredictionsRadar, proportion=0.2,
                                  analysisId, trait, desirev, scaled, title=NULL){
 
@@ -45,7 +46,8 @@ plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilte
   mydata <- mydata[which(mydata$analysisId %in% analysisId),]
 
   mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
-                           (mydata$trait %in% traitFilterPredictionsRadar2)
+                           (mydata$trait %in% traitFilterPredictionsRadar2) &
+                           (mydata$entryType %in% entryTypePredictionRadar2)
   ),]
   mydata$selected <- "no"
   ## pop means
@@ -80,7 +82,7 @@ plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilte
       ggplot2::geom_histogram() +
       ggplot2::ylab("Frequency") +
       ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-      ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
+      ggplot2::facet_wrap(~trait+entryType, ncol=3, scales = "free") +
       ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red") +
       ggplot2::geom_vline(data = mm2, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="cadetblue")
   }else{
@@ -88,7 +90,7 @@ plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilte
       ggplot2::geom_histogram() +
       ggplot2::ylab("Frequency") +
       ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-      ggplot2::facet_wrap(~trait, ncol=3, scales = "free") +
+      ggplot2::facet_wrap(~trait+entryType, ncol=3, scales = "free") +
       ggplot2::geom_vline(data = mm, ggplot2::aes(xintercept = predictedValue), linetype="dotdash", col="red")
   }
   if(!is.null(title)){
