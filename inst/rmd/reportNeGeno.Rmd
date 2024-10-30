@@ -40,35 +40,38 @@ library(shiny)
 # functions ####
 # for printing tables (data.frames) - DT::datatable()
 printTable <- function(DT, pageLength = 7, 
-                       numericColNames = NULL, numRound = 3, ...) {
-  
-  DT <- data.frame(lapply(X = DT, 
-                          FUN = function(x) {
-                            if(is.numeric(x)){
-                              round(x, numRound)
-                            } else {
-                              x
-                            }
-                          }))
-  
-  table <- DT::datatable(data = DT, 
-                         filter = "top", 
-                         options = list(autoWidth = TRUE, 
-                                        dom = 'l<<t>pB>', 
-                                        buttons = c('copy', 'excel'),
-                                        pageLength = pageLength,
-                                        searchHighlight = TRUE,
-                                        lengthMenu = c(7, 14, 21, 28, 35)),
-                         extensions = 'Buttons',
-                         rownames = FALSE,
-                         ...)
-  if (length(numericColNames) > 0){
-    table <- table %>% formatRound(columns = numericColNames,
-                                   digits = numRound)
+                         numericColNames = NULL, numRound = 3, 
+                         scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
+    
+    DT <- data.frame(lapply(X = DT, 
+                            FUN = function(x) {
+                              if(is.numeric(x)){
+                                round(x, numRound)
+                              } else {
+                                x
+                              }
+                            }))
+    
+    table <- DT::datatable(data = DT, 
+                           colnames = colNames,
+                           filter = "top", 
+                           options = list(autoWidth = autoWidthOpt,
+                                          dom = 'l<<t>pB>', 
+                                          buttons = c('copy', 'excel'),
+                                          pageLength = pageLength,
+                                          searchHighlight = TRUE,
+                                          lengthMenu = c(7, 14, 21, 28, 35),
+                                          scrollX = scrollXOpt),
+                           extensions = 'Buttons',
+                           rownames = FALSE,
+                           ...)
+    if (length(numericColNames) > 0){
+      table <- table %>% formatRound(columns = numericColNames,
+                                     digits = numRound)
+    }
+    
+    table
   }
-  
-  table
-}
 ```
 
 ```{r }
@@ -108,18 +111,16 @@ if (is.null(result)){
   numericalColumns <- c("Ne","value","stdError")
   
   if("params" %in% ls()){ # we will download the document
-    printTable(metrics)
+    printTable(metrics, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(metrics),
+           numericColNames = numericalColumns,
+           numRound = 4)
   }else{
-    DT::renderDT({DT::formatRound(DT::datatable(
-      metrics,
-      rownames = FALSE,
-      class = 'cell-border stripe',
-      options = list(
-        scrollY = "400px",
-        scrollX = "400px",
-        paging = F)
-    ),numericalColumns)
-    }, server = FALSE)
+    DT::renderDT(printTable(metrics,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(metrics),
+                        numericColNames = numericalColumns,
+                        numRound = 4), server = FALSE)
   }
 }
 
