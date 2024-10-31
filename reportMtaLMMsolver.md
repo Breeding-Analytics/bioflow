@@ -43,7 +43,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out175713e73c960a92" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out8f6d5e5edeba2b5b" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Metadata: Map of trials planted
 
@@ -95,7 +95,7 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outcb727d2f60eab1aa" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outa04367878715f765" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Connectivity between environments
 
@@ -113,7 +113,7 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out32b386ccfa6ca95e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outeaa4b73a04e467f8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between environments
 
@@ -159,7 +159,7 @@ The following heatmap and histogram allows to assess the genetic correlations am
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out5b41017f973d30b8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outb6e28f2f5568b901" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Biplot by trait
 
@@ -205,7 +205,7 @@ The following graph allows to see the clustering of different genotypes in the T
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out1d33036fed9b7bd0" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out96297d2d39b0a865" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Merit estimates of top entries
 
@@ -267,7 +267,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outf4453d748ad83323" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-oute6aecd3fa08da39f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Table of estimates 
 
@@ -275,7 +275,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out6f450d77a8b40d7c" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outcb6927d311079dff" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between traits
 
@@ -327,212 +327,14 @@ The following heatmap and histogram allows to see the genetic correlations among
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outfc08d9b76de49bb3" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out61d6dbd7e25cbd95" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
-### Predictions: Check comparisons
-
-<!--html_preserve--><div class="shiny-input-panel">
-<div class="shiny-flow-layout">
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-checkMta-label" for="mtaLMMsolveApp_1-checkMta">Check to compare to:</label>
-<div>
-<select id="mtaLMMsolveApp_1-checkMta" class="shiny-input-select"><option value="08FAN10" selected>08FAN10</option>
-<option value="BASMATI 370">BASMATI 370</option>
-<option value="BI_BB_GI:IR16A3838">BI_BB_GI:IR16A3838</option>
-<option value="BI_BB_GI:IR16A3891">BI_BB_GI:IR16A3891</option>
-<option value="BI_BB_GI:IR16A4085">BI_BB_GI:IR16A4085</option>
-<option value="BI_BB_GI:IR16A4261">BI_BB_GI:IR16A4261</option>
-<option value="BI_BB_GI:IR20E1020">BI_BB_GI:IR20E1020</option>
-<option value="BI_BB_GI:IRRI 104">BI_BB_GI:IRRI 104</option>
-<option value="BI_BB_GI:IRRI 123">BI_BB_GI:IRRI 123</option>
-<option value="BI_BB_GI:IRRI 154">BI_BB_GI:IRRI 154</option>
-<option value="BI_BB_GI:IRRI 156">BI_BB_GI:IRRI 156</option>
-<option value="BI_BB_GI:IRRI 168">BI_BB_GI:IRRI 168</option>
-<option value="BI_BB_GI:IRRI 174">BI_BB_GI:IRRI 174</option>
-<option value="BI_BB_GI:IRRI 211">BI_BB_GI:IRRI 211</option>
-<option value="BI_BB_GI:IRRI 212">BI_BB_GI:IRRI 212</option>
-<option value="BI_BB_GI:IRRI 215">BI_BB_GI:IRRI 215</option>
-<option value="BI_BB_GI:IRRI 220">BI_BB_GI:IRRI 220</option>
-<option value="BI_BB_GI:IRRI 221">BI_BB_GI:IRRI 221</option>
-<option value="BI_BB_GI:IRRI 222">BI_BB_GI:IRRI 222</option>
-<option value="BI_BB_GI:IRRI 223">BI_BB_GI:IRRI 223</option>
-<option value="BI_BB_GI:IRRI 224">BI_BB_GI:IRRI 224</option>
-<option value="BI_RT">BI_RT</option>
-<option value="BI_RT:IR16A3838">BI_RT:IR16A3838</option>
-<option value="BI_RT:IR16A3891">BI_RT:IR16A3891</option>
-<option value="BI_RT:IR16A4085">BI_RT:IR16A4085</option>
-<option value="BI_RT:IR16A4261">BI_RT:IR16A4261</option>
-<option value="BI_RT:IR20E1020">BI_RT:IR20E1020</option>
-<option value="BI_RT:IRRI 104">BI_RT:IRRI 104</option>
-<option value="BI_RT:IRRI 123">BI_RT:IRRI 123</option>
-<option value="BI_RT:IRRI 154">BI_RT:IRRI 154</option>
-<option value="BI_RT:IRRI 156">BI_RT:IRRI 156</option>
-<option value="BI_RT:IRRI 168">BI_RT:IRRI 168</option>
-<option value="BI_RT:IRRI 174">BI_RT:IRRI 174</option>
-<option value="BI_RT:IRRI 211">BI_RT:IRRI 211</option>
-<option value="BI_RT:IRRI 212">BI_RT:IRRI 212</option>
-<option value="BI_RT:IRRI 215">BI_RT:IRRI 215</option>
-<option value="BI_RT:IRRI 220">BI_RT:IRRI 220</option>
-<option value="BI_RT:IRRI 221">BI_RT:IRRI 221</option>
-<option value="BI_RT:IRRI 222">BI_RT:IRRI 222</option>
-<option value="BI_RT:IRRI 223">BI_RT:IRRI 223</option>
-<option value="BI_RT:IRRI 224">BI_RT:IRRI 224</option>
-<option value="BI_RU">BI_RU</option>
-<option value="BI_RU:IR16A3838">BI_RU:IR16A3838</option>
-<option value="BI_RU:IR16A3891">BI_RU:IR16A3891</option>
-<option value="BI_RU:IR16A4085">BI_RU:IR16A4085</option>
-<option value="BI_RU:IR16A4261">BI_RU:IR16A4261</option>
-<option value="BI_RU:IR20E1020">BI_RU:IR20E1020</option>
-<option value="BI_RU:IRRI 104">BI_RU:IRRI 104</option>
-<option value="BI_RU:IRRI 123">BI_RU:IRRI 123</option>
-<option value="BI_RU:IRRI 154">BI_RU:IRRI 154</option>
-<option value="BI_RU:IRRI 156">BI_RU:IRRI 156</option>
-<option value="BI_RU:IRRI 168">BI_RU:IRRI 168</option>
-<option value="BI_RU:IRRI 174">BI_RU:IRRI 174</option>
-<option value="BI_RU:IRRI 211">BI_RU:IRRI 211</option>
-<option value="BI_RU:IRRI 212">BI_RU:IRRI 212</option>
-<option value="BI_RU:IRRI 215">BI_RU:IRRI 215</option>
-<option value="BI_RU:IRRI 220">BI_RU:IRRI 220</option>
-<option value="BI_RU:IRRI 221">BI_RU:IRRI 221</option>
-<option value="BI_RU:IRRI 222">BI_RU:IRRI 222</option>
-<option value="BI_RU:IRRI 223">BI_RU:IRRI 223</option>
-<option value="BI_RU:IRRI 224">BI_RU:IRRI 224</option>
-<option value="CSR 36">CSR 36</option>
-<option value="IR 2793-80-1">IR 2793-80-1</option>
-<option value="IR16A3838">IR16A3838</option>
-<option value="IR16A3891">IR16A3891</option>
-<option value="IR16A4085">IR16A4085</option>
-<option value="IR16A4261">IR16A4261</option>
-<option value="IR20E1020">IR20E1020</option>
-<option value="IRRI 104">IRRI 104</option>
-<option value="IRRI 123">IRRI 123</option>
-<option value="IRRI 154">IRRI 154</option>
-<option value="IRRI 156">IRRI 156</option>
-<option value="IRRI 168">IRRI 168</option>
-<option value="IRRI 174">IRRI 174</option>
-<option value="IRRI 211">IRRI 211</option>
-<option value="IRRI 212">IRRI 212</option>
-<option value="IRRI 215">IRRI 215</option>
-<option value="IRRI 220">IRRI 220</option>
-<option value="IRRI 221">IRRI 221</option>
-<option value="IRRI 222">IRRI 222</option>
-<option value="IRRI 223">IRRI 223</option>
-<option value="IRRI 224">IRRI 224</option>
-<option value="KE_KU_AH">KE_KU_AH</option>
-<option value="KE_KU_AH:08FAN10">KE_KU_AH:08FAN10</option>
-<option value="KE_KU_AH:BASMATI 370">KE_KU_AH:BASMATI 370</option>
-<option value="KE_KU_AH:CSR 36">KE_KU_AH:CSR 36</option>
-<option value="KE_KU_AH:IR 2793-80-1">KE_KU_AH:IR 2793-80-1</option>
-<option value="KE_KU_AH:IR16A3838">KE_KU_AH:IR16A3838</option>
-<option value="KE_KU_AH:IR16A3891">KE_KU_AH:IR16A3891</option>
-<option value="KE_KU_AH:IR16A4085">KE_KU_AH:IR16A4085</option>
-<option value="KE_KU_AH:IR16A4261">KE_KU_AH:IR16A4261</option>
-<option value="KE_KU_AH:IRRI 104">KE_KU_AH:IRRI 104</option>
-<option value="KE_KU_AH:IRRI 123">KE_KU_AH:IRRI 123</option>
-<option value="KE_KU_AH:IRRI 154">KE_KU_AH:IRRI 154</option>
-<option value="KE_KU_AH:IRRI 156">KE_KU_AH:IRRI 156</option>
-<option value="KE_KU_AH:IRRI 168">KE_KU_AH:IRRI 168</option>
-<option value="KE_KU_AH:IRRI 174">KE_KU_AH:IRRI 174</option>
-<option value="KE_KU_AH:IRRI 215">KE_KU_AH:IRRI 215</option>
-<option value="KE_KY_MW">KE_KY_MW</option>
-<option value="KE_KY_MW:BASMATI 370">KE_KY_MW:BASMATI 370</option>
-<option value="KE_KY_MW:IR16A3838">KE_KY_MW:IR16A3838</option>
-<option value="KE_KY_MW:IR16A3891">KE_KY_MW:IR16A3891</option>
-<option value="KE_KY_MW:IR16A4085">KE_KY_MW:IR16A4085</option>
-<option value="KE_KY_MW:IR16A4261">KE_KY_MW:IR16A4261</option>
-<option value="KE_KY_MW:IRRI 104">KE_KY_MW:IRRI 104</option>
-<option value="KE_KY_MW:IRRI 123">KE_KY_MW:IRRI 123</option>
-<option value="KE_KY_MW:IRRI 154">KE_KY_MW:IRRI 154</option>
-<option value="KE_KY_MW:IRRI 156">KE_KY_MW:IRRI 156</option>
-<option value="KE_KY_MW:IRRI 168">KE_KY_MW:IRRI 168</option>
-<option value="KE_KY_MW:IRRI 174">KE_KY_MW:IRRI 174</option>
-<option value="KE_KY_MW:IRRI 215">KE_KY_MW:IRRI 215</option>
-<option value="NARO RICE 1">NARO RICE 1</option>
-<option value="PR 107">PR 107</option>
-<option value="SUPA">SUPA</option>
-<option value="TARI RIC 1">TARI RIC 1</option>
-<option value="TARI RIC 3">TARI RIC 3</option>
-<option value="TXD 306">TXD 306</option>
-<option value="TZ_KL_MR">TZ_KL_MR</option>
-<option value="TZ_KL_MR:IR16A3838">TZ_KL_MR:IR16A3838</option>
-<option value="TZ_KL_MR:IR16A3891">TZ_KL_MR:IR16A3891</option>
-<option value="TZ_KL_MR:IR16A4085">TZ_KL_MR:IR16A4085</option>
-<option value="TZ_KL_MR:IR16A4261">TZ_KL_MR:IR16A4261</option>
-<option value="TZ_KL_MR:IRRI 104">TZ_KL_MR:IRRI 104</option>
-<option value="TZ_KL_MR:IRRI 123">TZ_KL_MR:IRRI 123</option>
-<option value="TZ_KL_MR:IRRI 154">TZ_KL_MR:IRRI 154</option>
-<option value="TZ_KL_MR:IRRI 156">TZ_KL_MR:IRRI 156</option>
-<option value="TZ_KL_MR:IRRI 168">TZ_KL_MR:IRRI 168</option>
-<option value="TZ_KL_MR:IRRI 174">TZ_KL_MR:IRRI 174</option>
-<option value="TZ_KL_MR:SUPA">TZ_KL_MR:SUPA</option>
-<option value="TZ_KL_MR:TXD 306">TZ_KL_MR:TXD 306</option>
-<option value="TZ_MO_DK">TZ_MO_DK</option>
-<option value="TZ_MO_DK:IR16A3838">TZ_MO_DK:IR16A3838</option>
-<option value="TZ_MO_DK:IR16A3891">TZ_MO_DK:IR16A3891</option>
-<option value="TZ_MO_DK:IR16A4085">TZ_MO_DK:IR16A4085</option>
-<option value="TZ_MO_DK:IR16A4261">TZ_MO_DK:IR16A4261</option>
-<option value="TZ_MO_DK:IRRI 104">TZ_MO_DK:IRRI 104</option>
-<option value="TZ_MO_DK:IRRI 123">TZ_MO_DK:IRRI 123</option>
-<option value="TZ_MO_DK:IRRI 154">TZ_MO_DK:IRRI 154</option>
-<option value="TZ_MO_DK:IRRI 156">TZ_MO_DK:IRRI 156</option>
-<option value="TZ_MO_DK:IRRI 168">TZ_MO_DK:IRRI 168</option>
-<option value="TZ_MO_DK:IRRI 174">TZ_MO_DK:IRRI 174</option>
-<option value="TZ_MO_DK:IRRI 215">TZ_MO_DK:IRRI 215</option>
-<option value="TZ_MO_DK:IRRI 223">TZ_MO_DK:IRRI 223</option>
-<option value="TZ_MO_DK:NARO RICE 1">TZ_MO_DK:NARO RICE 1</option>
-<option value="TZ_MO_DK:PR 107">TZ_MO_DK:PR 107</option>
-<option value="TZ_MO_DK:SUPA">TZ_MO_DK:SUPA</option>
-<option value="TZ_MO_DK:TARI RIC 1">TZ_MO_DK:TARI RIC 1</option>
-<option value="TZ_MO_DK:TARI RIC 3">TZ_MO_DK:TARI RIC 3</option>
-<option value="TZ_MO_DK:TXD 306">TZ_MO_DK:TXD 306</option>
-<option value="TZ_MO_DK:ZX117">TZ_MO_DK:ZX117</option>
-<option value="TZ_PW_KI">TZ_PW_KI</option>
-<option value="TZ_PW_KI:IR16A3838">TZ_PW_KI:IR16A3838</option>
-<option value="TZ_PW_KI:IR16A3891">TZ_PW_KI:IR16A3891</option>
-<option value="TZ_PW_KI:IR16A4085">TZ_PW_KI:IR16A4085</option>
-<option value="TZ_PW_KI:IR16A4261">TZ_PW_KI:IR16A4261</option>
-<option value="TZ_PW_KI:IRRI 104">TZ_PW_KI:IRRI 104</option>
-<option value="TZ_PW_KI:IRRI 123">TZ_PW_KI:IRRI 123</option>
-<option value="TZ_PW_KI:IRRI 154">TZ_PW_KI:IRRI 154</option>
-<option value="TZ_PW_KI:IRRI 156">TZ_PW_KI:IRRI 156</option>
-<option value="TZ_PW_KI:IRRI 168">TZ_PW_KI:IRRI 168</option>
-<option value="TZ_PW_KI:IRRI 174">TZ_PW_KI:IRRI 174</option>
-<option value="TZ_PW_KI:IRRI 215">TZ_PW_KI:IRRI 215</option>
-<option value="TZ_PW_KI:IRRI 223">TZ_PW_KI:IRRI 223</option>
-<option value="TZ_PW_KI:NARO RICE 1">TZ_PW_KI:NARO RICE 1</option>
-<option value="TZ_PW_KI:PR 107">TZ_PW_KI:PR 107</option>
-<option value="TZ_PW_KI:SUPA">TZ_PW_KI:SUPA</option>
-<option value="TZ_PW_KI:TARI RIC 1">TZ_PW_KI:TARI RIC 1</option>
-<option value="TZ_PW_KI:TARI RIC 3">TZ_PW_KI:TARI RIC 3</option>
-<option value="TZ_PW_KI:TXD 306">TZ_PW_KI:TXD 306</option>
-<option value="TZ_PW_KI:ZX117">TZ_PW_KI:ZX117</option>
-<option value="ZX117">ZX117</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-checkMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-checkMtaTrait-label" for="mtaLMMsolveApp_1-checkMtaTrait">View trait:</label>
-<div>
-<select id="mtaLMMsolveApp_1-checkMtaTrait" class="shiny-input-select"><option value="HT_AVG" selected>HT_AVG</option>
-<option value="FLW50">FLW50</option>
-<option value="YLDTONHA">YLDTONHA</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-checkMtaTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-</div>
-</div><!--/html_preserve-->
-
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out3b15fc71822c5725" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outc8face087328a738" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out506a6ca3d89730a0" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used
