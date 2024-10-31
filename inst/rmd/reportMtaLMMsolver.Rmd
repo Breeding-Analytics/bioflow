@@ -666,7 +666,7 @@ if (is.null(result)){
         rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
         pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
         
-        if(ncol(pred.mta.biplot) >1){
+        if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) >1 ) ) ){
           prin_comp <- prcomp(pred.mta.biplot, rank = 2)
           components <- prin_comp[["x"]]
           components <- data.frame(components)
