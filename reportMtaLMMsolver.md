@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 30, 2024"  
+date: "October 31, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -43,13 +43,13 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outda0e18bb3349b374" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out8a0875c4302bac54" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Metadata: Map of trials planted
 
 The following map allows you to assess the location where trials are planted.
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out0a433347c59eb22c" style="width:100%;height:400px;"></div><!--/html_preserve-->
+No coordinates available. Skipping planting map.
 
 ### Predictions: By environment merit distribution
 
@@ -61,30 +61,31 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-boxplotMtaPredsType-label" for="reportBuilder_1-boxplotMtaPredsType">Entry type</label>
+<label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsType-label" for="mtaLMMsolveApp_1-boxplotMtaPredsType">Entry type</label>
 <div>
-<select id="reportBuilder_1-boxplotMtaPredsType" class="shiny-input-select"><option value="environment_designation" selected>environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="environment" selected>environment</option>
+<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
+<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
+<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
+<option value="designation_EST007">designation_EST007</option>
 <option value="(Intercept)">(Intercept)</option></select>
-<script type="application/json" data-for="reportBuilder_1-boxplotMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-boxplotMtaPredsTrait-label" for="reportBuilder_1-boxplotMtaPredsTrait">Trait</label>
+<label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsTrait-label" for="mtaLMMsolveApp_1-boxplotMtaPredsTrait">Trait</label>
 <div>
-<select id="reportBuilder_1-boxplotMtaPredsTrait" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-boxplotMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsTrait" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="reportBuilder_1-out5f2b4e5699702ebd" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outb21035fb45e5bfa4" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Connectivity between environments
 
@@ -93,15 +94,14 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 <p>&nbsp;</p>
 
 <!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitMtaConnect-label" for="reportBuilder_1-traitMtaConnect"></label>
+<label class="control-label" id="mtaLMMsolveApp_1-traitMtaConnect-label" for="mtaLMMsolveApp_1-traitMtaConnect"></label>
 <div>
-<select id="reportBuilder_1-traitMtaConnect" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-traitMtaConnect" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out8bbc0bec4d15bac2" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out804250c4328cb4e1" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between environments
 
@@ -113,30 +113,31 @@ The following heatmap and histogram allows to assess the genetic correlations am
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-corrplotMtaPredsType-label" for="reportBuilder_1-corrplotMtaPredsType">Entry type</label>
+<label class="control-label" id="mtaLMMsolveApp_1-corrplotMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotMtaPredsType">Entry type</label>
 <div>
-<select id="reportBuilder_1-corrplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-corrplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment">environment</option>
+<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
+<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
+<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
+<option value="designation_EST007">designation_EST007</option>
 <option value="(Intercept)">(Intercept)</option></select>
-<script type="application/json" data-for="reportBuilder_1-corrplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaLMMsolveApp_1-corrplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitPredictionsCorrelation-label" for="reportBuilder_1-traitPredictionsCorrelation">Trait</label>
+<label class="control-label" id="mtaLMMsolveApp_1-traitPredictionsCorrelation-label" for="mtaLMMsolveApp_1-traitPredictionsCorrelation">Trait</label>
 <div>
-<select id="reportBuilder_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-outb9ef79af23c13a2d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out25d2b4e525c37b59" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Biplot by trait
 
@@ -148,30 +149,31 @@ The following graph allows to see the clustering of different genotypes in the T
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-biplotMtaPredsType-label" for="reportBuilder_1-biplotMtaPredsType">Entry type:</label>
+<label class="control-label" id="mtaLMMsolveApp_1-biplotMtaPredsType-label" for="mtaLMMsolveApp_1-biplotMtaPredsType">Entry type:</label>
 <div>
-<select id="reportBuilder_1-biplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-biplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment">environment</option>
+<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
+<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
+<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
+<option value="designation_EST007">designation_EST007</option>
 <option value="(Intercept)">(Intercept)</option></select>
-<script type="application/json" data-for="reportBuilder_1-biplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaLMMsolveApp_1-biplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-traitBiplot-label" for="reportBuilder_1-traitBiplot">Trait:</label>
+<label class="control-label" id="mtaLMMsolveApp_1-traitBiplot-label" for="mtaLMMsolveApp_1-traitBiplot">Trait:</label>
 <div>
-<select id="reportBuilder_1-traitBiplot" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-traitBiplot" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out5e07f230d152f80b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out085eaea57d352725" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Merit estimates of top entries
 
@@ -182,43 +184,40 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-scatterMtaPredsType-label" for="reportBuilder_1-scatterMtaPredsType">Entry type:</label>
+<label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsType-label" for="mtaLMMsolveApp_1-scatterMtaPredsType">Entry type:</label>
 <div>
-<select id="reportBuilder_1-scatterMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment">environment</option>
+<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
+<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
+<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
+<option value="designation_EST007">designation_EST007</option>
 <option value="(Intercept)">(Intercept)</option></select>
-<script type="application/json" data-for="reportBuilder_1-scatterMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-scatterMtaPredsTrait-label" for="reportBuilder_1-scatterMtaPredsTrait">Trait</label>
+<label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsTrait-label" for="mtaLMMsolveApp_1-scatterMtaPredsTrait">Trait</label>
 <div>
-<select id="reportBuilder_1-scatterMtaPredsTrait" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option></select>
-<script type="application/json" data-for="reportBuilder_1-scatterMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsTrait" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-scatterMtaPredsEnvir-label" for="reportBuilder_1-scatterMtaPredsEnvir">Environment</label>
+<label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsEnvir-label" for="mtaLMMsolveApp_1-scatterMtaPredsEnvir">Environment</label>
 <div>
-<select id="reportBuilder_1-scatterMtaPredsEnvir" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="2021_NYH3">2021_NYH3</option>
-<option value="2021_SCH1">2021_SCH1</option>
-<option value="2021_TXH1">2021_TXH1</option>
-<option value="2021_TXH2">2021_TXH2</option></select>
-<script type="application/json" data-for="reportBuilder_1-scatterMtaPredsEnvir" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsEnvir" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsEnvir" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out58274058dd219b4a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out15261970cc2b208d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Table of estimates 
 
@@ -226,7 +225,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out3d421fac588b6439" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out42ddb3941e8557b3" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between traits
 
@@ -238,45 +237,83 @@ The following heatmap and histogram allows to see the genetic correlations among
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-corrplotTraitMtaPredsType-label" for="reportBuilder_1-corrplotTraitMtaPredsType">Entry type</label>
+<label class="control-label" id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType">Entry type</label>
 <div>
-<select id="reportBuilder_1-corrplotTraitMtaPredsType" class="shiny-input-select"><option value="environment_designation" selected>environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" class="shiny-input-select"><option value="environment" selected>environment</option>
+<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
+<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
+<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
+<option value="designation_EST007">designation_EST007</option>
 <option value="(Intercept)">(Intercept)</option></select>
-<script type="application/json" data-for="reportBuilder_1-corrplotTraitMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<script type="application/json" data-for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="reportBuilder_1-corrplotTraitMtaPredsEnv-label" for="reportBuilder_1-corrplotTraitMtaPredsEnv">Environment</label>
+<label class="control-label" id="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv-label" for="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv">Environment</label>
 <div>
-<select id="reportBuilder_1-corrplotTraitMtaPredsEnv" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="2021_NYH3">2021_NYH3</option>
-<option value="2021_SCH1">2021_SCH1</option>
-<option value="2021_TXH1">2021_TXH1</option>
-<option value="2021_TXH2">2021_TXH2</option></select>
-<script type="application/json" data-for="reportBuilder_1-corrplotTraitMtaPredsEnv" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out678de024dafe282f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out74ef8364dd96958b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Check comparisons
 
+<!--html_preserve--><div class="shiny-input-panel">
+<div class="shiny-flow-layout">
+<div>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="mtaLMMsolveApp_1-checkMta-label" for="mtaLMMsolveApp_1-checkMta">Check to compare to:</label>
+<div>
+<select id="mtaLMMsolveApp_1-checkMta" class="shiny-input-select"><option value="08FAN10" selected>08FAN10</option>
+<option value="CSR 36">CSR 36</option>
+<option value="IR16A3838">IR16A3838</option>
+<option value="IR16A3891">IR16A3891</option>
+<option value="IR16A4085">IR16A4085</option>
+<option value="IR16A4261">IR16A4261</option>
+<option value="IRRI 104">IRRI 104</option>
+<option value="IRRI 123">IRRI 123</option>
+<option value="IRRI 154">IRRI 154</option>
+<option value="IRRI 156">IRRI 156</option>
+<option value="IRRI 168">IRRI 168</option>
+<option value="IRRI 174">IRRI 174</option>
+<option value="IRRI 212">IRRI 212</option>
+<option value="IRRI 215">IRRI 215</option>
+<option value="IRRI 221">IRRI 221</option>
+<option value="IRRI 222">IRRI 222</option>
+<option value="IRRI 223">IRRI 223</option>
+<option value="IRRI 224">IRRI 224</option>
+<option value="SUPA">SUPA</option>
+<option value="TXD 306">TXD 306</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-checkMta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div>
+</div>
+<div>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="mtaLMMsolveApp_1-checkMtaTrait-label" for="mtaLMMsolveApp_1-checkMtaTrait">View trait:</label>
+<div>
+<select id="mtaLMMsolveApp_1-checkMtaTrait" class="shiny-input-select"><option value="YLDTONHA" selected>YLDTONHA</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-checkMtaTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div>
+</div>
+</div>
+</div><!--/html_preserve-->
 
-
-
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out3a9527f6f02724e1" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-outc14a9b1276b610af" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out6cc195ec23365774" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used

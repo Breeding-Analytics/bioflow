@@ -569,7 +569,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           numericInput(
             session$ns(paste0('nPC',i)),
             label = paste0("nPC (",choices[i],")"),
-            value = 0,
+            value = ifelse(choices[i]=="geno",-1,0), # -1 is to subset to only individuals present
             min = -1, max = Inf, step = 1
           ),
           style = "display: inline-block;"
@@ -938,7 +938,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtMta <- data()
-      inputFormulationFixed <- inputFormulaCovars()
+      inputFormulationFixed <- inputFormulaRandom()
       saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
       # run the modeling, but before test if sta was done
       if(sum(dtMta$status$module %in% "sta") == 0) {

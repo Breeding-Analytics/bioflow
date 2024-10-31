@@ -268,7 +268,7 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{
+  }else{ # input <- list(traitSta=staTraits[1])
     
     shiny::selectInput(ns("traitSta"), 
                        label = "Trait to filter:", 
@@ -302,7 +302,7 @@ if (is.null(result)){
     DT::renderDT(printTable(pred.traits.summary[pred.traits.summary$trait==input$traitSta,],
                         autoWidthOpt = FALSE, scrollXOpt = TRUE,
                         colNames = colnames(pred.traits.summary[pred.traits.summary$trait==input$traitSta,]),
-                        numericColNames = numeric.output,
+                        numericColNames = intersect(colnames(colnames(pred.traits.summary[pred.traits.summary$trait==input$traitSta,])),numeric.output),
                         numRound = 4), server = FALSE)
   }
   
@@ -338,7 +338,7 @@ if (is.null(result)){
       
       if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
         shinyjs::hide()
-      }else{
+      }else{ # input <- list(traitStaFieldView=traitFieldView[1])
         shiny::selectInput(ns("traitStaFieldView"), 
                            label = "Trait to filter:", 
                            choices = traitFieldView, 
@@ -364,6 +364,7 @@ if (is.null(result)){
       shinyjs::hide()
     }else{
       pheno <- result$data$pheno
+      pheno <- pheno[,which(!duplicated(colnames(pheno)))]
       metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
       colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
       
