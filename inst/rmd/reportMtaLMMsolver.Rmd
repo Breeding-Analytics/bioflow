@@ -98,18 +98,19 @@ if (is.null(result)){
   predSplitSplit <- lapply(predSplit, function(x){split(x, x[,"trait"])})
   predSplitSplit2 <- lapply(predSplit, function(x){split(x, x[,"environment"])})
   predSplitSplitWide <- lapply(predSplitSplit, function(y){lapply(y,function(x){
-    tableForm <- table(x$environment)
-    ninds <- tableForm[1]; nEnvs <- length(tableForm)
-    idsmock <- rep( paste0("id",1:ninds), nEnvs)
-    x <- x[with(x, order(environment, designation)), ]
-    x$idsmock <- idsmock
-    wide0 <- reshape(x[,c("environment","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
-                     timevar = "environment", v.names = "predictedValue", sep= "_")
-    wide0 <- wide0[,-1,drop=FALSE]; rownames(wide0) <- x$designation[1:ninds]
-    colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
-    return(wide0)
-  }
-  )})
+  tableForm <- table(x$environment)
+  ninds <- tableForm; nEnvs <- length(tableForm)
+  idsmock <- unlist(apply(data.frame(as.vector(ninds)),1,function(z){paste0("id",1:z)}))
+  x <- x[with(x, order(environment, designation)), ]
+  x$idsmock <- as.vector(idsmock)
+  wide0 <- reshape(x[,c("environment","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
+                   timevar = "environment", v.names = "predictedValue", sep= "_")
+  wide0 <- wide0[,-1,drop=FALSE]; rownames(wide0) <- x$designation[1:max(ninds)]
+  wide0 <- wide0[,apply(wide0,2,sommer::propMissing) != 1, drop=FALSE]
+  colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
+  return(wide0)
+}
+)})
   predSplitSplitWide2 <- lapply(predSplitSplit2, function(y){
     lapply(y,function(x){
       tableForm <- table(x$trait)
@@ -663,6 +664,7 @@ if (is.null(result)){
         N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
         pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
         rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+        pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
         
         if(ncol(pred.mta.biplot) >1){
           prin_comp <- prcomp(pred.mta.biplot, rank = 2)
@@ -714,6 +716,7 @@ if (is.null(result)){
         N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
         pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
         rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+        pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
         
         if(ncol(pred.mta.biplot) >1){
           prin_comp <- prcomp(pred.mta.biplot, rank = 2)
