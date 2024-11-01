@@ -498,7 +498,7 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{ # input <- list(traitPredictionsCorrelation="YLDTONHA",boxplotMtaPredsTypeCorr="environment_designation")
+  }else{ # input <- list(traitPredictionsCorrelation=traits[1],boxplotMtaPredsTypeCorr=entryTypes[1])
     
     inputPanel(
       selectInput(ns("corrplotMtaPredsType"),
@@ -601,6 +601,7 @@ if (is.null(result)){
         # p # static
         # plotly::ggplotly(p) # dynamic
       }
+      
     })
     
   }

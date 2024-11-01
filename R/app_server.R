@@ -325,4 +325,6 @@ app_server <- function(input, output, session) {
   mod_sectionInfoAEApp_server("sectionInfoAEApp_1")
   mod_agrAnova_server("agrAnova_1") #anova for agronomic experiments
 
+  ## predictive models
+  # mod_tensorMLApp_server("tensorMLApp_1")
 }

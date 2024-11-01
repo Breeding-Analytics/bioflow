@@ -142,6 +142,8 @@ app_ui <- function(request) {
                  tabPanel(strong("DASHBOARDS"), mod_sectionInfoDASHApp_ui("sectionInfoDASHApp_1")  ),
                  tabPanel("Analytical Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
                  tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
+                 # tabPanel(strong("PREDICTIVE MODELING"),   ),
+                 # tabPanel("Neural Networks", mod_tensorMLApp_ui("tensorMLApp_1"), icon = icon("puzzle-piece") ),
       ),
 
     )

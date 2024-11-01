@@ -43,7 +43,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out8f6d5e5edeba2b5b" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out281f6491739f80c2" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Metadata: Map of trials planted
 
@@ -63,19 +63,9 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsType-label" for="mtaLMMsolveApp_1-boxplotMtaPredsType">Entry type</label>
 <div>
-<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE" selected>environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_designation_TRAIT_LINE">environment_designation_TRAIT_LINE</option>
-<option value="environment_designation_LOCAL_CHECK">environment_designation_LOCAL_CHECK</option>
-<option value="environment_designation_HYBRID_LINE">environment_designation_HYBRID_LINE</option>
-<option value="environment_designation_GLOBAL_CHECK">environment_designation_GLOBAL_CHECK</option>
-<option value="environment_designation_EST007">environment_designation_EST007</option>
-<option value="environment_designation">environment_designation</option>
-<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
-<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
-<option value="designation_HYBRID_LINE">designation_HYBRID_LINE</option>
-<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
-<option value="designation_EST007">designation_EST007</option>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="environment_designation" selected>environment_designation</option>
+<option value="environment">environment</option>
+<option value="designation">designation</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -95,7 +85,7 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outa04367878715f765" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-out4f8470b57ac77ba1" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Connectivity between environments
 
@@ -113,7 +103,7 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outeaa4b73a04e467f8" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outb40fabb44d21acdb" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between environments
 
@@ -127,19 +117,9 @@ The following heatmap and histogram allows to assess the genetic correlations am
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-corrplotMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotMtaPredsType">Entry type</label>
 <div>
-<select id="mtaLMMsolveApp_1-corrplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_designation_TRAIT_LINE">environment_designation_TRAIT_LINE</option>
-<option value="environment_designation_LOCAL_CHECK">environment_designation_LOCAL_CHECK</option>
-<option value="environment_designation_HYBRID_LINE">environment_designation_HYBRID_LINE</option>
-<option value="environment_designation_GLOBAL_CHECK">environment_designation_GLOBAL_CHECK</option>
-<option value="environment_designation_EST007">environment_designation_EST007</option>
-<option value="environment_designation">environment_designation</option>
-<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
-<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
-<option value="designation_HYBRID_LINE">designation_HYBRID_LINE</option>
-<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
-<option value="designation_EST007">designation_EST007</option>
+<select id="mtaLMMsolveApp_1-corrplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
+<option value="environment">environment</option>
+<option value="designation">designation</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-corrplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -159,7 +139,7 @@ The following heatmap and histogram allows to assess the genetic correlations am
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outb6e28f2f5568b901" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outaa76b47f6431cc3d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Biplot by trait
 
@@ -173,19 +153,9 @@ The following graph allows to see the clustering of different genotypes in the T
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-biplotMtaPredsType-label" for="mtaLMMsolveApp_1-biplotMtaPredsType">Entry type:</label>
 <div>
-<select id="mtaLMMsolveApp_1-biplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_designation_TRAIT_LINE">environment_designation_TRAIT_LINE</option>
-<option value="environment_designation_LOCAL_CHECK">environment_designation_LOCAL_CHECK</option>
-<option value="environment_designation_HYBRID_LINE">environment_designation_HYBRID_LINE</option>
-<option value="environment_designation_GLOBAL_CHECK">environment_designation_GLOBAL_CHECK</option>
-<option value="environment_designation_EST007">environment_designation_EST007</option>
-<option value="environment_designation">environment_designation</option>
-<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
-<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
-<option value="designation_HYBRID_LINE">designation_HYBRID_LINE</option>
-<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
-<option value="designation_EST007">designation_EST007</option>
+<select id="mtaLMMsolveApp_1-biplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
+<option value="environment">environment</option>
+<option value="designation">designation</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-biplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -205,7 +175,7 @@ The following graph allows to see the clustering of different genotypes in the T
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out96297d2d39b0a865" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out52d80872b5ef0077" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Merit estimates of top entries
 
@@ -218,19 +188,9 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsType-label" for="mtaLMMsolveApp_1-scatterMtaPredsType">Entry type:</label>
 <div>
-<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_designation_TRAIT_LINE">environment_designation_TRAIT_LINE</option>
-<option value="environment_designation_LOCAL_CHECK">environment_designation_LOCAL_CHECK</option>
-<option value="environment_designation_HYBRID_LINE">environment_designation_HYBRID_LINE</option>
-<option value="environment_designation_GLOBAL_CHECK">environment_designation_GLOBAL_CHECK</option>
-<option value="environment_designation_EST007">environment_designation_EST007</option>
-<option value="environment_designation">environment_designation</option>
-<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
-<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
-<option value="designation_HYBRID_LINE">designation_HYBRID_LINE</option>
-<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
-<option value="designation_EST007">designation_EST007</option>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
+<option value="environment">environment</option>
+<option value="designation">designation</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -267,7 +227,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-oute6aecd3fa08da39f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outb35a6820b120c3aa" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Table of estimates 
 
@@ -275,7 +235,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outcb6927d311079dff" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out99633ae8fc6d256b" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between traits
 
@@ -289,19 +249,9 @@ The following heatmap and histogram allows to see the genetic correlations among
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType">Entry type</label>
 <div>
-<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" class="shiny-input-select"><option value="environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE" selected>environment_EST007#GLOBAL_CHECK#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE">environment_EST007#GLOBAL_CHECK#HYBRID_LINE#LOCAL_CHECK#TRAIT_LINE</option>
-<option value="environment_designation_TRAIT_LINE">environment_designation_TRAIT_LINE</option>
-<option value="environment_designation_LOCAL_CHECK">environment_designation_LOCAL_CHECK</option>
-<option value="environment_designation_HYBRID_LINE">environment_designation_HYBRID_LINE</option>
-<option value="environment_designation_GLOBAL_CHECK">environment_designation_GLOBAL_CHECK</option>
-<option value="environment_designation_EST007">environment_designation_EST007</option>
-<option value="environment_designation">environment_designation</option>
-<option value="designation_TRAIT_LINE">designation_TRAIT_LINE</option>
-<option value="designation_LOCAL_CHECK">designation_LOCAL_CHECK</option>
-<option value="designation_HYBRID_LINE">designation_HYBRID_LINE</option>
-<option value="designation_GLOBAL_CHECK">designation_GLOBAL_CHECK</option>
-<option value="designation_EST007">designation_EST007</option>
+<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" class="shiny-input-select"><option value="environment_designation" selected>environment_designation</option>
+<option value="environment">environment</option>
+<option value="designation">designation</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -327,14 +277,14 @@ The following heatmap and histogram allows to see the genetic correlations among
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out61d6dbd7e25cbd95" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outc1dbe4e599d08dcc" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out506a6ca3d89730a0" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outa545a8f0e6acce97" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used

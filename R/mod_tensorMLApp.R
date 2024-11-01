@@ -62,137 +62,47 @@ mod_tensorMLApp_ui <- function(id) {
                                     tabsetPanel(
                                       tabPanel(div( icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE)),
+                                               column(width=12, # style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=2, br(), actionButton(ns("runML"), "", icon = icon("play-circle")), ),
+                                                      column(width=2, numericInput(ns("nEpochs"), label = "Epochs", value = 1000),  ),
+                                                      column(width=2, numericInput(ns("learnRate"), label = "Learning rate", value = 0.03),  ),
+                                                      column(width=2, selectInput(ns("activation"), label = "Activation", choices = list("relu","tanh","sigmoid","linear"), selected = "relu", multiple=FALSE), ),
+                                                      column(width=2, selectInput(ns("regularization"), label = "Regularization", choices = list("none","L1","L2"), selected = "none", multiple=FALSE), ),
+                                                      column(width=2, numericInput(ns("regularRate"), label = "Regularization rate", value = 0),  ),
 
                                                ),
-                                               column(width=12),
-                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                   column(width=12,
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                                   DT::DTOutput(ns("statusMta")), # modeling table
+                                               column(width=2,
+                                                      column(width=12, sliderInput(ns("slider1"), label = "Batch size", min = 1, max = 2000, value = c(1, 100)) ),
+                                                      column(width=12, sliderInput(ns("slider2"), label = "Ratio training/test", min = 1, max = 2000, value = c(1, 100)) ),
+                                                      ),
+                                               column(width=10,
+                                                      column(width=2,
+                                                             # column(width=12,
+                                                                    selectInput(ns("labels"), label = "Labels", choices = list("geno","pedigree"), selected = NULL, multiple=TRUE),
+                                                             #        ),
+                                                             # column(width=12,
+                                                                    selectInput(ns("features"), label = "Features", choices = list("geno","pedigree"), selected = NULL, multiple=TRUE),
+                                                                    # ),
+                                                      ),
+                                                      column(width=10,
+                                                             column(width=12,
+                                                                    column(width=3,
+                                                                           numericInput(ns("nlayers"), label = "Hidden layers", value = 1),
+                                                                           ),
+                                                                    ),
+                                                             column(width=2,
+                                                                    column(width=12,
+                                                                           uiOutput(ns("nNeurons")), # dynamic based on n layers
+                                                                           ),
+                                                                    ),
+                                                      ),
                                                ),
+
                                       ),
                                       tabPanel(div(icon("dice-two"), "Pick the model", icon("arrow-right") ), # icon = icon("dice-two"),
-                                               br(),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
 
-                                                      column(width=12,
-                                                             column(width=3, selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE) ),
-                                                             column(width=6,
-                                                                    radioButtons(ns("radio"), label = "Popular genetic evaluation models",
-                                                                                 choices = list(
-                                                                                   "Main" = "mn_model",
-                                                                                   "Compound" = "cs_model",
-                                                                                   "Finlay-W"="fw_model",
-                                                                                   "Diagonal" = "dg_model",
-                                                                                   "Main+Diag" = "csdg_model"
-                                                                                 ),
-                                                                                 selected = "mn_model", inline=TRUE),
-                                                             ),
-                                                             column(width=3,
-                                                                    radioButtons(ns("radioModel"), label = "Covariance for designation",
-                                                                                 choices = list(
-                                                                                   "None"="none",
-                                                                                   "GBLUP" = "geno_model",
-                                                                                   "PBLUP" = "pedigree_model"
-                                                                                 ),
-                                                                                 selected = "none", inline=TRUE),
-                                                             ),
-                                                      ),
-                                                      column(width=12,
-                                                             column(width=4,
-                                                                    numericInput(ns("nTermsFixed"), label = "nTerms fixed", value = NULL), # , step = 1, min = 1, max=10
-                                                                    uiOutput(ns("leftSidesFixed"))
-                                                             ),
-                                                             column(width=4,
-                                                                    # uiOutput(ns("nTermsRandom")),
-                                                                    numericInput(ns("nTermsRandom"), label = "nTerms random", value = NULL), #
-                                                                    uiOutput(ns("leftSidesRandom"))
-                                                             ),
-                                                             column(width=4,
-                                                                    br(),br(), br(), br(),
-                                                                    uiOutput(ns("rightSidesRandom"))
-                                                             ),
-                                                      ),
 
-                                               ),
-                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
-                                                      column(width=12, # multiple nesting to center ir (I didn't find any other way)
-                                                             column(width=12,
-                                                                    uiOutput(ns("nPC"), inline=TRUE)
-                                                             ),
-                                                      ),
-                                               ),
-                                               column(width=12, style = "background-color:LightGray; color: #FFFFFF",
-                                                      br(),
-                                                      shinydashboard::box(width = 12,style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (optional)...",
-                                                                          p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
-                                                                          DT::dataTableOutput(ns("fieldsMet")),
-                                                      ),
-                                               ),
-                                               column(width=6, style = "background-color:LightGray; color: #FFFFFF",
-                                                      shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
-                                                                          textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.1"),
-                                                                          textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
-                                                                          textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
-                                                                          textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
-                                                                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
-                                                                          selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
-                                                                          selectInput(ns("calcSE"), label = "Calculate SEs?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
-                                                      ),
-                                               ),
-                                               column(width = 6, style = "background-color:LightGray; color: #FFFFFF",
-                                                      # br(),
-                                                      shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
-                                                                          p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
-                                                                          DT::DTOutput(ns("traitDistMet")),
-                                                      ),
-                                               ),
-                                               column(width=12),
-                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                   column(width=12,
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   tags$span(id = ns('holder3'),
-                                                                             column(width=12, p(span("Connectivity between data types.", style="color:black")) ),
-                                                                             selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                             shiny::plotOutput(ns("evaluationUnits")) ,
-                                                                   ),
-                                                                   tags$span(id = ns('holder4'),
-                                                                             column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
-                                                                             column(width = 3,
-                                                                                    selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                                    selectInput(ns("entryTypeMta"), "Entry type to visualize", choices = NULL, multiple = TRUE),
-                                                                                    checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
-                                                                                    checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
-                                                                                    numericInput(ns("heatmapFontSize"), label = "Font size", value = 6),
-                                                                             ),
-                                                                             column(width = 9, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
-                                                                   ),
-                                                                   tags$span(id = ns('holder5'),
-                                                                             column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
-                                                                             column(width=3,
-                                                                                    selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE),
-                                                                                    checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE),
-                                                                                    checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
-                                                                                    numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6),
-                                                                             ),
-                                                                             column(width=9, shiny::plotOutput(ns("plotPredictionsCor")) ),
-                                                                   ),
-                                                                   tags$span(id = ns('holder6'),
-                                                                             column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
-                                                                             column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 100)) ),
-                                                                             column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
-                                                                             column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
-                                                                   ),
-                                               ),
+
                                       ),
                                       tabPanel("Run analysis", icon = icon("dice-three"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
@@ -242,6 +152,22 @@ mod_tensorMLApp_ui <- function(id) {
 mod_tensorMLApp_server <- function(id){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+
+    output$nNeurons <- renderUI({
+      req(input$nlayers)
+
+      lapply(1:input$nlayers, function(i) {
+        # div(
+          numericInput(
+            session$ns(paste0('nNeurons',i)),
+            label = paste0("neurons in layer",i),
+            value = 10, # -1 is to subset to only individuals present
+            min = 1, max = Inf, step = 1
+          )
+        #   style = "display: inline-block;"
+        # )
+      })
+    })
 
   })
 }
