@@ -83,33 +83,44 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                    DT::DTOutput(ns("statusMta")), # modeling table
                                                ),
                                       ),
-                                      tabPanel(div(icon("dice-two"), "Pick the model", icon("arrow-right") ), # icon = icon("dice-two"),
+                                      tabPanel(div(icon("dice-two"), "Pick traits", icon("arrow-right") ),
+                                               br(),
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE),
+                                               ),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   column(width=12,
+                                                                             column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                                             column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                             column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
+                                                                             column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                   ),
+                                               ),
+                                      ),
+                                      tabPanel(div(icon("dice-three"), "Form your model", icon("arrow-right") ), # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-
                                                       column(width=12,
-                                                             column(width=3, selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE) ),
-                                                             column(width=6,
-                                                                    radioButtons(ns("radio"), label = "Popular genetic evaluation models",
+                                                             column(width=12,
+                                                                    br(),
+                                                                    radioButtons(ns("radio"), label = "Shortcut to popular genetic evaluation models",
                                                                                  choices = list(
-                                                                                   "Main" = "mn_model",
-                                                                                   "Compound" = "cs_model",
-                                                                                   "Finlay-W"="fw_model",
+                                                                                   "Main effect" = "mn_model",
+                                                                                   "Compound symmetry" = "cs_model",
+                                                                                   "Finlay-Wilkinson"="fw_model",
                                                                                    "Diagonal" = "dg_model",
-                                                                                   "Main+Diag" = "csdg_model"
+                                                                                   "Main+Diagonal" = "csdg_model"
                                                                                  ),
                                                                                  selected = "mn_model", inline=TRUE),
                                                              ),
-                                                             column(width=3,
-                                                                    radioButtons(ns("radioModel"), label = "Covariance for designation",
-                                                                                 choices = list(
-                                                                                   "None"="none",
-                                                                                   "GBLUP" = "geno_model",
-                                                                                   "PBLUP" = "pedigree_model"
-                                                                                 ),
-                                                                                 selected = "none", inline=TRUE),
-                                                             ),
                                                       ),
+                                               ),
+                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
                                                              column(width=4,
                                                                     numericInput(ns("nTermsFixed"), label = "nTerms fixed", value = NULL), # , step = 1, min = 1, max=10
@@ -121,42 +132,16 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     uiOutput(ns("leftSidesRandom"))
                                                              ),
                                                              column(width=4,
-                                                                    br(),br(), br(), br(),
+                                                                    radioButtons(ns("radioModel"), label = "Shortcut to covariance",
+                                                                                 choices = list(
+                                                                                   "None"="none",
+                                                                                   "GBLUP" = "geno_model",
+                                                                                   "PBLUP" = "pedigree_model"
+                                                                                 ),
+                                                                                 selected = "none", inline=TRUE),
+                                                                    br(),
                                                                     uiOutput(ns("rightSidesRandom"))
                                                              ),
-                                                      ),
-
-                                               ),
-                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
-                                                      column(width=12, # multiple nesting to center ir (I didn't find any other way)
-                                                             column(width=12,
-                                                                    uiOutput(ns("nPC"), inline=TRUE)
-                                                             ),
-                                                      ),
-                                               ),
-                                               column(width=12, style = "background-color:LightGray; color: #FFFFFF",
-                                                      br(),
-                                                      shinydashboard::box(width = 12,style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (optional)...",
-                                                                          p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
-                                                                          DT::dataTableOutput(ns("fieldsMet")),
-                                                      ),
-                                               ),
-                                               column(width=6, style = "background-color:LightGray; color: #FFFFFF",
-                                                      shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
-                                                                          textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.1"),
-                                                                          textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
-                                                                          textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
-                                                                          textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
-                                                                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
-                                                                          selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
-                                                                          selectInput(ns("calcSE"), label = "Calculate SEs?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
-                                                      ),
-                                               ),
-                                               column(width = 6, style = "background-color:LightGray; color: #FFFFFF",
-                                                      # br(),
-                                                      shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
-                                                                          p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
-                                                                          DT::DTOutput(ns("traitDistMet")),
                                                       ),
                                                ),
                                                column(width=12),
@@ -200,7 +185,45 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                    ),
                                                ),
                                       ),
-                                      tabPanel("Run analysis", icon = icon("dice-three"),
+                                      tabPanel(div(icon("dice-four"), "Other options", icon("arrow-right") ),
+                                               br(),
+                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
+                                                      br(),
+                                                      shinydashboard::box(width = 12,style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (optional)...",
+                                                                          p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                                                          DT::dataTableOutput(ns("fieldsMet")),
+                                                      ),
+                                               ),
+                                               column(width=6, style = "background-color:LightGray; color: #FFFFFF",
+                                                      br(),
+                                                      shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
+                                                                          textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.1"),
+                                                                          textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
+                                                                          textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
+                                                                          textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
+                                                                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
+                                                                          selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                                                          selectInput(ns("calcSE"), label = "Calculate SEs?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                                      ),
+                                               ),
+                                               column(width = 6, style = "background-color:LightGray; color: #FFFFFF",
+                                                      br(),
+                                                      shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                                          p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
+                                                                          DT::DTOutput(ns("traitDistMet")),
+                                                      ),
+                                               ),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=12, h4("Number of principal components for possible covariance kernels (0 is none)"), ),
+                                                      column(width=12, # multiple nesting to center ir (I didn't find any other way)
+                                                             column(width=12,
+                                                                    uiOutput(ns("nPC"), inline=TRUE)
+                                                             ),
+                                                      ),
+                                               ),
+                                      ),
+                                      tabPanel("Run analysis", icon = icon("dice-five"),
+                                               br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
@@ -344,6 +367,36 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       updateSelectInput(session, "traitCor", choices = traitsMta)
       updateSelectInput(session, "traitConnect", choices = traitsMta)
       updateSelectInput(session, "evaluationUnitsTrait", choices = traitsMta)
+      updateSelectInput(session, "traitMetrics", choices = traitsMta, selected = traitsMta)
+    })
+    observeEvent(c(data(),input$version2Mta), { # update parameter
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      dtMta <- dtMta$metrics
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),] # only traits that have been QA
+      metricsMtaInput <- unique(dtMta$parameter)
+      updateSelectInput(session, "parameterMetrics", choices = metricsMtaInput)
+    })
+    #################
+    # plots
+    output$barplotPredictionsMetrics <- plotly::renderPlotly({
+      req(data())
+      req(input$version2Mta)
+      dtMta <- data()
+      mydata <- dtMta$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
+      mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
+      p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
+        ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge())+
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
+      if(input$checkbox1){
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      }else{
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      }
+      plotly::ggplotly(p)
     })
     #################
     ## nTermsFixed
