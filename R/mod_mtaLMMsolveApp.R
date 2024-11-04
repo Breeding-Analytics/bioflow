@@ -991,8 +991,8 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtMta <- data()
-      inputFormulationFixed <- inputFormulaRandom()
-      saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
+      # inputFormulationFixed <- inputFormulaRandom()
+      # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
       # run the modeling, but before test if sta was done
       if(sum(dtMta$status$module %in% "sta") == 0) {
         output$qaQcMtaInfo <- renderUI({
