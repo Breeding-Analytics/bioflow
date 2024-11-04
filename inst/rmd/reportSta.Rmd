@@ -296,7 +296,7 @@ if (is.null(result)){
     # printTable((pred.traits.summary), 'different')
     printTable(pred.traits.summary, autoWidthOpt = TRUE, scrollXOpt = FALSE,
              colNames = colnames(pred.traits.summary),
-           numericColNames = numeric.output,
+           numericColNames = intersect(colnames(colnames(pred.traits.summary)),numeric.output),
            numRound = 4)
   }else{
     DT::renderDT(printTable(pred.traits.summary[pred.traits.summary$trait==input$traitSta,],
