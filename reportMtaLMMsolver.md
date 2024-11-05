@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 01, 2024"  
+date: "November 05, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -43,13 +43,13 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out16096a9a3c3ef571" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outf190269f399c5ebc" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Metadata: Map of trials planted
 
 The following map allows you to assess the location where trials are planted.
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out9cf5066b546e447e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outda746aa606543f7d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: By environment merit distribution
 
@@ -63,9 +63,7 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsType-label" for="mtaLMMsolveApp_1-boxplotMtaPredsType">Entry type</label>
 <div>
-<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="environment_designation" selected>environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="environment" selected>environment</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -84,7 +82,7 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outef3f0ea9af2bc5cb" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-out86a1ad1e912b2ca6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Connectivity between environments
 
@@ -101,7 +99,7 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out7e4d7c8e4a3a26ad" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out29ad6c54b7879541" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between environments
 
@@ -115,9 +113,7 @@ The following heatmap and histogram allows to assess the genetic correlations am
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-corrplotMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotMtaPredsType">Entry type</label>
 <div>
-<select id="mtaLMMsolveApp_1-corrplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-corrplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment" selected>environment</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-corrplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -136,7 +132,7 @@ The following heatmap and histogram allows to assess the genetic correlations am
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out0d95a4926c4b8d65" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outb9caf6d282fece62" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Biplot by trait
 
@@ -150,9 +146,7 @@ The following graph allows to see the clustering of different genotypes in the T
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-biplotMtaPredsType-label" for="mtaLMMsolveApp_1-biplotMtaPredsType">Entry type:</label>
 <div>
-<select id="mtaLMMsolveApp_1-biplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-biplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment" selected>environment</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-biplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -171,7 +165,7 @@ The following graph allows to see the clustering of different genotypes in the T
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out18f02b8872f4b4f2" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outc448402dd427556a" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Merit estimates of top entries
 
@@ -184,9 +178,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsType-label" for="mtaLMMsolveApp_1-scatterMtaPredsType">Entry type:</label>
 <div>
-<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment_designation">environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="environment" selected>environment</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -206,11 +198,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsEnvir-label" for="mtaLMMsolveApp_1-scatterMtaPredsEnvir">Environment</label>
 <div>
-<select id="mtaLMMsolveApp_1-scatterMtaPredsEnvir" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="2021_NYH3">2021_NYH3</option>
-<option value="2021_SCH1">2021_SCH1</option>
-<option value="2021_TXH1">2021_TXH1</option>
-<option value="2021_TXH2">2021_TXH2</option></select>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsEnvir" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsEnvir" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -218,7 +206,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out9a39282606c35eb1" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out1d04e18da3c07acd" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Table of estimates 
 
@@ -226,7 +214,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-oute20574047daf2f21" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out0371ecf8cbaa1381" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between traits
 
@@ -240,9 +228,7 @@ The following heatmap and histogram allows to see the genetic correlations among
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType">Entry type</label>
 <div>
-<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" class="shiny-input-select"><option value="environment_designation" selected>environment_designation</option>
-<option value="environment">environment</option>
-<option value="designation">designation</option>
+<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" class="shiny-input-select"><option value="environment" selected>environment</option>
 <option value="(Intercept)">(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -252,11 +238,7 @@ The following heatmap and histogram allows to see the genetic correlations among
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv-label" for="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv">Environment</label>
 <div>
-<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option>
-<option value="2021_NYH3">2021_NYH3</option>
-<option value="2021_SCH1">2021_SCH1</option>
-<option value="2021_TXH1">2021_TXH1</option>
-<option value="2021_TXH2">2021_TXH2</option></select>
+<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -264,14 +246,14 @@ The following heatmap and histogram allows to see the genetic correlations among
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out451e1059ddf9a9d3" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outc3b9109431021da1" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out4098419d37454a68" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outaa31dadf9d5deef3" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used

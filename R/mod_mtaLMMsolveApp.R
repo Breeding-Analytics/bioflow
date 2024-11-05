@@ -685,8 +685,11 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           s1 <- eval( parse(text = tempval() ) )
           values[[i]] <- s1
         }
-        values <- unlist(values)
-        names(values) <- choices
+
+          values <- unlist(values)
+        if(!is.null(values)){
+          names(values) <- choices
+        }
         return(values)
       }
     })
