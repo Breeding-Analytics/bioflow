@@ -38,17 +38,26 @@ dependencyPlot <- function(){
 }
 
 plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilterPredictionsRadar2,
-                                 entryTypePredictionRadar2,
+                                 effectTypePredictionRadar2, entryTypePredictionRadar2,
                                  meanGroupPredictionsRadar, proportion=0.2,
                                  analysisId, trait, desirev, scaled, title=NULL){
 
   mydata <- object$predictions
   mydata <- mydata[which(mydata$analysisId %in% analysisId),]
 
-  mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
-                           (mydata$trait %in% traitFilterPredictionsRadar2) &
-                           (mydata$entryType %in% entryTypePredictionRadar2)
-  ),]
+  if(length(environmentPredictionsRadar2) > 0){
+    mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) ),]
+  }
+  if(length(traitFilterPredictionsRadar2) > 0){
+    mydata = mydata[which( (mydata$trait %in% traitFilterPredictionsRadar2) ),]
+  }
+  if(length(effectTypePredictionRadar2) > 0){
+    mydata = mydata[which( (mydata$effectType %in% effectTypePredictionRadar2) ),]
+  }
+  if(length(entryTypePredictionRadar2) > 0){
+    mydata = mydata[which( (mydata$entryType %in% entryTypePredictionRadar2) ),]
+  }
+
   mydata$selected <- "no"
   ## pop means
   mm <- stats::aggregate(predictedValue~trait, data=mydata, FUN=mean, na.rm=TRUE)
@@ -74,7 +83,12 @@ plotDensitySelected <-  function(object,environmentPredictionsRadar2, traitFilte
     selected <- myIndex[1:round(nrow(myIndex)*proportion),"designation"]
     mydata$selected[which(mydata$designation %in% selected)] <- "yes"
     # update mm
-    mm2 <- stats::aggregate(predictedValue~trait, data=mydata[which(mydata$selected == "yes"),], FUN=mean, na.rm=TRUE)
+    if(length(which(mydata$selected == "yes"))>0){
+      mm2 <- stats::aggregate(predictedValue~trait, data=mydata[which(mydata$selected == "yes"),], FUN=mean, na.rm=TRUE)
+    }else{
+      mm2 <- mm
+    }
+
   }
 
   if(length(as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))) == nrow(mm)){

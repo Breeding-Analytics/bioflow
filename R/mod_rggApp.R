@@ -216,7 +216,7 @@ mod_rggApp_server <- function(id, data){
         mappedColumns <- setdiff(data()$metadata$pedigree[data()$metadata$pedigree$parameter == "yearOfOrigin","value"],"")
         # mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$medata$pedigree)))
         if(length(mappedColumns) == 1){
-          if("mta" %in% data()$status$module){
+          if(any(c("mtaLmms","mta","mtaFlex") %in% data()$status$module)){
             myYearOfOrigin <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
@@ -270,7 +270,7 @@ mod_rggApp_server <- function(id, data){
       if(input$methodRgg == "piepho"){
         dtRgg <- dtRgg[which(dtRgg$module %in% c("sta")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","indexD")),]
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaLmms","indexD")),]
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){names(traitsRgg) <- as.POSIXct(traitsRgg, origin="1970-01-01", tz="GMT")}
@@ -352,7 +352,7 @@ mod_rggApp_server <- function(id, data){
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
           mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
-          mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
+          mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
           mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
           res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
@@ -383,7 +383,7 @@ mod_rggApp_server <- function(id, data){
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
           mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg2),]
-          mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
+          mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
           mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
           if(length(input$yearsToUse) > 0){
@@ -516,7 +516,7 @@ mod_rggApp_server <- function(id, data){
 
     output$outRgg <- output$outRgg2 <- renderPrint({
       # run the modeling, but before test if mta was done
-      if(sum(data()$status$module %in% c("mta","indexD")) == 0) {
+      if(sum(data()$status$module %in% c("mta","mtaLmms","indexD")) == 0) {
         output$qaQcRggInfo <- renderUI({
           if (hideAll$clearAll){
             return()

@@ -201,7 +201,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                           textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
                                                                           textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
                                                                           textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
-                                                                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 70),
+                                                                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 35),
                                                                           selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                                           selectInput(ns("calcSE"), label = "Calculate SEs?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                       ),
@@ -622,7 +622,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           numericInput(
             session$ns(paste0('nPC',i)),
             label = paste0("nPC (",choices[i],")"),
-            value = ifelse(choices[i]=="geno",-1,0), # -1 is to subset to only individuals present
+            value = ifelse(choices[i]%in%c("geno","pedigree"),-1,0), # -1 is to subset to only individuals present
             min = -1, max = Inf, step = 1
           ),
           style = "display: inline-block;"
