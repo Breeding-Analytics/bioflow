@@ -95,8 +95,10 @@ mod_rggApp_ui <- function(id){
                                        tabPanel( div( icon("dice-three"), "Select years & units", icon("arrow-right")  ), #  icon = icon("dice-three"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=6, selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE) ),
-                                                       column(width=6, selectInput(ns("entryTypeToUse"), "Entry types to use", choices = NULL, multiple = TRUE) ),
+                                                       column(width=3, selectInput(ns("yearsToUse"), "Years of origin to use", choices = NULL, multiple = TRUE) ),
+                                                       column(width=3, selectInput(ns("environmentToUse"), "Environment to use", choices = NULL, multiple = FALSE) ),
+                                                       column(width=3, selectInput(ns("effectTypeToUse"), "Effect types to use", choices = NULL, multiple = TRUE) ),
+                                                       column(width=3, selectInput(ns("entryTypeToUse"), "Entry types to use", choices = NULL, multiple = TRUE) ),
                                                 ),
                                                 column(width=12),
                                                 shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -216,7 +218,7 @@ mod_rggApp_server <- function(id, data){
         mappedColumns <- setdiff(data()$metadata$pedigree[data()$metadata$pedigree$parameter == "yearOfOrigin","value"],"")
         # mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$medata$pedigree)))
         if(length(mappedColumns) == 1){
-          if("mta" %in% data()$status$module){
+          if(any(c("mtaLmms","mta","mtaFlex") %in% data()$status$module)){
             myYearOfOrigin <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
@@ -270,7 +272,7 @@ mod_rggApp_server <- function(id, data){
       if(input$methodRgg == "piepho"){
         dtRgg <- dtRgg[which(dtRgg$module %in% c("sta")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","indexD")),]
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaLmms","indexD")),]
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){names(traitsRgg) <- as.POSIXct(traitsRgg, origin="1970-01-01", tz="GMT")}
@@ -284,8 +286,17 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- data()
       dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-      traitsRgg <- unique(dtRgg$trait)
-      updateSelectInput(session, "trait2Rgg", choices = traitsRgg)
+      #
+      if(!is.null(data()$data$pedigree)){
+        myYears <- data()$data$pedigree
+        paramsPed <- data()$metadata$pedigree
+        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
+          dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          traitsRgg <- unique(dtRgg$trait)
+          updateSelectInput(session, "trait2Rgg", choices = traitsRgg)
+        }
+      }
     })
     ##############
     ## years
@@ -307,7 +318,7 @@ mod_rggApp_server <- function(id, data){
         }
       }
     })
-    ## entry type
+    ## environment type
     observeEvent(c(data(), input$version2Rgg, input$trait2Rgg, input$yearsToUse), {
       req(data())
       req(input$version2Rgg)
@@ -316,8 +327,70 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- data()
       dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-      traitsRgg <- unique(dtRgg$entryType)
-      updateSelectInput(session, "entryTypeToUse", choices = traitsRgg, selected =traitsRgg )
+      #
+      if(!is.null(data()$data$pedigree)){
+        myYears <- data()$data$pedigree
+        paramsPed <- data()$metadata$pedigree
+        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
+          dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          dtRgg <- dtRgg[which(dtRgg$trait == input$trait2Rgg),]
+          dtRgg <- dtRgg[which(dtRgg$year == input$yearsToUse),]
+          traitsRgg <- unique(dtRgg$environment)
+          updateSelectInput(session, "environmentToUse", choices = traitsRgg, selected =traitsRgg[1] )
+        }
+      }
+    })
+    ## effect type
+    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg, input$yearsToUse, input$environmentToUse), {
+      req(data())
+      req(input$version2Rgg)
+      req(input$trait2Rgg)
+      req(input$yearsToUse)
+      req(input$environmentToUse)
+      dtRgg <- data()
+      dtRgg <- dtRgg$predictions
+      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+      #
+      if(!is.null(data()$data$pedigree)){
+        myYears <- data()$data$pedigree
+        paramsPed <- data()$metadata$pedigree
+        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
+          dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          dtRgg <- dtRgg[which(dtRgg$trait == input$trait2Rgg),]
+          dtRgg <- dtRgg[which(dtRgg$year == input$yearsToUse),]
+          dtRgg <- dtRgg[which(dtRgg$environment == input$environmentToUse),]
+          traitsRgg <- unique(dtRgg$effectType)
+          updateSelectInput(session, "effectTypeToUse", choices = traitsRgg, selected =traitsRgg )
+        }
+      }
+    })
+    ## entry type
+    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg, input$yearsToUse, input$environmentToUse, input$effectTypeToUse), {
+      req(data())
+      req(input$version2Rgg)
+      req(input$trait2Rgg)
+      req(input$yearsToUse)
+      req(input$environmentToUse)
+      req(input$effectTypeToUse)
+      dtRgg <- data()
+      dtRgg <- dtRgg$predictions#
+      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+      if(!is.null(data()$data$pedigree)){
+        myYears <- data()$data$pedigree
+        paramsPed <- data()$metadata$pedigree
+        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
+        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
+          dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          dtRgg <- dtRgg[which(dtRgg$trait == input$trait2Rgg),]
+          dtRgg <- dtRgg[which(dtRgg$year == input$yearsToUse),]
+          dtRgg <- dtRgg[which(dtRgg$environment == input$environmentToUse),]
+          dtRgg <- dtRgg[which(dtRgg$effectType == input$effectTypeToUse),]
+          traitsRgg <- unique(dtRgg$entryType)
+          updateSelectInput(session, "entryTypeToUse", choices = traitsRgg, selected =traitsRgg )
+        }
+      }
     })
     ##############################################################################################
     ##############################################################################################
@@ -352,12 +425,14 @@ mod_rggApp_server <- function(id, data){
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
           mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
-          mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
+          mydata <- mydata[which(mydata[,"environment"] %in% input$environmentToUse),]
+          mydata <- mydata[which(mydata$effectType %in% input$effectTypeToUse),]
+          mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
           mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
-          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
+          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=effectType)) +
             ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
-            ggplot2::ggtitle("View of current analyses available")
+            ggplot2::ggtitle("View of current analyses available") + ggplot2::facet_grid(~ entryType)
           plotly::ggplotly(res)
         }
 
@@ -383,15 +458,17 @@ mod_rggApp_server <- function(id, data){
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
           mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg2),]
-          mydata <- mydata[which(mydata$entryType == input$entryTypeToUse),]
+          mydata <- mydata[which(mydata[,"environment"] %in% input$environmentToUse),]
+          mydata <- mydata[which(mydata$effectType %in% input$effectTypeToUse),]
+          mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
           mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
           if(length(input$yearsToUse) > 0){
             mydata <- mydata[which(mydata$yearOfOrigin %in% input$yearsToUse),]
           }
-          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=entryType)) +
+          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=effectType)) +
             ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
-            ggplot2::ggtitle("View of current analyses available")
+            ggplot2::ggtitle("View of current analyses available") + ggplot2::facet_grid(~ entryType)
           plotly::ggplotly(res)
         }
 
@@ -473,6 +550,8 @@ mod_rggApp_server <- function(id, data){
             phenoDTfile= data,
             analysisId=input$version2Rgg,
             trait=input$trait2Rgg, # per trait
+            entryTypeToUse = input$entryTypeToUse,
+            effectTypeToUse = input$effectTypeToUse,
             yearsToUse=input$yearsToUse,
             sampleN = input$sampleN,
             bootstrappingN = input$bootstrappingN,
@@ -486,6 +565,8 @@ mod_rggApp_server <- function(id, data){
             phenoDTfile= data,
             analysisId=input$version2Rgg,
             trait=input$trait2Rgg, # per trait
+            entryTypeToUse = input$entryTypeToUse,
+            effectTypeToUse = input$effectTypeToUse,
             deregressWeight=input$deregressWeight,
             partition=input$partition,
             yearsToUse=input$yearsToUse,
@@ -516,7 +597,7 @@ mod_rggApp_server <- function(id, data){
 
     output$outRgg <- output$outRgg2 <- renderPrint({
       # run the modeling, but before test if mta was done
-      if(sum(data()$status$module %in% c("mta","indexD")) == 0) {
+      if(sum(data()$status$module %in% c("mta","mtaLmms","indexD")) == 0) {
         output$qaQcRggInfo <- renderUI({
           if (hideAll$clearAll){
             return()

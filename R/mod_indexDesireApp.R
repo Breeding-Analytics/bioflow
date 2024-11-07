@@ -79,7 +79,8 @@ mod_indexDesireApp_ui <- function(id){
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
                                                        selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
                                                        selectInput(ns("env2IdxD"), "Environment to use", choices = NULL, multiple = FALSE),
-                                                       selectInput(ns("entryType2IdxD"), "Entry type to use", choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("effectType2IdxD"), "Effect type(s) to use", choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("entryType2IdxD"), "Entry type(s) to use", choices = NULL, multiple = TRUE),
                                                        selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                        uiOutput(ns("SliderDesireIndex"))
                                                 ),
@@ -279,7 +280,7 @@ mod_indexDesireApp_ui <- function(id){
 #       # if(input$env2IdxD != "(Intercept)"){}
 #       dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
 #       traitsIdxD <- unique(dtIdxD$entryType)
-#       updateSelectInput(session, "entryType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
+#       updateSelectInput(session, "effectType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
 #     })
 #     ####################
 #     ## desired changes for Desire Index
@@ -288,14 +289,14 @@ mod_indexDesireApp_ui <- function(id){
 #       req(input$version2IdxD)
 #       req(input$trait2IdxD)
 #       req(input$env2IdxD)
-#       # req(input$entryType2IdxD)
+#       # req(input$effectType2IdxD)
 #       req(input$scaledIndex)
 #       trait2IdxD <- input$trait2IdxD # trait2IdxD <- c("Yield_Mg_ha_QTL","Ear_Height_cm") # list(trait2IdxD=c("Yield_Mg_ha","Ear_Height_cm"))
 #       dtIdxD <- data()
 #       dtIdxD <- dtIdxD$predictions
 #       dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
 #       dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
-#       if(!is.null(input$entryType2IdxD)){dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$entryType2IdxD),]}
+#       if(!is.null(input$effectType2IdxD)){dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$effectType2IdxD),]}
 #
 #       if(input$scaledIndex){ # if user wants traits scaled
 #         lapply(1:length(trait2IdxD), function(i) {
@@ -485,8 +486,8 @@ mod_indexDesireApp_ui <- function(id){
 #       dtIdxD <- dtIdxD$predictions
 #       mydata <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
 #       mydata <- mydata[which(mydata$environment %in% input$env2IdxD),]
-#       if(!is.null(input$entryType2IdxD)){
-#         dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$entryType2IdxD),]
+#       if(!is.null(input$effectType2IdxD)){
+#         dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$effectType2IdxD),]
 #       }
 #       values <- desireValues()
 #       if(!is.null(values)){
@@ -529,7 +530,7 @@ mod_indexDesireApp_ui <- function(id){
 #           analysisId=input$version2IdxD, # analysis to be picked from predictions database
 #           trait= input$trait2IdxD, # traits to include in the index
 #           environmentToUse =input$env2IdxD ,
-#           entryTypeToUse = input$entryType2IdxD,
+#           entryTypeToUse = input$effectType2IdxD,
 #           desirev = values, # as.numeric(unlist(strsplit(input$desirev,","))), # vector of desired values
 #           scaled=input$scaledIndex, # whether predicted values should be scaled or not
 #           verbose=input$verboseIndex # should we print logs or not
@@ -742,6 +743,7 @@ mod_indexDesireApp_server <- function(id, data){
     #################
     ## environments # input <- list(version2IdxD=result$status$analysisId[9], trait2IdxD=c("Ear_Height_cm","Plant_Height_cm","Yield_Mg_ha"))
     observeEvent(c(data(), input$version2IdxD, input$trait2IdxD), {
+      # input <- list(version2IdxD=result$status$analysisId[9], trait2IdxD= c("Yield_Mg_ha_QTL","Ear_Height_cm"), env2IdxD="(Intercept)",effectType2IdxD="designation" )
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
@@ -749,40 +751,60 @@ mod_indexDesireApp_server <- function(id, data){
       dtIdxD <- dtIdxD$predictions
       dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
       dtIdxD <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD),]
+      # only get environments where all the traits are present
       props <- apply(table(dtIdxD$trait, dtIdxD$environment),2,function(x){length(which(x>0))/length(x)})
-      traitsIdxD <- names(props)[which(props == 1)]
-      # traitsIdxD <- unique(dtIdxD$environment)
-      updateSelectInput(session, "env2IdxD", choices = traitsIdxD)
+      envsAva <- names(props)[which(props == 1)]
+      updateSelectInput(session, "env2IdxD", choices = envsAva)
+    })
+    #################
+    ## effect types
+    observeEvent(c(data(), input$version2IdxD, input$trait2IdxD, input$env2IdxD), {
+      # input <- list(version2IdxD=result$status$analysisId[3], trait2IdxD= c("Yield_Mg_ha_QTL","Ear_Height_cm"), env2IdxD="across",effectType2IdxD="designation" )
+      req(data())
+      req(input$version2IdxD)
+      req(input$trait2IdxD)
+      req(input$env2IdxD)
+      dtIdxD <- data() # dtIdxD <- result
+      dtIdxD <- dtIdxD$predictions
+      dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
+      dtIdxD <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD),]
+      dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
+      traitsIdxD <- unique(dtIdxD$effectType)
+      updateSelectInput(session, "effectType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
     })
     #################
     ## entry types
-    observeEvent(c(data(), input$version2IdxD, input$env2IdxD), {
+    observeEvent(c(data(), input$version2IdxD, input$trait2IdxD, input$env2IdxD, input$effectType2IdxD), {
+      # input <- list(version2IdxD=result$status$analysisId[9], trait2IdxD= c("Yield_Mg_ha_QTL","Ear_Height_cm"), env2IdxD="(Intercept)",effectType2IdxD="designation" )
       req(data())
       req(input$version2IdxD)
+      req(input$trait2IdxD)
       req(input$env2IdxD)
+      req(input$effectType2IdxD)
       dtIdxD <- data()
       dtIdxD <- dtIdxD$predictions
       dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
-      # if(input$env2IdxD != "(Intercept)"){}
+      dtIdxD <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD),]
       dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
+      dtIdxD <- dtIdxD[which(dtIdxD$effectType %in% input$effectType2IdxD),]
       traitsIdxD <- unique(dtIdxD$entryType)
       updateSelectInput(session, "entryType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
     })
     ####################
     ## desired changes for Desire Index
-    output$SliderDesireIndex <- renderUI({
+    output$SliderDesireIndex <- renderUI({ # input <- list(version2IdxD=result$status$analysisId[9], trait2IdxD= c("Yield_Mg_ha_QTL","Ear_Height_cm"), env2IdxD="(Intercept)",effectType2IdxD="designation" )
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
       req(input$env2IdxD)
-      # req(input$entryType2IdxD)
+      req(input$effectType2IdxD)
       req(input$scaledIndex)
-      trait2IdxD <- input$trait2IdxD # trait2IdxD <- c("Yield_Mg_ha_QTL","Ear_Height_cm") # list(trait2IdxD=c("Yield_Mg_ha","Ear_Height_cm"))
+      trait2IdxD <- input$trait2IdxD #
       dtIdxD <- data()
       dtIdxD <- dtIdxD$predictions
       dtIdxD <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),]
       dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
-      if(!is.null(input$entryType2IdxD)){dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$entryType2IdxD),]}
+      if(!is.null(input$effectType2IdxD)){dtIdxD <- dtIdxD[which(dtIdxD$effectType %in% input$effectType2IdxD),]}
 
       if(input$scaledIndex){ # if user wants traits scaled
         lapply(1:length(trait2IdxD), function(i) {
@@ -968,10 +990,15 @@ mod_indexDesireApp_server <- function(id, data){
       req(input$version2IdxD)
       req(input$trait2IdxD)
       req(input$env2IdxD)
+      req(input$effectType2IdxD)
+      req(input$entryType2IdxD)
       dtIdxD <- data();
       dtIdxD <- dtIdxD$predictions
       mydata <- dtIdxD[which(dtIdxD$analysisId %in% input$version2IdxD),setdiff(colnames(dtIdxD),c("module","analysisId"))]
       mydata <- mydata[which(mydata$environment %in% input$env2IdxD),]
+      if(!is.null(input$effectType2IdxD)){
+        dtIdxD <- dtIdxD[which(dtIdxD$effectType %in% input$effectType2IdxD),]
+      }
       if(!is.null(input$entryType2IdxD)){
         dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$entryType2IdxD),]
       }
@@ -984,22 +1011,29 @@ mod_indexDesireApp_server <- function(id, data){
           desireRp <- dd[,"value"]
           traitRp <- dd[,"trait"]
         }else{desireRp <- values; traitRp <- input$trait2IdxD}
-        radarPlot(mydata=mydata, environmentPredictionsRadar2=input$env2IdxD,traitFilterPredictionsRadar2=traitRp,proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
-                  fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE, title="Radar plot to inspect population values versus target values.") # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
+        radarPlot(mydata=mydata, environmentPredictionsRadar2=input$env2IdxD,traitFilterPredictionsRadar2=traitRp,
+                  proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
+                  fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE,
+                  title="Radar plot to inspect population values versus target values.") # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
       }
     })
     # render plot for potential responses
     output$plotPotentialResponse <-  shiny::renderPlot({
+      # input <- list(version2IdxD=result$status$analysisId[6], trait2IdxD= c("FLW50","HT_AVG","YLDTONHA"), env2IdxD="(Intercept)",effectType2IdxD="designation", entryType2IdxD="EST007" )
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
       req(input$env2IdxD)
+      req(input$effectType2IdxD)
+      req(input$entryType2IdxD)
       dtIdxD <- data();
       values <- desireValues()
       if(!is.null(values)){
-        plotDensitySelected(object=dtIdxD,environmentPredictionsRadar2=input$env2IdxD, traitFilterPredictionsRadar2=input$trait2IdxD,
-                            entryTypePredictionRadar2=input$entryType2IdxD,meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
-                            analysisId=input$version2IdxD, trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex, title="Expected response to selection using current desire changes")
+        plotDensitySelected(object=dtIdxD,analysisId=input$version2IdxD,
+                            environmentPredictionsRadar2=input$env2IdxD, traitFilterPredictionsRadar2=input$trait2IdxD,
+                            effectTypePredictionRadar2=input$effectType2IdxD, entryTypePredictionRadar2=input$entryType2IdxD,
+                            meanGroupPredictionsRadar=paste(values, collapse = ", "), proportion=input$proportion,
+                             trait=input$trait2IdxD, desirev=paste(values, collapse = ", "), scaled=input$scaledIndex, title="Expected response to selection using current desire changes")
       }
 
     })
@@ -1033,6 +1067,7 @@ mod_indexDesireApp_server <- function(id, data){
           analysisId=input$version2IdxD, # analysis to be picked from predictions database
           trait= input$trait2IdxD, # traits to include in the index
           environmentToUse =input$env2IdxD ,
+          effectTypeToUse = input$effectType2IdxD,
           entryTypeToUse = input$entryType2IdxD,
           desirev = values, # as.numeric(unlist(strsplit(input$desirev,","))), # vector of desired values
           scaled=input$scaledIndex, # whether predicted values should be scaled or not

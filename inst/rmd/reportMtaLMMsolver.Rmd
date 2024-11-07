@@ -43,7 +43,7 @@ printTable <- function(DT, pageLength = 7,
                          ...)
   if (length(numericColNames) > 0){
     table <- table %>% DT::formatRound(columns = numericColNames,
-                                   digits = numRound)
+                                       digits = numRound)
   }
   
   table
@@ -94,38 +94,39 @@ if (is.null(result)){
   modeling <- result$modeling
   modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
   # predictions in all formats to be used later
-  predSplit <- split(pred, pred[,"entryType"])
+  predSplit <- split(pred, pred[,"effectType"])
   predSplitSplit <- lapply(predSplit, function(x){split(x, x[,"trait"])})
   predSplitSplit2 <- lapply(predSplit, function(x){split(x, x[,"environment"])})
   predSplitSplitWide <- lapply(predSplitSplit, function(y){lapply(y,function(x){
-  tableForm <- table(x$environment)
-  ninds <- tableForm; nEnvs <- length(tableForm)
-  idsmock <- unlist(apply(data.frame(as.vector(ninds)),1,function(z){paste0("id",1:z)}))
-  x <- x[with(x, order(environment, designation)), ]
-  x$idsmock <- as.vector(idsmock)
-  wide0 <- reshape(x[,c("environment","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
-                   timevar = "environment", v.names = "predictedValue", sep= "_")
-  wide0 <- wide0[,-1,drop=FALSE]; rownames(wide0) <- x$designation[1:max(ninds)]
-  wide0 <- wide0[,apply(wide0,2,sommer::propMissing) != 1, drop=FALSE]
-  colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
-  return(wide0)
-}
-)})
-  predSplitSplitWide2 <- lapply(predSplitSplit2, function(y){
+    tableForm <- table(x$environment)
+    ninds <- tableForm; nEnvs <- length(tableForm)
+    idsmock <- unlist(apply(data.frame(as.vector(ninds)),1,function(z){paste0("id",1:z)}))
+    x <- x[with(x, order(environment, designation)), ]
+    x$idsmock <- as.vector(idsmock)
+    wide0 <- reshape(x[,c("environment","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
+                     timevar = "environment", v.names = "predictedValue", sep= "_")
+    wide0 <- wide0[,-1,drop=FALSE]; rownames(wide0) <- x$designation[1:max(ninds)]
+    wide0 <- wide0[,apply(wide0,2,sommer::propMissing) != 1, drop=FALSE]
+    colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
+    return(wide0)
+  }
+  )})
+  predSplitSplitWide2 <- lapply(predSplitSplit2, function(y){ # for each environment do
     lapply(y,function(x){
-      tableForm <- table(x$trait)
-      ninds <- (tableForm); nEnvs <- length(tableForm)
-      idsmock <- unlist(apply(data.frame(as.vector(ninds)),1,function(z){paste0("id",1:z)}))
       x <- x[with(x, order(trait, designation)), ]
-      x$idsmock <- as.vector(idsmock)
-      wide0 <- reshape(x[,c("trait","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
+      wide0 <- reshape(x[,c("trait","predictedValue","designation")], direction = "wide", idvar = "designation",
                        timevar = "trait", v.names = "predictedValue", sep= "_")
-      wide0 <- wide0[,-1,drop=FALSE]; rownames(wide0) <- unique(x$designation)
-      colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
+      rownamesWide0 <- wide0[,1]
+      wide0 <- wide0[,-1,drop=FALSE]; 
+      wide0 <- apply(wide0,2,sommer::imputev)
+      if(is.matrix(wide0)){
+        rownames(wide0) <- rownamesWide0
+        colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
+      }
       return(wide0)
     })
   })
-  entryTypes <- rev(names(predSplitSplit))
+  effectTypes <- rev(names(predSplitSplit))
   envirTypes <- unique(pred$environment)
   # check names
   entryTypePresent <- table((unique(pred[,c("designation","entryType")]))$entryType)
@@ -142,7 +143,7 @@ if (is.null(result)){
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. Overall number of entries and entry types included in the multi trial analysis (input)
+1. Overall number of entries and effect types included in the multi trial analysis (input)
 
 2. High-level view of the phenotypic adjusted means included in the analysis (input)
 
@@ -177,15 +178,15 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     printTable(metricsMta, autoWidthOpt = TRUE, scrollXOpt = FALSE,
-           colNames = colnames(metricsMta),
-           numericColNames = c("value","stdError"),
-           numRound = 4)
+               colNames = colnames(metricsMta),
+               numericColNames = c("value","stdError"),
+               numRound = 4)
   }else{
     DT::renderDT(printTable(metricsMta,
-                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                        colNames = colnames(metricsMta),
-                        numericColNames = c("value","stdError"),
-                        numRound = 4), server = FALSE)
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                            colNames = colnames(metricsMta),
+                            numericColNames = c("value","stdError"),
+                            numRound = 4), server = FALSE)
     
   }
   
@@ -283,9 +284,9 @@ if (is.null(result)){
   }else{ # input <- list(boxplotMtaPredsTrait="YLDTONHA",boxplotMtaPredsType="environment_designation")
     inputPanel(
       selectInput(ns("boxplotMtaPredsType"),
-                  label = "Entry type",
-                  choices = entryTypes,
-                  selected=entryTypes[1]
+                  label = "Effect type",
+                  choices = effectTypes,
+                  selected=effectTypes[1]
       ),
       selectInput(ns("boxplotMtaPredsTrait"), 
                   label = "Trait", 
@@ -308,7 +309,7 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
     cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
-    for(iType in entryTypes){
+    for(iType in effectTypes){
       cat("\n\n####", iType, "{.tabset .tabset-pills}       \n\n")
       for(iTrait in traits){
         cat("\n\n#####", iTrait, "{.tabset .tabset-pills}       \n\n")
@@ -501,13 +502,13 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{ # input <- list(traitPredictionsCorrelation=traits[1],boxplotMtaPredsTypeCorr=entryTypes[1])
+  }else{ # input <- list(traitPredictionsCorrelation=traits[1],boxplotMtaPredsTypeCorr=effectTypes[1])
     
     inputPanel(
       selectInput(ns("corrplotMtaPredsType"),
-                  label = "Entry type",
-                  choices = entryTypes, multiple = TRUE,
-                  selected = entryTypes[1]
+                  label = "Effect type",
+                  choices = effectTypes, multiple = TRUE,
+                  selected = effectTypes[1]
       ),
       selectInput(ns("traitPredictionsCorrelation"),
                   label = "Trait",
@@ -531,7 +532,7 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
-    for(iType2 in entryTypes){
+    for(iType2 in effectTypes){
       cat("\n\n####", iType2, "{.tabset .tabset-pills}       \n\n")
       
       for(iTrait2 in traits){
@@ -628,13 +629,13 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{ # input <- list(biplotMtaPredsType=entryTypes[1:4],traitBiplot=traits[1])
+  }else{ # input <- list(biplotMtaPredsType=effectTypes[1:4],traitBiplot=traits[1])
     
     inputPanel(
       selectInput(ns("biplotMtaPredsType"),
-                  label = "Entry type:",
-                  choices = entryTypes, multiple = TRUE,
-                  selected=entryTypes[1]
+                  label = "Effect type:",
+                  choices = effectTypes, multiple = TRUE,
+                  selected=effectTypes[1]
       ),
       selectInput(ns("traitBiplot"),
                   label = "Trait:",
@@ -660,7 +661,7 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
-    for(iType3 in entryTypes){
+    for(iType3 in effectTypes){
       cat("\n\n####", iType3, "{.tabset .tabset-pills}       \n\n")
       
       for(iTrait3 in traits){
@@ -674,7 +675,7 @@ if (is.null(result)){
         rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
         pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
         
-        if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) >1 ) ) ){
+        if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
           prin_comp <- prcomp(pred.mta.biplot, rank = 2)
           components <- prin_comp[["x"]]
           components <- data.frame(components)
@@ -726,7 +727,7 @@ if (is.null(result)){
         rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
         pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
         
-        if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) >1 ) ) ){
+        if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
           prin_comp <- prcomp(pred.mta.biplot, rank = 2)
           components <- prin_comp[["x"]]
           components <- data.frame(components)
@@ -761,6 +762,7 @@ if (is.null(result)){
         } # end of if cols > 1
         
       } # end of if biplotMtaPredsType has length > 0
+      
     }) # end of plotly
     
   }
@@ -772,7 +774,7 @@ if (is.null(result)){
 
 ### Predictions: Merit estimates of top entries
 
-In the left-side plot you can observe the comparison between the top 100 entries from each entry type category for the different traits. If a category has less than a 100 entries all individuals are displayed. This should allow you to identify the entries that could potentially become parents or nominated for advanced stages of evaluation. We would recommend you to wait until a selection index is calculated. In the right-side plot you can see a boxplot of the entire distribution of values for each entryType category so you know until which trait-values the rest of the entries that are not plotted in the left-side plot reach. 
+In the left-side plot you can observe the comparison between the top 100 entries from each effect type category for the different traits. If a category has less than a 100 entries all individuals are displayed. This should allow you to identify the entries that could potentially become parents or nominated for advanced stages of evaluation. We would recommend you to wait until a selection index is calculated. In the right-side plot you can see a boxplot of the entire distribution of values for each effectType category so you know until which trait-values the rest of the entries that are not plotted in the left-side plot reach. 
 
 
 ```{r }
@@ -782,12 +784,12 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{ # input <- list(scatterMtaPredsType=entryTypes[1], scatterMtaPredsTrait=traits[1], scatterMtaPredsEnvir=envirTypes[1])
+  }else{ # input <- list(scatterMtaPredsType=effectTypes[1], scatterMtaPredsTrait=traits[1], scatterMtaPredsEnvir=envirTypes[1])
     inputPanel(
       selectInput(ns("scatterMtaPredsType"),
-                  label = "Entry type:",
-                  choices = entryTypes, multiple = TRUE,
-                  selected=entryTypes[1]
+                  label = "Effect type:",
+                  choices = effectTypes, multiple = TRUE,
+                  selected=effectTypes[1]
       ),
       selectInput(ns("scatterMtaPredsTrait"),
                   label = "Trait",
@@ -813,7 +815,7 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
-    for(iType4 in entryTypes){
+    for(iType4 in effectTypes){
       cat("\n\n####", iType4, "{.tabset .tabset-pills}       \n\n")
       for(iTrait4 in traits){
         cat("\n\n#####", iTrait4, "{.tabset .tabset-pills}       \n\n")
@@ -834,11 +836,11 @@ if (is.null(result)){
             p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
               ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
               ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
-              ggplot2::labs(x="", y="Trait value", color="Entry type") +  
+              ggplot2::labs(x="", y="Trait value", color="Effect type") +  
               ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
             
             # plot 2
-            temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$entryType)
+            temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$effectType)
             temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
               x <- x[with(x, order(-predictedValue)), ]
               x <- x[1:min(c(nrow(x), 100)),]
@@ -866,7 +868,7 @@ if (is.null(result)){
               ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                                   ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                      width = 0.10) +
-              ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
+              ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Effect type") +
               ggplot2::theme(axis.text.x = ggplot2::element_blank() , legend.position = "none", legend.title = element_blank() ) +   # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
               ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
               ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -900,11 +902,11 @@ if (is.null(result)){
           p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
             ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
             ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
-            ggplot2::labs(x="", y="Trait value", color="Entry type") +  
+            ggplot2::labs(x="", y="Trait value", color="Effect type") +  
             ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
           
           # plot 2
-          temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$entryType)
+          temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$effectType)
           temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
             x <- x[with(x, order(-predictedValue)), ]
             x <- x[1:min(c(nrow(x), 100)),]
@@ -932,7 +934,7 @@ if (is.null(result)){
             ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                                 ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                    width = 0.10) +
-            ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
+            ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Effect type") +
             ggplot2::theme(axis.text.x = ggplot2::element_blank() , legend.position = "none", legend.title = element_blank() ) +   # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
             ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
             ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -959,14 +961,14 @@ The following table allows you to inspect the trait predictions in wide format t
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  pred.mta <- subset(pred, select = c(trait,designation,environment,entryType,predictedValue))
+  pred.mta <- subset(pred, select = c(trait,designation,environment,effectType,entryType,predictedValue))
   pred.mta.wide <- reshape(
     data=pred.mta, 
     timevar = c("trait"), 
-    idvar = c("environment","designation","entryType"), 
+    idvar = c("environment","designation","effectType","entryType"), 
     direction="wide"
   )
-  names(pred.mta.wide) <- c("designation","environment","entryType",traits)
+  names(pred.mta.wide) <- c("designation","environment","effectType","entryType",traits)
   
   if(!is.null(result$data$qtl)  ){ # there's QTL information
     if(nrow(result$data$qtl)>0){
@@ -978,15 +980,15 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     printTable(pred.mta.wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
-           colNames = colnames(pred.mta.wide),
-           numericColNames = traits,
-           numRound = 4)
+               colNames = colnames(pred.mta.wide),
+               numericColNames = traits,
+               numRound = 4)
   }else{
     DT::renderDT(printTable(pred.mta.wide,
-                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                        colNames = colnames(pred.mta.wide),
-                        numericColNames = traits,
-                        numRound = 4), server = FALSE)
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                            colNames = colnames(pred.mta.wide),
+                            numericColNames = traits,
+                            numRound = 4), server = FALSE)
   }
   
 }
@@ -1006,12 +1008,12 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{ # input <- list(corrplotTraitMtaPredsType=entryTypes[1],corrplotTraitMtaPredsEnv=envirTypes[1])
+  }else{ # input <- list(corrplotTraitMtaPredsType=effectTypes[1],corrplotTraitMtaPredsEnv=envirTypes[1])
     
     inputPanel(
       selectInput(ns("corrplotTraitMtaPredsType"),
-                  label = "Entry type",
-                  choices = entryTypes, multiple = FALSE,
+                  label = "Effect type",
+                  choices = effectTypes, multiple = FALSE,
       ),
       selectInput(ns("corrplotTraitMtaPredsEnv"),
                   label = "Environment", 
@@ -1035,7 +1037,7 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
-    for(iType5 in entryTypes){
+    for(iType5 in effectTypes){
       cat("\n\n####", iType5, "{.tabset .tabset-pills}       \n\n")
       
       for(iEnv5 in envirTypes){
@@ -1139,11 +1141,11 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     printTable(modelingMta, autoWidthOpt = TRUE, scrollXOpt = FALSE,
-           colNames = colnames(modelingMta))
+               colNames = colnames(modelingMta))
   }else{
     DT::renderDT(printTable(modelingMta,
-                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                        colNames = colnames(modelingMta)), server = FALSE)
+                            autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                            colNames = colnames(modelingMta)), server = FALSE)
   }
   
 }
