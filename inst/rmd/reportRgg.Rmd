@@ -168,7 +168,7 @@ if (is.null(result)){
                    timevar = "parameter", v.names = "stdError", sep= "_")
   wide <- merge(wide1, wide2, by="trait")
   
-  numeric.output2 <- setdiff(colnames(wide), "trait")
+  numeric.output2 <- which( colnames(wide) %in% setdiff(colnames(wide), "trait") )
   if("params" %in% ls()){ # we will download the document
     # cat("\n\n## Table       \n\n")
     printTable(wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
