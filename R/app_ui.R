@@ -86,7 +86,7 @@ app_ui <- function(request) {
                                        tabPanel(div("LMMsolve" ), mod_mtaLMMsolveApp_ui("mtaLMMsolveApp_1") ), # biplot is part of the report in MET
                                        tabPanel(div("lme4", style = "color:red" )) , # biplot is part of the report in MET
                                        tabPanel(div("sommer", style = "color:red" )) , # biplot is part of the report in MET
-                                       tabPanel(div("asreml", style = "color:red"), mod_mtaCrossValApp_ui("mtaCrossValApp_1") ),
+                                       tabPanel(div("asreml", style = "color:red") ),
                           )
                  ),
 

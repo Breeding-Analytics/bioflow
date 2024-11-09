@@ -288,13 +288,13 @@ if (is.null(result)){
                   choices = effectTypes,
                   selected=effectTypes[1]
       ),
-      selectInput(ns("boxplotMtaPredsTrait"), 
-                  label = "Trait", 
+      column(width=12),
+      selectInput(ns("boxplotMtaPredsTrait"),
+                  label = "Trait",
                   choices = traits,
                   selected=traits[1]
       ),
     )
-    
   }
   
 }
@@ -314,6 +314,32 @@ if (is.null(result)){
       for(iTrait in traits){
         cat("\n\n#####", iTrait, "{.tabset .tabset-pills}       \n\n")
         temp.pred.box <- predSplitSplit[[iType]][[iTrait]] 
+        if(!is.null(temp.pred.box)){
+          if(nrow(temp.pred.box) > 0){
+            p <- temp.pred.box %>%
+              ggplot() +
+              aes(x=environment, y=predictedValue, fill = environment) +
+              geom_boxplot() +
+              labs(x = "Environmental mean", y = "Trait value") +
+              scale_fill_discrete(name = "") +
+              theme(legend.position = "bottom") +
+              guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
+            
+          }else{
+            p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          }# end of nrow > 0
+        }else{
+          p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        }
+        print(p)
+      }# end of for each trait
+    } # enf of for each type
+    
+  } else{ # display in website
+    
+    shiny::renderPlot({
+      temp.pred.box <- predSplitSplit[[input$boxplotMtaPredsType]][[input$boxplotMtaPredsTrait]] 
+      if(!is.null(temp.pred.box)){
         if(nrow(temp.pred.box) > 0){
           p <- temp.pred.box %>%
             ggplot() +
@@ -323,27 +349,9 @@ if (is.null(result)){
             scale_fill_discrete(name = "") +
             theme(legend.position = "bottom") +
             guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
-          print(p)
-        }# end of nrow > 0
-      }# end of for each trait
-    } # enf of for each type
-    
-  } else{ # display in website
-    
-    shiny::renderPlot({
-      temp.pred.box <- predSplitSplit[[input$boxplotMtaPredsType]][[input$boxplotMtaPredsTrait]] 
-      
-      if(nrow(temp.pred.box) > 0){
-        p <- temp.pred.box %>%
-          ggplot() +
-          aes(x=environment, y=predictedValue, fill = environment) +
-          geom_boxplot() +
-          labs(x = "Environmental mean", y = "Trait value") +
-          scale_fill_discrete(name = "") +
-          theme(legend.position = "bottom") +
-          guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
-        p
-      }
+          p
+        }else{ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")}
+      }else{ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")}
       
     })
     
@@ -502,7 +510,7 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{ # input <- list(traitPredictionsCorrelation=traits[1],boxplotMtaPredsTypeCorr=effectTypes[1])
+  }else{ # input <- list(traitPredictionsCorrelation=traits[1],corrplotMtaPredsType=effectTypes[1])
     
     inputPanel(
       selectInput(ns("corrplotMtaPredsType"),
@@ -510,6 +518,7 @@ if (is.null(result)){
                   choices = effectTypes, multiple = TRUE,
                   selected = effectTypes[1]
       ),
+      column(width=12),
       selectInput(ns("traitPredictionsCorrelation"),
                   label = "Trait",
                   choices = traits,
@@ -539,7 +548,56 @@ if (is.null(result)){
         cat("\n\n#####", iTrait2, "{.tabset .tabset-pills}       \n\n")
         
         wide2 <- predSplitSplitWide[[iType2]][[iTrait2]] 
-        if(nrow(wide2) > 1){
+        if(!is.null(wide2)){
+          if(nrow(wide2) > 1){
+            corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+            mydata4 <- cgiarBase::matToTab(corr)
+            p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+              ggplot2::geom_tile(color = "white")+
+              ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                            midpoint = 0, limit = c(-1,1), space = "Lab",
+                                            name="Pearson\nCorrelation") +
+              ggplot2::theme_minimal()+
+              ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
+              ggplot2::coord_fixed() + 
+              # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+              #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+              ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
+            if(nrow(corr) < 8){ # if user wants to fill cell values
+              p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+            }
+            # Basic histogram
+            mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
+            group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+            p2 <- ggplot(mydata4, aes(x=Freq, fill=Group)) + 
+              geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+              scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+          }else{
+            p <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
+            p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
+          }
+        }else{
+          p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        }
+        
+        # combine plots
+        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+      }
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      # shiny::renderPlot({
+      if(length(input$corrplotMtaPredsType) > 0){
+        level1 <- predSplitSplitWide[input$corrplotMtaPredsType]
+        level2 <- lapply(level1, function(x){x[input$traitPredictionsCorrelation]})
+        
+        level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
+        if(length(level3)>0){
+          N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
+          wide2 <- do.call(cbind,level3[ names(N)[which(N == N[1])] ])
           corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
           mydata4 <- cgiarBase::matToTab(corr)
           p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -549,9 +607,9 @@ if (is.null(result)){
                                           name="Pearson\nCorrelation") +
             ggplot2::theme_minimal()+
             ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-            ggplot2::coord_fixed() + 
+            ggplot2::coord_fixed() +
             # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-            #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+            #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
             ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
           if(nrow(corr) < 8){ # if user wants to fill cell values
             p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
@@ -563,44 +621,11 @@ if (is.null(result)){
             geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
             scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
           # combine plots
-          print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+          
+        }else{
+          p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }
-      }
-    }
-    
-  }else{
-    
-    plotly::renderPlotly({
-      # shiny::renderPlot({
-      if(length(input$corrplotMtaPredsType) > 0){
-        level1 <- predSplitSplitWide[input$corrplotMtaPredsType]
-        level2 <- lapply(level1, function(x){x[input$traitPredictionsCorrelation]})
-        level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
-        N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
-        wide2 <- do.call(cbind,level3[ names(N)[which(N == N[1])] ])
-        corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
-        mydata4 <- cgiarBase::matToTab(corr)
-        p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
-          ggplot2::geom_tile(color = "white")+
-          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
-                                        midpoint = 0, limit = c(-1,1), space = "Lab",
-                                        name="Pearson\nCorrelation") +
-          ggplot2::theme_minimal()+
-          ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-          ggplot2::coord_fixed() +
-          # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-          #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-        if(nrow(corr) < 8){ # if user wants to fill cell values
-          p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-        }
-        # Basic histogram
-        mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
-        group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-        p2 <- ggplot(mydata4, aes(x=Freq, fill=Group)) + 
-          geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-          scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
-        # combine plots
         ply1 <- plotly::ggplotly(p)
         ply2 <- plotly::ggplotly(p2)
         plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
@@ -637,6 +662,7 @@ if (is.null(result)){
                   choices = effectTypes, multiple = TRUE,
                   selected=effectTypes[1]
       ),
+      column(width=12),
       selectInput(ns("traitBiplot"),
                   label = "Trait:",
                   choices = traits,
@@ -670,46 +696,48 @@ if (is.null(result)){
         level1 <- predSplitSplitWide[iType3]
         level2 <- lapply(level1, function(x){x[iTrait3]})
         level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
-        N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
-        pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
-        rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
-        pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
-        
-        if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
-          prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-          components <- prin_comp[["x"]]
-          components <- data.frame(components)
-          components$PC2 <- -components$PC2
-          
-          explained_variance <- summary(prin_comp)[["sdev"]]
-          explained_variance <- explained_variance[1:2]
-          comp <- prin_comp[["rotation"]]
-          comp[,'PC2'] <- - comp[,'PC2']
-          loadings <- comp
-          for (i in seq(explained_variance) ){
-            loadings[,i] <- comp[,i] * explained_variance[i]
-          }
-          p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-          p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                            x=components$PC1,
-                                            y=components$PC2,
-                                            text=rownames(components),
-                                            marker=list(color="blue"),
-                                            hoverinfo='text',
-                                            showlegend=FALSE
-          )
-          for (i in 1:ncol(pred.mta.biplot)){
-            p.mta.biplot <- p.mta.biplot %>%
-              plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-            if(ncol(pred.mta.biplot) < 20){
+        if(length(level3)>0){
+          N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
+          pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
+          rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+          pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+          if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
+            prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+            components <- prin_comp[["x"]]
+            components <- data.frame(components)
+            components$PC2 <- -components$PC2
+            
+            explained_variance <- summary(prin_comp)[["sdev"]]
+            explained_variance <- explained_variance[1:2]
+            comp <- prin_comp[["rotation"]]
+            comp[,'PC2'] <- - comp[,'PC2']
+            loadings <- comp
+            for (i in seq(explained_variance) ){
+              loadings[,i] <- comp[,i] * explained_variance[i]
+            }
+            p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+            p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                              x=components$PC1,
+                                              y=components$PC2,
+                                              text=rownames(components),
+                                              marker=list(color="blue"),
+                                              hoverinfo='text',
+                                              showlegend=FALSE
+            )
+            for (i in 1:ncol(pred.mta.biplot)){
               p.mta.biplot <- p.mta.biplot %>%
-                plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+                plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+              if(ncol(pred.mta.biplot) < 20){
+                p.mta.biplot <- p.mta.biplot %>%
+                  plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+              }
             }
           }
-          print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+        }else{ # end of if length > 0
+          p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }
-        
-      }
+        print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+      }# end of for each trait
       
     }
     
@@ -722,47 +750,55 @@ if (is.null(result)){
         level1 <- predSplitSplitWide[input$biplotMtaPredsType]
         level2 <- lapply(level1, function(x){x[input$traitBiplot]})
         level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
-        N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
-        pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
-        rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
-        pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
-        
-        if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
-          prin_comp <- prcomp(pred.mta.biplot, rank = 2)
-          components <- prin_comp[["x"]]
-          components <- data.frame(components)
-          components$PC2 <- -components$PC2
-          
-          explained_variance <- summary(prin_comp)[["sdev"]]
-          explained_variance <- explained_variance[1:2]
-          comp <- prin_comp[["rotation"]]
-          comp[,'PC2'] <- - comp[,'PC2']
-          loadings <- comp
-          for (i in seq(explained_variance) ){
-            loadings[,i] <- comp[,i] * explained_variance[i]
-          }
-          p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
-          p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
-                                            x=components$PC1,
-                                            y=components$PC2,
-                                            text=rownames(components),
-                                            marker=list(color="blue"),
-                                            hoverinfo='text',
-                                            showlegend=FALSE
-          )
-          for (i in 1:ncol(pred.mta.biplot)){
-            p.mta.biplot <- p.mta.biplot %>%
-              plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
-            if(ncol(pred.mta.biplot) < 20){
-              p.mta.biplot <- p.mta.biplot %>%
-                plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+        if(length(level3) > 0){
+          N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
+          pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
+          rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+          pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+          if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
+            prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+            components <- prin_comp[["x"]]
+            components <- data.frame(components)
+            components$PC2 <- -components$PC2
+            
+            explained_variance <- summary(prin_comp)[["sdev"]]
+            explained_variance <- explained_variance[1:2]
+            comp <- prin_comp[["rotation"]]
+            comp[,'PC2'] <- - comp[,'PC2']
+            loadings <- comp
+            for (i in seq(explained_variance) ){
+              loadings[,i] <- comp[,i] * explained_variance[i]
             }
-          }
-          plotly::layout(p.mta.biplot) # ,font=font.plot_ly
-        } # end of if cols > 1
-        
+            p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+            p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                              x=components$PC1,
+                                              y=components$PC2,
+                                              text=rownames(components),
+                                              marker=list(color="blue"),
+                                              hoverinfo='text',
+                                              showlegend=FALSE
+            )
+            for (i in 1:ncol(pred.mta.biplot)){
+              p.mta.biplot <- p.mta.biplot %>%
+                plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+              if(ncol(pred.mta.biplot) < 20){
+                p.mta.biplot <- p.mta.biplot %>%
+                  plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+              }
+            }
+          }else{
+            px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+            p.mta.biplot <- plotly::ggplotly(px) 
+          } # end of if cols > 1
+        }else{
+          px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          p.mta.biplot <- plotly::ggplotly(px) 
+        }
+      }else{
+        px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        p.mta.biplot <- plotly::ggplotly(px) 
       } # end of if biplotMtaPredsType has length > 0
-      
+      plotly::layout(p.mta.biplot) # ,font=font.plot_ly
     }) # end of plotly
     
   }
@@ -791,11 +827,13 @@ if (is.null(result)){
                   choices = effectTypes, multiple = TRUE,
                   selected=effectTypes[1]
       ),
+      column(width=12),
       selectInput(ns("scatterMtaPredsTrait"),
                   label = "Trait",
                   choices = traits,
                   selected=traits[1]
       ),
+      column(width=12),
       selectInput(ns("scatterMtaPredsEnvir"),
                   label = "Environment",
                   choices = envirTypes,
@@ -828,7 +866,80 @@ if (is.null(result)){
           for(o in 1:length(level2)){level3[[o]] <- level2[[o]][[1]]}
           temp.pred.box.top <- do.call(rbind,level3)
           temp.pred.box.top <- temp.pred.box.top[which(temp.pred.box.top$environment %in% iEnv4),]
-          
+          if(!is.null(temp.pred.box.top)){
+            if(nrow(temp.pred.box.top) > 0){
+              ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
+              lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
+              
+              p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
+                ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
+                ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
+                ggplot2::labs(x="", y="Trait value", color="Effect type") +  
+                ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+              
+              # plot 2
+              temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$effectType)
+              temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
+                x <- x[with(x, order(-predictedValue)), ]
+                x <- x[1:min(c(nrow(x), 100)),]
+                return(x)
+              })
+              temp.pred.box.top2 <- as.data.frame(do.call(rbind, temp.pred.box.top.list))
+              temp.pred.box.top2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top2$entryType))]
+              
+              p2 <- ggplot2::ggplot(
+                data = temp.pred.box.top2,
+                mapping = ggplot2::aes(
+                  x = reorder(designation, -predictedValue),
+                  y = predictedValue,
+                  col = entryType,
+                  text = paste(
+                    paste0('<br>', "designation: ", designation),
+                    paste0('<br>', "entry type: ", entryType),
+                    paste0('<br>', "predicted value: ", round(predictedValue, 4)),
+                    paste0('<br>', "standard error: ", round(stdError, 4)),
+                    # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
+                    #        round(predictedValue + CI, 2), ")")))) +
+                    paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
+                           round(predictedValue + stdError, 4), ")")))) +
+                ggplot2::theme_classic() +  ggplot2::geom_point() +
+                ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
+                                                    ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
+                                       width = 0.10) +
+                ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Effect type") +
+                ggplot2::theme(axis.text.x = ggplot2::element_blank() , legend.position = "none", legend.title = element_blank() ) +   # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
+                ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
+                ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
+              
+              
+            }else{
+              p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+            }
+          }else{
+            p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          }
+          ply1 <- plotly::ggplotly(p1)
+          ply2 <- plotly::ggplotly(p2)
+          print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = FALSE, nrows=2, heights = c(0.75,0.25) ) ) )
+        } # enf of nrow > 0
+        
+      }
+    }
+    
+  }else{
+    
+    plotly::renderPlotly({
+      
+      if(length(input$scatterMtaPredsType) > 0){
+        
+        level1 <- predSplitSplit[input$scatterMtaPredsType]
+        level2 <- lapply(level1, function(x){x[input$scatterMtaPredsTrait]})
+        level3 <- list()
+        for(o in 1:length(level2)){level3[[o]] <- level2[[o]][[1]]}
+        temp.pred.box.top <- do.call(rbind,level3)
+        temp.pred.box.top <- temp.pred.box.top[which(temp.pred.box.top$environment %in% input$scatterMtaPredsEnvir),]
+        
+        if(!is.null(temp.pred.box.top)){
           if(nrow(temp.pred.box.top) > 0){
             ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
             lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
@@ -873,76 +984,17 @@ if (is.null(result)){
               ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
               ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
             
-            ply1 <- plotly::ggplotly(p1)
-            ply2 <- plotly::ggplotly(p2)
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = FALSE, nrows=2, heights = c(0.75,0.25) ) ) )
-          }
-        } # enf of nrow > 0
+            
+          }else{
+            p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          } # enf of nrow > 0
+        }else{
+          p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        }
+        ply1 <- plotly::ggplotly(p1)
+        ply2 <- plotly::ggplotly(p2)
+        plotly::subplot(ply2, ply1, nrows=2, shareX = FALSE,  heights = c(0.75,0.25))
         
-      }
-    }
-    
-  }else{
-    
-    plotly::renderPlotly({
-      
-      if(length(input$scatterMtaPredsType) > 0){
-        
-        level1 <- predSplitSplit[input$scatterMtaPredsType]
-        level2 <- lapply(level1, function(x){x[input$scatterMtaPredsTrait]})
-        level3 <- list()
-        for(o in 1:length(level2)){level3[[o]] <- level2[[o]][[1]]}
-        temp.pred.box.top <- do.call(rbind,level3)
-        temp.pred.box.top <- temp.pred.box.top[which(temp.pred.box.top$environment %in% input$scatterMtaPredsEnvir),]
-        
-        if(nrow(temp.pred.box.top) > 0){
-          ub <- max(temp.pred.box.top$predictedValue + temp.pred.box.top$stdError, na.rm = TRUE)
-          lb <- min(temp.pred.box.top$predictedValue - temp.pred.box.top$stdError, na.rm = TRUE)
-          
-          p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
-            ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
-            ggplot2::labs(x="", y="Trait value", color="Effect type") +  
-            ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
-          
-          # plot 2
-          temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$effectType)
-          temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
-            x <- x[with(x, order(-predictedValue)), ]
-            x <- x[1:min(c(nrow(x), 100)),]
-            return(x)
-          })
-          temp.pred.box.top2 <- as.data.frame(do.call(rbind, temp.pred.box.top.list))
-          temp.pred.box.top2$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.top2$entryType))]
-          
-          p2 <- ggplot2::ggplot(
-            data = temp.pred.box.top2,
-            mapping = ggplot2::aes(
-              x = reorder(designation, -predictedValue),
-              y = predictedValue,
-              col = entryType,
-              text = paste(
-                paste0('<br>', "designation: ", designation),
-                paste0('<br>', "entry type: ", entryType),
-                paste0('<br>', "predicted value: ", round(predictedValue, 4)),
-                paste0('<br>', "standard error: ", round(stdError, 4)),
-                # paste0("<br>95% CI: (", round(predictedValue - CI, 2) , ", ",
-                #        round(predictedValue + CI, 2), ")")))) +
-                paste0("<br>predVal +- stdError: (", round(predictedValue - stdError, 2) , ", ",
-                       round(predictedValue + stdError, 4), ")")))) +
-            ggplot2::theme_classic() +  ggplot2::geom_point() +
-            ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
-                                                ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
-                                   width = 0.10) +
-            ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Effect type") +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank() , legend.position = "none", legend.title = element_blank() ) +   # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
-            ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
-            ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
-          
-          ply1 <- plotly::ggplotly(p1)
-          ply2 <- plotly::ggplotly(p2)
-          plotly::subplot(ply2, ply1, nrows=2, shareX = FALSE,  heights = c(0.75,0.25))
-        } # enf of nrow > 0
       } # end of length(input$scatterMtaPredsType) > 0
       
     })
@@ -1015,6 +1067,7 @@ if (is.null(result)){
                   label = "Effect type",
                   choices = effectTypes, multiple = FALSE,
       ),
+      column(width=12),
       selectInput(ns("corrplotTraitMtaPredsEnv"),
                   label = "Environment", 
                   choices = envirTypes
@@ -1113,12 +1166,16 @@ if (is.null(result)){
           p2 <- ggplot2::ggplot(mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], ggplot2::aes(x=Freq, fill=Group)) + 
             ggplot2::geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
             ggplot2::scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
-          # combine plots
+        }else{
+          p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        }
+      }else{
+        p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+      }
+      # combine plots
           ply1 <- plotly::ggplotly(p)
           ply2 <- plotly::ggplotly(p2)
           plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
-        }
-      }
       # print(p)
     })
     

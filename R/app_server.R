@@ -279,7 +279,7 @@ app_server <- function(input, output, session) {
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
   # mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
   # mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
-  mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
+  # mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
