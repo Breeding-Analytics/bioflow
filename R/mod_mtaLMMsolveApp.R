@@ -95,10 +95,10 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                    ),
                                                                    column(width=12,
-                                                                             column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                                                             column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                                             column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
-                                                                             column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                          column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                          column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
+                                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
                                                                    ),
                                                ),
                                       ),
@@ -150,6 +150,23 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   column(width=12,
+                                                                          column(width=6,
+                                                                                 tags$span(id = ns('covTextHolderMain'), h4("The main effect model assumes that there is no genotype by environment interaction or that its calculation is not needed. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments. "),  ),
+                                                                                 tags$span(id = ns('covTextHolderCompound'), h4("The compound symmetry model assumes that there is a main effect driving the performance of the designation but also specific deviations in each environment. The assumption is that all environments have the same designation variance and all pairs of environments have the same designation covariance."), ),
+                                                                                 tags$span(id = ns('covTextHolderFinlay'), h4("The Finlay-Wilkinson model assumes that there is a main effect driving the performance of the designation but also specific deviations in each environment. The assumption is that all environments have the same designation variance and deviations are with respect to an environmental covariate which can be the trait means at different environments."), ),
+                                                                                 tags$span(id = ns('covTextHolderDiagonal'), h4("The diagonal model assumes that there's a different designation variance at each environment and that covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect. "),  ),
+                                                                                 tags$span(id = ns('covTextHolderDiagonalMain'), h4("The diagonal plus main effect model assumes that there is a main effect for designation but at the same time each enviroment causes the expression of environment specific designation variance. The covariance between designation effects between environments is assumed to be zero. "),  ),
+                                                                          ),
+
+                                                                          column(width=6,
+                                                                                 tags$span(id = ns('covFigHolderMain'), img(src = "www/mta.png", height = 300, width = 450), ),
+                                                                                 tags$span(id = ns('covFigHolderCompound'), img(src = "www/mta.png", height = 300, width = 450), ),
+                                                                                 tags$span(id = ns('covFigHolderFinlay'), img(src = "www/mta.png", height = 300, width = 450), ),
+                                                                                 tags$span(id = ns('covFigHolderDiagonal'), img(src = "www/mta.png", height = 300, width = 450), ),
+                                                                                 tags$span(id = ns('covFigHolderDiagonalMain'), img(src = "www/mta.png", height = 300, width = 450), ),
+                                                                          ),
                                                                    ),
                                                                    tags$span(id = ns('holder3'),
                                                                              column(width=12, p(span("Connectivity between data types.", style="color:black")) ),
@@ -277,6 +294,19 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
+    })
+    observeEvent(c(data(), input$version2Mta, input$trait2Mta, input$radio), {
+      req(data());req(input$version2Mta);req(input$trait2Mta); req(input$radio)
+      golem::invoke_js('hideid', ns('covTextHolderMain')); golem::invoke_js('hideid', ns('covFigHolderMain'))
+      golem::invoke_js('hideid', ns('covTextHolderCompound')); golem::invoke_js('hideid', ns('covFigHolderCompound'))
+      golem::invoke_js('hideid', ns('covTextHolderFinlay')); golem::invoke_js('hideid', ns('covFigHolderFinlay'))
+      golem::invoke_js('hideid', ns('covTextHolderDiagonal')); golem::invoke_js('hideid', ns('covFigHolderDiagonal'))
+      golem::invoke_js('hideid', ns('covTextHolderDiagonalMain'));  golem::invoke_js('hideid', ns('covFigHolderDiagonalMain'))
+      if(input$radio == "mn_model" ){golem::invoke_js('showid', ns('covTextHolderMain')); golem::invoke_js('showid', ns('covFigHolderMain'))}
+      if(input$radio == "cs_model" ){golem::invoke_js('showid', ns('covTextHolderCompound')); golem::invoke_js('showid', ns('covFigHolderCompound'))}
+      if(input$radio == "fw_model" ){golem::invoke_js('showid', ns('covTextHolderFinlay')); golem::invoke_js('showid', ns('covFigHolderFinlay'))}
+      if(input$radio == "dg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonal')); golem::invoke_js('showid', ns('covFigHolderDiagonal'))}
+      if(input$radio == "csdg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonalMain')); golem::invoke_js('showid', ns('covFigHolderDiagonalMain'))}
     })
     #################
     ## version
@@ -555,10 +585,10 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(input$nTermsRandom)
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
-      choices <- c(  "none0", "none1", "none2", "none3", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
+      choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
       envs <- unique(mydata[,"environment"])
       envsDg <- paste0("env",envs)
-      if(input$radioModel == "geno_model"){useMod1 <- "none0"; useMod2 <- "geno"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none0"; useMod2 <- "pedigree"}else{useMod1 <- "none0"; useMod2 <- "none1"}
+      if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "geno"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else{useMod1 <- "none"; useMod2 <- "none."}
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
@@ -686,7 +716,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           values[[i]] <- s1
         }
 
-          values <- unlist(values)
+        values <- unlist(values)
         if(!is.null(values)){
           names(values) <- choices
         }

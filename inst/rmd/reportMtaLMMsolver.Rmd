@@ -551,6 +551,12 @@ if (is.null(result)){
         if(!is.null(wide2)){
           if(nrow(wide2) > 1){
             corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+            if(nrow(corr) > 1){
+              if( length(which(is.na(corr))) == 0){
+                ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+                corr <- corr[ord,ord]
+              }
+            }
             mydata4 <- cgiarBase::matToTab(corr)
             p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
               ggplot2::geom_tile(color = "white")+
@@ -599,6 +605,12 @@ if (is.null(result)){
           N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
           wide2 <- do.call(cbind,level3[ names(N)[which(N == N[1])] ])
           corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+          if(nrow(corr) > 1){
+            if( length(which(is.na(corr))) == 0){
+              ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+              corr <- corr[ord,ord]
+            }
+          }
           mydata4 <- cgiarBase::matToTab(corr)
           p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
             ggplot2::geom_tile(color = "white")+
@@ -732,9 +744,11 @@ if (is.null(result)){
                   plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
               }
             }
+          }else{
+            p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
           }
         }else{ # end of if length > 0
-          p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
         }
         print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
       }# end of for each trait
@@ -787,15 +801,15 @@ if (is.null(result)){
               }
             }
           }else{
-            px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+            px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
             p.mta.biplot <- plotly::ggplotly(px) 
           } # end of if cols > 1
         }else{
-          px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
           p.mta.biplot <- plotly::ggplotly(px) 
         }
       }else{
-        px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
         p.mta.biplot <- plotly::ggplotly(px) 
       } # end of if biplotMtaPredsType has length > 0
       plotly::layout(p.mta.biplot) # ,font=font.plot_ly
@@ -1098,8 +1112,9 @@ if (is.null(result)){
         
         wideCorTrait2 <- predSplitSplitWide2[[iType5]][[iEnv5]]
         if(!is.null(wideCorTrait2)){
-          wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
+          
           if(is.matrix(wideCorTrait2)){
+            wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
             corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
             mydata4CorTraits <- cgiarBase::matToTab(corrX)
             p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -1122,13 +1137,17 @@ if (is.null(result)){
             p2 <- ggplot2::ggplot(mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], ggplot2::aes(x=Freq, fill=Group)) + 
               ggplot2::geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
               ggplot2::scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
-            # combine plots
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+            
             # plotly::ggplotly(p2)
+          }else{
+            p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
           } # end of nrow > 1
           
-          
+        }else{
+          p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }# end of each env
+         # combine plots
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       }
       
     }
@@ -1140,9 +1159,8 @@ if (is.null(result)){
       # shiny::renderPlot({
       wideCorTrait2 <- predSplitSplitWide2[[input$corrplotTraitMtaPredsType]][[input$corrplotTraitMtaPredsEnv]]
       if(!is.null(wideCorTrait2)){
-        
-        wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
         if(is.matrix(wideCorTrait2)){
+          wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
           corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
           mydata4CorTraits <- cgiarBase::matToTab(corrX)
           
@@ -1167,15 +1185,15 @@ if (is.null(result)){
             ggplot2::geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
             ggplot2::scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
         }else{
-          p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }
       }else{
-        p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
       }
       # combine plots
-          ply1 <- plotly::ggplotly(p)
-          ply2 <- plotly::ggplotly(p2)
-          plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
+      ply1 <- plotly::ggplotly(p)
+      ply2 <- plotly::ggplotly(p2)
+      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
       # print(p)
     })
     
