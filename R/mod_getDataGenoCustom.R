@@ -18,9 +18,10 @@ mod_getDataGenoCustom_ui <- function(id) {
   ns <- NS(id)
   tagList(tags$br(),
           navlistPanel(
+            id = ns("geno_load_navpanel"),
             widths = c(2, 10),
             tabPanel(
-              div("1. Load data"),
+              "1. Load data",
               column(
                 width = 8,
                 wellPanel(
@@ -65,8 +66,8 @@ mod_getDataGenoCustom_ui <- function(id) {
                   shinydashboard::box(
                     width = 12,
                     title = span(icon('screwdriver-wrench'), ' Options'),
-                    collapsible = TRUE,
-                    collapsed = TRUE,
+                    collapsible = FALSE,
+                    collapsed = FALSE,
                     status = 'success',
                     solidHeader = TRUE,
                     uiOutput(ns("ploidity_params")),
@@ -76,7 +77,7 @@ mod_getDataGenoCustom_ui <- function(id) {
               )
 
             ),
-            tabPanel(div("2. Genotype data Summary"),
+            tabPanel("2. Genotype data Summary",
                      column(width = 8,
                             hr(),
                             # Outputs
@@ -281,6 +282,10 @@ mod_getDataGenoCustom_server <-
                    {
                      get_geno_data()
                      add_data()
+                     updateNavlistPanel(session = session,
+                                        inputId = "geno_load_navpanel",
+                                        selected = "2. Genotype data Summary")
+
                    })
 
       # Summary of genotypic data
@@ -297,6 +302,7 @@ mod_getDataGenoCustom_server <-
           snps_count = aggregate(POS ~ CHROM, data = geno_metadata, FUN = length)[, 2]
         )
       })
+
 
       output$geno_summary <- renderText({
         temp <- data()
