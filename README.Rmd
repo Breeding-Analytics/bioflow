@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-The goal of the bioflow project is to provide methods and tools for understanding or using evolutionary forces (mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force). Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase), genotypic databases (GIGWA), and environmental databases (NASAPOWER) data, quickly map some required features (columns), and carry the analytical procedures.
+The goal of the bioflow project is to provide methods and tools for understanding or using evolutionary forces (mutation, gene flow, migration and selection) such as automatic state-of-the-art genetic evaluation (selection force). Designed to be database agnostic, it can retrieve data from the available phenotypic-pedigree databases (EBS, BMS, BreedBase), genotypic databases (GIGWA), and environmental databases (NASAPOWER) data, quickly map some required features (columns), and carry the analytical procedures...
 
 ## Scope and target audience
 
