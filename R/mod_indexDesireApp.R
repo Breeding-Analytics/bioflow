@@ -79,7 +79,7 @@ mod_indexDesireApp_ui <- function(id){
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
                                                        selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
                                                        selectInput(ns("env2IdxD"), "Environment to use", choices = NULL, multiple = FALSE),
-                                                       selectInput(ns("effectType2IdxD"), "Effect type(s) to use", choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("effectType2IdxD"), "Effect type(s) to use", choices = NULL, multiple = FALSE),
                                                        selectInput(ns("entryType2IdxD"), "Entry type(s) to use", choices = NULL, multiple = TRUE),
                                                        selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                        uiOutput(ns("SliderDesireIndex"))
@@ -754,12 +754,12 @@ mod_indexDesireApp_server <- function(id, data){
       # only get environments where all the traits are present
       props <- apply(table(dtIdxD$trait, dtIdxD$environment),2,function(x){length(which(x>0))/length(x)})
       envsAva <- names(props)[which(props == 1)]
-      updateSelectInput(session, "env2IdxD", choices = envsAva)
+      updateSelectInput(session, "env2IdxD", choices = envsAva, selected = ifelse("(Intercept)"%in%envsAva,"(Intercept)", envsAva[1]) )
     })
     #################
     ## effect types
     observeEvent(c(data(), input$version2IdxD, input$trait2IdxD, input$env2IdxD), {
-      # input <- list(version2IdxD=result$status$analysisId[3], trait2IdxD= c("Yield_Mg_ha_QTL","Ear_Height_cm"), env2IdxD="across",effectType2IdxD="designation" )
+      # input <- list(version2IdxD=result$status$analysisId[4], trait2IdxD= c("Pollen_DAP_days", "Plant_Height_cm", "Yield_Mg_ha"), env2IdxD="(Intercept)",effectType2IdxD="designation" )
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
@@ -770,7 +770,7 @@ mod_indexDesireApp_server <- function(id, data){
       dtIdxD <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD),]
       dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
       traitsIdxD <- unique(dtIdxD$effectType)
-      updateSelectInput(session, "effectType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
+      updateSelectInput(session, "effectType2IdxD", choices = traitsIdxD, selected = ifelse("designation"%in%traitsIdxD,"designation", traitsIdxD[1]) )
     })
     #################
     ## entry types
