@@ -925,10 +925,10 @@ mod_staApp_server <- function(id,data){
                                        selection = 'none',
                                        editable = TRUE,
                                        server = FALSE,
-                                       options = list(paging=FALSE,
-                                                      searching=FALSE,
-                                                      scrollX = TRUE,
-                                                      initComplete = I("function(settings, json) {alert('Done.');}")
+                                       options = list( #paging=FALSE,
+                                                      # searching=FALSE,
+                                                      scrollX = TRUE
+                                                      # initComplete = I("function(settings, json) {alert('Done.');}")
                                        )
     )
 
