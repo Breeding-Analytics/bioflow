@@ -10,6 +10,7 @@ geno_groupPopStr<- 'www/example/Groupgeno.csv'
 #' @importFrom shiny NS tagList
 
 #' @importFrom shiny NS tagList
+source("~/R/radioTooltip.R")
 mod_PopStrApp_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -97,9 +98,13 @@ mod_PopStrApp_ui <- function(id){
 													shinyWidgets::prettySwitch( inputId = ns('geno_groupPopStr'), label = "Load example", status = "success")
 													},
                                                   hr(),
-                                                  checkboxInput(ns("quitomono"),"Remove monomorphic markers from groups (optional)",value=FALSE),
-                                                  textInput(ns('nclust'),'No. Clusters (default)',value='3'),
-                                                  radioButtons(ns("distk"), "Genetic distance to be calculate",choices = c(Rogers = "Rogers", Nei = "Nei"))
+													                        checkboxInput(ns("quitomono"),"Remove monomorphic markers from groups (optional)",value=FALSE),
+													                        bsTooltip(id = ns("nclust"), title="Number of cluster that you want to calculated",placement="rigth", trigger="hover"),
+													                        textInput(ns('nclust'),'No. Clusters (default)',value='3'),
+													radioButtons(ns("distk"), "Genetic distance to be calculate",choices = c(Rogers = "Rogers", Nei = "Nei")),
+													radioTooltip(id = ns("distk"), choice = "Rogers", title = "Rogers distance", placement = "right", trigger = "hover"),
+													radioTooltip(id = ns("distk"), choice = "Nei", title = "Nei distance", placement = "right", trigger = "hover")
+
                                            )
                                   ),
 								tabPanel("Run analysis", icon = icon("dice-three"),
