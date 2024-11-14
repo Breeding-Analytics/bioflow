@@ -72,8 +72,7 @@ Imports:
     tibble,
     tidyr,
     utils,
-    vcfR,
-    tippy
+    vcfR
 Suggests: 
     knitr,
     rmarkdown,
