@@ -67,6 +67,7 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Data Management ", icon = icon("upload"),
+                 tabPanel(strong("DATA RETRIEVAL") ),
                  tabPanel(div(icon("folder"), "Retrieve New Data"),
                           tabsetPanel( #widths = c(1, 11),
                             tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
@@ -79,17 +80,23 @@ app_ui <- function(request) {
                  tabPanel(div(icon("folder-open"), "Retrieve Old Analysis"),
                           mod_bindObjectApp_ui("bindObjectApp_1") ,
                  ),
-                 tabPanel(div(icon("floppy-disk"), "Save Analysis"),
-                          mod_saveData_ui("saveData_1"),
-                 ),
-                 tabPanel(div(icon("filter-circle-xmark"), "Data Quality Assurance" ),
-                          navlistPanel( "Options:", widths = c(1, 11),
-                                        tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
-                                        tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
-                                        #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
-                                        tabPanel(div(icon("barcode"), "Marker-assisted verification (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
-                          )
-                 ),
+                 tabPanel(strong("DATA QA/QC") ),
+                 tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
+                 tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
+                 #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
+                 tabPanel(div(icon("barcode"), "Marker-assisted verification (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
+                 # tabPanel(div(icon("filter-circle-xmark"), "Data Quality Assurance" ),
+                 #          navlistPanel( "Options:", widths = c(1, 11),
+                 #          )
+                 # ),
+                 tabPanel(strong("DATA TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
+                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
+                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
+                 tabPanel(strong("DATA FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
+                 tabPanel(div( strong("DATA SAVING"), icon("floppy-disk") ), mod_saveData_ui("saveData_1")  ),
 
       ),
 
@@ -133,8 +140,8 @@ app_ui <- function(request) {
                  tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("chart-line"), "Predicted Genetic Gain (", icon("seedling"),  icon("network-wired"),")"), mod_pggApp_ui("pggApp_1")),# user needs to perfor m a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("chart-line"), "Selection signatures (", icon("dna"),")", style = "color:red"), mod_selSignApp_ui("selSignApp_1") ), # icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
-                 tabPanel(strong("AGRONOMIC EVALUATION"), mod_sectionInfoAEApp_ui("sectionInfoAEApp_1") ),
-                 tabPanel(div(icon("chart-line"), "Analysis of Variance (", icon("seedling"),")", style = "color:red"), mod_agrAnova_ui("agrAnova_1") )
+                 # tabPanel(strong("AGRONOMIC EVALUATION"), mod_sectionInfoAEApp_ui("sectionInfoAEApp_1") ),
+                 # tabPanel(div(icon("chart-line"), "Analysis of Variance (", icon("seedling"),")", style = "color:red"), mod_agrAnova_ui("agrAnova_1") )
       ),
 
       navbarMenu("Mutation", icon = icon("disease"),
@@ -154,19 +161,14 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Other functions", icon = icon("medal"),
-                 tabPanel(strong("FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
-                 tabPanel(strong("TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
-                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
-                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
                  tabPanel(strong("DASHBOARDS"), mod_sectionInfoDASHApp_ui("sectionInfoDASHApp_1")  ),
                  tabPanel("Analytical Modules", mod_reportBuilder_ui("reportBuilder_1") , icon = icon("file") ),
                  tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
                  # tabPanel(strong("PREDICTIVE MODELING"),   ),
                  # tabPanel("Neural Networks", mod_tensorMLApp_ui("tensorMLApp_1"), icon = icon("puzzle-piece") ),
       ),
+
+
 
     )
   )
