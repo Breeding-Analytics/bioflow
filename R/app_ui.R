@@ -114,7 +114,7 @@ app_ui <- function(request) {
 
       navbarMenu("Mutation", icon = icon("disease"),
                  tabPanel(strong("DISCOVERY"), mod_sectionInfoGDApp_ui("sectionInfoGDApp_1") ),
-                 tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")", style = "color:red"), mod_gwasqkApp_ui("gwasqkApp_1") ), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
+                 tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")"), mod_gwasqkApp_ui("gwasqkApp_1") ), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
                  tabPanel(strong("MUTATION HISTORY"), mod_sectionInfoMHApp_ui("sectionInfoMHApp_1") ),
                  tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red"), mod_mutatioRateApp_ui("mutatioRateApp_1") ) #  icon = icon("disease")) # may include
       ),
