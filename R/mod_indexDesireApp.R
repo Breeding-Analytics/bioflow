@@ -58,7 +58,16 @@ mod_indexDesireApp_ui <- function(id){
                                        tabPanel(div( icon("dice-one"), "Pick MTA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2IdxD"), "MTA version to analyze (required)", choices = NULL, multiple = TRUE)),
+                                                       column(width=8, selectInput(ns("version2IdxD"),
+                                                                                   label = tags$span(
+                                                                                     "MTA version to analyze (required)",
+                                                                                     tags$i(
+                                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                                       style = "color:#FFFFFF",
+                                                                                       title = "Analysis ID(s) from MTA runs that contain the trait predictions that should be used to fit a desired selection index."
+                                                                                     )
+                                                                                   ),
+                                                                                   choices = NULL, multiple = TRUE)),
 
                                                 ),
                                                 column(width=12),
@@ -77,11 +86,56 @@ mod_indexDesireApp_ui <- function(id){
                                        tabPanel( div( icon("dice-two"), "Pick parameters", icon("arrow-right") ) , # icon = icon("dice-two"),
                                                 br(),
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
-                                                       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-                                                       selectInput(ns("env2IdxD"), "Environment to use", choices = NULL, multiple = FALSE),
-                                                       selectInput(ns("effectType2IdxD"), "Effect type(s) to use", choices = NULL, multiple = FALSE),
-                                                       selectInput(ns("entryType2IdxD"), "Entry type(s) to use", choices = NULL, multiple = TRUE),
-                                                       selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                                       selectInput(ns("trait2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Trait(s) to analyze",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "It is important to include traits that also need to be controlled in the population (e.g., height, maturity) even when we don't want to increase them or decrease them."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("env2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Environment to use",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "Currently onle the across environment estimate is allowed which is labeled as (Intercept)."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = FALSE),
+                                                       selectInput(ns("effectType2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Effect type(s) to use",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "Since each fixed and random effect returns estimates the user should specify which effect should be used in the index. It is expected by default that the designation estimates are the ones to be used in the index."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = FALSE),
+                                                       selectInput(ns("entryType2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Entry type(s) to use",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "The labels available in the entryType column can be used to reduce the dataset for the index. By default all entry types are included."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("scaledIndex"),
+                                                                   label = tags$span(
+                                                                     "Scale traits for index?",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "If TRUE, the traits are scaled to a standardized normal distribution and the values represent the number of standard deviations desired to change. If FALSE, the trait is conserved in the original units and the user should specify the desired change in native units. The slider still always represents the equivalent to +/- 5 standard deviations."
+                                                                     )
+                                                                   ),
+                                                                   choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                        uiOutput(ns("SliderDesireIndex"))
                                                 ),
                                                 column(width=9, #style = "height:550px; overflow-y: scroll;overflow-x: scroll;",

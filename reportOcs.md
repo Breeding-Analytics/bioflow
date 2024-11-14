@@ -1,7 +1,7 @@
 ---
 title: "Optimal Cross Selection Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 06, 2024"  
+date: "November 14, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -38,7 +38,7 @@ The following table provides an overview of the performance of the predicted/pro
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outca9e2bbd87f311fe" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-out816840838455ba6d" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -58,7 +58,7 @@ The following boxplot allows you to see the performance of the different crosses
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out72fee5c045ab7673" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out392ed9b2af41950f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Parent performance table
 
@@ -66,7 +66,7 @@ This table shows the performance of the parents selected by the OCS algorithm. T
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outf36a8308b6548b70" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outb3d9bace1cfd4098" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -79,12 +79,12 @@ The following barplot allows you to assess the number of times (y-axis) that a g
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="ocsApp_1-environ-label" for="ocsApp_1-environ">Treatment:</label>
 <div>
-<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="desireIndex ~ 30 crosses * 30 degrees" selected>desireIndex ~ 30 crosses * 30 degrees</option></select>
+<select id="ocsApp_1-environ" class="shiny-input-select" multiple="multiple"><option value="desireIndex ~ 70 crosses * 30 degrees" selected>desireIndex ~ 70 crosses * 30 degrees</option></select>
 <script type="application/json" data-for="ocsApp_1-environ">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-out02467cfe3e6f8e37" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="ocsApp_1-outf3b14848444d0c38" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -94,7 +94,7 @@ The following table summarizes the trait means for the different OCS runs (numbe
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outed48d8abfb3e1c3f" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="ocsApp_1-outf90b15a1b5120e45" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 

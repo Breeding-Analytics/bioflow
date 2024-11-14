@@ -69,7 +69,18 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel(div( icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE)),
+                                                      column(width=8,
+                                                               selectInput(ns("version2Mta"),
+                                                                           label = tags$span(
+                                                                             "STA version to analyze (required)",
+                                                                             tags$i(
+                                                                               class = "glyphicon glyphicon-info-sign",
+                                                                               style = "color:#FFFFFF",
+                                                                               title = "Analysis ID(s) from STA runs that should be combined and used to fit a multi-trial analysis."
+                                                                             )
+                                                                           ),
+                                                                           choices = NULL, multiple = TRUE),
+                                                             ),
 
                                                ),
                                                column(width=12),
@@ -86,7 +97,16 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Pick traits", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE),
+                                                        selectInput(ns("trait2Mta"),
+                                                                    label = tags$span(
+                                                                      "Trait to analyze (required)",
+                                                                      tags$i(
+                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                        style = "color:#FFFFFF",
+                                                                        title = "Only traits present in the STA runs selected will be available."
+                                                                      )
+                                                                    ),
+                                                                    choices = NULL, multiple = TRUE),
                                                ),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
                                                                    column(width=12,
@@ -117,28 +137,53 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                    "Main+Diagonal" = "csdg_model"
                                                                                  ),
                                                                                  selected = "mn_model", inline=TRUE),
+                                                                    radioTooltip(id = ns("radio"), choice = "mn_model", title = "The main effect model assumes that there is no genotype by environment interaction or that can be ignored to focus on average effects. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "cs_model", title = "The compound symmetry model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and all pairs of environments have the same genetic covariance.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "fw_model", title = "The Finlay-Wilkinson model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and deviations are with respect to an environmental covariate which can be the trait means at different environments or any other covariate.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "dg_model", title = "The diagonal model assumes that there's a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect. ", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "csdg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same. ", placement = "right", trigger = "hover"),
                                                              ),
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
                                                              column(width=4,
-                                                                    numericInput(ns("nTermsFixed"), label = "nTerms fixed", value = NULL), # , step = 1, min = 1, max=10
+                                                                    numericInput(ns("nTermsFixed"),
+                                                                                 label = tags$span(
+                                                                                   "nTerms fixed",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Number of fixed effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
+                                                                                   )
+                                                                                 ),
+                                                                                 value = NULL), # , step = 1, min = 1, max=10
                                                                     uiOutput(ns("leftSidesFixed"))
                                                              ),
                                                              column(width=4,
-                                                                    # uiOutput(ns("nTermsRandom")),
-                                                                    numericInput(ns("nTermsRandom"), label = "nTerms random", value = NULL), #
+                                                                    numericInput(ns("nTermsRandom"),
+                                                                                 label = tags$span(
+                                                                                   "nTerms random",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Number of random effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
+                                                                                   )
+                                                                                 ),
+                                                                                 value = NULL), #
                                                                     uiOutput(ns("leftSidesRandom"))
                                                              ),
                                                              column(width=4,
-                                                                    radioButtons(ns("radioModel"), label = "Shortcut to covariance",
+                                                                    radioButtons(ns("radioModel"), label = "Surrogate of merit",
                                                                                  choices = list(
-                                                                                   "None"="none",
-                                                                                   "GBLUP" = "geno_model",
-                                                                                   "PBLUP" = "pedigree_model"
+                                                                                   "TGV"="none",
+                                                                                   "EBV" = "pedigree_model",
+                                                                                   "GEBV" = "geno_model"
                                                                                  ),
                                                                                  selected = "none", inline=TRUE),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that not known covariance between the levels of designation is known and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
                                                                     br(),
                                                                     uiOutput(ns("rightSidesRandom"))
                                                              ),
@@ -150,23 +195,6 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   column(width=12,
-                                                                          column(width=6,
-                                                                                 tags$span(id = ns('covTextHolderMain'), h4("The main effect model assumes that there is no genotype by environment interaction or that its calculation is not needed. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments. "),  ),
-                                                                                 tags$span(id = ns('covTextHolderCompound'), h4("The compound symmetry model assumes that there is a main effect driving the performance of the designation but also specific deviations in each environment. The assumption is that all environments have the same designation variance and all pairs of environments have the same designation covariance."), ),
-                                                                                 tags$span(id = ns('covTextHolderFinlay'), h4("The Finlay-Wilkinson model assumes that there is a main effect driving the performance of the designation but also specific deviations in each environment. The assumption is that all environments have the same designation variance and deviations are with respect to an environmental covariate which can be the trait means at different environments."), ),
-                                                                                 tags$span(id = ns('covTextHolderDiagonal'), h4("The diagonal model assumes that there's a different designation variance at each environment and that covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect. "),  ),
-                                                                                 tags$span(id = ns('covTextHolderDiagonalMain'), h4("The diagonal plus main effect model assumes that there is a main effect for designation but at the same time each enviroment causes the expression of environment specific designation variance. The covariance between designation effects between environments is assumed to be zero. "),  ),
-                                                                          ),
-
-                                                                          column(width=6,
-                                                                                 tags$span(id = ns('covFigHolderMain'), img(src = "www/mta.png", height = 300, width = 450), ),
-                                                                                 tags$span(id = ns('covFigHolderCompound'), img(src = "www/mta.png", height = 300, width = 450), ),
-                                                                                 tags$span(id = ns('covFigHolderFinlay'), img(src = "www/mta.png", height = 300, width = 450), ),
-                                                                                 tags$span(id = ns('covFigHolderDiagonal'), img(src = "www/mta.png", height = 300, width = 450), ),
-                                                                                 tags$span(id = ns('covFigHolderDiagonalMain'), img(src = "www/mta.png", height = 300, width = 450), ),
-                                                                          ),
                                                                    ),
                                                                    tags$span(id = ns('holder3'),
                                                                              column(width=12, p(span("Connectivity between data types.", style="color:black")) ),
@@ -214,12 +242,66 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                column(width=6, style = "background-color:LightGray; color: #FFFFFF",
                                                       br(),
                                                       shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
-                                                                          textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.1"),
-                                                                          textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
-                                                                          textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
-                                                                          textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
-                                                                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 35),
-                                                                          selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                                                          textInput(ns("heritLBMet"),
+                                                                                    label = tags$span(
+                                                                                      label = "Lower H2&R2 bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value of heritability and reliability is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0.1"),
+                                                                          textInput(ns("heritUBMet"),
+                                                                                    label = tags$span(
+                                                                                      label = "Lower H2&R2 bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value of heritability and reliability is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0.95"),
+                                                                          textInput(ns("meanLBMet"),
+                                                                                    label = tags$span(
+                                                                                      label = "Lower environment-mean bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value for trait means is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0"),
+                                                                          textInput(ns("meanUBMet"),
+                                                                                    label = tags$span(
+                                                                                      label = "Upper environment-mean bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value for trait means is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="1000000"),
+                                                                          numericInput(ns("maxitMet"),
+                                                                                       label = tags$span(
+                                                                                         label = "Maximum # of iterations",
+                                                                                         tags$i(
+                                                                                           class = "glyphicon glyphicon-info-sign",
+                                                                                           style = "color:#000000",
+                                                                                           title = "Restricted Maximum Likelihood iterations. If the model doesn't converge you will see that in the metrics output table."
+                                                                                         )
+                                                                                       ),
+                                                                                       value = 35),
+                                                                          selectInput(ns("useWeights"),
+                                                                                      label = tags$span(
+                                                                                        label = "Use weights?",
+                                                                                        tags$i(
+                                                                                          class = "glyphicon glyphicon-info-sign",
+                                                                                          style = "color:#000000",
+                                                                                          title = "A TRUE/FALSE value in case you want to avoid using the weights in the two stage analysis (not recommended). The weights are used to account for the differential error variance in each trial."
+                                                                                        )
+                                                                                      ),
+                                                                                      choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                                           selectInput(ns("calcSE"), label = "Calculate SEs?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                       ),
                                                ),
@@ -231,7 +313,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=12, h4("Number of principal components for possible covariance kernels (0 is none)"), ),
+                                                      column(width=12, h5("Number of principal components for possible covariance kernels (0 is none, < 1 restricts to only levels present)"), ),
                                                       column(width=12, # multiple nesting to center ir (I didn't find any other way)
                                                              column(width=12,
                                                                     uiOutput(ns("nPC"), inline=TRUE)
@@ -295,19 +377,19 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
-    observeEvent(c(data(), input$version2Mta, input$trait2Mta, input$radio), {
-      req(data());req(input$version2Mta);req(input$trait2Mta); req(input$radio)
-      golem::invoke_js('hideid', ns('covTextHolderMain')); golem::invoke_js('hideid', ns('covFigHolderMain'))
-      golem::invoke_js('hideid', ns('covTextHolderCompound')); golem::invoke_js('hideid', ns('covFigHolderCompound'))
-      golem::invoke_js('hideid', ns('covTextHolderFinlay')); golem::invoke_js('hideid', ns('covFigHolderFinlay'))
-      golem::invoke_js('hideid', ns('covTextHolderDiagonal')); golem::invoke_js('hideid', ns('covFigHolderDiagonal'))
-      golem::invoke_js('hideid', ns('covTextHolderDiagonalMain'));  golem::invoke_js('hideid', ns('covFigHolderDiagonalMain'))
-      if(input$radio == "mn_model" ){golem::invoke_js('showid', ns('covTextHolderMain')); golem::invoke_js('showid', ns('covFigHolderMain'))}
-      if(input$radio == "cs_model" ){golem::invoke_js('showid', ns('covTextHolderCompound')); golem::invoke_js('showid', ns('covFigHolderCompound'))}
-      if(input$radio == "fw_model" ){golem::invoke_js('showid', ns('covTextHolderFinlay')); golem::invoke_js('showid', ns('covFigHolderFinlay'))}
-      if(input$radio == "dg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonal')); golem::invoke_js('showid', ns('covFigHolderDiagonal'))}
-      if(input$radio == "csdg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonalMain')); golem::invoke_js('showid', ns('covFigHolderDiagonalMain'))}
-    })
+    # observeEvent(c(data(), input$version2Mta, input$trait2Mta, input$radio), {
+    #   req(data());req(input$version2Mta);req(input$trait2Mta); req(input$radio)
+    #   golem::invoke_js('hideid', ns('covTextHolderMain')); golem::invoke_js('hideid', ns('covFigHolderMain'))
+    #   golem::invoke_js('hideid', ns('covTextHolderCompound')); golem::invoke_js('hideid', ns('covFigHolderCompound'))
+    #   golem::invoke_js('hideid', ns('covTextHolderFinlay')); golem::invoke_js('hideid', ns('covFigHolderFinlay'))
+    #   golem::invoke_js('hideid', ns('covTextHolderDiagonal')); golem::invoke_js('hideid', ns('covFigHolderDiagonal'))
+    #   golem::invoke_js('hideid', ns('covTextHolderDiagonalMain'));  golem::invoke_js('hideid', ns('covFigHolderDiagonalMain'))
+    #   if(input$radio == "mn_model" ){golem::invoke_js('showid', ns('covTextHolderMain')); golem::invoke_js('showid', ns('covFigHolderMain'))}
+    #   if(input$radio == "cs_model" ){golem::invoke_js('showid', ns('covTextHolderCompound')); golem::invoke_js('showid', ns('covFigHolderCompound'))}
+    #   if(input$radio == "fw_model" ){golem::invoke_js('showid', ns('covTextHolderFinlay')); golem::invoke_js('showid', ns('covFigHolderFinlay'))}
+    #   if(input$radio == "dg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonal')); golem::invoke_js('showid', ns('covFigHolderDiagonal'))}
+    #   if(input$radio == "csdg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonalMain')); golem::invoke_js('showid', ns('covFigHolderDiagonalMain'))}
+    # })
     #################
     ## version
     observeEvent(c(data()), {
