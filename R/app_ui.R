@@ -87,8 +87,10 @@ app_ui <- function(request) {
                                         tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                                         tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                                         #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
+                                        tabPanel(div(icon("barcode"), "Marker-assisted verification (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
                           )
                  ),
+
       ),
 
       navbarMenu("Selection", icon = icon("bullseye"),
@@ -143,9 +145,6 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
-                 tabPanel(strong("FREQUENCY-BASED SELECTION"), mod_sectionInfoGFDApp_ui("sectionInfoGFDApp_1") ), # plus, shuffle, barcode, people-group
-                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div(icon("barcode"), "Marker-assisted verification (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
                  tabPanel(strong("DRIFT & FLOW HISTORY"), mod_sectionInfoGFDHApp_ui("sectionInfoGFDHApp_1") ),
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
                  tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
