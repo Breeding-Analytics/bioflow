@@ -10,6 +10,7 @@ geno_groupPopStr<- 'www/example/Groupgeno.csv'
 #' @importFrom shiny NS tagList
 
 #' @importFrom shiny NS tagList
+
 mod_PopStrApp_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -52,7 +53,15 @@ mod_PopStrApp_ui <- function(id){
 									tabPanel(div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2PopStr"), "QA-geno stamp to apply (optional)", choices = NULL, multiple = FALSE)),
+                                                      column(width=8, selectInput("version2PopStr", choices = NULL, multiple = FALSE,  label = tags$span(
+                                                        "QA-geno stamp to apply (optional)",
+                                                        tags$i(
+                                                          class = "glyphicon glyphicon-info-sign",
+                                                          style = "color:#FFFFFF",
+                                                          title = "You can select a QC object"
+                                                        )
+                                                      )
+                                                      )),
 
                                                ),
                                                column(width=12),
@@ -97,9 +106,23 @@ mod_PopStrApp_ui <- function(id){
 													shinyWidgets::prettySwitch( inputId = ns('geno_groupPopStr'), label = "Load example", status = "success")
 													},
                                                   hr(),
-                                                  checkboxInput(ns("quitomono"),"Remove monomorphic markers from groups (optional)",value=FALSE),
-                                                  textInput(ns('nclust'),'No. Clusters (default)',value='3'),
-                                                  radioButtons(ns("distk"), "Genetic distance to be calculate",choices = c(Rogers = "Rogers", Nei = "Nei"))
+													checkboxInput(ns("quitomono"),
+													              label = tags$span("Remove monomorphic markers from groups (optional)",
+													                                tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#000000",
+													                                       title = "remove monomorphic"
+													                                )
+													              ),value=FALSE),
+
+													textInput(ns('nclust'),label = tags$span("No. Clusters (default)",
+													                                         tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#000000",
+													                                                title = "Number of cluster that you want to calculated"
+													                                         )
+													),value='3'),
+
+													radioButtons(ns("distk"), "Genetic distance to be calculate",choices = c(Rogers = "Rogers", Nei = "Nei")),
+													radioTooltip(id = ns("distk"), choice = "Rogers", title = "Rogers distance", placement = "right", trigger = "hover"),
+													radioTooltip(id = ns("distk"), choice = "Nei", title = "Nei distance", placement = "right", trigger = "hover")
+
                                            )
                                   ),
 								tabPanel("Run analysis", icon = icon("dice-three"),

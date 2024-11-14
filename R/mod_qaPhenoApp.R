@@ -51,8 +51,26 @@ mod_qaPhenoApp_ui <- function(id){
                                              tabPanel(div(icon("dice-one"), "Set traits & thresholds", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
-                                                             column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 3.2) ),
+                                                             column(width=6, selectInput(ns("traitOutqPhenoMultiple"),
+                                                                                         label = tags$span(
+                                                                                           "Trait(s) to QA",
+                                                                                           tags$i(
+                                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                                             style = "color:#FFFFFF",
+                                                                                             title = "Only traits matched during the phenotypic data upload will show up."
+                                                                                           )
+                                                                                         ),
+                                                                                         choices = NULL, multiple = TRUE) ),
+                                                             column(width=2,numericInput(ns("outlierCoefOutqPheno"),
+                                                                                         label = tags$span(
+                                                                                           "IQR coefficient",
+                                                                                           tags$i(
+                                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                                             style = "color:#FFFFFF",
+                                                                                             title = "The interquantile range is defined as the difference between the 75th and 25th percentiles of the data. To calculate the IQR, the data set is divided into quartiles, or four rank-ordered even parts via linear interpolation. These quartiles are denoted by Q1 (also called the lower quartile), Q2 (the median), and Q3 (also called the upper quartile). The lower quartile corresponds with the 25th percentile and the upper quartile corresponds with the 75th percentile, so IQR = Q3 −  Q1."
+                                                                                           )
+                                                                                         ),
+                                                                                         value = 3.2) ),
 
                                                       ),
                                                       column(width=12),
