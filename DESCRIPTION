@@ -55,6 +55,7 @@ Imports:
     shinyAce,
     shinyalert,
     shinybusy,
+    shinyBS,
     shinycssloaders,
     shinydashboard,
     shinydashboardPlus,
