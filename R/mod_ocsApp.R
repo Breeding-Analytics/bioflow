@@ -127,7 +127,7 @@ mod_ocsApp_ui <- function(id){
                                                                    ),
                                                                    tags$span(id = ns('holder1'),
                                                                              column(width=4, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ) ,
-                                                                             column(width=4, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
+                                                                             column(width=4, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","effectType","entryType"), multiple = FALSE, selected = "entryType") ),
                                                                              column(width=2, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
                                                                              column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1),),
                                                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")) ),
@@ -138,14 +138,38 @@ mod_ocsApp_ui <- function(id){
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4,
-                                                             # tags$br(),
-                                                             textInput(ns("nCrossOcs"), label = "Number of crosses to obtain", value="70") ),
+                                                             textInput(ns("nCrossOcs"),
+                                                                       label = tags$span(
+                                                                         "Number of crosses",
+                                                                         tags$i(
+                                                                           class = "glyphicon glyphicon-info-sign",
+                                                                           style = "color:#FFFFFF",
+                                                                           title = "To specify the final number of crosses to form the new generation."
+                                                                         )
+                                                                       ),
+                                                                       value="70") ),
                                                       column(width=4,
-                                                             # tags$br(),
-                                                             textInput(ns("targetAngleOcs"), label = "Target angle (0 is pure gain, 90 more variance)", value="30") ),
+                                                             textInput(ns("targetAngleOcs"),
+                                                                       label = tags$span(
+                                                                         "Target angle",
+                                                                         tags$i(
+                                                                           class = "glyphicon glyphicon-info-sign",
+                                                                           style = "color:#FFFFFF",
+                                                                           title = "A zero value is equivalent to greater weight to performance and low weight to genetic variance. A 90 degree represents the opposite."
+                                                                         )
+                                                                       ),
+                                                                       value="30") ),
                                                       column(width=4,
-                                                             # tags$br(),
-                                                             selectInput(ns("relType"), "Relationship to use",  choices = NULL, multiple = FALSE ) ),
+                                                             selectInput(ns("relType"),
+                                                                         label = tags$span(
+                                                                           "Relationship to use",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "The optimization to weight the genetic variance requires the user to specify if the variance covariance between designation should be represente by pedigree or marker based relationship."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE ) ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
