@@ -82,17 +82,19 @@ app_ui <- function(request) {
                  tabPanel(div(icon("floppy-disk"), "Save Analysis"),
                           mod_saveData_ui("saveData_1"),
                  ),
-      ),
-
-      navbarMenu("Selection", icon = icon("bullseye"),
-                 tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
-                 tabPanel(div(icon("filter-circle-xmark"), "Quality Assurance (", icon("seedling"), icon("dna"), icon("network-wired") ,")" ),
+                 tabPanel(div(icon("filter-circle-xmark"), "Data Quality Assurance" ),
                           navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                                         tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                                         #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                           )
                  ),
+      ),
+
+      navbarMenu("Selection", icon = icon("bullseye"),
+                 tabPanel(strong("GENETIC EVALUATION"), mod_sectionInfoGEApp_ui("sectionInfoGEApp_1") ),
+
+                 tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
 
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),
                           navlistPanel( "Options:", widths = c(1, 11),

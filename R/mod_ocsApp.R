@@ -81,8 +81,42 @@ mod_ocsApp_ui <- function(id){
                                       tabPanel( div( icon("dice-two"), "Select entries", icon("arrow-right") ) , # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=6, selectInput(ns("trait2Ocs"), "Trait to optimize (required)", choices = NULL, multiple = FALSE) ),
-                                                      column(width=6, selectInput(ns("entryType2Ocs"), "Entry types to use in optimization", choices = NULL, multiple = TRUE) ),
+                                                      column(width=4,
+                                                             selectInput(ns("trait2Ocs"),
+                                                                         label = tags$span(
+                                                                           "Trait(s) to optimize (required)",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "It is important to include traits that also need to be controlled in the population (e.g., height, maturity) even when we don't want to increase them or decrease them."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = TRUE),
+                                                             ),
+                                                      column(width=4,
+                                                             selectInput(ns("effectType2Ocs"),
+                                                                         label = tags$span(
+                                                                           "Effect type(s) to use",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Since each fixed and random effect returns estimates the user should specify which effect should be used in the ocs. It is expected by default that the designation estimates are the ones to be used in ocs"
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE),
+                                                             ),
+                                                      column(width=4,
+                                                             selectInput(ns("entryType2Ocs"),
+                                                                         label = tags$span(
+                                                                           "Entry types to use in optimization",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "The labels available in the entryType column can be used to reduce the dataset for the index. By default all entry types are included."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = TRUE)
+                                                             ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -792,8 +826,9 @@ mod_ocsApp_server <- function(id, data){
       traitsOcs <- apply(forLoop,1, function(x){ paste(input$traitFilterPredictions2D2,"~", paste(x[1],"crosses *",x[2], "degrees"))})
       updateSelectInput(session, "environment", choices = traitsOcs)
     })
+
     ##############
-    ## entry type
+    ## effect type
     observeEvent(c(data(), input$version2Ocs, input$trait2Ocs), {
       req(data())
       req(input$version2Ocs)
@@ -802,6 +837,22 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- dtOcs$predictions
       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
       dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
+      traitsOcs <- unique(dtOcs$effectType)
+      updateSelectInput(session, "effectType2Ocs", choices = traitsOcs, selected = traitsOcs)
+    })
+
+    ##############
+    ## entry type
+    observeEvent(c(data(), input$version2Ocs, input$trait2Ocs, input$effectType2Ocs), {
+      req(data())
+      req(input$version2Ocs)
+      req(input$trait2Ocs)
+      req(input$effectType2Ocs)
+      dtOcs <- data()
+      dtOcs <- dtOcs$predictions
+      dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
+      dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
+      dtOcs <- dtOcs[which(dtOcs$effectType == input$effectType2Ocs),]
       traitsOcs <- unique(dtOcs$entryType)
       updateSelectInput(session, "entryType2Ocs", choices = traitsOcs, selected = traitsOcs)
     })
@@ -1016,6 +1067,8 @@ mod_ocsApp_server <- function(id, data){
       req(input$version2Ocs)
       req(input$trait2Ocs)
       req(input$env2Ocs)
+      req(input$effectType2Ocs)
+      req(input$entryType2Ocs)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtOcs <- data()
       # run the modeling, but before test if mta was done
@@ -1041,6 +1094,7 @@ mod_ocsApp_server <- function(id, data){
           nCross=as.numeric(gsub(" ","",unlist(strsplit(input$nCrossOcs,",")))),
           targetAngle=as.numeric(gsub(" ","",unlist(strsplit(input$targetAngleOcs,",")))), # in radians
           verbose=input$verboseOcs, maxRun = input$maxRun,
+          effectType=input$effectType2Ocs,
           entryType=input$entryType2Ocs,
           numberBest = input$numberBest
         ),
