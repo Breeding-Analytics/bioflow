@@ -289,7 +289,7 @@ app_server <- function(input, output, session) {
   mod_selSignApp_server("selSignApp_1")
 
   # MUTATION - mutation discovery
-  mod_gwasqkApp_server("gwasqkApp_1") # GWAS Q+K method
+  mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
   # MUTATION - mutation history
   mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
@@ -299,7 +299,7 @@ app_server <- function(input, output, session) {
   mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
-  mod_poolFormApp_server("poolFormApp_1")
+  # mod_poolFormApp_server("poolFormApp_1")
   mod_poolFormApp_server("poolFormApp_1") # pool formation
   mod_subsetSelApp_server("subsetSelApp_1") # subset selection
 

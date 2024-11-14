@@ -1,0 +1,608 @@
+---
+title: "Genome wide association study Report"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+# font.plot_ly <- list(family="Courier New, monospace", size=9)
+```
+
+```{r printfxn, include=FALSE}
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, ...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         filter = "top", 
+                         extensions = 'Buttons',
+                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+htmltools::tagList(printTable(mtcars))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+```
+
+```{r }
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/result.RData")){
+    load("./outputs/resultGwas.RData")
+  }else{
+    load("resultGwas.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  # result$status <- result$status[1:6,]
+  idGwas <- result$status[which(result$status$module == "gwas"),"analysisId"]
+  idGwas <- idGwas[length(idGwas)]
+  pred <- result$predictions # predictions
+  # pred <- pred[pred$analysisId == idGwas,]
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idGwas  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
+  modeling <- result$modeling
+  # modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
+}
+```
+
+
+### Objectives of Genome Wide Association Study Analysis
+
+The objective of this dashboard is to help scientist to understand the following points:
+
+1. Overall number of entries and entry types and environments included in the single or multi trial analysis (input)
+
+2. Overall number of markers considered after filtering genetic markers (input)
+
+3. Marker effect in standard format of Manhattan plot and associated QQ-plot for each trait by environment (output)
+
+4. Distribution of phenotype by genotype for top 5 significant markers for each trait by environment combination (output)
+
+5. Individual SNP effect predictions for each trait by environment (output)
+
+Understanding these data features should allow the scientist to identify which markers express a significant statistical association with trait by environment combinations. It should also allow the scientist to assess the Distribution of phenotype by genotype for trait by environment combinations.
+
+### Number of individuals and markers per trait and environment
+
+The following table aims to make a high-level assessment of the different types of entries and markers included in the analysis by trait and environment combinations.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  idGwas <- result$status[which(result$status$module == "gwas"),"analysisId"]
+  idGwas <- idGwas[length(idGwas)]
+  # predictions
+  pred.gwas <- result$predictions
+  pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
+  tableOfTypes <- with(pred.gwas, table(trait, environment))
+  tableOfTypes <- data.frame(tableOfTypes)
+
+  field <- unique(pred.gwas$environment)
+  if(length(field) > 1){mod <- "sta"}else{mod <- "mta"}
+  pred.gwas <- result$predictions
+  pred <- pred.gwas[pred.gwas$module == mod,]
+  tableOfType <- with(pred, table(trait, environment))
+  tableOfType <- data.frame(tableOfType)
+  tableOfType <- tableOfType[which(tableOfType$environment %in% field),]
+  
+  tableOfTyp <- merge.data.frame(tableOfType, tableOfTypes, by = c("trait", "environment"))
+  colnames(tableOfTyp)[3:4] <- c("TGV_tested", "Number of markers")
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    printTable(tableOfTyp)
+    
+  } else{ # display in website
+    numericTraits <- setdiff(c("trait", "environment"), colnames(tableOfTyp))
+    DT::renderDT({DT::formatRound(DT::datatable(
+      tableOfTyp, extensions = 'Buttons', rownames = FALSE, class = 'cell-border',
+      options = list(
+        dom = 'Blfrtip', scrollY = "200px", scrollX = "400px",
+        buttons = c('copy','csv','excel','pdf','print'),
+        paging = F)
+    ),numericTraits)
+    })
+    
+  }
+  
+}
+```
+
+
+### Marker effect per trait
+
+This Manhattan plot allows you easily see the threshold for significant marker and significant markers for trait by environment combinations. The Quantile-quantile (QQ) plot allows you to inspect quality of the model fitted.
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  idGwas <- result$status[which(result$status$module == "gwas"),"analysisId"]
+  idGwas <- idGwas[length(idGwas)]
+  pred <- result$predictions
+  pred <- pred[pred$analysisId == idGwas,]
+  traitsManP <- unique(pred$trait)
+  fieldManP <- unique(pred$environment)
+
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::inputPanel(
+      selectInput(ns("traitGwasManP"),
+                  label = "Trait to visualize:",
+                  choices = traitsManP),
+      selectInput(ns("fieldGwasManP"),
+                  label = "Environment to visualize:",
+                  choices = fieldManP)
+    )
+  }
+}
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+idGwas <- result$status[which(result$status$module == "gwas"),"analysisId"]
+idGwas <- idGwas[length(idGwas)]
+pred.gwas <- result$predictions
+pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
+traitsManP <- unique(pred.gwas$trait)
+fieldManP <- unique(pred.gwas$environment)
+if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+
+  if("params" %in% ls()){ # we will download the document
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    QQ <- list()
+Man <- list()
+  for(iTrait in traitsManP){
+    for(iField in fieldManP){
+      pred.gwas.i <- pred.gwas[pred.gwas$trait == iTrait,]
+      pred.gwas.i <- pred.gwas.i[pred.gwas.i$environment == iField,]
+      o = sort(pred.gwas.i$predictedValue, decreasing = TRUE)
+      e = -log10(ppoints(length(pred.gwas.i$predictedValue)))
+      pred.gwas.i$o <- o
+      pred.gwas.i$e <- e
+      QQ[[iField]] <- ggplot2::ggplot(pred.gwas.i, aes(x=e, y=o)) + ggplot2::geom_point() +
+        ggplot2::geom_abline(intercept = 0, slope = 1, col = "deepskyblue2") + ggplot2::theme_classic() +
+        ggplot2::expand_limits(x=c(0,round(max(o)+1)),y=c(0,round(max(o)+1))) + ggplot2::scale_x_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::scale_y_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::theme(axis.text = element_text(colour = "black"), axis.title = element_text(colour = "black")) + 
+        ggpubr::border() +
+        ggplot2::labs(x = expression(Expected ~ ~-log[10](italic(p))), y = expression(Observed ~ ~-log[10](italic(p))))
+      
+      pred = pred.gwas.i[order(pred.gwas.i$stdError),]
+      "%>%" <- dplyr::`%>%`
+      don <- pred %>%
+        dplyr::group_by(stdError) %>%
+        dplyr::summarise(chr_len = max(reliability)) %>%
+        dplyr::mutate(tot=cumsum(chr_len) - chr_len) %>%
+        dplyr::left_join(pred, ., by=c("stdError" = "stdError")) %>%
+        dplyr::arrange(stdError, reliability) %>%
+        dplyr::mutate(BPcum=reliability+tot)
+      don$BPcum <- as.numeric(don$BPcum)
+      #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
+      
+    # don.i <- don[don$trait == iTrait,]
+    cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+    Markers <- result$data$geno
+    marker_map <- result$metadata$geno
+    marker_map <- marker_map[,c(1:3)]
+    modificationsMarkers <- result$modifications$geno
+    Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
+    markers <- Markers[order(rownames(Markers)), ]
+    colnames(marker_map) <- c("SNP", "CHR", "BP")
+    
+    id <- result$status[which(result$status$module == mod),"analysisId"]
+    id <- id[length(id)]
+    phenoData <- result$predictions[which(result$predictions$analysisId == id),]
+    phenoData <- phenoData[which(phenoData$environment == iField),]
+    phenoData <- phenoData %>%
+      dplyr::select(ID = designation, trait, value = predictedValue) %>%
+      tidyr::spread(key = trait, value = value) %>%
+      dplyr::arrange(ID) %>%
+      dplyr::filter(!is.na(!!dplyr::sym(iTrait))) %>%
+      dplyr::select(c("ID", all_of(iTrait)))
+    
+    common_ids <- intersect(rownames(markers), phenoData$ID)
+    markers <- markers[rownames(markers) %in% common_ids, ]
+    phenoData <- phenoData[phenoData$ID %in% common_ids, ]
+    
+    ids_to_keep <- colnames(markers)
+    marker_map <- marker_map[match(ids_to_keep, marker_map$SNP), , drop = FALSE]
+    
+    meta <- marker_map %>%
+      dplyr::group_by(CHR) %>%
+      dplyr::summarise(N = length(CHR))
+    
+    CORR <- list()
+    CORR[[1]] <- cor(markers[,1:meta$N[meta$CHR==1]])
+    for(i in 2:nrow(meta)){
+      dat = markers[,(meta$N[meta$CHR==(i-1)]+1):(meta$N[meta$CHR==(i-1)]+meta$N[meta$CHR==i])]
+      CORR[[i]] = cor(dat)
+    }
+    z = list()
+    for(i in 1:nrow(meta)){
+      for(j in 1:nrow(CORR[[i]])){
+        xx = as.vector(which(is.na(CORR[[i]][j,])))
+      }
+      if(length(xx)>0) {z[[i]] = CORR[[i]][-xx,-xx]} else {z[[i]] = CORR[[i]]}
+    }
+    corr = as.vector(NULL)
+    for(i in 1:nrow(meta)){
+      corr[i] = poolr::meff(z[[i]], method = "liji")
+    }
+    Meff = sum(corr)
+    p_threshold = (1-(1-0.05))/Meff # p-value to use as threshold for significance
+    Man[[iField]] <- manhattanPlot(don, threshold = -log10(p_threshold), field = iField)
+  }
+  }
+
+# grid::grid.null() #grid.newpage()
+# # Create layout : nrow = 3, ncol = 2
+# grid::pushViewport(grid::viewport(layout = grid::grid.layout(nrow = length(Man), ncol = 3)))
+# # A helper function to define a region on the layout
+# define_region <- function(row, col){
+#   grid::viewport(layout.pos.row = row, layout.pos.col = col)
+# } 
+# # Arrange the plots
+# for(i in 1:length(Man)){
+#   print(Man[[i]], vp = define_region(row = i, col = 1:2))
+#   print(QQ[[i]], vp = define_region(row = i, col = 3))
+# }
+  }else{
+    #shiny::renderPlot({
+    plotly::renderPlotly({
+          QQ <- list()
+          Man <- list()
+      inputTrait <- input$traitGwasManP
+      inputField <- input$fieldGwasManP
+
+      #for(iField in field){
+      #pred.gwas.i <- data.frame()
+      pred.gwas.i <- pred.gwas[pred.gwas$trait == inputTrait,]
+      pred.gwas.i <- pred.gwas.i[pred.gwas.i$environment == inputField,]
+      #o <- sort(pred.gwas.i$predictedValue, decreasing = TRUE)
+      o <- pred.gwas.i$predictedValue
+      e <- -log10(ppoints(length(pred.gwas.i$predictedValue)))
+      pred.gwas.i$o <- o
+      pred.gwas.i$e <- e
+      qq <- ggplot2::ggplot(pred.gwas.i, aes(x=e, y=o)) + ggplot2::geom_point() +
+        ggplot2::geom_abline(intercept = 0, slope = 1, col = "deepskyblue2") + ggplot2::theme_classic() +
+        # ggplot2::expand_limits(x=c(0,round(max(o)+1)),y=c(0,round(max(o)+1))) + 
+        ggplot2::scale_x_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::scale_y_continuous(breaks = seq(0,round(max(o)+1))) +
+        # ggplot2::labs(x = expression(Expected ~ ~-log[10](italic(p))), y = expression(Observed ~ ~-log[10](italic(p)))) +
+        ggplot2::theme(axis.text = element_text(colour = "black"), axis.title = element_text(colour = "black")) + 
+        ggpubr::border() #+
+        #ggplot2::labs(x = expression(Expected ~ ~-log[10](italic(p))), y = expression(Observed ~ ~-log[10](italic(p))))
+      # QQ$across <- plotly::plotly_build(QQ$across)
+      # QQ$across <- QQ$across %>% plotly::layout(xaxis = list(showline = TRUE, mirror = TRUE, linecolor = 'black'),
+      #                             yaxis = list(showline = TRUE, mirror = TRUE, linecolor = 'black'))
+      
+      qq <- plotly::plotly_build(qq)
+      QQ[[inputField]] <- qq %>% plotly::layout(xaxis = list(showline = TRUE, mirror = TRUE, linecolor = 'black'),
+                                  yaxis = list(showline = TRUE, mirror = TRUE, linecolor = 'black'))
+
+      pred.gwas.i = pred.gwas.i[!is.na(pred.gwas.i$stdError),]
+      pred = pred.gwas.i[order(pred.gwas.i$stdError),]
+      "%>%" <- dplyr::`%>%`
+      don <- pred %>%
+        dplyr::group_by(stdError) %>%
+        dplyr::summarise(chr_len = max(reliability)) %>%
+        dplyr::mutate(tot=cumsum(chr_len) - chr_len) %>%
+        dplyr::left_join(pred, ., by=c("stdError" = "stdError")) %>%
+        dplyr::arrange(stdError, reliability) %>%
+        dplyr::mutate(BPcum=reliability+tot)
+      don$BPcum <- as.numeric(don$BPcum)
+      #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
+      
+      # don.i <- don[don$trait == inputTrait,]
+      Markers <- result$data$geno
+      marker_map <- result$metadata$geno
+      marker_map <- marker_map[,c(1:3)]
+      modificationsMarkers <- result$modifications$geno
+      Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
+      markers <- Markers[order(rownames(Markers)), ]
+      colnames(marker_map) <- c("SNP", "CHR", "BP")
+
+      id <- result$status[which(result$status$module == mod),"analysisId"]
+      id <- id[length(id)]
+      phenoData <- result$predictions[which(result$predictions$analysisId == id),]
+      phenoData <- phenoData[which(phenoData$environment == inputField),]
+      phenoData <- phenoData %>%
+        dplyr::select(ID = designation, trait, value = predictedValue) %>%
+        tidyr::spread(key = trait, value = value) %>%
+        dplyr::arrange(ID) %>%
+        dplyr::filter(!is.na(!!dplyr::sym(inputTrait))) %>%
+        dplyr::select(c("ID", all_of(inputTrait)))
+
+      common_ids <- intersect(rownames(markers), phenoData$ID)
+      markers <- markers[rownames(markers) %in% common_ids, ]
+      phenoData <- phenoData[phenoData$ID %in% common_ids, ]
+
+      ids_to_keep <- colnames(markers)
+      marker_map <- marker_map[match(ids_to_keep, marker_map$SNP), , drop = FALSE]
+
+      meta <- marker_map %>%
+        dplyr::group_by(CHR) %>%
+        dplyr::summarise(N = length(CHR))
+
+      # CORR <- list()
+      # CORR[[1]] <- cor(markers[,1:meta$N[meta$CHR==1]])
+      # for(i in 2:nrow(meta)){
+      #   dat = markers[,(meta$N[meta$CHR==(i-1)]+1):(meta$N[meta$CHR==(i-1)]+meta$N[meta$CHR==i])]
+      #   CORR[[i]] = cor(dat)
+      # }
+      # z = list()
+      # for(i in 1:nrow(meta)){
+      #   for(j in 1:nrow(CORR[[i]])){
+      #     xx = as.vector(which(is.na(CORR[[i]][j,])))
+      #   }
+      #   if(length(xx)>0) {z[[i]] = CORR[[i]][-xx,-xx]} else {z[[i]] = CORR[[i]]}
+      # }
+      # corr = as.vector(NULL)
+      # for(i in 1:nrow(meta)){
+      #   corr[i] = poolr::meff(poolr::mvnconv(z[[i]], target = "p", cov2cor = TRUE), method = "liji") # corr[i] = poolr::meff(z[[i]], method = "liji")
+      # }
+      # Meff = sum(corr)
+      p_threshold = 1e-4 # (1-(1-0.05))/Meff # p-value to use as threshold for significance
+      Man[[inputField]] <- manhattanPlot(don, threshold = -log10(p_threshold)) # , field = inputField 
+      #}
+      # plotly::subplot(Man$across, QQ$across, widths = c(0.7, 0.3), nrows = 2) # length(Man)
+      # plotly::subplot(M, widths = c(0.7, 0.3), nrows = 2) #
+
+      s <- c(Man, QQ); s
+      w <- s[c(seq(1,2*length(Man),2),seq(1,2*length(Man))[-seq(1,2*length(Man),2)])]; w
+      plotly::subplot(w, widths = c(0.7, 0.3), nrows = length(Man))
+
+#       grid::grid.null() #grid.newpage()
+# # Create layout : nrow = 3, ncol = 2
+# grid::pushViewport(grid::viewport(layout = grid::grid.layout(nrow = length(Man), ncol = 3)))
+# # A helper function to define a region on the layout
+# define_region <- function(row, col){
+#   grid::viewport(layout.pos.row = row, layout.pos.col = col)
+# } 
+# # Arrange the plots
+# for(i in 1:length(Man)){
+#   print(Man[[i]], vp = define_region(row = i, col = 1:2))
+#   print(QQ[[i]], vp = define_region(row = i, col = 3))
+# }
+    })
+  }
+}
+```
+
+The following boxplots allow you to inspect for each of the top 5 significant markers, the distribution of adjusted means (y-axis) by genotype levels (x-axis). The adjusted means are from the single or multi trial analysis for each trait that were used as input for the analysis.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+idGwas <- result$status[which(result$status$module == "gwas"),"analysisId"]
+idGwas <- idGwas[length(idGwas)]
+pred.gwas <- result$predictions
+pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
+traitsManP <- unique(pred.gwas$trait)
+fieldManP <- unique(pred.gwas$environment)
+if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+
+  if("params" %in% ls()){ # we will download the document
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+  for(iTrait in traitsManP){
+    for(iField in fieldManP){
+      pred.gwas.i <- pred.gwas[pred.gwas$trait == iTrait,]
+      pred.gwas.i <- pred.gwas.i[pred.gwas.i$environment == iField,]
+
+      pred = pred.gwas.i[order(pred.gwas.i$stdError),]
+      "%>%" <- dplyr::`%>%`
+      don <- pred %>%
+        dplyr::group_by(stdError) %>%
+        dplyr::summarise(chr_len = max(reliability)) %>%
+        dplyr::mutate(tot=cumsum(chr_len) - chr_len) %>%
+        dplyr::left_join(pred, ., by=c("stdError" = "stdError")) %>%
+        dplyr::arrange(stdError, reliability) %>%
+        dplyr::mutate(BPcum=reliability+tot)
+      don$BPcum <- as.numeric(don$BPcum)
+      #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
+      
+    # don.i <- don[don$trait == iTrait,]
+    cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+    Markers <- result$data$geno
+    marker_map <- result$metadata$geno
+    marker_map <- marker_map[,c(1:3)]
+    modificationsMarkers <- result$modifications$geno
+    Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
+    markers <- Markers[order(rownames(Markers)), ]
+    
+    id <- result$status[which(result$status$module == mod),"analysisId"]
+    id <- id[length(id)]
+    phenoData <- result$predictions[which(result$predictions$analysisId == id),]
+    phenoData <- phenoData[which(phenoData$environment == iField),]
+    phenoData <- phenoData %>%
+      dplyr::select(ID = designation, trait, value = predictedValue) %>%
+      tidyr::spread(key = trait, value = value) %>%
+      dplyr::arrange(ID) %>%
+      dplyr::filter(!is.na(!!dplyr::sym(iTrait))) %>%
+      dplyr::select(c("ID", all_of(iTrait)))
+    
+    common_ids <- intersect(rownames(markers), phenoData$ID)
+    markers <- markers[rownames(markers) %in% common_ids, ]
+    phenoData <- phenoData[phenoData$ID %in% common_ids, ]
+    
+    ids_to_keep <- colnames(markers)
+
+  }
+  }
+
+  }else{
+    plotly::renderPlotly({
+      
+      s <- list()
+      inputTrait <- input$traitGwasManP
+      inputField <- input$fieldGwasManP
+
+      pred.gwas.i <- pred.gwas[pred.gwas$trait == inputTrait,]
+      pred.gwas.i <- pred.gwas.i[pred.gwas.i$environment == inputField,]
+
+      pred = pred.gwas.i[order(pred.gwas.i$stdError),]
+      "%>%" <- dplyr::`%>%`
+      don <- pred %>%
+        dplyr::group_by(stdError) %>%
+        dplyr::summarise(chr_len = max(reliability)) %>%
+        dplyr::mutate(tot=cumsum(chr_len) - chr_len) %>%
+        dplyr::left_join(pred, ., by=c("stdError" = "stdError")) %>%
+        dplyr::arrange(stdError, reliability) %>%
+        dplyr::mutate(BPcum=reliability+tot)
+      don$BPcum <- as.numeric(don$BPcum)
+      #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
+      
+      # don.i <- don[don$trait == inputTrait,]
+      Markers <- result$data$geno
+      marker_map <- result$metadata$geno
+      marker_map <- marker_map[,c(1:3)]
+      modificationsMarkers <- result$modifications$geno
+      Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
+      markers <- Markers[order(rownames(Markers)), ]
+      
+      id <- result$status[which(result$status$module == mod),"analysisId"]
+      id <- id[length(id)]
+      phenoData <- result$predictions[which(result$predictions$analysisId == id),]
+      phenoData <- phenoData[which(phenoData$environment == inputField),]
+      phenoData <- phenoData %>%
+        dplyr::select(ID = designation, trait, value = predictedValue) %>%
+        tidyr::spread(key = trait, value = value) %>%
+        dplyr::arrange(ID) %>%
+        dplyr::filter(!is.na(!!dplyr::sym(inputTrait))) %>%
+        dplyr::select(c("ID", all_of(inputTrait)))
+
+      common_ids <- intersect(rownames(markers), phenoData$ID)
+      markers <- markers[rownames(markers) %in% common_ids, ]
+      phenoData <- phenoData[phenoData$ID %in% common_ids, ]
+
+      ids_to_keep <- colnames(markers)
+      
+      don_sorted <- don[order(don$predictedValue, decreasing = TRUE),]
+      top5markers <- don_sorted$designation[which(don_sorted$predictedValue %in% don_sorted$predictedValue[1:5])]
+
+top5matrix <- markers[,which(colnames(markers) %in% top5markers)]
+top5matrix <- as.data.frame(top5matrix)
+top5matrix$ID <- rownames(top5matrix)
+
+top5matrix <- merge.data.frame(phenoData, top5matrix, by = "ID")
+top5matrix <- reshape2::melt(top5matrix, id.var = c("ID", colnames(top5matrix)[2]), 
+                           variable.name = 'topmarkers') 
+
+s <- ggplot2::ggplot(data = top5matrix, aes(x = factor(value), y = top5matrix[,2])) + # [[inputField]]
+  #labs(x = "Genotype", y = "Phenotype") + 
+  theme_bw() + 
+  geom_boxplot(fill='#A4A4A4') + geom_jitter(alpha = .1) +
+  theme(axis.text = element_text(color="black"),
+        axis.title = element_text(color="black", size = 10)) + 
+  ggpubr::border() + ggplot2::labs(x = "Genotype", y = "Phenotype") + facet_grid(. ~ topmarkers, scales='free')
+
+#plotly::plotly_build(s) # p[[inputField]] <- 
+
+plotly::ggplotly(s)
+      # u <- c(s)
+      # # plotly::plotly_build(u)
+      # w <- u[seq(1,length(u))]
+      # #plotly::ggplotly(w)
+      # plotly::subplot(w)
+      
+    })
+  }
+}
+```
+
+### Predictions
+
+The following table allows you to inspect the marker effect predictions in wide format for each trait by environment combination to get an overall overview of marker effect across chromosomes.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  #numericalColumns <- c("P","-log10(P)") 
+  idGwas <- result$status[which(result$status$module == "gwas"),"analysisId"]
+  idGwas <- idGwas[length(idGwas)]
+  pred.gwas <- result$predictions
+  pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
+  traits <- unique(pred.gwas$trait)
+  pred.gwas <- subset(pred.gwas, select = -c(module,analysisId,pipeline,gid,mother,father,entryType))
+  pred.gwas.wide <- reshape(
+    data=pred.gwas,
+    timevar = c("trait"),
+    idvar = c("designation","environment","stdError","reliability"),
+    direction="wide"
+  )
+  names(pred.gwas.wide) <- c("SNP","environment","CHR","BP",traits)
+
+  if("params" %in% ls()){ # we will download the document
+    printTable(pred.gwas.wide)
+  }else{
+    DT::renderDT({DT::formatRound(DT::datatable(
+      pred.gwas.wide,
+      extensions = 'Buttons',
+      rownames = FALSE,
+      class = 'cell-border',
+      options = list(
+        dom = 'Blfrtip',
+        scrollY = "400px",
+        scrollX = "400px",
+        buttons = c('copy','csv','excel','pdf','print'),
+        paging = F)
+    ), traits, digits = 5)
+    })
+  }
+}
+```
+
+
+### References of methods used
+
+Boer M, van Rossum B (2022). LMMsolver: Linear Mixed Model Solver. R package version 1.0.4.9000.
+
+Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.
+
+R Core Team (2024). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+<p>&nbsp;</p>
