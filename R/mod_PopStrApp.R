@@ -10,7 +10,6 @@ geno_groupPopStr<- 'www/example/Groupgeno.csv'
 #' @importFrom shiny NS tagList
 
 #' @importFrom shiny NS tagList
-source("./R/radioTooltip.R")
 
 mod_PopStrApp_ui <- function(id){
   ns <- NS(id)
