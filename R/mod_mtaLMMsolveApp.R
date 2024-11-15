@@ -177,11 +177,13 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioButtons(ns("radioModel"), label = "Surrogate of merit",
                                                                                  choices = list(
                                                                                    "TGV"="none",
+                                                                                   "GTGV" = "genoAD_model",
                                                                                    "EBV" = "pedigree_model",
                                                                                    "GEBV" = "geno_model"
                                                                                  ),
                                                                                  selected = "none", inline=TRUE),
                                                                     radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that not known covariance between the levels of designation is known and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
                                                                     br(),
@@ -244,7 +246,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                       shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
                                                                           textInput(ns("heritLBMet"),
                                                                                     label = tags$span(
-                                                                                      label = "Lower H2&R2 bound",
+                                                                                      "Lower H2&R2 bound",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -254,7 +256,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                     value="0.1"),
                                                                           textInput(ns("heritUBMet"),
                                                                                     label = tags$span(
-                                                                                      label = "Lower H2&R2 bound",
+                                                                                      "Lower H2&R2 bound",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -264,7 +266,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                     value="0.95"),
                                                                           textInput(ns("meanLBMet"),
                                                                                     label = tags$span(
-                                                                                      label = "Lower environment-mean bound",
+                                                                                      "Lower environment-mean bound",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -274,7 +276,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                     value="0"),
                                                                           textInput(ns("meanUBMet"),
                                                                                     label = tags$span(
-                                                                                      label = "Upper environment-mean bound",
+                                                                                      "Upper environment-mean bound",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -284,7 +286,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                     value="1000000"),
                                                                           numericInput(ns("maxitMet"),
                                                                                        label = tags$span(
-                                                                                         label = "Maximum # of iterations",
+                                                                                         "Maximum # of iterations",
                                                                                          tags$i(
                                                                                            class = "glyphicon glyphicon-info-sign",
                                                                                            style = "color:#000000",
@@ -294,7 +296,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                        value = 35),
                                                                           selectInput(ns("useWeights"),
                                                                                       label = tags$span(
-                                                                                        label = "Use weights?",
+                                                                                        "Use weights?",
                                                                                         tags$i(
                                                                                           class = "glyphicon glyphicon-info-sign",
                                                                                           style = "color:#000000",
@@ -377,19 +379,6 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
-    # observeEvent(c(data(), input$version2Mta, input$trait2Mta, input$radio), {
-    #   req(data());req(input$version2Mta);req(input$trait2Mta); req(input$radio)
-    #   golem::invoke_js('hideid', ns('covTextHolderMain')); golem::invoke_js('hideid', ns('covFigHolderMain'))
-    #   golem::invoke_js('hideid', ns('covTextHolderCompound')); golem::invoke_js('hideid', ns('covFigHolderCompound'))
-    #   golem::invoke_js('hideid', ns('covTextHolderFinlay')); golem::invoke_js('hideid', ns('covFigHolderFinlay'))
-    #   golem::invoke_js('hideid', ns('covTextHolderDiagonal')); golem::invoke_js('hideid', ns('covFigHolderDiagonal'))
-    #   golem::invoke_js('hideid', ns('covTextHolderDiagonalMain'));  golem::invoke_js('hideid', ns('covFigHolderDiagonalMain'))
-    #   if(input$radio == "mn_model" ){golem::invoke_js('showid', ns('covTextHolderMain')); golem::invoke_js('showid', ns('covFigHolderMain'))}
-    #   if(input$radio == "cs_model" ){golem::invoke_js('showid', ns('covTextHolderCompound')); golem::invoke_js('showid', ns('covFigHolderCompound'))}
-    #   if(input$radio == "fw_model" ){golem::invoke_js('showid', ns('covTextHolderFinlay')); golem::invoke_js('showid', ns('covFigHolderFinlay'))}
-    #   if(input$radio == "dg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonal')); golem::invoke_js('showid', ns('covFigHolderDiagonal'))}
-    #   if(input$radio == "csdg_model" ){golem::invoke_js('showid', ns('covTextHolderDiagonalMain')); golem::invoke_js('showid', ns('covFigHolderDiagonalMain'))}
-    # })
     #################
     ## version
     observeEvent(c(data()), {
@@ -668,9 +657,10 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
+      if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD")}
       envs <- unique(mydata[,"environment"])
       envsDg <- paste0("env",envs)
-      if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "geno"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else{useMod1 <- "none"; useMod2 <- "none."}
+      if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
@@ -728,6 +718,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       choices <- c( setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait))
+      # if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD")}
 
       lapply(1:length(choices), function(i) {
         div(
@@ -789,6 +780,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- mx$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       choices <- c( setdiff(names(mx$data), c("qtl","genodir","pheno") ), unique(mydata$trait))
+      # if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoD")}
 
       if (length(input$trait2Mta) != 0) {
         values <- vector(mode = "list", length = length(choices))

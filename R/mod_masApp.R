@@ -18,7 +18,7 @@ mod_masApp_ui <- function(id){
                                            br(),
                                            tags$body(
                                              column(width = 6,
-                                                    h1(strong(span("Marker-Assisted Selection Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                    h1(strong(span("Marker-Assisted Selection Module Using Selection Index Theory", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                                     h2(strong("Data Status (wait to be displayed):")),
                                                     uiOutput(ns("warningMessage")),
                                                     tags$br(),
@@ -29,12 +29,14 @@ mod_masApp_ui <- function(id){
 
                                              column(width = 6,
                                                     h2(strong("Details")),
-                                                    p("The availability of genetic markers linked to QTLs allow to select directly for the fixation of the QTL without
-                                                      further phenotyping. When such markers exist we can use bioflow to select for such QTLs using an index with
-                                                      the following parameters:"),
+                                                    p("The availability of genetic markers linked closely to QTLs allow to select directly for the fixation of the QTL without
+                                                      further phenotyping. When such markers exist you can use this module to select individuals that help to increase the frequency of the
+                                                      positive QTL-allele. Currently, the method consists in weighting each marker by 1-freq, where freq is the frequency of the positive
+                                                      QTL-allele. In addition, the user is allowed to multliply that first weight by a factor.The following
+                                                      parameters are enabled:"),
                                                     p(strong("Markers to be used.-")," selection of genetic markers to be used for the verification process."),
                                                     p(strong("Desired dosages.-"),"  this is the way to set the direction on what allele should be selected (positive allele for the trait of interest). The allele shown in the slider is the reference allele picked in the transformation for the dosage matrix."),
-                                                    p(strong("Relative weights for each marker.-"),"  relative values to apply to each marker."),
+                                                    p(strong("Relative weights for each marker.-"),"  relative values to apply to each marker denoting the multiplier applied to the 1-freq approach."),
                                                     h2(strong("References")),
                                                     p("Liu, B. H. (2017). Statistical genomics: linkage, mapping, and QTL analysis. CRC press."),
                                                     p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
@@ -47,7 +49,18 @@ mod_masApp_ui <- function(id){
                                              tabPanel( div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=8, selectInput(ns("version2Mta"), "QA-geno stamp to apply", choices = NULL, multiple = TRUE)),
+                                                             column(width=8,
+                                                                    selectInput(ns("version2Mta"),
+                                                                                label = tags$span(
+                                                                                  "QA-geno stamp to apply",
+                                                                                  tags$i(
+                                                                                    class = "glyphicon glyphicon-info-sign",
+                                                                                    style = "color:#FFFFFF",
+                                                                                    title = "Analysis ID(s) from genotype QA runs that should be applied to the marker information prior to MAS calculation."
+                                                                                  )
+                                                                                ),
+                                                                                choices = NULL, multiple = TRUE)
+                                                                    ),
 
                                                       ),
                                                       column(width=12),
@@ -64,8 +77,18 @@ mod_masApp_ui <- function(id){
                                              tabPanel( div(icon("dice-two"), "Select markers", icon("arrow-right") ), # icon = icon("dice-two"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=6, selectizeInput(ns("markers2MAS"), "Markers to use", choices = NULL, multiple = TRUE) ),
-                                                             column(width=6, checkboxInput(ns("checkbox"), label = "Select all markers?", value = FALSE), ),
+                                                             column(width=6,
+                                                                    selectizeInput(ns("markers2MAS"),
+                                                                                   label = tags$span(
+                                                                                     "Markers to use",
+                                                                                     tags$i(
+                                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                                       style = "color:#FFFFFF",
+                                                                                       title = "Name of QTL-markers that will be used to assign merit to individuals. The method will apply weight to each marker equal to 1 - freq, where freq is the frequency of the desired QTL in the population of individuals genotyped."
+                                                                                     )
+                                                                                   ),
+                                                                                   choices = NULL, multiple = TRUE) ),
+                                                             column(width=6, checkboxInput(ns("checkbox"), label = "Select all markers at once?", value = FALSE), ),
                                                       ),
                                                       column(width=12),
                                                       shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -179,7 +202,11 @@ mod_masApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
       }else{ # data is there
         if(!is.null(data()$data$geno)){
-          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the marker QA specifying your input parameters under the Input tabs.")) )
+          if("qaGeno" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform marker assisted selection under the Input tabs.")) )
+          }else{
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform QA/QC in your genotype data. ")) )
+          }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
       }
     )

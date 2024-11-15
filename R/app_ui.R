@@ -67,7 +67,8 @@ app_ui <- function(request) {
       ),
 
       navbarMenu("Data Management ", icon = icon("upload"),
-                 tabPanel(strong("DATA RETRIEVAL") ),
+
+                 tabPanel(strong("DATA RETRIEVAL AND SAVING") ),
                  tabPanel(div(icon("folder"), "Retrieve New Data"),
                           tabsetPanel( #widths = c(1, 11),
                             tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
@@ -80,6 +81,8 @@ app_ui <- function(request) {
                  tabPanel(div(icon("folder-open"), "Retrieve Old Analysis"),
                           mod_bindObjectApp_ui("bindObjectApp_1") ,
                  ),
+                 tabPanel(div( icon("floppy-disk"), "Save Data/Results",  ), mod_saveData_ui("saveData_1")  ),
+
                  tabPanel(strong("DATA QA/QC") ),
                  tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                  tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
@@ -92,11 +95,12 @@ app_ui <- function(request) {
                  tabPanel(strong("DATA TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
+
                  tabPanel(strong("DATA FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
-                 tabPanel(div( strong("DATA SAVING"), icon("floppy-disk") ), mod_saveData_ui("saveData_1")  ),
+
 
       ),
 
