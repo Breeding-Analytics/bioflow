@@ -43,7 +43,7 @@ commit, push using forked versions.
 The current list of maintainers and contributors is the following:
 
 Mainteiners: Khaled Al-Sham’aa, Ibnou Dieng, Eduardo Covarrubias
-Contributor: Bert De Boeck, Raul Eizaguirre, Abhishek Rathore, Roma Das,
+Contributor: Bert De Boeck, Raul Eyzaguirre, Abhishek Rathore, Roma Das,
 Keith Gardner, Angela Pacheco, Fernando Toledo, Juan Burgueno, Aubin
 Amagnide, Luis Delgado Munoz, Christian Cadena, Christian Werner, Sergio
 Cruz, Alaine Gulles, Justine Bonifacio.
