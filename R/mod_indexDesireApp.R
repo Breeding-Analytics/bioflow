@@ -167,12 +167,16 @@ mod_indexDesireApp_ui <- function(id){
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=4,
+                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                         placeholder = "customizedIndexName") ) ),
+                                                       column(width=3,
                                                               br(),
                                                               actionButton(ns("runIdxD"), "Calculate index (click button)", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcIdxDInfo")),
                                                        ),
-                                                       column(width=8,
+                                                       column(width=6,
                                                               br(),
                                                                 shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
                                                                                   selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
@@ -1130,6 +1134,7 @@ mod_indexDesireApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Selection index step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to select the best crosses using the OCS module using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -1192,11 +1197,13 @@ mod_indexDesireApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultIndex.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

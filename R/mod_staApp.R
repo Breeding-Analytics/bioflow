@@ -206,10 +206,17 @@ mod_staApp_ui <- function(id){
                                                  ),
                                                  tabPanel(value="tabsInputRun", title=div(icon("dice-four"), "Run analysis" ), # icon = icon("dice-four"),
                                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                                 br(),
-                                                                 actionButton(ns("runSta"), "Run STA (click button)", icon = icon("play-circle")),
-                                                                 uiOutput(ns("qaQcStaInfo")),
-                                                                 br(),
+                                                                 column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                                   "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                               title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                                   placeholder = "customizedStaName") ) ),
+                                                                 column(width=3,
+                                                                        br(),
+                                                                        actionButton(ns("runSta"), "Run STA (click button)", icon = icon("play-circle")),
+                                                                        uiOutput(ns("qaQcStaInfo")),
+                                                                        br(),
+                                                                 ),
+
                                                           ),
                                                           textOutput(ns("outSta")),
                                                  ),
@@ -1304,6 +1311,7 @@ mod_staApp_server <- function(id,data){
                       silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultSta.RData")
           cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))

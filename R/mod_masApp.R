@@ -133,11 +133,16 @@ mod_masApp_ui <- function(id){
                                              ),
                                              tabPanel("Run analysis", icon = icon("dice-four"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             br(),
-                                                             actionButton(ns("runMAS"), "Run (click button)", icon = icon("play-circle")),
-                                                             uiOutput(ns("qaQcStaInfo")),
-                                                             br(),
-
+                                                             column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                               "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                           title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                               placeholder = "customizedMasName") ) ),
+                                                             column(width=3,
+                                                                    br(),
+                                                                    actionButton(ns("runMAS"), "Run (click button)", icon = icon("play-circle")),
+                                                                    uiOutput(ns("qaQcStaInfo")),
+                                                                    br(),
+                                                                    ),
                                                       ),
                                                       textOutput(ns("outMAS")),
 
@@ -516,6 +521,7 @@ mod_masApp_server <- function(id, data){
 
       if(!inherits(result,"try-error")) { # if all goes well in the run
         cat(paste("Marker Assisted Selection analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         # predictions
@@ -598,11 +604,13 @@ mod_masApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMas.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

@@ -115,12 +115,16 @@ mod_rggApp_ui <- function(id){
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-four"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=3,
+                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                         placeholder = "customizedRggName") ) ),
+                                                       column(width=2,
                                                               br(),
                                                               actionButton(ns("runRgg"), "Run (click button)", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcRggInfo")),
                                                        ),
-                                                       column(width=9,
+                                                       column(width=7,
                                                               br(),
                                                               column(width=12, #style = "background-color:grey; color: #FFFFFF",
                                                                      shinydashboard::box(width = 12, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
@@ -613,6 +617,7 @@ mod_rggApp_server <- function(id, data){
         result <- my_rgg$result()
         shinybusy::remove_modal_spinner()
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultRgg.RData")
           cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
@@ -665,11 +670,13 @@ mod_rggApp_server <- function(id, data){
               on.exit(setwd(owd))
               file.copy(src, 'report.Rmd', overwrite = TRUE)
               file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
+              shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
               out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
                 "HTML",
                 HTML = rmdformats::robobook(toc_depth = 4)
                 # HTML = rmarkdown::html_document()
               ))
+              shinybusy::remove_modal_spinner()
               file.rename(out, file)
             }
           )

@@ -184,14 +184,17 @@ mod_ocsApp_ui <- function(id){
                                       ),
                                       tabPanel("Run analysis", icon = icon("dice-four"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-
-                                                      column( width = 2,
+                                                      column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                        "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                    title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "customizedOcsName") ) ),
+                                                      column( width = 3,
                                                               br(),
                                                               actionButton(ns("runOcs"), "Run OCS (click button)", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcOcsInfo")),
                                                       ),
                                                       br(),
-                                                      column( width = 10,
+                                                      column( width = 6,
                                                               shinydashboard::box(width = 12, status = "success", style = "color: #000000", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Optional run settings...",
                                                                                   numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
                                                                                   numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
@@ -1125,6 +1128,7 @@ mod_ocsApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -1208,11 +1212,13 @@ mod_ocsApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

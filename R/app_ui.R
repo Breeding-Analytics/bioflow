@@ -33,7 +33,6 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
   htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
 }
 
-
 #' The application User-Interface
 #'
 #' @param request Internal parameter for `{shiny}`.
@@ -44,6 +43,10 @@ app_ui <- function(request) {
   div(
     class = "navbar1",
     useShinydashboard(),
+    tags$head(
+      tags$style(type="text/css", "#inline label{ display: table-cell; text-align: center; vertical-align: middle; }
+                #inline .form-group { display: table-row;}")
+    ),
 
     navbarPage(
 
@@ -83,7 +86,7 @@ app_ui <- function(request) {
                  ),
                  tabPanel(div( icon("floppy-disk"), "Save Data/Results",  ), mod_saveData_ui("saveData_1")  ),
 
-                 tabPanel(strong("DATA QA/QC") ),
+                 tabPanel(strong("DATA QUALITY CHECK") ),
                  tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                  tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                  #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
@@ -158,7 +161,7 @@ app_ui <- function(request) {
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
                  tabPanel(strong("DRIFT & FLOW HISTORY"), mod_sectionInfoGFDHApp_ui("sectionInfoGFDHApp_1") ),
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
-                 tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
+                 # tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
                  tabPanel(div(icon("chart-line"), "Linkage disequilibrium (",  icon("dna"), ")", style = "color:red"),  mod_linkageDisApp_ui("linkageDisApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ) # stpga

@@ -3,9 +3,13 @@ Title: CGIAR Breeding Analytics Pipeline
 Description: CGIAR Breeding Analytics Pipeline
 Version: 0.1.0
 Authors@R: c(
-    person("Giovanny", "Covarrubias Pazaran", , "g.covarrubias@irri.org", role = c("aut", "cre")),
+    person("Giovanny", "Covarrubias Pazaran", , "covaruberpaz@gmail.com", role = c("aut", "cre")),
     person("Ibnou", "Dieng", , "i.dieng@cgiar.org", role = c("aut")),
-    person("Khaled", "Al-Shamaa", , "k.el-shamaa@cgiar.org", role = c("aut"))
+    person("Khaled", "Al-Shamaa", , "k.el-shamaa@cgiar.org", role = c("aut", "cre")),
+    person("Angela", "Pacheco", , "r.a.pacheco@cgiar.org", role = c("aut")),
+    person("Justin", "Bonifacio Dayrit", , "j.bonifacio@irri.org", role = c("aut")),
+    person("Raul", "Eyzaguirre", , "r.eyzaguirre@cgiar.org", role = c("aut")),
+    person("Aubin", "Amignide", , "A.Amagnide@cgiar.org", role = c("aut"))
   )
 License: GPL (>= 3)
 URL: https://github.com/Breeding-Analytics/bioflow/

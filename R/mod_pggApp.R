@@ -69,39 +69,46 @@ mod_pggApp_ui <- function(id){
                                                 ),
                                        ),
                                        tabPanel( div( icon("dice-two"), "Select parameters(s)", icon("arrow-right") ) , # icon = icon("dice-two"),
-                                                br(),
-                                                column(width=12,  style = "background-color:grey; color: #FFFFFF",
+                                                 br(),
+                                                 column(width=12,  style = "background-color:grey; color: #FFFFFF",
 
-                                                       column(width=3,
-                                                              selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
-                                                       ),
-                                                       column(width=3,
-                                                              selectInput(ns("environmentToUse"), "Do analysis by:", choices = NULL, multiple = FALSE),
-                                                       ),
-                                                       column(width=3,
-                                                              numericInput(ns("proportion"), label = "Assumed percentage selected (%)", value = 10, step = 10, max = 100, min = 1),
-                                                       ),
-                                                ),
-                                                column(width=12),
-                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                    column(width=12,
-                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                    ),
-                                                                    tags$span(id = ns('holder1'),
-                                                                              column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
-                                                                              column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                                                    ),
-                                                ),
+                                                        column(width=3,
+                                                               selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
+                                                        ),
+                                                        column(width=3,
+                                                               selectInput(ns("environmentToUse"), "Do analysis by:", choices = NULL, multiple = FALSE),
+                                                        ),
+                                                        column(width=3,
+                                                               numericInput(ns("proportion"), label = "Assumed percentage selected (%)", value = 10, step = 10, max = 100, min = 1),
+                                                        ),
+                                                 ),
+                                                 column(width=12),
+                                                 shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                     column(width=12,
+                                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                            h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                     ),
+                                                                     tags$span(id = ns('holder1'),
+                                                                               column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
+                                                                               column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                               column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                     ),
+                                                 ),
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                       br(),
-                                                       actionButton(ns("runPgg"), "Run (click button)", icon = icon("play-circle")),
-                                                       uiOutput(ns("qaQcPggInfo")),
-                                                       br(),
+                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                         placeholder = "customizedPggName") ) ),
+                                                       column(width=3,
+                                                              br(),
+                                                              actionButton(ns("runPgg"), "Run (click button)", icon = icon("play-circle")),
+                                                              uiOutput(ns("qaQcPggInfo")),
+                                                              br(),
+                                                       ),
+
                                                 ),
                                                 textOutput(ns("outPgg")),
                                        ),
@@ -392,6 +399,7 @@ mod_pggApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultPgg.RData")
           cat(paste("Predicted genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT") ,"saved."))
@@ -458,11 +466,13 @@ mod_pggApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultPgg.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

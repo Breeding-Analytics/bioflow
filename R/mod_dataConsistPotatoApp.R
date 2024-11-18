@@ -83,7 +83,8 @@ mod_dataConsistPotatoApp_ui <- function(id){
 
                                   ),
                                   tabPanel("Tag inconsistencies", icon = icon("dice-three"),
-                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                           column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "customizedMasName") ),
+                                           column(width=3,style = "background-color:grey; color: #FFFFFF",
                                                   br(),
                                                   actionButton(ns("runConsist"), "Run consistency check (click)", icon = icon("play-circle")),
                                                   uiOutput(ns("qaQcConsistInfo")),

@@ -85,11 +85,15 @@ mod_qaGenoApp_ui <- function(id){
                                              ),
                                              tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=4,
+                                                             column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                               "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                           title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                               placeholder = "customizedMasName") ) ),
+                                                             column(width=2,
                                                                     br(),
                                                                     actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),
                                                              ),
-                                                             column(width=8,
+                                                             column(width=7,
                                                                     br(),
                                                                     shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                         selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
@@ -335,6 +339,7 @@ mod_qaGenoApp_server <- function(id, data){
         ## write the new status table
         newStatus <- data.frame(module="qaGeno", analysisId= mods$analysisId[nrow(mods)])
         result$status <- rbind(result$status, newStatus)
+        if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         cat(paste("Modifications to genotype information saved with id:",as.POSIXct( mods$analysisId[nrow(mods)], origin="1970-01-01", tz="GMT") ))
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -364,11 +369,13 @@ mod_qaGenoApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

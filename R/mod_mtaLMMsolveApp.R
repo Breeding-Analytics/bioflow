@@ -70,17 +70,17 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8,
-                                                               selectInput(ns("version2Mta"),
-                                                                           label = tags$span(
-                                                                             "STA version to analyze (required)",
-                                                                             tags$i(
-                                                                               class = "glyphicon glyphicon-info-sign",
-                                                                               style = "color:#FFFFFF",
-                                                                               title = "Analysis ID(s) from STA runs that should be combined and used to fit a multi-trial analysis."
-                                                                             )
-                                                                           ),
-                                                                           choices = NULL, multiple = TRUE),
-                                                             ),
+                                                             selectInput(ns("version2Mta"),
+                                                                         label = tags$span(
+                                                                           "STA version to analyze (required)",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Analysis ID(s) from STA runs that should be combined and used to fit a multi-trial analysis."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = TRUE),
+                                                      ),
 
                                                ),
                                                column(width=12),
@@ -97,16 +97,16 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Pick traits", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                        selectInput(ns("trait2Mta"),
-                                                                    label = tags$span(
-                                                                      "Trait to analyze (required)",
-                                                                      tags$i(
-                                                                        class = "glyphicon glyphicon-info-sign",
-                                                                        style = "color:#FFFFFF",
-                                                                        title = "Only traits present in the STA runs selected will be available."
-                                                                      )
-                                                                    ),
-                                                                    choices = NULL, multiple = TRUE),
+                                                      selectInput(ns("trait2Mta"),
+                                                                  label = tags$span(
+                                                                    "Trait to analyze (required)",
+                                                                    tags$i(
+                                                                      class = "glyphicon glyphicon-info-sign",
+                                                                      style = "color:#FFFFFF",
+                                                                      title = "Only traits present in the STA runs selected will be available."
+                                                                    )
+                                                                  ),
+                                                                  choices = NULL, multiple = TRUE),
                                                ),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
                                                                    column(width=12,
@@ -326,10 +326,17 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel("Run analysis", icon = icon("dice-five"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      br(),
-                                                      actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
-                                                      uiOutput(ns("qaQcMtaInfo")),
-                                                      br(),
+                                                      column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                        "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                          title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "customizedMtaName") ) ),
+                                                      column(width=3,
+                                                             br(),
+                                                             actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
+                                                             uiOutput(ns("qaQcMtaInfo")),
+                                                             br(),
+                                                      ),
+
                                                ),
                                                textOutput(ns("outMta")),
                                       ),
@@ -1134,6 +1141,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -1207,11 +1215,13 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

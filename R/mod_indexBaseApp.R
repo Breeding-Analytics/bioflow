@@ -294,6 +294,7 @@ mod_indexBaseApp_server <- function(id, data){
           silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved. Please proceed to use this time stamp in the optimal cross selection."))

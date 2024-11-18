@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 16, 2024"  
+date: "November 18, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -43,13 +43,13 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outb746fe92678193cb" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out281a350bc209f3b4" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Metadata: Map of trials planted
 
 The following map allows you to assess the location where trials are planted.
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out0c3d0fabb2ce9c38" style="width:100%;height:400px;"></div><!--/html_preserve-->
+No coordinates available. Skipping planting map.
 
 ### Predictions: By environment merit distribution
 
@@ -77,8 +77,7 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsTrait-label" for="mtaLMMsolveApp_1-boxplotMtaPredsTrait">Trait</label>
 <div>
-<select id="mtaLMMsolveApp_1-boxplotMtaPredsTrait" class="shiny-input-select"><option value="Pollen_DAP_days" selected>Pollen_DAP_days</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsTrait" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -86,7 +85,7 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outebcabd509e29870b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outa964c52d434418f6" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Connectivity between environments
 
@@ -97,13 +96,12 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-traitMtaConnect-label" for="mtaLMMsolveApp_1-traitMtaConnect"></label>
 <div>
-<select id="mtaLMMsolveApp_1-traitMtaConnect" class="shiny-input-select"><option value="Pollen_DAP_days" selected>Pollen_DAP_days</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="mtaLMMsolveApp_1-traitMtaConnect" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out64fc6ba82217b591" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out1fa36f808ca475fb" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between environments
 
@@ -131,8 +129,7 @@ The following heatmap and histogram allows to assess the genetic correlations am
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-traitPredictionsCorrelation-label" for="mtaLMMsolveApp_1-traitPredictionsCorrelation">Trait</label>
 <div>
-<select id="mtaLMMsolveApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="Pollen_DAP_days" selected>Pollen_DAP_days</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="mtaLMMsolveApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -140,7 +137,7 @@ The following heatmap and histogram allows to assess the genetic correlations am
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out97a73cb4f395646a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out564ac1790631900f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Biplot by trait
 
@@ -168,8 +165,7 @@ The following graph allows to see the clustering of different genotypes in the T
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-traitBiplot-label" for="mtaLMMsolveApp_1-traitBiplot">Trait:</label>
 <div>
-<select id="mtaLMMsolveApp_1-traitBiplot" class="shiny-input-select"><option value="Pollen_DAP_days" selected>Pollen_DAP_days</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="mtaLMMsolveApp_1-traitBiplot" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -177,7 +173,7 @@ The following graph allows to see the clustering of different genotypes in the T
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outea17363a78d22246" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outc96c24d3cf2bca28" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Merit estimates of top entries
 
@@ -204,8 +200,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsTrait-label" for="mtaLMMsolveApp_1-scatterMtaPredsTrait">Trait</label>
 <div>
-<select id="mtaLMMsolveApp_1-scatterMtaPredsTrait" class="shiny-input-select"><option value="Pollen_DAP_days" selected>Pollen_DAP_days</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option></select>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsTrait" class="shiny-input-select"><option value="GYKGPHA" selected>GYKGPHA</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -225,7 +220,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out45993cd3af03b23d" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outa5b4baf751a40d83" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Predictions: Table of estimates 
 
@@ -233,7 +228,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outfe0895c0dc974aa4" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outd79ccddeee74eb86" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between traits
 
@@ -269,14 +264,14 @@ The following heatmap and histogram allows to see the genetic correlations among
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outc68b30f78e0184e1" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out96244a7fd274c24c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outa0bf6f4ecead2576" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out78f0815eebaacab8" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used
