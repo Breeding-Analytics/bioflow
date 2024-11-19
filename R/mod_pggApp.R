@@ -216,7 +216,13 @@ mod_pggApp_server <- function(id, data){
       dtPgg <- dtPgg$status
       dtPgg <- dtPgg[which(dtPgg$module %in% c("sta")),]
       traitsPgg <- unique(dtPgg$analysisId)
-      if(length(traitsPgg) > 0){names(traitsPgg) <- as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT")}
+      if(length(traitsPgg) > 0){
+        if("analysisIdName" %in% colnames(dtPgg)){
+          names(traitsPgg) <- paste(dtPgg$analysisIdName, as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsPgg) <- as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Pgg", choices = traitsPgg)
     })
     #################

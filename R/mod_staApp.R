@@ -913,7 +913,13 @@ mod_staApp_server <- function(id,data){
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
       traitsMta <- unique(dtMta$analysisId)
-      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+      if(length(traitsMta) > 0){
+        if("analysisIdName" %in% colnames(dtMta)){
+          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Sta", choices = traitsMta)
     })
     # genetic evaluation unit

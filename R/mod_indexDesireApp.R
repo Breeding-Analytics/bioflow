@@ -784,7 +784,13 @@ mod_indexDesireApp_server <- function(id, data){
       dtIdxD <- dtIdxD$status
       dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaFlex","mtaLmms","mas") ),]
       traitsIdxD <- unique(dtIdxD$analysisId)
-      if(length(traitsIdxD) > 0){names(traitsIdxD) <- as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT")}
+      if(length(traitsIdxD) > 0){
+        if("analysisIdName" %in% colnames(dtIdxD)){
+          names(traitsIdxD) <- paste(dtIdxD$analysisIdName, as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsIdxD) <- as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2IdxD", choices = traitsIdxD)
     })
     #################

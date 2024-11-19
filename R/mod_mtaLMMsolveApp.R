@@ -390,11 +390,17 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     ## version
     observeEvent(c(data()), {
       req(data())
-      dtMta <- data()
+      dtMta <- data() # dtMta <- result
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module == "sta"),]
       traitsMta <- unique(dtMta$analysisId)
-      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+      if(length(traitsMta) > 0){
+        if("analysisIdName" %in% colnames(dtMta)){
+          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMta) <- as.character(as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"))
+        }
+      }
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
     #################

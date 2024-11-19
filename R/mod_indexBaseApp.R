@@ -216,7 +216,13 @@ mod_indexBaseApp_server <- function(id, data){
       dtIdxB <- dtIdxB$status
       dtIdxB <- dtIdxB[which(dtIdxB$module == "mta"),]
       traitsIdxB <- unique(dtIdxB$analysisId)
-      if(length(traitsIdxB) > 0) {names(traitsIdxB) <- as.POSIXct(traitsIdxB, origin="1970-01-01", tz="GMT")}
+      if(length(traitsIdxB) > 0){
+        if("analysisIdName" %in% colnames(dtIdxB)){
+          names(traitsIdxB) <- paste(dtIdxB$analysisIdName, as.POSIXct(traitsIdxB, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsIdxB) <- as.POSIXct(traitsIdxB, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2IdxB", choices = traitsIdxB)
     })
     ####################

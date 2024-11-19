@@ -816,7 +816,13 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- dtOcs$status
       dtOcs <- dtOcs[which(dtOcs$module %in% c("indexD")),]
       traitsOcs <- unique(dtOcs$analysisId)
-      if(length(traitsOcs) > 0){names(traitsOcs) <- as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT")}
+      if(length(traitsOcs) > 0){
+        if("analysisIdName" %in% colnames(dtOcs)){
+          names(traitsOcs) <- paste(dtOcs$analysisIdName, as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsOcs) <- as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Ocs", choices = traitsOcs)
     })
     #################

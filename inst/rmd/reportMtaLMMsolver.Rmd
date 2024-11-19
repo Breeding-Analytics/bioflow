@@ -920,7 +920,7 @@ if (is.null(result)){
                 ggplot2::geom_errorbar(ggplot2::aes(ymax = predictedValue + stdError,
                                                     ymin = predictedValue - stdError), position = ggplot2::position_dodge(0.5),
                                        width = 0.10) +
-                ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Effect type") +
+                ggplot2::labs(title = "", x = "Designation", y = "Predicted value", color = "Entry type") +
                 ggplot2::theme(axis.text.x = ggplot2::element_blank() , legend.position = "none", legend.title = element_blank() ) +   # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
                 ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
                 ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
@@ -961,7 +961,7 @@ if (is.null(result)){
             p1 <- ggplot2::ggplot(temp.pred.box.top, ggplot2::aes(x=reorder(entryType, -predictedValue), y=predictedValue) ) +
               ggplot2::geom_boxplot(alpha = 0.5, show.legend = TRUE, ggplot2::aes(colour=factor(entryType))) +
               ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom", legend.title = element_blank() ) + # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
-              ggplot2::labs(x="", y="Trait value", color="Effect type") +  
+              ggplot2::labs(x="", y="Trait value", color="Entry type") +  
               ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
             
             # plot 2
@@ -1127,7 +1127,7 @@ if (is.null(result)){
               ggplot2::coord_fixed() + 
               ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                              axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-            if(nrow(corrX) < 20){ # if user wants to fill cell values
+            if(nrow(corrX) < 8){ # if user wants to fill cell values
               p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
             }
             
@@ -1174,7 +1174,7 @@ if (is.null(result)){
             ggplot2::coord_fixed() + 
             ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                            axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-          if(nrow(corrX) < 20){ # if user wants to fill cell values
+          if(nrow(corrX) < 8){ # if user wants to fill cell values
             p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
           }
           

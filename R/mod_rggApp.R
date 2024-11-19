@@ -279,7 +279,13 @@ mod_rggApp_server <- function(id, data){
         dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaLmms","indexD")),]
       }
       traitsRgg <- unique(dtRgg$analysisId)
-      if(length(traitsRgg) > 0){names(traitsRgg) <- as.POSIXct(traitsRgg, origin="1970-01-01", tz="GMT")}
+      if(length(traitsRgg) > 0){
+        if("analysisIdName" %in% colnames(dtRgg)){
+          names(traitsRgg) <- paste(dtRgg$analysisIdName, as.POSIXct(traitsRgg, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsRgg) <- as.POSIXct(traitsRgg, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Rgg", choices = traitsRgg)
     })
     #################
