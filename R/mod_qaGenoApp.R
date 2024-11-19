@@ -93,7 +93,8 @@ mod_qaGenoApp_ui <- function(id){
                                                                     br(),
                                                                     actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),
                                                              ),
-                                                             column(width=7,
+                                                             column(width=1),
+                                                             column(width=6,
                                                                     br(),
                                                                     shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
                                                                                         selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
@@ -337,9 +338,11 @@ mod_qaGenoApp_server <- function(id, data){
         # save(result, file = "./R/outputs/resultQaGeno.RData")
         result$modifications$geno <- rbind(result$modifications$geno, mods )
         ## write the new status table
-        newStatus <- data.frame(module="qaGeno", analysisId= mods$analysisId[nrow(mods)])
-        result$status <- rbind(result$status, newStatus)
-        if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+        newStatus <- data.frame(module="qaGeno", analysisId= mods$analysisId[nrow(mods)], analysisIdName=input$analysisIdName)
+        if(!is.null(result$status)){
+          result$status <- rbind(result$status, newStatus[,colnames(result$status)])
+        }else{result$status <- newStatus}
+        # if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         cat(paste("Modifications to genotype information saved with id:",as.POSIXct( mods$analysisId[nrow(mods)], origin="1970-01-01", tz="GMT") ))
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")

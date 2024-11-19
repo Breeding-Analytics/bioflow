@@ -47,66 +47,66 @@ mod_masApp_ui <- function(id){
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
                                              tabPanel( div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
-                                                      br(),
-                                                      column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=8,
-                                                                    selectInput(ns("version2Mta"),
-                                                                                label = tags$span(
-                                                                                  "QA-geno stamp to apply",
-                                                                                  tags$i(
-                                                                                    class = "glyphicon glyphicon-info-sign",
-                                                                                    style = "color:#FFFFFF",
-                                                                                    title = "Analysis ID(s) from genotype QA runs that should be applied to the marker information prior to MAS calculation."
-                                                                                  )
-                                                                                ),
-                                                                                choices = NULL, multiple = TRUE)
-                                                                    ),
+                                                       br(),
+                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                              column(width=8,
+                                                                     selectInput(ns("version2Mta"),
+                                                                                 label = tags$span(
+                                                                                   "QA-geno stamp to apply",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Analysis ID(s) from genotype QA runs that should be applied to the marker information prior to MAS calculation."
+                                                                                   )
+                                                                                 ),
+                                                                                 choices = NULL, multiple = TRUE)
+                                                              ),
 
-                                                      ),
-                                                      column(width=12),
-                                                      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                          column(width=12,
-                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                                 h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          ),
-                                                                          column( width=4, DT::DTOutput(ns("tableTraitTimeMASmps")), br(),br(),  ),
-                                                                          column( width=8, shiny::plotOutput(ns("plotTimeMASmps")), br(),br(), ),
-                                                      ),
+                                                       ),
+                                                       column(width=12),
+                                                       shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                           column(width=12,
+                                                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                           ),
+                                                                           column( width=4, DT::DTOutput(ns("tableTraitTimeMASmps")), br(),br(),  ),
+                                                                           column( width=8, shiny::plotOutput(ns("plotTimeMASmps")), br(),br(), ),
+                                                       ),
                                              ),
                                              tabPanel( div(icon("dice-two"), "Select markers", icon("arrow-right") ), # icon = icon("dice-two"),
-                                                      br(),
-                                                      column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=6,
-                                                                    selectizeInput(ns("markers2MAS"),
-                                                                                   label = tags$span(
-                                                                                     "Markers to use",
-                                                                                     tags$i(
-                                                                                       class = "glyphicon glyphicon-info-sign",
-                                                                                       style = "color:#FFFFFF",
-                                                                                       title = "Name of QTL-markers that will be used to assign merit to individuals. The method will apply weight to each marker equal to 1 - freq, where freq is the frequency of the desired QTL in the population of individuals genotyped."
-                                                                                     )
-                                                                                   ),
-                                                                                   choices = NULL, multiple = TRUE) ),
-                                                             column(width=6, checkboxInput(ns("checkbox"), label = "Select all markers at once?", value = FALSE), ),
-                                                      ),
-                                                      column(width=12),
-                                                      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                          column(width=12,
-                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                                 h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          ),
-                                                                          column(width=12,
-                                                                                 column(width=12, sliderInput(ns("slider1"), label = "Markers to display", min = 1, max = 2000, value = c(1, 10)) ),
-                                                                                 # column(width=4, numericInput(ns("nCol"), label = "Max number of columns to display", value = 10, step = 5, max = 1000, min = 1) ),
-                                                                          ),
-                                                                          column(width=12,
-                                                                                 tags$span(id = ns('holder'),
-                                                                                           DT::DTOutput(ns("genoDT")),
-                                                                                 ),
-                                                                          ),
-                                                      ),
+                                                       br(),
+                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                              column(width=6,
+                                                                     selectizeInput(ns("markers2MAS"),
+                                                                                    label = tags$span(
+                                                                                      "Markers to use",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#FFFFFF",
+                                                                                        title = "Name of QTL-markers that will be used to assign merit to individuals. The method will apply weight to each marker equal to 1 - freq, where freq is the frequency of the desired QTL in the population of individuals genotyped."
+                                                                                      )
+                                                                                    ),
+                                                                                    choices = NULL, multiple = TRUE) ),
+                                                              column(width=6, checkboxInput(ns("checkbox"), label = "Select all markers at once?", value = FALSE), ),
+                                                       ),
+                                                       column(width=12),
+                                                       shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                           column(width=12,
+                                                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                           ),
+                                                                           column(width=12,
+                                                                                  column(width=12, sliderInput(ns("slider1"), label = "Markers to display", min = 1, max = 2000, value = c(1, 10)) ),
+                                                                                  # column(width=4, numericInput(ns("nCol"), label = "Max number of columns to display", value = 10, step = 5, max = 1000, min = 1) ),
+                                                                           ),
+                                                                           column(width=12,
+                                                                                  tags$span(id = ns('holder'),
+                                                                                            DT::DTOutput(ns("genoDT")),
+                                                                                  ),
+                                                                           ),
+                                                       ),
                                              ),
                                              tabPanel(div(icon("dice-three"), "Set direction", icon("arrow-right") ), # icon = icon("dice-three"),
                                                       br(),
@@ -142,7 +142,7 @@ mod_masApp_ui <- function(id){
                                                                     actionButton(ns("runMAS"), "Run (click button)", icon = icon("play-circle")),
                                                                     uiOutput(ns("qaQcStaInfo")),
                                                                     br(),
-                                                                    ),
+                                                             ),
                                                       ),
                                                       textOutput(ns("outMAS")),
 
@@ -476,10 +476,10 @@ mod_masApp_server <- function(id, data){
       }
       p <- 1 - q
       df3 <- data.frame(allele= c(X$refAllele, X$altAllele),
-                 parameter=c(rep("reference",length(X$refAllele)), rep("alternate",length(X$altAllele)) ),
-                 value=c( p, q),
-                 marker=c(input$markers2MAS,input$markers2MAS)
-                 )
+                        parameter=c(rep("reference",length(X$refAllele)), rep("alternate",length(X$altAllele)) ),
+                        value=c( p, q),
+                        marker=c(input$markers2MAS,input$markers2MAS)
+      )
       pp <- ggplot2::ggplot(data=df3, ggplot2::aes(x=marker, y=value, fill=allele)) +
         ggplot2::geom_bar(stat="identity") +
         ggplot2::scale_fill_brewer(palette="Accent") +
@@ -491,7 +491,7 @@ mod_masApp_server <- function(id, data){
 
     ##########################
     ## run button
-    outMAS <- eventReactive(input$runMAS, {
+    outMAS <- eventReactive(input$runMAS, { # input <- list(version2Mta=result$status$analysisId[1], markers2MAS=colnames(result$data$geno)[1:10])
 
       req(data())
       req(input$version2Mta)
@@ -501,20 +501,22 @@ mod_masApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ##
       ## store the new modifications table
-      alleles <- desireAlleleValues()
+      alleles <- desireAlleleValues() # alleles <- result$metadata$geno[input$markers2MAS,"refAllele"]
       dtMta <- data()
       X <- dtMta$metadata$geno[input$markers2MAS,]
-      desire <- ifelse(alleles == 0, X$altAllele,X$refAllele)
+      positiveAlleles <- ifelse(alleles == 0, X$altAllele,X$refAllele)
 
       weights <- desireWeightValues()
 
-      result <- cgiarPipeline::markerAssistedSelection(
+      ui_inputs <- shiny::reactiveValuesToList(input)
+      save(ui_inputs, file="bugmas.RData")
+      result <- try( cgiarPipeline::markerAssistedSelection(
         object = data() ,
         analysisIdForGenoModifications= input$version2Mta,
         markersToBeUsed=input$markers2MAS,
-        positiveAlleles=desire,
+        positiveAlleles=positiveAlleles,
         desire=weights, ploidy=input$ploidy
-      )
+      ), silent = TRUE)
 
       # save(result, file = "./R/outputs/resultMASGeno.RData")
       shinybusy::remove_modal_spinner()
@@ -615,7 +617,7 @@ mod_masApp_server <- function(id, data){
           }
         )
 
-      }else{ hideAll$clearAll <- TRUE}
+      }else{ cat(paste("Analysis failed with the following error message: \n\n",result[[1]])); hideAll$clearAll <- TRUE}
 
       hideAll$clearAll <- FALSE
 

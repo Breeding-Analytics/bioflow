@@ -18,7 +18,7 @@ Imports:
     ape,
     cgiarBase (>= 1.0.3),
     cgiarOcs (>= 1.1),
-    cgiarPipeline (>= 1.0.5),
+    cgiarPipeline (>= 1.0.6),
     config (>= 0.3.2),
     data.table,
     DT,
