@@ -477,7 +477,7 @@ mod_pggApp_server <- function(id, data){
 
         output$downloadReportPgg <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('pgg_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

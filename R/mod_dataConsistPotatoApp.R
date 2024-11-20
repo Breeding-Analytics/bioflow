@@ -303,7 +303,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste('my-report', sep = '.', switch(
+              paste(paste0('qaConsist_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },

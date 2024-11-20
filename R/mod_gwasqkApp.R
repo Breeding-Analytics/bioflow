@@ -718,7 +718,7 @@ mod_gwasqkApp_server <- function(id, data){
 
         output$downloadReportGwas <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('gwas',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

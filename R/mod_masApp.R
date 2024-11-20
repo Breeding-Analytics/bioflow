@@ -616,7 +616,7 @@ mod_masApp_server <- function(id, data){
 
         output$downloadReportMASGeno <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('mas_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

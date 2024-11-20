@@ -1207,7 +1207,7 @@ mod_indexDesireApp_server <- function(id, data){
 
         output$downloadReportIndex <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('indexD_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

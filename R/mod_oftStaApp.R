@@ -655,7 +655,7 @@ mod_oftStaApp_server <- function(id, data){
         ## report OFT
         output$downloadReportOft <- downloadHandler(
           filename = function() {
-            paste('my-dashboard-OFT', sep = '.', switch(
+            paste(paste0('oft_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
