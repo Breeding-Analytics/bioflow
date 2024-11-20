@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Phenotypic Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 19, 2024"  
+date: "November 20, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -22,30 +22,14 @@ The following table shows the modifications that have been saved in your analysi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaPhenoApp_1-traitQa-label" for="qaPhenoApp_1-traitQa">Trait:</label>
 <div>
-<select id="qaPhenoApp_1-traitQa" class="shiny-input-select"><option value="Canopy" selected>Canopy</option>
-<option value="NDVI">NDVI</option>
-<option value="Mean.Plant.Height">Mean.Plant.Height</option>
-<option value="Average.Leaf.Angle">Average.Leaf.Angle</option>
-<option value="Canopy.Chlorophyll.Content">Canopy.Chlorophyll.Content</option>
-<option value="CI.Green">CI.Green</option>
-<option value="CI.Red.Edge">CI.Red.Edge</option>
-<option value="FiPAR">FiPAR</option>
-<option value="LCI">LCI</option>
-<option value="Leaf.Area.Index">Leaf.Area.Index</option>
-<option value="Leaf.Chlorophyll.Content">Leaf.Chlorophyll.Content</option>
-<option value="Max.Plant.Height">Max.Plant.Height</option>
-<option value="Mean.Plant.Height.Heterogeneity">Mean.Plant.Height.Heterogeneity</option>
-<option value="MCARI">MCARI</option>
-<option value="MTCI">MTCI</option>
-<option value="NDRE">NDRE</option>
-<option value="Plant.Biovolume">Plant.Biovolume</option>
-<option value="Plant.Biovolume.Heterogeneity">Plant.Biovolume.Heterogeneity</option></select>
+<select id="qaPhenoApp_1-traitQa" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="qaPhenoApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaPhenoApp_1-out2594d4843c91351d" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaPhenoApp_1-outfaa947656dfbb56c" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -60,29 +44,13 @@ The following boxplot allows you to visualize which records were tagged as outli
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaPhenoApp_1-traitQaBox-label" for="qaPhenoApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="qaPhenoApp_1-traitQaBox" class="shiny-input-select"><option value="Canopy" selected>Canopy</option>
-<option value="NDVI">NDVI</option>
-<option value="Mean.Plant.Height">Mean.Plant.Height</option>
-<option value="Average.Leaf.Angle">Average.Leaf.Angle</option>
-<option value="Canopy.Chlorophyll.Content">Canopy.Chlorophyll.Content</option>
-<option value="CI.Green">CI.Green</option>
-<option value="CI.Red.Edge">CI.Red.Edge</option>
-<option value="FiPAR">FiPAR</option>
-<option value="LCI">LCI</option>
-<option value="Leaf.Area.Index">Leaf.Area.Index</option>
-<option value="Leaf.Chlorophyll.Content">Leaf.Chlorophyll.Content</option>
-<option value="Max.Plant.Height">Max.Plant.Height</option>
-<option value="Mean.Plant.Height.Heterogeneity">Mean.Plant.Height.Heterogeneity</option>
-<option value="MCARI">MCARI</option>
-<option value="MTCI">MTCI</option>
-<option value="NDRE">NDRE</option>
-<option value="Plant.Biovolume">Plant.Biovolume</option>
-<option value="Plant.Biovolume.Heterogeneity">Plant.Biovolume.Heterogeneity</option></select>
+<select id="qaPhenoApp_1-traitQaBox" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="qaPhenoApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaPhenoApp_1-out36c6617328dec28f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaPhenoApp_1-out5c61666553e5e4b2" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 
