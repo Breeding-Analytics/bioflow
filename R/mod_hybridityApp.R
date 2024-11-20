@@ -563,7 +563,7 @@ mod_hybridityApp_server <- function(id, data){
 
         output$downloadReportVerifGeno <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('gVerif_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

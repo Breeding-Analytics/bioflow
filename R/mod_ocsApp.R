@@ -1222,7 +1222,7 @@ mod_ocsApp_server <- function(id, data){
 
         output$downloadReportOcs <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('ocs_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

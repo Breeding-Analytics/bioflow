@@ -653,7 +653,7 @@ mod_PopStrApp_server <- function(id, data){
         ## Report tab
         output$downloadReportPopStr <- downloadHandler(
           filename = function() {
-            paste('my-reportPopStr', sep = '.', switch(
+            paste(paste0('popStrM_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

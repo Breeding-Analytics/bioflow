@@ -359,7 +359,7 @@ mod_qaGenoApp_server <- function(id, data){
 
         output$downloadReportQaGeno <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('qaGeno_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

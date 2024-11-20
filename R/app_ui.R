@@ -116,7 +116,6 @@ app_ui <- function(request) {
                           navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
                                         tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
-                                        tabPanel(div("(optional) On-Farm Trial Decision (", icon("seedling"), ")" ), mod_oftStaApp_ui("oftStaApp_1") ),
                           )
                  ),
 
@@ -173,6 +172,7 @@ app_ui <- function(request) {
                  tabPanel("Accelerate (ABI)", mod_abiDashboard_ui("abiDashboard_1"), icon = icon("puzzle-piece") ),
                  # tabPanel(strong("PREDICTIVE MODELING"),   ),
                  # tabPanel("Neural Networks", mod_tensorMLApp_ui("tensorMLApp_1"), icon = icon("puzzle-piece") ),
+                 tabPanel("On-Farm Trial Decision", mod_oftStaApp_ui("oftStaApp_1"), icon = icon("file") ),
       ),
 
 
