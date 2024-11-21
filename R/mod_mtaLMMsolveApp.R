@@ -256,7 +256,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                     value="0.1"),
                                                                           textInput(ns("heritUBMet"),
                                                                                     label = tags$span(
-                                                                                      "Lower H2&R2 bound",
+                                                                                      "Upper H2&R2 bound",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
