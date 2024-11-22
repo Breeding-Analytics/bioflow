@@ -127,7 +127,7 @@ mod_gwasqkApp_ui <- function(id){
                                       ),
                                       tabPanel("Run analysis", icon = icon("play"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "customizedMasName") ),
+                                                      column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "(optional name)") ),
                                                       column(width = 2,
                                                               br(),
                                                               actionButton(ns("runGwas"), "Run GWAS (click button)", icon = icon("play-circle")),

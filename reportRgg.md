@@ -1,7 +1,7 @@
 ---
 title: "Realized Genetic Gain Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 19, 2024"  
+date: "November 21, 2024"  
 output: html_document
 params:
  toDownload: FALSE
@@ -21,24 +21,25 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out254d1e1aaad706e8" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-outcc7c21f8cddd5f68" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Summary metrics (wide-format)
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out967972f18d0726ff" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="rggApp_1-out9a024ddaeb9f7922" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Regression plot
 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="rggApp_1-traitSta3-label" for="rggApp_1-traitSta3">Trait:</label>
 <div>
-<select id="rggApp_1-traitSta3" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
+<select id="rggApp_1-traitSta3" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Ear_Height_cm">Ear_Height_cm</option>
 <option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="rggApp_1-traitSta3" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-out2c66792405ee106a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="rggApp_1-outac37ede4e247ef4c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References on methods used

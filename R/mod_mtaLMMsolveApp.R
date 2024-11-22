@@ -1150,11 +1150,13 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         dontHaveDist <- which(is.na(myFamily))
         if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
 
+        myEnvsTI = apply(x$df,2,function(z){z})
+
         result <- try(
           cgiarPipeline::metLMMsolver(
             phenoDTfile= dtMta, analysisId=input$version2Mta,
             fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
-            envsToInclude=x$df, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
+            envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
             calculateSE=input$calcSE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
             heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
             meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),

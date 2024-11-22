@@ -118,7 +118,7 @@ mod_rggApp_ui <- function(id){
                                                        column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
                                                          "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
                                                                      title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
-                                                         placeholder = "customizedRggName") ) ),
+                                                         placeholder = "(optional name)") ) ),
                                                        column(width=2,
                                                               br(),
                                                               actionButton(ns("runRgg"), "Run (click button)", icon = icon("play-circle")),

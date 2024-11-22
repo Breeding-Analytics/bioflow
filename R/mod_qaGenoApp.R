@@ -88,7 +88,7 @@ mod_qaGenoApp_ui <- function(id){
                                                              column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
                                                                "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
                                                                            title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
-                                                               placeholder = "customizedMasName") ) ),
+                                                               placeholder = "(optional name)") ) ),
                                                              column(width=2,
                                                                     br(),
                                                                     actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),

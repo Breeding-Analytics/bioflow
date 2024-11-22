@@ -118,7 +118,7 @@ mod_hybridityApp_ui <- function(id){
                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
-                                                        placeholder = "customizedAnalysisName") ) ),
+                                                        placeholder = "(optional name)") ) ),
                                                       column(width=3,style = "background-color:grey; color: #FFFFFF",
                                                              br(),
                                                              actionButton(ns("runQaMb"), "Compute verification (click)", icon = icon("play-circle")),

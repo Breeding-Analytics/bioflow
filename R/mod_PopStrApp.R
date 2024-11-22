@@ -126,7 +126,7 @@ mod_PopStrApp_ui <- function(id){
                                            )
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-three"),
-                                           column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "customizedMasName") ),
+                                           column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "(optional name)") ),
                                            column(width=3,
                                                   br(),
                                                   actionButton(ns("runPopStr"), "Run analysis (click)", icon = icon("play-circle")),
