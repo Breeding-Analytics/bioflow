@@ -80,7 +80,7 @@ Suggests:
     spelling
 VignetteBuilder: 
     knitr
-Remotes:  
+Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
@@ -93,3 +93,4 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2
+

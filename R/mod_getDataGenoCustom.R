@@ -6,6 +6,7 @@ polyploid_support <- c("vcf", 'dartag', 'hapmap')
 dartseq_formats <- c("dartseqsnp")
 
 
+
 #' getDataGenoCustom UI Function
 #'
 #' @description A shiny Module.
@@ -87,10 +88,6 @@ mod_getDataGenoCustom_ui <- function(id) {
             tabPanel(div("3. Check status" ),
                      uiOutput(ns("warningMessage")),
             ),
-
-          ),)
-}
-
 
 mod_getDataGenoCustom_server <-
   function(id, data = NULL, res_auth = NULL) {
