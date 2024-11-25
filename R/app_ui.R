@@ -69,8 +69,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("filter-circle-xmark"), "Quality Assurance (", icon("seedling"), icon("dna"), icon("network-wired") ,")" ),
                           navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
-                                        tabPanel(div("(optional) Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
-                                        tabPanel(div("(optional) Custom Genetic QA/QC (", icon("dna"), ")" ), mod_customqaGenoApp_ui("customqaGenoApp_1") ),
+                                        tabPanel(div("(optional) Custom Genetic 2 QA/QC (", icon("dna"), ")" ), mod_customcustomqaGenoApp_ui("customcustomqaGenoApp_1") ),
                                         #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                           )
                  ),

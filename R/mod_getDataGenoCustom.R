@@ -1,8 +1,9 @@
 geno_example  <- 'www/example/geno.hmp.txt'
 
 # Currently polyploid supported formats
-polyploid_support <- c("vcf", 'darttag', 'hapmap')
-dartseq_formats <- c("dartseqpa", "dartseqsnp")
+polyploid_support <- c("vcf", 'dartag', 'hapmap')
+
+dartseq_formats <- c("dartseqsnp")
 
 
 #' getDataGenoCustom UI Function
@@ -28,13 +29,12 @@ mod_getDataGenoCustom_ui <- function(id) {
                   h4("File Input:"),
                   selectInput(
                     inputId = ns('custom_geno_input'),
-                    label   = 'Genotypic SNPs Source*:',
+                    label   = 'Genotypic bi-allelic SNPs Source*:',
                     choices = list(
                       'HapMap Upload' = 'hapmap',
                       'VCF Upload' = 'vcf',
-                      'DartSeq PA' = 'dartseqpa',
                       'DartSeq SNP' = 'dartseqsnp',
-                      'DartTag SNP' = 'darttag'
+                      'DarTag SNP' = 'dartag'
                     ),
                     width   = '200px'
                   ),
@@ -84,21 +84,33 @@ mod_getDataGenoCustom_ui <- function(id) {
                             tableOutput(ns('summary_by_chrom')),
                             verbatimTextOutput(ns('geno_summary')),
                             )),
+            tabPanel(div("3. Check status" ),
+                     uiOutput(ns("warningMessage")),
+            ),
 
           ),)
 }
 
-#' getDataGenoCustom Server Functions
-#'
-#' @noRd
+
 mod_getDataGenoCustom_server <-
   function(id, data = NULL, res_auth = NULL) {
     moduleServer(id, function(input, output, session) {
+
       ns <- session$ns
+
+      output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab. Make sure you use the right data format (e.g., single header, etc.).")) )
+      }else{ # data is there
+        if(!is.null(data()$data$geno)){
+          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. Make sure you use the right data format (e.g., single header, etc.). ")) )}
+      }
+    )
 
       output$file_upload_box <- renderUI({
         req(input$custom_geno_input)
-        if (input$custom_geno_input != "darttag") {
+        if (input$custom_geno_input != "dartag") {
           # Only one file uploader
           tags$span(
             id = ns('adegeno_file_holder'),
@@ -185,6 +197,7 @@ mod_getDataGenoCustom_server <-
         }
       })
 
+      # Reactive function where input functions are called
       get_geno_data <- reactive(
                                  {
                                    print("Geno load btn clicked")
@@ -221,23 +234,6 @@ mod_getDataGenoCustom_server <-
                                        })
                                        shinybusy::remove_modal_spinner()
                                      },
-                                     dartseqpa = {
-                                       shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                                       tryCatch({
-                                         geno_data = cgiarGenomics::read_DArTSeq_PA(
-                                           dart_path = genotype_file,
-                                           marker_id = input$dartseq_markerid,
-                                           chr_name = input$dartseq_chrom,
-                                           pos_name = input$dartseq_position
-                                         )
-                                       }, error = function(e) {
-                                         print(e)
-                                         shinyWidgets::show_alert(title = 'Error !!',
-                                                                  text = 'Not a valid file format :-(',
-                                                                  type = 'error')
-                                       })
-                                       shinybusy::remove_modal_spinner()
-                                     },
                                      dartseqsnp = {
                                        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
                                        tryCatch({
@@ -255,12 +251,12 @@ mod_getDataGenoCustom_server <-
                                        })
                                        shinybusy::remove_modal_spinner()
                                      },
-                                     darttag = {
+                                     dartag = {
                                        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
                                        tryCatch({
-                                         geno_data = cgiarGenomics::read_DArT_Tag(
-                                           counts.file = input$darttag_counts_file$datapath,
-                                           dosage.file = input$darttag_dosage_file$datapath,
+                                         geno_data = cgiarGenomics::read_DArTag_count_dosage(
+                                           dosage_path = input$darttag_dosage_file$datapath,
+                                           counts_path = input$darttag_counts_file$datapath,
                                            ploidity = as.numeric(input$ploidlvl_input)
                                          )
                                        }, error = function(e) {
@@ -338,20 +334,12 @@ mod_getDataGenoCustom_server <-
           } # make sure if an user uploads a new dataset the qaGeno starts empty
           geno_data <- get_geno_data()
           # Recoded 0,1,2 into -1,0,1
-          temp$data$geno <- as.matrix(geno_data) - 1
-          temp$data$gl <- geno_data
-
-          geno_metadata <- data.frame(
-             'rs#' = adegenet::locNames(geno_data),
-             chrom = geno_data@chromosome,
-             pos = geno_data@position,
-             alleles = adegenet::alleles(geno_data))
-          temp$metadata$geno <- geno_metadata
+          temp$data$geno <- geno_data
 
           temp$data$genoformat <- input$custom_geno_input
 
           # Record filepath
-          if (input$custom_geno_input != "darttag") {
+          if (input$custom_geno_input != "dartag") {
             temp$data$genodir <- input$adegeno_file$datapath
           } else {
             temp$data$genodir <- c(input$darttag_counts_file$datapath,
@@ -369,7 +357,6 @@ mod_getDataGenoCustom_server <-
           data(temp)
         }
       )
-
     })
   }
 

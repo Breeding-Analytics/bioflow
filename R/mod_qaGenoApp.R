@@ -220,20 +220,20 @@ mod_qaGenoApp_server <- function(id, data){
       if(!is.null(mydata)){
         fig <- plotly::plot_ly(alpha = 0.6)
         ## historgram for marker with missing data
-        propNaMarker <- apply(mydata,2,function(x){(length(which(is.na(x)))/length(x))})
+        propNaMarker <- mydata@other$loc.metrics$loc_miss
         fig <- fig %>% plotly::add_histogram(x = propNaMarker, histnorm = "probability", name="Missing data in markers" )
         ## historgram for individuals with missing data
-        propNaIndividual <- apply(mydata,1,function(x){(length(which(is.na(x)))/length(x))})
+        propNaIndividual <- mydata@other$ind.metrics$ind_miss
         fig <- fig %>% plotly::add_histogram(x = propNaIndividual, histnorm = "probability", name="Missing data in individuals" )
         ## historgram for MAF
-        MAF <- apply(mydata, 2, function(x) {AF <- mean(x, na.rm = T)/input$ploidy;MAF <- ifelse(AF > 0.5, 1 - AF, AF) })
+        MAF <- mydata@other$loc.metrics$maf
         fig <- fig %>% plotly::add_histogram(x = MAF, histnorm = "probability", name="Minor allele frequency" )
         ## histogram for heterozigosity
         q <- MAF; p <- 1 - q
-        he <- 2 * p * q;  ho <- colMeans((mydata) == 1, na.rm = TRUE) # Get the obseved heterozygosity.
+        he <- 2 * p * q;  ho <- mydata@other$loc.metrics$loc_het # Get the obseved heterozygosity.
         fig <- fig %>% plotly::add_histogram(x = ho, histnorm = "probability", name="Observed heterozygosity" )
         ## histogram for inbreeding
-        Fis <- ifelse(he == 0, yes = 0, no = 1 - (ho / he))
+        Fis <- (he - ho)/he
         fig <- fig %>% plotly::add_histogram(x = Fis, histnorm = "probability", name="Inbreeding" )
         ## add threshold lines and layout
         vline1 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
@@ -252,135 +252,135 @@ mod_qaGenoApp_server <- function(id, data){
     })
 
     ## render the number of alleles
-    output$plotAllelesCleanOutMarker <- plotly::renderPlotly({
-      req(data())
-      mydata <- data()$data$geno
-      ##
-      if(!is.null(mydata)){
-        p <- ggplot2::ggplot(data.frame(x=as.vector(mydata)), ggplot2::aes(x=x)) + ggplot2::geom_histogram() +
-          ggplot2::xlab("Allele dosage") + ggplot2::ylab("Count") + ggplot2::ggtitle("Dosages present in the marker set")
-        plotly::ggplotly(p)
-      }
-
-    })
+    # output$plotAllelesCleanOutMarker <- plotly::renderPlotly({
+    #   req(data())
+    #   mydata <- data()$data$geno
+    #   ##
+    #   if(!is.null(mydata)){
+    #     p <- ggplot2::ggplot(data.frame(x=as.vector(mydata)), ggplot2::aes(x=x)) + ggplot2::geom_histogram() +
+    #       ggplot2::xlab("Allele dosage") + ggplot2::ylab("Count") + ggplot2::ggtitle("Dosages present in the marker set")
+    #     plotly::ggplotly(p)
+    #   }
+    #
+    # })
 
     ## summaries geno
-    output$summariesGeno <-  DT::renderDT({
-      req(data())
-
-      if(!is.null(data()$data$geno)){
-        mo <- data.frame(nInds=nrow(data()$data$geno), nMarkers=ncol(data()$data$geno)); rownames(mo) <- "summary"
-      }else{
-        mo <- data.frame(warningText="Genetic marker data not available")
-      }
-      DT::datatable(mo, extensions = 'Buttons',
-                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
-                    caption = htmltools::tags$caption(
-                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Number of individuals and markers available in the dataset.')
-                    )
-      )
-
-    }, server = FALSE)
+    # output$summariesGeno <-  DT::renderDT({
+    #   req(data())
+    #
+    #   if(!is.null(data()$data$geno)){
+    #     mo <- data.frame(nInds=nrow(data()$data$geno), nMarkers=ncol(data()$data$geno)); rownames(mo) <- "summary"
+    #   }else{
+    #     mo <- data.frame(warningText="Genetic marker data not available")
+    #   }
+    #   DT::datatable(mo, extensions = 'Buttons',
+    #                 options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    #                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+    #                 caption = htmltools::tags$caption(
+    #                   style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+    #                   htmltools::em('Number of individuals and markers available in the dataset.')
+    #                 )
+    #   )
+    #
+    # }, server = FALSE)
     ## display the current outliers
-    observeEvent(data(),{
-
-      output$modificationsQaMarker <-  DT::renderDT({
-        req(data())
-        req(input$propNaUpperThreshForMarker)
-        req(input$propNaUpperThreshForInds)
-        req(input$maf)
-        req(input$propHetUpperThreshForMarker)
-        req(input$propFisUpperThreshForMarker)
-        req(input$imputationMethod)
-        ##
-        if(!is.null(data()$data$geno)){
-          mo <- newModifications()
-          mo <- cgiarBase::summaryGeno(mo)
-        }else{
-          mo <- data.frame(warningText="Genetic marker data not available")
-        }
-        DT::datatable(mo, extensions = 'Buttons',
-                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                     lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
-                      caption = htmltools::tags$caption(
-                        style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                        htmltools::em('Preview of potential modifications to add.')
-                      )
-        )
-
-      }, server = FALSE)
-
-    })
+    # observeEvent(data(),{
+    #
+    #   output$modificationsQaMarker <-  DT::renderDT({
+    #     req(data())
+    #     req(input$propNaUpperThreshForMarker)
+    #     req(input$propNaUpperThreshForInds)
+    #     req(input$maf)
+    #     req(input$propHetUpperThreshForMarker)
+    #     req(input$propFisUpperThreshForMarker)
+    #     req(input$imputationMethod)
+    #     ##
+    #     if(!is.null(data()$data$geno)){
+    #       mo <- newModifications()
+    #       mo <- cgiarBase::summaryGeno(mo)
+    #     }else{
+    #       mo <- data.frame(warningText="Genetic marker data not available")
+    #     }
+    #     DT::datatable(mo, extensions = 'Buttons',
+    #                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    #                                  lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+    #                   caption = htmltools::tags$caption(
+    #                     style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+    #                     htmltools::em('Preview of potential modifications to add.')
+    #                   )
+    #     )
+    #
+    #   }, server = FALSE)
+    #
+    # })
     ##########################
     ## save when user clicks
-    outQaMb <- eventReactive(input$runQaMb, {
-
-      req(data())
-      req(input$propNaUpperThreshForMarker)
-      req(input$propNaUpperThreshForInds)
-      req(input$maf)
-      req(input$propHetUpperThreshForMarker)
-      req(input$propFisUpperThreshForMarker)
-      req(input$imputationMethod)
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      ## get the outlier table
-      mods <- newModifications()
-      if(nrow(mods) > 0){
-        ## store the new modifications table
-        result <- data()
-        # save(result, file = "./R/outputs/resultQaGeno.RData")
-        result$modifications$geno <- rbind(result$modifications$geno, mods )
-        ## write the new status table
-        newStatus <- data.frame(module="qaGeno", analysisId= mods$analysisId[nrow(mods)])
-        result$status <- rbind(result$status, newStatus)
-        data(result)
-        cat(paste("Modifications to genotype information saved with id:",as.POSIXct( mods$analysisId[nrow(mods)], origin="1970-01-01", tz="GMT") ))
-        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-      }else{
-        cat("No modifications to add.")
-      }
-      shinybusy::remove_modal_spinner()
-
-      if(nrow(mods) > 0) { # if all goes well in the run
-        # ## Report tab
-        output$reportQaGeno <- renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        output$downloadReportQaGeno <- downloadHandler(
-          filename = function() {
-            paste('my-report', sep = '.', switch(
-              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
-          },
-          content = function(file) {
-            src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultQaGeno.RData')
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmdformats::robobook(toc_depth = 4)
-              # HTML = rmarkdown::html_document()
-            ))
-            file.rename(out, file)
-          }
-        )
-
-      }else{ hideAll$clearAll <- TRUE}
-
-      hideAll$clearAll <- FALSE
-
-    })
-    output$outQaMb <- renderPrint({
-      outQaMb()
-    })
+    # outQaMb <- eventReactive(input$runQaMb, {
+    #
+    #   req(data())
+    #   req(input$propNaUpperThreshForMarker)
+    #   req(input$propNaUpperThreshForInds)
+    #   req(input$maf)
+    #   req(input$propHetUpperThreshForMarker)
+    #   req(input$propFisUpperThreshForMarker)
+    #   req(input$imputationMethod)
+    #   shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+    #   ## get the outlier table
+    #   mods <- newModifications()
+    #   if(nrow(mods) > 0){
+    #     ## store the new modifications table
+    #     result <- data()
+    #     # save(result, file = "./R/outputs/resultQaGeno.RData")
+    #     result$modifications$geno <- rbind(result$modifications$geno, mods )
+    #     ## write the new status table
+    #     newStatus <- data.frame(module="qaGeno", analysisId= mods$analysisId[nrow(mods)])
+    #     result$status <- rbind(result$status, newStatus)
+    #     data(result)
+    #     cat(paste("Modifications to genotype information saved with id:",as.POSIXct( mods$analysisId[nrow(mods)], origin="1970-01-01", tz="GMT") ))
+    #     updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+    #   }else{
+    #     cat("No modifications to add.")
+    #   }
+    #   shinybusy::remove_modal_spinner()
+    #
+    #   if(nrow(mods) > 0) { # if all goes well in the run
+    #     # ## Report tab
+    #     output$reportQaGeno <- renderUI({
+    #       HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+    #     })
+    #
+    #     output$downloadReportQaGeno <- downloadHandler(
+    #       filename = function() {
+    #         paste('my-report', sep = '.', switch(
+    #           "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+    #         ))
+    #       },
+    #       content = function(file) {
+    #         src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
+    #         src2 <- normalizePath('data/resultQaGeno.RData')
+    #         # temporarily switch to the temp dir, in case you do not have write
+    #         # permission to the current working directory
+    #         owd <- setwd(tempdir())
+    #         on.exit(setwd(owd))
+    #         file.copy(src, 'report.Rmd', overwrite = TRUE)
+    #         file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
+    #         out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+    #           "HTML",
+    #           HTML = rmdformats::robobook(toc_depth = 4)
+    #           # HTML = rmarkdown::html_document()
+    #         ))
+    #         file.rename(out, file)
+    #       }
+    #     )
+    #
+    #   }else{ hideAll$clearAll <- TRUE}
+    #
+    #   hideAll$clearAll <- FALSE
+    #
+    # })
+    # output$outQaMb <- renderPrint({
+    #   outQaMb()
+    # })
     #
 
   })
