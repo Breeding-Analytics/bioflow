@@ -102,7 +102,7 @@ app_ui <- function(request) {
                  tabPanel(strong("DATA FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1") ),
+                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistApp_ui("dataConsistApp_1") ),
 
 
       ),

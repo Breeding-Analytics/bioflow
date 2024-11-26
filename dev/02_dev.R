@@ -130,7 +130,7 @@
 # golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "schemeDesignApp", with_test = FALSE) # QA after sta
 # golem::add_module(name = "selSignApp", with_test = FALSE) # predicted genetic gain
-# golem::add_module(name = "dataConsistPotatoApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "dataConsistApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "gwasqkApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "mutatioRateApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "masApp", with_test = FALSE) # predicted genetic gain

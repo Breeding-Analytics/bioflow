@@ -1,4 +1,4 @@
-#' dataConsistPotatoApp UI Function
+#' dataConsistApp UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_dataConsistPotatoApp_ui <- function(id){
+mod_dataConsistApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
@@ -112,10 +112,10 @@ mod_dataConsistPotatoApp_ui <- function(id){
   )
 }
 
-#' dataConsistPotatoApp Server Functions
+#' dataConsistApp Server Functions
 #'
 #' @noRd
-mod_dataConsistPotatoApp_server <- function(id, data){
+mod_dataConsistApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -343,7 +343,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
 }
 
 ## To be copied in the UI
-# mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1")
+# mod_dataConsistApp_ui("dataConsistApp_1")
 
 ## To be copied in the server
-# mod_dataConsistPotatoApp_server("dataConsistPotatoApp_1")
+# mod_dataConsistApp_server("dataConsistApp_1")
