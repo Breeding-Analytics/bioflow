@@ -16,7 +16,7 @@ dartseq_formats <- c("dartseqsnp")
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_getDataGenoCustom_ui <- function(id) {
+mod_getDataGeno_ui <- function(id) {
   ns <- NS(id)
   tagList(tags$br(),
           navlistPanel(
@@ -87,9 +87,9 @@ mod_getDataGenoCustom_ui <- function(id) {
                             )),
             tabPanel(div("3. Check status" ),
                      uiOutput(ns("warningMessage")),
-            ),
+            )))}
 
-mod_getDataGenoCustom_server <-
+mod_getDataGeno_server <-
   function(id, data = NULL, res_auth = NULL) {
     moduleServer(id, function(input, output, session) {
 
@@ -369,3 +369,4 @@ dart_getCols <- function(path) {
                        nrows = 20)
   return(colnames(top_rows))
 }
+

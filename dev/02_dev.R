@@ -7,21 +7,6 @@
 # 03_deploy.R should be used once you need to deploy your app.
 #
 #
-<<<<<<< HEAD
-=======
-###################################
-#### CURRENT FILE: DEV SCRIPT #####
-###################################
-
-# Engineering
-
-## Dependencies ----
-## Amend DESCRIPTION with dependencies read from package code parsing
-install.packages('attachment') # if needed.
-attachment::att_amend_desc()
-
-
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 usethis::use_package("ape")
 usethis::use_package("DT")
 usethis::use_package("config")
@@ -61,7 +46,6 @@ usethis::use_package("slickR")
 usethis::use_package("gridExtra")
 usethis::use_package("rmdformats")
 usethis::use_package("grafify")
-<<<<<<< HEAD
 usethis::use_package("lme4")
 usethis::use_package("pkgload")
 usethis::use_package("usethis")
@@ -69,15 +53,11 @@ usethis::use_package("tidyverse")
 usethis::use_package("roxygen2")
 usethis::use_package("reshape")
 usethis::use_package("rhub")
-=======
-# usethis::use_package("tidyverse")
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 usethis::use_pipe()
 usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
 usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
 usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
 usethis::use_dev_package("st4gi", type = "Imports", remote = "reyzaguirre/st4gi")
-<<<<<<< HEAD
 usethis::use_dev_package("lme4breeding", type = "Imports", remote = "covaruber/lme4breeding")
 usethis::use_dev_package("cgiarGenomics", type = "Imports", remote = "Breeding-Analytics/cgiarGenomics")
 
@@ -88,15 +68,6 @@ usethis::use_package("promises")
 usethis::use_package("rlang")
 usethis::use_package("httr2")
 usethis::use_package("jsonlite")
-=======
-
-# https://icarda-git.github.io/QBMS/#boosting-big-queries-performance
-# https://github.com/gaborcsardi/async/issues/70
-usethis::use_dev_package("async", type = "Imports", remote = "r-lib/async")
-usethis::use_package("QBMS")
-usethis::use_package("vcfR")
-usethis::use_package("adegenet")
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 
 usethis::use_package( "shinymanager" )
 
@@ -105,8 +76,6 @@ usethis::use_package("janitor")
 usethis::use_package("htmltools")
 usethis::use_package("tidyr")
 usethis::use_package("textshape")
-<<<<<<< HEAD
-#
 remotes::install_github("Breeding-Analytics/cgiarBase")
 remotes::install_github("Breeding-Analytics/cgiarPipeline")
 remotes::install_github("Breeding-Analytics/cgiarGenomics")
@@ -116,17 +85,6 @@ remotes::install_github("r-lib/async")
 # ## Add modules ----
 # ## Create a module infrastructure in R/
 # # golem::add_module(name = "input_file_sta", with_test = FALSE) # Name of the module
-=======
-
-# remotes::install_github("Breeding-Analytics/cgiarBase")
-# remotes::install_github("Breeding-Analytics/cgiarPipeline")
-# remotes::install_github("Breeding-Analytics/cgiarOcs")
-# remotes::install_github("r-lib/async")
-
-## Add modules ----
-## Create a module infrastructure in R/
-# golem::add_module(name = "input_file_sta", with_test = FALSE) # Name of the module
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 golem::add_module(name = "getData", with_test = FALSE) # extracting raw data
 golem::add_module(name = "getDataPheno", with_test = FALSE)
 golem::add_module(name = "getDataGeno", with_test = FALSE)
@@ -143,7 +101,6 @@ golem::add_module(name = "qaGenoApp", with_test = FALSE) # QA after sta
 
 golem::add_module(name = "bindObjectApp", with_test = FALSE) # QA after sta
 golem::add_module(name = "singleCrossGenoApp", with_test = FALSE) # QA after sta
-<<<<<<< HEAD
 golem::add_module(name = "traitTransformApp", with_test = FALSE) # QA after sta
 
 golem::add_module(name = "staApp", with_test = FALSE) # single trial analysis
@@ -155,20 +112,12 @@ golem::add_module(name = "mtaLMMsolveApp", with_test = FALSE) # multi trial anal
 golem::add_module(name = "tensorMLApp", with_test = FALSE) # multi trial analysis
 golem::add_module(name = "mtaCrossValApp", with_test = FALSE) # multi trial analysis
 golem::add_module(name = "mtaExpApp", with_test = FALSE) # multi trial analysis
-=======
-golem::add_module(name = "traitTransformApp", with_test = TRUE) # QA after sta
-
-golem::add_module(name = "staApp", with_test = FALSE) # single trial analysis
-golem::add_module(name = "qaStaApp", with_test = FALSE) # QA after sta
-golem::add_module(name = "oftStaApp", with_test = FALSE) # OFT after sta
-golem::add_module(name = "mtaApp", with_test = FALSE) # multi trial analysis
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 golem::add_module(name = "indexDesireApp", with_test = FALSE) # desire selection index
 golem::add_module(name = "indexBaseApp", with_test = FALSE) # desire selection index
 golem::add_module(name = "ocsApp", with_test = FALSE) # optimal cross selection
 golem::add_module(name = "rggApp", with_test = FALSE) # realized genetic gain
 golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
-<<<<<<< HEAD
+
 golem::add_module(name = "schemeDesignApp", with_test = FALSE) # QA after sta
 golem::add_module(name = "selSignApp", with_test = FALSE) # predicted genetic gain
 golem::add_module(name = "dataConsistPotatoApp", with_test = FALSE) # predicted genetic gain
@@ -181,9 +130,6 @@ golem::add_module(name = "neApp", with_test = FALSE) # predicted genetic gain
 golem::add_module(name = "poolFormApp", with_test = FALSE) # predicted genetic gain
 golem::add_module(name = "subsetSelApp", with_test = FALSE) # predicted genetic gain
 golem::add_module(name = "linkageDisApp", with_test = FALSE) # predicted genetic gain
-=======
-golem::add_module(name = "dataConsistPotatoApp", with_test = FALSE) # predicted genetic gain
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 
 golem::add_module(name = "homeApp", with_test = FALSE) # home
 
@@ -191,33 +137,27 @@ golem::add_module(name = "saveData", with_test = FALSE) # extracting raw data
 golem::add_module(name = "aboutApp", with_test = FALSE) # technology
 golem::add_module(name = "meetTheTeamApp", with_test = FALSE) # home
 golem::add_module(name = "contactUsApp", with_test = FALSE) # home
-<<<<<<< HEAD
+
 golem::add_module(name = "faqUsApp", with_test = FALSE) # home
-=======
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 
 golem::add_module(name = "sectionInfoQAApp", with_test = FALSE) # for quality assurance
 golem::add_module(name = "sectionInfoTransformApp", with_test = FALSE) # for transformations
 golem::add_module(name = "sectionInfoGEApp", with_test = FALSE) # for genetic evaluation
 golem::add_module(name = "sectionInfoSHApp", with_test = FALSE) # for selection history
-<<<<<<< HEAD
+
 golem::add_module(name = "sectionInfoGDApp", with_test = FALSE) # for gene discovery
 golem::add_module(name = "sectionInfoMHApp", with_test = FALSE) # for mutation history
 golem::add_module(name = "sectionInfoGFDApp", with_test = FALSE) # for gene frequencies
 golem::add_module(name = "sectionInfoGFDHApp", with_test = FALSE) # for drift history
 golem::add_module(name = "sectionInfoDASHApp", with_test = FALSE) # for dashboards
-=======
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
+
 
 golem::add_module(name = "abiDashboard", with_test = FALSE) # abi dashboard
 golem::add_module(name = "reportBuilder", with_test = FALSE) # abi dashboard
 
-<<<<<<< HEAD
 golem::add_module(name = "sectionInfoAEApp", with_test = FALSE)
 golem::add_module(name = "agrAnova", with_test = FALSE) # anova for agri data
 
-=======
->>>>>>> 86f0a96e14b6ac8a18db9285613bcb3094aa60a0
 ## Add helper functions ----
 ## Creates fct_* and utils_*
 golem::add_fct("helpers", with_test = TRUE)

@@ -50,7 +50,6 @@ app_ui <- function(request) {
                           tabsetPanel( #widths = c(1, 11),
                             tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
                             tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
-                            tabPanel(div(icon("dna"), "Genotypic Custom"), mod_getDataGenoCustom_ui("getDataGenoCustom_1") ),
                             tabPanel(div(icon("code-fork"), "Pedigree"), mod_getDataPed_ui("getDataPed_1") ),
                             tabPanel(div(icon("anchor"), "QTL profile"), mod_getDataQTL_ui("getDataQTL_1") ),
                             tabPanel(div(icon("cloud-sun-rain"), "Weather"), mod_getDataWeather_ui("getDataWeather_1") ),
@@ -69,7 +68,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("filter-circle-xmark"), "Quality Assurance (", icon("seedling"), icon("dna"), icon("network-wired") ,")" ),
                           navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Pheno QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
-                                        tabPanel(div("(optional) Custom Genetic 2 QA/QC (", icon("dna"), ")" ), mod_customcustomqaGenoApp_ui("customcustomqaGenoApp_1") ),
+                                        tabPanel(div("Genetic QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                                         #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                           )
                  ),

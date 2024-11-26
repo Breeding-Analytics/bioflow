@@ -1,128 +1,129 @@
-#' qaGenoApp UI Function
-#'
-#' @description A shiny Module.
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd
-#'
-#' @importFrom shiny NS tagList
-mod_qaGenoApp_ui <- function(id){
+mod_qaGenoApp_ui <- function(id) {
   ns <- NS(id)
-  tagList(
-
-    shiny::mainPanel(width = 12,
-                     tabsetPanel( id=ns("tabsMain"),
-                                  type = "tabs",
-                                  tabPanel(div(icon("book"), "Information") ,
-                                           br(),
-                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                           # column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                           tags$body(
-                                             column(width = 6,
-                                                    h1(strong(span("Genetic Markers Curation Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                                                    h2(strong("Data Status (wait to be displayed):")),
-                                                    uiOutput(ns("warningMessage")),
-                                                    tags$br(),
-                                                    # column(width=4, tags$br(), tags$br(),
-                                                    shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                                                    # ),
-                                                    tags$br(),
-                                                    img(src = "www/qaGeno.png", height = 100, width = 435), # add an image
-                                             ),
-
-                                             column(width = 6,
-                                                    h2(strong("Details")),
-                                                    p("When genetic evaluation is carried using genomic data, we need to ensure the quality of genetic markers.
-                                                             This option aims to allow users to identify bad markers or individuals given certain QA parameters.
-                                The way arguments are used is the following:"),
-                                                    p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. Any marker with more than this value will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                                                    p(strong("Threshold for missing data in individuals.-"),"  this sets a threshold for how much missing data in an individual is allowed. Any individual with more than this value it will be marked as a row to be removed in posterior analyses. Value between 0 and 1."),
-                                                    p(strong("Minor allele frequency.-")," this sets a lower threshold for what is the minimum allele frequency allowed in the dataset. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                                                    p(strong("Threshold for heterozygosity in markers.-")," this sets an upper threshold for what is the maximum level of heterozygosity allowed in the markers. If greater than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1. For example, a line dataset should not have markers with high heterozigosity."),
-                                                    p(strong("Threshold for inbreeding in markers.-")," this sets an upper threshold for what is the maximum level of inbreeding allowed in the markers. If lower than this value it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                                                    p(strong("Additional settings:")),
-                                                    p(strong("Imputation method.-")," method to impute missing cells. Median is the only method currently available."),
-                                                    p(strong("Ploidy.-")," number of chromosome copies. This value is important to compute some of the paramters. Default is 2 or diploid."),
-                                                    h2(strong("References")),
-                                                    p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                                    p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
-                                                    # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
-                                             ),
-                                           )
-                                  ),
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
-                                           tabsetPanel(
-                                             tabPanel(div( icon("dice-one"), "Set thresholds", icon("arrow-right") ), # icon = icon("dice-one"),
-                                                      br(),
-                                                      column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=4, numericInput(ns("propNaUpperThreshForMarker"), label = "Upper threshold for missing data in markers (> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("propNaUpperThreshForInds"), label = "Upper threshold for missing data in individuals(> will be removed)", value = .4, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("maf"), label = "Upper threshold for minor allele frequency (< will be removed)", value = 0, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("propHetUpperThreshForMarker"), label = "Upper threshold for heterozygosity in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
-                                                             column(width=4, numericInput(ns("propFisUpperThreshForMarker"), label = "Upper threshold for inbreeding in markers (> will be removed)", value = 1, step = .05, max = 1, min = 0) ),
-
-                                                      ),
-                                                      column(width=12),
-                                                      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                          column(width=12,
-                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                                 h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          ),
-
-                                                                          column(width=12,
-                                                                                 tags$span(id = ns('holder'),
-                                                                                           plotly::plotlyOutput(ns("plotPredictionsCleanOutMarker")) ,
-                                                                                           # p(span("Number of individuals and markers available in the dataset.", style="color:black")),
-                                                                                           DT::DTOutput(ns("summariesGeno")),
-                                                                                           # p(span("Preview of potential modifications to add.", style="color:black")),
-                                                                                           DT::DTOutput(ns("modificationsQaMarker")),
-                                                                                           plotly::plotlyOutput(ns("plotAllelesCleanOutMarker")),
-                                                                                 ),
-                                                                          ),
-                                                      ),
-                                             ),
-                                             tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
-                                                      column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=4,
-                                                                    br(),
-                                                                    actionButton(ns("runQaMb"), "Identify & store modifications", icon = icon("play-circle")),
-                                                             ),
-                                                             column(width=8,
-                                                                    br(),
-                                                                    shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
-                                                                                        selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
-                                                                                        numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
-                                                                    ),
-                                                             ),
-                                                             br(),
-                                                      ),
-                                                      textOutput(ns("outQaMb")),
-                                             ),
-                                           ) # end of tabset
-                                  ),# end of output panel
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
-                                           tabsetPanel(
-                                             tabPanel("Dashboard", icon = icon("file-image"),
-                                                      br(),
-                                                      downloadButton(ns("downloadReportQaGeno"), "Download dashboard"),
-                                                      br(),
-                                                      uiOutput(ns('reportQaGeno'))
-                                             ),
-                                           ),
-                                  ),
-                     )) # end mainpanel
-
-
-  )
+  tagList(shiny::mainPanel(
+    width = 12,
+    tabsetPanel(
+      id = ns("tabsMain"),
+      type = "tabs",
+      tabPanel(
+        "Information-QA-Geno",
+        icon = icon("book"),
+        br(),
+        tags$body(uiOutput(ns("warningMessage")), )
+      ),
+      tabPanel(
+        "Input Steps",
+        icon = icon("book"),
+        # Parameter table and histogram tabset
+        fluidRow(# Parameter table
+          column(
+            width = 5,
+            tags$div(
+              uiOutput(ns('filt_seq_params')),
+              inputPanel(
+                selectInput(ns('filt_param'), 'Parameter:', choices = NULL),
+                selectInput(ns('filt_op'), 'Filter:', choices = c(">", ">=", "<", "<=")),
+                numericInput(
+                  ns('filt_tresh'),
+                  'Threshold:',
+                  value = NULL,
+                  min = 0,
+                  max = 1,
+                  step = 0.01
+                )
+              ),
+              actionButton(ns('add_filt'), 'Add'),
+              actionButton(ns('del_filt'), 'Delete'),
+              actionButton(ns('preview_filt'), 'Preview Filters'),
+              actionButton(ns('reset_filt'), 'Reset'),
+              verbatimTextOutput(ns("filt_seq_error"))
+            )
+          ), # Histogram tabset
+          column(
+            width = 7, tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Loci",
+                tabsetPanel(
+                  id = ns('loc_metric_panel'),
+                  type = 'pills',
+                  tabPanel(title = "MAF", plotly::plotlyOutput(ns("hist_maf"))),
+                  tabPanel(title = "Missingness", plotly::plotlyOutput(ns("hist_loc_miss"))),
+                  tabPanel(title = "Heterozygosity", plotly::plotlyOutput(ns("hist_loc_het"))),
+                  tabPanel(title = "Inbreeding", plotly::plotlyOutput(ns("hist_loc_Fis")))
+                )
+              ),
+              tabPanel(
+                "Ind",
+                tabsetPanel(
+                  id = ns('ind_metric_panel'),
+                  type = 'pills',
+                  tabPanel(title = "Missingness", plotly::plotlyOutput(ns("hist_ind_miss"))),
+                  tabPanel(title = "Heterozygosity", plotly::plotlyOutput(ns("hist_ind_het")))
+                )
+              )
+            )
+          ), ),
+        # Summary table
+        fluidRow(
+          br(),
+          column(width = 4, DT::DTOutput(
+            ns('ov_summary_tab')
+        ))),
+        fluidRow(
+          br(),
+          column(width = 8, DT::DTOutput(
+            ns('filter_log_tab')
+          ))
+        )
+      ),
+      tabPanel("Output", icon = icon("book"), br(), fluidRow(
+        style = "background-color:grey; color: #FFFFFF",
+        column(
+          width = 3,
+            textInput(
+              ns("analysisIdName"),
+              label = tags$i(
+                class = "glyphicon glyphicon-info-sign",
+                style = "color:#FFFFFF; float:left",
+                title = "An optional name for the analysis besides the timestamp if desired."
+              ))),
+        column(width = 2,
+               actionButton(
+                 ns("runQaMb"),
+                 "Identify & store modifications",
+                 icon = icon("play-circle")
+               )),
+        column(width = 1),
+        column(
+          width = 6,
+          shinydashboard::box(
+            width = 12,
+            status = "success",
+            background = "green",
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            title = "Additional run settings...",
+            selectInput(
+              ns("imputationMethod"),
+              "Imputation method",
+              choices = c("frequency"),
+              multiple = FALSE
+            ),
+          ),
+        ),
+      ),
+      textOutput(ns("outQaMb")),
+      downloadButton(ns("downloadReportQaGeno"), "Download dashboard"),
+      br(),
+      uiOutput(ns('reportQaGeno'))
+      )
+    )))
 }
 
-#' qaGenoApp Server Functions
-#'
-#' @noRd
-mod_qaGenoApp_server <- function(id, data){
-  moduleServer( id, function(input, output, session){
+mod_qaGenoApp_server <- function(id, data) {
+  moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
     # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
@@ -141,253 +142,354 @@ mod_qaGenoApp_server <- function(id, data){
         golem::invoke_js('hideid', ns('holder'))
       }
     })
-    ############################################################################
     # warning message
-    output$warningMessage <- renderUI(
-      if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
-      }else{ # data is there
-        if(!is.null(data()$data$geno)){
-          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the marker QA specifying your input parameters under the Input tabs.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
-      }
-    )
-    ## data example loading
-    observeEvent(
-      input$launch,
-      if(length(input$launch) > 0){
-        if (input$launch) {
-          shinyWidgets::ask_confirmation(
-            inputId = ns("myconfirmation"),
-            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
-            title = "Data replacement warning"
+    output$warningMessage <- renderUI(if (is.null(data())) {
+      HTML(as.character(
+        div(
+          style = "color: red; font-size: 20px;",
+          "Please retrieve or load your data using the 'Data' tab."
+        )
+      ))
+    } else{
+      # data is there
+      if (!is.null(data()$data$geno)) {
+        HTML(as.character(
+          div(
+            style = "color: green; font-size: 20px;",
+            "Data is complete, please proceed to perform the marker QA specifying your input parameters under the Input tabs."
           )
+        ))
+      } else{
+        HTML(as.character(
+          div(
+            style = "color: red; font-size: 20px;",
+            "Please retrieve or load your genotype data using the 'Data' tab. "
+          )
+        ))
+      }
+    })
+
+    # In this reactive object will store all parameters for the QA module
+
+    geno_qa_data <- reactiveValues(geno = NULL,
+                                   filter = FALSE,
+                                   preview_geno = NULL,
+                                   filter_log = NULL)
+    geno_qa_data$filt_seq <- data.frame()
+    geno_qa_data$overall_summary <- data.frame()
+
+
+    # Recipe to specify the filtering sequence table output
+    output$filt_seq_params <- renderUI({
+      helper_message <- tags$h4(
+        "Add filters using the add button. For remove click the filter \n
+              on the table and after click delete."
+      )
+      if (is.data.frame(geno_qa_data$filt_seq)) {
+        if (nrow(geno_qa_data$filt_seq) > 0) {
+          DT::DTOutput(ns('filt_seq_tab'))
+        } else {
+          helper_message
         }
+      } else {
+        helper_message
+      }
+    })
+
+    proxy_seq_tab <- DT::dataTableProxy(ns("filt_seq_tab"))
+
+    observeEvent(input$filt_seq_tab_cell_edit, {
+      info <- input$filt_seq_tab_cell_edit  # Get edit info
+      i <- info$row                         # Row index
+      j <- info$col                         # Column index
+      newValue <- as.numeric(info$value)    # New value (as numeric for this example)
+      # Validate the new value (example: age must be between 18 and 65)
+      if (newValue %% 1 == 0) {
+        # Show validation error
+        output$filt_seq_error <- renderText("Invalid treshold. Must be between [0-1]")
+        # Revert change by resetting the table
+        DT::replaceData(proxy_seq_tab, geno_qa_data$filt_seq, resetPaging = FALSE)
+      } else {
+        # Update data if validation passes
+        updatedData <- geno_qa_data$filt_seq
+        updatedData[i, j] <- info$value
+        geno_qa_data$filt_seq <- updatedData
+      }
+    })
+
+    output$filt_seq_tab <- DT::renderDT({
+      DT = geno_qa_data$filt_seq
+    }, selection = "single", editable = list(target = "cell", disable = list(columns = c(1, 2))), options = list(
+      paging = FALSE,
+      searching = FALSE,
+      info = FALSE
+    ))
+
+    output$ov_summary_tab <- DT::renderDT({
+      DT = geno_qa_data$overall_summary
+    }, options = list(
+      paging = FALSE,
+      searching = FALSE,
+      info = FALSE
+    ))
+
+
+    output$filter_log_tab <- DT::renderDT({
+      DT = geno_qa_data$filter_log
+    })
+
+
+
+    observeEvent(data()$data$geno,{
+
+      # Set the unfiltered Data
+      req(data()$data$geno)
+
+      geno_qa_data$geno <- isolate(data()$data$geno)
+      geno_qa_data$loc_metrics <- colnames(geno_qa_data$geno@other$loc.metrics)
+      geno_qa_data$ind_metrics <- colnames(geno_qa_data$geno@other$ind.metrics)
+
+      updateSelectInput(
+        inputId = 'filt_param',
+        choices = c(geno_qa_data$loc_metrics, geno_qa_data$ind_metrics)
+      )
+
+      plot_metrics()
+
+      ov_summary <- cgiarGenomics::get_overall_summary(geno_qa_data$geno)
+
+      added_row <- data.frame(
+        dataset = 'Original',
+        nloc = ov_summary$nloc,
+        nind = ov_summary$nind,
+        ov_miss = round(ov_summary$ov_miss, 2),
+        ov_het = round(ov_summary$ov_het, 2),
+        ov_maf = round(ov_summary$ov_maf, 2)
+      )
+
+      geno_qa_data$overall_summary <- rbind(geno_qa_data$overall_summary, added_row)
+
+    })
+
+    plot_metrics <- reactive({
+      # Merge all metrics into single vector
+      metrics <- c(geno_qa_data$loc_metrics, geno_qa_data$ind_metrics)
+
+      lapply(metrics, function(i_metric) {
+        output_plot_id <- glue::glue("hist_{i_metric}")
+        margin <- cgiarGenomics::get_parameter_margin(geno_qa_data$geno, i_metric)
+
+        if (margin == 'loc') {
+          unfilt_metric <- c(geno_qa_data$geno@other$loc.metrics[, i_metric])
+        } else {
+          unfilt_metric <- c(geno_qa_data$geno@other$ind.metrics[, i_metric])
+        }
+
+        output[[output_plot_id]] <- plotly::renderPlotly({
+          plot <- plotly::plot_ly(x = unfilt_metric,
+                                  type = "histogram",
+                                  name = "Original Data")
+
+          if (geno_qa_data$filter) {
+            if (margin == 'loc') {
+              filt_metric <- c(geno_qa_data$preview_geno$gl@other$loc.metrics[, i_metric])
+
+            } else {
+              filt_metric <- c(geno_qa_data$preview_geno$gl@other$ind.metrics[, i_metric])
+
+            }
+
+
+            plot <- plot %>%
+              plotly::add_trace(x = filt_metric,
+                                type = "histogram",
+                                name = "Filtered Data")
+          }
+          return(plot)
+        })
+      })
+    })
+
+    add_filt_seq_row <- observeEvent(input$add_filt, {
+      req(input$filt_param)
+      req(input$filt_op)
+      req(input$filt_tresh)
+
+      if (input$filt_tresh <= 0 || input$filt_tresh %% 1 == 0) {
+        output$filt_seq_error <- renderText("Threshold needs to be greather than zero and decimal")
+      } else {
+        added_row <- data.frame(
+          Paramete = isolate(input$filt_param),
+          Filter = isolate(input$filt_op),
+          Threshold = isolate(input$filt_tresh)
+        )
+
+        geno_qa_data$filt_seq <- rbind(geno_qa_data$filt_seq, added_row)
+      }
+    })
+
+    observeEvent(input$del_filt, {
+      if (!is.null(input$filt_seq_tab_rows_selected)) {
+        geno_qa_data$filt_seq <- geno_qa_data$filt_seq[-as.numeric(input$filt_seq_tab_rows_selected), ]
+      }
+    })
+
+    observeEvent(input$preview_filt, {
+      print("filter original gl")
+
+      if (is.null(nrow(geno_qa_data$filt_seq))) {
+        output$filt_seq_error <- renderText("Please first indicate a filtering sequence!")
+      } else {
+        output$filt_seq_error <- renderText("")
+        gl <- isolate(geno_qa_data$geno)
+
+        filt_seq <- get_filtering_sequence(geno_qa_data$filt_seq)
+        preview_gl <- cgiarGenomics::apply_sequence_filtering(gl, filt_seq)
+
+        geno_qa_data$preview_geno <- preview_gl
+        preview_gl_summary <- cgiarGenomics::get_overall_summary(preview_gl$gl)
+
+        added_row <- data.frame(
+          dataset = 'Filtered',
+          nloc = preview_gl_summary$nloc,
+          nind = preview_gl_summary$nind,
+          ov_miss = round(preview_gl_summary$ov_miss, 2),
+          ov_het = round(preview_gl_summary$ov_het, 2),
+          ov_maf = round(preview_gl_summary$ov_maf, 2)
+        )
+        if (!geno_qa_data$filter) {
+          geno_qa_data$overall_summary <- rbind(geno_qa_data$overall_summary, added_row)
+        } else {
+          geno_qa_data$overall_summary <- rbind(geno_qa_data$overall_summary[1, ], added_row)
+
+        }
+
+        geno_qa_data$filter_log <- get_filter_log(preview_gl$filt_log)
+      }
+
+      if (!geno_qa_data$filter) {
+        geno_qa_data$filter <- TRUE
+      }
+
+    })
+
+    observeEvent(input$reset_filt, {
+      geno_qa_data$filter <- FALSE
+      geno_qa_data$filt_seq <- data.frame()
+      geno_qa_data$overall_summary <- geno_qa_data$overall_summary[1, ]
+      geno_qa_data$filter_log <- data.frame()
+    })
+
+    observeEvent(input$runQaMb,{
+      req(geno_qa_data$preview_geno)
+      print('identify mods')
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+
+      new_modifications <- isolate(geno_qa_data$filter_log)
+      new_modifications$analysisId <- as.numeric(Sys.time())
+      new_modifications$analysisIdName <- input$analysisIdName
+
+      # Imputation
+      imp_mods <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
+                               ploidity = data()$data$ploidity,
+                               method = input$imputationMethod)
+      imp_mods$analysisId <- new_modifications$analysisId[1]
+      imp_mods$analysisIdName <- new_modifications$analysisIdName[1]
+
+      results <- data()
+
+      if(!is.null(results$modifications$geno_filtering)){
+        results$modifications$geno_filtering <- rbind(result$modifications$geno_filtering, new_modifications)
+      }else{
+        results$modifications$geno_filtering <- new_modifications}
+
+      if(!is.null(results$modifications$geno_imputation)){
+        results$modifications$geno_filtering <- rbind(result$modifications$geno_imputation, imp_mods)
+      }else{
+        results$modifications$geno_imputation <- imp_mods}
+
+      newStatus <- data.frame(module="qaGeno", analysisId= new_modifications$analysisId[nrow(new_modifications)], analysisIdName=input$analysisIdName)
+
+      if(!is.null(results$status)){
+        results$status <- rbind(results$status, newStatus)
+      }else{results$status <- newStatus}
+      data(results)
+      output$outQaMb <- renderPrint({
+        cat(paste("Modifications to genotype information saved with id:",as.POSIXct(newStatus$analysisId[1], origin="1970-01-01", tz="GMT")))
+      })
+
+      shinybusy::remove_modal_spinner()
+    })
+
+    output$reportQaGeno <- renderUI({
+      HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+    })
+
+    output$downloadReportQaGeno <- downloadHandler(
+      filename = function() {
+        paste(paste0('qaGeno_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
+      },
+      content = function(file) {
+        src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
+        src2 <- normalizePath('data/resultQaGeno.RData')
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
+        shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+          "HTML",
+          HTML = rmdformats::robobook(toc_depth = 4)
+          # HTML = rmarkdown::html_document()
+        ))
+        shinybusy::remove_modal_spinner()
+        file.rename(out, file)
       }
     )
-    observeEvent(input$myconfirmation, {
-      if (isTRUE(input$myconfirmation)) {
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
-        ## replace tables
-        tmp <- data()
-        data(cgiarBase::create_getData_object())
-        utils::data(DT_example, package = "cgiarPipeline")
-        if(!is.null(result$data)){tmp$data <- result$data}
-        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
-        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
-        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
-        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
-        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
-        if(!is.null(result$status)){tmp$status <- result$status}
-        data(tmp) # update data with results
-        shinybusy::remove_modal_spinner()
-      }else{
-        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+
+    get_filtering_sequence <- function(filt_seq_df) {
+      print("is getting the indicated filterting seq")
+      if (!is.data.frame(filt_seq_df)) {
+        cli::cli_abort("`filt_seq_df` is not a data.frame object is: {class(filt_seq_df)}")
       }
-    }, ignoreNULL = TRUE)
-    ##
-    newModifications <- reactive({ # p('File to be analyzed')
-      req(data())
-      req(input$propNaUpperThreshForMarker)
-      req(input$propNaUpperThreshForInds)
-      req(input$maf)
-      req(input$propHetUpperThreshForMarker)
-      req(input$propFisUpperThreshForMarker)
-      req(input$imputationMethod)
-      myObject <- data()
-      res <- cgiarBase::computeGenoModifications(
-        M = myObject$data$geno, # markers are assumed to come centered
-        propNaUpperThreshForMarker=input$propNaUpperThreshForMarker,
-        propNaUpperThreshForInds=input$propNaUpperThreshForInds,
-        maf=input$maf, ploidy=input$ploidy,
-        imputationMethod=input$imputationMethod
-      )
-      ## reactive
-      return(res)
-    })
+      filt_seq <- apply(filt_seq_df,
+                        1,
+                        \(.x) list(
+                          param = .x[1],
+                          operator = .x[2],
+                          threshold = as.numeric(.x[3])
+                        ))
+      return(filt_seq)
+    }
 
-    ## render the expected result for markers
-    output$plotPredictionsCleanOutMarker <- plotly::renderPlotly({
-      req(data())
-      req(input$propNaUpperThreshForMarker)
-      req(input$propNaUpperThreshForInds)
-      req(input$maf)
-      req(input$propHetUpperThreshForMarker)
-      req(input$propFisUpperThreshForMarker)
-      req(input$imputationMethod)
-      mydata <- data()$data$geno
-      ##
-      if(!is.null(mydata)){
-        fig <- plotly::plot_ly(alpha = 0.6)
-        ## historgram for marker with missing data
-        propNaMarker <- mydata@other$loc.metrics$loc_miss
-        fig <- fig %>% plotly::add_histogram(x = propNaMarker, histnorm = "probability", name="Missing data in markers" )
-        ## historgram for individuals with missing data
-        propNaIndividual <- mydata@other$ind.metrics$ind_miss
-        fig <- fig %>% plotly::add_histogram(x = propNaIndividual, histnorm = "probability", name="Missing data in individuals" )
-        ## historgram for MAF
-        MAF <- mydata@other$loc.metrics$maf
-        fig <- fig %>% plotly::add_histogram(x = MAF, histnorm = "probability", name="Minor allele frequency" )
-        ## histogram for heterozigosity
-        q <- MAF; p <- 1 - q
-        he <- 2 * p * q;  ho <- mydata@other$loc.metrics$loc_het # Get the obseved heterozygosity.
-        fig <- fig %>% plotly::add_histogram(x = ho, histnorm = "probability", name="Observed heterozygosity" )
-        ## histogram for inbreeding
-        Fis <- (he - ho)/he
-        fig <- fig %>% plotly::add_histogram(x = Fis, histnorm = "probability", name="Inbreeding" )
-        ## add threshold lines and layout
-        vline1 <- function(x = 0, color = "blue") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-        vline2 <- function(x = 0, color = "red") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-        vline3 <- function(x = 0, color = "green") {list( type = "line",y0 = 0,y1 = 1,yref = "paper",x0 = x, x1 = x,line = list(color = color, dash="dot"))}
-        fig <- fig %>% plotly::layout(barmode = "overlay", xaxis = list(title = "Value of parameter"), yaxis = list(title = "Proportion of markers" ),
-                                      title="Preview of the proportion of markers or individuals tagged for the different QA parameters",
-                                      shapes = list(vline1(input$propNaUpperThreshForMarker),vline2(input$propNaUpperThreshForInds),vline3(input$maf) ) )
-        fig
-      }else{
-        fig = plotly::plot_ly()
-        fig = fig %>% plotly::add_annotations(text = "Genetic marker information not available.", x = 1, y = 1)#
-        fig
-      }
+    get_filter_log <- function(filter_step_log){
+      print("filter_processing...")
 
-    })
+      out <- purrr::map_df(filter_step_log, function(filter_step){
 
-    ## render the number of alleles
-    # output$plotAllelesCleanOutMarker <- plotly::renderPlotly({
-    #   req(data())
-    #   mydata <- data()$data$geno
-    #   ##
-    #   if(!is.null(mydata)){
-    #     p <- ggplot2::ggplot(data.frame(x=as.vector(mydata)), ggplot2::aes(x=x)) + ggplot2::geom_histogram() +
-    #       ggplot2::xlab("Allele dosage") + ggplot2::ylab("Count") + ggplot2::ggtitle("Dosages present in the marker set")
-    #     plotly::ggplotly(p)
-    #   }
-    #
-    # })
-
-    ## summaries geno
-    # output$summariesGeno <-  DT::renderDT({
-    #   req(data())
-    #
-    #   if(!is.null(data()$data$geno)){
-    #     mo <- data.frame(nInds=nrow(data()$data$geno), nMarkers=ncol(data()$data$geno)); rownames(mo) <- "summary"
-    #   }else{
-    #     mo <- data.frame(warningText="Genetic marker data not available")
-    #   }
-    #   DT::datatable(mo, extensions = 'Buttons',
-    #                 options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-    #                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
-    #                 caption = htmltools::tags$caption(
-    #                   style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-    #                   htmltools::em('Number of individuals and markers available in the dataset.')
-    #                 )
-    #   )
-    #
-    # }, server = FALSE)
-    ## display the current outliers
-    # observeEvent(data(),{
-    #
-    #   output$modificationsQaMarker <-  DT::renderDT({
-    #     req(data())
-    #     req(input$propNaUpperThreshForMarker)
-    #     req(input$propNaUpperThreshForInds)
-    #     req(input$maf)
-    #     req(input$propHetUpperThreshForMarker)
-    #     req(input$propFisUpperThreshForMarker)
-    #     req(input$imputationMethod)
-    #     ##
-    #     if(!is.null(data()$data$geno)){
-    #       mo <- newModifications()
-    #       mo <- cgiarBase::summaryGeno(mo)
-    #     }else{
-    #       mo <- data.frame(warningText="Genetic marker data not available")
-    #     }
-    #     DT::datatable(mo, extensions = 'Buttons',
-    #                   options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-    #                                  lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
-    #                   caption = htmltools::tags$caption(
-    #                     style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-    #                     htmltools::em('Preview of potential modifications to add.')
-    #                   )
-    #     )
-    #
-    #   }, server = FALSE)
-    #
-    # })
-    ##########################
-    ## save when user clicks
-    # outQaMb <- eventReactive(input$runQaMb, {
-    #
-    #   req(data())
-    #   req(input$propNaUpperThreshForMarker)
-    #   req(input$propNaUpperThreshForInds)
-    #   req(input$maf)
-    #   req(input$propHetUpperThreshForMarker)
-    #   req(input$propFisUpperThreshForMarker)
-    #   req(input$imputationMethod)
-    #   shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-    #   ## get the outlier table
-    #   mods <- newModifications()
-    #   if(nrow(mods) > 0){
-    #     ## store the new modifications table
-    #     result <- data()
-    #     # save(result, file = "./R/outputs/resultQaGeno.RData")
-    #     result$modifications$geno <- rbind(result$modifications$geno, mods )
-    #     ## write the new status table
-    #     newStatus <- data.frame(module="qaGeno", analysisId= mods$analysisId[nrow(mods)])
-    #     result$status <- rbind(result$status, newStatus)
-    #     data(result)
-    #     cat(paste("Modifications to genotype information saved with id:",as.POSIXct( mods$analysisId[nrow(mods)], origin="1970-01-01", tz="GMT") ))
-    #     updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-    #   }else{
-    #     cat("No modifications to add.")
-    #   }
-    #   shinybusy::remove_modal_spinner()
-    #
-    #   if(nrow(mods) > 0) { # if all goes well in the run
-    #     # ## Report tab
-    #     output$reportQaGeno <- renderUI({
-    #       HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-    #     })
-    #
-    #     output$downloadReportQaGeno <- downloadHandler(
-    #       filename = function() {
-    #         paste('my-report', sep = '.', switch(
-    #           "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-    #         ))
-    #       },
-    #       content = function(file) {
-    #         src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
-    #         src2 <- normalizePath('data/resultQaGeno.RData')
-    #         # temporarily switch to the temp dir, in case you do not have write
-    #         # permission to the current working directory
-    #         owd <- setwd(tempdir())
-    #         on.exit(setwd(owd))
-    #         file.copy(src, 'report.Rmd', overwrite = TRUE)
-    #         file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
-    #         out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-    #           "HTML",
-    #           HTML = rmdformats::robobook(toc_depth = 4)
-    #           # HTML = rmarkdown::html_document()
-    #         ))
-    #         file.rename(out, file)
-    #       }
-    #     )
-    #
-    #   }else{ hideAll$clearAll <- TRUE}
-    #
-    #   hideAll$clearAll <- FALSE
-    #
-    # })
-    # output$outQaMb <- renderPrint({
-    #   outQaMb()
-    # })
-    #
+        if(filter_step$filter_margin == 'loc'){
+          filter_out <- filter_step$filter_out
+        } else {
+          filter_out <- filter_step$filter_out
+        }
+        if(length(filter_out) > 0){
+          filt_step_log <- data.frame(
+            metric = rep(filter_step$param, length(filter_out)),
+            operator = rep(filter_step$operator, length(filter_out)),
+            threshold = rep(filter_step$threshold, length(filter_out)),
+            margin = rep(filter_step$filter_margin, length(filter_out)),
+            filt_out = filter_out
+          )
+          return(filt_step_log)
+        }
+      })
+     return(out)
+    }
 
   })
 }
-
-## To be copied in the UI
-# mod_qaGenoApp_ui("qaGenoApp_1")
-
-## To be copied in the server
-# mod_qaGenoApp_server("qaGenoApp_1")
