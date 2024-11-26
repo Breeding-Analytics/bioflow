@@ -69,39 +69,46 @@ mod_pggApp_ui <- function(id){
                                                 ),
                                        ),
                                        tabPanel( div( icon("dice-two"), "Select parameters(s)", icon("arrow-right") ) , # icon = icon("dice-two"),
-                                                br(),
-                                                column(width=12,  style = "background-color:grey; color: #FFFFFF",
+                                                 br(),
+                                                 column(width=12,  style = "background-color:grey; color: #FFFFFF",
 
-                                                       column(width=3,
-                                                              selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
-                                                       ),
-                                                       column(width=3,
-                                                              selectInput(ns("environmentToUse"), "Do analysis by:", choices = NULL, multiple = FALSE),
-                                                       ),
-                                                       column(width=3,
-                                                              numericInput(ns("proportion"), label = "Assumed percentage selected (%)", value = 10, step = 10, max = 100, min = 1),
-                                                       ),
-                                                ),
-                                                column(width=12),
-                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                    column(width=12,
-                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                    ),
-                                                                    tags$span(id = ns('holder1'),
-                                                                              column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
-                                                                              column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                                              column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                                                    ),
-                                                ),
+                                                        column(width=3,
+                                                               selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
+                                                        ),
+                                                        column(width=3,
+                                                               selectInput(ns("environmentToUse"), "Do analysis by:", choices = NULL, multiple = FALSE),
+                                                        ),
+                                                        column(width=3,
+                                                               numericInput(ns("proportion"), label = "Assumed percentage selected (%)", value = 10, step = 10, max = 100, min = 1),
+                                                        ),
+                                                 ),
+                                                 column(width=12),
+                                                 shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                     column(width=12,
+                                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                            h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                     ),
+                                                                     tags$span(id = ns('holder1'),
+                                                                               column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ) ,
+                                                                               column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                               column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                     ),
+                                                 ),
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                       br(),
-                                                       actionButton(ns("runPgg"), "Run (click button)", icon = icon("play-circle")),
-                                                       uiOutput(ns("qaQcPggInfo")),
-                                                       br(),
+                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                         placeholder = "(optional name)") ) ),
+                                                       column(width=3,
+                                                              br(),
+                                                              actionButton(ns("runPgg"), "Run (click button)", icon = icon("play-circle")),
+                                                              uiOutput(ns("qaQcPggInfo")),
+                                                              br(),
+                                                       ),
+
                                                 ),
                                                 textOutput(ns("outPgg")),
                                        ),
@@ -209,7 +216,13 @@ mod_pggApp_server <- function(id, data){
       dtPgg <- dtPgg$status
       dtPgg <- dtPgg[which(dtPgg$module %in% c("sta")),]
       traitsPgg <- unique(dtPgg$analysisId)
-      if(length(traitsPgg) > 0){names(traitsPgg) <- as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT")}
+      if(length(traitsPgg) > 0){
+        if("analysisIdName" %in% colnames(dtPgg)){
+          names(traitsPgg) <- paste(dtPgg$analysisIdName, as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsPgg) <- as.POSIXct(traitsPgg, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Pgg", choices = traitsPgg)
     })
     #################
@@ -300,32 +313,49 @@ mod_pggApp_server <- function(id, data){
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
           X <- with(zz, sommer::overlay(outputId, inputId))
         }else{
-          if(nLevelsCheck1 == 1){
+          if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
           }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 == 1){
+          if(nLevelsCheck2 <= 1){
             X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
           }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
           mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          X[,colnames(X1)] <- X1
-          X[,colnames(X2)] <- X2
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+          if(!is.null(X1)){X[,colnames(X1)] <- X1}
+          if(!is.null(X2)){X[,colnames(X2)] <- X2}
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -333,12 +363,13 @@ mod_pggApp_server <- function(id, data){
         e <- network::network.edgecount(n)
         network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
         network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+        library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
+          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
       }
     })
     ## render the data to be analyzed
@@ -392,6 +423,7 @@ mod_pggApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultPgg.RData")
           cat(paste("Predicted genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT") ,"saved."))
@@ -445,7 +477,7 @@ mod_pggApp_server <- function(id, data){
 
         output$downloadReportPgg <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('pgg_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
@@ -458,11 +490,13 @@ mod_pggApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultPgg.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

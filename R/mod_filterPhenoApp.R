@@ -77,9 +77,15 @@ mod_filterPhenoApp_ui <- function(id){
                                            ),
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-three"),
-                                           br(),
-                                           actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
-                                           textOutput(ns("outFilterRaw")),
+                                           column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                             "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                         title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                             placeholder = "(optional name)") ) ),
+                                           column(width=3,
+                                                  br(),
+                                                  actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
+                                                  textOutput(ns("outFilterRaw")),
+                                           ),
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
@@ -417,6 +423,7 @@ mod_filterPhenoApp_server <- function(id, data){
       result$status <- rbind(result$status, newStatus)
       #
       result$modifications$pheno <- myoutliersReduced
+      if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
       data(result)
       shinybusy::remove_modal_spinner()
       if(!inherits(result,"try-error")) { # if all goes well in the run
@@ -427,7 +434,7 @@ mod_filterPhenoApp_server <- function(id, data){
 
         output$downloadReportQaPheno <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('qaFilter_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

@@ -66,9 +66,15 @@ mod_expDesignEditApp_ui <- function(id){
                                            # )
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-two"),
-                                           br(),
-                                           actionButton(ns("runFieldClean"), "Tag factors", icon = icon("play-circle")),
-                                           textOutput(ns("outExp"))
+                                           column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                             "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                         title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                             placeholder = "(optional name)") ) ),
+                                           column(width=3,
+                                                  br(),
+                                                  actionButton(ns("runFieldClean"), "Tag factors", icon = icon("play-circle")),
+                                                  textOutput(ns("outExp"))
+                                           ),
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
@@ -277,6 +283,7 @@ mod_expDesignEditApp_server <- function(id, data){
           result <- cgiarPipeline::modifExpDesign(object, df=xx$df)
           aid <- result$status$analysisId[length(result$status$analysisId)]
           # result$modifications$pheno[result$modifications$pheno$analysisId == aid,"module"]
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result)
           cat(paste("QA step with id:",as.POSIXct( aid, origin="1970-01-01", tz="GMT"),"saved."))
         }
@@ -290,7 +297,7 @@ mod_expDesignEditApp_server <- function(id, data){
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste('my-report', sep = '.', switch(
+              paste(paste0('qaDesign_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },

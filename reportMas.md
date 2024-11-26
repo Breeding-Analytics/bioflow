@@ -1,7 +1,7 @@
 ---
 title: "Marker Assisted Selection Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "September 10, 2024"  
+date: "November 19, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -22,14 +22,14 @@ The following table shows the total merit that has been calculated based on the 
 
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="reportBuilder_1-out0e778ef8f89df06f" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="masApp_1-out7cd8b1aa640b3928" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Graph of merit
 <p>&nbsp;</p>
 
 The following graph shows the total merit that has been calculated based on the weights assigned for each QTL.
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="reportBuilder_1-out1ed55ea6f6c39b41" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="masApp_1-oute31b1afdc72fc2a2" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Graph of QTL frequencies
 <p>&nbsp;</p>

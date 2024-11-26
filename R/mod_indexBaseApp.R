@@ -86,23 +86,32 @@ mod_indexBaseApp_ui <- function(id){
                                                 ),
                                        ),
                                        tabPanel( div( icon("dice-two"), "Pick traits",  icon("arrow-right") ), # icon = icon("dice-two"),
-                                                br(),
+                                                 br(),
 
-                                                column(width=3, style = "background-color:grey; color: #FFFFFF",
-                                                       selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE),
-                                                       uiOutput(ns("SliderBaseIndex"))
-                                                ),
+                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
+                                                        selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE),
+                                                        uiOutput(ns("SliderBaseIndex"))
+                                                 ),
 
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
-                                                br(),
-                                                actionButton(ns("runIdxB"), "Calculate index (click button)", icon = icon("play-circle")),
-                                                uiOutput(ns("qaQcIdxBInfo")),
-                                                textOutput(ns("outIdxB")),
-                                                hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
-                                                                    selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                column(width=12,
+                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                         placeholder = "(optional name)") ) ),
+                                                       column(width = 3,
+                                                              actionButton(ns("runIdxB"), "Calculate index (click button)", icon = icon("play-circle")),
+                                                              uiOutput(ns("qaQcIdxBInfo")),
+                                                              textOutput(ns("outIdxB")),
+                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                       ),
+                                                       shinydashboard::box(width = 3, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
+                                                                           selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                       ),
                                                 ),
+
+
                                        ),
                                      )
                             ),
@@ -216,7 +225,13 @@ mod_indexBaseApp_server <- function(id, data){
       dtIdxB <- dtIdxB$status
       dtIdxB <- dtIdxB[which(dtIdxB$module == "mta"),]
       traitsIdxB <- unique(dtIdxB$analysisId)
-      if(length(traitsIdxB) > 0) {names(traitsIdxB) <- as.POSIXct(traitsIdxB, origin="1970-01-01", tz="GMT")}
+      if(length(traitsIdxB) > 0){
+        if("analysisIdName" %in% colnames(dtIdxB)){
+          names(traitsIdxB) <- paste(dtIdxB$analysisIdName, as.POSIXct(traitsIdxB, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsIdxB) <- as.POSIXct(traitsIdxB, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2IdxB", choices = traitsIdxB)
     })
     ####################
@@ -294,6 +309,7 @@ mod_indexBaseApp_server <- function(id, data){
           silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved. Please proceed to use this time stamp in the optimal cross selection."))

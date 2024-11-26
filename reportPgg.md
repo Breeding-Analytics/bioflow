@@ -1,7 +1,7 @@
 ---
 title: "Predicted Genetic Gain Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 07, 2024"  
+date: "November 21, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -18,7 +18,7 @@ params:
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="pggApp_1-out0cc7fe54d029b2ff" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="pggApp_1-outb46c39496264609d" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predicted genetic gain
 
@@ -29,14 +29,14 @@ The following density plot allows you to see the expected change in the next gen
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="pggApp_1-traitFilterPredictions2D2-label" for="pggApp_1-traitFilterPredictions2D2">Trait:</label>
 <div>
-<select id="pggApp_1-traitFilterPredictions2D2" class="shiny-input-select"><option value="Pollen_DAP_days" selected>Pollen_DAP_days</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
+<select id="pggApp_1-traitFilterPredictions2D2" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Ear_Height_cm">Ear_Height_cm</option>
 <option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="pggApp_1-traitFilterPredictions2D2" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-outfb24fc1e349c8dfc" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-out7c53ae95e6a2210e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Barplot for metrics 
 
@@ -48,8 +48,8 @@ The following barplot allows you to compare the parameters with respect to the c
 <div class="form-group shiny-input-container">
 <label class="control-label" id="pggApp_1-parameterMetricsBy-label" for="pggApp_1-parameterMetricsBy">Trait:</label>
 <div>
-<select id="pggApp_1-parameterMetricsBy" class="shiny-input-select"><option value="Pollen_DAP_days" selected>Pollen_DAP_days</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
+<select id="pggApp_1-parameterMetricsBy" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
+<option value="Ear_Height_cm">Ear_Height_cm</option>
 <option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
 <script type="application/json" data-for="pggApp_1-parameterMetricsBy" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -79,7 +79,7 @@ The following barplot allows you to compare the parameters with respect to the c
 </div><!--/html_preserve-->
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-out318124851661e276" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="pggApp_1-out6ffa88a1e90cafbe" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### References of methods used
 

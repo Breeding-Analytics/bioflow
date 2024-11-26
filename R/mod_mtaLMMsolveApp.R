@@ -69,7 +69,18 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel(div( icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Mta"), "STA version to analyze (required)", choices = NULL, multiple = TRUE)),
+                                                      column(width=8,
+                                                             selectInput(ns("version2Mta"),
+                                                                         label = tags$span(
+                                                                           "STA version to analyze (required)",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Analysis ID(s) from STA runs that should be combined and used to fit a multi-trial analysis."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = TRUE),
+                                                      ),
 
                                                ),
                                                column(width=12),
@@ -86,7 +97,16 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Pick traits", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      selectInput(ns("trait2Mta"), "Trait to analyze (required)", choices = NULL, multiple = TRUE),
+                                                      selectInput(ns("trait2Mta"),
+                                                                  label = tags$span(
+                                                                    "Trait to analyze (required)",
+                                                                    tags$i(
+                                                                      class = "glyphicon glyphicon-info-sign",
+                                                                      style = "color:#FFFFFF",
+                                                                      title = "Only traits present in the STA runs selected will be available."
+                                                                    )
+                                                                  ),
+                                                                  choices = NULL, multiple = TRUE),
                                                ),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
                                                                    column(width=12,
@@ -95,10 +115,10 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                    ),
                                                                    column(width=12,
-                                                                             column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
-                                                                             column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
-                                                                             column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
-                                                                             column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                          column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                          column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
+                                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
                                                                    ),
                                                ),
                                       ),
@@ -117,28 +137,55 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                    "Main+Diagonal" = "csdg_model"
                                                                                  ),
                                                                                  selected = "mn_model", inline=TRUE),
+                                                                    radioTooltip(id = ns("radio"), choice = "mn_model", title = "The main effect model assumes that there is no genotype by environment interaction or that can be ignored to focus on average effects. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "cs_model", title = "The compound symmetry model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and all pairs of environments have the same genetic covariance.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "fw_model", title = "The Finlay-Wilkinson model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and deviations are with respect to an environmental covariate which can be the trait means at different environments or any other covariate.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "dg_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "csdg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
                                                              ),
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
                                                              column(width=4,
-                                                                    numericInput(ns("nTermsFixed"), label = "nTerms fixed", value = NULL), # , step = 1, min = 1, max=10
+                                                                    numericInput(ns("nTermsFixed"),
+                                                                                 label = tags$span(
+                                                                                   "nTerms fixed",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Number of fixed effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
+                                                                                   )
+                                                                                 ),
+                                                                                 value = NULL), # , step = 1, min = 1, max=10
                                                                     uiOutput(ns("leftSidesFixed"))
                                                              ),
                                                              column(width=4,
-                                                                    # uiOutput(ns("nTermsRandom")),
-                                                                    numericInput(ns("nTermsRandom"), label = "nTerms random", value = NULL), #
+                                                                    numericInput(ns("nTermsRandom"),
+                                                                                 label = tags$span(
+                                                                                   "nTerms random",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Number of random effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
+                                                                                   )
+                                                                                 ),
+                                                                                 value = NULL), #
                                                                     uiOutput(ns("leftSidesRandom"))
                                                              ),
                                                              column(width=4,
-                                                                    radioButtons(ns("radioModel"), label = "Shortcut to covariance",
+                                                                    radioButtons(ns("radioModel"), label = "Surrogate of merit",
                                                                                  choices = list(
-                                                                                   "None"="none",
-                                                                                   "GBLUP" = "geno_model",
-                                                                                   "PBLUP" = "pedigree_model"
+                                                                                   "TGV"="none",
+                                                                                   "GTGV" = "genoAD_model",
+                                                                                   "EBV" = "pedigree_model",
+                                                                                   "GEBV" = "geno_model"
                                                                                  ),
                                                                                  selected = "none", inline=TRUE),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that not known covariance between the levels of designation is known and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
                                                                     br(),
                                                                     uiOutput(ns("rightSidesRandom"))
                                                              ),
@@ -197,12 +244,66 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                column(width=6, style = "background-color:LightGray; color: #FFFFFF",
                                                       br(),
                                                       shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
-                                                                          textInput(ns("heritLBMet"), label = "Lower H2&R2 bound per trait (separate by commas) or single value across", value="0.1"),
-                                                                          textInput(ns("heritUBMet"), label = "Upper H2&R2 bound per trait (separate by commas) or single value across", value="0.95"),
-                                                                          textInput(ns("meanLBMet"), label = "Lower environment-mean bound per trait (separate by commas) or single value across", value="0"),
-                                                                          textInput(ns("meanUBMet"), label = "Upper environment-mean bound per trait (separate by commas) or single value across", value="1000000"),
-                                                                          numericInput(ns("maxitMet"), label = "Number of iterations", value = 35),
-                                                                          selectInput(ns("useWeights"), label = "Use weights?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                                                          textInput(ns("heritLBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Lower H2&R2 bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value of heritability and reliability is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0.1"),
+                                                                          textInput(ns("heritUBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Upper H2&R2 bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value of heritability and reliability is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0.95"),
+                                                                          textInput(ns("meanLBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Lower environment-mean bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value for trait means is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0"),
+                                                                          textInput(ns("meanUBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Upper environment-mean bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value for trait means is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="1000000"),
+                                                                          numericInput(ns("maxitMet"),
+                                                                                       label = tags$span(
+                                                                                         "Maximum # of iterations",
+                                                                                         tags$i(
+                                                                                           class = "glyphicon glyphicon-info-sign",
+                                                                                           style = "color:#000000",
+                                                                                           title = "Restricted Maximum Likelihood iterations. If the model doesn't converge you will see that in the metrics output table."
+                                                                                         )
+                                                                                       ),
+                                                                                       value = 35),
+                                                                          selectInput(ns("useWeights"),
+                                                                                      label = tags$span(
+                                                                                        "Use weights?",
+                                                                                        tags$i(
+                                                                                          class = "glyphicon glyphicon-info-sign",
+                                                                                          style = "color:#000000",
+                                                                                          title = "A TRUE/FALSE value in case you want to avoid using the weights in the two stage analysis (not recommended). The weights are used to account for the differential error variance in each trial."
+                                                                                        )
+                                                                                      ),
+                                                                                      choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                                           selectInput(ns("calcSE"), label = "Calculate SEs?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                       ),
                                                ),
@@ -214,7 +315,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=12, h4("Number of principal components for possible covariance kernels (0 is none)"), ),
+                                                      column(width=12, h5("Number of principal components for possible covariance kernels (0 is none, < 1 restricts to only levels present)"), ),
                                                       column(width=12, # multiple nesting to center ir (I didn't find any other way)
                                                              column(width=12,
                                                                     uiOutput(ns("nPC"), inline=TRUE)
@@ -225,10 +326,17 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel("Run analysis", icon = icon("dice-five"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      br(),
-                                                      actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
-                                                      uiOutput(ns("qaQcMtaInfo")),
-                                                      br(),
+                                                      column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                        "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                          title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "customizedMtaName") ) ),
+                                                      column(width=3,
+                                                             br(),
+                                                             actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
+                                                             uiOutput(ns("qaQcMtaInfo")),
+                                                             br(),
+                                                      ),
+
                                                ),
                                                textOutput(ns("outMta")),
                                       ),
@@ -282,11 +390,17 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     ## version
     observeEvent(c(data()), {
       req(data())
-      dtMta <- data()
+      dtMta <- data() # dtMta <- result
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module == "sta"),]
       traitsMta <- unique(dtMta$analysisId)
-      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+      if(length(traitsMta) > 0){
+        if("analysisIdName" %in% colnames(dtMta)){
+          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMta) <- as.character(as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"))
+        }
+      }
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
     #################
@@ -555,10 +669,11 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(input$nTermsRandom)
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
-      choices <- c(  "none0", "none1", "none2", "none3", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
+      choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
+      if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD")}
       envs <- unique(mydata[,"environment"])
       envsDg <- paste0("env",envs)
-      if(input$radioModel == "geno_model"){useMod1 <- "none0"; useMod2 <- "geno"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none0"; useMod2 <- "pedigree"}else{useMod1 <- "none0"; useMod2 <- "none1"}
+      if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
@@ -616,6 +731,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       choices <- c( setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait))
+      # if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD")}
 
       lapply(1:length(choices), function(i) {
         div(
@@ -677,6 +793,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- mx$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       choices <- c( setdiff(names(mx$data), c("qtl","genodir","pheno") ), unique(mydata$trait))
+      # if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoD")}
 
       if (length(input$trait2Mta) != 0) {
         values <- vector(mode = "list", length = length(choices))
@@ -686,7 +803,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           values[[i]] <- s1
         }
 
-          values <- unlist(values)
+        values <- unlist(values)
         if(!is.null(values)){
           names(values) <- choices
         }
@@ -768,14 +885,26 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     ## render timestamps flow plot
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
@@ -791,9 +920,14 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -804,10 +938,10 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
+          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
       }
     })
     #################
@@ -1016,11 +1150,13 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         dontHaveDist <- which(is.na(myFamily))
         if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
 
+        myEnvsTI = apply(x$df,2,function(z){z})
+
         result <- try(
           cgiarPipeline::metLMMsolver(
             phenoDTfile= dtMta, analysisId=input$version2Mta,
             fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
-            envsToInclude=x$df, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
+            envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
             calculateSE=input$calcSE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
             heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
             meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
@@ -1030,6 +1166,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -1090,7 +1227,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
         output$downloadReportMta <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('mtaLmms_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
@@ -1103,11 +1240,13 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

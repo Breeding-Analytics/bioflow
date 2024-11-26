@@ -54,9 +54,26 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                   ),
                                   tabPanel(div(icon("dice-two"), "Design and extreme value", icon("arrow-right") ) ,
                                            br(),
-                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=4, selectInput(ns("designConsist"), "Design expected", choices = list(None="none", RCBD="rcbd", MET="met"), multiple = FALSE) ),
-                                                  column(width=4, numericInput(ns("fConsist"), "Extreme value allowed", value = 5, max = 100000, min = -100000, step = 1) ),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width = 4,
+                                                         numericInput(ns("fConsist"),
+                                                                      label = tags$span("IQR coefficient",
+                                                                                        tags$i(class = "glyphicon glyphicon-info-sign",
+                                                                                               style = "color:#FFFFFF",
+                                                                                               title = "Number of IQRs to detect extreme values")),
+                                                                      value = 5, max = 100000, min = 0, step = 1)),
+                                                  column(width = 4,
+                                                         selectInput(ns("designConsist"),
+                                                                     "Design for residuals calculation",
+                                                                     choices = list(None = "none", RCBD = "rcbd", MET = "met"),
+                                                                     multiple = FALSE)),
+                                                  column(width = 4,
+                                                         numericInput(ns("maxresConsist"),
+                                                                      label = tags$span("Residual threshold",
+                                                                                        tags$i(class = "glyphicon glyphicon-info-sign",
+                                                                                               style = "color:#FFFFFF",
+                                                                                               title = "Number of standardized residuals to detect outliers")),
+                                                                      value = 4, max = 100000, min = 0, step = 1)),
                                            ),
                                            br(),
                                            column(width=12, p(span("Matrix of issues (transposed dataset).", style="color:black")) ),
@@ -66,7 +83,8 @@ mod_dataConsistPotatoApp_ui <- function(id){
 
                                   ),
                                   tabPanel("Tag inconsistencies", icon = icon("dice-three"),
-                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                           column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "customizedMasName") ),
+                                           column(width=3,style = "background-color:grey; color: #FFFFFF",
                                                   br(),
                                                   actionButton(ns("runConsist"), "Run consistency check (click)", icon = icon("play-circle")),
                                                   uiOutput(ns("qaQcConsistInfo")),
@@ -162,16 +180,18 @@ mod_dataConsistPotatoApp_server <- function(id, data){
 
       if(input$cropConsist == "spotato"){
         main <- "Sweet potato consistency flags"
-        out <- st4gi::check.data(dfr=st4gi::convert.co(dtMta$data$pheno, 'co.to.labels', crop = 'sp'),
-                                 out.mod=input$designConsist,
-                                 f=input$fConsist,
+        out <- st4gi::check.data(dfr = st4gi::convert.co(dtMta$data$pheno, 'co.to.labels', crop = 'sp'),
+                                 f = input$fConsist,
+                                 out.mod = input$designConsist,
+                                 out.max = input$maxresConsist,
                                  print.text = FALSE,
                                  crop = 'sp')$Inconsist.Matrix
       }else if(input$cropConsist == "potato"){
         main <- "Potato consistency flags"
-        out <- st4gi::check.data(dfr=st4gi::convert.co(dtMta$data$pheno, 'co.to.labels', crop = 'pt'),
-                                 out.mod=input$designConsist,
-                                 f=input$fConsist,
+        out <- st4gi::check.data(dfr = st4gi::convert.co(dtMta$data$pheno, 'co.to.labels', crop = 'pt'),
+                                 f = input$fConsist,
+                                 out.mod = input$designConsist,
+                                 out.max = input$maxresConsist,
                                  print.text = FALSE,
                                  crop = 'pt')$Inconsist.Matrix
       }else{
@@ -283,7 +303,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste('my-report', sep = '.', switch(
+              paste(paste0('qaConsist_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },

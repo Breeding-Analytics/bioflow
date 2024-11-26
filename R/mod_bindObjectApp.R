@@ -98,14 +98,26 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
@@ -121,9 +133,14 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -134,10 +151,10 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of analyses available in object loaded.") +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
+          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
       }
     })
     ## render data summary

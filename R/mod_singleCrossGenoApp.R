@@ -13,99 +13,107 @@ mod_singleCrossGenoApp_ui <- function(id){
 
     shiny::mainPanel(width = 12,
                      tabsetPanel(id=ns("tabsMain"), #width=9,
-                       type = "tabs",
+                                 type = "tabs",
 
-                       tabPanel( div(icon("book"), "Information") ,
-                                 br(),
-                                 h1(strong(span("Single Cross Marker Matrix Building Module", style="color:darkcyan"))),
-                                 h2(strong("Data Status (wait to be displayed):")),
-                                 uiOutput(ns("warningMessage")),
-                                 tags$br(),
-                                 # column(width=4, tags$br(),
-                                        shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                                 # ),
-                                 tags$br(),
-                                 tags$body(
-                                   h2(strong("Details")),
-                                   p("Hybrid breeding based on single-cross of lines allows the genotyping of only the parental lines and the consequent
+                                 tabPanel( div(icon("book"), "Information") ,
+                                           br(),
+                                           h1(strong(span("Single Cross Marker Matrix Building Module", style="color:darkcyan"))),
+                                           h2(strong("Data Status (wait to be displayed):")),
+                                           uiOutput(ns("warningMessage")),
+                                           tags$br(),
+                                           # column(width=4, tags$br(),
+                                           shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                           # ),
+                                           tags$br(),
+                                           tags$body(
+                                             h2(strong("Details")),
+                                             p("Hybrid breeding based on single-cross of lines allows the genotyping of only the parental lines and the consequent
                                                                formation of single-cross marker matrices. The idea is that the user provides the marker information from the parental
                                                                lines and has uploaded a pedigree of the phenotypic dataset. The marker profiles of the possible cross combinations
                                                                will be computed based on the availability of the marker information. Some of the parameters required are:"),
-                                   # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                   p(strong("Batch size to compute-")," the number of hybrids to build in each batch. Building all hybrids at once can be computationally
+                                             # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                             p(strong("Batch size to compute-")," the number of hybrids to build in each batch. Building all hybrids at once can be computationally
                                                                intensive and unnecesary. The default value is 1000 hybrids per batch."),
-                                   p(strong("Compute all possible hybrids?-")," an indication to know if only the marker-profiles for the hybrids present in the pedigree dataset should be computed or
+                                             p(strong("Compute all possible hybrids?-")," an indication to know if only the marker-profiles for the hybrids present in the pedigree dataset should be computed or
                                                                marker-profiles for all cross combinations should be created. This should be used carefully when the number of males and females in the pedigree file is big."),
-                                   h4(strong("Example")),
-                                   img(src = "www/scm.png",width = 1000), # add an image
-                                   h2(strong("References")),
-                                   p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
-                                   p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
-                                   h2(strong("Software")),
-                                   p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                             h4(strong("Example")),
+                                             img(src = "www/scm.png",width = 1000), # add an image
+                                             h2(strong("References")),
+                                             p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
+                                             p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
+                                             h2(strong("Software")),
+                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                   p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
-                                 )
-                                 #                     )
-                                 # )
-                       ),
-                       tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
-                                tabsetPanel(
-                                  tabPanel(div( icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , # icon = icon("dice-one"),
-                                           br(),
-                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=8, selectInput(ns("version2Scm"), "QA stamp to apply to markers", choices = NULL, multiple = FALSE) ),
+                                             p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                           )
+                                           #                     )
+                                           # )
+                                 ),
+                                 tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
+                                          tabsetPanel(
+                                            tabPanel(div( icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , # icon = icon("dice-one"),
+                                                     br(),
+                                                     column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                            column(width=8, selectInput(ns("version2Scm"), "QA stamp to apply to markers", choices = NULL, multiple = FALSE) ),
 
-                                           ),
-                                           column(width=12,
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           ),
-                                           column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                           DT::DTOutput(ns("statusScm")), # modeling table
-                                           DT::DTOutput(ns("genoScm")), # data input
-                                  ),
-                                  tabPanel(div( icon("dice-two"), "Pick batch size", icon("arrow-right") ), # icon = icon("dice-two"),
-                                           br(),
-                                           column(width=12, numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000), style = "background-color:grey; color: #FFFFFF"),
-                                           h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
-                                           hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
-                                           #                     column(width=12, style = "height:530px; overflow-y: scroll;overflow-x: scroll;",
-                                           DT::DTOutput(ns("summariesScr")),
-                                           #                            )
-                                           # )
-                                  ),
-                                  tabPanel( div(icon("dice-three"), "Pick crosses", icon("arrow-right") ), # icon = icon("dice-three"),
-                                           br(),
-                                           column(width=12, selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE), style = "background-color:grey; color: #FFFFFF"),
-                                           h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
-                                           hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           # shinydashboard::box(status="success",width = 12,  solidHeader = TRUE, #background = "green",
-                                           column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
-                                           column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
-                                           column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
-                                           column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
-                                           # )
-                                  ),
-                                  tabPanel("Run analysis", icon = icon("dice-four"),
-                                           br(),
-                                           actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
-                                           textOutput(ns("outScr"))
-                                  ),
-                                ), # end of tabset
-                       ),# end of output panel
-                       tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
-                                tabsetPanel(
-                                  tabPanel("Data", icon = icon("table"),
-                                           br(),
-                                           downloadButton(ns("downloadDataScm"), "Download Genotypic data"),
-                                           br(),
-                                           DT::DTOutput(ns("dataScm")),
-                                  ),
-                                ) # of of tabsetPanel
-                       )# end of output panel
+                                                     ),
+                                                     column(width=12,
+                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                            h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                     ),
+                                                     column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                     DT::DTOutput(ns("statusScm")), # modeling table
+                                                     DT::DTOutput(ns("genoScm")), # data input
+                                            ),
+                                            tabPanel(div( icon("dice-two"), "Pick batch size", icon("arrow-right") ), # icon = icon("dice-two"),
+                                                     br(),
+                                                     column(width=12, numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000), style = "background-color:grey; color: #FFFFFF"),
+                                                     h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
+                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                     # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
+                                                     #                     column(width=12, style = "height:530px; overflow-y: scroll;overflow-x: scroll;",
+                                                     DT::DTOutput(ns("summariesScr")),
+                                                     #                            )
+                                                     # )
+                                            ),
+                                            tabPanel( div(icon("dice-three"), "Pick crosses", icon("arrow-right") ), # icon = icon("dice-three"),
+                                                      br(),
+                                                      column(width=12, selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE), style = "background-color:grey; color: #FFFFFF"),
+                                                      h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
+                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                      # shinydashboard::box(status="success",width = 12,  solidHeader = TRUE, #background = "green",
+                                                      column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
+                                                      column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
+                                                      column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
+                                                      column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
+                                                      # )
+                                            ),
+                                            tabPanel("Run analysis", icon = icon("dice-four"),
+                                                     column(width=12,
+                                                            column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                              "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                          title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                              placeholder = "(optional name)") ) ),
+                                                            column(width=3,
+                                                                   actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
+                                                                   textOutput(ns("outScr"))
+                                                            ),
+                                                     )
+
+                                            ),
+                                          ), # end of tabset
+                                 ),# end of output panel
+                                 tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
+                                          tabsetPanel(
+                                            tabPanel("Data", icon = icon("table"),
+                                                     br(),
+                                                     downloadButton(ns("downloadDataScm"), "Download Genotypic data"),
+                                                     br(),
+                                                     DT::DTOutput(ns("dataScm")),
+                                            ),
+                                          ) # of of tabsetPanel
+                                 )# end of output panel
                      )) # end mainpanel
 
 
@@ -209,15 +217,27 @@ mod_singleCrossGenoApp_server <- function(id, data){
     })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data())
-      xx <- data()$status;  yy <- data()$modeling
+      req(data()) # req(input$version2Sta)
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
@@ -233,9 +253,14 @@ mod_singleCrossGenoApp_server <- function(id, data){
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -426,6 +451,7 @@ mod_singleCrossGenoApp_server <- function(id, data){
                   silent=TRUE
                   )
                   if(!inherits(result,"try-error")) {
+                    if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
                     data(result) # update data with results
                     cat(paste("Single cross marker matrix building with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
                     updateTabsetPanel(session, "tabsMain", selected = "outputTabs")

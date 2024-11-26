@@ -67,93 +67,159 @@ mod_staApp_ui <- function(id){
                            ),
                            tabPanel(id=ns("tabsInput0"),  type = "tabs", title=div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel( id=ns("tabsInput1"), type = "tabs",
-                                      tabPanel(value="tabsInputStamp",title=div(icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , #icon = icon("dice-one"),
-                                               br(),
-                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Sta"), "Pheno-modification to apply to the data", choices = NULL, multiple = TRUE) ),
+                                                 tabPanel(value="tabsInputStamp",title=div(icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , #icon = icon("dice-one"),
+                                                          br(),
+                                                          column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                                 column(width=8,
+                                                                        selectInput(ns("version2Sta"),
+                                                                                    label = tags$span(
+                                                                                      "Pheno-modification to apply to the data",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#FFFFFF",
+                                                                                        title = "Analysis ID(s) from QA modifications that should be applied in the STA."
+                                                                                      )
+                                                                                    ),
+                                                                                    choices = NULL, multiple = TRUE),
+                                                                 ),
 
-                                               ),
-                                               column(width=12),
-                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                   column(width=12,
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                                   DT::DTOutput(ns("statusSta")), # modeling table
-                                                                   DT::DTOutput(ns("phenoSta")),
-                                               ),
-                                      ),
-                                      tabPanel(value="tabsInputTraits",title=div( icon("dice-two"), "Pick trait(s)", icon("arrow-right") ) , #icon = icon("dice-two"),
-                                               br(),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=4, selectInput(ns("trait2Sta"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE) ),
-                                                      column(width=4,selectInput(ns("fixedTermSta2"), "Covariable(s) (optional)", choices = NULL, multiple = TRUE) ),
-                                                      # column(width = 12, style = "background-color:grey; color: #FFFFFF",
-                                                             tags$br(),
-                                                             shinydashboard::box(width = 4, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
-                                                                                 p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
-                                                                                 DT::DTOutput(ns("traitDistSta")),
-                                                             ),
-                                                      # ),
-                                               ),
-                                               column(width=12),
-                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                   column(width=12,
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   tags$span(id = ns('holder1'),
-                                                                             column(width=9, selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                             # column(width=3, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
-                                                                             column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
-                                                                             column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), # ,  shiny::plotOutput(ns("plotPredictionsCleanOut"))
-                                                                             column(width=12, plotly::plotlyOutput(ns("plotFieldGrid"))  ),
-                                                                   ),
-                                               ),
-                                      ),
-                                      tabPanel(value="tabsInputEffects", title=div(icon("dice-three"), "Pick effect(s)", icon("arrow-right") ) , #icon = icon("dice-three"),
-                                               br(),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF" ,
-                                                      column(width=4, selectInput(ns("genoUnitSta"), "Genetic evaluation unit(s) (required)", choices = NULL, multiple = TRUE) ),
-                                                      column( width=8,
-                                                              br(),
-                                                              shinydashboard::box(width = 12, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
-                                                                                  selectInput(ns("genoAsFixedSta"),"Estimate type",choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
-                                                                                  numericInput(ns("maxitSta"),"Number of iterations",value=35),
-                                                                                  selectInput(ns("verboseSta"),"Print logs",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
-                                                              ),
-                                                      ),
-                                                      column(width=12,tags$span(id = ns('geno_unit_holder'), #style="color:orange",
-                                                                                p("**If you have hybrid-crop data and plan to use 'mother' and 'father' information for GCA models please make sure you uploaded your Pedigree data (you can use the same Phenotype file if those columns are there)."),
-                                                      )),
+                                                          ),
+                                                          column(width=12),
+                                                          shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                              column(width=12,
+                                                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                     h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                              ),
+                                                                              column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                                              DT::DTOutput(ns("statusSta")), # modeling table
+                                                                              DT::DTOutput(ns("phenoSta")),
+                                                          ),
+                                                 ),
+                                                 tabPanel(value="tabsInputTraits",title=div( icon("dice-two"), "Pick trait(s)", icon("arrow-right") ) , #icon = icon("dice-two"),
+                                                          br(),
+                                                          column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                                 column(width=4,
+                                                                        selectInput(ns("trait2Sta"),
+                                                                                    label = tags$span(
+                                                                                      "Trait(s) to analyze (required)",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#FFFFFF",
+                                                                                        title = "Only cleaned traits will be available."
+                                                                                      )
+                                                                                    ),
+                                                                                    choices = NULL, multiple = TRUE),
+                                                                 ),
+                                                                 column(width=4,
+                                                                        selectInput(ns("fixedTermSta2"),
+                                                                                    label = tags$span(
+                                                                                      "Covariable(s) (optional)",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#FFFFFF",
+                                                                                        title = "Trait(s) that should be used as fixed effect covariate. Only to be used if a field correction besides the spatial model is needed."
+                                                                                      )
+                                                                                    ),
+                                                                                    choices = NULL, multiple = TRUE),
+                                                                 ),
+                                                                 # column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                                 tags$br(),
+                                                                 shinydashboard::box(width = 4, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                                                     p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
+                                                                                     DT::DTOutput(ns("traitDistSta")),
+                                                                 ),
+                                                                 # ),
+                                                          ),
+                                                          column(width=12),
+                                                          shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                              column(width=12,
+                                                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                     h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                              ),
+                                                                              tags$span(id = ns('holder1'),
+                                                                                        column(width=9, selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                                        # column(width=3, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
+                                                                                        column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
+                                                                                        column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), # ,  shiny::plotOutput(ns("plotPredictionsCleanOut"))
+                                                                                        column(width=12, plotly::plotlyOutput(ns("plotFieldGrid"))  ),
+                                                                              ),
+                                                          ),
+                                                 ),
+                                                 tabPanel(value="tabsInputEffects", title=div(icon("dice-three"), "Pick effect(s)", icon("arrow-right") ) , #icon = icon("dice-three"),
+                                                          br(),
+                                                          column(width=12, style = "background-color:grey; color: #FFFFFF" ,
+                                                                 column(width=4,
+                                                                        selectInput(ns("genoUnitSta"),
+                                                                                    label = tags$span(
+                                                                                      "Genetic evaluation unit(s) (required)",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#FFFFFF",
+                                                                                        title = "Depending on the crop this selection can be males and females for progeny-testing models (e.g., GCA), or designation for per-se performance models. "
+                                                                                      )
+                                                                                    ),
+                                                                                    choices = NULL, multiple = TRUE)
+                                                                 ),
+                                                                 column( width=8,
+                                                                         br(),
+                                                                         shinydashboard::box(width = 12, style = "color: #000000",status = "success",solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
+                                                                                             selectInput(ns("genoAsFixedSta"),
+                                                                                                         label = tags$span(
+                                                                                                           "Estimate type",
+                                                                                                           tags$i(
+                                                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                                                             style = "color:#FFFFFF",
+                                                                                                             title = "Because the expectation is two use the two-stage approach, BLUEs are the default (designation is fitted as fixed). Only use BLUPs (designation is fitted as random) if you are planning to use the results directly to take a selection decision. "
+                                                                                                           )
+                                                                                                         ),
+                                                                                                         choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
+                                                                                             numericInput(ns("maxitSta"),
+                                                                                                          label = tags$span(
+                                                                                                            "Number of iterations",
+                                                                                                            tags$i(
+                                                                                                              class = "glyphicon glyphicon-info-sign",
+                                                                                                              style = "color:#FFFFFF",
+                                                                                                              title = "Restricted Maximum Likelihood requires certain number of iterations to converge to optimal values in variance components. The default reflects rules of thumb but it may finish earlier."
+                                                                                                            )
+                                                                                                          ),
+                                                                                                          value=35),
+                                                                                             selectInput(ns("verboseSta"),"Print log file?",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
+                                                                         ),
+                                                                 ),
 
-                                               ),
-                                               column(width=12),
-                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                   column(width=12,
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   tags$span(id = ns('holder2'),
-                                                                             selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
-                                                                             DT::DTOutput(ns("summariesSta")), # genetic evaluation units
-                                                                             DT::dataTableOutput(ns("dtFieldTraC")), # design units
-                                                                   ),
-                                               ),
-                                      ),
-                                      tabPanel(value="tabsInputRun", title=div(icon("dice-four"), "Run analysis" ), # icon = icon("dice-four"),
-                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      br(),
-                                                      actionButton(ns("runSta"), "Run STA (click button)", icon = icon("play-circle")),
-                                                      uiOutput(ns("qaQcStaInfo")),
-                                                      br(),
-                                               ),
-                                               textOutput(ns("outSta")),
-                                      ),
+                                                          ),
+                                                          column(width=12),
+                                                          shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                              column(width=12,
+                                                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                     h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                              ),
+                                                                              tags$span(id = ns('holder2'),
+                                                                                        selectInput(ns("feature"), "Summarize evaluation units by:", choices = NULL, multiple = FALSE),
+                                                                                        DT::DTOutput(ns("summariesSta")), # genetic evaluation units
+                                                                                        DT::dataTableOutput(ns("dtFieldTraC")), # design units
+                                                                              ),
+                                                          ),
+                                                 ),
+                                                 tabPanel(value="tabsInputRun", title=div(icon("dice-four"), "Run analysis" ), # icon = icon("dice-four"),
+                                                          column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                                 column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                                   "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                               title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                                   placeholder = "(optional name)") ) ),
+                                                                 column(width=3,
+                                                                        br(),
+                                                                        actionButton(ns("runSta"), "Run STA (click button)", icon = icon("play-circle")),
+                                                                        uiOutput(ns("qaQcStaInfo")),
+                                                                        br(),
+                                                                 ),
+
+                                                          ),
+                                                          textOutput(ns("outSta")),
+                                                 ),
                                     )# of of tabsetPanel
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
@@ -783,16 +849,16 @@ mod_staApp_server <- function(id,data){
       }
     })
     ############################################################################
-    observeEvent(
-      c(data(),input$version2Sta,input$genoUnitSta),
-      if(length(input$genoUnitSta) > 0){ # added
-        if ('mother' %in% input$genoUnitSta | 'father' %in% input$genoUnitSta | is.null(input$genoUnitSta) ){
-          golem::invoke_js('showid', ns('geno_unit_holder'))
-        }else { #
-          golem::invoke_js('hideid', ns('geno_unit_holder'))
-        }
-      }else{golem::invoke_js('hideid', ns('geno_unit_holder'))}
-    )
+    # observeEvent(
+    #   c(data(),input$version2Sta,input$genoUnitSta),
+    #   if(length(input$genoUnitSta) > 0){ # added
+    #     if ('mother' %in% input$genoUnitSta | 'father' %in% input$genoUnitSta | is.null(input$genoUnitSta) ){
+    #       golem::invoke_js('showid', ns('geno_unit_holder'))
+    #     }else { #
+    #       golem::invoke_js('hideid', ns('geno_unit_holder'))
+    #     }
+    #   }else{golem::invoke_js('hideid', ns('geno_unit_holder'))}
+    # )
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
@@ -847,7 +913,13 @@ mod_staApp_server <- function(id,data){
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
       traitsMta <- unique(dtMta$analysisId)
-      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+      if(length(traitsMta) > 0){
+        if("analysisIdName" %in% colnames(dtMta)){
+          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Sta", choices = traitsMta)
     })
     # genetic evaluation unit
@@ -925,10 +997,10 @@ mod_staApp_server <- function(id,data){
                                        selection = 'none',
                                        editable = TRUE,
                                        server = FALSE,
-                                       options = list(paging=FALSE,
-                                                      searching=FALSE,
-                                                      scrollX = TRUE,
-                                                      initComplete = I("function(settings, json) {alert('Done.');}")
+                                       options = list( #paging=FALSE,
+                                         # searching=FALSE,
+                                         scrollX = TRUE
+                                         # initComplete = I("function(settings, json) {alert('Done.');}")
                                        )
     )
 
@@ -946,14 +1018,26 @@ mod_staApp_server <- function(id,data){
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
@@ -969,9 +1053,14 @@ mod_staApp_server <- function(id,data){
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -1245,6 +1334,7 @@ mod_staApp_server <- function(id,data){
                       silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultSta.RData")
           cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
@@ -1323,7 +1413,7 @@ mod_staApp_server <- function(id,data){
 
         output$downloadReportSta <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('sta_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

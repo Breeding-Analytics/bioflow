@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Genotype Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 26, 2024"  
+date: "November 21, 2024"  
 output: html_document
 params:
   toDownload: FALSE

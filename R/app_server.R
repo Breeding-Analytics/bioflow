@@ -290,17 +290,17 @@ app_server <- function(input, output, session) {
   mod_selSignApp_server("selSignApp_1")
 
   # MUTATION - mutation discovery
-  mod_gwasqkApp_server("gwasqkApp_1") # GWAS Q+K method
+  mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
   # MUTATION - mutation history
   mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
   # GENE FLOW AND DRIFT - frequency-based selection
   mod_masApp_server("masApp_1", data = data) # MAS
   mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
-  mod_neApp_server("neApp_1", data = data) # effective size
+  # mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
-  mod_poolFormApp_server("poolFormApp_1")
+  # mod_poolFormApp_server("poolFormApp_1")
   mod_poolFormApp_server("poolFormApp_1") # pool formation
   mod_subsetSelApp_server("subsetSelApp_1") # subset selection
 
@@ -323,8 +323,8 @@ app_server <- function(input, output, session) {
   mod_sectionInfoDASHApp_server("sectionInfoDASHApp_1") # infor for dashboard creation
 
   ## agronomic evaluation
-  mod_sectionInfoAEApp_server("sectionInfoAEApp_1")
-  mod_agrAnova_server("agrAnova_1") #anova for agronomic experiments
+  # mod_sectionInfoAEApp_server("sectionInfoAEApp_1")
+  # mod_agrAnova_server("agrAnova_1") #anova for agronomic experiments
 
   ## predictive models
   # mod_tensorMLApp_server("tensorMLApp_1")

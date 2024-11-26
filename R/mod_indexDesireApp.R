@@ -58,7 +58,16 @@ mod_indexDesireApp_ui <- function(id){
                                        tabPanel(div( icon("dice-one"), "Pick MTA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2IdxD"), "MTA version to analyze (required)", choices = NULL, multiple = TRUE)),
+                                                       column(width=8, selectInput(ns("version2IdxD"),
+                                                                                   label = tags$span(
+                                                                                     "MTA or MAS version to find traits (required)",
+                                                                                     tags$i(
+                                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                                       style = "color:#FFFFFF",
+                                                                                       title = "Analysis ID(s) from MTA runs or MAS runs that contain the trait predictions that should be used to fit a desired selection index."
+                                                                                     )
+                                                                                   ),
+                                                                                   choices = NULL, multiple = TRUE)),
 
                                                 ),
                                                 column(width=12),
@@ -77,11 +86,56 @@ mod_indexDesireApp_ui <- function(id){
                                        tabPanel( div( icon("dice-two"), "Pick parameters", icon("arrow-right") ) , # icon = icon("dice-two"),
                                                 br(),
                                                 column(width=3, style = "background-color:grey; color: #FFFFFF",
-                                                       selectInput(ns("trait2IdxD"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
-                                                       selectInput(ns("env2IdxD"), "Environment to use", choices = NULL, multiple = FALSE),
-                                                       selectInput(ns("effectType2IdxD"), "Effect type(s) to use", choices = NULL, multiple = TRUE),
-                                                       selectInput(ns("entryType2IdxD"), "Entry type(s) to use", choices = NULL, multiple = TRUE),
-                                                       selectInput(ns("scaledIndex"), label = "Scale traits for index?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
+                                                       selectInput(ns("trait2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Trait(s) to analyze",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "It is important to include traits that also need to be controlled in the population (e.g., height, maturity) even when we don't want to increase them or decrease them."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("env2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Environment to use",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "Currently onle the across environment estimate is allowed which is labeled as (Intercept)."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = FALSE),
+                                                       selectInput(ns("effectType2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Effect type(s) to use",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "Since each fixed and random effect returns estimates the user should specify which effect should be used in the index. It is expected by default that the designation estimates are the ones to be used in the index."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = FALSE),
+                                                       selectInput(ns("entryType2IdxD"),
+                                                                   label = tags$span(
+                                                                     "Entry type(s) to use",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "The labels available in the entryType column can be used to reduce the dataset for the index. By default all entry types are included."
+                                                                     )
+                                                                   ),
+                                                                   choices = NULL, multiple = TRUE),
+                                                       selectInput(ns("scaledIndex"),
+                                                                   label = tags$span(
+                                                                     "Scale traits for index?",
+                                                                     tags$i(
+                                                                       class = "glyphicon glyphicon-info-sign",
+                                                                       style = "color:#FFFFFF",
+                                                                       title = "If TRUE, the traits are scaled to a standardized normal distribution and the values represent the number of standard deviations desired to change. If FALSE, the trait is conserved in the original units and the user should specify the desired change in native units. The slider still always represents the equivalent to +/- 5 standard deviations."
+                                                                     )
+                                                                   ),
+                                                                   choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE),
                                                        uiOutput(ns("SliderDesireIndex"))
                                                 ),
                                                 column(width=9, #style = "height:550px; overflow-y: scroll;overflow-x: scroll;",
@@ -113,12 +167,16 @@ mod_indexDesireApp_ui <- function(id){
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=4,
+                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                         placeholder = "(optional name)") ) ),
+                                                       column(width=3,
                                                               br(),
                                                               actionButton(ns("runIdxD"), "Calculate index (click button)", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcIdxDInfo")),
                                                        ),
-                                                       column(width=8,
+                                                       column(width=6,
                                                               br(),
                                                                 shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
                                                                                   selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
@@ -675,7 +733,7 @@ mod_indexDesireApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if( any( c("mta","mtaFlex","mtaLmms") %in% data()$status$module ) ){
+          if( any( c("mta","mtaFlex","mtaLmms","mas") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -724,9 +782,15 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       dtIdxD <- data()
       dtIdxD <- dtIdxD$status
-      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaFlex","mtaLmms") ),]
+      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaFlex","mtaLmms","mas") ),]
       traitsIdxD <- unique(dtIdxD$analysisId)
-      if(length(traitsIdxD) > 0){names(traitsIdxD) <- as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT")}
+      if(length(traitsIdxD) > 0){
+        if("analysisIdName" %in% colnames(dtIdxD)){
+          names(traitsIdxD) <- paste(dtIdxD$analysisIdName, as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsIdxD) <- as.POSIXct(traitsIdxD, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2IdxD", choices = traitsIdxD)
     })
     #################
@@ -754,12 +818,12 @@ mod_indexDesireApp_server <- function(id, data){
       # only get environments where all the traits are present
       props <- apply(table(dtIdxD$trait, dtIdxD$environment),2,function(x){length(which(x>0))/length(x)})
       envsAva <- names(props)[which(props == 1)]
-      updateSelectInput(session, "env2IdxD", choices = envsAva)
+      updateSelectInput(session, "env2IdxD", choices = envsAva, selected = ifelse("(Intercept)"%in%envsAva,"(Intercept)", envsAva[1]) )
     })
     #################
     ## effect types
     observeEvent(c(data(), input$version2IdxD, input$trait2IdxD, input$env2IdxD), {
-      # input <- list(version2IdxD=result$status$analysisId[3], trait2IdxD= c("Yield_Mg_ha_QTL","Ear_Height_cm"), env2IdxD="across",effectType2IdxD="designation" )
+      # input <- list(version2IdxD=result$status$analysisId[4], trait2IdxD= c("Pollen_DAP_days", "Plant_Height_cm", "Yield_Mg_ha"), env2IdxD="(Intercept)",effectType2IdxD="designation" )
       req(data())
       req(input$version2IdxD)
       req(input$trait2IdxD)
@@ -770,7 +834,7 @@ mod_indexDesireApp_server <- function(id, data){
       dtIdxD <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD),]
       dtIdxD <- dtIdxD[which(dtIdxD$environment %in% input$env2IdxD),]
       traitsIdxD <- unique(dtIdxD$effectType)
-      updateSelectInput(session, "effectType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
+      updateSelectInput(session, "effectType2IdxD", choices = traitsIdxD, selected = ifelse("designation"%in%traitsIdxD,"designation", traitsIdxD[1]) )
     })
     #################
     ## entry types
@@ -863,32 +927,49 @@ mod_indexDesireApp_server <- function(id, data){
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
           X <- with(zz, sommer::overlay(outputId, inputId))
         }else{
-          if(nLevelsCheck1 == 1){
+          if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
           }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 == 1){
+          if(nLevelsCheck2 <= 1){
             X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
           }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
           mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          X[,colnames(X1)] <- X1
-          X[,colnames(X2)] <- X2
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+          if(!is.null(X1)){X[,colnames(X1)] <- X1}
+          if(!is.null(X2)){X[,colnames(X2)] <- X2}
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -899,10 +980,10 @@ mod_indexDesireApp_server <- function(id, data){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
+          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
       }
     })
     ## render the data to be analyzed (wide format)
@@ -1050,7 +1131,7 @@ mod_indexDesireApp_server <- function(id, data){
       # define values for slider all traits for base index
       values <- desireValues()
       # run the modeling, but before test if mta was done
-      if(sum(dtIdxD$status$module %in% c("mta","mtaFlex","mtaLmms") ) == 0) {
+      if(sum(dtIdxD$status$module %in% c("mta","mtaFlex","mtaLmms","mas") ) == 0) {
         output$qaQcIdxDInfo <- renderUI({
           if (hideAll$clearAll)
             return()
@@ -1076,6 +1157,7 @@ mod_indexDesireApp_server <- function(id, data){
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Selection index step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to select the best crosses using the OCS module using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -1125,7 +1207,7 @@ mod_indexDesireApp_server <- function(id, data){
 
         output$downloadReportIndex <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('indexD_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
@@ -1138,11 +1220,13 @@ mod_indexDesireApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultIndex.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

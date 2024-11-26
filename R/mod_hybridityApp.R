@@ -64,7 +64,7 @@ mod_hybridityApp_ui <- function(id){
                                                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                           ),
                                                                           column( width=4, DT::DTOutput(ns("tableTraitTimeVerifmps")), br(),br(),  ),
-                                                                          column( width=8, shiny::plotOutput(ns("plotTimeVerifmps")), br(),br(), ),
+                                                                          column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(),br(), ),
                                                       ),
                                              ),
                                              tabPanel(div(icon("dice-two"), "Select markers", icon("arrow-right") ), # icon = icon("dice-two"),
@@ -115,7 +115,11 @@ mod_hybridityApp_ui <- function(id){
                                                       ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("dice-four"),
-                                                      column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                        "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                    title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "(optional name)") ) ),
+                                                      column(width=3,style = "background-color:grey; color: #FFFFFF",
                                                              br(),
                                                              actionButton(ns("runQaMb"), "Compute verification (click)", icon = icon("play-circle")),
                                                              uiOutput(ns("qaQcStaInfo")),
@@ -256,19 +260,37 @@ mod_hybridityApp_server <- function(id, data){
       dtMta <- dtMta$status
       dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
       traitsMta <- unique(dtMta$analysisId)
-      if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+      if(length(traitsMta) > 0){
+        if("analysisIdName" %in% colnames(dtMta)){
+          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
-    output$plotTimeVerifmps <- shiny::renderPlot({
-      req(data())
-      xx <- data()$status;  yy <- data()$modeling
+    output$plotTimeStamps <- shiny::renderPlot({
+      req(data()) # req(input$version2Sta)
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
@@ -284,9 +306,14 @@ mod_hybridityApp_server <- function(id, data){
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -297,10 +324,10 @@ mod_hybridityApp_server <- function(id, data){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
+          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
       }
     })
     output$tableTraitTimeVerifmps <-  DT::renderDT({
@@ -431,6 +458,7 @@ mod_hybridityApp_server <- function(id, data){
 
       if(!inherits(result,"try-error")) { # if all goes well in the run
         cat(paste("Genotype verification analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         # predictions
@@ -535,7 +563,7 @@ mod_hybridityApp_server <- function(id, data){
 
         output$downloadReportVerifGeno <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('gVerif_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
@@ -548,11 +576,13 @@ mod_hybridityApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultVerifGeno.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

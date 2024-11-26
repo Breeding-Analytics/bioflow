@@ -1,24 +1,27 @@
 Package: bioflow
-Title: PKG_TITLE
-Version: 0.0.0.9000
-Authors@R: 
-    person("AUTHOR_FIRST", "AUTHOR_LAST", , "AUTHOR@MAIL.COM", role = c("cre", "aut"))
-Description: PKG_DESC.
-License: MIT + file LICENSE
+Title: CGIAR Breeding Analytics Pipeline
+Description: CGIAR Breeding Analytics Pipeline
+Version: 0.1.0
+Authors@R: c(
+    person("Giovanny", "Covarrubias Pazaran", , "covaruberpaz@gmail.com", role = c("aut", "cre")),
+    person("Ibnou", "Dieng", , "i.dieng@cgiar.org", role = c("aut")),
+    person("Khaled", "Al-Shamaa", , "k.el-shamaa@cgiar.org", role = c("aut")),
+    person("Angela", "Pacheco", , "r.a.pacheco@cgiar.org", role = c("aut")),
+    person("Justin", "Bonifacio Dayrit", , "j.bonifacio@irri.org", role = c("aut")),
+    person("Raul", "Eyzaguirre", , "r.eyzaguirre@cgiar.org", role = c("aut")),
+    person("Aubin", "Amignide", , "A.Amagnide@cgiar.org", role = c("aut"))
+  )
+License: GPL (>= 3)
 URL: https://github.com/Breeding-Analytics/bioflow/
 BugReports: https://github.com/Breeding-Analytics/bioflow/issues
 Imports: 
-    adegenet,
     ape,
     cgiarBase (>= 1.0.3),
-    cgiarGenomics (>= 1.0.1),
     cgiarOcs (>= 1.1),
-    cgiarPipeline (>= 1.0.5),
+    cgiarPipeline (>= 1.0.6),
+    cgiarGenomics,
     config (>= 0.3.2),
     data.table,
-    dendextend,
-    devtools,
-    dplyr,
     DT,
     future,
     ggnetwork,
@@ -32,13 +35,11 @@ Imports:
     janitor,
     jsonlite,
     kableExtra,
-    knitr,
     lme4,
-    lme4breeding (>= 1.0.40),
+    lme4breeding (>= 1.0.1),
     LMMsolver,
     magrittr,
     markdown,
-    Matrix,
     nasapower,
     network,
     pedigreemm,
@@ -59,6 +60,7 @@ Imports:
     shinyAce,
     shinyalert,
     shinybusy,
+    shinyBS,
     shinycssloaders,
     shinydashboard,
     shinydashboardPlus,
@@ -70,27 +72,28 @@ Imports:
     st4gi (>= 3.1.1),
     stats,
     stringi,
+    stringr,
     textshape,
     tibble,
     tidyr,
-    usethis,
     utils,
     vcfR
 Suggests: 
-    spelling
+    knitr,
+    rmarkdown,
+    spelling,
+    testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
-Remotes: 
-    Breeding-Analytics/cgiarBase,
-    Breeding-Analytics/cgiarPipeline,
-    Breeding-Analytics/cgiarOcs,
-    reyzaguirre/st4gi,
-    r-lib/async,
-    covaruber/lme4breeding,
-    Breeding-Analytics/cgiarGenomics
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
-RoxygenNote: 7.3.2
-
+RoxygenNote: 7.3.2.9000
+Remotes: 
+    Breeding-Analytics/cgiarBase,
+    Breeding-Analytics/cgiarPipeline,
+    Breeding-Analytics/cgiarOcs,
+    Breeding-Analytics/cgiarGenomics,
+    reyzaguirre/st4gi,
+    covaruber/lme4breeding

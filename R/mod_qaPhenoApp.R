@@ -51,8 +51,26 @@ mod_qaPhenoApp_ui <- function(id){
                                              tabPanel(div(icon("dice-one"), "Set traits & thresholds", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
-                                                             column(width=2,numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 3.2) ),
+                                                             column(width=6, selectInput(ns("traitOutqPhenoMultiple"),
+                                                                                         label = tags$span(
+                                                                                           "Trait(s) to QA",
+                                                                                           tags$i(
+                                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                                             style = "color:#FFFFFF",
+                                                                                             title = "Only traits matched during the phenotypic data upload will show up."
+                                                                                           )
+                                                                                         ),
+                                                                                         choices = NULL, multiple = TRUE) ),
+                                                             column(width=2,numericInput(ns("outlierCoefOutqPheno"),
+                                                                                         label = tags$span(
+                                                                                           "IQR coefficient",
+                                                                                           tags$i(
+                                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                                             style = "color:#FFFFFF",
+                                                                                             title = "The interquantile range is defined as the difference between the 75th and 25th percentiles of the data. To calculate the IQR, the data set is divided into quartiles, or four rank-ordered even parts via linear interpolation. These quartiles are denoted by Q1 (also called the lower quartile), Q2 (the median), and Q3 (also called the upper quartile). The lower quartile corresponds with the 25th percentile and the upper quartile corresponds with the 75th percentile, so IQR = Q3 −  Q1."
+                                                                                           )
+                                                                                         ),
+                                                                                         value = 3.2) ),
 
                                                       ),
                                                       column(width=12),
@@ -76,10 +94,16 @@ mod_qaPhenoApp_ui <- function(id){
                                              ),
                                              tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             br(),
-                                                             actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
-                                                             br(),
-                                                             br(),
+                                                             column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                               "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                           title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                               placeholder = "(optional name)") ) ),
+                                                             column(width=3,
+                                                                    br(),
+                                                                    actionButton(ns("runQaRaw"), "Tag outliers", icon = icon("play-circle")),
+                                                                    br(),
+                                                                    br(),
+                                                             ),
                                                       ),
                                                       textOutput(ns("outQaRaw")),
                                                       # fluidRow(column(3, verbatimTextOutput(ns("value"))))
@@ -408,9 +432,11 @@ mod_qaPhenoApp_server <- function(id, data){
           result$modifications$pheno <- rbind(result$modifications$pheno, outlier[,colnames(result$modifications$pheno)])
         }
         # add status table
-        newStatus <- data.frame(module="qaRaw", analysisId=analysisId )
-        result$status <- rbind(result$status, newStatus)
-        myId <- result$status
+        newStatus <- data.frame(module="qaRaw", analysisId=analysisId, analysisIdName=input$analysisIdName )
+        if(!is.null(result$status)){
+          result$status <- rbind(result$status, newStatus[,colnames(result$status)])
+        }else{result$status <- newStatus}
+        # myId <- result$status
         # add modeling table
         provMet <- list()
         for(iTrait in input$traitOutqPhenoMultiple){
@@ -437,7 +463,7 @@ mod_qaPhenoApp_server <- function(id, data){
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste('my-report', sep = '.', switch(
+              paste(paste0('qaRaw_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },
@@ -450,11 +476,13 @@ mod_qaPhenoApp_server <- function(id, data){
               on.exit(setwd(owd))
               file.copy(src, 'report.Rmd', overwrite = TRUE)
               file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+              shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
               out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
                 "HTML",
                 HTML = rmdformats::robobook(toc_depth = 4)
                 # HTML = rmarkdown::html_document()
               ))
+              shinybusy::remove_modal_spinner()
               file.rename(out, file)
             }
           )

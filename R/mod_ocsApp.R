@@ -81,8 +81,42 @@ mod_ocsApp_ui <- function(id){
                                       tabPanel( div( icon("dice-two"), "Select entries", icon("arrow-right") ) , # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=6, selectInput(ns("trait2Ocs"), "Trait to optimize (required)", choices = NULL, multiple = FALSE) ),
-                                                      column(width=6, selectInput(ns("entryType2Ocs"), "Entry types to use in optimization", choices = NULL, multiple = TRUE) ),
+                                                      column(width=4,
+                                                             selectInput(ns("trait2Ocs"),
+                                                                         label = tags$span(
+                                                                           "Trait(s) to optimize (required)",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "It is important to include traits that also need to be controlled in the population (e.g., height, maturity) even when we don't want to increase them or decrease them."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = TRUE),
+                                                             ),
+                                                      column(width=4,
+                                                             selectInput(ns("effectType2Ocs"),
+                                                                         label = tags$span(
+                                                                           "Effect type(s) to use",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Since each fixed and random effect returns estimates the user should specify which effect should be used in the ocs. It is expected by default that the designation estimates are the ones to be used in ocs"
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE),
+                                                             ),
+                                                      column(width=4,
+                                                             selectInput(ns("entryType2Ocs"),
+                                                                         label = tags$span(
+                                                                           "Entry types to use in optimization",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "The labels available in the entryType column can be used to reduce the dataset for the index. By default all entry types are included."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = TRUE)
+                                                             ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -93,7 +127,7 @@ mod_ocsApp_ui <- function(id){
                                                                    ),
                                                                    tags$span(id = ns('holder1'),
                                                                              column(width=4, selectInput(ns("trait3Ocs"), "Trait to visualize", choices = NULL, multiple = FALSE) ) ,
-                                                                             column(width=4, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "entryType") ),
+                                                                             column(width=4, selectInput(ns("groupOcsInputPlot"), "Group by", choices = c("environment","effectType","entryType"), multiple = FALSE, selected = "entryType") ),
                                                                              column(width=2, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
                                                                              column(width=2, numericInput(ns("fontSize"), label = "x-axis font size", value = 12, step=1),),
                                                                              column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut")) ),
@@ -104,14 +138,38 @@ mod_ocsApp_ui <- function(id){
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=4,
-                                                             # tags$br(),
-                                                             textInput(ns("nCrossOcs"), label = "Number of crosses to obtain", value="70") ),
+                                                             textInput(ns("nCrossOcs"),
+                                                                       label = tags$span(
+                                                                         "Number of crosses",
+                                                                         tags$i(
+                                                                           class = "glyphicon glyphicon-info-sign",
+                                                                           style = "color:#FFFFFF",
+                                                                           title = "To specify the final number of crosses to form the new generation."
+                                                                         )
+                                                                       ),
+                                                                       value="70") ),
                                                       column(width=4,
-                                                             # tags$br(),
-                                                             textInput(ns("targetAngleOcs"), label = "Target angle (0 is pure gain, 90 more variance)", value="30") ),
+                                                             textInput(ns("targetAngleOcs"),
+                                                                       label = tags$span(
+                                                                         "Target angle",
+                                                                         tags$i(
+                                                                           class = "glyphicon glyphicon-info-sign",
+                                                                           style = "color:#FFFFFF",
+                                                                           title = "A zero value is equivalent to greater weight to performance and low weight to genetic variance. A 90 degree represents the opposite."
+                                                                         )
+                                                                       ),
+                                                                       value="30") ),
                                                       column(width=4,
-                                                             # tags$br(),
-                                                             selectInput(ns("relType"), "Relationship to use",  choices = NULL, multiple = FALSE ) ),
+                                                             selectInput(ns("relType"),
+                                                                         label = tags$span(
+                                                                           "Relationship to use",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "The optimization to weight the genetic variance requires the user to specify if the variance covariance between designation should be represente by pedigree or marker based relationship."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE ) ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -126,14 +184,17 @@ mod_ocsApp_ui <- function(id){
                                       ),
                                       tabPanel("Run analysis", icon = icon("dice-four"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-
-                                                      column( width = 2,
+                                                      column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                        "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                    title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "(optional name)") ) ),
+                                                      column( width = 3,
                                                               br(),
                                                               actionButton(ns("runOcs"), "Run OCS (click button)", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcOcsInfo")),
                                                       ),
                                                       br(),
-                                                      column( width = 10,
+                                                      column( width = 6,
                                                               shinydashboard::box(width = 12, status = "success", style = "color: #000000", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Optional run settings...",
                                                                                   numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
                                                                                   numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
@@ -755,7 +816,13 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- dtOcs$status
       dtOcs <- dtOcs[which(dtOcs$module %in% c("indexD")),]
       traitsOcs <- unique(dtOcs$analysisId)
-      if(length(traitsOcs) > 0){names(traitsOcs) <- as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT")}
+      if(length(traitsOcs) > 0){
+        if("analysisIdName" %in% colnames(dtOcs)){
+          names(traitsOcs) <- paste(dtOcs$analysisIdName, as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsOcs) <- as.POSIXct(traitsOcs, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Ocs", choices = traitsOcs)
     })
     #################
@@ -792,8 +859,9 @@ mod_ocsApp_server <- function(id, data){
       traitsOcs <- apply(forLoop,1, function(x){ paste(input$traitFilterPredictions2D2,"~", paste(x[1],"crosses *",x[2], "degrees"))})
       updateSelectInput(session, "environment", choices = traitsOcs)
     })
+
     ##############
-    ## entry type
+    ## effect type
     observeEvent(c(data(), input$version2Ocs, input$trait2Ocs), {
       req(data())
       req(input$version2Ocs)
@@ -802,6 +870,22 @@ mod_ocsApp_server <- function(id, data){
       dtOcs <- dtOcs$predictions
       dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
       dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
+      traitsOcs <- unique(dtOcs$effectType)
+      updateSelectInput(session, "effectType2Ocs", choices = traitsOcs, selected = traitsOcs)
+    })
+
+    ##############
+    ## entry type
+    observeEvent(c(data(), input$version2Ocs, input$trait2Ocs, input$effectType2Ocs), {
+      req(data())
+      req(input$version2Ocs)
+      req(input$trait2Ocs)
+      req(input$effectType2Ocs)
+      dtOcs <- data()
+      dtOcs <- dtOcs$predictions
+      dtOcs <- dtOcs[which(dtOcs$analysisId == input$version2Ocs),]
+      dtOcs <- dtOcs[which(dtOcs$trait == input$trait2Ocs),]
+      dtOcs <- dtOcs[which(dtOcs$effectType == input$effectType2Ocs),]
       traitsOcs <- unique(dtOcs$entryType)
       updateSelectInput(session, "entryType2Ocs", choices = traitsOcs, selected = traitsOcs)
     })
@@ -945,32 +1029,49 @@ mod_ocsApp_server <- function(id, data){
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
+      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
+      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
+      if(existNames){
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+      }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
         yy <- yy[v,c("analysisId","value")]
         zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
       }else{ zz <- xx; zz$value <- NA}
+      if(existNames){
+        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+      }
       if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        if(existNames){
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
+        }else{
+          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
+        }
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
           X <- with(zz, sommer::overlay(outputId, inputId))
         }else{
-          if(nLevelsCheck1 == 1){
+          if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
           }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 == 1){
+          if(nLevelsCheck2 <= 1){
             X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
           }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
           mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
           X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          X[,colnames(X1)] <- X1
-          X[,colnames(X2)] <- X2
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+          if(!is.null(X1)){X[,colnames(X1)] <- X1}
+          if(!is.null(X2)){X[,colnames(X2)] <- X2}
+        };
+        rownames(X) <- as.character(zz$outputId)
+        if(existNames){
+
+        }else{
+          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
+          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
+        }
         # make the network plot
         n <- network::network(X, directed = FALSE)
         network::set.vertex.attribute(n,"family",zz$module)
@@ -981,10 +1082,10 @@ mod_ocsApp_server <- function(id, data){
         library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
+          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
           ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
                                           fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
+          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
       }
     })
     ## render modeling
@@ -1016,6 +1117,8 @@ mod_ocsApp_server <- function(id, data){
       req(input$version2Ocs)
       req(input$trait2Ocs)
       req(input$env2Ocs)
+      req(input$effectType2Ocs)
+      req(input$entryType2Ocs)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtOcs <- data()
       # run the modeling, but before test if mta was done
@@ -1041,12 +1144,14 @@ mod_ocsApp_server <- function(id, data){
           nCross=as.numeric(gsub(" ","",unlist(strsplit(input$nCrossOcs,",")))),
           targetAngle=as.numeric(gsub(" ","",unlist(strsplit(input$targetAngleOcs,",")))), # in radians
           verbose=input$verboseOcs, maxRun = input$maxRun,
+          effectType=input$effectType2Ocs,
           entryType=input$entryType2Ocs,
           numberBest = input$numberBest
         ),
         silent=TRUE
         )
         if(!inherits(result,"try-error")) {
+          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -1117,7 +1222,7 @@ mod_ocsApp_server <- function(id, data){
 
         output$downloadReportOcs <- downloadHandler(
           filename = function() {
-            paste('my-report', sep = '.', switch(
+            paste(paste0('ocs_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
@@ -1130,11 +1235,13 @@ mod_ocsApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultOcs.RData', overwrite = TRUE)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+            shinybusy::remove_modal_spinner()
             file.rename(out, file)
           }
         )

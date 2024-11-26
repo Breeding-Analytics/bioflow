@@ -72,9 +72,17 @@ mod_qaStaApp_ui <- function(id){
                                            ),
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-two"),
-                                           br(),
-                                           actionButton(ns("runQaMb"), "Tag outliers (click button)", icon = icon("play-circle")),
-                                           textOutput(ns("outQaMb")),
+                                           column(width=12,
+                                                  column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
+                                                    "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                    placeholder = "(optional name)") ) ),
+                                                  column(width=3,
+                                                         actionButton(ns("runQaMb"), "Tag outliers (click button)", icon = icon("play-circle")),
+                                                         textOutput(ns("outQaMb")),
+                                                  )
+                                           ),
+
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
@@ -278,6 +286,7 @@ mod_qaStaApp_server <- function(id, data){
             result$modeling <- rbind(result$modeling, newParamsPheno)
             newStatus <- data.frame(module="qaMb", analysisId=analysisId)
             result$status <- rbind(result$status, newStatus)
+            if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
             data(result)
             cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
           }else{cat("No modifications to add")}
@@ -293,7 +302,7 @@ mod_qaStaApp_server <- function(id, data){
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste('my-report', sep = '.', switch(
+              paste(paste0('qaSta_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },
@@ -306,11 +315,13 @@ mod_qaStaApp_server <- function(id, data){
               on.exit(setwd(owd))
               file.copy(src, 'report.Rmd', overwrite = TRUE)
               file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+              shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
               out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
                 "HTML",
                 HTML = rmdformats::robobook(toc_depth = 4)
                 # HTML = rmarkdown::html_document()
               ))
+              shinybusy::remove_modal_spinner()
               file.rename(out, file)
             }
           )
