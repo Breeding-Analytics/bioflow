@@ -173,7 +173,7 @@ mod_dataConsistApp_server <- function(id, data){
     ####################################################
     ## INPUT VISUALIZATIONS
 
-    ## SPARISTY PLOT
+    ## Data consistency visualization plot
     output$plotConsistencySparsity <- shiny::renderPlot({
       req(data())
       dtMta <- data()
@@ -277,9 +277,12 @@ mod_dataConsistApp_server <- function(id, data){
           ## bind new parameters
           result$modifications$pheno <- outlier
           # add status table
-          newStatus <- data.frame(module="qaConsist", analysisId=analysisId )
-          result$status <- rbind(result$status, newStatus)
-          myId <- result$status
+          newStatus <- data.frame(module = "qaConsist", analysisId = analysisId, analysisIdName = input$analysisIdName)
+          if (!is.null(result$status)) {
+            result$status <- rbind(result$status, newStatus[, colnames(result$status)])
+          } else {
+            result$status <- newStatus
+          }
           # add modeling table
           provMet <- data.frame(module="qaConsist",analysisId=analysisId, trait="all", environment=NA,
                                 parameter= "fConsist", value= input$fConsist)
@@ -293,7 +296,6 @@ mod_dataConsistApp_server <- function(id, data){
           shinybusy::remove_modal_spinner()
           stop("Consistency rules for selected crop not available yet", call. = FALSE)
         }
-
 
         if(!inherits(result,"try-error")) { # if all goes well in the run
           # ## Report tab
