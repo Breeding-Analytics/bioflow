@@ -27,12 +27,12 @@ mod_expDesignEditApp_ui <- function(id){
                                   p("Sometimes is required to set to missing experimental design factors that we are aware that are not correctly saved
                                                                in the databases. Although the tight solution would be to fix this information in the original database, a pragmatic
                                                                approach is to set certain factors from an especific environment to missing so it is ignored in the model fitting or
-                                                               or any other analytical module using this information."),
+                                                               any other analytical module using this information."),
                                   # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
                                   p(strong("Editing table-")," there is not much complexity of how to use this module. There is a table with a column for
-                                                               each experimental design factor and a row for each environment. By default this table is filled with ones wherever this
-                                                               information is available. If the user wants to silence a particular factor it just needs to double click in the cell and
-                                                               set the value to zero."),
+                                                               each experimental design factor and a row for each environment. By default this table is filled with the number of levels
+                                                               wherever this information is available. If the user wants to silence a particular factor it just needs to double click in
+                                                               the cell and set the value to zero."),
                                 )
                                 #                     )
                                 # )
@@ -251,9 +251,10 @@ mod_expDesignEditApp_server <- function(id, data){
                                       selection = 'none',
                                       editable = TRUE,
                                       server = FALSE,
-                                      options = list(paging=FALSE,
-                                                     searching=FALSE,
-                                                     initComplete = I("function(settings, json) {alert('Done.');}")
+                                      options = list(#paging=FALSE,
+                                                     #searching=FALSE,
+                                                     scrollX = TRUE
+                                                     #initComplete = I("function(settings, json) {alert('Done.');}")
                                       )
     )
     proxy = DT::dataTableProxy('transTableC')
