@@ -419,8 +419,12 @@ mod_filterPhenoApp_server <- function(id, data){
       myoutliersReduced <- unique(rbind(myoutliers, outliers))
 
       # add status table
-      newStatus <- data.frame(module="qaFilter", analysisId=analysisId )
-      result$status <- rbind(result$status, newStatus)
+      newStatus <- data.frame(module = "qaFilter", analysisId = analysisId, analysisIdName = input$analysisIdName)
+      if (!is.null(result$status)) {
+        result$status <- rbind(result$status, newStatus[, colnames(result$status)])
+      } else {
+        result$status <- newStatus
+      }
       #
       result$modifications$pheno <- myoutliersReduced
       if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
