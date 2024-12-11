@@ -134,14 +134,14 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                    "Compound symmetry" = "cs_model",
                                                                                    "Finlay-Wilkinson"="fw_model",
                                                                                    "Diagonal" = "dg_model",
-                                                                                   "Main+Diagonal" = "csdg_model"
+                                                                                   "Main+Diagonal" = "mndg_model"
                                                                                  ),
                                                                                  selected = "mn_model", inline=TRUE),
                                                                     radioTooltip(id = ns("radio"), choice = "mn_model", title = "The main effect model assumes that there is no genotype by environment interaction or that can be ignored to focus on average effects. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "cs_model", title = "The compound symmetry model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and all pairs of environments have the same genetic covariance.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "fw_model", title = "The Finlay-Wilkinson model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and deviations are with respect to an environmental covariate which can be the trait means at different environments or any other covariate.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "dg_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "csdg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "mndg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
                                                              ),
                                                       ),
                                                ),
@@ -523,7 +523,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       envs <- unique(dtMta[,"environment"])
       envsDg <- paste0("env",envs)
-      if ( input$radio == "csdg_model" | input$radio == "dg_model") {
+      if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         n2 <- length(envsDg)
       }else{n2 <- 1}
       updateNumericInput(session, "nTermsFixed", value = n2, step = 1, min = 1, max=10)
@@ -541,7 +541,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       envsDg <- paste0("env",envs)
       if ( input$radio == "cs_model" | input$radio == "fw_model") {
         n <- 2
-      }else if( input$radio == "csdg_model" ){
+      }else if( input$radio == "mndg_model" ){
         n <- length(envsDg) + 1
       }else if( input$radio == "dg_model" ){
         n <- length(envsDg)
@@ -549,12 +549,12 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       updateNumericInput(session, "nTermsRandom", value = n, step = 1, min = 1, max=10)
     })
     ## fixed effects
-    output$leftSidesFixed <- renderUI({
+    output$leftSidesFixed <- renderUI({ # input <- list(version2Mta=result$status$analysisId[2])
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
       req(input$nTermsFixed)
-      dtMta <- data()
+      dtMta <- data() # dtMta <- result
       mydata <- dtMta$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("pipeline","stage","environment","year","season","timepoint","country","location","trial","study","management")),]
@@ -567,8 +567,9 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
       choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
       envs <- unique(mydata[,"environment"])
+      envs <- gsub(" ", "",envs )
       envsDg <- paste0("env",envs)
-      if ( input$radio == "csdg_model" | input$radio == "dg_model") {
+      if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
             session$ns(paste0('leftSidesFixed',i)),
@@ -610,6 +611,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
       # selected
       envs <- unique(mydata[,"environment"])
+      envs <- gsub(" ", "",envs )
       envsDg <- paste0("env",envs)
       envsDg2 <- paste0(rep("environment",10),"")
       desDg <-rep("designation",length(envsDg))
@@ -622,7 +624,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             selected = if(i==1){"designation"}else if(i==2){c( desDg[i], envsDg2[i] )}else{"designation"}
           )
         })
-      }else if( input$radio == "csdg_model" ){ # main + dg
+      }else if( input$radio == "mndg_model" ){ # main + dg
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
             session$ns(paste0('leftSidesRandom',i)),
@@ -683,7 +685,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             selected = if(i==1){useMod2}else if(i==2){rev(c(useMod1,useMod2))}else{useMod2}
           )
         })
-      }else if( input$radio == "csdg_model" ){
+      }else if( input$radio == "mndg_model" ){
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
             inputId=session$ns(paste0('rightSidesRandom',i)),

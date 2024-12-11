@@ -936,9 +936,12 @@ mod_staApp_server <- function(id,data){
       # req(input$genoUnitSta)
       dtSta <- data()
       dtSta <- dtSta$modifications$pheno
-      dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
-      traitsSta <- unique(dtSta$trait)
-      updateSelectInput(session, "trait2Sta", choices = traitsSta, selected = traitsSta)
+      dtSta <- dtSta[which(dtSta$module %in% "qaRaw"),]
+      if(nrow(dtSta) > 0){
+        dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
+        traitsSta <- unique(dtSta$trait)
+        updateSelectInput(session, "trait2Sta", choices = traitsSta, selected = traitsSta)
+      }
     })
     ## pick unit
     observeEvent(c(data(),input$version2Sta,input$trait2Sta), {
