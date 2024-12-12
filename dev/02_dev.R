@@ -71,6 +71,7 @@
 # usethis::use_dev_package("cgiarOcs", type = "Imports", remote = "Breeding-Analytics/cgiarOcs")
 # usethis::use_dev_package("st4gi", type = "Imports", remote = "reyzaguirre/st4gi")
 # usethis::use_dev_package("lme4breeding", type = "Imports", remote = "covaruber/lme4breeding")
+# usethis::use_dev_package("cgiarGenomics", type = "Imports", remote = "Breeding-Analytics/cgiarGenomics")
 #
 # usethis::use_package("QBMS")
 # usethis::use_package("vcfR")

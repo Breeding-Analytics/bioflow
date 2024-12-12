@@ -99,24 +99,25 @@ The following table shows the modifications that have been saved in your analysi
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  modifications <- result$modifications$geno
+  modifications <- result$modifications$geno_filtering
+  print(modifications)
   idQa <- result$status[which(result$status$module %in% c("qaGeno")),"analysisId"];
   idQa <- idQa[length(idQa)]
   idQaType <- result$status[result$status$analysisId == idQa, "module"]
   modifications <- modifications[which( modifications$analysisId == idQa & modifications$module == idQaType),]
-  traitsTable <- unique(modifications[which( modifications$analysisId == idQa),"reason"])
+  traitsTable <- unique(modifications[which( modifications$analysisId == idQa),"metric"])
   
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    shiny::selectInput(ns("traitQa"), 
-                       label = "Reason for QA:", 
-                       choices = traitsTable, 
+    shiny::selectInput(ns("traitQa"),
+                       label = "Reason for QA:",
+                       choices = traitsTable,
     )
   }
-  
 }
+
 
 ```
 
@@ -125,18 +126,15 @@ if (is.null(result)){
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  numericalColumns <- c("value","row") 
   
   if("params" %in% ls()){ # we will download the document
     printTable(modifications, autoWidthOpt = TRUE, scrollXOpt = FALSE,
              colNames = colnames(modifications),
-           numericColNames = numericalColumns,
            numRound = 4)
   }else{
-    DT::renderDT(printTable(modifications[modifications$reason==input$traitQa,],
+    DT::renderDT(printTable(modifications[modifications$metric==input$traitQa,],
                         autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                        colNames = colnames(modifications[modifications$reason==input$traitQa,]),
-                        numericColNames = numericalColumns,
+                        colNames = colnames(modifications[modifications$metric==input$traitQa,]),
                         numRound = 4), server = FALSE)
   }
   

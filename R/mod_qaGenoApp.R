@@ -404,10 +404,15 @@ mod_qaGenoApp_server <- function(id, data) {
       }else{
         results$modifications$geno_filtering <- new_modifications}
 
+      results$modifications$geno_filtering$module <- "qaGeno"
+
+
       if(!is.null(results$modifications$geno_imputation)){
-        results$modifications$geno_filtering <- rbind(result$modifications$geno_imputation, imp_mods)
+        results$modifications$geno_imputation <- rbind(result$modifications$geno_imputation, imp_mods)
       }else{
         results$modifications$geno_imputation <- imp_mods}
+
+      results$modifications$geno_imputation$module <- "qaGeno"
 
       newStatus <- data.frame(module="qaGeno", analysisId= new_modifications$analysisId[nrow(new_modifications)], analysisIdName=input$analysisIdName)
 
@@ -422,35 +427,35 @@ mod_qaGenoApp_server <- function(id, data) {
       shinybusy::remove_modal_spinner()
     })
 
-    output$reportQaGeno <- renderUI({
-      HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-    })
+    # output$reportQaGeno <- renderUI({
+    #   HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+    # })
 
-    output$downloadReportQaGeno <- downloadHandler(
-      filename = function() {
-        paste(paste0('qaGeno_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
-          "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-        ))
-      },
-      content = function(file) {
-        src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
-        src2 <- normalizePath('data/resultQaGeno.RData')
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
-        file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
-        shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-        out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-          "HTML",
-          HTML = rmdformats::robobook(toc_depth = 4)
-          # HTML = rmarkdown::html_document()
-        ))
-        shinybusy::remove_modal_spinner()
-        file.rename(out, file)
-      }
-    )
+    # output$downloadReportQaGeno <- downloadHandler(
+    #   filename = function() {
+    #     paste(paste0('qaGeno_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+    #       "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+    #     ))
+    #   },
+    #   content = function(file) {
+    #     src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
+    #     src2 <- normalizePath('data/resultQaGeno.RData')
+    #     # temporarily switch to the temp dir, in case you do not have write
+    #     # permission to the current working directory
+    #     owd <- setwd(tempdir())
+    #     on.exit(setwd(owd))
+    #     file.copy(src, 'report.Rmd', overwrite = TRUE)
+    #     file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
+    #     shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+    #     out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+    #       "HTML",
+    #       HTML = rmdformats::robobook(toc_depth = 4)
+    #       # HTML = rmarkdown::html_document()
+    #     ))
+    #     shinybusy::remove_modal_spinner()
+    #     file.rename(out, file)
+    #   }
+    # )
 
     get_filtering_sequence <- function(filt_seq_df) {
       print("is getting the indicated filterting seq")

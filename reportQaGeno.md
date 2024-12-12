@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Genotype Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "November 21, 2024"  
+date: "December 03, 2024"  
 output: html_document
 params:
   toDownload: FALSE
@@ -19,6 +19,11 @@ params:
 
 The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw genotype data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., multi trial analysis module).
 
+
+```
+NULL
+```
+
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaGenoApp_1-traitQa-label" for="qaGenoApp_1-traitQa">Reason for QA:</label>
 <div>
@@ -28,7 +33,7 @@ The following table shows the modifications that have been saved in your analysi
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaGenoApp_1-outbc9f15d4cde83abc" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaGenoApp_1-outee68407d817af82b" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 <p>&nbsp;</p>
