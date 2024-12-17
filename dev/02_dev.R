@@ -148,6 +148,7 @@
 # golem::add_module(name = "meetTheTeamApp", with_test = FALSE) # home
 # golem::add_module(name = "contactUsApp", with_test = FALSE) # home
 # golem::add_module(name = "faqUsApp", with_test = FALSE) # home
+# golem::add_module(name = "glossary", with_test = FALSE) # home
 #
 # golem::add_module(name = "sectionInfoQAApp", with_test = FALSE) # for quality assurance
 # golem::add_module(name = "sectionInfoTransformApp", with_test = FALSE) # for transformations
