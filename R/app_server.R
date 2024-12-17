@@ -81,6 +81,9 @@ app_server <- function(input, output, session) {
   mod_contactUsApp_server("contactUsApp_1") # link to contact us
   mod_faqUsApp_server("faqUsApp_1")
 
+  ## Glossary
+  mod_glossary_server("glossary_1")
+
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "bioflow.ebsproject.org"

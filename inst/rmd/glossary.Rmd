@@ -1,0 +1,157 @@
+---
+title: <span style="color:darkcyan">Glossary</span>
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+ toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+# loading necessary R packages ####
+
+## data manipulation
+library(knitr)
+library(kableExtra)
+library(magrittr)
+library(DT)
+library(shiny)
+library(shinyjs)
+library(htmltools)
+library(crayon)
+```
+
+```{r printTablefxn, include=FALSE}
+
+# function for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 10, 
+                       numericColNames = NULL, numRound = 3, 
+                       scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
+  
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  
+  table <- DT::datatable(data = DT, 
+                         colnames = colNames,
+                         filter = "top", 
+                         options = list(autoWidth = autoWidthOpt,
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'excel'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(10, 20, 30, 40, 50),
+                                        scrollX = scrollXOpt),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% DT::formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r init, include=FALSE}
+# Init Step to make sure that the dependencies are loaded
+htmltools::tagList(printTable(mtcars))
+```
+
+```{r listTerms, results='asis', include=FALSE}
+
+glossary_url <- "https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/glossary.csv"
+listTerms <- as.data.frame(data.table::fread(glossary_url, header = TRUE))
+
+# listTerms <- list(c("column", "The name of the column containing the labels of the column coordinates for each record within an study."),
+#                  c("country", "The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."),
+#                  c("designation", "The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."),
+#                  c("entryType", "The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
+#                  c("gid", "The name of the column containing the labels with the unique numerical identifier used within the database management system."),
+#                  c("iBlock", "The name of the column containing the labels of the incomplete blocks within an study."), 
+#                  c("location", "The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."),
+#                  c("management", "The name of the column containing the labels listing the unique occurrences of a management (e.g., drought, irrigated, etc.) nested in a trial, nested in a year, country, location."),
+#                  c("pipeline", "The name of the column containing the labels describing the breeding effort to satisfy a market segment (e.g., Direct seeded late maturity irrigated)."),
+#                  c("rep", "The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
+#                  c("row", "The name of the column containing the labels of the row coordinates for each record within an study."),
+#                  c("season", "The name of the column containing the labels listing the season when a trial was carried out (e.g., dry-season, wet-season, etc.)."),
+#                  c("stage", "The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."),
+#                  c("study", "The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location."),
+#                  c("timepoint", "The name of the column containing the labels listing the timepoints from time series."),
+#                  c("trait", "The name of the column(s) containing the numerical traits to be analyzed."),
+#                  c("trial", "The name of the column containing the labels listing the trial of experiment randomized."),
+#                  c("year", "The name of the column containing the labels listing the year when a trial was carried out (e.g., 2024).")
+#           
+# ################ add your terms here with format c("NAME", "DEFINITION") ################
+#                  
+#                  )
+```
+
+```{r arrangeTerms, results='asis', include=FALSE}
+terms <- listTerms
+
+# terms <- setNames(data.frame(matrix(data = unlist(listTerms), ncol = 2, byrow = TRUE)), 
+#                   c("NAME", "DEFINITION"))
+
+terms$LETTER <- substr(terms$NAME,1,1)
+terms <- terms[order(terms$NAME),]
+```
+
+```{r, results='asis'}
+if("params" %in% ls()){ # we will download the document
+  cat("#", "", " {.tabset .tabset-pills}\n")
+} else{
+  cat(sprintf("<h1><strong><span style = \"color: %s;\">%s</span></strong></h1>\n\n", "darkcyan", "Glossary"))
+  # cat("#", "Glossary", "\n")
+}
+```
+
+```{r }
+
+if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+} else{
+    shiny::selectInput(ns("selectedLetter"), 
+                       label = "Letter to filter:", 
+                       multiple = FALSE,
+                       choices = toupper(terms$LETTER),
+                       selected = terms$LETTER[1]
+    )
+}
+```
+
+```{r, results='asis'}
+if("params" %in% ls()){ # we will download the document
+  for (j in unique(terms$LETTER)) {
+    cat("\n##", toupper(j), "\n")
+    
+    print(htmltools::tagList(list(printTable(terms[which(terms$LETTER == j),-c(3)],
+                                             autoWidthOpt = FALSE, scrollXOpt = FALSE,
+                                             colNames = c("NAME","DEFINITION")))))
+    
+    cat("\n")
+  }
+} else{
+  cat("\n\n")
+  
+  DT::renderDT(printTable(terms[which(terms$LETTER == tolower(input$selectedLetter)),-c(3)],
+                          autoWidthOpt = FALSE, scrollXOpt = FALSE,
+                          colNames = c("NAME","DEFINITION")), server = FALSE)
+}
+```

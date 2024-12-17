@@ -67,6 +67,7 @@ app_ui <- function(request) {
                             tabPanel("FAQ", mod_faqUsApp_ui("faqUsApp_1"), icon = icon("question") ),
                           )
                  ),
+                 tabPanel(div( "Glossary", icon("rectangle-list") ), mod_glossary_ui("glossary_1")  ),
       ),
 
       navbarMenu("Data Management ", icon = icon("upload"),
