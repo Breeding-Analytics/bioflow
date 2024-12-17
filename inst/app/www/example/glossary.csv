@@ -1,0 +1,19 @@
+NAME,DESCRIPTION
+column,The name of the column containing the labels of the column coordinates for each record within an study.
+country,"The name of the column containing the labels listing the countries where a trial was carried out (e.g., Nigeria, Mexico, etc.)."
+designation,"The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."
+entryType,"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."
+gid,The name of the column containing the labels with the unique numerical identifier used within the database management system.
+iBlock,The name of the column containing the labels of the incomplete blocks within an study.
+location,"The name of the column containing the labels listing the locations within a country when a trial was carried out (e.g., Obregon, Toluca, etc.)."
+management,"The name of the column containing the labels listing the unique occurrences of a management (e.g., drought, irrigated, etc.) nested in a trial, nested in a year, country, location."
+pipeline,"The name of the column containing the labels describing the breeding effort to satisfy a market segment (e.g., Direct seeded late maturity irrigated)."
+rep,The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation).
+row,The name of the column containing the labels of the row coordinates for each record within an study.
+season,"The name of the column containing the labels listing the season when a trial was carried out (e.g., dry-season, wet-season, etc.)."
+stage,"The name of the column containing the labels describing the stages of phenotypic evaluation (e.g., Stage 1, PYT, etc.)."
+study,"The name of the column containing the labels listing the unique occurrences of a trial nested in a year, country, location."
+timepoint,The name of the column containing the labels listing the timepoints from time series.
+trait,The name of the column(s) containing the numerical traits to be analyzed.
+trial,The name of the column containing the labels listing the trial of experiment randomized.
+year,"The name of the column containing the labels listing the year when a trial was carried out (e.g., 2024)."
