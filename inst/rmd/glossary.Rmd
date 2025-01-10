@@ -1,5 +1,5 @@
 ---
-title: <span style="color:darkcyan">Glossary</span>
+title: Glossary
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document

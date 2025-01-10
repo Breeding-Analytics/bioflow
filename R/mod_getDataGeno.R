@@ -15,7 +15,7 @@ mod_getDataGeno_ui <- function(id){
     tags$br(),
 
     navlistPanel( "Steps:", widths = c(2, 10),
-                  tabPanel(div("1. Load your data" ),
+                  tabPanel(div("1. Load data" ),
                            column(width=8,
 
                                   # fluidRow(
@@ -124,7 +124,7 @@ mod_getDataGeno_ui <- function(id){
                                   ),
                            ),
                   ),
-                  tabPanel(div("2. Match your columns" ),
+                  tabPanel(div("2. Match columns" ),
 
                            column(width=12,
                                   shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
@@ -166,9 +166,18 @@ mod_getDataGeno_ui <- function(id){
                                   # Accessions have genotypic data but no phenotypic (will predict, add to pheno data file with NA value)
                                   # Accessions have phenotypic data but no genotypic (filter them out from the pheno data file)
                                   verbatimTextOutput(ns('geno_summary')),
-                                  DT::DTOutput(ns('preview_geno')),
-                           ),
 
+                           ),
+                           column(width =12,
+                                  tags$div(id = ns('preview_geno_table'),
+                                           shinydashboard::box(width = 12,  status = 'success', solidHeader = TRUE, collapsible = TRUE, collapsed = TRUE,
+                                                               title = "Preview of uploaded data (click on the '+' symbol on the right to view)",
+                                                               column(width=12,
+                                                                      DT::DTOutput(ns('preview_geno')),
+                                                               ),
+                                                              ),
+                                          ),
+                                ),
                   ),
                   tabPanel(div("3. Check status" ),
                            uiOutput(ns("warningMessage")),
@@ -210,6 +219,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('geno_table_mapping'))
           golem::invoke_js('hideid', ns('geno_table_options'))
           golem::invoke_js('showid', ns('noNeedMapMessage'))
+          golem::invoke_js('hideid', ns('preview_geno_table'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
         } else if (input$geno_input %in% c('url', 'vcf.url')) {
           golem::invoke_js('hideid', ns('geno_file_holder'))
@@ -217,12 +227,14 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('geno_table_options'))
           golem::invoke_js('showid', ns('geno_url'))
           golem::invoke_js('showid', ns('noNeedMapMessage'))
+          golem::invoke_js('hideid', ns('preview_geno_table'))
         } else if (input$geno_input == 'matfile' ){
           golem::invoke_js('showid', ns('geno_file_holder'))
           golem::invoke_js('showid', ns('geno_table_mapping'))
           golem::invoke_js('showid', ns('geno_table_options'))
           golem::invoke_js('hideid', ns('geno_url'))
           golem::invoke_js('hideid', ns('noNeedMapMessage'))
+          golem::invoke_js('showid', ns('preview_geno_table'))
           updateCheckboxInput(session, 'geno_example', value = FALSE)
         } else if (input$geno_input == 'matfileurl' ){
           golem::invoke_js('hideid', ns('geno_file_holder'))
@@ -230,6 +242,7 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
           golem::invoke_js('showid', ns('geno_table_options'))
           golem::invoke_js('showid', ns('geno_url'))
           golem::invoke_js('hideid', ns('noNeedMapMessage'))
+          golem::invoke_js('showid', ns('preview_geno_table'))
         }
       }
     )
@@ -264,10 +277,10 @@ mod_getDataGeno_server <- function(id, data = NULL, res_auth=NULL){
         DT::datatable(geno_data_table()[,1:min(c(50,ncol(geno_data_table())))],
                       extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
-                      caption = htmltools::tags$caption(
-                        style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
-                        htmltools::em('Data preview.')
-                      )
+                      # caption = htmltools::tags$caption(
+                      #   style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
+                      #   htmltools::em('Data preview.')
+                      # )
         )
       }, server = FALSE)
       updateSelectizeInput(session, "geno_table_firstsnp", choices = colnames(provGeno)[1:min(c(ncol(provGeno),100))], selected = character(0))

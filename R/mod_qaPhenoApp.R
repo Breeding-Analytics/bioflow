@@ -11,8 +11,6 @@ mod_qaPhenoApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    tags$br(),
-
     shiny::mainPanel(width = 12,
                      tabsetPanel( id=ns("tabsMain"),
                                   type = "tabs",
@@ -48,7 +46,7 @@ mod_qaPhenoApp_ui <- function(id){
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
-                                             tabPanel(div(icon("dice-one"), "Set traits & thresholds", icon("arrow-right") ), #icon = icon("dice-one"),
+                                             tabPanel(div(icon("dice-one"), "Set trait(s) & threshold", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=6, selectInput(ns("traitOutqPhenoMultiple"),
@@ -93,10 +91,11 @@ mod_qaPhenoApp_ui <- function(id){
                                                       ),
                                              ),
                                              tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
+                                                      br(),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                               "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                           title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                             column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                               "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                                   title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                                placeholder = "(optional name)") ) ),
                                                              column(width=3,
                                                                     br(),

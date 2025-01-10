@@ -17,12 +17,14 @@ mod_reportBuilder_ui <- function(id){
                            tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     tags$body(
-                                      column(width = 12,
+                                      column(width = 6,
                                              h1(strong(span("Report Reconstruction Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-
+                                             h2(strong("Data Status (wait to be displayed):")),
+                                             uiOutput(ns("warningMessage")),
                                              br(),
                                              shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example data", status = "success"),
-
+                                      ),
+                                      column(width = 6,
                                              h2(strong("Details")),
                                              p("This module has the sole purpose of rebuilding the dashboard reports when the user loads an analysis object and doesn't require to
                                                re-run an analysis. The idea is that the user only has to specify the analysis type and time stamp and this should suffice.
@@ -47,15 +49,26 @@ mod_reportBuilder_ui <- function(id){
                                                       column(width=5,  selectInput(ns("timestamp"), "Time stamp", choices = NULL, multiple = FALSE) ),
 
                                                       style = "background-color:grey; color: #FFFFFF"),
-                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          shiny::plotOutput(ns("plotTimeStamps")),
+                                               column(width=12),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   shiny::plotOutput(ns("plotTimeStamps")),
+                                               ),
+
                                       ),
-                                      tabPanel("Build dashboard", icon = icon("play"),
+                                      tabPanel(div(icon("dice-two"),"Build dashboard"),
                                                br(),
-                                               actionButton(ns("runReport"), "Build dashboard", icon = icon("play-circle")),
-                                               textOutput(ns("outReport")),
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      br(),
+                                                      actionButton(ns("runReport"), "Build dashboard", icon = icon("play-circle")),
+                                                      textOutput(ns("outReport")),
+                                                      br(),
+                                               ),
+
                                       ),
                                     )
                            ),
@@ -100,6 +113,20 @@ mod_reportBuilder_server <- function(id, data){
     })
 
     #################
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){
+          if(length(data()$status$module) > 0){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to rebuilding available dashboard.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that any analysis has been done before rebuilding a dashboard.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+      }
+    )
+
     ## model types
     observeEvent(c(data()), {
       req(data()) # list(QA="qaRaw" , QAmarkers="qaGeno" , STA="sta" ,   MTA="mta",    Index="indexD", OCS="ocs",    RGG="rgg" ,   PGG="pgg" , OFT="oft")

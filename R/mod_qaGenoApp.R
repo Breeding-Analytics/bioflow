@@ -84,10 +84,11 @@ mod_qaGenoApp_ui <- function(id){
                                                       ),
                                              ),
                                              tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
+                                                      br(),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                               "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                           title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                             column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                               "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                                   title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                                placeholder = "(optional name)") ) ),
                                                              column(width=2,
                                                                     br(),
@@ -96,7 +97,7 @@ mod_qaGenoApp_ui <- function(id){
                                                              column(width=1),
                                                              column(width=6,
                                                                     br(),
-                                                                    shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings...",
+                                                                    shinydashboard::box(width = 12, status = "success",solidHeader=FALSE, style = "color: #000000",collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
                                                                                         selectInput(ns("imputationMethod"), "Imputation method", choices = c("median"), multiple = FALSE),
                                                                                         numericInput(ns("ploidy"), label = "Ploidy", value = 2, step=2, max = 10, min=2)
                                                                     ),

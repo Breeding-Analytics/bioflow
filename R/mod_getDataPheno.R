@@ -16,7 +16,7 @@ mod_getDataPheno_ui <- function(id){
     # tags$p("The time is ", textOutput(ns("current_time"))),
 
     navlistPanel( "Steps:",widths = c(2, 10),
-                  tabPanel(div("1. Load your data" ),
+                  tabPanel(div("1. Load data" ),
 
                            column(width=8,
 
@@ -183,7 +183,7 @@ mod_getDataPheno_ui <- function(id){
 
 
                   ),
-                  tabPanel(div("2. Match your columns",),
+                  tabPanel(div("2. Match columns",),
 
                            # column(width=12,
                            shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,

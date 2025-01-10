@@ -15,26 +15,26 @@ mod_filterPhenoApp_ui <- function(id){
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel(div(icon("book"), "Information-Filter-Pheno") ,
+                       tabPanel(div(icon("book"), "Information") ,
                                 br(),
-                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                h1(strong(span("Environment-Pheno Filtering Module", style="color:darkcyan"))),
-                                h2(strong("Status:")),
-                                uiOutput(ns("warningMessage")),
-                                tags$body(
-                                  h2(strong("Details")),
-                                  p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
+                                column(width = 6,
+                                       h1(strong(span("Environment-Pheno Filtering Module", style="color:darkcyan"))),
+                                       h2(strong("Data Status (wait to be displayed):")),
+                                       uiOutput(ns("warningMessage")),
+                                ),
+                                column(width = 6,
+                                       tags$body(
+                                         h2(strong("Details")),
+                                         p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
                                                              This option allows users to filter (more concretely tag records for exclusion) specific years, seasons, countries, locations, etc. from the posterior analyses. This is just an optional module that most users will not require.
                                 The way arguments are used is the following:"),
-                                  img(src = "www/dataFilter.png", height = 300, width = 500), # add an image
-                                  p(strong("label.-")," the different columns to subset the phenotypic dataset to exclude certain years, seasons, countries, locations, trials, or environments for certain traits."),
-                                  h2(strong("References")),
-                                  p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                  p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
-                                )
-                                #                     )
-                                # )
+                                         img(src = "www/dataFilter.png", height = 300, width = 500), # add an image
+                                         p(strong("label.-")," the different columns to subset the phenotypic dataset to exclude certain years, seasons, countries, locations, trials, or environments for certain traits."),
+                                         h2(strong("References")),
+                                         p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                         p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press.")
+                                       )
+                                ),
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
@@ -77,14 +77,17 @@ mod_filterPhenoApp_ui <- function(id){
                                            ),
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-three"),
-                                           column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                             "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                         title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
-                                             placeholder = "(optional name)") ) ),
-                                           column(width=3,
-                                                  br(),
-                                                  actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
-                                                  textOutput(ns("outFilterRaw")),
+                                           br(),
+                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                    "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                        title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                    placeholder = "(optional name)") ) ),
+                                                  column(width=3,
+                                                         br(),
+                                                         actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
+                                                         textOutput(ns("outFilterRaw")),
+                                                  ),
                                            ),
                                   ),
                                 ) # end of tabset

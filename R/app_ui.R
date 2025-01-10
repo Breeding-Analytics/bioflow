@@ -57,9 +57,9 @@ app_ui <- function(request) {
       title=div(img(src="www/cgiarmini.png"), "",style = "color:#FFFFFF"),
 
       navbarMenu("Home", icon = icon("house"),
-                 tabPanel(div( "Bioflow", icon("battery") ), mod_homeApp_ui("homeApp_1")  ),
-                 tabPanel( tags$a(href="https://cgiar-service-portal-prd.azurewebsites.net/register", "Service Portal (BRI)", target="_blank")  ),
-                 tabPanel(div( "About us", icon("question") ),
+                 tabPanel(div( icon("battery"), "Bioflow" ), mod_homeApp_ui("homeApp_1")  ),
+                 tabPanel(tags$a(href="https://cgiar-service-portal-prd.azurewebsites.net/register", div( icon("envelopes-bulk"), "Service Portal (BRI)" ), target="_blank")  ),
+                 tabPanel(div(icon("question"), "About us"),
                           tabsetPanel( #widths = c(1, 11),
                             tabPanel("Technology", mod_aboutApp_ui("aboutApp_1"), icon = icon("puzzle-piece") ),
                             tabPanel("Meet the team", mod_meetTheTeamApp_ui("meetTheTeamApp_1"), icon = icon("yin-yang") ),
@@ -67,7 +67,7 @@ app_ui <- function(request) {
                             tabPanel("FAQ", mod_faqUsApp_ui("faqUsApp_1"), icon = icon("question") ),
                           )
                  ),
-                 tabPanel(div( "Glossary", icon("rectangle-list") ), mod_glossary_ui("glossary_1")  ),
+                 tabPanel(div(icon("rectangle-list"), "Glossary" ), mod_glossary_ui("glossary_1")  ),
       ),
 
       navbarMenu("Data Management ", icon = icon("upload"),
@@ -97,13 +97,13 @@ app_ui <- function(request) {
                  #          )
                  # ),
                  tabPanel(strong("DATA TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
-                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
-                 tabPanel(div(icon("arrows-split-up-and-left"), "(optional) Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
+                 tabPanel(div(icon("arrows-split-up-and-left"), "Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
+                 tabPanel(div(icon("arrows-split-up-and-left"), "Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
 
                  tabPanel(strong("DATA FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
-                 tabPanel(div(icon("filter-circle-xmark"), "(optional) Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistApp_ui("dataConsistApp_1") ),
+                 tabPanel(div(icon("filter-circle-xmark"), "Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
+                 tabPanel(div(icon("filter-circle-xmark"), "Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
+                 tabPanel(div(icon("filter-circle-xmark"), "Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistApp_ui("dataConsistApp_1") ),
 
 
       ),
@@ -116,7 +116,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),
                           navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
-                                        tabPanel(div("(optional) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
+                                        tabPanel(div("Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
                           )
                  ),
 

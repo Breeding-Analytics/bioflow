@@ -11,6 +11,7 @@ mod_qaStaApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    tags$br(),
     # input <- list(traitOutqPheno="YLD_TON-residual",traitLBOutqPheno=-4,traitUBOutqPheno=4,outlierCoefOutqPheno=2.5, outlierCoefOutqFont=12 )
 
     shiny::mainPanel(width = 12,
@@ -48,10 +49,10 @@ mod_qaStaApp_ui <- function(id){
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-                                  tabPanel(div(icon("dice-one"), "Set traits & thresholds", icon("arrow-right") ), # icon = icon("dice-one"),
+                                  tabPanel(div(icon("dice-one"), "Set trait(s) & threshold", icon("arrow-right") ), # icon = icon("dice-one"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait to QA", choices = NULL, multiple = TRUE) ),
+                                                  column(width=6, selectInput(ns("traitOutqPhenoMultiple"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
                                                   column(width=3, numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 5) ),
 
                                            ),
@@ -72,14 +73,17 @@ mod_qaStaApp_ui <- function(id){
                                            ),
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-two"),
-                                           column(width=12,
-                                                  column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                    "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                           br(),
+                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                    "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                        title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                     placeholder = "(optional name)") ) ),
                                                   column(width=3,
-                                                         actionButton(ns("runQaMb"), "Tag outliers (click button)", icon = icon("play-circle")),
+                                                         br(),
+                                                         actionButton(ns("runQaMb"), "Tag outliers", icon = icon("play-circle")),
                                                          textOutput(ns("outQaMb")),
+                                                         br(),
                                                   )
                                            ),
 
