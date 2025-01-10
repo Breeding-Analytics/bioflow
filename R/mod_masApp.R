@@ -46,13 +46,13 @@ mod_masApp_ui <- function(id){
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
-                                             tabPanel( div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
+                                             tabPanel( div( icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , # icon = icon("dice-one"),
                                                        br(),
                                                        column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                               column(width=8,
                                                                      selectInput(ns("version2Mta"),
                                                                                  label = tags$span(
-                                                                                   "QA-geno stamp to apply",
+                                                                                   "QA-geno stamp(s) to apply",
                                                                                    tags$i(
                                                                                      class = "glyphicon glyphicon-info-sign",
                                                                                      style = "color:#FFFFFF",
@@ -74,13 +74,13 @@ mod_masApp_ui <- function(id){
                                                                            column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(),br(), ),
                                                        ),
                                              ),
-                                             tabPanel( div(icon("dice-two"), "Select markers", icon("arrow-right") ), # icon = icon("dice-two"),
+                                             tabPanel( div(icon("dice-two"), "Select marker(s)", icon("arrow-right") ), # icon = icon("dice-two"),
                                                        br(),
                                                        column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                               column(width=6,
                                                                      selectizeInput(ns("markers2MAS"),
                                                                                     label = tags$span(
-                                                                                      "Markers to use",
+                                                                                      "Marker(s) to use",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#FFFFFF",
@@ -132,14 +132,15 @@ mod_masApp_ui <- function(id){
                                                       ),
                                              ),
                                              tabPanel("Run analysis", icon = icon("dice-four"),
+                                                      br(),
                                                       column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                               "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                           title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                             column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                               "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                                   title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                                placeholder = "(optional name)") ) ),
                                                              column(width=3,
                                                                     br(),
-                                                                    actionButton(ns("runMAS"), "Run (click button)", icon = icon("play-circle")),
+                                                                    actionButton(ns("runMAS"), "Run analysis", icon = icon("play-circle")),
                                                                     uiOutput(ns("qaQcStaInfo")),
                                                                     br(),
                                                              ),

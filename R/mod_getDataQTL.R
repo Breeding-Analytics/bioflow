@@ -15,7 +15,7 @@ mod_getDataQTL_ui <- function(id){
     tags$br(),
 
     navlistPanel( "Steps:", widths = c(2, 10),
-                  tabPanel(div("1. Load your data" ),
+                  tabPanel(div("1. Load data" ),
                            column(width=8,
                                   selectInput(
                                     inputId = ns('qtl_input'),
@@ -65,7 +65,7 @@ mod_getDataQTL_ui <- function(id){
                            ),
                            # ),
                   ),
-                  tabPanel(div("2. Match your columns" ),
+                  tabPanel(div("2. Match columns" ),
                            # column(width=12,
                            shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
                                                tags$span(id = ns('qtl_table_mapping_title'),

@@ -15,65 +15,70 @@ mod_expDesignEditApp_ui <- function(id){
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel(div(icon("book"), "Information-Filter-Design") ,
+                       tabPanel(div(icon("book"), "Information") ,
                                 br(),
-                                # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                #                     column(width=12,   style = "height:580px; overflow-y: scroll;overflow-x: scroll;",
-                                h1(strong(span("Experimental Design Factor Filtering Module", style="color:darkcyan"))),
-                                h2(strong("Status:")),
-                                uiOutput(ns("warningMessage")),
-                                tags$body(
-                                  h2(strong("Details")),
-                                  p("Sometimes is required to set to missing experimental design factors that we are aware that are not correctly saved
+                                column(width = 6,
+                                       h1(strong(span("Experimental Design Factor Filtering Module", style="color:darkcyan"))),
+                                       h2(strong("Data Status (wait to be displayed):")),
+                                       uiOutput(ns("warningMessage")),
+                                ),
+                                column(width = 6,
+                                       tags$body(
+                                         h2(strong("Details")),
+                                         p("Sometimes is required to set to missing experimental design factors that we are aware that are not correctly saved
                                                                in the databases. Although the tight solution would be to fix this information in the original database, a pragmatic
                                                                approach is to set certain factors from an especific environment to missing so it is ignored in the model fitting or
                                                                any other analytical module using this information."),
-                                  # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                  p(strong("Editing table-")," there is not much complexity of how to use this module. There is a table with a column for
+                                         # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                         p(strong("Editing table-")," there is not much complexity of how to use this module. There is a table with a column for
                                                                each experimental design factor and a row for each environment. By default this table is filled with the number of levels
                                                                wherever this information is available. If the user wants to silence a particular factor it just needs to double click in
                                                                the cell and set the value to zero."),
-                                )
-                                #                     )
-                                # )
+                                       )
+                                ),
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
-                                  tabPanel(div(  icon("dice-one"), "Pick factors", icon("arrow-right") ), # icon = icon("dice-one"),
+                                  tabPanel(div(  icon("dice-one"), "Pick factor(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                            br(),
-                                           column(width = 12, style = "overflow-y: scroll;overflow-x: scroll;"), # height:300px;
+                                           column(width = 6, style = "overflow-y: scroll;overflow-x: scroll;", # height:300px;
                                            tags$span(id = ns('holder1'),
                                                      p(span("The experimental design factors (columns) present in a particular environment (rows) are displayed in the table below. Please double click in any cell (environment by factor combination) that you would like to silence by setting the value to zero. Then run the analysis to save those modifications for posterior analyses.", style="color:black")),
                                            ),
                                            DT::dataTableOutput(ns("transTableC")),
+                                           ),
 
-                                           column(width=12,
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           column(width=6,
+                                                  column(width=12),
+                                                  shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                      p(span("Heatmap to explore the spatial distribution of factors and traits. Row and column information need to be mapped for this visualization to properly display.", style="color:black")),
+                                                                      tags$span(id = ns('holder2'),
+                                                                                column(width = 4, selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE) ),
+                                                                                column(width = 4, selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE) ),
+                                                                                column(width = 4, selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE) ),
+                                                                                column(width=12,
+                                                                                       plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,
+                                                                                       # style = "height:300px; overflow-y: scroll;overflow-x: scroll;"
+                                                                                ),
+                                                                      ),
+                                                  ),
                                            ),
-                                           # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
-                                           p(span("Heatmap to explore the spatial distribution of factors and traits. Row and column information need to be mapped for this visualization to properly display.", style="color:black")),
-                                           tags$span(id = ns('holder2'),
-                                                     column(width = 4, selectInput(ns("fieldinstCleaned3Dtraits"), "Environment to visualize", choices = NULL, multiple = FALSE) ),
-                                                     column(width = 4, selectInput(ns("zaxisCleaned3Dtraits"), "Color field by", choices = NULL, multiple = FALSE) ),
-                                                     column(width = 4, selectInput(ns("textCleaned3Dtraits"), "Text cells by", choices = NULL, multiple = FALSE) ),
-                                                     column(width=12,
-                                                            plotly::plotlyOutput(ns("plotCleaned3Dtraits")) ,
-                                                            # style = "height:300px; overflow-y: scroll;overflow-x: scroll;"
-                                                     ),
-                                           ),
-                                           # )
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-two"),
-                                           column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                             "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                         title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
-                                             placeholder = "(optional name)") ) ),
-                                           column(width=3,
-                                                  br(),
-                                                  actionButton(ns("runFieldClean"), "Tag factors", icon = icon("play-circle")),
-                                                  textOutput(ns("outExp"))
+                                           br(),
+                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                    "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                        title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                    placeholder = "(optional name)") ) ),
+                                                  column(width=3,
+                                                         br(),
+                                                         actionButton(ns("runFieldClean"), "Tag factors", icon = icon("play-circle")),
+                                                         textOutput(ns("outExp"))
+                                                  ),
                                            ),
                                   ),
                                 ) # end of tabset

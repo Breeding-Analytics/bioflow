@@ -54,10 +54,10 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                            p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
                                            p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
                                            p(strong("nPC.-")," Number of principal components for the big models. If the value is equal to 0 the kernel is used as is (full relationship matrix). Otherwise a principal component model is run according to Odegard et al. (2019)."),
-                                           h2(strong("References:")),
+                                           h2(strong("References")),
                                            p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
                                            p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
-                                           h2(strong("Software used:")),
+                                           h2(strong("Software used")),
                                            p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                            p("COVARRUBIAS PAZARAN, G. E. (2024). lme4breeding: enabling genetic evaluation in the era of genomic data. bioRxiv, 2024-05."),
@@ -66,13 +66,13 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel(div( icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-one"), "Pick STA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8,
                                                              selectInput(ns("version2Mta"),
                                                                          label = tags$span(
-                                                                           "STA version to analyze (required)",
+                                                                           "STA version(s) to analyze",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
@@ -94,12 +94,12 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                    DT::DTOutput(ns("statusMta")), # modeling table
                                                ),
                                       ),
-                                      tabPanel(div(icon("dice-two"), "Pick traits", icon("arrow-right") ),
+                                      tabPanel(div(icon("dice-two"), "Pick trait(s)", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       selectInput(ns("trait2Mta"),
                                                                   label = tags$span(
-                                                                    "Trait to analyze (required)",
+                                                                    "Trait(s) to analyze",
                                                                     tags$i(
                                                                       class = "glyphicon glyphicon-info-sign",
                                                                       style = "color:#FFFFFF",
@@ -326,13 +326,13 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel("Run analysis", icon = icon("dice-five"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                        "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                          title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
-                                                        placeholder = "customizedMtaName") ) ),
+                                                      column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                        "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                            title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "(optional name)") ) ),
                                                       column(width=3,
                                                              br(),
-                                                             actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
+                                                             actionButton(ns("runMta"), "Run analysis", icon = icon("play-circle")),
                                                              uiOutput(ns("qaQcMtaInfo")),
                                                              br(),
                                                       ),

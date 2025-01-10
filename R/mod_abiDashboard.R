@@ -11,18 +11,22 @@ mod_abiDashboard_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    tags$br(),
+
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
                            tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     tags$body(
-                                      column(width = 12,
+                                      column(width = 6,
                                              h1(strong(span("Accelerated Breeding Dashboard Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-
+                                             h2(strong("Data Status (wait to be displayed):")),
+                                             uiOutput(ns("warningMessage")),
                                              br(),
                                              shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example data", status = "success"),
-
+                                      ),
+                                      column(width = 6,
                                              h2(strong("Details")),
                                              p("This module has the sole purpose of building a dashboard report for the Accelerated Breeding Initiative (ABI).
                                              The idea is that the user only has to specify the OCS and RGG analysis time stamps requested and a search for all needed metrics
@@ -34,36 +38,38 @@ mod_abiDashboard_ui <- function(id){
                                              h2(strong("References")),
                                              p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
                                              p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
-
-                                      ),
-                                    )
+                                      )
+                                    ),
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel(div( icon("dice-two"), "Pick time stamps", icon("arrow-right") ), # icon = icon("magnifying-glass-chart"),
+                                      tabPanel(div( icon("dice-one"), "Pick time stamps", icon("arrow-right") ), # icon = icon("magnifying-glass-chart"),
                                                br(),
                                                column(width=12,
                                                       column(width=5,  selectInput(ns("versionSelection"), "OCS analysis (to trace selection history)", choices = NULL, multiple = FALSE) ),
                                                       column(width=5,  selectInput(ns("versionHistory"), "RGG analysis (to link gain)", choices = NULL, multiple = FALSE) ),
                                                       style = "background-color:grey; color: #FFFFFF"),
-                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                               hr(style = "border-top: 3px solid #4c4c4c;"),
-                                               # shinydashboard::box(status="success",width = 12, style = "height:460px; overflow-y: scroll;overflow-x: scroll;", solidHeader = TRUE,
-                                               #                     column(width=12,
-                                               # p(span("Current analyses available.", style="color:black")),
-                                               shiny::plotOutput(ns("plotTimeStamps")),
-                                               # p(span("Data used as input.", style="color:black")),
-                                               # DT::DTOutput(ns("phenoAbi")),
-                                               #                     )
-                                               # ),
+                                               column(width=12),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   shiny::plotOutput(ns("plotTimeStamps")),
+                                               ),
                                       ),
-                                      tabPanel("Build dashboard", icon = icon("play"),
+                                      tabPanel(div(icon("dice-two"),"Build dashboard"),
                                                br(),
-                                               actionButton(ns("runAbi"), "Build dashboard", icon = icon("play-circle")),
-                                               uiOutput(ns("qaQcAbiInfo")),
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      br(),
+                                                      actionButton(ns("runAbi"), "Build dashboard", icon = icon("play-circle")),
+                                                      uiOutput(ns("qaQcAbiInfo")),
+                                                      br(),
+                                               ),
                                                textOutput(ns("outAbi")),
                                       ),
+
                                     )
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
@@ -94,6 +100,19 @@ mod_abiDashboard_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
     ############################################################################
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){
+          if("ocs" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to building of Accelerated Breeding dashboard.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform an optimal cross selection (OCS) before building Accelerated Breeding dashboard.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+      }
+    )
     #################
     ## data example loading
     observeEvent(

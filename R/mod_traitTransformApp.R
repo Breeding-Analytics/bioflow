@@ -15,22 +15,29 @@ mod_traitTransformApp_ui <- function(id){
                      tabsetPanel( #width=9,
                        type = "tabs",
 
-                       tabPanel(div(icon("book"), "Information-Transform") ,
-                                br(),
-                                h2(strong("Status:")),
-                                uiOutput(ns("warningMessage")),
+                       tabPanel(div(icon("book"), "Information") ,
                                 tags$body(
-                                  h2(strong("Details")),
-                                  p("Some trait transformations are required when data starts to grow or presents modeling challenges. The current
+                                  column(width = 6,
+                                         br(),
+                                         h1(strong(span("Trait Transformation Module", style="color:darkcyan"))),
+                                         h2(strong("Data Status (wait to be displayed):")),
+                                         uiOutput(ns("warningMessage")),
+                                  ),
+
+                                  column(width = 6,
+                                         br(),
+                                         h2(strong("Details")),
+                                         p("Some trait transformations are required when data starts to grow or presents modeling challenges. The current
                                                                implementations include:"),
-                                  # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                  p(strong("Conversion-")," The trait is transformed by a function such as cubic root, square root, log., etc.."),
-                                  p(strong("Equalizing-")," a set of traits with different name are considered to be the same trait and the user needs to equalize them ."),
-                                  p(strong("Balancing-")," a trait with numerical values in different units depending on the environment needs to be converted to same units across environments ."),
-                                  h2(strong("References")),
-                                  h2(strong("Software")),
-                                  p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                         # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                         p(strong("Conversion-")," The trait is transformed by a function such as cubic root, square root, log., etc.."),
+                                         p(strong("Equalizing-")," a set of traits with different name are considered to be the same trait and the user needs to equalize them ."),
+                                         p(strong("Balancing-")," a trait with numerical values in different units depending on the environment needs to be converted to same units across environments ."),
+                                         h2(strong("References")),
+                                         h2(strong("Software used")),
+                                         p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
+                                  ),
                                 )
                        ),
                        tabPanel("Conversion", icon = icon("rocket"),
@@ -38,7 +45,7 @@ mod_traitTransformApp_ui <- function(id){
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
-                                                               actionButton(ns("runTra"), "Apply conversions", icon = icon("play-circle")),
+                                                               actionButton(ns("runTra"), "Convert traits", icon = icon("play-circle")),
                                                                textOutput(ns("outTraC")),
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
                                                                DT::DTOutput(ns("transTableC")),

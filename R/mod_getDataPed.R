@@ -15,7 +15,7 @@ mod_getDataPed_ui <- function(id){
     tags$br(),
 
     navlistPanel( "Steps:", widths = c(2, 10),
-                  tabPanel(div("1. Load your data" ),
+                  tabPanel(div("1. Load data" ),
                            column(width=8,
 
                                   selectInput(
@@ -58,7 +58,7 @@ mod_getDataPed_ui <- function(id){
                            column(width=4,
 
                                   tags$span(id = ns('ped_csv_options'),
-                                            shinydashboard::box(width=12, title = 'Options', collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = FALSE, style = "color: #000000",
+                                            shinydashboard::box(width=12, title = span(icon('screwdriver-wrench'), ' Options'), collapsible = TRUE, collapsed = TRUE, status = 'success', solidHeader = FALSE, style = "color: #000000",
                                                                 shinyWidgets::prettyRadioButtons(ns('ped_sep'), 'Separator Character', selected = ',', inline = TRUE,
                                                                                                  choices = c('Comma' = ',', 'Semicolon' = ';', 'Tab' = "\t")),
 
@@ -84,7 +84,7 @@ mod_getDataPed_ui <- function(id){
                            ),
                            # ),
                   ),
-                  tabPanel(div("2. Match your columns" ),
+                  tabPanel(div("2. Match columns" ),
                            # column(width=12,
                            shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
                                                tags$span(id = ns('ped_table_mapping'),

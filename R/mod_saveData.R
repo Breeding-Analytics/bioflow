@@ -11,6 +11,7 @@ mod_saveData_ui <- function(id){
   ns <- NS(id)
   tagList(
 
+    tags$br(),
 
     navlistPanel( widths = c(2, 10),
                   tabPanel(div("1. Select storing place" ),
@@ -28,7 +29,7 @@ mod_saveData_ui <- function(id){
                            ),
                            column(width = 4,
                                   tags$br(),
-                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=FALSE, style = "color: #000000", collapsible = TRUE, collapsed = TRUE,
                                                       h4(strong(span("", tags$a(href="https://www.youtube.com/watch?v=B3JaVw36dvI&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=3", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                   ),
                            )
@@ -40,12 +41,12 @@ mod_saveData_ui <- function(id){
                   tabPanel(div("3. Save object" ),
                            tags$br(),
                            tags$span(id = ns('pcfile_holder'),
-                                     downloadButton(ns("downloadRds"), "Save", icon = icon("floppy-disk")),
+                                     downloadButton(ns("downloadRds"), "Save object", icon = icon("floppy-disk")),
                                      textOutput(ns("outSave2")),
                            ),
                            ## provisionally silenced until Khaled enables the S3 saving using the users table
                            tags$span(id = ns('cloudfile_holder'),
-                                     actionButton(ns("runSave"), "Save", icon = icon("floppy-disk")),
+                                     actionButton(ns("runSave"), "Save object", icon = icon("floppy-disk")),
                                      textOutput(ns("outSave")),
                            ),
                   ),

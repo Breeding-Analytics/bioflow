@@ -32,7 +32,7 @@ mod_staApp_ui <- function(id){
                                     ),
 
                                     column(width = 6,
-                                           h2(strong("Computational details")),
+                                           h2(strong("Details")),
                                            p("The genetic evaluation approach we use known as 'two-step' first analyze trait by trait and trial by trial
                                           to remove the spatial noise from experiments using experimental factors like blocking and spatial coordinates.
                                           Each trial is one level of the environment
@@ -52,13 +52,13 @@ mod_staApp_ui <- function(id){
                                 fitted when the trial size exceeds 5 rows and 5 columns. In addition the following rules are followed: 1) Rows or columns are fitted if
                                 you have equal or more than 3 levels, 2) Reps are fitted if you have equal or more than 2 levels, 3) Block (Sub-block) are fitted if you
                                 have equal or more than 4 levels. "),
-                                           h2(strong("References:")),
+                                           h2(strong("References")),
                                            p("Velazco, J. G., Rodriguez-Alvarez, M. X., Boer, M. P., Jordan, D. R., Eilers, P. H., Malosetti, M., & Van Eeuwijk, F. A. (2017).
                                 Modelling spatial trends in sorghum breeding field trials using a two-dimensional P-spline mixed model. Theoretical and Applied
                                 Genetics, 130, 1375-1392."),
                                            p("Rodriguez-Alvarez, M. X., Boer, M. P., van Eeuwijk, F. A., & Eilers, P. H. (2018). Correcting for spatial heterogeneity in plant
                                 breeding experiments with P-splines. Spatial Statistics, 23, 52-71."),
-                                           h2(strong("Software used:")),
+                                           h2(strong("Software used")),
                                            p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                            p("Boer M, van Rossum B (2022). _LMMsolver: Linear Mixed Model Solver_. R package version 1.0.4.9000."),
@@ -73,7 +73,7 @@ mod_staApp_ui <- function(id){
                                                                  column(width=8,
                                                                         selectInput(ns("version2Sta"),
                                                                                     label = tags$span(
-                                                                                      "Pheno-modification to apply to the data",
+                                                                                      "Pheno-modification stamp(s) to apply to the data",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#FFFFFF",
@@ -102,7 +102,7 @@ mod_staApp_ui <- function(id){
                                                                  column(width=4,
                                                                         selectInput(ns("trait2Sta"),
                                                                                     label = tags$span(
-                                                                                      "Trait(s) to analyze (required)",
+                                                                                      "Trait(s) to analyze",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#FFFFFF",
@@ -153,7 +153,7 @@ mod_staApp_ui <- function(id){
                                                                  column(width=4,
                                                                         selectInput(ns("genoUnitSta"),
                                                                                     label = tags$span(
-                                                                                      "Genetic evaluation unit(s) (required)",
+                                                                                      "Genetic evaluation unit(s)",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#FFFFFF",
@@ -205,14 +205,15 @@ mod_staApp_ui <- function(id){
                                                           ),
                                                  ),
                                                  tabPanel(value="tabsInputRun", title=div(icon("dice-four"), "Run analysis" ), # icon = icon("dice-four"),
+                                                          br(),
                                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                                 column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                                   "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
+                                                                 column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                                   "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
                                                                                title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                                    placeholder = "(optional name)") ) ),
                                                                  column(width=3,
                                                                         br(),
-                                                                        actionButton(ns("runSta"), "Run STA (click button)", icon = icon("play-circle")),
+                                                                        actionButton(ns("runSta"), "Run analysis", icon = icon("play-circle")),
                                                                         uiOutput(ns("qaQcStaInfo")),
                                                                         br(),
                                                                  ),
