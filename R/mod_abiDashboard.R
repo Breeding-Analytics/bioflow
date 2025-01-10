@@ -107,9 +107,9 @@ mod_abiDashboard_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("ocs" %in% data()$status$module){
+          if(all(c("ocs","rgg") %in% data()$status$module)){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to building of Accelerated Breeding dashboard.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform an optimal cross selection (OCS) before building Accelerated Breeding dashboard.")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform an optimal cross selection (OCS) and realized genetic gain (RGG) before building Accelerated Breeding dashboard.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
