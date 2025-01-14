@@ -23,10 +23,11 @@ mod_PopStrApp_ui <- function(id){
                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                 column(width=6,   #style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                        tags$body(
-                                         h1(strong(span("Population structure", style="color:green"))),
+                                         h1(strong(span("Population structure", style="color:darkcyan"))),
                                          h2(strong("Data Status (wait to be displayed):")),
                                          uiOutput(ns("warningMessage")),
-
+                                         tags$br(),
+                                         img(src = "www/popstr.png", height = 135, width = 540), # add an image
                                        )
                                 ),
                                 column(width=6,

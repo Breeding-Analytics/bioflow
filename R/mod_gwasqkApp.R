@@ -27,7 +27,7 @@ mod_gwasqkApp_ui <- function(id){
                                             tags$br(),
                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example", status = "success"),
                                             tags$br(),
-                                            img(src = "www/gwas.png", height = 350, width = 700), # add an image
+                                            img(src = "www/gwas2.jpg", height = 430, width = 470), # add an image
                                      ),
                                      # column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
                                      column(width = 6,

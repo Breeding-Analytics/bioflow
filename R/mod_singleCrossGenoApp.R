@@ -40,7 +40,7 @@ mod_singleCrossGenoApp_ui <- function(id){
                                                     p(strong("Compute all possible hybrids?-")," an indication to know if only the marker-profiles for the hybrids present in the pedigree dataset should be computed or
                                                                marker-profiles for all cross combinations should be created. This should be used carefully when the number of males and females in the pedigree file is big."),
                                                     h4(strong("Example")),
-                                                    img(src = "www/scm.png",width = 1000), # add an image
+                                                    img(src = "www/scm.png",width = 500), # add an image
                                                     h2(strong("References")),
                                                     p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
                                                     p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
