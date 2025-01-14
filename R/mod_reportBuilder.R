@@ -23,6 +23,8 @@ mod_reportBuilder_ui <- function(id){
                                              uiOutput(ns("warningMessage")),
                                              br(),
                                              shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example data", status = "success"),
+                                             tags$br(),
+                                             img(src = "www/visuals.png", height = 430, width = 470), # add an image
                                       ),
                                       column(width = 6,
                                              h2(strong("Details")),

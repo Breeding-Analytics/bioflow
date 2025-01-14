@@ -32,7 +32,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                            shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                            # ),
                                            tags$br(),
-                                           img(src = "www/mta.png", height = 300, width = 450), # add an image
+                                           img(src = "www/mta.png", height = 375, width = 450), # add an image
                                     ),
                                     column(width = 6,
                                            h2(strong("Details")),

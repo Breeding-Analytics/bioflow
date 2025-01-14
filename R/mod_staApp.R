@@ -28,7 +28,7 @@ mod_staApp_ui <- function(id){
                                            shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                            # ),
                                            tags$br(),
-                                           img(src = "www/sta.png", height = 200, width = 400), # add an image
+                                           img(src = "www/geospatial.jpg", height = 250, width = 500), # add an image
                                     ),
 
                                     column(width = 6,

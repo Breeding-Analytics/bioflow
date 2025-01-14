@@ -27,6 +27,7 @@ mod_rggApp_ui <- function(id){
                                             shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                             # ),
                                             tags$br(),
+                                            img(src = "www/rgg.png", height = 300, width = 500), # add an image
                                      ),
                                      column(width = 6,
                                             h2(strong("Details")),
@@ -47,8 +48,10 @@ mod_rggApp_ui <- function(id){
                                             p("Mackay, I., Horwell, A., Garner, J., White, J., McKee, J., & Philpott, H. (2011). Reanalyses of the historical series of UK variety trials
                                 to quantify the contributions of genetic and environmental factors to trends and variability in yield over time. Theoretical and Applied
                                 Genetics, 122, 225-238."),
-                                            p("Laidig, F., Piepho, H. P., Drobek, T., & Meyer, U. (2014). Genetic and non-genetic long-term trends of 12 different crops in German
+                                            p("Laidig, F., Piepho, H. P., Drobek, T., Meyer, U. (2014). Genetic and non-genetic long-term trends of 12 different crops in German
                                 official variety performance trials and on-farm yield trends. Theoretical and Applied Genetics, 127, 2599-2617."),
+                                            p("Rutkoski, J. E. (2019). A practical guide to genetic gain. Advances in agronomy, 157, 217-249."),
+                                            p("Gorjanc, G., Gaynor, R. C., Hickey, J. M. (2018). Optimal cross selection for long-term genetic gain in two-part programs with rapid recurrent genomic selection. Theoretical and applied genetics, 131, 1953-1966."),
                                             h2(strong("Software used")),
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),

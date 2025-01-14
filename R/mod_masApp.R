@@ -24,7 +24,7 @@ mod_masApp_ui <- function(id){
                                                     tags$br(),
                                                     shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
                                                     tags$br(),
-                                                    # img(src = "www/qaGeno.png", height = 100, width = 435), # add an image
+                                                    img(src = "www/bottleneck.jpg", height = 380, width = 400), # add an image
                                              ),
 
                                              column(width = 6,
