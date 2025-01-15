@@ -314,6 +314,7 @@ app_server <- function(input, output, session) {
   mod_reportBuilder_server("reportBuilder_1", data = data)
 
   ## info section tabs
+  mod_sectionInfoDRASApp_server("sectionInfoDRASApp_1")
   mod_sectionInfoQAApp_server("sectionInfoQAApp_1") # info for quality assurance
   mod_sectionInfoTransformApp_server("sectionInfoTransformApp_1") # info for data transformations
   mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # info for genetic evaluation

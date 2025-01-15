@@ -150,6 +150,7 @@
 # golem::add_module(name = "faqUsApp", with_test = FALSE) # home
 # golem::add_module(name = "glossary", with_test = FALSE) # home
 #
+# golem::add_module(name = "sectionInfoDRASApp", with_test = FALSE) # single trial analysis
 # golem::add_module(name = "sectionInfoQAApp", with_test = FALSE) # for quality assurance
 # golem::add_module(name = "sectionInfoTransformApp", with_test = FALSE) # for transformations
 # golem::add_module(name = "sectionInfoGEApp", with_test = FALSE) # for genetic evaluation

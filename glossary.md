@@ -1,7 +1,7 @@
 ---
-title: <span style="color:darkcyan">Glossary</span>
+title: Glossary
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "December 17, 2024"  
+date: "January 14, 2025"  
 output: html_document
 params:
  toDownload: FALSE
@@ -45,4 +45,4 @@ params:
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="glossary_1-out5441052468c028f1" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="glossary_1-outb44dba2d3369b363" style="width:100%;height:auto;"></div><!--/html_preserve-->

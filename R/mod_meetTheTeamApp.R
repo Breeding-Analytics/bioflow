@@ -46,7 +46,8 @@ mod_meetTheTeamApp_ui <- function(id){
                                                        p(strong("ICARDA: "),"Khaled Al-Shamaa (K.EL-SHAMAA@cgiar.org)"),
                                                        p(strong("ICRISAT: "),"Anitha Raman (Anitha.raman@icrisat.org) "),
                                                        p(strong("IITA: "),"Ibnou Dieng (i.dieng@cgiar.org) "),
-                                                       p(strong("IRRI: "),"Giovanny Covarrubias-Pazaran (g.covarrubias@irri.org), Alaine Guilles (a.gulles@irri.org), Justine Bonifacio (j.bonifacio@irri.org), Daniel Pisano(d.pisano@irri.org), Leilani Nora (l.nora@irri.org)"),
+                                                       p(strong("IRRI: "),"Alaine Guilles (a.gulles@irri.org), Justine Bonifacio (j.bonifacio@irri.org), Daniel Pisano(d.pisano@irri.org), Leilani Nora (l.nora@irri.org)"),
+                                                       p(strong("Other"),"Giovanny Covarrubias-Pazaran (covaruberpaz@gmail.com)"),
                                    ),
 
                                    ),

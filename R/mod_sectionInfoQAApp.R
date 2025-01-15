@@ -23,7 +23,7 @@ mod_sectionInfoQAApp_ui <- function(id){
                                                 p("The analytical modules available expect good quality data to draw meaningful conclusions.
                                                   Quality controls for phenotypes and genotypes are provided to filter and tag records that
                                                   can lead to difficult interpretations."),
-                                                img(src = " www/infoqa.png", height = 350, width = 600), # add an image
+                                                img(src = " www/infoqa.png", height = 400, width = 600), # add an image
                                                 p("The 'QA for phenotypes' modules allow the identification of outliers and filtering records based on indication columns."),
                                                 p("The 'QA for markers' module allows the identification of markers and individuals with
                                                   high levels of missing data, minor allele frequency, heterozigosity and inbreeding.")
