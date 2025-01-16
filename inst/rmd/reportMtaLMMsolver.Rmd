@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FA
 printTable <- function(DT, pageLength = 7, 
                        numericColNames = NULL, numRound = 3, 
                        scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
-  
+  oldnames <- colnames(DT)
   DT <- data.frame(lapply(X = DT, 
                           FUN = function(x) {
                             if(is.numeric(x)){
@@ -27,7 +27,7 @@ printTable <- function(DT, pageLength = 7,
                               x
                             }
                           }))
-  
+  colnames(DT) <- oldnames
   table <- DT::datatable(data = DT, 
                          colnames = colNames,
                          filter = "top", 
@@ -556,6 +556,8 @@ if (is.null(result)){
                 ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
                 corr <- corr[ord,ord]
               }
+            }else{
+              corr[1,1]=1
             }
             mydata4 <- cgiarBase::matToTab(corr)
             p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -610,6 +612,8 @@ if (is.null(result)){
               ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
               corr <- corr[ord,ord]
             }
+          }else{
+            corr[1,1]=1
           }
           mydata4 <- cgiarBase::matToTab(corr)
           p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -1034,7 +1038,7 @@ if (is.null(result)){
     idvar = c("environment","designation","effectType","entryType"), 
     direction="wide"
   )
-  names(pred.mta.wide) <- c("designation","environment","effectType","entryType",traits)
+  names(pred.mta.wide) <- gsub("predictedValue.","",colnames(pred.mta.wide)) 
   
   if(!is.null(result$data$qtl)  ){ # there's QTL information
     if(nrow(result$data$qtl)>0){
@@ -1146,8 +1150,8 @@ if (is.null(result)){
         }else{
           p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }# end of each env
-         # combine plots
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+        # combine plots
+        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       }
       
     }
