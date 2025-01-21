@@ -77,6 +77,18 @@ mod_qaGenoApp_ui <- function(id) {
           ))
         )
       ),
+      tabPanel("Imputation", icon = icon("gears"), br(),
+               fluidRow(
+                 inputPanel(
+                   selectInput(
+                     ns("imputationMethod"),
+                     "Imputation method",
+                     choices = c("frequency"),
+                     multiple = FALSE
+                   )),
+                 actionButton(ns('run_imputation'),
+                              'Apply Imputation')
+               )),
       tabPanel("Output", icon = icon("book"), br(), fluidRow(
         style = "background-color:grey; color: #FFFFFF",
         column(
@@ -105,12 +117,6 @@ mod_qaGenoApp_ui <- function(id) {
             collapsible = TRUE,
             collapsed = TRUE,
             title = "Additional run settings...",
-            selectInput(
-              ns("imputationMethod"),
-              "Imputation method",
-              choices = c("frequency"),
-              multiple = FALSE
-            ),
           ),
         ),
       ),
@@ -174,7 +180,8 @@ mod_qaGenoApp_server <- function(id, data) {
     geno_qa_data <- reactiveValues(geno = NULL,
                                    filter = FALSE,
                                    preview_geno = NULL,
-                                   filter_log = NULL)
+                                   filter_log = NULL,
+                                   imputation_log = NULL)
     geno_qa_data$filt_seq <- data.frame()
     geno_qa_data$overall_summary <- data.frame()
 
@@ -386,35 +393,33 @@ mod_qaGenoApp_server <- function(id, data) {
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
 
-      new_modifications <- isolate(geno_qa_data$filter_log)
-      new_modifications$analysisId <- as.numeric(Sys.time())
-      new_modifications$analysisIdName <- input$analysisIdName
+      filter_mods <- isolate(geno_qa_data$filter_log)
+      filter_mods$analysisId <- as.numeric(Sys.time())
+      filter_mods$analysisIdName <- input$analysisIdName
+      filter_mods$module <- "qaGeno"
 
-      # Imputation
-      imp_mods <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
-                               ploidity = data()$data$ploidity,
-                               method = input$imputationMethod)
-      imp_mods$analysisId <- new_modifications$analysisId[1]
-      imp_mods$analysisIdName <- new_modifications$analysisIdName[1]
+      imp_mods <- data.frame(
+        reason = rep(paste("imputation",input$imputationMethod,sep='_'),
+                     nrow(geno_qa_data$imputation_log)),
+        row = geno_qa_data$imputation_log$row,
+        col = geno_qa_data$imputation_log$col,
+        value = geno_qa_data$imputation_log$call,
+        analysisId = rep(unique(filter_mods$analysisId)[1],
+                         nrow(geno_qa_data$imputation_log)),
+        analysisIdName = rep(input$analysisIdName,
+                             nrow(geno_qa_data$imputation_log)),
+        module = rep("qaGeno", nrow(geno_qa_data$imputation_log))
+      )
+
 
       results <- data()
 
-      if(!is.null(results$modifications$geno_filtering)){
-        results$modifications$geno_filtering <- rbind(result$modifications$geno_filtering, new_modifications)
+      if(!is.null(results$modifications$geno)){
+        results$modifications$geno <- rbind(result$modifications$geno, filter_mods, imp_mods)
       }else{
-        results$modifications$geno_filtering <- new_modifications}
+        results$modifications$geno <- rbind(filter_mods, imp_mods)}
 
-      results$modifications$geno_filtering$module <- "qaGeno"
-
-
-      if(!is.null(results$modifications$geno_imputation)){
-        results$modifications$geno_imputation <- rbind(result$modifications$geno_imputation, imp_mods)
-      }else{
-        results$modifications$geno_imputation <- imp_mods}
-
-      results$modifications$geno_imputation$module <- "qaGeno"
-
-      newStatus <- data.frame(module="qaGeno", analysisId= new_modifications$analysisId[nrow(new_modifications)], analysisIdName=input$analysisIdName)
+      newStatus <- data.frame(module="qaGeno", analysisId= filter_mods$analysisId[nrow(filter_mods)], analysisIdName=input$analysisIdName)
 
       if(!is.null(results$status)){
         results$status <- rbind(results$status, newStatus)
@@ -424,6 +429,17 @@ mod_qaGenoApp_server <- function(id, data) {
         cat(paste("Modifications to genotype information saved with id:",as.POSIXct(newStatus$analysisId[1], origin="1970-01-01", tz="GMT")))
       })
 
+      shinybusy::remove_modal_spinner()
+    })
+
+    observeEvent(input$run_imputation, {
+      req(geno_qa_data$preview_geno$gl)
+
+      # Imputation
+      shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotyope matrix...')
+      geno_qa_data$imputation_log <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
+                                           ploidity = data()$metadata$ploidity,
+                                           method = input$imputationMethod)
       shinybusy::remove_modal_spinner()
     })
 
@@ -474,27 +490,40 @@ mod_qaGenoApp_server <- function(id, data) {
 
     get_filter_log <- function(filter_step_log){
       print("filter_processing...")
+      base_loc_names <- adegenet::locNames(data()$data$geno)
+      base_ind_names <- adegenet::indNames(data()$data$geno)
 
       out <- purrr::map_df(filter_step_log, function(filter_step){
 
-        if(filter_step$filter_margin == 'loc'){
-          filter_out <- filter_step$filter_out
-        } else {
-          filter_out <- filter_step$filter_out
+        if(length(filter_step$filter_out) > 0){
+
+          reason <- paste(filter_step$filter_margin,
+                          filter_step$param,
+                          filter_step$operator,
+                          filter_step$threshold,
+                          sep = '_')
+
+          if(filter_step$filter_margin == 'loc'){
+            loc_idx <- which(filter_step$filter_out %in% base_loc_names)
+            col_data <- loc_idx
+            row_data <- rep(NA, length(loc_idx))
+
+          } else {
+            ind_idx <- which(filter_step$filter_out %in% base_ind_names)
+            col_data <- rep(NA, length(ind_idx))
+            row_data <- ind_idx
+          }
         }
-        if(length(filter_out) > 0){
+
           filt_step_log <- data.frame(
-            metric = rep(filter_step$param, length(filter_out)),
-            operator = rep(filter_step$operator, length(filter_out)),
-            threshold = rep(filter_step$threshold, length(filter_out)),
-            margin = rep(filter_step$filter_margin, length(filter_out)),
-            filt_out = filter_out
+            reason = rep(reason, length(filter_step$filter_out)),
+            row = row_data,
+            col = col_data,
+            value = rep(NA, length(filter_step$filter_out))
           )
           return(filt_step_log)
-        }
       })
      return(out)
     }
-
   })
 }

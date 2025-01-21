@@ -25,15 +25,17 @@ mod_getDataGeno_ui <- function(id) {
                   h4("File Input:"),
                   selectInput(
                     inputId = ns('custom_geno_input'),
-                    label   = 'Genotypic bi-allelic SNPs Source*:',
+                    label   = 'Select the genotypic bi-allelic SNPs format*:',
                     choices = list(
-                      'HapMap Upload' = 'hapmap',
-                      'VCF Upload' = 'vcf',
+                      'HapMap' = 'hapmap',
+                      'VCF' = 'vcf',
                       'DartSeq SNP' = 'dartseqsnp',
                       'DarTag SNP' = 'dartag'
                     ),
                     width   = '200px'
                   ),
+                  shinyWidgets::prettySwitch( inputId = ns('online_upload_switch'),
+                                              label = "Load online files"),
                   uiOutput(ns("file_upload_box")),
                   actionButton(ns("load_geno_btn"), "Load"),
                 ),
@@ -100,37 +102,63 @@ mod_getDataGeno_server <-
           # Only one file uploader
           tags$span(
             id = ns('adegeno_file_holder'),
-            fileInput(
-              inputId = ns('adegeno_file'),
-              label   = "Upload the genotypic data file:",
-              width   = '400px',
-              accept  = c(
-                'application/gzip',
-                '.gz',
-                '.txt',
-                '.hmp',
-                '.csv',
-                '.vcf'
-              )
-            ),
+            if(input$online_upload_switch == F){
+              fileInput(
+                inputId = ns('adegeno_file'),
+                label   = "Upload the genotypic data file:",
+                width   = '400px',
+                accept  = c(
+                  'application/gzip',
+                  '.gz',
+                  '.txt',
+                  '.hmp',
+                  '.csv',
+                  '.vcf'
+                ))
+            } else {
+             textInput(
+               inputId = ns("adegeno_url"),
+               label = "Insert file url",
+               width   = '400px',
+               placeholder = "https://website.com/genotype_file.txt"
+             )
+            }
           )
         } else {
           # Darttag filebox with counts and dosage uploaders
-          tags$span(
-            id = ns('adegeno_file_holder'),
-            fileInput(
-              inputId = ns('darttag_counts_file'),
-              label   = "Upload the counts file:",
-              width   = '400px',
-              accept  = c('.csv')
-            ),
-            fileInput(
-              inputId = ns('darttag_dosage_file'),
-              label   = "Upload the dosage file:",
-              width   = '400px',
-              accept  = c('.csv')
+          if(input$online_upload_switch == F){
+            tags$span(
+              id = ns('adegeno_file_holder'),
+              fileInput(
+                inputId = ns('darttag_counts_file'),
+                label   = "Upload the counts file:",
+                width   = '400px',
+                accept  = c('.csv')
+              ),
+              fileInput(
+                inputId = ns('darttag_dosage_file'),
+                label   = "Upload the dosage file:",
+                width   = '400px',
+                accept  = c('.csv')
+              )
             )
-          )
+          } else {
+            tags$span(
+              id = ns('adegeno_url_holder'),
+             textInput(
+               inputId = ns("darttag_counts_url"),
+               label = "Insert DArTtag counts file url",
+               width   = '400px',
+               placeholder = "https://website.com/dartag_counts.csv"
+             ),
+             textInput(
+               inputId = ns("darttag_dosage_url"),
+               label = "Insert DArTtag dosage file url",
+               width   = '400px',
+               placeholder = "https://website.com/dartag_dosage.csv"
+             ),
+            )
+          }
         }
       })
       output$ploidity_params <- renderUI({
@@ -178,8 +206,36 @@ mod_getDataGeno_server <-
       get_geno_data <- reactive(
         {
           print("Geno load btn clicked")
-          genotype_file <-
-            input$adegeno_file$datapath
+          if(input$custom_geno_input != "dartag"){
+            if(input$online_upload_switch == F){
+              genotype_file <- input$adegeno_file$datapath
+            } else {
+              temp_genofile <- tempfile(
+                tmpdir = tempdir(),
+                fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$adegeno_url))
+              # Download file
+              utils::download.file(input$adegeno_url, temp_genofile)
+              genotype_file <- temp_genofile
+            }
+          } else {
+            if(input$online_upload_switch == F){
+              dosage_file <- input$darttag_dosage_file$datapath
+              counts_file <- input$darttag_counts_file$datapath
+            } else {
+              # Dosage file download
+              temp_dosagefile <- tempfile(
+                tmpdir = tempdir(),
+                fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$darttag_dosage_url))
+              utils::download.file(input$darttag_dosage_url, temp_dosagefile)
+              dosage_file <- temp_dosagefile
+              # Counts file download
+              temp_countsfile <- tempfile(
+                tmpdir = tempdir(),
+                fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$darttag_counts_url))
+              utils::download.file(input$darttag_counts_url, temp_countsfile)
+              counts_file <- temp_countsfile
+            }
+          }
           print(as.numeric(input$ploidlvl_input))
           print(typeof(as.numeric(input$ploidlvl_input)))
           switch(
@@ -231,8 +287,8 @@ mod_getDataGeno_server <-
               shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
               tryCatch({
                 geno_data = cgiarGenomics::read_DArTag_count_dosage(
-                  dosage_path = input$darttag_dosage_file$datapath,
-                  counts_path = input$darttag_counts_file$datapath,
+                  dosage_path = dosage_file,
+                  counts_path = counts_file,
                   ploidity = as.numeric(input$ploidlvl_input)
                 )
               }, error = function(e) {
@@ -298,24 +354,34 @@ mod_getDataGeno_server <-
             if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
           } # make sure if an user uploads a new dataset the qaGeno starts empty
           geno_data <- get_geno_data()
-          # Recoded 0,1,2 into -1,0,1
           temp$data$geno <- geno_data
-          temp$data$genoformat <- input$custom_geno_input
+
+          temp$metadata$geno_format <- input$custom_geno_input
           # Record filepath
           if (input$custom_geno_input != "dartag") {
-            temp$data$genodir <- input$adegeno_file$datapath
+            temp$metadata$geno_file <- input$adegeno_file$datapath
           } else {
-            temp$data$genodir <- c(input$darttag_counts_file$datapath,
+            temp$metadata$geno_file <- c(input$darttag_counts_file$datapath,
                                    input$darttag_dosage_file$datapath)
           }
           # Record ploidity level
-          temp$data$ploidity <- as.numeric(input$ploidlvl_input)
-          # Record column names for marker_id, chrom and pos of dartseq formats
-          if (input$custom_geno_input %in% dartseq_formats) {
-            temp$data$geno_markerid_col <- input$dartseq_markerid
-            temp$data$geno_chr_name <- input$dartseq_chrom
-            temp$data$geno_pos_name <- input$dartseq_position
-          }
+          temp$metadata$ploidity <- as.numeric(input$ploidlvl_input)
+
+          alleles_df <- purrr::map_df(adegenet::alleles(geno_data), function(x) {
+            alleles <- c(unlist(strsplit(x, '/')))
+            data.frame(
+              ref = alleles[1],
+              alt = alleles[2]
+            )
+          })
+
+          temp$metadata$geno <- data.frame(
+            marker = adegenet::locNames(geno_data),
+            chr = adegenet::chr(geno_data),
+            pos = adegenet::position(geno_data),
+            ref = alleles_df$ref,
+            alt = alleles_df$alt)
+
           data(temp)
         }
       )
