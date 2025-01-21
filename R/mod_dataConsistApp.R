@@ -1,4 +1,4 @@
-#' dataConsistPotatoApp UI Function
+#' dataConsistApp UI Function
 #'
 #' @description A shiny Module.
 #'
@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_dataConsistPotatoApp_ui <- function(id){
+mod_dataConsistApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
@@ -18,27 +18,30 @@ mod_dataConsistPotatoApp_ui <- function(id){
 
                        tabPanel(div(icon("book"), "Information") ,
                                 br(),
-                                h1(strong(span("Data Consistency QA Module", style="color:darkcyan"))),
-                                br(),
-                                h2(strong("Status:")),
-                                uiOutput(ns("warningMessage")),
-                                tags$br(),
-                                # column(width=4, tags$br(),
+                                column(width = 6,
+                                       h1(strong(span("Data Consistency QA Module", style="color:darkcyan"))),
+                                       h2(strong("Data Status (wait to be displayed):")),
+                                       uiOutput(ns("warningMessage")),
+                                       tags$br(),
+                                       # column(width=4, tags$br(),
                                        shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                                # ),
-                                tags$br(),
-                                tags$body(
-                                  h2(strong("Details")),
-                                  p("Some additional checks for data consistency are benefitial to ensure a high quality analysis. These can include:"),
-                                  # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                  p(strong("Check names-")," The onthology for some crops is particularly important. This tab allows to check this to a reference onthology."),
-                                  p(strong("Check traits-")," Checking the relationships between traits is particularly useful to identify issues."),
-                                  p(strong("Tag inconsistencies-"),"Once inconsistencies are identified, is important to tag them for posterior management in the analytical modules."),
-                                  h2(strong("References")),
-                                  h2(strong("Software")),
-                                  p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Consisttistical Computing,
+                                       # ),
+                                       tags$br(),
+                                ),
+                                column(width = 6,
+                                       tags$body(
+                                         h2(strong("Details")),
+                                         p("Some additional checks for data consistency are benefitial to ensure a high quality analysis. These can include:"),
+                                         # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                         p(strong("Check names-")," The onthology for some crops is particularly important. This tab allows to check this to a reference onthology."),
+                                         p(strong("Check traits-")," Checking the relationships between traits is particularly useful to identify issues."),
+                                         p(strong("Tag inconsistencies-"),"Once inconsistencies are identified, is important to tag them for posterior management in the analytical modules."),
+                                         h2(strong("References")),
+                                         h2(strong("Software used")),
+                                         p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Consisttistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                )
+                                       )
+                                ),
                        ),
                        tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                 tabsetPanel(
@@ -48,6 +51,8 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                                   column(width=4, selectInput(ns("cropConsist"), "Select your crop filter:", choices = list(Banana="banana", Beans="beans",  Cassava="cassava", Maize="maize", PearMillet="pmillet", Plantain="plantain", Potato="potato", Rice="rice", Soybean="soybean", SweetPotato="spotato", Sorghum="sorghum", Wheat="wheat"), multiple = FALSE) ),
 
                                            ),
+                                           br(),
+                                           br(),
                                            br(),
                                            br(),
                                            DT::DTOutput(ns("phenoConsist")),
@@ -76,19 +81,32 @@ mod_dataConsistPotatoApp_ui <- function(id){
                                                                       value = 4, max = 100000, min = 0, step = 1)),
                                            ),
                                            br(),
-                                           column(width=12, p(span("Matrix of issues (transposed dataset).", style="color:black")) ),
-                                           column(width=6, sliderInput(ns("slider1"), label = "Records", min = 1, max = 2000, value = c(1, 200)) ),
-                                           column(width=6, sliderInput(ns("slider2"), label = "Columns/traits", min = 1, max = 500, value = c(1, 250)) ),
-                                           column(width=12, shiny::plotOutput(ns("plotConsistencySparsity")) ),
-
+                                           column(width=12),
+                                           shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                               column(width=12,
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                      h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                               ),
+                                                               column(width=12, p(span("Matrix of issues (transposed dataset).", style="color:black")) ),
+                                                               column(width=6, sliderInput(ns("slider1"), label = "Records", min = 1, max = 2000, value = c(1, 200)) ),
+                                                               column(width=6, sliderInput(ns("slider2"), label = "Columns/traits", min = 1, max = 500, value = c(1, 250)) ),
+                                                               column(width=12, shiny::plotOutput(ns("plotConsistencySparsity")) ),
+                                           ),
                                   ),
-                                  tabPanel("Tag inconsistencies", icon = icon("dice-three"),
-                                           column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "customizedMasName") ),
-                                           column(width=3,style = "background-color:grey; color: #FFFFFF",
-                                                  br(),
-                                                  actionButton(ns("runConsist"), "Run consistency check (click)", icon = icon("play-circle")),
-                                                  uiOutput(ns("qaQcConsistInfo")),
-                                                  br(),
+                                  tabPanel("Run analysis", icon = icon("dice-three"),
+                                           br(),
+                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                    "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                        title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                    placeholder = "(optional name)") ) ),
+                                                  column(width=3,style = "background-color:grey; color: #FFFFFF",
+                                                         br(),
+                                                         actionButton(ns("runConsist"), "Run consistency check", icon = icon("play-circle")),
+                                                         uiOutput(ns("qaQcConsistInfo")),
+                                                         br(),
+                                                  ),
                                            ),
                                            textOutput(ns("outConsist")),
                                   ),
@@ -112,10 +130,10 @@ mod_dataConsistPotatoApp_ui <- function(id){
   )
 }
 
-#' dataConsistPotatoApp Server Functions
+#' dataConsistApp Server Functions
 #'
 #' @noRd
-mod_dataConsistPotatoApp_server <- function(id, data){
+mod_dataConsistApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -173,7 +191,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
     ####################################################
     ## INPUT VISUALIZATIONS
 
-    ## SPARISTY PLOT
+    ## Data consistency visualization plot
     output$plotConsistencySparsity <- shiny::renderPlot({
       req(data())
       dtMta <- data()
@@ -277,9 +295,12 @@ mod_dataConsistPotatoApp_server <- function(id, data){
           ## bind new parameters
           result$modifications$pheno <- outlier
           # add status table
-          newStatus <- data.frame(module="qaConsist", analysisId=analysisId )
-          result$status <- rbind(result$status, newStatus)
-          myId <- result$status
+          newStatus <- data.frame(module = "qaConsist", analysisId = analysisId, analysisIdName = input$analysisIdName)
+          if (!is.null(result$status)) {
+            result$status <- rbind(result$status, newStatus[, colnames(result$status)])
+          } else {
+            result$status <- newStatus
+          }
           # add modeling table
           provMet <- data.frame(module="qaConsist",analysisId=analysisId, trait="all", environment=NA,
                                 parameter= "fConsist", value= input$fConsist)
@@ -293,7 +314,6 @@ mod_dataConsistPotatoApp_server <- function(id, data){
           shinybusy::remove_modal_spinner()
           stop("Consistency rules for selected crop not available yet", call. = FALSE)
         }
-
 
         if(!inherits(result,"try-error")) { # if all goes well in the run
           # ## Report tab
@@ -343,7 +363,7 @@ mod_dataConsistPotatoApp_server <- function(id, data){
 }
 
 ## To be copied in the UI
-# mod_dataConsistPotatoApp_ui("dataConsistPotatoApp_1")
+# mod_dataConsistApp_ui("dataConsistApp_1")
 
 ## To be copied in the server
-# mod_dataConsistPotatoApp_server("dataConsistPotatoApp_1")
+# mod_dataConsistApp_server("dataConsistApp_1")

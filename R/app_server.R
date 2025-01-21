@@ -81,6 +81,9 @@ app_server <- function(input, output, session) {
   mod_contactUsApp_server("contactUsApp_1") # link to contact us
   mod_faqUsApp_server("faqUsApp_1")
 
+  ## Glossary
+  mod_glossary_server("glossary_1")
+
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
     decision <- session$clientData$url_hostname == "bioflow.ebsproject.org"
@@ -271,7 +274,7 @@ app_server <- function(input, output, session) {
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
 
   ## DATA CONSISTENCY
-  mod_dataConsistPotatoApp_server("dataConsistPotatoApp_1", data = data)
+  mod_dataConsistApp_server("dataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
   mod_staApp_server("staApp_1", data = data) # single trial analysis
@@ -312,6 +315,7 @@ app_server <- function(input, output, session) {
   mod_reportBuilder_server("reportBuilder_1", data = data)
 
   ## info section tabs
+  mod_sectionInfoDRASApp_server("sectionInfoDRASApp_1")
   mod_sectionInfoQAApp_server("sectionInfoQAApp_1") # info for quality assurance
   mod_sectionInfoTransformApp_server("sectionInfoTransformApp_1") # info for data transformations
   mod_sectionInfoGEApp_server("sectionInfoGEApp_1") # info for genetic evaluation

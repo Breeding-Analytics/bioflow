@@ -23,10 +23,11 @@ mod_PopStrApp_ui <- function(id){
                                 # shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
                                 column(width=6,   #style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
                                        tags$body(
-                                         h1(strong(span("Population structure", style="color:green"))),
+                                         h1(strong(span("Population structure", style="color:darkcyan"))),
                                          h2(strong("Data Status (wait to be displayed):")),
                                          uiOutput(ns("warningMessage")),
-
+                                         tags$br(),
+                                         img(src = "www/popstr.png", height = 135, width = 540), # add an image
                                        )
                                 ),
                                 column(width=6,
@@ -75,8 +76,7 @@ mod_PopStrApp_ui <- function(id){
 
                                            ),
                                   ),
-                                  tabPanel(div(icon("dice-two"), "Additional settings...", icon("arrow-right") ), # icon = icon("dice-two"),
-                                           br(),
+                                  tabPanel(div(icon("dice-two"), "Additional settings", icon("arrow-right") ), # icon = icon("dice-two"),
                                            br(),
                                            column(width=12, style = "background-color:#d6d4d4; color: black",
                                                   HTML("<font size='3'>Add external information for groups in csv format (optional)</font>"),
@@ -126,11 +126,19 @@ mod_PopStrApp_ui <- function(id){
                                            )
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-three"),
-                                           column(width=3,  textInput(ns("analysisIdName"), label = "", placeholder = "(optional name)") ),
-                                           column(width=3,
-                                                  br(),
-                                                  actionButton(ns("runPopStr"), "Run analysis (click)", icon = icon("play-circle")),
-                                                  uiOutput(ns("outPopStr")),
+                                           br(),
+                                           column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                    "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                        title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                    placeholder = "(optional name)") ) ),
+                                                  column(width=3,
+                                                         br(),
+                                                         actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
+                                                         uiOutput(ns("outPopStr")),
+                                                         br(),
+                                                  ),
+
                                            ),
                                   )
                                 )),

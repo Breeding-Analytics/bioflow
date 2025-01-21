@@ -37,7 +37,7 @@ mod_bindObjectApp_ui <- function(id){
                                   ),
                            ),
                            column(width=4,
-                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE,
+                                  shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=FALSE, style = "color: #000000", collapsible = TRUE, collapsed = TRUE,
                                                       h4(strong(span("", tags$a(href="https://www.youtube.com/channel/UCikAyaDKdC5LAtcbVePWgIg", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                   ),
                            ),
@@ -57,7 +57,7 @@ mod_bindObjectApp_ui <- function(id){
                                    shiny::plotOutput(ns("plotTimeStamps")) ),
 
                   ),
-                  tabPanel(div("* Updates (optional)" ),
+                  tabPanel(div("* Update columns (optional)" ),
 
                            tabsetPanel( #widths = c(1, 11),
 

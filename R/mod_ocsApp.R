@@ -47,11 +47,11 @@ mod_ocsApp_ui <- function(id){
                                             p(strong("Environment to use.-")," If the user wants to use predictions from an specific environment. In NULL all are used."),
                                             p(strong("Notes.-"),"Consider that the predictions table in this particular case is different. In this case, the 'predictedValue' column refers to
                                 the expected value of the cross, 'stdError' is the average inbreeding of the cross, and 'rel' has the genetic algorithm value (lower the better)."),
-                                            h2(strong("References:")),
+                                            h2(strong("References")),
                                             p("Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133."),
                                             p("https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213"),
                                             p("Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99."),
-                                            h2(strong("Software used:")),
+                                            h2(strong("Software used")),
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                             p("https://github.com/gaynorr/QuantGenResources"),
@@ -63,7 +63,7 @@ mod_ocsApp_ui <- function(id){
                                       tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right") ), #icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Ocs"), "Index version to analyze (required)", choices = NULL, multiple = FALSE)),
+                                                      column(width=8, selectInput(ns("version2Ocs"), "Index version to analyze", choices = NULL, multiple = FALSE)),
 
                                                ),
                                                column(width=12),
@@ -84,7 +84,7 @@ mod_ocsApp_ui <- function(id){
                                                       column(width=4,
                                                              selectInput(ns("trait2Ocs"),
                                                                          label = tags$span(
-                                                                           "Trait(s) to optimize (required)",
+                                                                           "Trait(s) to optimize",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
@@ -96,7 +96,7 @@ mod_ocsApp_ui <- function(id){
                                                       column(width=4,
                                                              selectInput(ns("effectType2Ocs"),
                                                                          label = tags$span(
-                                                                           "Effect type(s) to use",
+                                                                           "Effect type to use",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
@@ -108,7 +108,7 @@ mod_ocsApp_ui <- function(id){
                                                       column(width=4,
                                                              selectInput(ns("entryType2Ocs"),
                                                                          label = tags$span(
-                                                                           "Entry types to use in optimization",
+                                                                           "Entry type to use in optimization",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
@@ -183,19 +183,20 @@ mod_ocsApp_ui <- function(id){
                                                ),
                                       ),
                                       tabPanel("Run analysis", icon = icon("dice-four"),
+                                               br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                        "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                    title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                      column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                        "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                            title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                         placeholder = "(optional name)") ) ),
                                                       column( width = 3,
                                                               br(),
-                                                              actionButton(ns("runOcs"), "Run OCS (click button)", icon = icon("play-circle")),
+                                                              actionButton(ns("runOcs"), "Run analysis", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcOcsInfo")),
                                                       ),
                                                       br(),
                                                       column( width = 6,
-                                                              shinydashboard::box(width = 12, status = "success", style = "color: #000000", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Optional run settings...",
+                                                              shinydashboard::box(width = 12, status = "success", style = "color: #000000", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
                                                                                   numericInput(ns("numberBest"), label = "Maximum number of top individuals to use", value = 100),
                                                                                   numericInput(ns("maxRun"), label = "Stopping criteria (#of iterations without change)", value = 40),
                                                                                   selectInput(ns("env2Ocs"), "Environment to use", choices = NULL, multiple = FALSE),

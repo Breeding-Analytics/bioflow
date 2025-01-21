@@ -56,10 +56,10 @@ mod_indexBaseApp_ui <- function(id){
 
                                             p(strong("Traits to include in the index-")," Traits to be considered in the index."),
                                             p(strong("Base values.-")," Vector of values indicating the desired change in traits."),
-                                            h2(strong("References:")),
+                                            h2(strong("References")),
                                             p("Brim, C. A., Johnson, H. W., & Cockerham, C. C. (1959). Multiple selection criteria in soybeans 1. Agronomy Journal, 51(1), 42-46."),
                                             p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
-                                            h2(strong("Software used:")),
+                                            h2(strong("Software used")),
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                             column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -67,10 +67,10 @@ mod_indexBaseApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                      tabsetPanel(
-                                       tabPanel(div( icon("dice-one"), "Pick MTA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
+                                       tabPanel(div( icon("dice-one"), "Pick MTA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2IdxB"), "MTA version to analyze (required)", choices = NULL, multiple = TRUE)),
+                                                       column(width=8, selectInput(ns("version2IdxB"), "MTA version(s) to analyze", choices = NULL, multiple = TRUE)),
 
                                                 ),
                                                 column(width=12),
@@ -85,30 +85,36 @@ mod_indexBaseApp_ui <- function(id){
                                                                     DT::DTOutput(ns("tablePredictionsTraitsWide")),
                                                 ),
                                        ),
-                                       tabPanel( div( icon("dice-two"), "Pick traits",  icon("arrow-right") ), # icon = icon("dice-two"),
+                                       tabPanel( div( icon("dice-two"), "Pick trait(s)",  icon("arrow-right") ), # icon = icon("dice-two"),
                                                  br(),
 
                                                  column(width=3, style = "background-color:grey; color: #FFFFFF",
-                                                        selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze (required)", choices = NULL, multiple = TRUE),
+                                                        selectInput(ns("traitsBaseIndex"), "Trait(s) to analyze", choices = NULL, multiple = TRUE),
                                                         uiOutput(ns("SliderBaseIndex"))
                                                  ),
 
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
-                                                column(width=12,
-                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                br(),
+                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                       column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                         "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                             title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                          placeholder = "(optional name)") ) ),
                                                        column(width = 3,
-                                                              actionButton(ns("runIdxB"), "Calculate index (click button)", icon = icon("play-circle")),
+                                                              br(),
+                                                              actionButton(ns("runIdxB"), "Calculate index", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcIdxBInfo")),
                                                               textOutput(ns("outIdxB")),
-                                                              hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                              br(),
+                                                              # hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        ),
-                                                       shinydashboard::box(width = 3, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
-                                                                           selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
-                                                       ),
+                                                       column(width=6,
+                                                              br(),
+                                                              shinydashboard::box(width = 12, status = "success", solidHeader=FALSE, style = "color: #000000",collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
+                                                                                  selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
+                                                                                  ),
+                                                              ),
                                                 ),
 
 

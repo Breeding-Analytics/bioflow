@@ -72,7 +72,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    # )
                                                ),
                                       ),
-                                      tabPanel(div( icon("dice-two"), "Select traits", icon("arrow-right") ) , # icon = icon("dice-two"),
+                                      tabPanel(div( icon("dice-two"), "Select trait(s)", icon("arrow-right") ) , # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, selectInput(ns("trait2Oft"), "Trait(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12),
@@ -132,7 +132,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    column(width=12, DT::DTOutput(ns('preview_pheno2')) ),
                                                ),
                                       ),
-                                      tabPanel( div( icon("dice-five"), "Select Environments",  icon("arrow-right") ), # icon = icon("dice-five"),
+                                      tabPanel( div( icon("dice-five"), "Select Environment(s)",  icon("arrow-right") ), # icon = icon("dice-five"),
                                                br(),
                                                column(width=12, selectInput(ns("env2Oft"), "Environment(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
                                                column(width=12),
@@ -155,10 +155,21 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    ),
                                                ),
                                       ),
-                                      tabPanel("Generate dashboard", icon = icon("dice-six"),
+                                      tabPanel("Build dashboard", icon = icon("dice-six"),
                                                br(),
-                                               actionButton(ns("runOft"), "Generate OFT Dashboard (click)", icon = icon("play-circle")),
-                                               uiOutput(ns("outOft"))
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                        "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                            title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "(optional name)") ) ),
+                                                      column(width=3,
+                                                             br(),
+                                                             actionButton(ns("runOft"), "Build dashboard", icon = icon("play-circle")),
+                                                             uiOutput(ns("outOft")),
+                                                             br(),
+                                                      ),
+
+                                               ),
                                       ),
                                     )
                            ),
@@ -265,7 +276,13 @@ mod_oftStaApp_server <- function(id, data){
       dtOft <- dtOft$status
       dtOft <- dtOft[which(dtOft$module == "sta"),]
       traitsOft <- unique(dtOft$analysisId)
-      if(length(traitsOft) > 0){names(traitsOft) <- as.POSIXct(traitsOft, origin="1970-01-01", tz="GMT")}
+      if(length(traitsOft) > 0){
+        if("analysisIdName" %in% colnames(dtOft)){
+          names(traitsOft) <- paste(dtOft$analysisIdName, as.POSIXct(traitsOft, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsOft) <- as.POSIXct(traitsOft, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Oft", choices = traitsOft)
     })
     ## traits
@@ -608,7 +625,7 @@ mod_oftStaApp_server <- function(id, data){
 
           if(!inherits(out,"try-error")) {
             oftAnalysisId <- as.numeric(Sys.time())
-            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId))
+            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
             modelingOft <- data.frame(module = rep("oft",6), analysisId = rep(oftAnalysisId,6),
                                       trait = rep("inputObject",6), environment = rep("general",6),
                                       parameter = c("traits", "fieldinst", "mdisease", "tdisease", "sdisease", "analysisId"),
@@ -629,7 +646,7 @@ mod_oftStaApp_server <- function(id, data){
 
           if(!inherits(out,"try-error")) {
             oftAnalysisId <- as.numeric(Sys.time())
-            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId))
+            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
             modelingOft <- data.frame(module = rep("oft",3), analysisId = rep(oftAnalysisId,3),
                                       trait = rep("inputObject",3), environment = rep("general",3),
                                       parameter = c("traits", "fieldinst", "analysisId"),

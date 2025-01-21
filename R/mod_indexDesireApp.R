@@ -44,10 +44,10 @@ mod_indexDesireApp_ui <- function(id){
                                 scaled or not. If TRUE is selected, the values of the desire vector are expected to be expressed in
                                 standard deviations. If FALSE, the values of the desire vector are expected to be expressed in
                                 original-scale units."),
-                                            h2(strong("References:")),
+                                            h2(strong("References")),
                                             p("Pesek, J., & Baker, R. J. (1969). Desired improvement in relation to selection indices. Canadian journal of plant science, 49(6), 803-804."),
                                             p("Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature."),
-                                            h2(strong("Software used:")),
+                                            h2(strong("Software used")),
                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                             # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
@@ -55,12 +55,12 @@ mod_indexDesireApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                      tabsetPanel(
-                                       tabPanel(div( icon("dice-one"), "Pick MTA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
+                                       tabPanel(div( icon("dice-one"), "Pick MTA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=8, selectInput(ns("version2IdxD"),
                                                                                    label = tags$span(
-                                                                                     "MTA or MAS version to find traits (required)",
+                                                                                     "MTA or MAS version(s) to find traits",
                                                                                      tags$i(
                                                                                        class = "glyphicon glyphicon-info-sign",
                                                                                        style = "color:#FFFFFF",
@@ -108,7 +108,7 @@ mod_indexDesireApp_ui <- function(id){
                                                                    choices = NULL, multiple = FALSE),
                                                        selectInput(ns("effectType2IdxD"),
                                                                    label = tags$span(
-                                                                     "Effect type(s) to use",
+                                                                     "Effect type to use",
                                                                      tags$i(
                                                                        class = "glyphicon glyphicon-info-sign",
                                                                        style = "color:#FFFFFF",
@@ -166,19 +166,20 @@ mod_indexDesireApp_ui <- function(id){
 
                                        ),
                                        tabPanel("Run analysis", icon = icon("dice-three"),
+                                                br(),
                                                 column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                         "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                     title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                       column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                         "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                             title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                          placeholder = "(optional name)") ) ),
                                                        column(width=3,
                                                               br(),
-                                                              actionButton(ns("runIdxD"), "Calculate index (click button)", icon = icon("play-circle")),
+                                                              actionButton(ns("runIdxD"), "Calculate index", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcIdxDInfo")),
                                                        ),
                                                        column(width=6,
                                                               br(),
-                                                                shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional settings...",
+                                                                shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
                                                                                   selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                                                               ),
                                                        ),

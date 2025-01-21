@@ -16,88 +16,101 @@ mod_singleCrossGenoApp_ui <- function(id){
                                  type = "tabs",
 
                                  tabPanel( div(icon("book"), "Information") ,
-                                           br(),
-                                           h1(strong(span("Single Cross Marker Matrix Building Module", style="color:darkcyan"))),
-                                           h2(strong("Data Status (wait to be displayed):")),
-                                           uiOutput(ns("warningMessage")),
-                                           tags$br(),
-                                           # column(width=4, tags$br(),
-                                           shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                                           # ),
-                                           tags$br(),
                                            tags$body(
-                                             h2(strong("Details")),
-                                             p("Hybrid breeding based on single-cross of lines allows the genotyping of only the parental lines and the consequent
+                                             br(),
+                                             column(width = 6,
+                                                    h1(strong(span("Single Cross Marker Matrix Building Module", style="color:darkcyan"))),
+                                                    h2(strong("Data Status (wait to be displayed):")),
+                                                    uiOutput(ns("warningMessage")),
+                                                    tags$br(),
+                                                    # column(width=4, tags$br(),
+                                                    shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                                    # ),
+                                             ),
+
+                                             column(width = 6,
+                                                    h2(strong("Details")),
+                                                    p("Hybrid breeding based on single-cross of lines allows the genotyping of only the parental lines and the consequent
                                                                formation of single-cross marker matrices. The idea is that the user provides the marker information from the parental
                                                                lines and has uploaded a pedigree of the phenotypic dataset. The marker profiles of the possible cross combinations
                                                                will be computed based on the availability of the marker information. Some of the parameters required are:"),
-                                             # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
-                                             p(strong("Batch size to compute-")," the number of hybrids to build in each batch. Building all hybrids at once can be computationally
+                                                    # img(src = "www/qaRaw.png", height = 300, width = 600), # add an image
+                                                    p(strong("Batch size to compute-")," the number of hybrids to build in each batch. Building all hybrids at once can be computationally
                                                                intensive and unnecesary. The default value is 1000 hybrids per batch."),
-                                             p(strong("Compute all possible hybrids?-")," an indication to know if only the marker-profiles for the hybrids present in the pedigree dataset should be computed or
+                                                    p(strong("Compute all possible hybrids?-")," an indication to know if only the marker-profiles for the hybrids present in the pedigree dataset should be computed or
                                                                marker-profiles for all cross combinations should be created. This should be used carefully when the number of males and females in the pedigree file is big."),
-                                             h4(strong("Example")),
-                                             img(src = "www/scm.png",width = 1000), # add an image
-                                             h2(strong("References")),
-                                             p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
-                                             p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
-                                             h2(strong("Software")),
-                                             p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                                    h4(strong("Example")),
+                                                    img(src = "www/scm.png",width = 500), # add an image
+                                                    h2(strong("References")),
+                                                    p("Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792"),
+                                                    p("Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive and Non-Additive Genetic Variances and Predicting Genetic Merits Using Genome-Wide Dense Single Nucleotide Polymorphism Markers. PLoS ONE 7(9): e45293. doi:10.1371/journal.pone.0045293"),
+                                                    h2(strong("Software used")),
+                                                    p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
-                                             p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                                    p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                             ),
                                            )
-                                           #                     )
-                                           # )
                                  ),
                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                           tabsetPanel(
-                                            tabPanel(div( icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ) , # icon = icon("dice-one"),
+                                            tabPanel(div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
                                                      br(),
                                                      column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                             column(width=8, selectInput(ns("version2Scm"), "QA stamp to apply to markers", choices = NULL, multiple = FALSE) ),
 
                                                      ),
-                                                     column(width=12,
-                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                            h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                     column(width=12),
+                                                     shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                         column(width=12,
+                                                                                hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                         ),
+                                                                         column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                                         DT::DTOutput(ns("statusScm")), # modeling table
+                                                                         DT::DTOutput(ns("genoScm")), # data input
                                                      ),
-                                                     column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
-                                                     DT::DTOutput(ns("statusScm")), # modeling table
-                                                     DT::DTOutput(ns("genoScm")), # data input
                                             ),
                                             tabPanel(div( icon("dice-two"), "Pick batch size", icon("arrow-right") ), # icon = icon("dice-two"),
                                                      br(),
                                                      column(width=12, numericInput(ns("hybridBatch"), label = "Batch size to compute", value = 1000, min=1, max=10000, step=1000), style = "background-color:grey; color: #FFFFFF"),
-                                                     h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
-                                                     hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                     # shinydashboard::box(status="success",width = 12, solidHeader = TRUE, #background = "green",
-                                                     #                     column(width=12, style = "height:530px; overflow-y: scroll;overflow-x: scroll;",
-                                                     DT::DTOutput(ns("summariesScr")),
-                                                     #                            )
-                                                     # )
+                                                     column(width=12),
+                                                     shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                         column(width=12,
+                                                                                hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                         ),
+                                                                         DT::DTOutput(ns("summariesScr")),
+                                                     ),
                                             ),
                                             tabPanel( div(icon("dice-three"), "Pick crosses", icon("arrow-right") ), # icon = icon("dice-three"),
                                                       br(),
                                                       column(width=12, selectInput(ns("checkboxAllHybrids"), label = "Compute all possible hybrids?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE), style = "background-color:grey; color: #FFFFFF"),
-                                                      h5(strong(span("Visualizations below are only there to help you pick the right parameter values in the upper grey boxes. Please inspect them prior to run.", style="color:green"))),
-                                                      hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                      # shinydashboard::box(status="success",width = 12,  solidHeader = TRUE, #background = "green",
-                                                      column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
-                                                      column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
-                                                      column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
-                                                      column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
-                                                      # )
+                                                      column(width=12),
+                                                      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                          column(width=12,
+                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                 h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          ),
+                                                                          column(width = 6, sliderInput(ns("slider1"), label = "Number of mothers", min = 1, max = 500, value = c(1, 15))  ),
+                                                                          column(width = 6, sliderInput(ns("slider2"), label = "Number of fathers", min = 1, max = 500, value = c(1, 15))  ),
+                                                                          column(width=6, shiny::plotOutput(ns("plotPossibleCrosses")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" ),
+                                                                          column(width=6, shiny::plotOutput(ns("plotPossibleProfiles")),style = "height:460px; overflow-y: scroll;overflow-x: scroll;" )
+                                                      ),
                                             ),
                                             tabPanel("Run analysis", icon = icon("dice-four"),
-                                                     column(width=12,
-                                                            column(width=3, br(), tags$div(id="inline",textInput(ns("analysisIdName"), label = tags$span(
-                                                              "", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF; float:left",
-                                                                          title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                     br(),
+                                                     column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                            column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                              "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                                  title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
                                                               placeholder = "(optional name)") ) ),
-                                                            column(width=3,
+                                                            column(width=3, br(),
                                                                    actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
-                                                                   textOutput(ns("outScr"))
+                                                                   textOutput(ns("outScr")),
+                                                                   br(),
                                                             ),
                                                      )
 

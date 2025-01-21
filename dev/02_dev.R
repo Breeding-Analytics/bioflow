@@ -132,7 +132,7 @@
 # golem::add_module(name = "pggApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "schemeDesignApp", with_test = FALSE) # QA after sta
 # golem::add_module(name = "selSignApp", with_test = FALSE) # predicted genetic gain
-# golem::add_module(name = "dataConsistPotatoApp", with_test = FALSE) # predicted genetic gain
+# golem::add_module(name = "dataConsistApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "gwasqkApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "mutatioRateApp", with_test = FALSE) # predicted genetic gain
 # golem::add_module(name = "masApp", with_test = FALSE) # predicted genetic gain
@@ -150,7 +150,9 @@
 # golem::add_module(name = "meetTheTeamApp", with_test = FALSE) # home
 # golem::add_module(name = "contactUsApp", with_test = FALSE) # home
 # golem::add_module(name = "faqUsApp", with_test = FALSE) # home
+# golem::add_module(name = "glossary", with_test = FALSE) # home
 #
+# golem::add_module(name = "sectionInfoDRASApp", with_test = FALSE) # single trial analysis
 # golem::add_module(name = "sectionInfoQAApp", with_test = FALSE) # for quality assurance
 # golem::add_module(name = "sectionInfoTransformApp", with_test = FALSE) # for transformations
 # golem::add_module(name = "sectionInfoGEApp", with_test = FALSE) # for genetic evaluation

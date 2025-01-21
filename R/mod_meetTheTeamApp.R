@@ -20,15 +20,15 @@ mod_meetTheTeamApp_ui <- function(id){
                             ),
                             column(width = 12,
 
-                                   shinydashboard::box(status="success", width = 6,
-                                                       title = "Contributors of analytical modules:", solidHeader = TRUE,
+                                   shinydashboard::box(status="success", width = 5,
+                                                       title = "Contributors of Analytical Modules", solidHeader = TRUE,
                                                        img(src = " www/centers.png", height = 400, width = 480), # add an image
                                                        p(" "),
                                                        p("All CGIAR centers with Biometrics capacity have contributed to the design of the breeding analytics platform
                                                   and currently work in developing analytical modules. Want to contribute? Contact us.")
                                    ),
-                                   shinydashboard::box(status="success", width = 6,
-                                                       title = "Team Activities:", solidHeader = TRUE,
+                                   shinydashboard::box(status="success", width = 7,
+                                                       title = "Team Activities", solidHeader = TRUE,
                                                        slickR::slickROutput(ns("teamPhoto")),
                                                        br(),
                                                        br(),
@@ -37,7 +37,7 @@ mod_meetTheTeamApp_ui <- function(id){
                                                        br()
                                    ),
                                    shinydashboard::box(status="success", width = 12,
-                                                       title = "Team members across centers:", solidHeader = TRUE,
+                                                       title = "Team Members across Centers", solidHeader = TRUE,
                                                        p(strong("ABI:"), "Christian Werner (C.WERNER@cgiar.org), Dorcus Gemenet (d.gemenet@cgiar.org) "),
                                                        p(strong("AfricaRice:"), "Aubin Amagnide (A.Amagnide@cgiar.org)"),
                                                        p(strong("CIAT:"),"Sergio Cruz (S.Cruz@cgiar.org), Christian Cadena (C.C.Cadena@cgiar.org) "),
@@ -46,7 +46,8 @@ mod_meetTheTeamApp_ui <- function(id){
                                                        p(strong("ICARDA: "),"Khaled Al-Shamaa (K.EL-SHAMAA@cgiar.org)"),
                                                        p(strong("ICRISAT: "),"Anitha Raman (Anitha.raman@icrisat.org) "),
                                                        p(strong("IITA: "),"Ibnou Dieng (i.dieng@cgiar.org) "),
-                                                       p(strong("IRRI: "),"Giovanny Covarrubias-Pazaran (g.covarrubias@irri.org), Alaine Guilles (a.gulles@irri.org), Justine Bonifacio (j.bonifacio@irri.org), Daniel Pisano(d.pisano@irri.org), Leilani Nora (l.nora@irri.org)"),
+                                                       p(strong("IRRI: "),"Alaine Guilles (a.gulles@irri.org), Justine Bonifacio (j.bonifacio@irri.org), Daniel Pisano(d.pisano@irri.org), Leilani Nora (l.nora@irri.org)"),
+                                                       p(strong("Other"),"Giovanny Covarrubias-Pazaran (covaruberpaz@gmail.com)"),
                                    ),
 
                                    ),
