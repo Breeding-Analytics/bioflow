@@ -79,15 +79,21 @@ mod_qaGenoApp_ui <- function(id) {
       ),
       tabPanel("Imputation", icon = icon("gears"), br(),
                fluidRow(
-                 inputPanel(
-                   selectInput(
-                     ns("imputationMethod"),
-                     "Imputation method",
-                     choices = c("frequency"),
-                     multiple = FALSE
-                   )),
-                 actionButton(ns('run_imputation'),
-                              'Apply Imputation')
+                 column(width = 4,
+                        verbatimTextOutput(ns('pre_imp_metrics'))
+                        ),
+                 column(width = 8,
+                        inputPanel(
+                          selectInput(
+                            ns("imputationMethod"),
+                            "Imputation method",
+                            choices = c("frequency"),
+                            multiple = FALSE
+                          ),
+                          actionButton(ns('run_imputation'),
+                                  'Apply Imputation')
+                          ),
+                        )
                )),
       tabPanel("Output", icon = icon("book"), br(), fluidRow(
         style = "background-color:grey; color: #FFFFFF",
@@ -181,7 +187,15 @@ mod_qaGenoApp_server <- function(id, data) {
                                    filter = FALSE,
                                    preview_geno = NULL,
                                    filter_log = NULL,
-                                   imputation_log = NULL)
+                                   imputation_log = NULL,
+                                   metric_mappings = list(
+                                     "MAF" = 'maf',
+                                     "Missingness by locus" = 'loc_miss',
+                                     "Heterozygosity by locus" ='loc_het',
+                                     "Inbreeding by locus" = 'loc_Fis',
+                                     "Missingness by individual" = 'ind_miss',
+                                     "Heterozygosity by individual" = 'ind_het'
+                                   ))
     geno_qa_data$filt_seq <- data.frame()
     geno_qa_data$overall_summary <- data.frame()
 
@@ -232,13 +246,16 @@ mod_qaGenoApp_server <- function(id, data) {
       info = FALSE
     ))
 
-    output$ov_summary_tab <- DT::renderDT({
-      DT = geno_qa_data$overall_summary
-    }, options = list(
-      paging = FALSE,
-      searching = FALSE,
-      info = FALSE
-    ))
+    output$ov_summary_tab <- DT::renderDataTable({
+      summary_table = geno_qa_data$overall_summary
+      DT::datatable(summary_table,
+                    colnames = c("Dataset", "No. Loci", "No. Inds", "Overall Miss", 'Mean Ind. Het', "Mean MAF"),
+                    options = list(escape = F,
+                                   searching = F,
+                                   info = F,
+                                   filter = F,
+                                   padding = F))
+    })
 
 
     output$filter_log_tab <- DT::renderDT({
@@ -258,7 +275,7 @@ mod_qaGenoApp_server <- function(id, data) {
 
       updateSelectInput(
         inputId = 'filt_param',
-        choices = c(geno_qa_data$loc_metrics, geno_qa_data$ind_metrics)
+        choices = geno_qa_data$metric_mappings
       )
 
       plot_metrics()
@@ -326,7 +343,7 @@ mod_qaGenoApp_server <- function(id, data) {
         output$filt_seq_error <- renderText("Threshold needs to be greather than zero and decimal")
       } else {
         added_row <- data.frame(
-          Paramete = isolate(input$filt_param),
+          Parameter = isolate(input$filt_param),
           Filter = isolate(input$filt_op),
           Threshold = isolate(input$filt_tresh)
         )
@@ -377,6 +394,8 @@ mod_qaGenoApp_server <- function(id, data) {
       if (!geno_qa_data$filter) {
         geno_qa_data$filter <- TRUE
       }
+
+
 
     })
 
@@ -432,6 +451,27 @@ mod_qaGenoApp_server <- function(id, data) {
       shinybusy::remove_modal_spinner()
     })
 
+    # Imputation reactive expressions
+    output$pre_imp_metrics <- renderPrint(
+
+      if(geno_qa_data$filter){
+        filt_data <- geno_qa_data$overall_summary[2,]
+        nas_number <- sum(adegenet::glNA(geno_qa_data$preview_geno$gl)/data()$metadata$ploidity)
+        info_text <- glue::glue("General Information
+                                Ploidity level: {data()$metadata$ploidity}
+                                Number of loci: {filt_data$nloc}
+                                Number of individuals: {filt_data$nind}
+                                Number of imputations: {nas_number}
+                                Overall Missing rate: {filt_data$ov_miss}
+                                Minimum MAF: {round(min(geno_qa_data$preview_geno$gl@other$loc.metrics$maf), 4)}")
+        cat(info_text)
+      } else {
+        helper_message <- "To use the imputation module first filter the genotypic matrix"
+        cat(helper_message)
+      }
+    )
+
+
     observeEvent(input$run_imputation, {
       req(geno_qa_data$preview_geno$gl)
 
@@ -440,6 +480,7 @@ mod_qaGenoApp_server <- function(id, data) {
       geno_qa_data$imputation_log <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
                                            ploidity = data()$metadata$ploidity,
                                            method = input$imputationMethod)
+
       shinybusy::remove_modal_spinner()
     })
 
