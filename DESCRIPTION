@@ -76,7 +76,8 @@ Imports:
     tibble,
     tidyr,
     utils,
-    vcfR
+    vcfR,
+    digest
 Suggests: 
     knitr,
     rmarkdown,

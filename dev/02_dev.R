@@ -80,6 +80,7 @@
 # usethis::use_package("httr2")
 # usethis::use_package("jsonlite")
 # usethis::use_package("shinyBS")
+# usethis::use_package("digest")
 #
 # usethis::use_package( "shinymanager" )
 #
