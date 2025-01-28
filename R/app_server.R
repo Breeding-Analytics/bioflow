@@ -19,6 +19,9 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
+modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStr","mtaLmms"),
+                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver"))
+
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
   stopifnot(is.character(name) && length(name) == 1)
@@ -260,27 +263,28 @@ app_server <- function(input, output, session) {
 
   # this code will be run after the client has disconnected
   session$onSessionEnded(function() {
+    dashboard_key <- "Bioflow@wkH71dJ&qaT"
+    req_origin    <- "https://bioflow.ebsproject.org"
+
     if (session$userData$url_hostname == "bioflow.ebsproject.org") {
       dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
-      dashboard_key <- "Bioflow@wkH71dJ&qaT"
-
-      req_origin <- "https://bioflow.ebsproject.org"
-      user_email <- session$userData$temp$user
+      user_email    <- session$userData$temp$user
     } else {
       dashboard_url <- "https://cgiar-service-portal-tst.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
-      dashboard_key <- "Bioflow@wkH71dJ&qaT"
-
-      req_origin <- "http://127.0.0.1:1410"
-      user_email <- "test@example.com"
+      user_email    <- "test@example.com"
     }
 
     status <- session$userData$temp$status
 
     for (i in 1:nrow(status)) {
       # prepare the data as an R list
+      module_name <- ifelse(length(modules[modules$module == status[i,"module"], "moduleName"]) == 0,
+                            "", modules[modules$module == status[i,"module"], "moduleName"])
+
       data <- list(
         Email      = user_email,
         Module     = status[i,"module"],
+        ModuleName = module_name,
         Timestamp  = format(as.POSIXct(status[i,"analysisId"], tz = "GMT"), "%Y-%m-%dT%H:%M:%OS4")
       )
 
@@ -307,9 +311,7 @@ app_server <- function(input, output, session) {
         stop(sprintf("HTTP error! status: %s", httr2::resp_status(response)))
       }
 
-      if (req_origin == "http://127.0.0.1:1410") {
-        warning(httr2::resp_body_string(response))
-      }
+      # warning(httr2::resp_body_string(response))
 
       Sys.sleep(1)
     }
