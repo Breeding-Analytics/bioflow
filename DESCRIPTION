@@ -77,7 +77,8 @@ Imports:
     tibble,
     tidyr,
     utils,
-    vcfR
+    vcfR,
+    dartR (>= 2.9.7)
 Suggests: 
     knitr,
     rmarkdown,
@@ -90,10 +91,11 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2.9000
-Remotes: 
+Remotes:  
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
     Breeding-Analytics/cgiarGenomics,
     reyzaguirre/st4gi,
-    covaruber/lme4breeding
+    covaruber/lme4breeding,
+    green-striped-gecko/dartR

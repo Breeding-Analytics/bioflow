@@ -42,7 +42,7 @@ golem::add_dockerfile_with_renv_shinyproxy()
 # Deploy to Posit Connect or ShinyApps.io
 # In command line.
 rsconnect::deployApp(
-  appName = desc::desc_get_field("Package"),
+  appName = "bioflow_scruz",
   appTitle = desc::desc_get_field("Package"),
   appFiles = c(
     # Add any additional files unique to your app here.
