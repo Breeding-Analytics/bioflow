@@ -72,10 +72,10 @@ app_ui <- function(request) {
 
       navbarMenu("Data Management ", icon = icon("upload"),
 
-                 tabPanel(strong("DATA RETRIEVAL AND SAVING") ),
+                 tabPanel(strong("DATA RETRIEVAL AND SAVING"), mod_sectionInfoDRASApp_ui("sectionInfoDRASApp_1") ),
                  tabPanel(div(icon("folder"), "Retrieve New Data"),
                           tabsetPanel( #widths = c(1, 11),
-                            tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1") ),
+                            tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1")  ),
                             tabPanel(div(icon("dna"), "Genotypic"), mod_getDataGeno_ui("getDataGeno_1") ),
                             tabPanel(div(icon("code-fork"), "Pedigree"), mod_getDataPed_ui("getDataPed_1") ),
                             tabPanel(div(icon("anchor"), "QTL profile"), mod_getDataQTL_ui("getDataQTL_1") ),
@@ -87,7 +87,7 @@ app_ui <- function(request) {
                  ),
                  tabPanel(div( icon("floppy-disk"), "Save Data/Results",  ), mod_saveData_ui("saveData_1")  ),
 
-                 tabPanel(strong("DATA QUALITY CHECK") ),
+                 tabPanel(strong("DATA QUALITY CHECK"), mod_sectionInfoQAApp_ui("sectionInfoQAApp_1") ),
                  tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                  tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                  #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),

@@ -1,7 +1,7 @@
 ---
 title: "Single Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "December 03, 2024"  
+date: "January 16, 2025"  
 output: html_document
 params:
   toDownload: FALSE
@@ -43,7 +43,7 @@ The following table allows to see how many locations had data for the different 
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outd1c96541b4e868cc" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outde8aaf5bada2b11f" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -56,35 +56,32 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta-label" for="staApp_1-traitSta">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitSta" class="shiny-input-select"><option value="PH_ALL" selected>PH_ALL</option>
-<option value="GYKGPHA">GYKGPHA</option>
-<option value="DTF">DTF</option></select>
+<select id="staApp_1-traitSta" class="shiny-input-select"><option value="Grain yield (t/ha)" selected>Grain yield (t/ha)</option>
+<option value="Straw yield (t/ha)">Straw yield (t/ha)</option>
+<option value="Harvest index">Harvest index</option>
+<option value="Plant height (cm) at maturity">Plant height (cm) at maturity</option>
+<option value="Ear bearing tillers/ sqm">Ear bearing tillers/ sqm</option>
+<option value="Filled grain/panicle">Filled grain/panicle</option>
+<option value="Unfilled grain/panicle">Unfilled grain/panicle</option>
+<option value="Sterility %">Sterility %</option>
+<option value="1000 Grain wt. (g)">1000 Grain wt. (g)</option>
+<option value="Panicle length (cm)">Panicle length (cm)</option>
+<option value="Number of Spikelet/panicle">Number of Spikelet/panicle</option></select>
 <script type="application/json" data-for="staApp_1-traitSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outc63c1d13bad8491a" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out5888f6786d6ace62" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
-### Field view
-
-The following heatmaps allow you to inspect the spatial trends in the different fields to take corrective measures in the next season and understand why some variance components may look the way they look.
 
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="staApp_1-traitStaFieldView-label" for="staApp_1-traitStaFieldView">Trait to filter:</label>
-<div>
-<select id="staApp_1-traitStaFieldView" class="shiny-input-select"><option value="PH_ALL" selected>PH_ALL</option>
-<option value="DTF">DTF</option>
-<option value="GYKGPHA">GYKGPHA</option></select>
-<script type="application/json" data-for="staApp_1-traitStaFieldView" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out9dc280a3c39b8f83" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+
 
 ### Output parameters 
 
@@ -97,14 +94,22 @@ This barplot allows you to see the variance components values and ratios for the
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitSta0-label" for="staApp_1-traitSta0">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="PH_ALL" selected>PH_ALL</option>
-<option value="GYKGPHA">GYKGPHA</option>
-<option value="DTF">DTF</option></select>
+<select id="staApp_1-traitSta0" class="shiny-input-select"><option value="Grain yield (t/ha)" selected>Grain yield (t/ha)</option>
+<option value="Straw yield (t/ha)">Straw yield (t/ha)</option>
+<option value="Harvest index">Harvest index</option>
+<option value="Plant height (cm) at maturity">Plant height (cm) at maturity</option>
+<option value="Ear bearing tillers/ sqm">Ear bearing tillers/ sqm</option>
+<option value="Filled grain/panicle">Filled grain/panicle</option>
+<option value="Unfilled grain/panicle">Unfilled grain/panicle</option>
+<option value="Sterility %">Sterility %</option>
+<option value="1000 Grain wt. (g)">1000 Grain wt. (g)</option>
+<option value="Panicle length (cm)">Panicle length (cm)</option>
+<option value="Number of Spikelet/panicle">Number of Spikelet/panicle</option></select>
 <script type="application/json" data-for="staApp_1-traitSta0" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out60ddf8e2427717e5" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out7e9a75e9ba6e86e2" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -119,12 +124,8 @@ This barplot allows you to see the variance components values and ratios for the
 <option value="r2_designation" selected>r2_designation</option>
 <option value="V_designation_designation" selected>V_designation_designation</option>
 <option value="V_repF_designation" selected>V_repF_designation</option>
-<option value="V_iBlockF_designation" selected>V_iBlockF_designation</option>
 <option value="V_residual_designation" selected>V_residual_designation</option>
-<option value="mean_designation" selected>mean_designation</option>
-<option value="V_rowF_designation" selected>V_rowF_designation</option>
-<option value="V_colF_designation" selected>V_colF_designation</option>
-<option value="V_s(row, col)_designation" selected>V_s(row, col)_designation</option></select>
+<option value="mean_designation" selected>mean_designation</option></select>
 <script type="application/json" data-for="staApp_1-parameterMetrics" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -147,13 +148,13 @@ The following barplot is designed to provide a high-level view of estimated para
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outad4fc3aad6b091f4" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outbcb053f9f4c51510" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out5493abed2e7a1275" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out3ba9b0f4164b0599" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Predictions
@@ -167,44 +168,13 @@ The following table allows you to check the trait by environment adjusted means 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-envSta-label" for="staApp_1-envSta">Environment to filter:</label>
 <div>
-<select id="staApp_1-envSta" class="shiny-input-select"><option value="2022_WS_Agusan de Norte, Philippines_Agusan de Norte, Philippines-2022" selected>2022_WS_Agusan de Norte, Philippines_Agusan de Norte, Philippines-2022</option>
-<option value="2023_DS_Laguna, Philippines_Laguna, Philippines-2023">2023_DS_Laguna, Philippines_Laguna, Philippines-2023</option>
-<option value="2022_WS_Albay, Philippines_Albay, Philippines-2022">2022_WS_Albay, Philippines_Albay, Philippines-2022</option>
-<option value="2022_WS_Negros, Philippines_Negros, Philippines-2022">2022_WS_Negros, Philippines_Negros, Philippines-2022</option>
-<option value="2022_WS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2022">2022_WS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2022</option>
-<option value="2022_WS_Laguna, Philippines_Laguna, Philippines-2022">2022_WS_Laguna, Philippines_Laguna, Philippines-2022</option>
-<option value="2023_DS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2023">2023_DS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2023</option>
-<option value="2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka stress-2022">2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka stress-2022</option>
-<option value="2022_WS_Puttalam, Sri Lanka_Puttalam, Sri Lanka Early salinity non-stress">2022_WS_Puttalam, Sri Lanka_Puttalam, Sri Lanka Early salinity non-stress</option>
-<option value="2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka Early drought non-stress">2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka Early drought non-stress</option>
-<option value="2022_WS_Isabela, Philippines_Isabela, Philippines-2022">2022_WS_Isabela, Philippines_Isabela, Philippines-2022</option>
-<option value="2023_DS_Isabela, Philippines_Isabela, Philippines-2023">2023_DS_Isabela, Philippines_Isabela, Philippines-2023</option>
-<option value="2023_DS_Negros, Philippines_Negros, Philippines-2023">2023_DS_Negros, Philippines_Negros, Philippines-2023</option>
-<option value="2022_WS_Khajura, Nepal_Khajura, Nepal Early non-stress-2022">2022_WS_Khajura, Nepal_Khajura, Nepal Early non-stress-2022</option>
-<option value="2022_WS_Khajura, Nepal_Khajura, Nepal Early stress-2022">2022_WS_Khajura, Nepal_Khajura, Nepal Early stress-2022</option>
-<option value="2022_WS_CARDI, Cambodia_CARDI, Cambodia Early drought stress">2022_WS_CARDI, Cambodia_CARDI, Cambodia Early drought stress</option>
-<option value="2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh Early stress-2022">2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh Early stress-2022</option>
-<option value="2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh stress-2022">2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh stress-2022</option>
-<option value="2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh non-stress-2022">2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh non-stress-2022</option>
-<option value="2022_WS_CARDI, Cambodia_CARDI, Cambodia Early submergence stress">2022_WS_CARDI, Cambodia_CARDI, Cambodia Early submergence stress</option>
-<option value="2022_WS_Mziva_Mziva, Mozambique-2022">2022_WS_Mziva_Mziva, Mozambique-2022</option>
-<option value="2022_WS_RCOL_RCOL, Mozambique-2022">2022_WS_RCOL_RCOL, Mozambique-2022</option>
-<option value="2022_WS_Can Tho, Vietnam_Can Tho, Vietnam Early stress-2022">2022_WS_Can Tho, Vietnam_Can Tho, Vietnam Early stress-2022</option>
-<option value="2022_WS_Mziva_Mziva, Mozambique">2022_WS_Mziva_Mziva, Mozambique</option>
-<option value="2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2022">2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2022</option>
-<option value="2022_WS_Bagamoyo_Bagamoyo, Tanzania-2022">2022_WS_Bagamoyo_Bagamoyo, Tanzania-2022</option>
-<option value="2022_WS_Mwea_Mwea, Kenya-2022">2022_WS_Mwea_Mwea, Kenya-2022</option>
-<option value="2022_WS_Kyela, Mbeya_Kyela, Mbeya, Tanzania-2022">2022_WS_Kyela, Mbeya_Kyela, Mbeya, Tanzania-2022</option>
-<option value="2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania">2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania</option>
-<option value="2022_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2022">2022_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2022</option>
-<option value="2023_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2023">2023_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2023</option>
-<option value="2023_WS_TARI, Morogoro_TARI, Morogoro, Tanzania-2023">2023_WS_TARI, Morogoro_TARI, Morogoro, Tanzania-2023</option>
-<option value="2023_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2023">2023_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2023</option></select>
+<select id="staApp_1-envSta" class="shiny-input-select"><option value="ICAR-RCER, Patna" selected>ICAR-RCER, Patna</option>
+<option value="ISARC, Varanasi">ISARC, Varanasi</option></select>
 <script type="application/json" data-for="staApp_1-envSta" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outaad787126908ce27" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-oute4696326071ee19b" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -215,14 +185,22 @@ The following boxplot allows you to see the distribution of predicted values by 
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaBox-label" for="staApp_1-traitStaBox">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="PH_ALL" selected>PH_ALL</option>
-<option value="GYKGPHA" selected>GYKGPHA</option>
-<option value="DTF" selected>DTF</option></select>
+<select id="staApp_1-traitStaBox" class="shiny-input-select"><option value="Grain yield (t/ha)" selected>Grain yield (t/ha)</option>
+<option value="Straw yield (t/ha)" selected>Straw yield (t/ha)</option>
+<option value="Harvest index" selected>Harvest index</option>
+<option value="Plant height (cm) at maturity" selected>Plant height (cm) at maturity</option>
+<option value="Ear bearing tillers/ sqm" selected>Ear bearing tillers/ sqm</option>
+<option value="Filled grain/panicle" selected>Filled grain/panicle</option>
+<option value="Unfilled grain/panicle" selected>Unfilled grain/panicle</option>
+<option value="Sterility %" selected>Sterility %</option>
+<option value="1000 Grain wt. (g)" selected>1000 Grain wt. (g)</option>
+<option value="Panicle length (cm)" selected>Panicle length (cm)</option>
+<option value="Number of Spikelet/panicle" selected>Number of Spikelet/panicle</option></select>
 <script type="application/json" data-for="staApp_1-traitStaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out9e9ae73a4d94dde0" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out4d4eeb938c662aab" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -236,9 +214,17 @@ In the following plot you can observe the comparison between the top 30 designat
 <div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaComp-label" for="staApp_1-traitStaComp">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaComp" class="shiny-input-select"><option value="PH_ALL" selected>PH_ALL</option>
-<option value="GYKGPHA">GYKGPHA</option>
-<option value="DTF">DTF</option></select>
+<select id="staApp_1-traitStaComp" class="shiny-input-select"><option value="Grain yield (t/ha)" selected>Grain yield (t/ha)</option>
+<option value="Straw yield (t/ha)">Straw yield (t/ha)</option>
+<option value="Harvest index">Harvest index</option>
+<option value="Plant height (cm) at maturity">Plant height (cm) at maturity</option>
+<option value="Ear bearing tillers/ sqm">Ear bearing tillers/ sqm</option>
+<option value="Filled grain/panicle">Filled grain/panicle</option>
+<option value="Unfilled grain/panicle">Unfilled grain/panicle</option>
+<option value="Sterility %">Sterility %</option>
+<option value="1000 Grain wt. (g)">1000 Grain wt. (g)</option>
+<option value="Panicle length (cm)">Panicle length (cm)</option>
+<option value="Number of Spikelet/panicle">Number of Spikelet/panicle</option></select>
 <script type="application/json" data-for="staApp_1-traitStaComp" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -247,39 +233,8 @@ In the following plot you can observe the comparison between the top 30 designat
 <div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCompEnv-label" for="staApp_1-traitStaCompEnv">Environment</label>
 <div>
-<select id="staApp_1-traitStaCompEnv" class="shiny-input-select"><option value="2022_WS_Agusan de Norte, Philippines_Agusan de Norte, Philippines-2022" selected>2022_WS_Agusan de Norte, Philippines_Agusan de Norte, Philippines-2022</option>
-<option value="2022_WS_Albay, Philippines_Albay, Philippines-2022">2022_WS_Albay, Philippines_Albay, Philippines-2022</option>
-<option value="2022_WS_Bagamoyo_Bagamoyo, Tanzania-2022">2022_WS_Bagamoyo_Bagamoyo, Tanzania-2022</option>
-<option value="2022_WS_Can Tho, Vietnam_Can Tho, Vietnam Early stress-2022">2022_WS_Can Tho, Vietnam_Can Tho, Vietnam Early stress-2022</option>
-<option value="2022_WS_CARDI, Cambodia_CARDI, Cambodia Early drought stress">2022_WS_CARDI, Cambodia_CARDI, Cambodia Early drought stress</option>
-<option value="2022_WS_CARDI, Cambodia_CARDI, Cambodia Early submergence stress">2022_WS_CARDI, Cambodia_CARDI, Cambodia Early submergence stress</option>
-<option value="2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania">2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania</option>
-<option value="2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2022">2022_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2022</option>
-<option value="2022_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2022">2022_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2022</option>
-<option value="2022_WS_Isabela, Philippines_Isabela, Philippines-2022">2022_WS_Isabela, Philippines_Isabela, Philippines-2022</option>
-<option value="2022_WS_Khajura, Nepal_Khajura, Nepal Early non-stress-2022">2022_WS_Khajura, Nepal_Khajura, Nepal Early non-stress-2022</option>
-<option value="2022_WS_Khajura, Nepal_Khajura, Nepal Early stress-2022">2022_WS_Khajura, Nepal_Khajura, Nepal Early stress-2022</option>
-<option value="2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh Early stress-2022">2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh Early stress-2022</option>
-<option value="2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh non-stress-2022">2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh non-stress-2022</option>
-<option value="2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh stress-2022">2022_WS_Kushtia, Bangladesh_Kushtia, Bangladesh stress-2022</option>
-<option value="2022_WS_Kyela, Mbeya_Kyela, Mbeya, Tanzania-2022">2022_WS_Kyela, Mbeya_Kyela, Mbeya, Tanzania-2022</option>
-<option value="2022_WS_Laguna, Philippines_Laguna, Philippines-2022">2022_WS_Laguna, Philippines_Laguna, Philippines-2022</option>
-<option value="2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka Early drought non-stress">2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka Early drought non-stress</option>
-<option value="2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka stress-2022">2022_WS_Murunkan, Sri Lanka_Murunkan, Sri Lanka stress-2022</option>
-<option value="2022_WS_Mwea_Mwea, Kenya-2022">2022_WS_Mwea_Mwea, Kenya-2022</option>
-<option value="2022_WS_Mziva_Mziva, Mozambique">2022_WS_Mziva_Mziva, Mozambique</option>
-<option value="2022_WS_Mziva_Mziva, Mozambique-2022">2022_WS_Mziva_Mziva, Mozambique-2022</option>
-<option value="2022_WS_Negros, Philippines_Negros, Philippines-2022">2022_WS_Negros, Philippines_Negros, Philippines-2022</option>
-<option value="2022_WS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2022">2022_WS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2022</option>
-<option value="2022_WS_Puttalam, Sri Lanka_Puttalam, Sri Lanka Early salinity non-stress">2022_WS_Puttalam, Sri Lanka_Puttalam, Sri Lanka Early salinity non-stress</option>
-<option value="2022_WS_RCOL_RCOL, Mozambique-2022">2022_WS_RCOL_RCOL, Mozambique-2022</option>
-<option value="2023_DS_Isabela, Philippines_Isabela, Philippines-2023">2023_DS_Isabela, Philippines_Isabela, Philippines-2023</option>
-<option value="2023_DS_Laguna, Philippines_Laguna, Philippines-2023">2023_DS_Laguna, Philippines_Laguna, Philippines-2023</option>
-<option value="2023_DS_Negros, Philippines_Negros, Philippines-2023">2023_DS_Negros, Philippines_Negros, Philippines-2023</option>
-<option value="2023_DS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2023">2023_DS_Nueva Ecija, Philippines_Nueva Ecija, Philippines-2023</option>
-<option value="2023_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2023">2023_WS_Dakawa, Morogoro_Dakawa, Morogoro, Tanzania-2023</option>
-<option value="2023_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2023">2023_WS_Ifakara, Morogoro_Ifakara, Morogoro, Tanzania-2023</option>
-<option value="2023_WS_TARI, Morogoro_TARI, Morogoro, Tanzania-2023">2023_WS_TARI, Morogoro_TARI, Morogoro, Tanzania-2023</option></select>
+<select id="staApp_1-traitStaCompEnv" class="shiny-input-select"><option value="ICAR-RCER, Patna" selected>ICAR-RCER, Patna</option>
+<option value="ISARC, Varanasi">ISARC, Varanasi</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCompEnv" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -287,7 +242,7 @@ In the following plot you can observe the comparison between the top 30 designat
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out9cbe99ec91695a16" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outf8526ac4baec2f4e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### Correlation between environments
@@ -299,14 +254,22 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="staApp_1-traitStaCor-label" for="staApp_1-traitStaCor">Trait to filter:</label>
 <div>
-<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="PH_ALL" selected>PH_ALL</option>
-<option value="GYKGPHA" selected>GYKGPHA</option>
-<option value="DTF" selected>DTF</option></select>
+<select id="staApp_1-traitStaCor" class="shiny-input-select"><option value="Grain yield (t/ha)" selected>Grain yield (t/ha)</option>
+<option value="Straw yield (t/ha)" selected>Straw yield (t/ha)</option>
+<option value="Harvest index" selected>Harvest index</option>
+<option value="Plant height (cm) at maturity" selected>Plant height (cm) at maturity</option>
+<option value="Ear bearing tillers/ sqm" selected>Ear bearing tillers/ sqm</option>
+<option value="Filled grain/panicle" selected>Filled grain/panicle</option>
+<option value="Unfilled grain/panicle" selected>Unfilled grain/panicle</option>
+<option value="Sterility %" selected>Sterility %</option>
+<option value="1000 Grain wt. (g)" selected>1000 Grain wt. (g)</option>
+<option value="Panicle length (cm)" selected>Panicle length (cm)</option>
+<option value="Number of Spikelet/panicle" selected>Number of Spikelet/panicle</option></select>
 <script type="application/json" data-for="staApp_1-traitStaCor" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out808a7af17c8ff09f" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outc5e948858e516a4b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 ### References of methods used

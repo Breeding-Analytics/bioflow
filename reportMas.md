@@ -22,14 +22,14 @@ The following table shows the total merit that has been calculated based on the 
 
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="masApp_1-out0d8aa135ca8ce629" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="masApp_1-out399aa4aac912bfb7" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Graph of merit
 <p>&nbsp;</p>
 
 The following graph shows the total merit that has been calculated based on the weights assigned for each QTL.
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="masApp_1-out25388acb645f93af" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="masApp_1-out25d4bf7d54fb533c" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Graph of QTL frequencies
 <p>&nbsp;</p>

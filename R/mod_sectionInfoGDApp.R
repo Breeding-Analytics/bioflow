@@ -24,7 +24,7 @@ mod_sectionInfoGDApp_ui <- function(id){
                                                   called gene mapping and comprises multiple methodologies. Classical methodologies developed last century such
                                                   as single-marker regression, interval mapping, composite interval mapping have show effective in mapping genes
                                                   in biparental populations."),
-                                                img(src = " www/gwas.png", height = 300, width = 700), # add an image
+                                                img(src = "www/gwas2.jpg", height = 430, width = 470), # add an image
                                                 p("More recent techniques in gene mapping include the so-called genome wide association studies (GWAS) that can identify genes in
                                                   more structured populations such as diversity panels and designed populations (e.g., MAGIC) by proper control of
                                                   structure using relarionship matrices and principal components methodologies. Latest methodologies bring the
