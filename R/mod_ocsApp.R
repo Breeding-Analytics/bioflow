@@ -815,7 +815,7 @@ mod_ocsApp_server <- function(id, data){
       req(data())
       dtOcs <- data()
       dtOcs <- dtOcs$status
-      dtOcs <- dtOcs[which(dtOcs$module %in% c("indexD")),]
+      dtOcs <- dtOcs[which(dtOcs$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr","indexD")),]
       traitsOcs <- unique(dtOcs$analysisId)
       if(length(traitsOcs) > 0){
         if("analysisIdName" %in% colnames(dtOcs)){
