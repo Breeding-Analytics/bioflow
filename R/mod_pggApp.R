@@ -171,7 +171,7 @@ mod_pggApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab, compute the 'environment' column, map the 'designation' and at least one trait.")) )
       }else{ # data is there
-        if( any(c("mtaLmms","mta","mtaFlex") %in% data()$status$module) ){
+        if( any(c("mtaLmms","mta","mtaAsr","mtaFlex") %in% data()$status$module) ){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain analysis specifying your input parameters under the Input tabs.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
       }
@@ -400,7 +400,7 @@ mod_pggApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtPgg <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtPgg$status$module %in% c("mta","mtaLmms","indexD")) == 0) {
+      if(sum(dtPgg$status$module %in% c("mta","mtaLmms","mtaAsr","indexD")) == 0) {
         output$qaQcPggInfo <- renderUI({
           if (hideAll$clearAll){
             return()
