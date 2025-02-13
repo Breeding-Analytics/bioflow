@@ -37,21 +37,15 @@ mod_mtaASREMLApp_ui <- function(id) {
                                     column(width = 6,
                                            h2(strong("Details")),
                                            p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis using Asreml-R,
-<<<<<<< Updated upstream
-                                           for use it you must have an ACTIVE LICENSE.
-=======
                                            for use it you must have and ACTIVE LICENSE.
->>>>>>> Stashed changes
+
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
                               analysis and optionally a relationship matrix between levels of the random effects. This module allows the flexibility to build your own customized module by specifying the
                               random effects and any relationship . In addition, the most popular GxE models can be selected with a single click to help the user understand how a
                               specific model could be specified.
                                 The way the arguments are used is the following:"),
-<<<<<<< Updated upstream
-                                           p(strong("Asreml license code.-")," Provide your code for activate the license."),
-=======
 
->>>>>>> Stashed changes
+                                           p(strong("Asreml license code.-")," Provide your code for activate the license."),
                                            p(strong("Traits to analyze.-")," Traits to be analyzed."),
                                            p(strong("Fixed effects.-")," Variables to be fitted as fixed effects."),
                                            p(strong("Random effects.-")," Variables to be fitted as random effects."),
@@ -72,7 +66,6 @@ mod_mtaASREMLApp_ui <- function(id) {
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-<<<<<<< Updated upstream
                                       tabPanel(div( icon("dice-one"), "ASReml license", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12),
@@ -85,8 +78,6 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                    )
                                                ),
                                       ),
-=======
->>>>>>> Stashed changes
                                       tabPanel(div( icon("dice-one"), "Pick STA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
@@ -147,7 +138,6 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12,
-<<<<<<< Updated upstream
                                                              column(width=6,
                                                                     br(),
                                                                     radioButtons(ns("radio"), label = "Variance-covariance model to fit",
@@ -157,7 +147,11 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                                    "Diagonal" = "diag_model",
                                                                                    "Simple" = "none"
                                                                                  ),
-                                                                                 selected = "none", inline=TRUE)
+                                                                                 selected = "none", inline=TRUE),
+                                                                    radioTooltip(id = ns("radio"), choice = "fa_model", title = "", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "us_model", title = "", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "none", title = "", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "diag_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover")
                                                              ),
                                                             column(width=6,
                                                                     numericInput(ns("nFATerm"),
@@ -169,34 +163,13 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                                      title = "Number of factor analytic term in the model."
                                                                                    )
                                                                                  ),
-                                                                                 value = NULL, step = 1, min = 1),
-                                                                    radioTooltip(id = ns("radio"), choice = "none", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "us_model", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "fa_model", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "diag_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover")
-=======
-                                                             column(width=12,
-                                                                    br(),
-                                                                    radioButtons(ns("radio"), label = "Variance-covariance model to fit",
-                                                                                 choices = list(
-                                                                                   "Simple" = "cor_model",
-                                                                                   "Unstructure" = "us_model",
-                                                                                   "Factor analytic"="fa_model",
-                                                                                   "Diagonal" = "diag_model",
-                                                                                 ),
-                                                                                 selected = "cor_model", inline=TRUE),
-                                                                    radioTooltip(id = ns("radio"), choice = "cor_model", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "us_model", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "fa_model", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "diag_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover"),
->>>>>>> Stashed changes
-                                                             ),
+                                                                                 value = NULL, step = 1, min = 1)
+                                                            ),
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
                                                              column(width=4,
-<<<<<<< Updated upstream
                                                                     selectInput(ns("TermsFixed"),
                                                                                  label = tags$span(
                                                                                    "Terms fixed",
@@ -224,8 +197,6 @@ mod_mtaASREMLApp_ui <- function(id) {
 
                                                              ),
                                                              column(width=4,
-=======
->>>>>>> Stashed changes
                                                                     radioButtons(ns("radioModel"), label = "Surrogate of merit",
                                                                                  choices = list(
                                                                                    "TGV" = "none",
@@ -239,15 +210,12 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
                                                                     br(),
-<<<<<<< Updated upstream
                                                                     #uiOutput(ns("rightSidesRandom"))
-=======
                                                                     uiOutput(ns("rightSidesRandom"))
->>>>>>> Stashed changes
                                                              ),
                                                       ),
                                                ),
-                                               column(width=12),
+                                               column(width=12,
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
                                                                    column(width=12,
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
@@ -287,7 +255,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                              column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
                                                                    ),
                                                ),
-                                      ),
+                                      ),),#end form your model
                                       tabPanel(div(icon("dice-four"), "Other options", icon("arrow-right") ),
                                                br(),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
@@ -302,11 +270,8 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                       shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
                                                                           textInput(ns("heritLBMet"),
                                                                                     label = tags$span(
-<<<<<<< Updated upstream
                                                                                       "Lower H2 and R2 bound",
-=======
                                                                                       "Lower H2&R2 bound",
->>>>>>> Stashed changes
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -316,11 +281,8 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                                     value="0.1"),
                                                                           textInput(ns("heritUBMet"),
                                                                                     label = tags$span(
-<<<<<<< Updated upstream
                                                                                       "Upper H2 and R2 bound",
-=======
                                                                                       "Upper H2&R2 bound",
->>>>>>> Stashed changes
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -357,13 +319,10 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                                            title = "Restricted Maximum Likelihood iterations. If the model doesn't converge you will see that in the metrics output table."
                                                                                          )
                                                                                        ),
-<<<<<<< Updated upstream
                                                                                        value = 100),
-=======
                                                                                        value = 35),
->>>>>>> Stashed changes
                                                       ),
-                                               ),
+                                               #),
                                                column(width = 6, style = "background-color:LightGray; color: #FFFFFF",
                                                       br(),
                                                       shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
@@ -371,7 +330,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                           DT::DTOutput(ns("traitDistMet")),
                                                       ),
                                                ),
-                                      ),
+                                      ),#end other options
                                       tabPanel("Run analysis", icon = icon("dice-five"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
@@ -388,18 +347,15 @@ mod_mtaASREMLApp_ui <- function(id) {
 
                                                ),
                                                textOutput(ns("outMtaAsr")),
-                                      ),
-                                    )
-                           ),
+                                      ),#end run analysis
+                                      )#end tabset input
+                                    
+                           ),#end input panel
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-<<<<<<< Updated upstream
                                                textOutput(ns("outMtaAsr2")),
-=======
-                                               textOutput(ns("outMtaAsr")),
->>>>>>> Stashed changes
                                                br(),
                                                downloadButton(ns("downloadReportMtaAsr"), "Download dashboard"),
                                                br(),
@@ -422,7 +378,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                            )# end of output panel
               )) # end mainpanel
 
-  )
+    )
 }
 
 #' mtaASREMLApp Server Functions
@@ -439,7 +395,7 @@ mod_mtaASREMLApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
-<<<<<<< Updated upstream
+
 
     ################
     ##ASReml license status
@@ -459,11 +415,9 @@ mod_mtaASREMLApp_server <- function(id, data){
       }
 
     )
-=======
->>>>>>> Stashed changes
     #################
     ## version
-    observeEvent(c(data()), {
+    observeEvent(data(), {
       req(data())
       dtMtaAsr <- data() # dtMtaAsr <- result
       dtMtaAsr <- dtMtaAsr$status
@@ -588,7 +542,6 @@ mod_mtaASREMLApp_server <- function(id, data){
       plotly::ggplotly(p)
     })
 
-<<<<<<< Updated upstream
     observeEvent(c(data(),input$version2MtaAsr,input$radio), {
       req(data())
       req(input$version2MtaAsr)
@@ -601,7 +554,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       if (input$radio == "fa_model") {
         golem::invoke_js('showid', ns('nFATerm'))
         golem::invoke_js('showid', ns('nFATermLab'))
-        n2 <- floor(length(envs)/2)
+        #n2 <- floor(length(envs)/2)
+        n2 <- length(envs)-1
         updateNumericInput(session, "nFATerm", value = n2, step = 1, min = 1, max=n2)
       }else{
         golem::invoke_js('hideid', ns('nFATerm'))
@@ -612,10 +566,6 @@ mod_mtaASREMLApp_server <- function(id, data){
 
     ## fixed effects
     observeEvent(c(data(),input$version2MtaAsr,input$trait2MtaAsr), { # input <- list(version2MtaAsr=result$status$analysisId[2])
-=======
-    ## fixed effects
-    output$leftSidesFixed <- renderUI({ # input <- list(version2MtaAsr=result$status$analysisId[2])
->>>>>>> Stashed changes
       req(data())
       req(input$version2MtaAsr)
       req(input$trait2MtaAsr)
@@ -627,7 +577,6 @@ mod_mtaASREMLApp_server <- function(id, data){
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
-<<<<<<< Updated upstream
       WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMtaAsr, wide=TRUE))
       WeatherRow$environment <- rownames(WeatherRow)
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
@@ -637,25 +586,9 @@ mod_mtaASREMLApp_server <- function(id, data){
       updateSelectInput(session,"TermsFixed",choices = choices, selected = "environment")
     })
 
+    
     ## left formula (actual effects) ## input <- list(version2MtaAsr=result$status$analysisId[2])
     observeEvent(c(data(),input$version2MtaAsr,input$trait2MtaAsr), {
-=======
-      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMtaAsr, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
-      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
-
-      choices <- c("none",setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") ))
-      envs <- unique(mydata[,"environment"])
-      envs <- gsub(" ", "",envs )
-      envsDg <- paste0("env",envs)
-      selectInput(
-            session$ns(paste0('leftSidesFixed')),
-            label = "Fixed Effects",
-            choices = choices, multiple = TRUE, selected = "environment"
-          )
-    })
-    ## left formula (actual effects) ## input <- list(version2MtaAsr=result$status$analysisId[2])
-    output$leftSidesRandom <- renderUI({
->>>>>>> Stashed changes
       req(data())
       req(input$version2MtaAsr)
       req(input$trait2MtaAsr)
@@ -668,7 +601,6 @@ mod_mtaASREMLApp_server <- function(id, data){
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
-<<<<<<< Updated upstream
       WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMtaAsr, wide=TRUE))
       WeatherRow$environment <- rownames(WeatherRow)
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
@@ -678,73 +610,7 @@ mod_mtaASREMLApp_server <- function(id, data){
     })
 
 
-        #################
-=======
-      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMtaAsr, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
-      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
-      choices <- c( setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ), "none","designation")
-      fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
-      # selected
-      envs <- unique(mydata[,"environment"])
-      envs <- gsub(" ", "",envs )
-      envsDg <- paste0("env",envs)
-      envsDg2 <- paste0(rep("environment",10),"")
-      desDg <-rep("designation",length(envsDg))
-
-      selectInput(
-            session$ns(paste0('leftSidesRandom')),
-            label = "Random Effects",
-            choices = choices, multiple = TRUE,
-            selected = "designation"
-          )
-    })
-    # right-side equation (explanatory covariates)
-    output$rightSidesRandom <- renderUI({
-      req(data())
-      req(input$version2MtaAsr)
-      req(input$trait2MtaAsr)
-      mydata <- data()$predictions #
-      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
-      choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
-      if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD")}
-      envs <- unique(mydata[,"environment"])
-      envsDg <- paste0("env",envs)
-      if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
-          selectInput(
-            inputId=session$ns(paste0('rightSidesRandom')),
-            label = "Covariance of random effect based on:",
-            choices = choices, multiple = TRUE,
-            selected = useMod2
-          )
-    })
-
-    # inputFormula summarizing the fixed effects
-    inputFormulaFixed = reactive({
-      req(data());  req(input$version2MtaAsr);  req(input$trait2MtaAsr)
-      if (length(input$trait2MtaAsr) != 0) {
-        values <- input$leftSidesFixed
-      }
-        return(values)
-    })
-    # inputFormula summarizing the random effects
-    inputFormulaRandom = reactive({
-      req(data());  req(input$version2MtaAsr);  req(input$trait2MtaAsr)
-      if (length(input$trait2MtaAsr) != 0) {
-        values <- input$leftSidesRandom
-        }
-        return(values)
-    })
-    # inputFormula summarizing the covariates
-    inputFormulaCovars = reactive({
-      req(data());  req(input$version2MtaAsr);  req(input$trait2MtaAsr)
-      if (length(input$trait2MtaAsr) != 0) {
-        values <- input$rightSidesRandom
-        }
-        return(values)
-    })
-
     #################
->>>>>>> Stashed changes
     # reactive table for trait family distributions
     dtDistTrait = reactive({
       traitNames = input$trait2MtaAsr
@@ -1043,10 +909,6 @@ mod_mtaASREMLApp_server <- function(id, data){
       p
     })
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     ###################################
     ###################################
     ###################################
@@ -1056,28 +918,18 @@ mod_mtaASREMLApp_server <- function(id, data){
     ###################################
     ###################################
     ## render result of "run" button click
-<<<<<<< Updated upstream
     outMtaAsr1 <- eventReactive(input$runMtaAsr, {
-=======
-    outMtaAsr <- eventReactive(input$runMtaAsr, {
->>>>>>> Stashed changes
-
+    #outMtaAsr <- eventReactive(input$runMtaAsr, {
       req(data())
       req(input$version2MtaAsr)
       req(input$trait2MtaAsr)
-<<<<<<< Updated upstream
       req(input$TermsFixed)
       req(input$TermsRandom)
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtMtaAsr <- data()
-=======
-
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      dtMtaAsr <- data()
       # inputFormulationFixed <- inputFormulaRandom()
       # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
->>>>>>> Stashed changes
       # run the modeling, but before test if sta was done
       if(sum(dtMtaAsr$status$module %in% "sta") == 0) {
         output$qaQcMtaAsrInfo <- renderUI({
@@ -1100,7 +952,7 @@ mod_mtaASREMLApp_server <- function(id, data){
 
         myEnvsTI = apply(x$df,2,function(z){z})
 
-<<<<<<< Updated upstream
+
         #analysisId=input$version2MtaAsr
         #fixedTerm= input$TermsFixed
         #randomTerm=input$TermsRandom
@@ -1127,14 +979,6 @@ mod_mtaASREMLApp_server <- function(id, data){
             fixedTerm= input$TermsFixed,  randomTerm=input$TermsRandom, covMod=input$radio, addG=input$radioModel,nFA=input$nFATerm,
             envsToInclude=myEnvsTI, trait= input$trait2MtaAsr, traitFamily=myFamily, useWeights=TRUE,
             calculateSE=TRUE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
-=======
-        result <- try(
-          cgiarPipeline::metASREML(
-            phenoDTfile= dtMtaAsr, analysisId=input$version2MtaAsr,
-            fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
-            envsToInclude=myEnvsTI, trait= input$trait2MtaAsr, traitFamily=myFamily, useWeights=input$useWeights,
-            calculateSE=input$calcSE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
->>>>>>> Stashed changes
             heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
             meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
             meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
@@ -1142,8 +986,8 @@ mod_mtaASREMLApp_server <- function(id, data){
           ),
           silent=TRUE
         )
-        if(!inherits(result,"try-error")) {
-          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+        if(!inherits(result,"try-error") ) {
+          if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -1151,53 +995,42 @@ mod_mtaASREMLApp_server <- function(id, data){
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
       }
-<<<<<<< Updated upstream
       #save(result,file="asrResult.RData")
       shinybusy::remove_modal_spinner()
+
       if(!inherits(result,"try-error")) { # if all goes well in the run
-        #################
         ## alert status converge
         observeEvent(result$modeling,{
-              modeling <- result$modeling
-              MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
-              MtaAsrId <- MtaAsrs[length(MtaAsrs)]
-              modeling <- modeling[which(modeling$analysisId == MtaAsrId),]
-              modeling <- subset(modeling, select = -c(module,analysisId))
-              vmod<-modeling[which(modeling$parameter=="convergence"),c("trait","value")]
-              cmod<-c()
-              for(imod in 1:dim(vmod)[1]){
-                if(vmod$value[imod]=="TRUE"){
-                    cmod[imod]<-paste("<font color=\"#008000\"><b>", vmod[imod,2], "</b></font>", " for trait ", vmod[imod,1])
-                    #paste("div(style='color: green;', 'Convergence status: ",vmod[imod,2]," for trait: ",vmod[imod,1],"')")
-                }else{
-                    cmod[imod]<-paste("<font color=\"#FF0000\"><b>", vmod[imod,2], "</b></font>", " for trait ", vmod[imod,1])
-                    #paste("div(style='color: red;', 'Convergence status: ",vmod[imod,2]," for trait: ",vmod[imod,1],"')")
-                }
-              }
-              #vmod<-apply(vmod,1,function(x){paste0("Convergence status ",x[2]," for trait ",x[1])})
-              cmod<-paste(cmod,collapse="<br>")
-              shinyWidgets::show_alert(
-                inputId = ns("mystatus"),
-                text = HTML(cmod),
-                title = "Convergence status",
-                type= "info",
-                html= TRUE
-              )
+          modeling <- result$modeling
+          MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+          MtaAsrId <- MtaAsrs[length(MtaAsrs)]
+          modeling <- modeling[which(modeling$analysisId == MtaAsrId),]
+          modeling <- subset(modeling, select = -c(module,analysisId))
+          vmod<-modeling[which(modeling$parameter=="convergence"),c("trait","value")]
+          cmod<-c()
+          for(imod in 1:dim(vmod)[1]){
+            if(vmod$value[imod]=="TRUE"){
+              cmod[imod]<-paste("<font color=\"#008000\"><b>", vmod[imod,2], "</b></font>", " for trait ", vmod[imod,1])
+              #paste("div(style='color: green;', 'Convergence status: ",vmod[imod,2]," for trait: ",vmod[imod,1],"')")
+            }else{
+              cmod[imod]<-paste("<font color=\"#FF0000\"><b>", vmod[imod,2], "</b></font>", " for trait ", vmod[imod,1])
+              #paste("div(style='color: red;', 'Convergence status: ",vmod[imod,2]," for trait: ",vmod[imod,1],"')")
+            }
+          }
+          #vmod<-apply(vmod,1,function(x){paste0("Convergence status ",x[2]," for trait ",x[1])})
+          cmod<-paste(cmod,collapse="<br>")
+          shinyWidgets::show_alert(
+            inputId = ns("mystatus"),
+            text = HTML(cmod),
+            title = "Convergence status",
+            type= "info",
+            html= TRUE
+          )
         })
         ## predictions table
         output$predictionsMtaAsr <-  DT::renderDT({
           predictions <- result$predictions
           predictions <- predictions[predictions$module=="mtaAsr",]
-=======
-
-      shinybusy::remove_modal_spinner()
-
-      if(!inherits(result,"try-error")) { # if all goes well in the run
-        ## predictions table
-        output$predictionsMtaAsr <-  DT::renderDT({
-          predictions <- result$predictions
-          predictions <- predictions[predictions$module=="MtaAsrLmms",]
->>>>>>> Stashed changes
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -1212,12 +1045,8 @@ mod_mtaASREMLApp_server <- function(id, data){
         output$metricsMtaAsr <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             metrics <- result$metrics
-<<<<<<< Updated upstream
             MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
             MtaAsrId <- MtaAsrs[length(MtaAsrs)]
-=======
-            MtaAsrs <- result$status[which(result$status$module == "MtaAsrLmms"),"analysisId"]; MtaAsrId <- MtaAsrs[length(MtaAsrs)]
->>>>>>> Stashed changes
             metrics <- metrics[which(metrics$analysisId == MtaAsrId),]
             metrics <- subset(metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
@@ -1231,12 +1060,8 @@ mod_mtaASREMLApp_server <- function(id, data){
         output$modelingMtaAsr <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             modeling <- result$modeling
-<<<<<<< Updated upstream
             MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
             MtaAsrId <- MtaAsrs[length(MtaAsrs)]
-=======
-            MtaAsrs <- result$status[which(result$status$module == "MtaAsrLmms"),"analysisId"]; MtaAsrId <- MtaAsrs[length(MtaAsrs)]
->>>>>>> Stashed changes
             modeling <- modeling[which(modeling$analysisId == MtaAsrId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',
@@ -1253,11 +1078,7 @@ mod_mtaASREMLApp_server <- function(id, data){
 
         output$downloadReportMtaAsr <- downloadHandler(
           filename = function() {
-<<<<<<< Updated upstream
             paste(paste0('MtaAsr_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
-=======
-            paste(paste0('MtaAsrLmms_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
->>>>>>> Stashed changes
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
@@ -1281,11 +1102,7 @@ mod_mtaASREMLApp_server <- function(id, data){
           }
         )
 
-<<<<<<< Updated upstream
-      }else {
-=======
       } else {
->>>>>>> Stashed changes
         output$predictionsMtaAsr <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         output$metricsMtaAsr <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         output$modelingMtaAsr <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
@@ -1297,18 +1114,12 @@ mod_mtaASREMLApp_server <- function(id, data){
     }) ## end eventReactive
 
     output$outMtaAsr <- renderPrint({
-<<<<<<< Updated upstream
       outMtaAsr1()
-=======
-      outMtaAsr()
->>>>>>> Stashed changes
     })
-
-
-
-
-  })
+      
+    })
 }
+
 
 ## To be copied in the UI
 # mod_mtaASREMLApp_ui("mtaASREMLApp_1")

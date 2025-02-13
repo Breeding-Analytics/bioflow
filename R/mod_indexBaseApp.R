@@ -123,6 +123,12 @@ mod_indexBaseApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                      tabsetPanel(
+                                       tabPanel("Dashboard", icon = icon("file-image"),
+                                                br(),
+                                                downloadButton(ns("downloadReportIndex"), "Download dashboard"),
+                                                br(),
+                                                DT::DTOutput(ns("BaseIndex"))
+                                       ),
                                        tabPanel("Predictions", icon = icon("table"),
                                                 br(),
                                                 DT::DTOutput(ns("predictionsIdxB"))
@@ -131,13 +137,6 @@ mod_indexBaseApp_ui <- function(id){
                                                 br(),
                                                 DT::DTOutput(ns("modelingIdxB"))
                                        ),
-                                       tabPanel("Dashboard", icon = icon("file-image"),
-                                                br(),
-                                                downloadButton(ns("downloadReportIndex"), "Download dashboard"),
-                                                br(),
-                                                DT::DTOutput(ns("BaseIndex"))
-
-                                       )
                                      )
                             )# end of output panel
                )) # end mainpanel
@@ -406,9 +405,7 @@ mod_indexBaseApp_server <- function(id, data){
         })
       }else{
         output$qaQcIdxBInfo <- renderUI({return(NULL)})
-        #result <- try(cgiarPipeline::baseIndex(
-        source("baseIndex.R")
-        result <- try(baseIndex(
+        result <- try(cgiarPipeline::baseIndex(
           dtBaseIndex,
           input$version2IdxB,
           input$analysisIdName,

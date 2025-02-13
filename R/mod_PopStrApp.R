@@ -435,24 +435,28 @@ mod_PopStrApp_server <- function(id, data){
       newPredMDS=list()
       for ( f in 2:5){
         newPredMDS[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="MDS", trait=names(tmpMDS)[f], gid=NA, designation=tmpMDS$Gen, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=tmpMDS[,f], stdError=NA, reliability=NA, effectType=NA )
+        newPredMDS[[f]]$predictedValue<-as.numeric(newPredMDS[[f]]$predictedValue)
       }
       newPredMDS=do.call(rbind,newPredMDS)
 
       newPredGeno=list()
       for ( f in 2:7){
         newPredGeno[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerGenotype",trait=names(uno[[4]][[5]])[f], gid=NA, designation=uno[[4]][[5]]$Genotype, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[5]][,f], stdError=NA, reliability=NA, effectType=NA )
+        newPredGeno[[f]]$predictedValue<-as.numeric(newPredGeno[[f]]$predictedValue)
       }
       newPredGeno=do.call(rbind,newPredGeno)
 
       newPredMark=list()
       for ( f in 2:8){
         newPredMark[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerMarker",trait=names(uno[[4]][[4]])[f], gid=NA, designation=rownames(uno[[4]][[4]]), mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[4]][,f], stdError=NA, reliability=NA, effectType=NA )
+        newPredMark[[f]]$predictedValue<-as.numeric(newPredMark[[f]]$predictedValue)
       }
       newPredMark=do.call(rbind,newPredMark)
 
       newmetricsSum=list()
       for (f in 1:9){
         newmetricsSum[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, trait=NA, environment=NA, parameter=uno[[4]][[6]][f,1], method="SummaryDiversityAnalysis", value= uno[[4]][[6]][f,2], stdError=NA)
+        newmetricsSum[[f]]$value<-as.numeric(newmetricsSum[[f]]$value)
       }
       newmetricsSum=do.call(rbind,newmetricsSum)
 
@@ -462,6 +466,7 @@ mod_PopStrApp_server <- function(id, data){
         for (g in 2:9){
           h=h+1
           newmetricsAMOVA[[h]] <- data.frame(module="PopStrM",analysisId=analysisId, trait=paste0(f,uno[[7]][f,1]), environment=NA, parameter=names(uno[[7]])[g], method="AMOVA", value= uno[[7]][f,g], stdError=NA)
+          newmetricsAMOVA[[f]]$value<-as.numeric(newmetricsAMOVA[[f]]$value)
         }
       }
       newmetricsAMOVA=do.call(rbind,newmetricsAMOVA)
@@ -469,6 +474,7 @@ mod_PopStrApp_server <- function(id, data){
       newmetricsPerc=list()
       for (f in 1:3){
         newmetricsPerc[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, trait=NA, environment=NA, parameter=paste0("Factor",f), method="VarExplained", value= uno[[3]][f], stdError=NA)
+        newmetricsPerc[[f]]$value<-as.numeric(newmetricsPerc[[f]]$value)
       }
       newmetricsPerc=do.call(rbind,newmetricsPerc)
 
@@ -477,10 +483,11 @@ mod_PopStrApp_server <- function(id, data){
       rownames(DistMat3)=uno[[4]][[7]][,2]
       DistMat3=data.frame(rows=rownames(DistMat3)[row(DistMat3)],cols=colnames(DistMat3)[col(DistMat3)],values=c(DistMat3))
       newPredDist=data.frame(module="PopStrM",analysisId=analysisId, pipeline=NA,trait="DistMat", gid=DistMat3[,1], designation=DistMat3[,2], mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=DistMat3[,3], stdError=NA, reliability=NA, effectType=NA )
+      newPredDist$predictedValue<-as.numeric(newPredDist$predictedValue)
 
       result$predictions<-rbind(result$predictions,newPredMDS,newPredGeno,newPredMark,newPredDist)
       result$metrics <- rbind(result$metrics, newmetricsSum,newmetricsAMOVA,newmetricsPerc)
-
+#save(result,file="verRes.RData")
       rm(newmetricsAMOVA,newmetricsPerc,newmetricsSum,newPredDist,newPredGeno,newPredMark, newPredMDS, DistMat3, uno,tmpMDS)
       gc()
 
