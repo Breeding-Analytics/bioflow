@@ -222,7 +222,7 @@ mod_traitTransformApp_server <- function(id, data){
       numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
       table <- DT::datatable(dtSta, extensions = 'Buttons',
                              options = list(dom = 'Blfrtip',scrollX = TRUE,
-                                            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                            buttons = c('copy', 'csv', 'excel', 'print'),
                                             lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))) %>%
         DT::formatRound(numeric.output) %>%
         DT::formatStyle(isolate({paramsNew$vars}), backgroundColor = "#009E60")
