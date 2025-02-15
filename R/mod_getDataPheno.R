@@ -12,6 +12,7 @@ pheno_example <- 'www/example/pheno.csv'
 mod_getDataPheno_ui <- function(id){
   ns <- NS(id)
   tagList(
+    shinyjs::useShinyjs(),
     tags$br(),
     # tags$p("The time is ", textOutput(ns("current_time"))),
 
@@ -191,8 +192,9 @@ mod_getDataPheno_ui <- function(id){
                                                # tags$div(id = ns('mapping_title_holder'),
                                                #          HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "2. Match/map your columns")) ),
                                                # ),
-                                               uiOutput(ns('brapi_trait_map')),
                                                uiOutput(ns('pheno_map')),
+                                               uiOutput(ns('brapi_trait_map')),
+                                               uiOutput(ns('pheno_map2'))
                            ),
                            # ),
                            # column(width=12,
@@ -270,6 +272,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('showid', ns('pheno_csv_options'))
           golem::invoke_js('hideid', ns('pheno_brapi_options'))
           golem::invoke_js('showid', ns('pheno_map'))
+          golem::invoke_js('hideid', ns('pheno_map2'))
           updateCheckboxInput(session, 'pheno_example', value = FALSE)
         } else if (input$pheno_input == 'url') {
           golem::invoke_js('hideid', ns('pheno_file_holder'))
@@ -277,6 +280,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('showid', ns('pheno_csv_options'))
           golem::invoke_js('hideid', ns('pheno_brapi_options'))
           golem::invoke_js('showid', ns('pheno_map'))
+          golem::invoke_js('hideid', ns('pheno_map2'))
         } else { # brapi
           golem::invoke_js('hideid', ns('pheno_file_holder'))
           golem::invoke_js('hideid', ns('pheno_url'))
@@ -286,6 +290,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('auth_server_holder'))
           golem::invoke_js('hideid', ns('data_server_holder'))
           golem::invoke_js('hideid', ns('pheno_map'))
+          golem::invoke_js('showid', ns('pheno_map2'))
           updateCheckboxInput(session, 'pheno_example', value = FALSE)
         }
       }
@@ -770,10 +775,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           output$brapi_trait_map <- renderUI({
             selectInput(
               inputId  = ns('brapi_traits'),
-              label    = 'Trait(s):',
+              label    = HTML(as.character(p('trait', span('(*required)',style="color:red")))),
               multiple = TRUE,
               choices  = as.list(c('', colnames(temp$data$pheno))),
             )
+
           })
 
           ### BrAPI auto mapping ###############################################
@@ -906,6 +912,29 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         )
       })
       fluidRow(do.call(tagList, pheno_map))
+    })
+
+    output$pheno_map2 <- renderUI({
+      if (is.null(pheno_data())) return(NULL)
+
+      temp <- data()
+      mapp2 <- c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')
+      header2 <- colnames(pheno_data())
+      pheno_map2 <- lapply(mapp2, function(x) {
+        column(3,
+               shinyjs::disabled(selectInput(
+                 inputId  = ns(paste0('select2', x)),
+                 label    = x,
+                 multiple = FALSE,
+                 choices  = as.list(c('', header2 )),
+                 # selected = temp$metadata$pheno[which(temp$metadata$pheno$parameter == x), 'value']
+                 selected = if(x %in% temp$metadata$pheno$parameter){
+                   temp$metadata$pheno[which(temp$metadata$pheno$parameter == x), 'value']
+                 }else{''}
+               ))
+        )
+      })
+      fluidRow(do.call(tagList,pheno_map2))
     })
 
     # observeEvent(

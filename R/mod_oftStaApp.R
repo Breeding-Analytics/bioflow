@@ -625,6 +625,9 @@ mod_oftStaApp_server <- function(id, data){
 
           if(!inherits(out,"try-error")) {
             oftAnalysisId <- as.numeric(Sys.time())
+            if(!"analysisIdName" %in% colnames(result$status)){
+              result$status$analysisIdName <- ""
+            }
             result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
             modelingOft <- data.frame(module = rep("oft",6), analysisId = rep(oftAnalysisId,6),
                                       trait = rep("inputObject",6), environment = rep("general",6),
@@ -646,6 +649,9 @@ mod_oftStaApp_server <- function(id, data){
 
           if(!inherits(out,"try-error")) {
             oftAnalysisId <- as.numeric(Sys.time())
+            if(!"analysisIdName" %in% colnames(result$status)){
+              result$status$analysisIdName <- ""
+            }
             result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
             modelingOft <- data.frame(module = rep("oft",3), analysisId = rep(oftAnalysisId,3),
                                       trait = rep("inputObject",3), environment = rep("general",3),
