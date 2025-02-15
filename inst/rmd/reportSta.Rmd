@@ -49,12 +49,12 @@ printTable <- function(DT, pageLength = 7,
                               }
                             }))
     colnames(DT) <- oldnames
-    table <- DT::datatable(data = DT, 
+    table <- DT::datatable(data = DT,
                            colnames = colNames,
                            filter = "top", 
                            options = list(autoWidth = autoWidthOpt,
                                           dom = 'l<<t>pB>', 
-                                          buttons = c('copy', 'excel'),
+                                          buttons = c('copy', 'csv', 'excel', 'print'),
                                           pageLength = pageLength,
                                           searchHighlight = TRUE,
                                           lengthMenu = c(7, 14, 21, 28, 35),
@@ -74,7 +74,7 @@ printTable <- function(DT, pageLength = 7,
 ```{r, include=FALSE}
 # Init Step to make sure that the dependencies are loaded
 htmltools::tagList(printTable(mtcars))
-htmltools::tagList(ggplotly(ggplot()))
+htmltools::tagList(ggplotly())
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -379,7 +379,7 @@ if (is.null(result)){
           maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-          
+          pheno$envLabel <- gsub("_", " ", pheno$environment)
           p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
             ggplot2::geom_tile(color = "white")+
             ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
@@ -387,8 +387,9 @@ if (is.null(result)){
                                           name=iTrait) +
             ggplot2::theme_minimal()+
             ggplot2::ylab("") + ggplot2::xlab("") +
-            ggplot2::facet_wrap(~environment, scales = "free") +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+            ggplot2::facet_wrap(~envLabel, scales = "free", labeller = labeller(envLabel = label_wrap_gen(width = 20))) +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) # +
+            # ggplot2::theme(panel.spacing.y = unit(5, "lines"))
           # print(p) # static
           print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
           
@@ -412,7 +413,7 @@ if (is.null(result)){
             ggplot2::theme_minimal()+
             ggplot2::ylab("") + ggplot2::xlab("") +
             ggplot2::facet_wrap(~environment, scales = "free") +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) + ggplot2::theme(panel.spacing = unit(0, 'points'))
           plotly::ggplotly(p)
           
         })

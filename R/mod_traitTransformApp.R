@@ -11,7 +11,7 @@ mod_traitTransformApp_ui <- function(id){
   ns <- NS(id)
   tagList(
 
-    shiny::mainPanel(width = 12,
+    shiny::mainPanel(width = 12, id = ns("tabs"),
                      tabsetPanel( #width=9,
                        type = "tabs",
 
@@ -41,17 +41,18 @@ mod_traitTransformApp_ui <- function(id){
                                 )
                        ),
                        tabPanel("Conversion", icon = icon("rocket"),
-                                tabsetPanel(
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                tabsetPanel(id=ns("tabConversion"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"), value = "tabConInput",
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                actionButton(ns("runTra"), "Convert traits", icon = icon("play-circle")),
+                                                               # span(strong(htmlOutput(ns("messageTra"))), style="color: red"),
                                                                textOutput(ns("outTraC")),
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
                                                                DT::DTOutput(ns("transTableC")),
                                            ),
                                   ),
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output") ,value = "tabConOutput" ,
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                DT::DTOutput(ns("rawPheno")),
@@ -60,38 +61,47 @@ mod_traitTransformApp_ui <- function(id){
                                 ),
                        ), # end of output panel
                        tabPanel("Equalizing", icon = icon("equals"),
-                                tabsetPanel(
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                tabsetPanel(id=ns("tabEqualizing"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),value = "tabEqualInput",
                                            br(),
                                            selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
                                            textInput(ns("newName"), label="Name for the new trait", value=NULL, placeholder = "New trait name"),
                                            actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
+                                           span(strong(htmlOutput(ns("messageEqual"))), style="color: red"),
                                            textOutput(ns("outEqual")),
-                                           hr(style = "border-top: 1px solid #4c4c4c;"),
+                                           # hr(style = "border-top: 1px solid #4c4c4c;"),
                                   ),
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output") ,value = "tabEqualOutput" ,
                                            br(),
                                            DT::DTOutput(ns("rawPheno2")),
                                   ),
                                 ),
                        ), # end of output panel
                        tabPanel("Free functions", icon = icon("scale-balanced"),
-                                tabsetPanel(
-                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),
+                                tabsetPanel(id=ns("tabFree"),
+                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input"),value = "tabFreeInput",
                                            br(),
                                            h4("Traits available"),
                                            uiOutput(ns("buttonsCalc")),
                                            br(),
                                            textInput(ns("newNameCalc"), label="Name for the new trait", value=NULL, placeholder = "New trait name"),
-                                           textInput(ns("text"), label = "Formula to compute (write it)", value = "function(x){x...}"),
+                                           textInput(ns("text"), label = tags$span(
+                                             "Formula to compute",
+                                             tags$i(
+                                               class = "glyphicon glyphicon-info-sign",
+                                               style = "color:#000000",
+                                               title = "List the traits to be used (separated by a comma) inside the function() then write the formula inside the curling braces {}"
+                                             )
+                                           ), value = "function(x){x...}"),
                                            # br(),
                                            # fluidRow(column(2, verbatimTextOutput(ns("valuex")))),
                                            # br(),
                                            actionButton(ns("runBal"), "Compute new trait", icon = icon("play-circle")),
                                            # br(),
+                                           span(strong(htmlOutput(ns("messageCalc"))), style="color: red"),
                                            textOutput(ns("outBal")),
                                   ),
-                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output" ) ,
+                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output") ,value = "tabFreeOutput" ,
                                            br(),
                                            DT::DTOutput(ns("rawPheno3")),
                                   ),
@@ -111,6 +121,7 @@ mod_traitTransformApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    paramsNew <- reactiveValues(vars = NULL)
 
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
@@ -129,6 +140,80 @@ mod_traitTransformApp_server <- function(id, data){
         }
       }
     )
+
+    # shinyjs::onevent("hover", id = "runTra",{
+    #   tableTra <- apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)]})
+    #   if(is.matrix(tableTra)){
+    #     names(tableTra) <- rep(colnames(tableTra), each = nrow(tableTra))
+    #     tableTra <- c(tableTra)
+    #   }
+    #   tableTra <- tableTra[!is.na(tableTra)]
+    #   tableTrait <- rep(names(tableTra), lengths(tableTra))
+    #   tableTrans <- as.vector(unlist(tableTra))
+    #   if(length(tableTrait) > 0){
+    #     if(any(paste(tableTrait, tableTrans, sep="_") %in% colnames(data()$data$pheno))){
+    #       shinyjs::disable("runTra")
+    #       output$messageTra <- renderText({paste0("ERROR: Column(s) ", paste0('"', paste(paste(tableTrait, tableTrans, sep="_")[which(paste(tableTrait, tableTrans, sep="_") %in% colnames(data()$data$pheno) == TRUE)], collapse='", "'), '"')," already exist.")})
+    #     } else{
+    #       output$messageTra <- renderText({""})
+    #     }
+    #   } else{
+    #     shinyjs::disable("runTra")
+    #     output$messageTra <- renderText({"No trait to transform."})
+    #   }
+    #
+    # })
+    #
+    # shinyjs::onevent("hover", id = "runEqual",{
+    #   if(input$newName == ""){
+    #     shinyjs::disable("runEqual")
+    #     output$messageEqual <- renderText({"ERROR: Please specify a name for equalized trait."})
+    #   }else{
+    #     if(input$newName %in% colnames(data()$data$pheno)){
+    #       shinyjs::disable("runEqual")
+    #       output$messageEqual <- renderText({paste0("ERROR: Column '", input$newName,"' already exist.")})
+    #     } else{
+    #       output$messageEqual <- renderText({""})
+    #     }
+    #   }
+    # })
+    #
+    # shinyjs::onevent("hover", id = "runBal",{
+    #   if(input$newNameCalc == ""){
+    #     shinyjs::disable("runBal")
+    #     output$messageCalc <- renderText({"ERROR: Please specify a name for calculated trait."})
+    #   }else{
+    #     if(input$newNameCalc %in% colnames(data()$data$pheno)){
+    #       shinyjs::disable("runBal")
+    #       output$messageCalc <- renderText({paste0("ERROR: Column '", input$newNameCalc,"' already exist.")})
+    #     } else{
+    #       output$messageCalc <- renderText({""})
+    #     }
+    #   }
+    # })
+    #
+    # observeEvent(input$transTableC_cell_edit,{
+    #   shinyjs::enable("runTra")
+    #   output$messageTra <- renderText({""})
+    # })
+    #
+    # observeEvent(input$newName,{
+    #   shinyjs::enable("runEqual")
+    #   output$messageEqual <- renderText({""})
+    # })
+    #
+    # observeEvent(input$newNameCalc,{
+    #   shinyjs::enable("runBal")
+    #   output$messageCalc <- renderText({""})
+    # })
+
+    # observeEvent(input$newName,{
+    #   shinyjs::delay(1000,
+    #                  if(input$newName %in% colnames(data()$data$pheno)){
+    #                    output$messageEqual <- renderText({paste0("Column '", input$newName,"' already exist. Note that the values will be replaced if continued.")})
+    #                  }else{output$messageEqual <- renderText({NULL})})
+    # })
+
     ## function to create the table of possibilities
     dtFieldTraC = reactive({
       req(data())
@@ -153,10 +238,10 @@ mod_traitTransformApp_server <- function(id, data){
                                       selection = 'none',
                                       editable = TRUE,
                                       server = FALSE,
-                                      options = list(paging=FALSE,
-                                                     searching=FALSE,
-                                                     initComplete = I("function(settings, json) {alert('Done.');}")
-                                      )
+                                      # options = list(paging=FALSE,
+                                      #                searching=FALSE,
+                                      #                initComplete = I("function(settings, json) {alert('Done.');}")
+                                      # )
     )
     proxy = DT::dataTableProxy('transTableC')
     observeEvent(input$transTableC_cell_edit, {
@@ -172,15 +257,23 @@ mod_traitTransformApp_server <- function(id, data){
       req(data())
       mydata <- data()
       if(!is.null(mydata$data$pheno)){
-        myTransformation = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
-        myTransformation = myTransformation[which(!is.na(myTransformation))]
+        myTransformation <- apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)]})
+        if(is.matrix(myTransformation)){
+          names(myTransformation) <- rep(colnames(myTransformation), each = nrow(myTransformation))
+          myTransformation <- c(myTransformation)
+        }
+        myTransformation <- myTransformation[!is.na(myTransformation)]
+        selTrait <- rep(names(myTransformation), lengths(myTransformation))
+        selTrans <- as.vector(unlist(myTransformation))
         result <- try(cgiarPipeline::traitTransformation(object = mydata, # input data
-                                                         trait=names(myTransformation), # selected trait
-                                                         transformation = as.vector(myTransformation)), # transformation for that trait
+                                                         trait=selTrait, # selected trait
+                                                         transformation = selTrans), # transformation for that trait
                       silent=TRUE
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
+          observe({paramsNew$vars <- intersect(colnames(result$data$pheno), paste(selTrait, selTrans, sep="_"))})
+          updateTabsetPanel(session, "tabConversion", selected = "tabConOutput")
           cat(paste("Additional traits added to the phenotypic dataset."))
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
@@ -203,10 +296,13 @@ mod_traitTransformApp_server <- function(id, data){
       ###
       traitTypes <- unlist(lapply(dtSta,class))
       numeric.output <- names(traitTypes)[which(traitTypes %in% "numeric")]
-      DT::formatRound(DT::datatable(dtSta, extensions = 'Buttons',
-                                    options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-      ), numeric.output)
+      table <- DT::datatable(dtSta, extensions = 'Buttons',
+                             options = list(dom = 'Blfrtip',scrollX = TRUE,
+                                            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))) %>%
+        DT::formatRound(numeric.output) %>%
+        DT::formatStyle(isolate({paramsNew$vars}), backgroundColor = "#009E60")
+      table
     }, server = FALSE)
 
     ################################################################################################
@@ -233,7 +329,10 @@ mod_traitTransformApp_server <- function(id, data){
         )
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
+          observe({paramsNew$vars <- input$newName})
+          updateTabsetPanel(session, "tabEqualizing", selected = "tabEqualOutput")
           cat(paste("Traits", paste(input$traitEqualPheno, collapse = ", "),"equalized. New trait created in the phenotypic dataset."))
+          # observe({input$newName <- NULL})
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
         }
@@ -250,7 +349,6 @@ mod_traitTransformApp_server <- function(id, data){
     ## BALANCING MODULE
     ################################################################################################
     ################################################################################################
-
 
     output$buttonsCalc <- renderUI({
       req(data())
@@ -270,30 +368,18 @@ mod_traitTransformApp_server <- function(id, data){
       req(data())
       req(input$newNameCalc)
 
-      # if( 1 < 3 ){
+      mydatax <- data()
 
-      result <- data()
-      f <- eval(parse(text = input$text )) # transform text into a function
-      # now get variables
-      dep <- deparse(f)
-      dep <- dep[grep("function",dep)]
-      dep <- gsub("function","cbind",dep)
-      responsef <- as.formula(paste(dep,"~1"))
-      mfna <- try(model.frame(responsef, data = result$data$pheno, na.action = na.pass), silent = TRUE)
-      mfna <- as.matrix(mfna) # matrix format to avoid a single column
-      colnames(mfna) <- all.vars(responsef) # assign colnames
-      mfna <- as.data.frame(mfna) # return back to data.frame format
-      # run the function and get the new variable
-      newVar <-  try( do.call(f, as.list(mfna) ), silent = TRUE )
-
+      result <- try(cgiarPipeline::freeFunction(object = mydatax, formula=input$text, newName=input$newNameCalc ), silent = TRUE)
       if(!inherits(result,"try-error")) {
-        # put the new variable in the dataset
-        result$data$pheno[,input$newNameCalc] <- as.vector(newVar)
-        # save results
         data(result)
+        observe({paramsNew$vars <- input$newNameCalc})
+        updateTabsetPanel(session, "tabFree", selected = "tabFreeOutput")
         print(paste("New variable", input$newNameCalc, "added to the dataset."))
+        cat(paste("Trait", input$newNameCalc, "computed. New trait created in the phenotypic dataset."))
+        # observe({input$newNameCalc <- NULL})
       }else{
-        print("We could not find the variables specified in your function.")
+        cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
       }
 
     })

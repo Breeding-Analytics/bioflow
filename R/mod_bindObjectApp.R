@@ -163,7 +163,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       DT::datatable(cgiarBase::summaryData(data()),
                     extensions = 'Buttons',
                     options = list(dom = 'lfrtip', # I changed Blfrtip to lfrtip and silenced the buttons
-                                   scrollX = TRUE,
+                                   # scrollX = TRUE,
                                    # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                     caption = htmltools::tags$caption(
@@ -242,7 +242,14 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
           if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
           if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
-          if(!is.null(result$status)){tmp$status <- result$status}
+          if(!is.null(result$status)){
+            if("analysisIdName" %in% colnames(result$status)){
+              tmp$status <- result$status
+            } else{
+              tmp$status <- result$status
+              tmp$status$analysisIdName <- ""
+            }
+          }
           data(tmp) # update data with results
           shinybusy::remove_modal_spinner()
 
