@@ -46,7 +46,6 @@ mod_traitTransformApp_ui <- function(id){
                                            br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                actionButton(ns("runTra"), "Convert traits", icon = icon("play-circle")),
-                                                               # span(strong(htmlOutput(ns("messageTra"))), style="color: red"),
                                                                textOutput(ns("outTraC")),
                                                                hr(style = "border-top: 1px solid #4c4c4c;"),
                                                                DT::DTOutput(ns("transTableC")),
@@ -67,7 +66,6 @@ mod_traitTransformApp_ui <- function(id){
                                            selectInput(ns("traitEqualPheno"), "Trait(s) to equalize", choices = NULL, multiple = TRUE),
                                            textInput(ns("newName"), label="Name for the new trait", value=NULL, placeholder = "New trait name"),
                                            actionButton(ns("runEqual"), "Equalize traits", icon = icon("play-circle")),
-                                           span(strong(htmlOutput(ns("messageEqual"))), style="color: red"),
                                            textOutput(ns("outEqual")),
                                            # hr(style = "border-top: 1px solid #4c4c4c;"),
                                   ),
@@ -98,7 +96,6 @@ mod_traitTransformApp_ui <- function(id){
                                            # br(),
                                            actionButton(ns("runBal"), "Compute new trait", icon = icon("play-circle")),
                                            # br(),
-                                           span(strong(htmlOutput(ns("messageCalc"))), style="color: red"),
                                            textOutput(ns("outBal")),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output") ,value = "tabFreeOutput" ,
@@ -140,79 +137,6 @@ mod_traitTransformApp_server <- function(id, data){
         }
       }
     )
-
-    # shinyjs::onevent("hover", id = "runTra",{
-    #   tableTra <- apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)]})
-    #   if(is.matrix(tableTra)){
-    #     names(tableTra) <- rep(colnames(tableTra), each = nrow(tableTra))
-    #     tableTra <- c(tableTra)
-    #   }
-    #   tableTra <- tableTra[!is.na(tableTra)]
-    #   tableTrait <- rep(names(tableTra), lengths(tableTra))
-    #   tableTrans <- as.vector(unlist(tableTra))
-    #   if(length(tableTrait) > 0){
-    #     if(any(paste(tableTrait, tableTrans, sep="_") %in% colnames(data()$data$pheno))){
-    #       shinyjs::disable("runTra")
-    #       output$messageTra <- renderText({paste0("ERROR: Column(s) ", paste0('"', paste(paste(tableTrait, tableTrans, sep="_")[which(paste(tableTrait, tableTrans, sep="_") %in% colnames(data()$data$pheno) == TRUE)], collapse='", "'), '"')," already exist.")})
-    #     } else{
-    #       output$messageTra <- renderText({""})
-    #     }
-    #   } else{
-    #     shinyjs::disable("runTra")
-    #     output$messageTra <- renderText({"No trait to transform."})
-    #   }
-    #
-    # })
-    #
-    # shinyjs::onevent("hover", id = "runEqual",{
-    #   if(input$newName == ""){
-    #     shinyjs::disable("runEqual")
-    #     output$messageEqual <- renderText({"ERROR: Please specify a name for equalized trait."})
-    #   }else{
-    #     if(input$newName %in% colnames(data()$data$pheno)){
-    #       shinyjs::disable("runEqual")
-    #       output$messageEqual <- renderText({paste0("ERROR: Column '", input$newName,"' already exist.")})
-    #     } else{
-    #       output$messageEqual <- renderText({""})
-    #     }
-    #   }
-    # })
-    #
-    # shinyjs::onevent("hover", id = "runBal",{
-    #   if(input$newNameCalc == ""){
-    #     shinyjs::disable("runBal")
-    #     output$messageCalc <- renderText({"ERROR: Please specify a name for calculated trait."})
-    #   }else{
-    #     if(input$newNameCalc %in% colnames(data()$data$pheno)){
-    #       shinyjs::disable("runBal")
-    #       output$messageCalc <- renderText({paste0("ERROR: Column '", input$newNameCalc,"' already exist.")})
-    #     } else{
-    #       output$messageCalc <- renderText({""})
-    #     }
-    #   }
-    # })
-    #
-    # observeEvent(input$transTableC_cell_edit,{
-    #   shinyjs::enable("runTra")
-    #   output$messageTra <- renderText({""})
-    # })
-    #
-    # observeEvent(input$newName,{
-    #   shinyjs::enable("runEqual")
-    #   output$messageEqual <- renderText({""})
-    # })
-    #
-    # observeEvent(input$newNameCalc,{
-    #   shinyjs::enable("runBal")
-    #   output$messageCalc <- renderText({""})
-    # })
-
-    # observeEvent(input$newName,{
-    #   shinyjs::delay(1000,
-    #                  if(input$newName %in% colnames(data()$data$pheno)){
-    #                    output$messageEqual <- renderText({paste0("Column '", input$newName,"' already exist. Note that the values will be replaced if continued.")})
-    #                  }else{output$messageEqual <- renderText({NULL})})
-    # })
 
     ## function to create the table of possibilities
     dtFieldTraC = reactive({
