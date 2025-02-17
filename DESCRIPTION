@@ -19,7 +19,7 @@ Imports:
     cgiarBase (>= 1.0.3),
     cgiarOcs (>= 1.1),
     cgiarPipeline (>= 1.0.6),
-    cgiarGenomics,
+    cgiarGenomics (>= 1.0.1),
     config (>= 0.3.2),
     data.table,
     DT,
@@ -78,7 +78,8 @@ Imports:
     tidyr,
     utils,
     vcfR,
-    dartR (>= 2.9.7)
+    SNPRelate (>= 1.38.1),
+    dartR.base
 Suggests: 
     knitr,
     rmarkdown,
@@ -91,11 +92,12 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2.9000
-Remotes:  
+Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
     Breeding-Analytics/cgiarGenomics,
     reyzaguirre/st4gi,
     covaruber/lme4breeding,
-    green-striped-gecko/dartR
+    green-striped-gecko/dartR,
+    zhengxwen/SNPRelate
