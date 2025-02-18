@@ -1,7 +1,7 @@
 Package: bioflow
 Title: CGIAR Breeding Analytics Pipeline
 Description: CGIAR Breeding Analytics Pipeline
-Version: 0.1.0
+Version: 0.0.0.9000
 Authors@R: c(
     person("Giovanny", "Covarrubias Pazaran", , "covaruberpaz@gmail.com", role = c("aut", "cre")),
     person("Ibnou", "Dieng", , "i.dieng@cgiar.org", role = c("aut")),
@@ -12,7 +12,7 @@ Authors@R: c(
     person("Aubin", "Amignide", , "A.Amagnide@cgiar.org", role = c("aut"))
   )
 License: GPL (>= 3)
-URL: https://github.com/Breeding-Analytics/bioflow/
+URL: https://github.com/serbier/bioflow/
 BugReports: https://github.com/Breeding-Analytics/bioflow/issues
 Imports: 
     ape,
@@ -96,7 +96,7 @@ Remotes:
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
-    Breeding-Analytics/cgiarGenomics,
+    serbier/cgiarGenomics,
     reyzaguirre/st4gi,
     covaruber/lme4breeding,
     zhengxwen/SNPRelate
