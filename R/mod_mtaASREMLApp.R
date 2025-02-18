@@ -581,8 +581,10 @@ mod_mtaASREMLApp_server <- function(id, data){
       WeatherRow$environment <- rownames(WeatherRow)
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
 
-      choices <- as.vector(c("none",setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )))
-
+      choices <- as.vector(c(setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )))
+	    choicesint <- apply(combn(choices, 2), 2, \(x) paste(x, collapse = ":"))
+	    choices <- as.vector(c("none", choices, choicesint))
+      
       updateSelectInput(session,"TermsFixed",choices = choices, selected = "environment")
     })
 
@@ -604,8 +606,10 @@ mod_mtaASREMLApp_server <- function(id, data){
       WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMtaAsr, wide=TRUE))
       WeatherRow$environment <- rownames(WeatherRow)
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
-      choices <- c("none", "designation",setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ) )
-
+      choices <- c("designation",setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ) )
+      choicesint <- apply(combn(choices, 2), 2, \(x) paste(x, collapse = ":"))
+      choices <- as.vector(c("none", choices, choicesint))
+      
       updateSelectInput(session,"TermsRandom",choices = choices, selected = "designation")
     })
 
