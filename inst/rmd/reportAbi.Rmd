@@ -50,7 +50,7 @@ printTable <- function(DT, pageLength = 7,
   table <- DT::datatable(data = DT, 
                          filter = "top", 
                          extensions = 'Buttons',
-      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'print'),
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                          rownames = FALSE,
                          ...)
