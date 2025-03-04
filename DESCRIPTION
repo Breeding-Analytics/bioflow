@@ -79,7 +79,7 @@ Imports:
     utils,
     vcfR,
     SNPRelate (>= 1.38.1),
-    dartR.base
+    dartR.base,
     digest
 Suggests: 
     knitr,
