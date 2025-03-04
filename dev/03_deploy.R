@@ -43,20 +43,14 @@ golem::add_dockerfile_with_renv_shinyproxy()
 # In command line.
 rsconnect::deployApp(
   appName = "bioflow_scruz",
+  appDir = getwd(),
   appTitle = desc::desc_get_field("Package"),
-  appFiles = c(
-    # Add any additional files unique to your app here.
-    "R/",
-    "inst/",
-    "data/",
-    "NAMESPACE",
-    "DESCRIPTION",
-    "app.R"
-  ),
   appId = rsconnect::deployments(".")$appID,
   lint = FALSE,
-  forceUpdate = TRUE
+  forceUpdate = FALSE
 )
+
+
 
 options(rsconnect.max.bundle.size=8589934592)
 rsconnect::setAccountInfo(name='',
@@ -64,7 +58,7 @@ rsconnect::setAccountInfo(name='',
                           secret='')
 
 
-rsconnect::deployApp(account = "cgiar-market-intelligence")
+rsconnect::deployApp(account = "cgiar-market-intelligence", appName = 'bioflow_scruz')
 
 #
 # rsconnect::deployApp(account = "giovanny-covarrubias")
