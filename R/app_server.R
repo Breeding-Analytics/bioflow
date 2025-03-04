@@ -19,6 +19,9 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
+modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStr","mtaLmms"),
+                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver"))
+
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
   stopifnot(is.character(name) && length(name) == 1)
@@ -249,6 +252,73 @@ app_server <- function(input, output, session) {
     })
   }})
   ### END: OAuth2 flow mechanism ###############################################
+
+
+  ### START: Service Portal KPI Dashboard ######################################
+
+  observe({
+    session$userData$url_hostname <- session$clientData$url_hostname
+    session$userData$temp <- data()
+  })
+
+  # this code will be run after the client has disconnected
+  session$onSessionEnded(function() {
+    dashboard_key <- "Bioflow@wkH71dJ&qaT"
+    req_origin    <- "https://bioflow.ebsproject.org"
+
+    if (session$userData$url_hostname == "bioflow.ebsproject.org") {
+      dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+      user_email    <- session$userData$temp$user
+    } else {
+      dashboard_url <- "https://cgiar-service-portal-tst.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+      user_email    <- "test@example.com"
+    }
+
+    status <- session$userData$temp$status
+
+    for (i in 1:nrow(status)) {
+      # prepare the data as an R list
+      module_name <- ifelse(length(modules[modules$module == status[i,"module"], "moduleName"]) == 0,
+                            "", modules[modules$module == status[i,"module"], "moduleName"])
+
+      data <- list(
+        Email      = user_email,
+        Module     = status[i,"module"],
+        ModuleName = module_name,
+        Timestamp  = format(as.POSIXct(status[i,"analysisId"], tz = "GMT"), "%Y-%m-%dT%H:%M:%OS4")
+      )
+
+      # convert the data list to JSON
+      message_json <- jsonlite::toJSON(data, auto_unbox = TRUE)
+
+      # compute the HMAC SHA-256 signature in hexadecimal format
+      signature <- digest::hmac(key = dashboard_key, object = data$Email, algo = "sha256", raw = FALSE)
+
+      # build the request using httr2
+      req <- httr2::request(dashboard_url)
+      req <- httr2::req_headers(req, "HMAC-SIGNATURE" = signature, "Origin" = req_origin)
+      req <- httr2::req_body_raw(req, message_json, type = "application/json")
+
+      # perform the POST request and handle response
+      response <- tryCatch({
+        httr2::req_perform(req)
+      }, error = function(e) {
+        stop("HTTP request failed: ", e$message)
+      })
+
+      # check for HTTP errors
+      if (httr2::resp_status(response) >= 400) {
+        stop(sprintf("HTTP error! status: %s", httr2::resp_status(response)))
+      }
+
+      # warning(httr2::resp_body_string(response))
+
+      Sys.sleep(1)
+    }
+  })
+
+  ### END: Service Portal KPI Dashboard ########################################
+
 
   ## DATA extraction
   # mod_getData_server("getData_1", map = required_mapping, data = data, res_auth=res_auth)

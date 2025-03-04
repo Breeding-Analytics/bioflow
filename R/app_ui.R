@@ -91,7 +91,6 @@ app_ui <- function(request) {
                  tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                  tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                  #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
-                 tabPanel(div(icon("barcode"), "Marker-assisted verification (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
                  # tabPanel(div(icon("filter-circle-xmark"), "Data Quality Assurance" ),
                  #          navlistPanel( "Options:", widths = c(1, 11),
                  #          )
@@ -162,7 +161,8 @@ app_ui <- function(request) {
                  # tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
                  tabPanel(div(icon("chart-line"), "Linkage disequilibrium (",  icon("dna"), ")", style = "color:red"),  mod_linkageDisApp_ui("linkageDisApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
-                 tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ) # stpga
+                 tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ), # stpga
+                 tabPanel(div(icon("barcode"), "Marker-assisted introgression (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
       ),
 
       navbarMenu("Other functions", icon = icon("medal"),

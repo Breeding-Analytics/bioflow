@@ -80,6 +80,7 @@ Imports:
     vcfR,
     SNPRelate (>= 1.38.1),
     dartR.base
+    digest
 Suggests: 
     knitr,
     rmarkdown,

@@ -16,7 +16,7 @@ mod_PopStrApp_ui <- function(id){
   tagList(
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel(
+                     tabsetPanel(id=ns("tabsMain"),
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information") ,
                                 br(),
@@ -54,7 +54,7 @@ mod_PopStrApp_ui <- function(id){
                                   tabPanel(div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
                                            br(),
                                            column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=8, selectInput("version2PopStr", choices = NULL, multiple = FALSE,  label = tags$span(
+                                                  column(width=8, selectInput(ns("version2PopStr"), choices = NULL, multiple = FALSE,  label = tags$span(
                                                     "QA-geno stamp to apply (optional)",
                                                     tags$i(
                                                       class = "glyphicon glyphicon-info-sign",
@@ -135,11 +135,12 @@ mod_PopStrApp_ui <- function(id){
                                                   column(width=3,
                                                          br(),
                                                          actionButton(ns("runPopStr"), "Run analysis", icon = icon("play-circle")),
-                                                         uiOutput(ns("outPopStr")),
+                                                         #uiOutput(ns("qaQcPopStrInfo")),
                                                          br(),
                                                   ),
 
                                            ),
+                                           textOutput(ns("outPopStr")),
                                   )
                                 )),
 
@@ -147,7 +148,10 @@ mod_PopStrApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
                                            br(),
+                                           textOutput(ns("outPopStr2")),
+                                           br(),
                                            downloadButton(ns("downloadReportPopStr"), "Download dashboard"),
+                                           br(),
                                            uiOutput(ns('reportPopStr'))
                                   ),
                                   #termina report
@@ -277,7 +281,6 @@ mod_PopStrApp_server <- function(id, data){
     ############################################################################
     # warning message
     output$warningMessage <- renderUI({
-
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data Retrieval' tab." )) )
       }else{
@@ -291,9 +294,6 @@ mod_PopStrApp_server <- function(id, data){
 
     golem::invoke_js('hideid', ns('fileenvbio_url'))
 
-    output$outPopStr <- renderUI({
-      outPopStr()
-    })
 
     observeEvent(input$geno_groupPopStr,
                  if(input$geno_groupPopStr!=FALSE) {
@@ -378,14 +378,23 @@ mod_PopStrApp_server <- function(id, data){
           names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")
         }
       }
-      updateSelectInput(session, "version2PopStr", choices = c("",traitsMta))
+      updateSelectInput(session, "version2PopStr", choices = c(0,traitsMta))
     })
 
-    outPopStr <- eventReactive(input$runPopStr, {
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ## render result of "run" button click
+    outPopStr1 <- eventReactive(input$runPopStr, {
       req(data())
       catv <-"GroupClust"
       result <- data()
-      if(input$version2PopStr==""){
+      if(input$version2PopStr==0){
         #if(!"PopStrM" %in% data()$status$module){
         mydata<-result$data$geno
         genodir<-result$data$genodir
@@ -402,12 +411,21 @@ mod_PopStrApp_server <- function(id, data){
       dfenvbio<-NULL
       if(length(input$fileenvbio$datapath)!=0) dfenvbio <- read.csv(input$fileenvbio$datapath)
       if(input$fileenvbio_url!='') dfenvbio <- read.csv(input$fileenvbio_url)
+
       shinybusy::show_modal_spinner('fading-circle', text = 'Calculated...')
-      uno <- cgiarBase::Biodv(mydata,distk, nclust, dfenvbio, catv)
+
+      unocheck <- try(
+        uno<-cgiarBase::Biodv(mydata,distk, nclust, dfenvbio, catv),
+        silent=TRUE
+        )
       #uno <- Biodv(mydata,distk, nclust, dfenvbio, catv)
       # add status table
       analysisId <- as.numeric(Sys.time())
-      newStatus <- data.frame(module="PopStrM", analysisId=analysisId )
+      if(input$analysisIdName!=""){
+        newStatus <- data.frame(module="PopStrM", analysisId=analysisId, analysisIdName=input$analysisIdName)
+      }else{
+        newStatus <- data.frame(module="PopStrM", analysisId=analysisId, analysisIdName="myPopStrOne")
+      }
       result$status <- rbind(result$status, newStatus)
 
       if(dim(uno[[5]])[2]==6){
@@ -416,19 +434,19 @@ mod_PopStrApp_server <- function(id, data){
       }else{tmpMDS=uno[[5]]}
       newPredMDS=list()
       for ( f in 2:5){
-        newPredMDS[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="MDS", trait=names(tmpMDS)[f], gid=NA, designation=tmpMDS$Gen, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=tmpMDS[,f], stdError=NA, reliability=NA )
+        newPredMDS[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="MDS", trait=names(tmpMDS)[f], gid=NA, designation=tmpMDS$Gen, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=tmpMDS[,f], stdError=NA, reliability=NA, effectType=NA )
       }
       newPredMDS=do.call(rbind,newPredMDS)
 
       newPredGeno=list()
       for ( f in 2:7){
-        newPredGeno[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerGenotype",trait=names(uno[[4]][[5]])[f], gid=NA, designation=uno[[4]][[5]]$Genotype, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[5]][,f], stdError=NA, reliability=NA )
+        newPredGeno[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerGenotype",trait=names(uno[[4]][[5]])[f], gid=NA, designation=uno[[4]][[5]]$Genotype, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[5]][,f], stdError=NA, reliability=NA, effectType=NA )
       }
       newPredGeno=do.call(rbind,newPredGeno)
 
       newPredMark=list()
       for ( f in 2:8){
-        newPredMark[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerMarker",trait=names(uno[[4]][[4]])[f], gid=NA, designation=rownames(uno[[4]][[4]]), mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[4]][,f], stdError=NA, reliability=NA )
+        newPredMark[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerMarker",trait=names(uno[[4]][[4]])[f], gid=NA, designation=rownames(uno[[4]][[4]]), mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[4]][,f], stdError=NA, reliability=NA, effectType=NA )
       }
       newPredMark=do.call(rbind,newPredMark)
 
@@ -458,20 +476,26 @@ mod_PopStrApp_server <- function(id, data){
       colnames(DistMat3)=uno[[4]][[7]][,2]
       rownames(DistMat3)=uno[[4]][[7]][,2]
       DistMat3=data.frame(rows=rownames(DistMat3)[row(DistMat3)],cols=colnames(DistMat3)[col(DistMat3)],values=c(DistMat3))
-      newPredDist=data.frame(module="PopStrM",analysisId=analysisId, pipeline=NA,trait="DistMat", gid=DistMat3[,1], designation=DistMat3[,2], mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=DistMat3[,3], stdError=NA, reliability=NA )
+      newPredDist=data.frame(module="PopStrM",analysisId=analysisId, pipeline=NA,trait="DistMat", gid=DistMat3[,1], designation=DistMat3[,2], mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=DistMat3[,3], stdError=NA, reliability=NA, effectType=NA )
 
       result$predictions<-rbind(result$predictions,newPredMDS,newPredGeno,newPredMark,newPredDist)
       result$metrics <- rbind(result$metrics, newmetricsSum,newmetricsAMOVA,newmetricsPerc)
 
       rm(newmetricsAMOVA,newmetricsPerc,newmetricsSum,newPredDist,newPredGeno,newPredMark, newPredMDS, DistMat3, uno,tmpMDS)
       gc()
-      if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
-      data(result)
 
-      #}
+      if(!inherits(unocheck,"try-error")) {
+        if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+        data(result) # update data with results
+        cat(paste("Population structure analysis with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"was saved."))
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+      }else{
+        cat(paste("Analysis failed with the following error message: \n\n",uno[[1]]))
+      }
+
       shinybusy::remove_modal_spinner()
 
-      if(!inherits(result,"try-error")) {
+      if(!inherits(unocheck,"try-error")) {
         idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
         idMta <- idMta[length(idMta)]
         uno<-as.data.frame(result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="MDS" ),])
@@ -509,7 +533,7 @@ mod_PopStrApp_server <- function(id, data){
         })
 
         #Ver datos en tabla dinamica AMOVA
-        output$seeDataGAMOVA<-DT::renderDataTable({
+        output$seeDataGAMOVA<-DT::renderDT({
           idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
           idMta <- idMta[length(idMta)]
           seedatosAV=as.data.frame(result$metrics[which(result$metrics$module=="PopStrM" & result$metrics$analysisId==idMta & result$metrics$method=="AMOVA"),])
@@ -604,7 +628,7 @@ mod_PopStrApp_server <- function(id, data){
         })
 
         #Plot heatmap
-        output$heat=plotly::renderPlotly({
+        output$heat<-plotly::renderPlotly({
           idMta <- result$status[which(result$status$module == "PopStrM"),"analysisId"]
           idMta <- idMta[length(idMta)]
           distMat=result$predictions[which(result$predictions$module=="PopStrM" & result$predictions$analysisId==idMta & result$predictions$trait=="DistMat"),]
@@ -622,6 +646,7 @@ mod_PopStrApp_server <- function(id, data){
             fig
           }
         })
+
         #Dendogram plot
         output$dend=renderPlot({
           if(!is.null(result$data$geno)){
@@ -666,7 +691,6 @@ mod_PopStrApp_server <- function(id, data){
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle",text = "Download Report...")
             src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
             src2 <- normalizePath('./resultPopStr.RData')
             # temporarily switch to the temp dir, in case you do not have write
@@ -675,22 +699,38 @@ mod_PopStrApp_server <- function(id, data){
             on.exit(setwd(owd))
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
-            file.rename(out, file)
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmdformats::robobook(toc_depth = 4)
+              # HTML = rmarkdown::html_document()
+            ))
             shinybusy::remove_modal_spinner()
+            file.rename(out, file)
           }
         )
 
-        if(length(input$fileenvbio$datapath)!=0 & catv=="GroupClust"){
-          HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready but please check the external groups file, did't find genotype names matches" )) )
-        }else{
-          HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
-        }
+        #if(length(input$fileenvbio$datapath)!=0 & catv=="GroupClust"){
+        #  HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready but please check the external groups file, did't find genotype names matches" )) )
+        #}else{
+        #  HTML( as.character(div(style="color:green ; font-size: 20px;", "Ready" )) )
+        #}
 
       }else{
-        HTML( as.character(div(style="color:green ; font-size: 20px;", "Some errors were found" )) )
-      }
+        #HTML( as.character(div(style="color:green ; font-size: 20px;", "Some errors were found" )) )
+        output$seeDataDive <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$seeDataGAMOVA <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$seeDataStatMark <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$seeDataStatGeno <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$seeDataMDS <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        hideAll$clearAll <- TRUE
+      }### enf of if(!inherits(result,"try-error"))
+
+      hideAll$clearAll <- FALSE
+    })
+
+    output$outPopStr <- renderPrint({
+      outPopStr1()
     })
 
   })

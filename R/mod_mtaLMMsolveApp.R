@@ -549,7 +549,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       updateNumericInput(session, "nTermsRandom", value = n, step = 1, min = 1, max=10)
     })
     ## fixed effects
-    output$leftSidesFixed <- renderUI({ # input <- list(version2Mta=result$status$analysisId[2])
+    output$leftSidesFixed <- renderUI({ # input <- list(version2Mta=result$status$analysisId[3], trait2Mta="YLD_TON",nTermsFixed=1)
       req(data())
       req(input$version2Mta)
       req(input$trait2Mta)
@@ -562,7 +562,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
-      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
+      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(object=dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
 
       choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
@@ -1152,7 +1152,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         dontHaveDist <- which(is.na(myFamily))
         if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
 
-        myEnvsTI = apply(x$df,2,function(z){z})
+        if(nrow(x$df) > 1){myEnvsTI = apply(x$df,2,function(z){z})}else{myEnvsTI <- x$df}
 
         result <- try(
           cgiarPipeline::metLMMsolver(
