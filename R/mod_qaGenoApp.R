@@ -181,7 +181,7 @@ mod_qaGenoApp_server <- function(id, data) {
       }
     })
 
-    # In this reactive object will store all parameters for the QA module
+    #  this reactive object will store all parameters for the QA module
 
     geno_qa_data <- reactiveValues(geno = NULL,
                                    filter = FALSE,
@@ -266,9 +266,9 @@ mod_qaGenoApp_server <- function(id, data) {
 
     observeEvent(data()$data$geno,{
 
-      # Set the unfiltered Data
+      # requered the unfiltered Data
       req(data()$data$geno)
-
+      # Store in the reactive obj the available ind and loc metrics
       geno_qa_data$geno <- isolate(data()$data$geno)
       geno_qa_data$loc_metrics <- colnames(geno_qa_data$geno@other$loc.metrics)
       geno_qa_data$ind_metrics <- colnames(geno_qa_data$geno@other$ind.metrics)
@@ -298,7 +298,10 @@ mod_qaGenoApp_server <- function(id, data) {
     plot_metrics <- reactive({
       # Merge all metrics into single vector
       metrics <- c(geno_qa_data$loc_metrics, geno_qa_data$ind_metrics)
-
+      # Inside this anonymous func for each input metric:
+      # - create the output_id for the histogram
+      # - get the metric values in the raw and filtered dataset
+      # - plot the data
       lapply(metrics, function(i_metric) {
         output_plot_id <- glue::glue("hist_{i_metric}")
         margin <- cgiarGenomics::get_parameter_margin(geno_qa_data$geno, i_metric)
@@ -408,6 +411,7 @@ mod_qaGenoApp_server <- function(id, data) {
 
     observeEvent(input$runQaMb,{
       req(geno_qa_data$preview_geno)
+      req(geno_qa_data$imputation_log)
       print('identify mods')
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
@@ -417,29 +421,35 @@ mod_qaGenoApp_server <- function(id, data) {
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
 
-      imp_mods <- data.frame(
-        reason = rep(paste("imputation",input$imputationMethod,sep='_'),
-                     nrow(geno_qa_data$imputation_log)),
-        row = geno_qa_data$imputation_log$row,
-        col = geno_qa_data$imputation_log$col,
-        value = geno_qa_data$imputation_log$call,
-        analysisId = rep(unique(filter_mods$analysisId)[1],
-                         nrow(geno_qa_data$imputation_log)),
-        analysisIdName = rep(input$analysisIdName,
-                             nrow(geno_qa_data$imputation_log)),
-        module = rep("qaGeno", nrow(geno_qa_data$imputation_log))
-      )
-
+      up_analysis_id <- as.character(filter_mods$analysisId[nrow(filter_mods)])
 
       results <- data()
 
+      # Filter modifications
       if(!is.null(results$modifications$geno)){
-        results$modifications$geno <- rbind(result$modifications$geno, filter_mods, imp_mods)
-      }else{
-        results$modifications$geno <- rbind(filter_mods, imp_mods)}
+         results$modifications$geno <- rbind(results$modifications$geno, filter_mods)
+      } else {
+         results$modifications$geno <- filter_mods
+      }
 
-      newStatus <- data.frame(module="qaGeno", analysisId= filter_mods$analysisId[nrow(filter_mods)], analysisIdName=input$analysisIdName)
+      # Imputation modifications
+      if(!is.null(results$modifications$geno_imp)){
+         results$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
+      } else {
+         results$modifications$geno_imp <- list()
+         results$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
+      }
 
+      # Output gl object
+      if(!is.null(results$data$geno_imp)){
+         results$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
+      } else {
+         results$data$geno_imp <- list()
+         results$data$geno_imp[[up_analysis_id]] = geno_qa_data$imputation_log$gl
+      }
+
+      newStatus <- data.frame(module="qaGeno", analysisId=filter_mods$analysisId[nrow(filter_mods)], analysisIdName=input$analysisIdName)
+      print(up_analysis_id)
       if(!is.null(results$status)){
         results$status <- rbind(results$status, newStatus)
       }else{results$status <- newStatus}
@@ -456,9 +466,12 @@ mod_qaGenoApp_server <- function(id, data) {
 
       if(geno_qa_data$filter){
         filt_data <- geno_qa_data$overall_summary[2,]
-        nas_number <- sum(adegenet::glNA(geno_qa_data$preview_geno$gl)/data()$metadata$ploidity)
+
+        # Always the second row will be poidity
+        ploidity <- as.numeric(data()$metadata$geno[2,]$value)
+        nas_number <- sum(adegenet::glNA(geno_qa_data$preview_geno$gl)/ploidity)
         info_text <- glue::glue("General Information
-                                Ploidity level: {data()$metadata$ploidity}
+                                Ploidity level: {ploidity}
                                 Number of loci: {filt_data$nloc}
                                 Number of individuals: {filt_data$nind}
                                 Number of imputations: {nas_number}
@@ -474,11 +487,11 @@ mod_qaGenoApp_server <- function(id, data) {
 
     observeEvent(input$run_imputation, {
       req(geno_qa_data$preview_geno$gl)
-
+      ploidity <- as.numeric(data()$metadata$geno[2,]$value)
       # Imputation
       shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotyope matrix...')
       geno_qa_data$imputation_log <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
-                                           ploidity = data()$metadata$ploidity,
+                                           ploidity = ploidity,
                                            method = input$imputationMethod)
 
       shinybusy::remove_modal_spinner()

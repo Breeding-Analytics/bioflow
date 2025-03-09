@@ -343,7 +343,7 @@ mod_getDataGeno_server <-
           )
         }
       })
-      # Store the genotype data into the data structure
+      # Store the genotype data into the data structure and update the metadata
       add_data <- reactive(
         {
           temp <- data()
@@ -353,34 +353,39 @@ mod_getDataGeno_server <-
             toRemove <- which(temp$status$module == "qaGeno")
             if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
           } # make sure if an user uploads a new dataset the qaGeno starts empty
-          geno_data <- get_geno_data()
-          temp$data$geno <- geno_data
 
-          temp$metadata$geno_format <- input$custom_geno_input
-          # Record filepath
-          if (input$custom_geno_input != "dartag") {
-            temp$metadata$geno_file <- input$adegeno_file$datapath
-          } else {
-            temp$metadata$geno_file <- c(input$darttag_counts_file$datapath,
-                                   input$darttag_dosage_file$datapath)
+          # Add the gl object in results$data$geno slot
+          temp$data$geno <- get_geno_data()
+
+          # Add metadata
+          parameter_names <- c(
+            'input_format',
+            'ploidity')
+          parameter_values <- c(input$custom_geno_input,
+                                as.numeric(input$ploidlvl_input))
+
+          tmp_metadata <- data.frame(parameter = parameter_names,
+                                     value = parameter_values)
+
+          # If the input file is a dartseqsnp also store in metadata the
+          # column names of marker_id, chromosome and position in the csv
+          if(input$custom_geno_input == 'dartseqsnp'){
+            parameter_names <- c('dartseq_marker_id',
+                                  'dartseq_chr',
+                                  'dartseq_pos')
+
+            parameter_values <- c(input$dartseq_markerid,
+                                  input$dartseq_chrom,
+                                  pos_name = input$dartseq_position)
+
+            dartseq_metadata <- data.frame(parameter = parameter_names,
+                                       value = parameter_values)
+
+            tmp_metadata <- rbind(tmp_metadata, dartseq_metadata)
+
           }
-          # Record ploidity level
-          temp$metadata$ploidity <- as.numeric(input$ploidlvl_input)
 
-          alleles_df <- purrr::map_df(adegenet::alleles(geno_data), function(x) {
-            alleles <- c(unlist(strsplit(x, '/')))
-            data.frame(
-              ref = alleles[1],
-              alt = alleles[2]
-            )
-          })
-
-          temp$metadata$geno <- data.frame(
-            marker = adegenet::locNames(geno_data),
-            chr = adegenet::chr(geno_data),
-            pos = adegenet::position(geno_data),
-            ref = alleles_df$ref,
-            alt = alleles_df$alt)
+          temp$metadata$geno <- tmp_metadata
 
           data(temp)
         }
