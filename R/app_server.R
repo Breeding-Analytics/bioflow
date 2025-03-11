@@ -350,6 +350,7 @@ app_server <- function(input, output, session) {
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
+  mod_mtaASREMLApp_server("mtaASREMLApp_1", data = data)
   # mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
   # mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
   # mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
