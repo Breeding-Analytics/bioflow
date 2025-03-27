@@ -576,6 +576,25 @@ mod_rggApp_server <- function(id, data){
 
     my_rgg <- ExtendedTask$new(function(input, data) {
       promises::future_promise({
+
+        ### pseudo code to select top n (e.g., 5) lines per yearOfOrigin #########################
+        # tmp <- data$predictions[data$predictions$module == "mtaLmms" &
+        #                         data$predictions$effectType == "designation", ]
+        #
+        # tmp <- merge(tmp, data$data$pedigree[, c("Geno", "yearOfOrigin")],
+        #              by.x = "designation", by.y = 1)
+        #
+        # top_geno <- tmp %>%
+        #   group_by(yearOfOrigin) %>%
+        #   slice_max(order_by = predictedValue, n = 5) %>%
+        #   select(yearOfOrigin, designation, predictedValue)
+        #
+        # data$predictions <- data$predictions[!(data$predictions$module == "mtaLmms" &
+        #                                        data$predictions$effectType == "designation" &
+        #                                        !(data$predictions$designation %in% top_geno$designation)),]
+        # rm(tmp, top_geno)
+        ##########################################################################################
+
         # some long process
         if(input$methodRgg == "piepho"){
           result <- try(cgiarPipeline::rggPiepho(
