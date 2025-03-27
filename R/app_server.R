@@ -402,4 +402,37 @@ app_server <- function(input, output, session) {
 
   ## predictive models
   # mod_tensorMLApp_server("tensorMLApp_1")
+
+  # ### START: Push Analysis Mechanism ###########################################
+  #
+  # observeEvent(session$clientData$url_search, {
+  #   query <- parseQueryString(session$clientData$url_search)
+  #
+  #   if (!is.null(query$task)) {
+  #     clipboard_path <- "C:/Users/Kel-shamaa/Downloads/"
+  #     clipboard_file <- query$task # sanitize this parameter
+  #
+  #     load(paste0(clipboard_path, clipboard_file))
+  #
+  #     ## replace tables
+  #     tmp <- data()
+  #     if(!is.null(result$data)){tmp$data <- result$data}
+  #     if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+  #     if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+  #     if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+  #     if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+  #     if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+  #     if(!is.null(result$status)){tmp$status <- result$status}
+  #     data(tmp) # update data with results
+  #   }
+  #
+  #   if (!is.null(query$module) && query$module == "STA") {
+  #     # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
+  #     # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
+  #     updateNavbarPage(session, "tabso", selected = "staApp_tab")
+  #   }
+  # })
+  #
+  # ### END: Push Analysis Mechanism #############################################
+
 }
