@@ -411,8 +411,40 @@ app_server <- function(input, output, session) {
   #   if (!is.null(query$task)) {
   #     clipboard_path <- "C:/Users/Kel-shamaa/Downloads/"
   #     clipboard_file <- query$task # sanitize this parameter
+  #     temp_file <- paste0(clipboard_path, clipboard_file)
   #
-  #     load(paste0(clipboard_path, clipboard_file))
+  #     ### set up aws.s3 library ##############################################
+  #     # Sys.setenv("AWS_ACCESS_KEY_ID" = "xxxxxxxxxxxxxxxxxxxx")
+  #     # Sys.setenv("AWS_SECRET_ACCESS_KEY" = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+  #     # Sys.setenv("AWS_DEFAULT_REGION" = "us-west-2")
+  #
+  #     bucket_name <- ""
+  #     ########################################################################
+  #
+  #     ### get RData object file from EBS S3 clipboard ########################
+  #     temp_file <- paste0(tempdir(), "/", s3_object_path)
+  #     s3_object_path <- query$task
+  #
+  #     aws.s3::save_object(
+  #       object = s3_object_path,
+  #       bucket = bucket_name,
+  #       file = temp_file
+  #     )
+  #     ########################################################################
+  #
+  #     ### upload results back to EBS S3 bucket ###############################
+  #     s3_object_metadata <- aws.s3::get_object_metadata(object = s3_object_path, bucket = bucket_name)$metadata
+  #     s3_object_metadata[["Upload-Origin"]] <- "bioflow"
+  #
+  #     aws.s3::put_object(
+  #       file = temp_file,
+  #       bucket = bucket_name,
+  #       object = s3_object_path,
+  #       metadata = s3_object_metadata
+  #     )
+  #     ########################################################################
+  #
+  #     load(temp_file)
   #
   #     ## replace tables
   #     tmp <- data()
