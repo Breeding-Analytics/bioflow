@@ -20,7 +20,7 @@ knitr::opts_chunk$set(dependson = knitr::all_labels(),
 options(knitr.kable.NA = '')
 # loading necessary R packages ####
 ## data manipulation
-# library(dplyr)    # %>%, data cleaning functions
+library(dplyr)    # %>%, data cleaning functions
 library(magrittr) # coerce col to factors or numeric
 ## outputs - graphs, tables
 library(ggplot2)  # ggplot(), etc.
@@ -387,7 +387,8 @@ if (is.null(result)){
   
   df2 <- result$metrics
   df2 <- df2[df2$analysisId==idSta,]
-  df2 <- df2[df2$parameter %in% c("Vg","Vr"), ]
+  # df2 <- df2[df2$parameter %in% c("Vg","Vr"), ]
+  df2 <- df2[startsWith(df2$parameter,"V_"), ]
   total <- aggregate(value~environment+trait, FUN = sum, data=df2); 
   colnames(total)[3] <- "totalVar"
   df3 <- merge(df2,total, by=c("environment","trait") )

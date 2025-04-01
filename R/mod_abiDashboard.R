@@ -232,7 +232,7 @@ mod_abiDashboard_server <- function(id, data){
                                 parameter= c( "ocs", "rgg") , # "sta", "mta","indexD",
                                 value=c(input$versionSelection, input$versionHistory ) # input$versionMetrics, input$versionTraits, input$versionIndex,
       )
-      abiStatus <- data.frame(module="abiDash", analysisId=idAbi)
+      abiStatus <- data.frame(module="abiDash", analysisId=idAbi, analysisIdName ="")
       result$modeling <- rbind(result$modeling, abiModeling)
       result$status <- rbind(result$status, abiStatus)
 
