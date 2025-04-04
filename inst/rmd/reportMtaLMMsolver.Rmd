@@ -1240,6 +1240,10 @@ Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-le
 
 Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12.
 
+Xiang, T., Christensen, O. F., & Sørensen, A. C. (2016). Genomic evaluation by including dominance effects and inbreeding depression for purebred and crossbred performance with a unified model. Genetics Selection Evolution, 48(1), 84
+
+Batista, L. G., Mello, V. H., Souza, A. P., & Margarido, G. R. A. (2022). Genomic prediction with allele dosage information in highly polyploid species. Theoretical and Applied Genetics, 135(2), 723–739.
+
 R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
 
 Boer M, van Rossum B (2022). LMMsolver: Linear Mixed Model Solver. R package version 1.0.4.9000.

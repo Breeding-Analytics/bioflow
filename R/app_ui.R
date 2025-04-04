@@ -138,7 +138,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("calculator"), icon("dice-four"), "Mate optimization (", icon("seedling"), icon("dna"), icon("network-wired"), ")"),
                           navlistPanel("Options:", widths = c(1, 11),
                                        tabPanel(div("OCS" ), mod_ocsApp_ui("ocsApp_1") ),
-                                       tabPanel(div("GPCP", style = "color:red") ),
+                                       tabPanel(div("GPCP"), mod_gpcpApp_ui("gpcpApp_1") ),
                           )
                  ),
 

@@ -1,7 +1,7 @@
 ---
 title: "Selection Index Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "January 14, 2025"  
+date: "April 04, 2025"  
 output: html_document
 params:
  toDownload: FALSE
@@ -37,7 +37,7 @@ The following table allows you to inspect the across-environment predictions for
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-outa63dcbe10d35aab8" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out02c6608a4ae51634" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -45,7 +45,7 @@ The following table allows you to inspect the across-environment predictions for
 
 The following table aims to keep record of the desire values selected and corresponding weights for this run.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-outf85869ead6d1cd08" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="indexDesireApp_1-out6c1054ef34e0445e" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Radar Plot
@@ -54,7 +54,7 @@ This spider plot allows you to visualize the distance between the population mea
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out392908a506fe63f3" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outf47ad883b3f12c90" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Expected Response Plot
 
@@ -67,7 +67,7 @@ The following plot allows the user to visualize the expected response in the new
 <input id="indexDesireApp_1-proportionTrait" type="number" class="shiny-input-number form-control" value="0.1" min="0.001" max="1" step="0.05"/>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outf4b7697a42133572" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out5bde51ad4f4d0942" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Index versus Trait Plot
 
@@ -78,34 +78,22 @@ The following plot allows you to visualize the relationship between the selectio
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="indexDesireApp_1-traitMtaScatter-label" for="indexDesireApp_1-traitMtaScatter">Trait:</label>
 <div>
-<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="masMerit" selected>masMerit</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option></select>
+<select id="indexDesireApp_1-traitMtaScatter" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Grain_Moisture">Grain_Moisture</option></select>
 <script type="application/json" data-for="indexDesireApp_1-traitMtaScatter" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-outba0cb9838deddc3e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out2727d9edfa2d623b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Parental Performance 
 
 The following plots allow the user to review the performance of crosses, mothers and fathers for the available traits. If there are too many crosses (more than 150), only mother and fathers will be plotted. 
 
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="indexDesireApp_1-traitIndexBox-label" for="indexDesireApp_1-traitIndexBox">Trait:</label>
-<div>
-<select id="indexDesireApp_1-traitIndexBox" class="shiny-input-select"><option value="masMerit" selected>masMerit</option>
-<option value="Plant_Height_cm">Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option>
-<option value="desireIndex">desireIndex</option></select>
-<script type="application/json" data-for="indexDesireApp_1-traitIndexBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="indexDesireApp_1-out72a83a1c193aaa65" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+
 
 ### References of methods used
 

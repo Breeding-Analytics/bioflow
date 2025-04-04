@@ -357,6 +357,8 @@ app_server <- function(input, output, session) {
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
+  mod_gpcpApp_server("gpcpApp_1", data = data) #genomic prediction of cross performance
+
   # SELECTION - selection history
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
   mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
