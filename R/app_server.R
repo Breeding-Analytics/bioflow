@@ -270,13 +270,16 @@ app_server <- function(input, output, session) {
       dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
       user_email    <- session$userData$temp$user
     } else {
-      dashboard_url <- "https://cgiar-service-portal-tst.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
-      user_email    <- "test@example.com"
+      dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+      user_email    <- "offline"
     }
 
     status <- session$userData$temp$status
 
     for (i in 1:nrow(status)) {
+      # avoid reporting usage of loaded data from a previous session
+      if (status[i,"analysisId"] < as.numeric(Sys.time()) - 3600*24) next
+
       # prepare the data as an R list
       module_name <- ifelse(length(modules[modules$module == status[i,"module"], "moduleName"]) == 0,
                             "", modules[modules$module == status[i,"module"], "moduleName"])
