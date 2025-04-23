@@ -19,8 +19,8 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
-modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStr","mtaLmms"),
-                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver"))
+modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","mtaLmms","qaFilter","qaDesign","qaConsist"),
+                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
 
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
@@ -422,8 +422,8 @@ app_server <- function(input, output, session) {
   #     ########################################################################
   #
   #     ### get RData object file from EBS S3 clipboard ########################
-  #     temp_file <- paste0(tempdir(), "/", s3_object_path)
   #     s3_object_path <- query$task
+  #     temp_file <- paste0(tempdir(), "/", s3_object_path)
   #
   #     aws.s3::save_object(
   #       object = s3_object_path,
