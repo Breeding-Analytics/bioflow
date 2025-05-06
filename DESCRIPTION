@@ -77,7 +77,8 @@ Imports:
     tidyr,
     utils,
     vcfR,
-    digest
+    digest,
+    aws.s3
 Suggests: 
     knitr,
     rmarkdown,

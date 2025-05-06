@@ -72,6 +72,7 @@
 # usethis::use_dev_package("st4gi", type = "Imports", remote = "reyzaguirre/st4gi")
 # usethis::use_dev_package("lme4breeding", type = "Imports", remote = "covaruber/lme4breeding")
 #
+# usethis::use_package("aws.s3")
 # usethis::use_package("QBMS")
 # usethis::use_package("vcfR")
 # usethis::use_package("future")

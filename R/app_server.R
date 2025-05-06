@@ -406,68 +406,74 @@ app_server <- function(input, output, session) {
   ## predictive models
   # mod_tensorMLApp_server("tensorMLApp_1")
 
-  # ### START: Push Analysis Mechanism ###########################################
-  #
-  # observeEvent(session$clientData$url_search, {
-  #   query <- parseQueryString(session$clientData$url_search)
-  #
-  #   if (!is.null(query$task)) {
-  #     clipboard_path <- "C:/Users/Kel-shamaa/Downloads/"
-  #     clipboard_file <- query$task # sanitize this parameter
-  #     temp_file <- paste0(clipboard_path, clipboard_file)
-  #
-  #     ### set up aws.s3 library ##############################################
-  #     # Sys.setenv("AWS_ACCESS_KEY_ID" = "xxxxxxxxxxxxxxxxxxxx")
-  #     # Sys.setenv("AWS_SECRET_ACCESS_KEY" = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-  #     # Sys.setenv("AWS_DEFAULT_REGION" = "us-west-2")
-  #
-  #     bucket_name <- ""
-  #     ########################################################################
-  #
-  #     ### get RData object file from EBS S3 clipboard ########################
-  #     s3_object_path <- query$task
-  #     temp_file <- paste0(tempdir(), "/", s3_object_path)
-  #
-  #     aws.s3::save_object(
-  #       object = s3_object_path,
-  #       bucket = bucket_name,
-  #       file = temp_file
-  #     )
-  #     ########################################################################
-  #
-  #     ### upload results back to EBS S3 bucket ###############################
-  #     s3_object_metadata <- aws.s3::get_object_metadata(object = s3_object_path, bucket = bucket_name)$metadata
-  #     s3_object_metadata[["Upload-Origin"]] <- "bioflow"
-  #
-  #     aws.s3::put_object(
-  #       file = temp_file,
-  #       bucket = bucket_name,
-  #       object = s3_object_path,
-  #       metadata = s3_object_metadata
-  #     )
-  #     ########################################################################
-  #
-  #     load(temp_file)
-  #
-  #     ## replace tables
-  #     tmp <- data()
-  #     if(!is.null(result$data)){tmp$data <- result$data}
-  #     if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
-  #     if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
-  #     if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
-  #     if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
-  #     if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
-  #     if(!is.null(result$status)){tmp$status <- result$status}
-  #     data(tmp) # update data with results
-  #   }
-  #
-  #   if (!is.null(query$module) && query$module == "STA") {
-  #     # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
-  #     # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
-  #     updateNavbarPage(session, "tabso", selected = "staApp_tab")
-  #   }
-  # })
-  #
-  # ### END: Push Analysis Mechanism #############################################
+  ### START: Push Analysis Mechanism ###########################################
+
+  # http://localhost:1410/?task=18b7d89cc61fef60e93973edd9d9df38&module=STA
+
+  observeEvent(session$clientData$url_search, {
+
+    query <- parseQueryString(session$clientData$url_search)
+
+    # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+    if (is.character(query$task) && grepl("^[a-f0-9]{32}$", query$task)) {
+
+      ### set up aws.s3 library ################################################
+
+      # Sys.setenv("AWS_ACCESS_KEY_ID"     = "XXXXXXXXXXXXXXXXXXXX")
+      # Sys.setenv("AWS_SECRET_ACCESS_KEY" = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+      # Sys.setenv("AWS_SESSION_TOKEN"     = "xxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxx=")
+      # Sys.setenv("AWS_DEFAULT_REGION"    = "ap-southeast-1")
+
+      bucket_name <- "s3://ebs-bioflow/"
+
+      ### get RData object file from EBS S3 clipboard ##########################
+
+      task_id        <- query$task
+      s3_object_path <- paste0("dev/", task_id, ".RData")
+      temp_file      <- paste0(tempdir(), "/", task_id, ".RData")
+
+      aws.s3::save_object(
+        object = s3_object_path,
+        bucket = bucket_name,
+        file = temp_file
+      )
+
+      ### upload results back to EBS S3 bucket #################################
+      #
+      # s3_object_metadata <- aws.s3::get_object_metadata(object = s3_object_path, bucket = bucket_name)$metadata
+      # s3_object_metadata[["Upload-Origin"]] <- "bioflow"
+      #
+      # aws.s3::put_object(
+      #   file = temp_file,
+      #   bucket = bucket_name,
+      #   object = s3_object_path,
+      #   metadata = s3_object_metadata
+      # )
+      #
+      ##########################################################################
+
+      load(temp_file)
+
+      ## replace tables
+      tmp <- data()
+      if(!is.null(result$data)){tmp$data <- result$data}
+      if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+      if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+      if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+      if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+      if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+      if(!is.null(result$status)){tmp$status <- result$status}
+      data(tmp) # update data with results
+    }
+
+    if (!is.null(query$module) && query$module == "STA") {
+      # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
+      # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
+
+      updateNavbarPage(session, "tabso", selected = "staApp_tab")
+    }
+  })
+
+  ### END: Push Analysis Mechanism #############################################
 
 }
