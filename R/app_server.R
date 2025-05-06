@@ -408,28 +408,34 @@ app_server <- function(input, output, session) {
 
   ### START: Push Analysis Mechanism ###########################################
 
-  # http://localhost:1410/?task=18b7d89cc61fef60e93973edd9d9df38&module=STA
+  # http://localhost:1410/?task=18b7d89cc61fef60e93973edd9d9df38&module=STA&domain=dev
 
   observeEvent(session$clientData$url_search, {
 
     query <- parseQueryString(session$clientData$url_search)
 
     # check if task id exists, and verify (sanitize) this md5 parameter ;-)
-    if (is.character(query$task) && grepl("^[a-f0-9]{32}$", query$task)) {
+    if (is.character(query$task) &&
+        is.character(query$domain) &&
+        grepl("^[a-f0-9]{32}$", query$task) &&
+        grepl("^[a-z_0-9]+$", query$domain)) {
 
       ### set up aws.s3 library ################################################
 
       # Sys.setenv("AWS_ACCESS_KEY_ID"     = "XXXXXXXXXXXXXXXXXXXX")
       # Sys.setenv("AWS_SECRET_ACCESS_KEY" = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
       # Sys.setenv("AWS_SESSION_TOKEN"     = "xxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxx=")
-      # Sys.setenv("AWS_DEFAULT_REGION"    = "ap-southeast-1")
+
+      # # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
+      # Sys.setenv("AWS_PROFILE" = "bioflow")
+      # Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
 
       bucket_name <- "s3://ebs-bioflow/"
 
       ### get RData object file from EBS S3 clipboard ##########################
 
       task_id        <- query$task
-      s3_object_path <- paste0("dev/", task_id, ".RData")
+      s3_object_path <- paste0(query$domain, "/", task_id, ".RData")
       temp_file      <- paste0(tempdir(), "/", task_id, ".RData")
 
       aws.s3::save_object(
