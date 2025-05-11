@@ -78,7 +78,7 @@ Imports:
     utils,
     vcfR,
     digest,
-    aws.s3
+    paws
 Suggests: 
     knitr,
     rmarkdown,

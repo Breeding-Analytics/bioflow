@@ -430,35 +430,44 @@ app_server <- function(input, output, session) {
       # Sys.setenv("AWS_PROFILE" = "bioflow")
       # Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
 
-      bucket_name <- "s3://ebs-bioflow/"
+      bucket_name <- "ebs-bioflow"
 
       ### get RData object file from EBS S3 clipboard ##########################
 
       task_id        <- query$task
       s3_object_path <- paste0(query$domain, "/", task_id, ".RData")
-      temp_file      <- paste0(tempdir(), "/", task_id, ".RData")
 
-      aws.s3::save_object(
-        object = s3_object_path,
-        bucket = bucket_name,
-        file = temp_file
+      s3 <- paws::s3()
+
+      s3_download <- s3$get_object(
+        Bucket = bucket_name,
+        Key = s3_object_path
       )
 
       ### upload results back to EBS S3 bucket #################################
       #
-      # s3_object_metadata <- aws.s3::get_object_metadata(object = s3_object_path, bucket = bucket_name)$metadata
-      # s3_object_metadata[["Upload-Origin"]] <- "bioflow"
+      # s3 <- paws::s3()
       #
-      # aws.s3::put_object(
-      #   file = temp_file,
-      #   bucket = bucket_name,
-      #   object = s3_object_path,
-      #   metadata = s3_object_metadata
+      # s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
+      # s3_object_metadata <- s3_object_head$Metadata
+      #
+      # s3_object_metadata[["upload-origin"]] <- "bioflow"
+      #
+      # temp_file <- paste0(tempdir(), "/", task_id, ".RData")
+      # save(data(), file = temp_file)
+      #
+      # s3$put_object(
+      #   Bucket = bucket_name,
+      #   Key = s3_object_save,
+      #   Body = temp_file,
+      #   Metadata = s3_object_metadata
       # )
       #
       ##########################################################################
 
-      load(temp_file)
+      raw_con <- rawConnection(s3_download$Body)
+      load(raw_con)
+      close(raw_con)
 
       ## replace tables
       tmp <- data()
