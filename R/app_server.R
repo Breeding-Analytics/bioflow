@@ -427,8 +427,8 @@ app_server <- function(input, output, session) {
       # Sys.setenv("AWS_SESSION_TOKEN"     = "xxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxx=")
 
       # # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
-      # Sys.setenv("AWS_PROFILE" = "bioflow")
-      # Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+      Sys.setenv("AWS_PROFILE" = "bioflow")
+      Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
 
       bucket_name <- "ebs-bioflow"
 
