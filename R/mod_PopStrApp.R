@@ -303,6 +303,7 @@ mod_PopStrApp_server <- function(id, data){
                      title = "Data replacement warning"
                    )
                  }
+                 
     )
 
     observeEvent(input$myconfirmation, {
@@ -317,6 +318,7 @@ mod_PopStrApp_server <- function(id, data){
         updateTextInput(session, 'fileenvbio_url', value = '')
         shinyWidgets::updatePrettySwitch(session, "geno_groupPopStr", value = FALSE)
       }
+      save.image(file="popstr.RData")
     }, ignoreNULL = TRUE)
 
     ## render timestamps flow plot
@@ -396,15 +398,11 @@ mod_PopStrApp_server <- function(id, data){
       result <- data()
       if(input$version2PopStr==0){
         #if(!"PopStrM" %in% data()$status$module){
-        mydata<-result$data$geno
-        genodir<-result$data$genodir
+        mydata<-as.data.frame(result$data$geno)
+        #genodir<-result$data$genodir
       }else{
-        mydata<-result$data$geno
-        genodir<-result$data$genodir
-        deletemarkmiss=result$modifications$geno[which(result$modifications$geno$module=="qaGeno" & result$modifications$geno$analysisId==input$version2PopStr & result$modifications$geno$reason=="%missing" ),5]
-        replacemark=result$modifications$geno[which(result$modifications$geno$module=="qaGeno" & result$modifications$geno$analysisId==input$version2PopStr & result$modifications$geno$reason=="impute" ),4:6]
-        mydata[replacemark[,1],replacemark[,2]]=replacemark[,3]
-        mydata<-mydata[,-deletemarkmiss]
+        qas<-which( names(result$data$geno_imp)==input$version2PopStr )
+        mydata<-as.data.frame(result$data$geno_imp[qas])
       }
       distk <- as.character(input$distk)
       nclust <- input$nclust
