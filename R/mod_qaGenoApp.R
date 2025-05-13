@@ -415,14 +415,12 @@ mod_qaGenoApp_server <- function(id, data) {
       print('identify mods')
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
-
       filter_mods <- isolate(geno_qa_data$filter_log)
       filter_mods$analysisId <- as.numeric(Sys.time())
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
-
       up_analysis_id <- as.character(filter_mods$analysisId[nrow(filter_mods)])
-
+      print(glue::glue("Analysis_ID: {up_analysis_id}"))
       results <- data()
 
       # Filter modifications
@@ -519,6 +517,7 @@ mod_qaGenoApp_server <- function(id, data) {
     #     shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
     #     out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
     #       "HTML",
+
     #       HTML = rmdformats::robobook(toc_depth = 4)
     #       # HTML = rmarkdown::html_document()
     #     ))
@@ -546,7 +545,6 @@ mod_qaGenoApp_server <- function(id, data) {
       print("filter_processing...")
       base_loc_names <- adegenet::locNames(data()$data$geno)
       base_ind_names <- adegenet::indNames(data()$data$geno)
-
       out <- purrr::map_df(filter_step_log, function(filter_step){
 
         if(length(filter_step$filter_out) > 0){
@@ -567,7 +565,6 @@ mod_qaGenoApp_server <- function(id, data) {
             col_data <- rep(NA, length(ind_idx))
             row_data <- ind_idx
           }
-        }
 
           filt_step_log <- data.frame(
             reason = rep(reason, length(filter_step$filter_out)),
@@ -576,6 +573,7 @@ mod_qaGenoApp_server <- function(id, data) {
             value = rep(NA, length(filter_step$filter_out))
           )
           return(filt_step_log)
+        }
       })
      return(out)
     }
