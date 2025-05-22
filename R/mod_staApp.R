@@ -338,12 +338,12 @@ mod_staApp_ui <- function(id){
 #     # QA versions to use
 #     observeEvent(c(data()), {
 #       req(data())
-#       dtMta <- data()
-#       dtMta <- dtMta$status
-#       dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign","qaConsist")),]
-#       traitsMta <- unique(dtMta$analysisId)
-#       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
-#       updateSelectInput(session, "version2Sta", choices = traitsMta)
+#       dtSta <- data()
+#       dtSta <- dtSta$status
+#       dtSta <- dtSta[which(dtSta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign","qaConsist")),]
+#       traitsSta <- unique(dtSta$analysisId)
+#       if(length(traitsSta) > 0){names(traitsSta) <- as.POSIXct(traitsSta, origin="1970-01-01", tz="GMT")}
+#       updateSelectInput(session, "version2Sta", choices = traitsSta)
 #     })
 #     # genetic evaluation unit
 #     observe({
@@ -910,18 +910,18 @@ mod_staApp_server <- function(id,data){
     # QA versions to use
     observeEvent(c(data()), {
       req(data())
-      dtMta <- data()
-      dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
-      traitsMta <- unique(dtMta$analysisId)
-      if(length(traitsMta) > 0){
-        if("analysisIdName" %in% colnames(dtMta)){
-          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+      dtSta <- data()
+      dtSta <- dtSta$status
+      dtSta <- dtSta[which(dtSta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
+      traitsSta <- unique(dtSta$analysisId)
+      if(length(traitsSta) > 0){
+        if("analysisIdName" %in% colnames(dtSta)){
+          names(traitsSta) <- paste(dtSta$analysisIdName, as.POSIXct(traitsSta, origin="1970-01-01", tz="GMT"), sep = "_")
         }else{
-          names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")
+          names(traitsSta) <- as.POSIXct(traitsSta, origin="1970-01-01", tz="GMT")
         }
       }
-      updateSelectInput(session, "version2Sta", choices = traitsMta)
+      updateSelectInput(session, "version2Sta", choices = traitsSta)
     })
     # genetic evaluation unit
     # observe({
