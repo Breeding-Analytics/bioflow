@@ -159,11 +159,12 @@ if (is.null(result)){
   nameOfChecks <- unique(pred[ which(pred$entryType %in% labelChecks) , "designation"])
   
   idSta <- modeling[which(modeling$trait == "inputObject" & modeling$analysisId == idMta),"value"]
-  traits2 <- unique(result$modeling[which(result$modeling$analysisId == idSta),"trait"])
+  envs2 <- unique(result$data$pheno[,result$metadata$pheno[which(result$metadata$pheno$parameter == "environment"), "value"]])
+  traits2 <- unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"])
     gxeList <- list("gxeCS" = c("environment_designation", "designation_environment", 
                               "environment:designation", "designation:environment"),
-                  "gxeDMD" = c(paste0("env",unique(envirTypes),"_designation"), paste0("designation_env",unique(envirTypes)),
-                               paste0("env",unique(envirTypes),":designation"), paste0("designation:env",unique(envirTypes))),
+                  "gxeDMD" = c(paste0("env",envs2,"_designation"), paste0("designation_env",envs2),
+                               paste0("env",envs2,":designation"), paste0("designation:env",envs2)),
                   "gxeFW" = c(paste0("value_",traits2,"envIndex_designation"),paste0("designation_value_",traits2,"envIndex"),
                               paste0("value_",traits2,"envIndex:designation"),paste0("designation:value_",traits2,"envIndex")))
   
@@ -175,8 +176,8 @@ if (is.null(result)){
   }
   
   if(gxeModelNum == 2){
-    effectTypes2 <- setdiff(effectTypes, c(effectTypes[which(effectTypes %in% gxeList[[2]])], 
-                                             effectTypes[which(effectTypes %in% paste0("env",unique(modelingFieldsIncludedInMta$environment)))]))
+    effectTypes2 <- setdiff(effectTypes, c(effectTypes[which(effectTypes %in% gxeList[[2]])],
+                                           effectTypes[which(effectTypes %in% paste0("env",envs2))]))
     if(any(grepl(":",effectTypes[which(effectTypes %in% gxeList[[2]])]))){
       effectTypes2 <- c(effectTypes2, "environment:designation")
     } else{
