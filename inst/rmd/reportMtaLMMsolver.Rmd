@@ -5,11 +5,33 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: html_document
 params:
   toDownload: FALSE
+  # modelUsed: NULL
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
-# font.plot_ly <- list(family="Courier New, monospace", size=9)
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+# ,fig.width=12, fig.height=8)
+options(knitr.kable.NA = '')
+
+# loading necessary R packages ####
+## data manipulation
+# library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(data.table)
+library(shiny)
 ```
 
 ```{r printfxn, include=FALSE}
@@ -17,7 +39,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FA
 # for printing tables (data.frames) - DT::datatable()
 printTable <- function(DT, pageLength = 7, 
                        numericColNames = NULL, numRound = 3, 
-                       scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
+                       scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,
+                       fixedCol = 0, filt = "top",...) {
   oldnames <- colnames(DT)
   DT <- data.frame(lapply(X = DT, 
                           FUN = function(x) {
@@ -30,15 +53,17 @@ printTable <- function(DT, pageLength = 7,
   colnames(DT) <- oldnames
   table <- DT::datatable(data = DT, 
                          colnames = colNames,
-                         filter = "top", 
+                         filter = filt,
                          options = list(autoWidth = autoWidthOpt,
                                         dom = 'l<<t>pB>', 
                                         buttons = c('copy', 'csv', 'excel', 'print'),
                                         pageLength = pageLength,
                                         searchHighlight = TRUE,
                                         lengthMenu = c(7, 14, 21, 28, 35),
-                                        scrollX = scrollXOpt),
-                         extensions = 'Buttons',
+                                        scrollX = scrollXOpt,
+                                        fixedColumns = list(leftColumns = fixedCol)
+                                        ),
+                         extensions = c('Buttons', 'FixedColumns'),
                          rownames = FALSE,
                          ...)
   if (length(numericColNames) > 0){
@@ -50,12 +75,10 @@ printTable <- function(DT, pageLength = 7,
 }
 ```
 
-```{r plot_init, include = FALSE}
+```{r, include=FALSE}
 # Init Step to make sure that the dependencies are loaded
-# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
-library(ggplot2)
-htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
 htmltools::tagList(printTable(mtcars))
+htmltools::tagList(ggplotly(ggplot()))
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -66,7 +89,6 @@ get_h <- function() {
   with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
        fig.height*dpi/fig.retina)
 }
-
 ```
 
 ```{r }
@@ -136,6 +158,37 @@ if (is.null(result)){
   labelChecks <- names(entryTypePresent)[checksFound]
   nameOfChecks <- unique(pred[ which(pred$entryType %in% labelChecks) , "designation"])
   
+  idSta <- modeling[which(modeling$trait == "inputObject" & modeling$analysisId == idMta),"value"]
+  envs2 <- unique(result$data$pheno[,result$metadata$pheno[which(result$metadata$pheno$parameter == "environment"), "value"]])
+  traits2 <- unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"])
+    gxeList <- list("gxeCS" = c("environment_designation", "designation_environment", 
+                              "environment:designation", "designation:environment"),
+                  "gxeDMD" = c(paste0("env",envs2,"_designation"), paste0("designation_env",envs2),
+                               paste0("env",envs2,":designation"), paste0("designation:env",envs2)),
+                  "gxeFW" = c(paste0("value_",traits2,"envIndex_designation"),paste0("designation_value_",traits2,"envIndex"),
+                              paste0("value_",traits2,"envIndex:designation"),paste0("designation:value_",traits2,"envIndex")))
+  
+  gxeModelNum <- 0
+  for(i in 1:3){
+    if(any(effectTypes %in% gxeList[[i]])){
+      gxeModelNum <- i
+    }
+  }
+  
+  if(gxeModelNum == 2){
+    effectTypes2 <- setdiff(effectTypes, c(effectTypes[which(effectTypes %in% gxeList[[2]])],
+                                           effectTypes[which(effectTypes %in% paste0("env",envs2))]))
+    if(any(grepl(":",effectTypes[which(effectTypes %in% gxeList[[2]])]))){
+      effectTypes2 <- c(effectTypes2, "environment:designation")
+    } else{
+      effectTypes2 <- c(effectTypes2, "environment_designation")
+    }
+  } else if(gxeModelNum == 3){
+    effectTypes2 <- setdiff(effectTypes, effectTypes[which(effectTypes %in% gxeList[[3]])])
+  } else{
+    effectTypes2 <- effectTypes
+  }
+  
 }
 ```
 
@@ -149,17 +202,17 @@ The objective of this dashboard is to help scientist to understand the following
 
 3. Number of entries connecting the different environments per trait (input)
 
-3. Phenotypic correlation between environments for the traits present (input)
+4. Phenotypic correlation between environments for the traits present (input)
 
-4. Across environment KPIs per trait such as reliability and variance component ratios (output) 
+5. Across environment KPIs per trait such as reliability and variance component ratios (output) 
 
-5. Individual across environment predictions for each trait (output) 
+6. Individual across environment predictions for each trait (output) 
 
-6. Individual sensitivity and stability values across environments (output)
+7. Individual sensitivity and stability values across environments (output)
 
-7. Percent check comparison against the different benchmark varieties present in the dataset (output)
+8. Percent check comparison against the different benchmark varieties present in the dataset (output)
 
-8. Genetic correlation between the traits (output)
+9. Genetic correlation between the traits (output)
 
 Understanding these data features should allow the scientist to identify which traits express more genotype by environment interactions and how they should be selected. It should also allow the scientist to assess the correlation between traits and how the product profile should be addressed to maximize genetic gains while developing the needed varieties at the same time. Materials with the highest performance and sensitivity to the environment could be potential nominations for advancement although we recommend to don't select new parents or products until the results from the multi-trial analysis are analyzed with a selection index.  
 
@@ -174,7 +227,6 @@ if (is.null(result)){
   
   metricsMta <- result$metrics[which(metrics$analysisId == idMta),]
   metricsMta <- metricsMta[, setdiff(colnames(metricsMta),c("module","analysisId"))]
-  
   
   if("params" %in% ls()){ # we will download the document
     printTable(metricsMta, autoWidthOpt = TRUE, scrollXOpt = FALSE,
@@ -285,14 +337,12 @@ if (is.null(result)){
     inputPanel(
       selectInput(ns("boxplotMtaPredsType"),
                   label = "Effect type",
-                  choices = effectTypes,
-                  selected=effectTypes[1]
+                  choices = setdiff(effectTypes2, c("environment", "(Intercept)"))
       ),
       column(width=12),
       selectInput(ns("boxplotMtaPredsTrait"),
                   label = "Trait",
-                  choices = traits,
-                  selected=traits[1]
+                  choices = traits
       ),
     )
   }
@@ -300,6 +350,8 @@ if (is.null(result)){
 }
 
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -309,49 +361,96 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     
     cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
-    for(iType in effectTypes){
+    for(iType in setdiff(effectTypes2, c("environment", "(Intercept)"))){
       cat("\n\n####", iType, "{.tabset .tabset-pills}       \n\n")
       for(iTrait in traits){
         cat("\n\n#####", iTrait, "{.tabset .tabset-pills}       \n\n")
-        temp.pred.box <- predSplitSplit[[iType]][[iTrait]] 
+        if(gxeModelNum == 2){
+          if(iType %in% c("environment_designation", "environment:designation")){
+            level1 <- predSplitSplit[effectTypes[which(effectTypes %in% gxeList[[2]])]]
+            level2 <- lapply(level1, function(x){x[iTrait]})
+            level3 <- NULL
+            for(i in 1:length(level2)){
+              level3 <- rbind(level3,level2[[i]][[1]])
+            }
+            temp.pred.box <- level3
+            temp.pred.box$environment <- substr(temp.pred.box$environment, 4, length(temp.pred.box$environment))
+          } else{
+            temp.pred.box <- predSplitSplit[[iType]][[iTrait]]
+          }
+        } else{
+          temp.pred.box <- predSplitSplit[[iType]][[iTrait]]
+        }
+        # temp.pred.box <- temp.pred.box[which(temp.pred.box$environment %in% modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$trait == iTrait,"environment"]),]
         if(!is.null(temp.pred.box)){
           if(nrow(temp.pred.box) > 0){
             p <- temp.pred.box %>%
               ggplot() +
-              aes(x=environment, y=predictedValue, fill = environment) +
+              aes(x=reorder(environment,-predictedValue), y=predictedValue, fill = environment) +
               geom_boxplot() +
-              labs(x = "Environmental mean", y = "Trait value") +
+              labs(x = "", y = "Trait value") +
               scale_fill_discrete(name = "") +
-              theme(legend.position = "bottom") +
-              guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
+              theme(legend.position = "none")
+            # guides(fill=guide_legend(nrow=3,byrow=TRUE))
             
+            if(iType %in% c("environment_designation", "designation_environment",
+                            "environment:designation", "designation:environment")){
+              print(htmltools::tagList(plotly::ggplotly(p + labs(x = "Environment")) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+            } else{
+              print(htmltools::tagList(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank()))))
+            }
           }else{
-            p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+            print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
           }# end of nrow > 0
         }else{
-          p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
         }
-        print(p)
       }# end of for each trait
     } # enf of for each type
     
   } else{ # display in website
-    
-    shiny::renderPlot({
-      temp.pred.box <- predSplitSplit[[input$boxplotMtaPredsType]][[input$boxplotMtaPredsTrait]] 
+    plotly::renderPlotly({
+      if(gxeModelNum == 2){
+        if(input$boxplotMtaPredsType %in% c("environment_designation", "environment:designation")){
+          level1 <- predSplitSplit[effectTypes[which(effectTypes %in% gxeList[[2]])]]
+          level2 <- lapply(level1, function(x){x[input$boxplotMtaPredsTrait]})
+          level3 <- NULL
+          for(i in 1:length(level2)){
+            level3 <- rbind(level3,level2[[i]][[1]])
+          }
+          temp.pred.box <- level3
+          temp.pred.box$environment <- substr(temp.pred.box$environment, 4, length(temp.pred.box$environment))
+        } else{
+          temp.pred.box <- predSplitSplit[[input$boxplotMtaPredsType]][[input$boxplotMtaPredsTrait]]
+        }
+      } else{
+        temp.pred.box <- predSplitSplit[[input$boxplotMtaPredsType]][[input$boxplotMtaPredsTrait]]
+      }
+      
+      # temp.pred.box <- temp.pred.box[which(temp.pred.box$environment %in% modelingFieldsIncludedInMta[modelingFieldsIncludedInMta$trait == input$boxplotMtaPredsTrait,"environment"]),]
       if(!is.null(temp.pred.box)){
         if(nrow(temp.pred.box) > 0){
           p <- temp.pred.box %>%
             ggplot() +
-            aes(x=environment, y=predictedValue, fill = environment) +
+            aes(x=reorder(environment,-predictedValue), y=predictedValue, fill = environment) +
             geom_boxplot() +
-            labs(x = "Environmental mean", y = "Trait value") +
+            labs(x = "", y = "Trait value") +
             scale_fill_discrete(name = "") +
-            theme(legend.position = "bottom") +
-            guides(fill=guide_legend(nrow=3,byrow=TRUE)) 
-          p
-        }else{ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")}
-      }else{ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")}
+            theme(legend.position = "none")
+          # guides(fill=guide_legend(nrow=3,byrow=TRUE))
+          
+          if(input$boxplotMtaPredsType %in% c("environment_designation", "designation_environment",
+                                              "environment:designation", "designation:environment")){
+            plotly::ggplotly(p + labs(x = "Environment")) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+          } else{
+            plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank()))
+          }
+        }else{
+          plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))
+        }
+      }else{
+        plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))
+      }
       
     })
     
@@ -359,6 +458,7 @@ if (is.null(result)){
   
 }
 ```
+</div>
 
 ### Predictions: Connectivity between environments
 
@@ -374,23 +474,29 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{ # input<-list(traitMtaConnect="YLDTONHA")
-    selectInput(ns("traitMtaConnect"), 
-                label = "", 
-                choices = traits,
-                selected=traits[1]
+    inputPanel(shiny::selectInput(ns("traitMtaConnect"), 
+                                  label = "Trait", 
+                                  choices = traits
+    ),
+    shiny::checkboxInput(ns("freqConnect"),
+                         label = "Show frequency distribution",
+                         value = TRUE
     )
+    )
+    
   }
   
 }
 
 ```
 
+<div style = "width:auto; height:auto; overflow:auto">
+
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  idSta <- modeling[which(modeling$trait == "inputObject" & modeling$analysisId == idMta),"value"]
   mydataSta <- result$predictions[which(result$predictions$analysisId %in% idSta),] # extract predictions
   # mydataSta[,"environment"] <- gsub("[[:punct:]]", "", mydataSta[,"environment"] )
   
@@ -417,30 +523,52 @@ if (is.null(result)){
         
         mydataSta4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
         maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        minVal <- min(nagm, na.rm = TRUE)
+        midVal <- (maxVal - minVal)/2
         p <- ggplot2::ggplot(data = mydataSta4, ggplot2::aes(Var2, Var1, fill = Freq))+
           ggplot2::geom_tile(color = "white")+
           ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                        midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                        midpoint = midVal, limit = c(0,maxVal+20), space = "Lab",
                                         name="Connectivity") +
           ggplot2::theme_minimal()+
-          ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-          ggplot2::coord_fixed() + 
-          ggplot2::coord_fixed() + 
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-        if(nrow(nagm) < 8){ # if user wants to add text to the cells
-          p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
-        }
+          ggplot2::ylab("") + ggplot2::xlab("") +
+          ggplot2::coord_fixed() 
+        
+        # if(nrow(nagm) < 8){ # if user wants to add text to the cells
+        #   p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+        # }
         # Basic histogram
         mydataSta4$Group <- ifelse(mydataSta4$Freq < 31, "Low", ifelse(mydataSta4$Freq < 80, "Medium", "High"))
         group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
         ub <- max(mydataSta4$Freq, na.rm = TRUE)
-        p2 <- ggplot(mydataSta4[which(mydataSta4$Var1 != mydataSta4$Var2),], aes(x=Freq, fill=Group)) + 
-          geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-          scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
-        # combine plots
-        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+        lb <- min(mydataSta4$Freq, na.rm = TRUE)
+        mb <- (ub - lb)/2
+        # p2 <- ggplot(mydataSta4[which(mydataSta4$Var1 != mydataSta4$Var2),], aes(x=Freq, fill=Group)) + 
+        #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+        #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+        
+        p2 <- ggplot() + geom_histogram(data = mydataSta4[which(mydataSta4$Var1 != mydataSta4$Var2),], aes(x = Freq, fill = ..x..), binwidth=10) +
+          ggplot2::scale_x_continuous(limits = c(0,ub+20)) +
+          scale_fill_gradient2(low="firebrick",mid="gold", high="#038542", midpoint=mb,
+                               limit = c(0,ub+20), space = "Lab",
+                               name="Connectivity") +
+          ggplot2::xlab("Value") + ggplot2::ylab("")
+        
+        
+        for(iFreq in c("with frequency distribution", "without frequency distribution")){
+          cat("\n\n#####", iFreq, "{.tabset .tabset-pills}       \n\n")
+          if(iFreq == "with frequency distribution"){
+            # combine plots
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+          } else{
+            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+          }
+          
+        }
+        
+      } else{
+        print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
       }
-      
       
     }
     
@@ -463,30 +591,48 @@ if (is.null(result)){
         
         mydataSta4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
         maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+        minVal <- min(nagm, na.rm = TRUE)
+        midVal <- (maxVal - minVal)/2
         p <- ggplot2::ggplot(data = mydataSta4, ggplot2::aes(Var2, Var1, fill = Freq))+
           ggplot2::geom_tile(color = "white")+
           ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                        midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                        midpoint = midVal, limit = c(0,maxVal+20), space = "Lab",
                                         name="Connectivity") +
           ggplot2::theme_minimal()+
-          ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-          ggplot2::coord_fixed() + 
-          ggplot2::coord_fixed() + 
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
-        if(nrow(nagm) < 8){ # if user wants to add text to the cells
-          p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
-        }
+          ggplot2::ylab("") + ggplot2::xlab("") +
+          ggplot2::coord_fixed()
+        # ggplot2::coord_fixed() + 
+        # ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
+        # if(nrow(nagm) < 8){ # if user wants to add text to the cells
+        #   p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 4)
+        # }
         # Basic histogram
         mydataSta4$Group <- ifelse(mydataSta4$Freq < 31, "Low", ifelse(mydataSta4$Freq < 80, "Medium", "High"))
         group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
         ub <- max(mydataSta4$Freq, na.rm = TRUE)
-        p2 <- ggplot(mydataSta4[which(mydataSta4$Var1 != mydataSta4$Var2),], aes(x=Freq, fill=Group)) + 
-          geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-          scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
-        # combine plots
-        ply1 <- plotly::ggplotly(p)
-        ply2 <- plotly::ggplotly(p2)
-        plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
+        lb <- min(mydataSta4$Freq, na.rm = TRUE)
+        mb <- (ub-lb)/2
+        # p2 <- ggplot(mydataSta4[which(mydataSta4$Var1 != mydataSta4$Var2),], aes(x=Freq, fill=Group)) + 
+        #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+        #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+        
+        p2 <- ggplot() + geom_histogram(data = mydataSta4[which(mydataSta4$Var1 != mydataSta4$Var2),], aes(x = Freq, fill = ..x..), binwidth=10) +
+          ggplot2::scale_x_continuous(limits = c(0,ub+20)) +
+          scale_fill_gradient2(low="firebrick",mid="gold", high="#038542", midpoint=mb,
+                               limit = c(0,ub+20), space = "Lab",
+                               name="Connectivity") +
+          ggplot2::xlab("Value") + ggplot2::ylab("")
+        
+        if(input$freqConnect == TRUE){
+          # combine plots
+          ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 3)) 
+          ply2 <- plotly::ggplotly(p2)
+          plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)
+        } else{
+          plotly::ggplotly(p  + geom_text(aes(label=Freq))) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+        }
+      } else{
+        plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))
       }
       
       
@@ -496,6 +642,8 @@ if (is.null(result)){
   
 }
 ```
+
+</div>
 
 ### Predictions: Correlations between environments
 
@@ -511,43 +659,234 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{ # input <- list(traitPredictionsCorrelation=traits[1],corrplotMtaPredsType=effectTypes[1])
-    
-    inputPanel(
-      selectInput(ns("corrplotMtaPredsType"),
-                  label = "Effect type",
-                  choices = effectTypes, multiple = TRUE,
-                  selected = effectTypes[1]
-      ),
-      column(width=12),
-      selectInput(ns("traitPredictionsCorrelation"),
-                  label = "Trait",
-                  choices = traits,
-                  selected = traits[1]
-      ),
-    )
-    
+    # if(length(setdiff(effectTypes, c("environment", "designation", "(Intercept)"))) > 0){
+    if(any(c("environment_designation", "designation_environment",
+             "environment:designation", "designation:environment") %in% effectTypes2)){
+      inputPanel(
+        # selectInput(ns("corrplotMtaPredsType"),
+        #             label = "Effect type",
+        #             choices = setdiff(effectTypes, c("environment", "designation", "(Intercept)")), multiple = TRUE, selected = setdiff(effectTypes, c("environment", "designation", "(Intercept)"))[1]
+        # ),
+        # column(width=12),
+        selectInput(ns("traitPredictionsCorrelation"),
+                    label = "Trait",
+                    choices = traits
+        ),
+        column(width=12),
+        shiny::checkboxInput(ns("freqCor"),
+                             label = "Show frequency distribution",
+                             value = TRUE
+        )
+      )
+    }
   }
-  
 }
 
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if("params" %in% ls()){ # we will download the document
-    
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    
-    for(iType2 in effectTypes){
-      cat("\n\n####", iType2, "{.tabset .tabset-pills}       \n\n")
+  # if(length(setdiff(effectTypes, c("environment", "designation", "(Intercept)"))) > 0){
+  if(gxeModelNum == 2){
+    if("params" %in% ls()){ # we will download the document
+      
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
       
       for(iTrait2 in traits){
-        cat("\n\n#####", iTrait2, "{.tabset .tabset-pills}       \n\n")
         
-        wide2 <- predSplitSplitWide[[iType2]][[iTrait2]] 
+        cat("\n\n####", iTrait2, "{.tabset .tabset-pills}       \n\n")
+        
+        level1 <- predSplitSplitWide[effectTypes[which(effectTypes %in% gxeList[[2]])]]
+        level2 <- lapply(level1, function(x){x[iTrait2]})
+        level3 <- NULL
+        
+        for(i in 1:length(level2)){
+          level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
+                                          gsub(paste0(":",colnames(level2[[i]][[1]])),"",
+                                               row.names(level2[[i]][[1]])))
+          if(i == 1){
+            level3 <- level2[[i]][[1]]
+          } else{
+            level3 <- merge(level3, level2[[i]][[1]], by = "designation", all = TRUE)
+          }
+        }
+        
+        wide2 <- level3
+        row.names(wide2) <-wide2$designation
+        wide2 <- wide2[,-1]
+        colnames(wide2) <- substring(colnames(wide2),4,nchar(colnames(wide2)))
+        
+        if(!is.null(wide2)){
+          if(nrow(wide2) > 1){
+            corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+            if(nrow(corr) > 1){
+              if( length(which(is.na(corr))) == 0){
+                ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+                corr <- corr[ord,ord]
+              }
+            }else{
+              corr[1,1]=1
+            }
+            mydata4 <- cgiarBase::matToTab(corr)
+            p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq)) +
+              ggplot2::geom_tile(color = "white") +
+              ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                            midpoint = 0, limit = c(-1,1), space = "Lab",
+                                            name="Pearson\nCorrelation") +
+              ggplot2::theme_minimal() +
+              ggplot2::ylab("") + 
+              ggplot2::xlab("") +
+              ggplot2::coord_fixed()
+            
+            # Basic histogram
+            mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
+            group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+            p2 <- ggplot() + 
+              geom_histogram(data = mydata4, aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+              ggplot2::scale_x_continuous(limits = c(-1,1)) +
+              scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                                   limit = c(-1,1), space = "Lab", 
+                                   name="Pearson\nCorrelation") + 
+              ggplot2::xlab("Value") + 
+              ggplot2::ylab("")
+          } else{
+            p <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
+            p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
+          }
+        } else{
+          p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        }
+        
+        for(iFreq in c("with frequency distribution", "without frequency distribution")){
+          cat("\n\n#####", iFreq, "{.tabset .tabset-pills}       \n\n")
+          if(iFreq == "with frequency distribution"){
+            # combine plots
+            if(!is.null(wide2)){
+              if(nrow(wide2) > 1){
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+              } else{
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+              }
+            }else{
+              print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))   
+            }
+            
+          } else{
+            if(!is.null(wide2)){
+              if(nrow(wide2) > 1){
+                print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+              }else{
+                print(htmltools::tagList(plotly::ggplotly(p)))
+              }
+            }else{
+              print(htmltools::tagList(plotly::ggplotly(p)))
+            }
+          }
+        }
+        
+      }
+    }else{
+      plotly::renderPlotly({
+        
+        level1 <- predSplitSplitWide[effectTypes[which(effectTypes %in% gxeList[[2]])]]
+        level2 <- lapply(level1, function(x){x[input$traitPredictionsCorrelation]})
+        level3 <- NULL
+        for(i in 1:length(level2)){
+          level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
+                                          gsub(paste0(":",colnames(level2[[i]][[1]])),"", row.names(level2[[i]][[1]])))
+          if(i == 1){
+            level3 <- level2[[i]][[1]]
+          } else{
+            level3 <- merge(level3, level2[[i]][[1]], by = "designation", all = TRUE)
+          }
+        }
+        row.names(level3) <-level3$designation
+        level3 <- level3[,-1]
+        
+        if(length(level3)>0){
+          N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
+          wide2 <- do.call(cbind,level3[ names(N)[which(N == N[1])] ])
+          colnames(wide2) <- substring(colnames(wide2),4,nchar(colnames(wide2)))
+          corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+          if(nrow(corr) > 1){
+            if( length(which(is.na(corr))) == 0){
+              ord <- hclust( dist(corr, method = "euclidean"), method = "ward.D" )$order
+              corr <- corr[ord,ord]
+            }
+          }else{
+            corr[1,1]=1
+          }
+          
+          mydata4 <- cgiarBase::matToTab(corr)
+          p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+            ggplot2::geom_tile(color = "white")+
+            ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                          midpoint = 0, limit = c(-1,1), space = "Lab",
+                                          name="Pearson\nCorrelation") +
+            ggplot2::theme_minimal()+
+            ggplot2::ylab("") + 
+            ggplot2::xlab("") +
+            ggplot2::coord_fixed()
+          
+          # Basic histogram
+          mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
+          group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+          
+          p2 <- ggplot() + geom_histogram(data = mydata4, 
+                                          aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+            ggplot2::scale_x_continuous(limits = c(-1,1)) +
+            scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                                 limit = c(-1,1), space = "Lab", 
+                                 name="Pearson\nCorrelation") + 
+            ggplot2::xlab("Correlation Value") + 
+            ggplot2::ylab("")
+          
+        }else{
+          p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+          p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        }
+        
+        if(input$freqCor == TRUE){
+          # combine plots
+          if(length(level3)>0){
+            ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 3)) 
+            ply2 <- plotly::ggplotly(p2)
+            plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)
+          } else{
+            ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()))
+            ply2 <- plotly::ggplotly(p2)
+            plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE )
+          }
+        } else{
+          if(length(level3)>0){
+            plotly::ggplotly(p  + geom_text(aes(label=Freq))) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+          } else{
+            plotly::ggplotly(p)
+          }
+        }
+      })
+    }
+  } else if(gxeModelNum == 1){
+    
+    if("params" %in% ls()){ # we will download the document
+      
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+      
+      # for(iType2 in setdiff(effectTypes, c("environment", "designation", "(Intercept)"))){
+      #   cat("\n\n####", iType2, "{.tabset .tabset-pills}       \n\n")
+      
+      for(iTrait2 in traits){
+        cat("\n\n####", iTrait2, "{.tabset .tabset-pills}       \n\n")
+        
+        # wide2 <- predSplitSplitWide[[iType2]][[iTrait2]] 
+        wide2 <- predSplitSplitWide[[which(names(predSplitSplitWide) %in% gxeList[[1]])]][[iTrait2]] 
+        
         if(!is.null(wide2)){
           if(nrow(wide2) > 1){
             corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
@@ -566,20 +905,26 @@ if (is.null(result)){
                                             midpoint = 0, limit = c(-1,1), space = "Lab",
                                             name="Pearson\nCorrelation") +
               ggplot2::theme_minimal()+
-              ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-              ggplot2::coord_fixed() + 
-              # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-              #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-              ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-            if(nrow(corr) < 8){ # if user wants to fill cell values
-              p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-            }
+              ggplot2::ylab("") + ggplot2::xlab("") +
+              ggplot2::coord_fixed()
+            # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+            #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+            # ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
+            # if(nrow(corr) < 8){ # if user wants to fill cell values
+            # p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+            # }
             # Basic histogram
             mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
             group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-            p2 <- ggplot(mydata4, aes(x=Freq, fill=Group)) + 
-              geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-              scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+            p2 <- ggplot() + geom_histogram(data = mydata4, aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+              ggplot2::scale_x_continuous(limits = c(-1,1)) +
+              scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                                   limit = c(-1,1), space = "Lab", 
+                                   name="Pearson\nCorrelation") + 
+              ggplot2::xlab("Value") + ggplot2::ylab("")
+            # p2 <- ggplot(mydata4, aes(x=Freq, fill=Group)) + 
+            #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+            #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
           }else{
             p <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
             p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
@@ -589,23 +934,54 @@ if (is.null(result)){
           p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }
         
+        for(iFreq in c("with frequency distribution", "without frequency distribution")){
+          cat("\n\n#####", iFreq, "{.tabset .tabset-pills}       \n\n")
+          if(iFreq == "with frequency distribution"){
+            # combine plots
+            if(!is.null(wide2)){
+              if(nrow(wide2) > 1){
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+              } else{
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+              }
+            }else{
+              print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))   
+            }
+            
+          } else{
+            if(!is.null(wide2)){
+              if(nrow(wide2) > 1){
+                print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+              }else{
+                print(htmltools::tagList(plotly::ggplotly(p)))
+              }
+            }else{
+              print(htmltools::tagList(plotly::ggplotly(p)))
+            }
+            
+          }
+          
+        }
         # combine plots
-        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+        # print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       }
-    }
-    
-  }else{
-    
-    plotly::renderPlotly({
-      # shiny::renderPlot({
-      if(length(input$corrplotMtaPredsType) > 0){
-        level1 <- predSplitSplitWide[input$corrplotMtaPredsType]
-        level2 <- lapply(level1, function(x){x[input$traitPredictionsCorrelation]})
+      # }
+      
+    }else{
+      
+      plotly::renderPlotly({
+        # shiny::renderPlot({
+        # if(length(input$corrplotMtaPredsType) > 0){
+        # level1 <- predSplitSplitWide[input$corrplotMtaPredsType]
         
+        level1 <- predSplitSplitWide[which(names(predSplitSplitWide) %in% gxeList[[1]])]
+        level2 <- lapply(level1, function(x){x[input$traitPredictionsCorrelation]})
         level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
+        
         if(length(level3)>0){
           N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
           wide2 <- do.call(cbind,level3[ names(N)[which(N == N[1])] ])
+          colnames(wide2) <- gsub(paste0(effectTypes[which(effectTypes %in% gxeList[[1]])],".",input$traitPredictionsCorrelation,"."),"",colnames(wide2))
           corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
           if(nrow(corr) > 1){
             if( length(which(is.na(corr))) == 0){
@@ -622,40 +998,72 @@ if (is.null(result)){
                                           midpoint = 0, limit = c(-1,1), space = "Lab",
                                           name="Pearson\nCorrelation") +
             ggplot2::theme_minimal()+
-            ggplot2::ylab("Environment") + ggplot2::xlab("Environment") +
-            ggplot2::coord_fixed() +
-            # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-            #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
-          if(nrow(corr) < 8){ # if user wants to fill cell values
-            p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-          }
+            ggplot2::ylab("") + ggplot2::xlab("") +
+            ggplot2::coord_fixed()
+          # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+          #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1) )
+          # ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) 
+          # if(nrow(corr) < 8){ # if user wants to fill cell values
+          # p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+          # }
           # Basic histogram
           mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
           group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-          p2 <- ggplot(mydata4, aes(x=Freq, fill=Group)) + 
-            geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-            scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
+          
+          p2 <- ggplot() + geom_histogram(data = mydata4, 
+                                          aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+            ggplot2::scale_x_continuous(limits = c(-1,1)) +
+            scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                                 limit = c(-1,1), space = "Lab", 
+                                 name="Pearson\nCorrelation") + 
+            ggplot2::xlab("Correlation Value") + ggplot2::ylab("")
+          
+          # p2 <- ggplot(mydata4, aes(x=Freq, fill=Group)) + 
+          #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+          #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Frequency")
           # combine plots
           
         }else{
           p <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
           p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }
-        ply1 <- plotly::ggplotly(p)
-        ply2 <- plotly::ggplotly(p2)
-        plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
+        
+        if(input$freqCor == TRUE){
+          # combine plots
+          if(length(level3)>0){
+            ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 3)) 
+            ply2 <- plotly::ggplotly(p2)
+            plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)
+          } else{
+            ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()))
+            ply2 <- plotly::ggplotly(p2)
+            plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE )
+          }
+        } else{
+          if(length(level3)>0){
+            plotly::ggplotly(p  + geom_text(aes(label=Freq))) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+          } else{
+            plotly::ggplotly(p)
+          }
+          
+        }
+        # ply1 <- plotly::ggplotly(p)
+        # ply2 <- plotly::ggplotly(p2)
+        # plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
         # p # static
         # plotly::ggplotly(p) # dynamic
-      }
+        # }
+        
+      })
       
-    })
-    
+    }
+  } else{
+    cat("No interaction present. Skipping correlation plot.")
   }
-  
-  
 }
 ```
+
+</div>
 
 ### Predictions: Biplot by trait
 
@@ -670,52 +1078,60 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
-  }else{ # input <- list(biplotMtaPredsType=effectTypes[1:4],traitBiplot=traits[1])
-    
-    inputPanel(
-      selectInput(ns("biplotMtaPredsType"),
-                  label = "Effect type:",
-                  choices = effectTypes, multiple = TRUE,
-                  selected=effectTypes[1]
-      ),
-      column(width=12),
-      selectInput(ns("traitBiplot"),
-                  label = "Trait:",
-                  choices = traits,
-                  selected=traits[1]
-      ),
-    )
-    
+  }else{
+    if(any(c("environment_designation", "designation_environment") %in% effectTypes2)){
+      inputPanel(
+        selectInput(ns("traitBiplot"),
+                    label = "Trait:",
+                    choices = traits
+        ),
+      )
+    }
   }
-  
 }
-
-
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  
-  if("params" %in% ls()){ # we will download the document
-    
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    
-    for(iType3 in effectTypes){
-      cat("\n\n####", iType3, "{.tabset .tabset-pills}       \n\n")
+  # if(length(setdiff(effectTypes, c("environment", "designation", "(Intercept)"))) > 0){
+  if(gxeModelNum == 2){
+    if("params" %in% ls()){ # we will download the document
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
       
       for(iTrait3 in traits){
-        cat("\n\n#####", iTrait3, "{.tabset .tabset-pills}       \n\n")
+        cat("\n\n####", iTrait3, "{.tabset .tabset-pills}       \n\n")
         
-        level1 <- predSplitSplitWide[iType3]
+        level1 <- predSplitSplitWide[effectTypes[which(effectTypes %in% gxeList[[2]])]]
         level2 <- lapply(level1, function(x){x[iTrait3]})
-        level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
+        level3 <- NULL
+        for(i in 1:length(level2)){
+          level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
+                                               gsub(paste0(":",colnames(level2[[i]][[1]])),"",
+                                                    row.names(level2[[i]][[1]])))
+          if(i == 1){
+            level3 <- level2[[i]][[1]]
+          } else{
+            level3 <- merge(level3, level2[[i]][[1]], by = "designation", all = TRUE)
+          }
+        }
+        row.names(level3) <-level3$designation
+        level3 <- level3[,-1]
+        
         if(length(level3)>0){
           N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
           pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
           rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+          for(i in 1:ncol(pred.mta.biplot)){
+            rownames(pred.mta.biplot) <- gsub(paste0(colnames(pred.mta.biplot)[i],":"),"",
+                                              gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
+                                                   rownames(pred.mta.biplot)))
+          }
+          colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
           pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
           if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
             prin_comp <- prcomp(pred.mta.biplot, rank = 2)
@@ -757,21 +1173,35 @@ if (is.null(result)){
         print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
       }# end of for each trait
       
-    }
-    
-  }else{
-    
-    plotly::renderPlotly({
+    }else{
       
-      if(length(input$biplotMtaPredsType) > 0){
-        
-        level1 <- predSplitSplitWide[input$biplotMtaPredsType]
+      plotly::renderPlotly({
+        level1 <- predSplitSplitWide[effectTypes[which(effectTypes %in% gxeList[[2]])]]
         level2 <- lapply(level1, function(x){x[input$traitBiplot]})
-        level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
+        level3 <- NULL
+        for(i in 1:length(level2)){
+          level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
+                                               gsub(paste0(":",colnames(level2[[i]][[1]])),"",
+                                                    row.names(level2[[i]][[1]])))
+          if(i == 1){
+            level3 <- level2[[i]][[1]]
+          } else{
+            level3 <- merge(level3, level2[[i]][[1]], by = "designation", all = TRUE)
+          }
+        }
+        row.names(level3) <-level3$designation
+        level3 <- level3[,-1]
+        
         if(length(level3) > 0){
           N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
           pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
           rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+          for(i in 1:ncol(pred.mta.biplot)){
+            rownames(pred.mta.biplot) <- gsub(paste0(colnames(pred.mta.biplot)[i],":"),"",
+                                              gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
+                                                   rownames(pred.mta.biplot)))
+          }
+          colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
           pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
           if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
             prin_comp <- prcomp(pred.mta.biplot, rank = 2)
@@ -812,19 +1242,173 @@ if (is.null(result)){
           px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
           p.mta.biplot <- plotly::ggplotly(px) 
         }
-      }else{
-        px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
-        p.mta.biplot <- plotly::ggplotly(px) 
-      } # end of if biplotMtaPredsType has length > 0
-      plotly::layout(p.mta.biplot) # ,font=font.plot_ly
-    }) # end of plotly
+        plotly::layout(p.mta.biplot) # ,font=font.plot_ly
+      }) # end of plotly
+      
+    }
     
+  } else if(gxeModelNum == 1){
+    if(any(effectTypes %in% gxeList[[1]])){
+      
+      if("params" %in% ls()){ # we will download the document
+        
+        cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+        
+        # for(iType3 in setdiff(effectTypes, c("environment", "designation", "(Intercept)"))){
+        #   cat("\n\n####", iType3, "{.tabset .tabset-pills}       \n\n")
+        
+        for(iTrait3 in traits){
+          cat("\n\n####", iTrait3, "{.tabset .tabset-pills}       \n\n")
+          
+          level1 <- predSplitSplitWide[effectTypes[which(effectTypes %in% gxeList[[1]])]]
+          level2 <- lapply(level1, function(x){x[iTrait3]})
+          level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
+          
+          if(length(level3)>0){
+            N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
+            pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
+            colnames(pred.mta.biplot) <- gsub(paste0("environment_designation.",iTrait3,"."),"",
+                                              gsub(paste0("designation_environment.",iTrait3,"."),"",
+                                                   gsub(paste0("environment:designation.",iTrait3,"."),"",
+                                                        gsub(paste0("designation:environment.",iTrait3,"."),"",
+                                                             colnames(pred.mta.biplot))))) 
+            rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+            for(i in 1:ncol(pred.mta.biplot)){
+              rownames(pred.mta.biplot) <- gsub(paste0(colnames(pred.mta.biplot)[i],":"),"",
+                                                gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
+                                                     rownames(pred.mta.biplot)))
+            }
+            # 
+            # for (j in unique(result$data$pheno$environment)){
+            #   tempA <- gsub(j, "",rownames(level2[[ which(N == N[1])[1] ]][[1]] ))
+            #   a <- c(tempA,a)
+            # }
+            pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+            if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
+              prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+              components <- prin_comp[["x"]]
+              components <- data.frame(components)
+              components$PC2 <- -components$PC2
+              
+              explained_variance <- summary(prin_comp)[["sdev"]]
+              explained_variance <- explained_variance[1:2]
+              comp <- prin_comp[["rotation"]]
+              comp[,'PC2'] <- - comp[,'PC2']
+              loadings <- comp
+              for (i in seq(explained_variance) ){
+                loadings[,i] <- comp[,i] * explained_variance[i]
+              }
+              p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+              p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                                x=components$PC1,
+                                                y=components$PC2,
+                                                text=rownames(components),
+                                                marker=list(color="blue"),
+                                                hoverinfo='text',
+                                                showlegend=FALSE
+              )
+              for (i in 1:ncol(pred.mta.biplot)){
+                p.mta.biplot <- p.mta.biplot %>%
+                  plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+                if(ncol(pred.mta.biplot) < 20){
+                  p.mta.biplot <- p.mta.biplot %>%
+                    plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+                }
+              }
+            }else{
+              p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
+            }
+          }else{ # end of if length > 0
+            p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
+          }
+          print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+        }# end of for each trait
+        
+        # }
+        
+      }else{
+        
+        plotly::renderPlotly({
+          # if(length(input$biplotMtaPredsType) > 0){
+          
+          # level1 <- predSplitSplitWide[input$biplotMtaPredsType]
+          
+          level1 <- predSplitSplitWide[effectTypes[which(effectTypes %in% gxeList[[1]])]]
+          level2 <- lapply(level1, function(x){x[input$traitBiplot]})
+          level3 <- lapply(rapply(level2, enquote, how="unlist"), eval)
+          
+          if(length(level3) > 0){
+            N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
+            pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
+            rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+            colnames(pred.mta.biplot) <- gsub(paste0("environment_designation.",input$traitBiplot,"."),"",
+                                              gsub(paste0("designation_environment.",input$traitBiplot,"."),"",
+                                                   gsub(paste0("environment:designation.",input$traitBiplot,"."),"",
+                                                        gsub(paste0("designation:environment.",input$traitBiplot,"."),"",
+                                                             colnames(pred.mta.biplot))))) 
+            rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
+            for(i in 1:ncol(pred.mta.biplot)){
+              rownames(pred.mta.biplot) <- gsub(paste0(colnames(pred.mta.biplot)[i],":"),"",
+                                                gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
+                                                     rownames(pred.mta.biplot)))
+            }
+            pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+            if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
+              prin_comp <- prcomp(pred.mta.biplot, rank = 2)
+              components <- prin_comp[["x"]]
+              components <- data.frame(components)
+              components$PC2 <- -components$PC2
+              
+              explained_variance <- summary(prin_comp)[["sdev"]]
+              explained_variance <- explained_variance[1:2]
+              comp <- prin_comp[["rotation"]]
+              comp[,'PC2'] <- - comp[,'PC2']
+              loadings <- comp
+              for (i in seq(explained_variance) ){
+                loadings[,i] <- comp[,i] * explained_variance[i]
+              }
+              p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
+              p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
+                                                x=components$PC1,
+                                                y=components$PC2,
+                                                text=rownames(components),
+                                                marker=list(color="blue"),
+                                                hoverinfo='text',
+                                                showlegend=FALSE
+              )
+              for (i in 1:ncol(pred.mta.biplot)){
+                p.mta.biplot <- p.mta.biplot %>%
+                  plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
+                if(ncol(pred.mta.biplot) < 20){
+                  p.mta.biplot <- p.mta.biplot %>%
+                    plotly::add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = rownames(loadings)[i], xanchor = 'center', yanchor= 'bottom')
+                }
+              }
+            }else{
+              px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
+              p.mta.biplot <- plotly::ggplotly(px) 
+            } # end of if cols > 1
+          }else{
+            px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
+            p.mta.biplot <- plotly::ggplotly(px) 
+          }
+          # }else{
+          #   px <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
+          #   p.mta.biplot <- plotly::ggplotly(px) 
+          # } # end of if biplotMtaPredsType has length > 0
+          plotly::layout(p.mta.biplot) # ,font=font.plot_ly
+        }) # end of plotly
+      }
+    } else{
+      cat("No interaction present. Skipping biplot.")
+    }
+  } else{
+    cat("No interaction present. Skipping biplot.")
   }
-  
-  
-  
 }
 ```
+
+</div>
 
 ### Predictions: Merit estimates of top entries
 
@@ -842,25 +1426,32 @@ if (is.null(result)){
     inputPanel(
       selectInput(ns("scatterMtaPredsType"),
                   label = "Effect type:",
-                  choices = effectTypes, multiple = TRUE,
-                  selected=effectTypes[1]
+                  choices = setdiff(effectTypes2, c("environment", "(Intercept)"))
+                  # effectTypes[effectTypes %in% c("environment_designation", "designation")]
+                  # choices = effectTypes, multiple = TRUE,
+                  # selected=effectTypes[1]
       ),
-      column(width=12),
       selectInput(ns("scatterMtaPredsTrait"),
                   label = "Trait",
                   choices = traits,
                   selected=traits[1]
       ),
-      column(width=12),
       selectInput(ns("scatterMtaPredsEnvir"),
                   label = "Environment",
                   choices = envirTypes,
                   selected=envirTypes[1]
       ),
+      numericInput(ns("scatterMtaPredsTop"),
+                   label = "Number of Entries",
+                   value = 100,
+                   min = 1
+      ),
     )
   }
 }
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -871,15 +1462,30 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
-    for(iType4 in effectTypes){
+    for(iType4 in setdiff(effectTypes2, c("environment", "(Intercept)"))){
       cat("\n\n####", iType4, "{.tabset .tabset-pills}       \n\n")
       for(iTrait4 in traits){
         cat("\n\n#####", iTrait4, "{.tabset .tabset-pills}       \n\n")
-        for(iEnv4 in envirTypes){
+        if(!(iType4 %in% c("environment_designation", "designation_environment",
+                           "environment:designation", "designation:environment"))){
+          envirTypes2 <- setdiff(envirTypes,c("(Intercept)"))
+        } else{
+          envirTypes2 <- c("(Intercept)")
+        }
+        for(iEnv4 in envirTypes2){
           cat("\n\n######", iEnv4, "{.tabset .tabset-pills}       \n\n")
-          
-          level1 <- predSplitSplit[iType4]
-          level2 <- lapply(level1, function(x){x[iTrait4]})
+          if(gxeModelNum == 2){
+            if(iType4 %in% c("environment_designation","environment:designation")){
+              level1 <- predSplitSplit[effectTypes[which(effectTypes %in% gxeList[[2]])]]
+              level2 <- lapply(level1, function(x){x[iTrait4]})
+            } else{
+              level1 <- predSplitSplit[iType4]
+              level2 <- lapply(level1, function(x){x[iTrait4]})
+            }
+          } else{
+            level1 <- predSplitSplit[iType4]
+            level2 <- lapply(level1, function(x){x[iTrait4]})
+          }
           level3 <- list()
           for(o in 1:length(level2)){level3[[o]] <- level2[[o]][[1]]}
           temp.pred.box.top <- do.call(rbind,level3)
@@ -898,8 +1504,14 @@ if (is.null(result)){
               # plot 2
               temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$effectType)
               temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
+                x.c <- x[which(grepl("check|chck|bnchmark|benchmark|chek|chec",
+                                    x$entryType, ignore.case = TRUE)),]
+                x <- x[which(!grepl("check|chck|bnchmark|benchmark|chek|chec",
+                                    x$entryType, ignore.case = TRUE)),]
                 x <- x[with(x, order(-predictedValue)), ]
                 x <- x[1:min(c(nrow(x), 100)),]
+                x <- rbind(x, x.c)
+                x <- x[order(-x$predictedValue), ]
                 return(x)
               })
               temp.pred.box.top2 <- as.data.frame(do.call(rbind, temp.pred.box.top.list))
@@ -928,8 +1540,6 @@ if (is.null(result)){
                 ggplot2::theme(axis.text.x = ggplot2::element_blank() , legend.position = "none", legend.title = element_blank() ) +   # element_text(angle = 45, vjust = 0.5, size = 7, face = "bold")
                 ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.pred.box.top2$entryType))/3) )) + 
                 ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
-              
-              
             }else{
               p1 <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
             }
@@ -950,8 +1560,19 @@ if (is.null(result)){
       
       if(length(input$scatterMtaPredsType) > 0){
         
-        level1 <- predSplitSplit[input$scatterMtaPredsType]
-        level2 <- lapply(level1, function(x){x[input$scatterMtaPredsTrait]})
+        if(gxeModelNum == 2){
+          if(input$scatterMtaPredsType %in% c("environment_designation","environment:designation")){
+            level1 <- predSplitSplit[effectTypes[which(effectTypes %in% gxeList[[2]])]]
+            level2 <- lapply(level1, function(x){x[input$scatterMtaPredsTrait]})
+          } else{
+            level1 <- predSplitSplit[input$scatterMtaPredsType]
+            level2 <- lapply(level1, function(x){x[input$scatterMtaPredsTrait]})
+          }
+        } else{
+          level1 <- predSplitSplit[input$scatterMtaPredsType]
+          level2 <- lapply(level1, function(x){x[input$scatterMtaPredsTrait]})
+        }
+        
         level3 <- list()
         for(o in 1:length(level2)){level3[[o]] <- level2[[o]][[1]]}
         temp.pred.box.top <- do.call(rbind,level3)
@@ -971,8 +1592,16 @@ if (is.null(result)){
             # plot 2
             temp.pred.box.top.list <- split(temp.pred.box.top, temp.pred.box.top$effectType)
             temp.pred.box.top.list <- lapply(temp.pred.box.top.list, function(x){
+              # x.c <- x[which(grepl("check", tolower(x$entryType))),]
+              # x <- x[which(!grepl("check", tolower(x$entryType))),]
+              x.c <- x[which(grepl("check|chck|bnchmark|benchmark|chek|chec",
+                                  x$entryType, ignore.case = TRUE)),]
+              x <- x[which(!grepl("check|chck|bnchmark|benchmark|chek|chec",
+                                 x$entryType, ignore.case = TRUE)),]
               x <- x[with(x, order(-predictedValue)), ]
-              x <- x[1:min(c(nrow(x), 100)),]
+              x <- x[1:min(c(nrow(x), ifelse(!is.na(input$scatterMtaPredsTop), input$scatterMtaPredsTop,100))),]
+              x <- rbind(x, x.c)
+              x <- x[order(-x$predictedValue), ]
               return(x)
             })
             temp.pred.box.top2 <- as.data.frame(do.call(rbind, temp.pred.box.top.list))
@@ -1021,6 +1650,8 @@ if (is.null(result)){
 }
 ```
 
+</div>
+
 ### Predictions: Table of estimates 
 
 The following table allows you to inspect the trait predictions in wide format together with the QTL profile (in case those are available) to understand the type of data that would be used to calculate a selection index (e.g., desire index).
@@ -1040,6 +1671,38 @@ if (is.null(result)){
   )
   names(pred.mta.wide) <- gsub("predictedValue.","",colnames(pred.mta.wide)) 
   
+  # to show only 1 row per designation effectType (concatenated entryType)
+  pred.mta.wide1 <- pred.mta.wide[which(pred.mta.wide$effectType != "designation"),]
+  pred.mta.wide2 <- pred.mta.wide[which(pred.mta.wide$effectType == "designation"),]
+  
+  coalesce_by_column <- function(x) {
+    return(dplyr::coalesce(!!! as.list(x)))
+  }
+  
+  pred.mta.wide2_trait <- pred.mta.wide2 %>% select(c("designation", all_of(traits))) %>%
+    group_by(designation) %>% 
+    summarise(across(traits, coalesce_by_column)) 
+  
+  pred.mta.wide2_meta <- pred.mta.wide2 %>% select(!all_of(traits)) %>%
+    arrange(designation, entryType) %>% 
+    group_by(designation) %>% 
+    mutate(entryType2 = paste0(entryType, collapse = "#")) %>%
+    filter(duplicated(designation) == FALSE)
+  
+  pred.mta.wide2 <- merge(pred.mta.wide2_meta, pred.mta.wide2_trait, by = "designation")
+  pred.mta.wide2 <- subset(pred.mta.wide2, select = -c(entryType))
+  pred.mta.wide2 <- rename(pred.mta.wide2, entryType = entryType2)
+  
+  pred.mta.wide <- rbind(pred.mta.wide1, pred.mta.wide2)
+
+  # to deduct intercept from the envIndex_designation effectType to get slope for FW model
+  # if(params$modelUsed == "fw_model"){
+  #   for (i in 1:length(unique(pred.mta$trait))){
+  #     pred.mta.wide[grepl("envIndex_designation",pred.mta.wide$effectType),unique(pred.mta$trait)[i]] <-
+  #       pred.mta.wide[grepl("envIndex_designation",pred.mta.wide$effectType),unique(pred.mta$trait)[i]] - pred.mta.wide[pred.mta.wide$effectType == "(Intercept)",unique(pred.mta$trait)[i]]
+  #   }
+  # }
+    
   if(!is.null(result$data$qtl)  ){ # there's QTL information
     if(nrow(result$data$qtl)>0){
       qtls <- result$data$qtl
@@ -1079,48 +1742,129 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{ # input <- list(corrplotTraitMtaPredsType=effectTypes[1],corrplotTraitMtaPredsEnv=envirTypes[1])
-    
-    inputPanel(
-      selectInput(ns("corrplotTraitMtaPredsType"),
-                  label = "Effect type",
-                  choices = effectTypes, multiple = FALSE,
-      ),
-      column(width=12),
-      selectInput(ns("corrplotTraitMtaPredsEnv"),
-                  label = "Environment", 
-                  choices = envirTypes
-      ),
-    )
-    
+    if(length(traits) > 1){
+      inputPanel(
+        # selectInput(ns("corrplotTraitMtaPredsType"),
+        #             label = "Effect type",
+        #             choices = setdiff(effectTypes,c("(Intercept")), multiple = FALSE,
+        # ),
+        # column(width=12),
+        # selectInput(ns("corrplotTraitMtaPredsEnv"),
+        #             label = "Environment", 
+        #             choices = envirTypes
+        # ),
+        shiny::checkboxInput(ns("freqCor"),
+                             label = "Show frequency distribution",
+                             value = TRUE
+        )
+      )
+    }
   }
-  
 }
 
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  # if(nrow(corr) > 1){
-  if("params" %in% ls()){ # we will download the document
-    
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    
-    for(iType5 in effectTypes){
-      cat("\n\n####", iType5, "{.tabset .tabset-pills}       \n\n")
+  if(length(traits) > 1){
+    # if(nrow(corr) > 1){
+    if("params" %in% ls()){ # we will download the document
       
-      for(iEnv5 in envirTypes){
-        cat("\n\n#####", iEnv5, "{.tabset .tabset-pills}       \n\n")
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+      
+      # for(iType5 in setdiff(effectTypes, c("(Intercept)"))){
+      #   cat("\n\n####", iType5, "{.tabset .tabset-pills}       \n\n")
+      
+      #       if(iType5 %in% c("environment", "designation")){
+      #     envirTypes3 <- c("(Intercept)")
+      # } else{
+      #     envirTypes3 <- setdiff(envirTypes,c("(Intercept)"))
+      #   }
+      
+      # for(iEnv5 in envirTypes3){
+      #   cat("\n\n#####", iEnv5, "{.tabset .tabset-pills}       \n\n")
+      
+      # wideCorTrait2 <- predSplitSplitWide2[[iType5]][[iEnv5]]
+      wideCorTrait2 <- predSplitSplitWide2[["designation"]][["(Intercept)"]]
+      if(!is.null(wideCorTrait2)){
         
-        wideCorTrait2 <- predSplitSplitWide2[[iType5]][[iEnv5]]
-        if(!is.null(wideCorTrait2)){
+        if(is.matrix(wideCorTrait2)){
+          wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
+          corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
+          mydata4CorTraits <- cgiarBase::matToTab(corrX)
+          p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq))+
+            ggplot2::geom_tile(color = "white")+
+            ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                          midpoint = 0, limit = c(-1,1), space = "Lab",
+                                          name="Pearson\nCorrelation") +
+            ggplot2::theme_minimal()+
+            ggplot2::ylab("") + ggplot2::xlab("") +
+            ggplot2::coord_fixed()
+          # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
+          #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
+          # if(nrow(corrX) < 8){ # if user wants to fill cell values
+          #   p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+          # }
           
+          # Basic histogram
+          mydata4CorTraits$Group <- ifelse(mydata4CorTraits$Freq < 0, "Low", ifelse(mydata4CorTraits$Freq < 0.2, "Medium", "High"))
+          group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+          p2 <- ggplot() + geom_histogram(data = mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], 
+                                          aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+            ggplot2::scale_x_continuous(limits = c(-1,1)) +
+            scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                                 limit = c(-1,1), space = "Lab", 
+                                 name="Pearson\nCorrelation") + 
+            ggplot2::xlab("Correlation Value") + ggplot2::ylab("")
+          # plotly::ggplotly(p2)
+        }else{
+          p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+        } # end of nrow > 1
+        
+      }else{
+        p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
+      }# end of each env
+      
+      for(iFreq in c("with frequency distribution", "without frequency distribution")){
+        cat("\n\n####", iFreq, "{.tabset .tabset-pills}       \n\n")
+        if(iFreq == "with frequency distribution"){
+          # combine plots
+          if(!is.null(wideCorTrait2) & is.matrix(wideCorTrait2)){
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+          }else{
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+          }
+        } else{
+          if(!is.null(wideCorTrait2) & is.matrix(wideCorTrait2)){
+            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+          }else{
+            print(htmltools::tagList(plotly::ggplotly(p)))
+          }
+        }
+      }
+      
+      # }
+      
+      # }
+      
+    }else{
+      
+      
+      plotly::renderPlotly({
+        # shiny::renderPlot({
+        # wideCorTrait2 <- predSplitSplitWide2[[input$corrplotTraitMtaPredsType]][[input$corrplotTraitMtaPredsEnv]]
+        wideCorTrait2 <- predSplitSplitWide2[["designation"]][["(Intercept)"]]
+        if(!is.null(wideCorTrait2)){
           if(is.matrix(wideCorTrait2)){
             wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
             corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
             mydata4CorTraits <- cgiarBase::matToTab(corrX)
+            
             p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq))+
               ggplot2::geom_tile(color = "white")+
               ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
@@ -1131,81 +1875,321 @@ if (is.null(result)){
               ggplot2::coord_fixed() + 
               ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
                              axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-            if(nrow(corrX) < 8){ # if user wants to fill cell values
-              p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
-            }
+            # if(nrow(corrX) < 8){ # if user wants to fill cell values
+            #   p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
+            # }
             
             # Basic histogram
             mydata4CorTraits$Group <- ifelse(mydata4CorTraits$Freq < 0, "Low", ifelse(mydata4CorTraits$Freq < 0.2, "Medium", "High"))
             group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-            p2 <- ggplot2::ggplot(mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], ggplot2::aes(x=Freq, fill=Group)) + 
-              ggplot2::geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-              ggplot2::scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
             
-            # plotly::ggplotly(p2)
+            p2 <- ggplot() + geom_histogram(data = mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], 
+                                            aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+              ggplot2::scale_x_continuous(limits = c(-1,1)) +
+              scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                                   limit = c(-1,1), space = "Lab", 
+                                   name="Pearson\nCorrelation") + 
+              ggplot2::xlab("Correlation Value") + ggplot2::ylab("")
           }else{
             p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
-          } # end of nrow > 1
-          
-        }else{
-          p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
-        }# end of each env
-        # combine plots
-        print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
-      }
-      
-    }
-    
-  }else{
-    
-    
-    plotly::renderPlotly({
-      # shiny::renderPlot({
-      wideCorTrait2 <- predSplitSplitWide2[[input$corrplotTraitMtaPredsType]][[input$corrplotTraitMtaPredsEnv]]
-      if(!is.null(wideCorTrait2)){
-        if(is.matrix(wideCorTrait2)){
-          wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
-          corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
-          mydata4CorTraits <- cgiarBase::matToTab(corrX)
-          
-          p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq))+
-            ggplot2::geom_tile(color = "white")+
-            ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
-                                          midpoint = 0, limit = c(-1,1), space = "Lab",
-                                          name="Pearson\nCorrelation") +
-            ggplot2::theme_minimal()+
-            ggplot2::ylab("") + ggplot2::xlab("") +
-            ggplot2::coord_fixed() + 
-            ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black"), 
-                           axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1))
-          if(nrow(corrX) < 8){ # if user wants to fill cell values
-            p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = 4)
           }
-          
-          # Basic histogram
-          mydata4CorTraits$Group <- ifelse(mydata4CorTraits$Freq < 0, "Low", ifelse(mydata4CorTraits$Freq < 0.2, "Medium", "High"))
-          group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-          p2 <- ggplot2::ggplot(mydata4CorTraits[which(mydata4CorTraits$Var1 != mydata4CorTraits$Var2),], ggplot2::aes(x=Freq, fill=Group)) + 
-            ggplot2::geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-            ggplot2::scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
         }else{
           p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
         }
-      }else{
-        p <- p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")
-      }
-      # combine plots
-      ply1 <- plotly::ggplotly(p)
-      ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
-      # print(p)
-    })
-    
+        # combine plots
+        if(input$freqCor == TRUE){
+          # combine plots
+          if(!is.null(wideCorTrait2) & is.matrix(wideCorTrait2)){
+            ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 3)) 
+            ply2 <- plotly::ggplotly(p2)
+            plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)
+          } else{
+            ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) 
+            ply2 <- plotly::ggplotly(p2)
+            plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE )
+          }
+          
+        } else{
+          if(!is.null(wideCorTrait2) & is.matrix(wideCorTrait2)){
+            plotly::ggplotly(p  + geom_text(aes(label=Freq))) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+          } else{
+            plotly::ggplotly(p)
+          }
+          
+        }
+        # ply1 <- plotly::ggplotly(p)
+        # ply2 <- plotly::ggplotly(p2)
+        # plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
+        # print(p)
+      })
+      
+    }
+  } else{
+    cat("Only 1 trait selected. Skipping correlation between traits.")
   }
   
 }
 ```
 
+</div>
+
+### Percent check comparison to top 30 entries
+
+The following plots allow the user to compare the top 30 entries against the different checks/benchmarks present in the dataset for each trait. The table below that shows the wide-table of all possible comparisons for all traits.
+
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  result$status <- result$status#[1:6,]
+  idMta <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  pred <- result$predictions
+  pred <- pred[pred$analysisId == idMta,]
+
+  traitChecks <- unique(pred$trait)
+
+  entryTypePresent <- table((unique(pred[which(pred$effectType == "designation"),c("designation","entryType")]))$entryType)
+  check1 <- which(entryTypePresent < 200)
+  check2 <- grep("check|chck|bnchmark|benchmark|chek|chec", names(entryTypePresent), ignore.case = TRUE, value=FALSE)
+  checksFound <- intersect(check1,check2)
+  if(length(checksFound) > 0){
+    labelChecks <- names(entryTypePresent)[checksFound]
+    nameOfChecks <- unique(pred[ which(pred$entryType %in% labelChecks & pred$effectType == "designation") , "designation"])
+
+    if("params" %in% ls()){ # we will download the document
+      shinyjs::hide()
+    }else{
+      inputPanel(
+        selectInput(ns("checkMta"),
+                    label = "Check to compare to:",
+                    choices = nameOfChecks
+        ),
+        selectInput(ns("checkMtaTrait"),
+                    label = "View trait:",
+                    choices = traitChecks
+        ),
+      )
+    }
+  }else{
+    shinyjs::hide()
+  }
+
+}
+```
+
+<div style = "width:auto; height:auto; overflow:auto">
+
+```{r, results='asis', fig.height=20}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+
+  if(length(checksFound) > 0){
+
+    if("params" %in% ls()){ # we will download the document
+
+      cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+
+      for(iCheck in nameOfChecks){
+
+        cat("\n\n####", iCheck, "{.tabset .tabset-pills}       \n\n")
+
+        for(iTrait in traitChecks){
+
+          cat("\n\n#####", iTrait, "{.tabset .tabset-pills}       \n\n")
+
+          # predDta <- pred[which(pred$effectType == "designation"),]
+          # predDtaTrait <- predDta$trait
+          predListBench <- split(pred[which(pred$effectType == "designation"),], pred[which(pred$effectType == "designation"),]$trait)
+          predListBench2 <- lapply(predListBench, function(x){ # x <- predListBench[[1]]
+            checkSelected <- which(x$designation == iCheck)
+            if(length(checkSelected) > 0){
+              x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+              x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+              x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+              x <- x[with(x, order(-predictedValue2)), ]
+              x_test <- x[which(!x$designation %in% nameOfChecks),]
+              x_test <- x_test[c(1:min(c(30, nrow(x_test)))),]
+              x <- x[c(which(x$designation %in% x_test$designation),which(x$designation %in% nameOfChecks)),]
+              x <- x[with(x, order(-predictedValue2)), ]
+              return(x)
+            }
+          })
+          temp.pred.box.bench <- do.call(rbind, predListBench2)
+          temp.pred.box.bench$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.bench$entryType))]
+          temp.pred.box.bench <- temp.pred.box.bench[which(temp.pred.box.bench$trait == iTrait),]
+          if(nrow(temp.pred.box.bench)>0){
+            pb <- ggplot2::ggplot(
+            data = temp.pred.box.bench,
+            mapping = ggplot2::aes(
+              x = reorder(designation, -predictedValue2),
+              y = predictedValue2,
+              col = entryType,
+              text = paste(
+                paste0('<br>', "designation: ", designation),
+                paste0('<br>', "entry type: ", entryType),
+                paste0('<br>', "predicted value: ", round(predictedValue2, 4)),
+                # paste0('<br>', "standard error: ", round(stdError2, 4)),
+                paste0("<br>predVal +- stdError: (", round(LB, 2) , ", ",
+                       round(UB, 4), ")")))) +
+            ggplot2::theme_classic() +  ggplot2::geom_point() + #facet_grid(~trait, scales = "free_x")+
+            ggplot2::geom_errorbar(ggplot2::aes(ymax = UB,# predictedValue2 + stdError2,
+                                                ymin = LB#predictedValue2 - stdError2
+            ), position = ggplot2::position_dodge(0.5),
+            width = 0.10) +
+            ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) #+ ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
+             
+            print(htmltools::tagList(plotly::ggplotly(pb)))
+            
+            # tablepb <- temp.pred.box.bench[which(temp.pred.box.bench$predictedValue2 > 0),]
+            # 
+            # printTable(tablepb, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+            #            colNames = colnames(tablepb),
+            #            numericColNames = c("predictedValue", "stdError", "reliability", 
+            #                                "predictedValue2", "UB", "LB"),
+            #            numRound = 4)
+            # 
+            # # cowplot::plot_grid(pb, tableGrob(tablepb), ncol = 1, rel_widths = c(1,2))
+            # 
+            # print(htmltools::tagList(plotly::ggplotly(pb), 
+            #                          printTable(tablepb, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+            #                                     colNames = colnames(tablepb),
+            #                                     numericColNames = c("predictedValue", "stdError",
+            #                                                         "reliability", 
+            #                                                         "predictedValue2", "UB", "LB"),
+            #                                     numRound = 4)))
+        
+          }else{
+            print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
+          }
+        }
+
+      }
+
+    }else{
+
+      plotly::renderPlotly({
+        predListBench <- split(pred[which(pred$effectType == "designation"),], pred[which(pred$effectType == "designation"),]$trait)
+        predListBench2 <- lapply(predListBench, function(x){ # x <- predListBench[[1]]
+          checkSelected <- which(x$designation == input$checkMta)
+          # checkSelected <- which(x$designation == "IRRI 156")
+          if(length(checkSelected) > 0){
+            x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+            x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+            x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+            x <- x[with(x, order(-predictedValue2)), ]
+            x_test <- x[which(!x$designation %in% nameOfChecks),]
+            x_test <- x_test[c(1:min(c(30, nrow(x_test)))),]
+            x <- x[c(which(x$designation %in% x_test$designation),which(x$designation %in% nameOfChecks)),]
+            # x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == input$checkMta))),]
+            return(x)
+          }
+        })
+        temp.pred.box.bench <- do.call(rbind, predListBench2)
+        temp.pred.box.bench$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.pred.box.bench$entryType))]
+        temp.pred.box.bench <- temp.pred.box.bench[which(temp.pred.box.bench$trait == input$checkMtaTrait),]
+        if(nrow(temp.pred.box.bench)>0){
+          pb <- ggplot2::ggplot(
+            data = temp.pred.box.bench,
+            mapping = ggplot2::aes(
+              x = reorder(designation, -predictedValue2),
+              y = predictedValue2,
+              col = entryType,
+              text = paste(
+                paste0('<br>', "designation: ", designation),
+                paste0('<br>', "entry type: ", entryType),
+                paste0('<br>', "predicted value: ", round(predictedValue2, 4)),
+                # paste0('<br>', "standard error: ", round(stdError2, 4)),
+                paste0("<br>predVal +- stdError: (", round(LB, 2) , ", ",
+                       round(UB, 4), ")")))) +
+            ggplot2::theme_classic() +  ggplot2::geom_point() + #facet_grid(~trait, scales = "free_x")+
+            ggplot2::geom_errorbar(ggplot2::aes(ymax = UB,# predictedValue2 + stdError2,
+                                                ymin = LB#predictedValue2 - stdError2
+            ), position = ggplot2::position_dodge(0.5),
+            width = 0.10) +
+            ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) # + ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
+          plotly::ggplotly(pb)
+        } else{
+          plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))
+        }
+      })
+
+    }
+
+  } else{
+    cat("No checks found. Skipping percent check comparison.")
+  }
+
+}
+```
+</div>
+
+```{r, results='asis', fig.height=20}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if(length(checksFound) > 0){
+    
+    predListBenchForTable <- split(pred[which(pred$effectType == "designation"),], pred[which(pred$effectType == "designation"),]$trait)# make a list by trait
+    
+    for(iTrait in 1:length(predListBenchForTable)){
+      x <- predListBenchForTable[[iTrait]]
+      byCheck <- list()
+      for(iCheck in nameOfChecks){ # iCheck = nameOfChecks[1]
+        checkSelected <- which(x$designation == iCheck)
+        if(length(checkSelected) > 0){
+          x$predictedValue2 <- ( (x$predictedValue / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$UB <- ( ( (x$predictedValue+x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x$LB <- ( ( (x$predictedValue-x$stdError) / x$predictedValue[checkSelected]) - 1 ) * 100
+          x <- x[with(x, order(designation)), ]
+          # x <- x[unique(c(1:min(c(30, nrow(x))),which(x$designation == iCheck ))),]
+          x$benchmark <- iCheck
+          byCheck[[iCheck]] <- x
+        }
+      }
+      long <- do.call(rbind, byCheck)
+      wideBench <- reshape(long[, c("benchmark", "designation","predictedValue2")], direction = "wide", idvar = "designation",
+                           timevar = c("benchmark"), v.names = c("predictedValue2"), sep= "_")
+      colnames(wideBench) <- paste0(names(predListBenchForTable)[iTrait], gsub("predictedValue2","",colnames(wideBench)))
+      colnames(wideBench)[1] <- "designation"
+      if(iTrait == 1){
+        resBench <- wideBench
+      }else{
+        resBench <- merge(resBench, wideBench, by="designation")
+      }
+    }
+    numCols <- colnames(resBench)[-c(1)]
+    
+    if("params" %in% ls()){ # we will download the document
+      printTable(resBench, colNames = colnames(resBench), fixedCol = 1, filt = "none")
+    }else{
+      DT::renderDT({DT::formatRound(DT::datatable(
+        resBench,
+        extensions = c('Buttons', 'FixedColumns'),
+        rownames = FALSE,
+        class = 'cell-border',
+        filter = "none",
+        options = list(
+          dom = 'Blfrtip',
+          scrollY = "400px",
+          scrollX = "400px",
+          buttons = c('copy','csv','excel','pdf','print'),
+          paging = F,
+          fixedColumns = list(leftColumns = 1))
+      ),numCols)
+      })
+    }
+    
+  }
+  
+}
+```
 
 ### Modeling parameters
 
@@ -1218,7 +2202,7 @@ if (is.null(result)){
   
   modelingMta <- result$modeling[which(modeling$analysisId == idMta),]
   
-  if("params" %in% ls()){ # we will download the document
+  if("params" %in% ls()){ # we will download the document #params$toDownload == TRUE
     printTable(modelingMta, autoWidthOpt = TRUE, scrollXOpt = FALSE,
                colNames = colnames(modelingMta))
   }else{
@@ -1247,7 +2231,5 @@ Boer M, van Rossum B (2022). LMMsolver: Linear Mixed Model Solver. R package ver
 Covarrubias-Pazaran G. (2024). lme4breeding: enabling genetic evaluation in the era of genomic data. bioRxiv, 2024-05.
 
 Covarrubias-Pazaran G. (2016). Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.
-
-<p>&nbsp;</p>
 
 

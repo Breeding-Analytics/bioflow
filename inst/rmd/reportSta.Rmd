@@ -7,7 +7,6 @@ params:
   toDownload: FALSE
 ---
 
-
 ```{r setup, include=FALSE}
 # knitr R markdown chunk options
 knitr::opts_chunk$set(dependson = knitr::all_labels(),
@@ -18,7 +17,9 @@ knitr::opts_chunk$set(dependson = knitr::all_labels(),
                       comment = NA,
                       out.width = "100%",
                       error = TRUE)
+                      # ,fig.width=12, fig.height=8)
 options(knitr.kable.NA = '')
+
 # loading necessary R packages ####
 ## data manipulation
 # library(dplyr)    # %>%, data cleaning functions
@@ -183,7 +184,7 @@ The following table allows to see how many locations had data for the different 
 
 ```{r, results='asis'}
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultSta.RData")){
+  if(file.exists("./outputs/result.RData")){
     load("./outputs/resultSta.RData")
   }else{
     load("resultSta.RData")
@@ -201,7 +202,7 @@ if (is.null(result)){
   
   pred <- result$predictions
   pred <- pred[pred$analysisId == idSta,]
-  traits <- unique(pred$trait)
+  traits <- sort(unique(pred$trait))
   traits.env <- aggregate(designation ~ environment + trait, data = pred, FUN = length)
   traits.env <- reshape(data=traits.env, timevar = "trait", idvar = "environment", direction="wide")
   colnames(traits.env) <- gsub("designation.","",colnames(traits.env) )# c('environment',traits)
@@ -273,7 +274,7 @@ if (is.null(result)){
     shiny::selectInput(ns("traitSta"), 
                        label = "Trait to filter:", 
                        multiple = FALSE,
-                       choices = staTraits, 
+                       choices = sort(staTraits), 
     )
   }
   
@@ -341,7 +342,7 @@ if (is.null(result)){
       }else{ # input <- list(traitStaFieldView=traitFieldView[1])
         shiny::selectInput(ns("traitStaFieldView"), 
                            label = "Trait to filter:", 
-                           choices = traitFieldView, 
+                           choices = sort(traitFieldView), 
         )
       }
       
@@ -352,7 +353,9 @@ if (is.null(result)){
 }
 ```
 
-```{r, results='asis'}
+<div style = "width:auto; height:auto; overflow:auto">
+
+```{r, results="asis"}
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -372,7 +375,7 @@ if (is.null(result)){
         
         cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
         
-        for(iTrait in traitFieldView){
+        for(iTrait in sort(traitFieldView)){
           cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
           
           pheno$value <- pheno[, iTrait]
@@ -388,10 +391,11 @@ if (is.null(result)){
             ggplot2::theme_minimal()+
             ggplot2::ylab("") + ggplot2::xlab("") +
             ggplot2::facet_wrap(~envLabel, scales = "free", labeller = labeller(envLabel = label_wrap_gen(width = 20))) +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) # +
-            # ggplot2::theme(panel.spacing.y = unit(5, "lines"))
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + ggplot2::theme(panel.spacing = unit(1, 'lines'))
           # print(p) # static
-          print(htmltools::tagList(plotly::ggplotly(p))) # dynamic
+          
+          print(htmltools::tagList(plotly::ggplotly(p) %>% layout(autosize = T, height = 800)
+)) # dynamic
           
         }
         
@@ -404,7 +408,7 @@ if (is.null(result)){
           maxVal <- max(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
-          
+          pheno$envLabel <- gsub("_", " ", pheno$environment)
           p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
             ggplot2::geom_tile(color = "white")+
             ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
@@ -412,9 +416,9 @@ if (is.null(result)){
                                           name=input$traitStaFieldView) +
             ggplot2::theme_minimal()+
             ggplot2::ylab("") + ggplot2::xlab("") +
-            ggplot2::facet_wrap(~environment, scales = "free") +
+            ggplot2::facet_wrap(~envLabel, scales = "free", labeller = labeller(envLabel = label_wrap_gen(width = 20))) +
             ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) + ggplot2::theme(panel.spacing = unit(0, 'points'))
-          plotly::ggplotly(p)
+          plotly::ggplotly(p) %>% layout(autosize = T, height = 800)
           
         })
         
@@ -426,6 +430,8 @@ if (is.null(result)){
 }
 
 ```
+
+</div>
 
 ### Output parameters 
 
@@ -442,7 +448,7 @@ if (is.null(result)){
   modeling <- result$modeling
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
-  staTraits2 <- setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject")
+  staTraits2 <- sort(setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject"))
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
@@ -450,13 +456,15 @@ if (is.null(result)){
     shiny::selectInput(ns("traitSta0"), 
                        label = "Trait to filter:", 
                        multiple = FALSE,
-                       choices = staTraits2, 
+                       choices = sort(staTraits2), 
     )
   }
   
 }
 
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -497,16 +505,16 @@ if (is.null(result)){
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") +
-        ggplot2::facet_wrap(~type)
+        ggplot2::facet_wrap(~type, labeller = labeller(type = c("designation" = "Proportion of variance")))
       p_value_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
-        ggplot2::geom_bar(stat="identity") +
+        ggplot2::geom_bar(stat="identity") + ggplot2::guides(x =  guide_axis(angle = 90)) +
         # ggplot2::scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
-        ggplot2::guides(fill = "none") +
+        # ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
+        # ggplot2::guides(fill = "none") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance") +
-        ggplot2::facet_wrap(~type)
+        ggplot2::facet_wrap(~type, labeller = labeller(type = c("designation" = "Variance")))
       
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p_proportion_variance), plotly::ggplotly(p_value_variance), nrows=2, shareX = TRUE, shareY = TRUE) ) )
+      print(htmltools::tagList(plotly::subplot((plotly::ggplotly(p_proportion_variance)%>% style(showlegend = FALSE)), (plotly::ggplotly(p_value_variance) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)), nrows=2, shareX = TRUE, shareY = TRUE))) 
       
       cat("\n")
     }
@@ -522,23 +530,25 @@ if (is.null(result)){
         # ggplot2::scale_fill_brewer(palette="Accent") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("") + ggplot2::ylab("Proportion of variance") +
-        ggplot2::facet_wrap(~type)
+        ggplot2::facet_wrap(~type, labeller = labeller(type = c("designation" = "Proportion of variance")))
       p_value_variance <- ggplot2::ggplot(data=df4, ggplot2::aes(x=environment, y=value, fill=parameter)) +
-        ggplot2::geom_bar(stat="identity") +
+        ggplot2::geom_bar(stat="identity") + ggplot2::guides(x =  guide_axis(angle = 90)) +
         # ggplot2::scale_fill_brewer(palette="Accent") +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
-        ggplot2::guides(fill = "none") +
+        # ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
+        # ggplot2::guides(fill = "none") +
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance") +
-        ggplot2::facet_wrap(~type)
-      p_proportion_variance <- plotly::ggplotly(p_proportion_variance)
-      p_value_variance <- plotly::ggplotly(p_value_variance)
-      plotly::subplot(p_proportion_variance, p_value_variance, nrows=2, shareX = FALSE, shareY = TRUE)
+        ggplot2::facet_wrap(~type, labeller = labeller(type = c("designation" = "Variance")))
+      p_proportion_variance <- plotly::ggplotly(p_proportion_variance) %>% style(showlegend = FALSE)
+      p_value_variance <- plotly::ggplotly(p_value_variance) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+      plotly::subplot(p_proportion_variance, p_value_variance, nrows=2, shareX = TRUE, shareY = TRUE)
       
     })
   }
   
 }
 ```
+
+</div>
 
 <p>&nbsp;</p>
 
@@ -550,6 +560,11 @@ if (is.null(result)){
   idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
   idSta <- idSta[length(idSta)]
   parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
+  parameters <- parameters[!stringr::str_detect(parameters, "V_")]
+  metrics2 <- metrics[which(metrics$analysisId %in% idSta),]
+  paramTrait <- unique(metrics2$trait)
+  paramEnv <- unique(metrics2$environment)
+  
   if("params" %in% ls()){  # if user will download the report
     shinyjs::hide()
   }else{
@@ -558,17 +573,17 @@ if (is.null(result)){
       shiny::selectInput(ns("parameterMetrics"), 
                          label = "Parameter to filter:", 
                          multiple = FALSE,
-                         selected = unique(parameters),
-                         choices = unique(parameters)
+                         # selected = unique(parameters)[1],
+                         choices = sort(unique(parameters))
       ),
       selectInput(ns("parameterMetricsBy"),
-                  label = "View x-axis by:",
+                  label = "View by:",
                   selected = "environment",
-                  choices = c("environment","trait")
-      ),
+                  choices = list("All" = c("environment","trait"), 
+                                 "per trait" = sort(paramTrait), 
+                                 "per environment" = sort(paramEnv))
+      )
     )
-    
-    
   }
 }
 ```
@@ -577,6 +592,8 @@ if (is.null(result)){
 The following barplot is designed to provide a high-level view of estimated parameters such as reliability, heritabiliy, coefficient of variation and others.
 
 <p>&nbsp;</p>
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -594,30 +611,66 @@ if (is.null(result)){
     for(iView in c("environment","trait") ){
       cat("\n\n####", iView, "{.tabset .tabset-pills}       \n\n")
       # for(iTrait in staTraits){
-      for(iParam in unique(parameters)){
+      for(iParam in sort(unique(parameters))){
         cat("\n\n#####", iParam, "{.tabset .tabset-pills}       \n\n")
         mydata2 = mydata[which(mydata$parameter %in% iParam),]
+        if(iView == "environment"){
+          grp <- c("All",sort(unique(mydata2$environment)))
+        } else{
+          grp <- c("All",sort(unique(mydata2$trait)))
+        }
+        
+        for(iGroup in grp){
+          cat("\n\n######", iGroup, "{.tabset .tabset-pills}       \n\n")
         if(nrow(mydata2) > 0){
-          if(iView == "environment"){
-            number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
+          if(iView == "trait"){
+            if(iGroup == "All"){
+              number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
             p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
               ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-              ggplot2::labs(x="Environment", y="Parameter value") +
+              ggplot2::theme(legend.position = "none") +
+              ggplot2::labs(x="Environment", y="Parameter value") + 
+              ggplot2::theme(axis.text.x=element_text(angle=45)) +
               facet_wrap(~trait, scales = "free_y", nrow = number_rows)
-          }else{
-            number_rows <- ceiling(length(unique(mydata2$environment))/3) # 3 is the number of columns we want
-            p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
+            
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+            } else{
+            p <- ggplot2::ggplot(data=mydata2[which(mydata2$trait == iGroup),], aes(x=environment, y=value, fill=iGroup)) +
               ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-              ggplot2::labs(x="trait", y="Parameter value") +
+              ggplot2::theme(legend.position = "none") +
+              ggplot2::labs(x="Environment", y="Parameter value") + 
+              ggplot2::theme(axis.text.x=element_text(angle=45))
+            
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45))))
+            }
+            
+          }else{
+            if(iGroup == "All"){
+              number_rows <- ceiling(length(unique(mydata2$environment))/3) # 3 is the number of columns we want
+              p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "none") +
+              ggplot2::labs(x="Trait", y="Parameter value")  + 
+              ggplot2::theme(axis.text.x=element_text(angle=45)) +
               facet_wrap(~environment, scales = "free_y", nrow = number_rows)
+              
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45), autosize = T, height = 800)))
+            } else{
+              p <- ggplot2::ggplot(data=mydata2[which(mydata2$environment == iGroup),], aes(x=trait, y=value, fill=iGroup)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "none") +
+              ggplot2::labs(x="Trait", y="Parameter value") + 
+              ggplot2::theme(axis.text.x=element_text(angle=45))
+              
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45))))
+            }
           }
-          print(htmltools::tagList(plotly::ggplotly(p)))
+        } else{
+          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
         }
         
       }
-      
+    }
       # combine plots
       # print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       cat("\n")
@@ -632,28 +685,61 @@ if (is.null(result)){
       
       mydata2 = mydata[which(mydata$parameter %in% input$parameterMetrics),]
       number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
-      if(input$parameterMetricsBy == "trait"){
+      if(input$parameterMetricsBy == "environment"){
         number_rows <- ceiling(length(unique(mydata2$environment))/3) # 3 is the number of columns we want
-        p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
-          ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-          ggplot2::labs(x="trait", y="Parameter value") +
-          facet_wrap(~environment, scales = "free_y", nrow = number_rows)
-      }else{
+            p <- ggplot2::ggplot(data=mydata2, aes(x=trait, y=value, fill=environment)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "none") +
+              ggplot2::labs(x="Trait", y="Parameter value")  + 
+              ggplot2::theme(axis.text.x=element_text(angle=45)) +
+              facet_wrap(~environment, scales = "free_y", nrow = number_rows)
+            
+            plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+      } else if(input$parameterMetricsBy == "trait"){
         number_rows <- ceiling(length(unique(mydata2$trait))/3) # 3 is the number of columns we want
-        p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
-          ggplot2::geom_bar(stat="identity", position=position_dodge()) +
-          ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") +
-          ggplot2::labs(x="Environment", y="Parameter value") +
-          facet_wrap(~trait, scales = "free_y", nrow = number_rows) 
+            p <- ggplot2::ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "none") +
+              ggplot2::labs(x="Environment", y="Parameter value")  + 
+              ggplot2::theme(axis.text.x=element_text(angle=45)) +
+              facet_wrap(~trait, scales = "free_y", nrow = number_rows)
+            
+            plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+      } else if(input$parameterMetricsBy %in% unique(mydata2$environment)){
+        if(nrow(mydata2[which(mydata2$environment == input$parameterMetricsBy),])>0){
+          p <- ggplot2::ggplot(data=mydata2[which(mydata2$environment == input$parameterMetricsBy),], aes(x=trait, y=value, fill=input$parameterMetricsBy)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(legend.position = "none") +
+              ggplot2::labs(x="Trait", y="Parameter value") + 
+              ggplot2::theme(axis.text.x=element_text(angle=45))
+        
+        plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45))
+        } else{
+          plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))
+        }
+        
+      } else{
+        if(nrow(mydata2[which(mydata2$trait == input$parameterMetricsBy),])>0){
+           p <- ggplot2::ggplot(data=mydata2[which(mydata2$trait == input$parameterMetricsBy),], aes(x=environment, y=value, fill=input$parameterMetricsBy)) +
+              ggplot2::geom_bar(stat="identity", position=position_dodge()) +
+              ggplot2::theme(legend.position = "none") +
+              ggplot2::labs(x="Environment", y="Parameter value") + 
+              ggplot2::theme(axis.text.x=element_text(angle=45))
+        
+        plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45))
+        } else{
+          plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))
+        }
+       
       }
-      plotly::ggplotly(p)
     })
     
   }
   
 }
 ```
+
+</div>
 
 ### Modeling parameters
 
@@ -704,7 +790,7 @@ if (is.null(result)){
   }else{
     shiny::selectInput(ns("envSta"), 
                        label = "Environment to filter:", 
-                       choices = envs, 
+                       choices = sort(envs), 
     )
   }
   
@@ -764,8 +850,8 @@ if (is.null(result)){
     shiny::selectInput(ns("traitStaBox"), 
                        label = "Trait to filter:", 
                        multiple = FALSE,
-                       selected = unique(modeling),
-                       choices = unique(modeling), 
+                       # selected = unique(modeling),
+                       choices = sort(unique(modeling)), 
     )
   }
   
@@ -773,11 +859,13 @@ if (is.null(result)){
 
 ```
 
+<div style = "width:auto; height:auto; overflow:auto">
+
 ```{r, results='asis'}
 predTrait <- result$predictions[which(result$predictions$analysisId == idSta),]
 
 if("params" %in% ls()){ # we will download the document
-  traits <- unique(modeling)
+  traits <- sort(unique(modeling))
   cat("\n\n###  {.tabset .tabset-pills}       \n\n")
   
   for (j in 1:length(traits)){ # 
@@ -788,10 +876,10 @@ if("params" %in% ls()){ # we will download the document
       ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
       # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
       #                axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "none") +
-      ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + 
+      ggplot2::theme(legend.position = "none") + 
       ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") 
     # print(p) # static
-    print(htmltools::tagList(ggplotly(  p  ))) # dynamic
+    print(htmltools::tagList(ggplotly(  p  ) %>% layout(xaxis = list(tickangle =-45)))) # dynamic
     
     cat("\n")
   }
@@ -808,15 +896,17 @@ if("params" %in% ls()){ # we will download the document
         # ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0.2), ggplot2::aes(colour=environment), alpha=0.9) +
         ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=factor(environment))) +
         # ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), axis.text.x = ggplot2::element_text(angle = 45, hjust=1, vjust = 1), legend.position = "none") +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + 
+        ggplot2::theme(legend.position = "none") + 
         ggplot2::labs(x="", y="Trait value")
       # p
-      plotly::ggplotly(p)
+      plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45))
     }
   })
 }
 
 ```
+
+</div>
 
 <p>&nbsp;</p>
 
@@ -843,12 +933,12 @@ if (is.null(result)){
       shiny::selectInput(ns("traitStaComp"), 
                          label = "Trait to filter:", 
                          multiple = FALSE,
-                         choices = traitsComp
+                         choices = sort(traitsComp)
       ),
       selectInput(ns("traitStaCompEnv"),
-                  label = "Environment",
+                  label = "Environment to filter:",
                   multiple = FALSE,
-                  choices = traitsCompEnv
+                  choices = sort(traitsCompEnv)
       ),
     )
     
@@ -858,6 +948,8 @@ if (is.null(result)){
 }
 
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -870,10 +962,10 @@ if (is.null(result)){
     
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
-    for(iTrait in traitsComp){
+    for(iTrait in sort(traitsComp)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
-      for(iEnv in traitsCompEnv){
+      for(iEnv in sort(traitsCompEnv)){
         cat("\n\n#####", iEnv, "{.tabset .tabset-pills}       \n\n")
         
         temp.predComp.box <- predComp[predComp$trait== iTrait,]
@@ -934,6 +1026,8 @@ if (is.null(result)){
           print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) ) )
           cat("\n")
           cat("\n")
+        } else{
+          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
         }
         
       }
@@ -946,7 +1040,9 @@ if (is.null(result)){
       
       temp.predComp.box <- predComp[predComp$trait== input$traitStaComp,]
       temp.predComp.box <- temp.predComp.box[temp.predComp.box$environment== input$traitStaCompEnv,]
-      temp.predComp.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box$entryType))]
+      
+      if(nrow(temp.predComp.box)>0){
+        temp.predComp.box$entryTypeSimple <- LETTERS[as.numeric(as.factor(temp.predComp.box$entryType))]
       
       ub <- max(temp.predComp.box$predictedValue + temp.predComp.box$stdError, na.rm = TRUE)
       lb <- min(temp.predComp.box$predictedValue - temp.predComp.box$stdError, na.rm = TRUE)
@@ -1002,7 +1098,9 @@ if (is.null(result)){
       ply1 <- plotly::ggplotly(p1)
       ply2 <- plotly::ggplotly(p2)
       plotly::subplot(ply1, ply2, nrows=2)#, widths = c(0.75,0.25))
-      
+      } else{
+        plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))
+      }
     })
     
     
@@ -1011,6 +1109,7 @@ if (is.null(result)){
 }
 ```
 
+</div>
 
 ### Correlation between environments
 
@@ -1031,17 +1130,24 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    shiny::selectInput(ns("traitStaCor"), 
-                       label = "Trait to filter:", 
-                       multiple = FALSE,
-                       selected = unique(modeling),
-                       choices = unique(modeling), 
+    inputPanel(shiny::selectInput(ns("traitStaCor"),
+                                  label = "Trait to filter:", 
+                                  multiple = FALSE,
+                                  # selected = unique(modeling),
+                                  choices = sort(unique(modeling)),
+                                  ),
+               shiny::checkboxInput(ns("freqCor"),
+                                    label = "Show frequency distribution",
+                                    value = TRUE
+                                    )
     )
   }
   
 }
 
 ```
+
+<div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -1055,7 +1161,7 @@ if (is.null(result)){
     
     cat("\n\n###  {.tabset .tabset-pills}       \n\n")
     
-    for(iTrait in traits){
+    for(iTrait in sort(traits)){
       cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
       
       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == iTrait, ]
@@ -1081,19 +1187,34 @@ if (is.null(result)){
         ggplot2::theme_minimal()+ 
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
         # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
-        ggplot2::ylab("Environments") + ggplot2::xlab("Environments") +
+        # ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
+        ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
       # print(p)
       # Basic histogram
-      vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
-      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
-      # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
-      # print(htmltools::tagList(plotly::ggplotly(p)))
+      # vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
+      # group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+      # p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
+      #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+      #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
+      
+      p2 <- ggplot() + geom_histogram(data = vv[which(vv$Var1 != vv$Var2),], aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+        ggplot2::scale_x_continuous(limits = c(-1,1)) +
+         scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                              limit = c(-1,1), space = "Lab", 
+                              name="Pearson\nCorrelation") + 
+        ggplot2::xlab("Value") + ggplot2::ylab("")
+      
+      for(iFreq in c("with frequency distribution", "without frequency distribution")){
+        cat("\n\n#####", iFreq, "{.tabset .tabset-pills}       \n\n")
+        if(iFreq == "with frequency distribution"){
+        # combine plots
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+      } else{
+        print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+      }
+        
+      }
       cat("\n")
     }
     cat("\n")
@@ -1119,28 +1240,41 @@ if (is.null(result)){
       }
       vv <- cgiarBase::matToTab(corr)
       p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white")+
+        ggplot2::geom_tile(color = "white") +
         ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
                                       midpoint = 0, limit = c(-1,1), space = "Lab", 
                                       name="Pearson\nCorrelation") +
         ggplot2::theme_minimal()+ 
         # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
         # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
-        ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
-        ggplot2::ylab("Environments") + ggplot2::xlab("Environments") +
+        # ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
+        ggplot2::ylab("") + ggplot2::xlab("") +
         ggplot2::coord_fixed()
       # p
       # plotly::ggplotly(p)
       # Basic histogram
-      vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
-      group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Correlation Value")
+      # vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
+      # group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+      # p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
+      #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+      #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Correlation Value")
+      
+      p2 <- ggplot() + geom_histogram(data = vv[which(vv$Var1 != vv$Var2),], 
+                                      aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+        ggplot2::scale_x_continuous(limits = c(-1,1)) +
+         scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                              limit = c(-1,1), space = "Lab", 
+                              name="Pearson\nCorrelation") + 
+        ggplot2::xlab("Correlation Value") + ggplot2::ylab("")
+      
+      if(input$freqCor == TRUE){
       # combine plots
-      ply1 <- plotly::ggplotly(p)
+      ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 3)) 
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
+      plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)
+      } else{
+        plotly::ggplotly(p  + geom_text(aes(label=Freq))) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+      }
     })
     
     
@@ -1148,7 +1282,7 @@ if (is.null(result)){
   
 }
 ```
-
+</div>
 
 ### References of methods used
 
