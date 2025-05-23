@@ -78,9 +78,9 @@ printTable <- function(DT, pageLength = 7,
 
 suppressWarnings(tryCatch({
   if(file.exists("./outputs/result.RData")){
-    load("./outputs/result.RData")
+    load("./outputs/resultQaPheno.RData")
   }else{
-    load("result.RData")
+    load("resultQaPheno.RData")
   }
 }, error = function(e) {
   shinyjs::hide()
@@ -159,10 +159,10 @@ The following boxplot allows you to visualize which records were tagged as outli
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  modifications <- result$modifications$pheno
-  idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign","qaConsist")),"analysisId"];
-  idQa <- idQa[length(idQa)]
-  idQaType <- result$status[result$status$analysisId == idQa, "module"]
+  # modifications <- result$modifications$pheno
+  # idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign","qaConsist")),"analysisId"];
+  # idQa <- idQa[length(idQa)]
+  # idQaType <- result$status[result$status$analysisId == idQa, "module"]
   traitsBoxplot <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
   if(idQaType == "qaMb"){traitsBoxplot <- paste0(traitsBoxplot,"-residual")}
   
