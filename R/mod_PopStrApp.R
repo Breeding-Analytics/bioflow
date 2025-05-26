@@ -303,7 +303,7 @@ mod_PopStrApp_server <- function(id, data){
                      title = "Data replacement warning"
                    )
                  }
-                 
+
     )
 
     observeEvent(input$myconfirmation, {
@@ -691,7 +691,7 @@ mod_PopStrApp_server <- function(id, data){
         ## Report tab
         output$downloadReportPopStr <- downloadHandler(
           filename = function() {
-            paste(paste0('popStrM_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('popStrM_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

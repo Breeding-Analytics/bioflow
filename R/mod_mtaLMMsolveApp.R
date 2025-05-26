@@ -1263,7 +1263,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
         output$downloadReportMta <- downloadHandler(
           filename = function() {
-            paste(paste0('mtaLmms_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('mtaLmms_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },

@@ -704,7 +704,7 @@ mod_rggApp_server <- function(id, data){
 
           output$downloadReportRgg <- downloadHandler(
             filename = function() {
-              paste(paste0('rgg_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+              paste(paste0('rgg_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },

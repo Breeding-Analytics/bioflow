@@ -338,7 +338,7 @@ mod_reportBuilder_server <- function(id, data){
 
           output$downloadReportReport <- shiny::downloadHandler(
             filename = function() {
-              paste(paste0(result$status$module[nrow(result$status)],"_dashboard_",gsub("-", "", Sys.Date())), sep = '.', switch(
+              paste(paste0(result$status$module[nrow(result$status)],"_dashboard_",gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },
@@ -390,7 +390,7 @@ mod_reportBuilder_server <- function(id, data){
 
           output$downloadReportReport <- shiny::downloadHandler(
             filename = function() {
-              paste(paste0(result$status$module[nrow(result$status)],"_dashboard_",gsub("-", "", Sys.Date())), sep = '.', switch(
+              paste(paste0(result$status$module[nrow(result$status)],"_dashboard_",gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },
