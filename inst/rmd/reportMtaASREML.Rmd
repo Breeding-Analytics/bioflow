@@ -720,14 +720,22 @@ if (is.null(result)){
             components <- data.frame(components)
             components$PC2 <- -components$PC2
             
+            factor <- max(abs(components[,1:2]))
+			      components <- components*(1/factor)
+			      
             explained_variance <- summary(prin_comp)[["sdev"]]
             explained_variance <- explained_variance[1:2]
             comp <- prin_comp[["rotation"]]
             comp[,'PC2'] <- - comp[,'PC2']
+            
             loadings <- comp
             for (i in seq(explained_variance) ){
               loadings[,i] <- comp[,i] * explained_variance[i]
             }
+            
+            factor1 <- max(abs(loadings[,1:2]))
+			      loadings <- loadings*(1/factor1)
+			      
             p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
             p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
                                               x=components$PC1,
@@ -737,6 +745,7 @@ if (is.null(result)){
                                               hoverinfo='text',
                                               showlegend=FALSE
             )
+            p.mta.biplot <- p.mta.biplot %>% plotly::layout(xaxis=list(range=c(-1.1,1.1)),yaxis=list(range=c(-1.1,1.1)))
             for (i in 1:ncol(pred.mta.biplot)){
               p.mta.biplot <- p.mta.biplot %>%
                 plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
@@ -776,6 +785,9 @@ if (is.null(result)){
             components <- data.frame(components)
             components$PC2 <- -components$PC2
             
+			      factor <- max(abs(components[,1:2]))
+			      components <- components*(1/factor)
+		
             explained_variance <- summary(prin_comp)[["sdev"]]
             explained_variance <- explained_variance[1:2]
             comp <- prin_comp[["rotation"]]
@@ -784,6 +796,10 @@ if (is.null(result)){
             for (i in seq(explained_variance) ){
               loadings[,i] <- comp[,i] * explained_variance[i]
             }
+			
+			      factor1 <- max(abs(loadings[,1:2]))
+			      loadings <- loadings*(1/factor1)
+
             p.mta.biplot <- plotly::plot_ly (type = 'scatter', mode = 'markers')
             p.mta.biplot <- plotly::add_trace(p.mta.biplot, 
                                               x=components$PC1,
@@ -793,6 +809,7 @@ if (is.null(result)){
                                               hoverinfo='text',
                                               showlegend=FALSE
             )
+            p.mta.biplot <- p.mta.biplot %>% plotly::layout(xaxis=list(range=c(-1.1,1.1)),yaxis=list(range=c(-1.1,1.1)))
             for (i in 1:ncol(pred.mta.biplot)){
               p.mta.biplot <- p.mta.biplot %>%
                 plotly::add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2], line = list(color = 'red'),inherit = FALSE, showlegend = FALSE)
