@@ -1417,7 +1417,7 @@ mod_staApp_server <- function(id,data){
 
         output$downloadReportSta <- downloadHandler(
           filename = function() {
-            paste(paste0('sta_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('sta_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
