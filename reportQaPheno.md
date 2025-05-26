@@ -1,7 +1,7 @@
 ---
 title: "Quality Assurance Phenotypic Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "December 11, 2024"  
+date: "May 09, 2025"  
 output: html_document
 params:
   toDownload: FALSE
@@ -22,13 +22,19 @@ The following table shows the modifications that have been saved in your analysi
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaPhenoApp_1-traitQa-label" for="qaPhenoApp_1-traitQa">Trait:</label>
 <div>
-<select id="qaPhenoApp_1-traitQa" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
+<select id="qaPhenoApp_1-traitQa" class="shiny-input-select"><option value="rytha" selected>rytha</option>
+<option value="bytha">bytha</option>
+<option value="ncrpp">ncrpp</option>
+<option value="hi">hi</option>
+<option value="vir2">vir2</option>
+<option value="alt2">alt2</option>
+<option value="wed">wed</option></select>
 <script type="application/json" data-for="qaPhenoApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaPhenoApp_1-out6a817ab6955deaa4" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaPhenoApp_1-oute4d55bdb49e6689e" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 
@@ -43,12 +49,18 @@ The following boxplot allows you to visualize which records were tagged as outli
 <!--html_preserve--><div class="form-group shiny-input-container">
 <label class="control-label" id="qaPhenoApp_1-traitQaBox-label" for="qaPhenoApp_1-traitQaBox">Trait:</label>
 <div>
-<select id="qaPhenoApp_1-traitQaBox" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option></select>
+<select id="qaPhenoApp_1-traitQaBox" class="shiny-input-select"><option value="rytha" selected>rytha</option>
+<option value="bytha">bytha</option>
+<option value="ncrpp">ncrpp</option>
+<option value="hi">hi</option>
+<option value="vir2">vir2</option>
+<option value="alt2">alt2</option>
+<option value="wed">wed</option></select>
 <script type="application/json" data-for="qaPhenoApp_1-traitQaBox" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaPhenoApp_1-out82a60f6546b8359a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="qaPhenoApp_1-outf4f40eb73ad08462" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 
 

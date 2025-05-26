@@ -209,7 +209,8 @@ if (is.null(result)){
         ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
                        axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
         ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
-      print(htmltools::tagList(plotly::ggplotly(p)))
+      #print(htmltools::tagList(plotly::ggplotly(p)))
+      print(p)
       
     }
     
