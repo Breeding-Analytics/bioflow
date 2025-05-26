@@ -99,7 +99,7 @@ get_h <- function() {
 
 ```{r loadData, results='asis', include=FALSE}
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultOft.RData")){
+  if(file.exists("./outputs/result.RData")){
     load("./outputs/resultOft.RData")
   }else{
     load("resultOft.RData")
@@ -128,7 +128,7 @@ if(any(c(result$metadata$pedigree[result$metadata$pedigree$parameter=="yearOfOri
   dt_orig = dt_orig[,!(names(dt_orig) %in% dropVar)]
 }
 
-dt_orig <- merge(dt_orig, result$data$pedigree[,result$metadata$pedigree$value[result$metadata$pedigree$value!=""]], 
+dt_orig <- merge(dt_orig, unique(result$data$pedigree[,result$metadata$pedigree$value[result$metadata$pedigree$value!=""]]), 
                  by.x = result$metadata$pheno[result$metadata$pheno$parameter=="designation","value"], 
                  by.y = result$metadata$pedigree[result$metadata$pedigree$parameter=="designation","value"], all.x = TRUE)
 
@@ -213,9 +213,15 @@ studyInfo3 <- dt_clean %>% group_by(environment) %>% count(iBlock) %>% count() %
 
 studyInfo <- cbind(studyInfo1,studyInfo2[-1],studyInfo3[-1])
 
-printTable(studyInfo, autoWidthOpt = TRUE, scrollXOpt = FALSE,
-           colNames = c("Market Segment","Benchmark Variety", "Local Variety","Test Variety",
-                        "Total Number of Variety", "Number of Trials"))
+  if(params$toDownload == TRUE){ # we will download the document
+    printTable(studyInfo, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+               colNames = c("Market Segment","Benchmark Variety", "Local Variety","Test Variety",
+                            "Total Number of Variety", "Number of Trials"))
+  }else{
+    DT::renderDT(printTable(studyInfo, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+                            colNames = c("Market Segment","Benchmark Variety", "Local Variety","Test Variety",
+                                         "Total Number of Variety", "Number of Trials")), server = FALSE)
+  }
 
 ```
 
@@ -689,6 +695,8 @@ for (i in 1:numTraits){
 }
 
 ```
+</div>
+
 <p>&nbsp;</p>
 
 ### Visualizations per Trait and Environment

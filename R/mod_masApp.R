@@ -10,7 +10,6 @@
 mod_masApp_ui <- function(id){
   ns <- NS(id)
   tagList(
-
     shiny::mainPanel(width = 12,
                      tabsetPanel( id=ns("tabsMain"),
                                   type = "tabs",
@@ -86,8 +85,9 @@ mod_masApp_ui <- function(id){
                                                                                         style = "color:#FFFFFF",
                                                                                         title = "Name of QTL-markers that will be used to assign merit to individuals. The method will apply weight to each marker equal to 1 - freq, where freq is the frequency of the desired QTL in the population of individuals genotyped."
                                                                                       )
+                                                                                      # ,tags$span('(*max of 40)',style="color:#FFFFFF")
                                                                                     ),
-                                                                                    choices = NULL, multiple = TRUE) ),
+                                                                                    choices = NULL, multiple = TRUE)), #options = list(maxItems = 40)) ),
                                                               column(width=6, checkboxInput(ns("checkbox"), label = "Select all markers at once?", value = FALSE), ),
                                                        ),
                                                        column(width=12),
@@ -361,7 +361,19 @@ mod_masApp_server <- function(id, data){
     ###############################
     ###############################
     # select markers tab
-    observeEvent(c(data(),input$version2Mta,input$checkbox), {
+    observeEvent(c(data(),input$version2Mta), {
+      req(data())
+      req(input$version2Mta)
+      dtMAS <- data()
+      dtMAS <- dtMAS$data$geno
+      if(!is.null(dtMAS)){
+        traitsMAS <- colnames(dtMAS)
+        updateCheckboxInput(session, "checkbox", value = FALSE)
+        updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
+      }
+    })
+
+    observeEvent(input$checkbox,{
       req(data())
       req(input$version2Mta)
       dtMAS <- data()
@@ -371,7 +383,29 @@ mod_masApp_server <- function(id, data){
         if(input$checkbox == FALSE){
           updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
         }else{
-          updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS)
+          if (length(traitsMAS) > 40){
+            shinyalert::shinyalert(
+              "Too many markers in the data, selecting all might crash the application.
+              If you want to proceed, click OK. Or you can specify the number of markers you want to select below.",
+              type = "input", inputType = "number", showCancelButton = TRUE,
+              html = TRUE,
+              callbackR = function(x) {
+                if(x != FALSE) {
+                  if(x == ""){
+                    updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS)
+                  } else{
+                    updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS[1:x])
+                  }
+                } else{
+                  updateCheckboxInput(session, "checkbox", value = FALSE)
+                }
+              }
+            )
+            # shinyWidgets::show_alert(title = 'Too many markers in the data. Only the first 40 markers will be selected.', type = 'warning')
+            # updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS[1:numMarkers])
+          } else{
+            updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS)
+          }
         }
       }
     })
