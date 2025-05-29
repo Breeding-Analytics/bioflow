@@ -343,23 +343,33 @@ mod_reportBuilder_server <- function(id, data){
               ))
             },
             content = function(file) {
-              shinybusy::show_modal_spinner(spin = "fading-circle",
-                                            text = "Downloading Dashboard...")
+              shinybusy::show_modal_spinner(spin = "fading-circle", text = "Downloading Dashboard...")
+
               src <- normalizePath(system.file("rmd",markdownType,package="bioflow"))
               src2 <- normalizePath(paste0('data/',resultType))
+
               # temporarily switch to the temp dir, in case you do not have write
               # permission to the current working directory
               owd <- setwd(tempdir())
               on.exit(setwd(owd))
+
               file.copy(src, 'report.Rmd', overwrite = TRUE)
-                file.copy(src2, resultType, overwrite = TRUE)
-                out <- rmarkdown::render('report.Rmd',
-                                         params = list(toDownload=TRUE ),
-                                         switch(
-                                           "HTML",
-                                           HTML = rmdformats::robobook(toc_depth = 4)
-                                           # HTML = rmarkdown::html_document()
-                                         ))
+              file.copy(src2, resultType, overwrite = TRUE)
+
+              out <- rmarkdown::render('report.Rmd',
+                                       params = list(toDownload=TRUE ),
+                                       switch(
+                                         "HTML",
+                                         HTML = rmdformats::robobook(toc_depth = 4)
+                                         # HTML = rmarkdown::html_document()
+                                       ))
+
+              # wait for it to land on disk (safety‐net)
+              wait.time <- 0
+              while (!file.exists(out) && wait.time < 60) {
+                Sys.sleep(1); wait.time <- wait.time + 1
+              }
+
               file.rename(out, file)
               shinybusy::remove_modal_spinner()
             }
@@ -395,14 +405,16 @@ mod_reportBuilder_server <- function(id, data){
               ))
             },
             content = function(file) {
-              shinybusy::show_modal_spinner(spin = "fading-circle",
-                                            text = "Downloading Dashboard...")
+              shinybusy::show_modal_spinner(spin = "fading-circle", text = "Downloading Dashboard...")
+
               src <- normalizePath(system.file("rmd",markdownType,package="bioflow"))
               src2 <- normalizePath(paste0('data/',resultType))
+
               # temporarily switch to the temp dir, in case you do not have write
               # permission to the current working directory
               owd <- setwd(tempdir())
               on.exit(setwd(owd))
+
               file.copy(src, 'report2.Rmd', overwrite = TRUE)
               file.copy(src2, resultType, overwrite = TRUE)
 
@@ -415,6 +427,12 @@ mod_reportBuilder_server <- function(id, data){
                                                       sdisease = paramsSdisease,
                                                       version = paramsVersion),
                                         switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
+
+              # wait for it to land on disk (safety‐net)
+              wait.time <- 0
+              while (!file.exists(out3) && wait.time < 60) {
+                Sys.sleep(1); wait.time <- wait.time + 1
+              }
 
               file.rename(out3, file)
               shinybusy::remove_modal_spinner()

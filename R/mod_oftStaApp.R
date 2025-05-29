@@ -683,8 +683,8 @@ mod_oftStaApp_server <- function(id, data){
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle",
-                                          text = "Downloading Dashboard...")
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Downloading Dashboard...")
+
             src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultOft.RData')
 
@@ -692,6 +692,7 @@ mod_oftStaApp_server <- function(id, data){
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report2.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultOft.RData', overwrite = TRUE)
 
@@ -718,6 +719,14 @@ mod_oftStaApp_server <- function(id, data){
                                                       version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
                                         switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
             }
+
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out2) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
 
             file.rename(out2, file)
             shinybusy::remove_modal_spinner()
