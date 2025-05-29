@@ -78,7 +78,9 @@ Imports:
     utils,
     vcfR,
     digest,
-    paws
+    paws,
+    callr,
+    ggcorrplot
 Suggests: 
     knitr,
     rmarkdown,
