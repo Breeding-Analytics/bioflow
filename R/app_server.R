@@ -418,9 +418,11 @@ app_server <- function(input, output, session) {
     if (is.character(query$task) &&
         is.character(query$domain) &&
         grepl("^[a-f0-9]{32}$", query$task) &&
-        grepl("^[a-z_0-9]+$", query$domain)) {
+        grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
 
-      ### set up aws.s3 library ################################################
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+      ### set up paws library ################################################
 
       # Sys.setenv("AWS_ACCESS_KEY_ID"     = "XXXXXXXXXXXXXXXXXXXX")
       # Sys.setenv("AWS_SECRET_ACCESS_KEY" = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
@@ -439,46 +441,33 @@ app_server <- function(input, output, session) {
 
       s3 <- paws::s3()
 
-      s3_download <- s3$get_object(
-        Bucket = bucket_name,
-        Key = s3_object_path
-      )
+      tryCatch({
+        s3_download <- s3$get_object(
+          Bucket = bucket_name,
+          Key = s3_object_path
+        )
 
-      ### upload results back to EBS S3 bucket #################################
-      #
-      # s3 <- paws::s3()
-      #
-      # s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
-      # s3_object_metadata <- s3_object_head$Metadata
-      #
-      # s3_object_metadata[["upload-origin"]] <- "bioflow"
-      #
-      # temp_file <- paste0(tempdir(), "/", task_id, ".RData")
-      # save(data(), file = temp_file)
-      #
-      # s3$put_object(
-      #   Bucket = bucket_name,
-      #   Key = s3_object_save,
-      #   Body = temp_file,
-      #   Metadata = s3_object_metadata
-      # )
-      #
-      ##########################################################################
+        raw_con <- rawConnection(s3_download$Body)
+        load(raw_con)
+        close(raw_con)
 
-      raw_con <- rawConnection(s3_download$Body)
-      load(raw_con)
-      close(raw_con)
+        ## replace tables
+        tmp <- data()
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
 
-      ## replace tables
-      tmp <- data()
-      if(!is.null(result$data)){tmp$data <- result$data}
-      if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
-      if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
-      if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
-      if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
-      if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
-      if(!is.null(result$status)){tmp$status <- result$status}
-      data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+        shinyalert::shinyalert(title = "Success!", text = "Data successfully loaded from EBS.", type = "success")
+      }, error = function(e) {
+        shinybusy::remove_modal_spinner()
+        shinyalert::shinyalert(title = "Failed!", text = "The task data object could not be found in the S3 bucket clipboard.", type = "error")
+      })
     }
 
     if (!is.null(query$module) && query$module == "STA") {
