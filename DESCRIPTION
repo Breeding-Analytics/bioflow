@@ -77,7 +77,10 @@ Imports:
     tidyr,
     utils,
     vcfR,
-    digest
+    digest,
+    paws,
+    callr,
+    ggcorrplot
 Suggests: 
     knitr,
     rmarkdown,

@@ -109,6 +109,31 @@ mod_qaPhenoApp_ui <- function(id){
                                              ),
                                            ) # end of tabset
                                   ),# end of input panel
+
+                                  tabPanel("Correlations", icon = icon("magnifying-glass-chart"),
+                                           br(),
+                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                  column(width=6, selectInput(ns("correlationTraits"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
+                                                  column(width=6,selectInput(ns("correlationType"),
+                                                                             label = "Select Correlation Method:",
+                                                                             choices = c("spearman","pearson","kendall") ))),
+                                           #column(width=4,numericInput(ns("beta"), label = "Confidence Level",
+                                           #                             value=0.95, min=0, max=1,
+                                           #                            step=0.01))),
+                                           #column(width=4,actionButton("Run_c","Calculate"))),
+                                           column(width=12, mainPanel(plotly::plotlyOutput(ns("plotCorrelationHeatmap")))),
+                                           #shiny::plotOutput(ns("plotCorrelationHeatmap")
+
+
+                                           # column(width=12,
+                                           #        hr(style = "border-top: 3px solid #4c4c4c;"),
+                                           #        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                           #        hr(style = "border-top: 3px solid #4c4c4c;")),
+
+
+                                           #column(width=12, shiny::DTOutput(ns("data_table")) ),
+                                  ),
+
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
@@ -213,9 +238,46 @@ mod_qaPhenoApp_server <- function(id, data){
         traitsQaRawVarNa <- intersect(traitsQaRawVar,traitsQaRawNa)
         updateSelectInput(session, "traitOutqPheno",choices = traitsQaRawVarNa)
         updateSelectInput(session, "traitOutqPhenoMultiple",choices = traitsQaRawVarNa, selected = NULL)
+        updateSelectInput(session, "correlationTraits",choices = traitsQaRaw, selected = NULL) #correlation types
       }
       shinyjs::hide(ns("traitOutqPheno"))
     })
+
+    # Filtered data based on selected traits to correlations
+
+    filtered_data <- reactive({
+      selected_traits <- input$correlationTraits
+      mydata <- na.omit(data()$data$pheno)
+      mydata <- mydata[, selected_traits, drop = FALSE]
+      mydata <- mydata[,which(!duplicated(colnames(mydata)))]
+      mydata
+    })
+
+    #plot of correlations
+
+    output$plotCorrelationHeatmap <- plotly::renderPlotly({
+      req(data())
+      req(input$correlationTraits)
+      req(input$correlationType)
+      # Check if there are more than one selected traits
+      req(length(input$correlationTraits) > 1)
+      mydata <- filtered_data()
+      if(length(input$correlationTraits) > 1){
+        # Correlation matrix
+        matrix <- cor(mydata[,input$correlationTraits], method = input$correlationType)
+
+        # Compute a matrix of correlation p-values
+        p.mat <- rstatix::cor_pmat(mydata[,input$correlationTraits], method = input$correlationType, conf.level = 0.95)
+        mt <- as.matrix(p.mat[,-1])
+
+        # Barring the no significant coefficient
+        g<-ggcorrplot::ggcorrplot(matrix, hc.order = TRUE, type = "lower", p.mat = mt,lab=T)
+        plotly::ggplotly(g)
+      } else {
+        print("Select more than one!")
+      }
+    }
+    )
 
     ## render the expected result
     output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
@@ -462,27 +524,38 @@ mod_qaPhenoApp_server <- function(id, data){
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste(paste0('qaRaw_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+              paste(paste0('qaRaw_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },
             content = function(file) {
+              shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
               src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
               src2 <- normalizePath('data/resultQaPheno.RData')
+
               # temporarily switch to the temp dir, in case you do not have write
               # permission to the current working directory
               owd <- setwd(tempdir())
               on.exit(setwd(owd))
+
               file.copy(src, 'report.Rmd', overwrite = TRUE)
               file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
-              shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
               out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
                 "HTML",
                 HTML = rmdformats::robobook(toc_depth = 4)
                 # HTML = rmarkdown::html_document()
               ))
-              shinybusy::remove_modal_spinner()
+
+              # wait for it to land on disk (safety‐net)
+              wait.time <- 0
+              while (!file.exists(out) && wait.time < 60) {
+                Sys.sleep(1); wait.time <- wait.time + 1
+              }
+
               file.rename(out, file)
+              shinybusy::remove_modal_spinner()
             }
           )
 

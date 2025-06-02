@@ -153,6 +153,23 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                ),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
+                                                             column(width=4),
+                                                             column(width=4),
+                                                             column(width=4,
+                                                                    radioButtons(ns("radioModel"), label = "Surrogate of merit",
+                                                                                 choices = list(
+                                                                                   "TGV"="none",
+                                                                                   "GTGV" = "genoAD_model",
+                                                                                   "EBV" = "pedigree_model",
+                                                                                   "GEBV" = "geno_model"
+                                                                                 ),
+                                                                                 selected = "none", inline=TRUE),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that not known covariance between the levels of designation is known and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
+                                                             ),),
+                                                      column(width=12,
                                                              column(width=4,
                                                                     numericInput(ns("nTermsFixed"),
                                                                                  label = tags$span(
@@ -180,19 +197,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     uiOutput(ns("leftSidesRandom"))
                                                              ),
                                                              column(width=4,
-                                                                    radioButtons(ns("radioModel"), label = "Surrogate of merit",
-                                                                                 choices = list(
-                                                                                   "TGV"="none",
-                                                                                   "GTGV" = "genoAD_model",
-                                                                                   "EBV" = "pedigree_model",
-                                                                                   "GEBV" = "geno_model"
-                                                                                 ),
-                                                                                 selected = "none", inline=TRUE),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that not known covariance between the levels of designation is known and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
-                                                                    br(),
+                                                                    selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
                                                                     uiOutput(ns("rightSidesRandom"))
                                                              ),
                                                       ),
@@ -498,6 +503,23 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       metricsMtaInput <- unique(dtMta$parameter)
       updateSelectInput(session, "parameterMetrics", choices = metricsMtaInput)
     })
+    # ## version qa marker
+    observeEvent(c(data()), {
+      req(data())
+      dtMta <- data()
+      dtMta <- dtMta$status
+      dtMta <- dtMta[which(dtMta$module == "qaGeno"),]
+      traitsMta <- unique(dtMta$analysisId)
+      # if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
+      if(length(traitsMta) > 0){
+        if("analysisIdName" %in% colnames(dtMta)){
+          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMta) <- as.character(as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"))
+        }
+      }
+      updateSelectInput(session, "versionMarker2Mta", choices = traitsMta)
+    })
     #################
     # plots
     output$barplotPredictionsMetrics <- plotly::renderPlotly({
@@ -603,7 +625,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       envsDg <- paste0("env",envs)
 
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
-        lapply(1:input$nTermsRandom, function(i) {
+        lapply(1:input$nTermsFixed, function(i) {
           selectInput(
             session$ns(paste0('leftSidesFixed',i)),
             label = ifelse(i==1, "Fixed Effects",""),
@@ -783,6 +805,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       }
 
     })
+
     # n pricipal components for explanatory covariates
     output$nPC <- renderUI({
       req(data())
@@ -1206,6 +1229,13 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
         output$qaQcMtaInfo <- renderUI({return(NULL)})
 
+        # qa Geno input
+        if(any(c("genoA","genoAD") %in% unique(unlist(inputFormulaCovars())))){ # warning
+          if(input$versionMarker2Mta == '' | is.null(input$versionMarker2Mta) ){ # user didn't provide a modifications id
+            markerVersionToUse <- NULL
+          }else{ markerVersionToUse <- input$versionMarker2Mta} # there is a versionMarker2Mta id
+        }else{ markerVersionToUse <- NULL }
+
         # family distributions input
         myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
         dontHaveDist <- which(is.na(myFamily))
@@ -1215,7 +1245,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
         result <- try(
           cgiarPipeline::metLMMsolver(
-            phenoDTfile= dtMta, analysisId=input$version2Mta,
+            phenoDTfile= dtMta, analysisId=input$version2Mta, analysisIdGeno=markerVersionToUse,
             fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
             envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
             calculateSE=input$calcSE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
@@ -1291,33 +1321,48 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         }, server = FALSE)
         ## Report tab
         output$reportMta <- renderUI({
+          # shiny::withMathJax(HTML(readLines(rmarkdown::render(input = system.file("rmd","reportMtaLMMsolver.Rmd",package="bioflow"),
+          #                                                     output_format = rmarkdown::html_fragment(),
+          #                                                     params = list(toDownload = FALSE, modelUsed=input$radio),
+          #                                                     quiet = TRUE))))
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaLMMsolver.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
           # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
         })
 
         output$downloadReportMta <- downloadHandler(
           filename = function() {
-            paste(paste0('mtaLmms_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('mtaLmms_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportMtaLMMsolver.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultMtaLMMsolver.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
-            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
-            ))
-            shinybusy::remove_modal_spinner()
+            )) #, modelUsed=input$radio
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 
