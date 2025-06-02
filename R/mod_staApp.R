@@ -230,6 +230,7 @@ mod_staApp_ui <- function(id){
                                                textOutput(ns("outSta2")),
                                                br(),
                                                downloadButton(ns("downloadReportSta"), "Download dashboard"),
+                                               uiOutput(ns('ebsReportButton')),
                                                br(),
                                                uiOutput(ns('reportSta')),
                                       ),
@@ -1465,6 +1466,80 @@ mod_staApp_server <- function(id,data){
     output$outSta <- output$outSta2 <- renderPrint({
       outSta()
     })
+
+    output$ebsReportButton <- renderUI({
+      query <- parseQueryString(session$clientData$url_search)
+
+      # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+      if (is.character(query$task) &&
+          is.character(query$domain) &&
+          grepl("^[a-f0-9]{32}$", query$task) &&
+          grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
+
+        s3 <- paws::s3()
+
+        bucket_name <- "ebs-bioflow"
+        s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
+
+        tryCatch({
+          s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
+          actionButton(ns("ebsStaReport"), "Submit Results to EBS")
+        }, error = function(e) {
+          # no such file on the S3 bucket clipboard
+          NULL
+        })
+      } else {
+        # parameters does not match the expected format
+        NULL
+      }
+    })
+
+    observeEvent(input$ebsStaReport, {
+      req(data())
+
+      query <- parseQueryString(session$clientData$url_search)
+
+      # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+      if (is.character(query$task) &&
+          is.character(query$domain) &&
+          grepl("^[a-f0-9]{32}$", query$task) &&
+          grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
+
+        shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+        result <- data()
+        s3 <- paws::s3()
+
+        # set S3 bucket parameters
+        bucket_name <- "ebs-bioflow"
+        s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
+
+        tryCatch({
+          # update S3 metadata
+          s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
+          s3_object_metadata <- s3_object_head$Metadata
+          s3_object_metadata[["Upload-Origin"]] <- "bioflow"
+
+          temp_file <- paste0(tempdir(), "/", query$task, ".RData")
+          save(result, file = temp_file)
+
+          # upload data object to S3 bucket
+          s3$put_object(
+            Body = temp_file,
+            Bucket = bucket_name,
+            Key = s3_object_path,
+            Metadata = s3_object_metadata
+          )
+
+          shinybusy::remove_modal_spinner()
+          shinyalert::shinyalert(title = "Success!", text = "Analysis results successfully submitted to EBS.", type = "success")
+        }, error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyalert::shinyalert(title = "Failed!", text = e$message, type = "error")
+        })
+      }
+    })
+
   }) ## end moduleserver
 }
 
