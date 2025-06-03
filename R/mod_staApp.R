@@ -1520,7 +1520,7 @@ mod_staApp_server <- function(id,data){
           s3_object_metadata <- s3_object_head$Metadata
           s3_object_metadata[["Upload-Origin"]] <- "bioflow"
 
-          temp_file <- paste0(tempdir(), "/", query$task, ".RData")
+          temp_file <- paste0(tempdir(), "/", query$task, "-results.RData")
           save(result, file = temp_file)
 
           # upload data object to S3 bucket
