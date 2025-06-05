@@ -170,6 +170,9 @@ mod_ocsApp_ui <- function(id){
                                                                            )
                                                                          ),
                                                                          choices = NULL, multiple = FALSE ) ),
+                                                      column(width = 4,
+                                                             uiOutput(ns("version2OcsGeno_ui"))   # new placeholder
+                                                      )
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -922,6 +925,59 @@ mod_ocsApp_server <- function(id, data){
       }
       updateSelectInput(session, "relType", choices = availableTypes, selected = availableTypes[1])
     })
+
+    ## 2.1  Collect available QA geno stamps ------------------------------------
+    qaGenoChoices <- reactive({
+      req(data())
+      st  <- data()$status
+      qa  <- st[st$module == "qaGeno", , drop = FALSE]
+
+      ids <- unique(qa$analysisId)
+
+      if (length(ids) == 0)
+        return(c("No data available" = "0"))
+
+      if ("analysisIdName" %in% colnames(qa)) {
+        names(ids) <- paste(
+          qa$analysisIdName[match(ids, qa$analysisId)],
+          as.POSIXct(ids, origin = "1970-01-01", tz = "GMT"),
+          sep = "_"
+        )
+      } else {
+        names(ids) <- as.character(
+          as.POSIXct(ids, origin = "1970-01-01", tz = "GMT")
+        )
+      }
+      ids
+    })
+
+    ## 2.2  Render the UI element conditionally ----------------------------------
+    output$version2OcsGeno_ui <- renderUI({
+      req(input$relType)              # make sure relType exists
+
+      # In the rel-type observer you map "Marker" → value "grm"
+      if (input$relType == "grm" | input$relType == "both") {
+        selectInput(
+          ns("version2OcsGeno"),
+          label = tags$span(
+            "Genotype QA/QC version(s) to analyze",
+            tags$i(
+              class  = "glyphicon glyphicon-info-sign",
+              style  = "color:#FFFFFF",
+              title  = paste(
+                "Analysis ID(s) from Genotype QA/QC that will be used",
+                "to build the marker-based relationship matrix."
+              )
+            )
+          ),
+          choices  = qaGenoChoices(),
+          multiple = FALSE
+        )
+      } else {
+        NULL   # hide the box for pedigree
+      }
+    })
+
     ##############
     ## environment
     observeEvent(c(data(), input$version2Ocs, input$trait2Ocs), {
@@ -996,7 +1052,7 @@ mod_ocsApp_server <- function(id, data){
       })
       # check how many have marker
       nGeno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
-        length(intersect(na.omit(unique(x)) , rownames(object$data$geno)))
+        length(intersect(na.omit(unique(x)) , rownames(as.data.frame(object$data$geno))))
       })
       final <- data.frame(cbind(metaCols,n, nPheno, nGeno))
       colnames(final) <- c("Evaluation unit", "N", "With phenotype", "With markers")
@@ -1139,6 +1195,7 @@ mod_ocsApp_server <- function(id, data){
         result <- try(cgiarPipeline::ocs(
           phenoDTfile= dtOcs, # analysis to be picked from predictions database
           analysisId=input$version2Ocs,
+          analysisIdgeno = input$version2OcsGeno,
           relDTfile= input$relType,
           trait= input$trait2Ocs, # per trait
           environment=input$env2Ocs,

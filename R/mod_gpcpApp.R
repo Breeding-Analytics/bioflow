@@ -171,6 +171,11 @@ mod_gpcpApp_ui <- function(id){
                                                                            )
                                                                          ),
                                                                          choices = "Marker", multiple = FALSE ) ),
+
+                                                      ## --- NEW: shows only when "Marker" (= "grm") is chosen ----
+                                                      column(width = 4,
+                                                             uiOutput(ns("version2GpcpGeno_ui"))   # <-- new placeholder
+                                                      )
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -265,22 +270,84 @@ mod_gpcpApp_server <- function(id, data){
     })
     ############################################################################
     # warning message
-    output$warningMessage <- renderUI(
-      if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
-      }else{ # data is there
-        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){
-          if(  any(c("mta","mtaFlex","mtaLmms") %in% data()$status$module) ){
-            if( ("qaGeno" %in% data()$status$module)){ # user has markers
-              HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform genomic prediction of cross performance (GPCP) specifying your input parameters under the Input tabs.")) )
-            }else{
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers (and QA the data) to run this module.")) )
-            }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing genomic prediction of cross performance (GPCP).")) ) }
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+    #output$warningMessage <- renderUI(
+    #  if(is.null(data())){
+    #    HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+    #  }else{ # data is there
+    #    mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+    #    if(mappedColumns == 3){
+    #      if(  any(c("mta","mtaFlex","mtaLmms") %in% data()$status$module) ){
+    #        if( ("qaGeno" %in% data()$status$module)){ # user has markers
+    #          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform genomic prediction of cross performance (GPCP) specifying your input parameters under the Input tabs.")) )
+    #        }else{
+    #          HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers (and QA the data) to run this module.")) )
+    #        }
+    #      }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing genomic prediction of cross performance (GPCP).")) ) }
+    #    }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+    #  }
+    #)
+
+    output$warningMessage <- renderUI({
+
+      ## 0. No data --------------------------------------------------------------
+      if (is.null(data())) {
+        return(
+          HTML(as.character(
+            div(style = "color:red; font-size:20px;",
+                "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+          ))
+        )
+      }else{
+        ## 1. Flags ---------------------------------------------------------------
+        mappedColumns <- all(c("environment", "designation", "trait") %in%
+                               data()$metadata$pheno$parameter)
+
+        ## 2. Mapping not finished ------------------------------------------------
+        if (!mappedColumns) {
+          return(
+            HTML(as.character(
+              div(style = "color:red; font-size:20px;",
+                  "Please map 'environment', 'designation', and at least one 'trait' in the Data Retrieval tab.")
+            ))
+          )
+        }else{
+          hasMTA       <- any(data()$status$module %in% c("mta", "mtaFlex", "mtaLmms"))
+          hasMarkers   <- "qaGeno" %in% data()$status$module
+          hasGPCPslot  <- ("GPCP" %in% names(data())) && !is.null(data()$GPCP)
+
+          ## 3. Markers / QA missing -----------------------------------------------
+          if (!hasMarkers) {
+            return(
+              HTML(as.character(
+                div(style = "color:red; font-size:20px;",
+                    "Please upload marker data and run Genotype QA/QC before using this module.")
+              ))
+            )
+          }
+
+          ## 4. MTA (A+D) or GPCP slot missing --------------------------------------
+          if (!hasMTA || !hasGPCPslot) {
+            return(
+              HTML(as.character(
+                div(style = "color:red; font-size:20px;",
+                    "You need to run the 'Main (A + D)' model in the MTA module before using this module.")
+              ))
+            )
+          }
+
+          ## 5. Everything ready ----------------------------------------------------
+
+          if(hasMTA & hasMarkers & hasGPCPslot){
+            HTML(as.character(
+              div(style = "color:green; font-size:20px;",
+                  "Data complete – you can proceed to Genomic Prediction of Cross Performance (GPCP) via the Input tabs.")
+            ))
+          }
+
+        }
       }
-    )
+    })
+
     ## data example loading
     #observeEvent(
     #  input$launch,
@@ -411,6 +478,59 @@ mod_gpcpApp_server <- function(id, data){
 
       updateSelectInput(session, "relType", choices = availableTypes, selected = availableTypes[1])
     })
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Genotype-QA/QC stamp selector (shown only when relType == "grm")
+    # ──────────────────────────────────────────────────────────────────────────
+
+    ## 2.1  Build the choice vector the same way the MTA module does ------------
+    qaGenoChoices <- reactive({
+      req(data())
+      st <- data()$status
+      qa  <- st[st$module == "qaGeno", , drop = FALSE]
+
+      ids <- unique(qa$analysisId)
+
+      if (length(ids) == 0)
+        return(c("No data available" = "0"))
+
+      if ("analysisIdName" %in% colnames(qa)) {
+        names(ids) <- paste(
+          qa$analysisIdName[match(ids, qa$analysisId)],
+          as.POSIXct(ids, origin = "1970-01-01", tz = "GMT"),
+          sep = "_"
+        )
+      } else {
+        names(ids) <- as.character(
+          as.POSIXct(ids, origin = "1970-01-01", tz = "GMT")
+        )
+      }
+      ids
+    })
+
+    ## 2.2  Render the UI element conditionally ---------------------------------
+    output$version2GpcpGeno_ui <- renderUI({
+      req(input$relType)              # make sure relType exists
+
+      # in the rel-type observer you mapped "Marker" → value "grm"
+      if (input$relType == "grm") {
+        selectInput(
+          ns("version2GpcpGeno"),
+          label = tags$span(
+            "Genotype QA/QC version(s) to analyze",
+            tags$i(
+              class  = "glyphicon glyphicon-info-sign",
+              style  = "color:#FFFFFF",
+              title  = "Analysis ID(s) from Genotype QA/QC that will be used to build the grm."
+            )
+          ),
+          choices  = qaGenoChoices(),
+          multiple = FALSE
+        )
+      } else {
+        NULL              # hide the box for any non-marker relationship type
+      }
+    })
     ##############
     ## environment
     observeEvent(c(data(), input$version2Gpcp, input$trait2Gpcp), {
@@ -485,7 +605,7 @@ mod_gpcpApp_server <- function(id, data){
       })
       # check how many have marker
       nGeno <- apply(unique(object$data$pedigree[,pedCols, drop=FALSE]), 2, function(x){
-        length(intersect(na.omit(unique(x)) , rownames(object$data$geno)))
+        length(intersect(na.omit(unique(x)) , rownames(as.data.frame(object$data$geno))))
       })
       final <- data.frame(cbind(metaCols,n, nPheno, nGeno))
       colnames(final) <- c("Evaluation unit", "N", "With phenotype", "With markers")
@@ -628,6 +748,7 @@ mod_gpcpApp_server <- function(id, data){
         result <- try(cgiarPipeline::gpcp(
           phenoDTfile= dtGpcp, # analysis to be picked from predictions database
           analysisId=input$version2Gpcp,
+          analysisIdgeno = input$version2GpcpGeno,
           relDTfile= input$relType,
           trait= input$trait2Gpcp, # per trait
           environment=input$env2Gpcp,

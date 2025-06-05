@@ -1040,7 +1040,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       }else{ phenoNames <- character() }
 
       if(!is.null(object$data$geno)){
-        genoNames <- rownames(object$data$geno)
+        genoNames <- rownames(as.data.frame(object$data$geno))
       }else{ genoNames <- character() }
 
       if(!is.null(object$data$pedigree)){
