@@ -1,10 +1,11 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "February 04, 2025"  
+date: "June 04, 2025"  
 output: html_document
 params:
   toDownload: FALSE
+  # modelUsed: NULL
 ---
 
 
@@ -25,17 +26,17 @@ The objective of this dashboard is to help scientist to understand the following
 
 3. Number of entries connecting the different environments per trait (input)
 
-3. Phenotypic correlation between environments for the traits present (input)
+4. Phenotypic correlation between environments for the traits present (input)
 
-4. Across environment KPIs per trait such as reliability and variance component ratios (output) 
+5. Across environment KPIs per trait such as reliability and variance component ratios (output) 
 
-5. Individual across environment predictions for each trait (output) 
+6. Individual across environment predictions for each trait (output) 
 
-6. Individual sensitivity and stability values across environments (output)
+7. Individual sensitivity and stability values across environments (output)
 
-7. Percent check comparison against the different benchmark varieties present in the dataset (output)
+8. Percent check comparison against the different benchmark varieties present in the dataset (output)
 
-8. Genetic correlation between the traits (output)
+9. Genetic correlation between the traits (output)
 
 Understanding these data features should allow the scientist to identify which traits express more genotype by environment interactions and how they should be selected. It should also allow the scientist to assess the correlation between traits and how the product profile should be addressed to maximize genetic gains while developing the needed varieties at the same time. Materials with the highest performance and sensitivity to the environment could be potential nominations for advancement although we recommend to don't select new parents or products until the results from the multi-trial analysis are analyzed with a selection index.  
 
@@ -43,7 +44,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out360bf0559ebccd2d" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out910d2cd80aac2d59" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Metadata: Map of trials planted
 
@@ -63,7 +64,8 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsType-label" for="mtaLMMsolveApp_1-boxplotMtaPredsType">Effect type</label>
 <div>
-<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="designation" selected>designation</option></select>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="f" selected>f</option>
+<option value="designation">designation</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -75,7 +77,8 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsTrait-label" for="mtaLMMsolveApp_1-boxplotMtaPredsTrait">Trait</label>
 <div>
-<select id="mtaLMMsolveApp_1-boxplotMtaPredsTrait" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option></select>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsTrait" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Grain_Moisture">Grain_Moisture</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -83,7 +86,10 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="shiny-plot-output html-fill-item" id="mtaLMMsolveApp_1-outfb5f1a4b1a38684b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<div style = "width:auto; height:auto; overflow:auto">
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out5264351f23776e84" style="width:100%;height:400px;"></div><!--/html_preserve-->
+</div>
 
 ### Predictions: Connectivity between environments
 
@@ -91,15 +97,36 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-traitMtaConnect-label" for="mtaLMMsolveApp_1-traitMtaConnect"></label>
+<!--html_preserve--><div class="shiny-input-panel">
+<div class="shiny-flow-layout">
 <div>
-<select id="mtaLMMsolveApp_1-traitMtaConnect" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option></select>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="mtaLMMsolveApp_1-traitMtaConnect-label" for="mtaLMMsolveApp_1-traitMtaConnect">Trait</label>
+<div>
+<select id="mtaLMMsolveApp_1-traitMtaConnect" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Grain_Moisture">Grain_Moisture</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-traitMtaConnect" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div>
+</div>
+<div>
+<div class="form-group shiny-input-container">
+<div class="checkbox">
+<label>
+<input id="mtaLMMsolveApp_1-freqConnect" type="checkbox" class="shiny-input-checkbox" checked="checked"/>
+<span>Show frequency distribution</span>
+</label>
+</div>
+</div>
+</div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out4b90789c0b13fe33" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<div style = "width:auto; height:auto; overflow:auto">
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out0e71f9d7ad7b2889" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+</div>
 
 ### Predictions: Correlations between environments
 
@@ -107,33 +134,13 @@ The following heatmap and histogram allows to assess the genetic correlations am
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="shiny-input-panel">
-<div class="shiny-flow-layout">
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-corrplotMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotMtaPredsType">Effect type</label>
-<div>
-<select id="mtaLMMsolveApp_1-corrplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="designation" selected>designation</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-corrplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-<div>
-<div class="col-sm-12"></div>
-</div>
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-traitPredictionsCorrelation-label" for="mtaLMMsolveApp_1-traitPredictionsCorrelation">Trait</label>
-<div>
-<select id="mtaLMMsolveApp_1-traitPredictionsCorrelation" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-traitPredictionsCorrelation" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outab1afa5a8e9c9779" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+<div style = "width:auto; height:auto; overflow:auto">
+
+No interaction present. Skipping correlation plot.
+
+</div>
 
 ### Predictions: Biplot by trait
 
@@ -141,33 +148,13 @@ The following graph allows to see the clustering of different genotypes in the T
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="shiny-input-panel">
-<div class="shiny-flow-layout">
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-biplotMtaPredsType-label" for="mtaLMMsolveApp_1-biplotMtaPredsType">Effect type:</label>
-<div>
-<select id="mtaLMMsolveApp_1-biplotMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="designation" selected>designation</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-biplotMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-<div>
-<div class="col-sm-12"></div>
-</div>
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-traitBiplot-label" for="mtaLMMsolveApp_1-traitBiplot">Trait:</label>
-<div>
-<select id="mtaLMMsolveApp_1-traitBiplot" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-traitBiplot" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-</div>
-</div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outd5289d24e70d2f7a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+<div style = "width:auto; height:auto; overflow:auto">
+
+No interaction present. Skipping biplot.
+
+</div>
 
 ### Predictions: Merit estimates of top entries
 
@@ -180,25 +167,21 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsType-label" for="mtaLMMsolveApp_1-scatterMtaPredsType">Effect type:</label>
 <div>
-<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select" multiple="multiple"><option value="designation" selected>designation</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsType">{"plugins":["selectize-plugin-a11y"]}</script>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select"><option value="f" selected>f</option>
+<option value="designation">designation</option></select>
+<script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
-</div>
-<div>
-<div class="col-sm-12"></div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsTrait-label" for="mtaLMMsolveApp_1-scatterMtaPredsTrait">Trait</label>
 <div>
-<select id="mtaLMMsolveApp_1-scatterMtaPredsTrait" class="shiny-input-select"><option value="YLD_TON" selected>YLD_TON</option></select>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsTrait" class="shiny-input-select"><option value="Yield_Mg_ha" selected>Yield_Mg_ha</option>
+<option value="Grain_Moisture">Grain_Moisture</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsTrait" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
-</div>
-<div>
-<div class="col-sm-12"></div>
 </div>
 <div>
 <div class="form-group shiny-input-container">
@@ -209,10 +192,20 @@ In the left-side plot you can observe the comparison between the top 100 entries
 </div>
 </div>
 </div>
+<div>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsTop-label" for="mtaLMMsolveApp_1-scatterMtaPredsTop">Number of Entries</label>
+<input id="mtaLMMsolveApp_1-scatterMtaPredsTop" type="number" class="shiny-input-number form-control" value="100" min="1"/>
+</div>
+</div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out97b2c639a743dcbc" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<div style = "width:auto; height:auto; overflow:auto">
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outc08c1747731b74f4" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+</div>
 
 ### Predictions: Table of estimates 
 
@@ -220,7 +213,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out1e3298626793cb06" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outc8a849cbe13fd739" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between traits
 
@@ -232,36 +225,43 @@ The following heatmap and histogram allows to see the genetic correlations among
 <div class="shiny-flow-layout">
 <div>
 <div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType-label" for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType">Effect type</label>
-<div>
-<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" class="shiny-input-select"><option value="designation" selected>designation</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-corrplotTraitMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
-</div>
-</div>
-</div>
-<div>
-<div class="col-sm-12"></div>
-</div>
-<div>
-<div class="form-group shiny-input-container">
-<label class="control-label" id="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv-label" for="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv">Environment</label>
-<div>
-<select id="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv" class="shiny-input-select"><option value="(Intercept)" selected>(Intercept)</option></select>
-<script type="application/json" data-for="mtaLMMsolveApp_1-corrplotTraitMtaPredsEnv" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+<div class="checkbox">
+<label>
+<input id="mtaLMMsolveApp_1-freqCor" type="checkbox" class="shiny-input-checkbox" checked="checked"/>
+<span>Show frequency distribution</span>
+</label>
 </div>
 </div>
 </div>
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out3456713461cc7c42" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<div style = "width:auto; height:auto; overflow:auto">
+
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out1469803ae0b25c5a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+
+</div>
+
+### Percent check comparison to top 30 entries
+
+The following plots allow the user to compare the top 30 entries against the different checks/benchmarks present in the dataset for each trait. The table below that shows the wide-table of all possible comparisons for all traits.
+
+<p>&nbsp;</p>
+
+
+
+<div style = "width:auto; height:auto; overflow:auto">
+
+No checks found. Skipping percent check comparison.
+</div>
+
 
 
 ### Modeling parameters
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out3fe32d72035a177c" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out0e33d178cc2390fc" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used
@@ -272,6 +272,10 @@ Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-le
 
 Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12.
 
+Xiang, T., Christensen, O. F., & Sørensen, A. C. (2016). Genomic evaluation by including dominance effects and inbreeding depression for purebred and crossbred performance with a unified model. Genetics Selection Evolution, 48(1), 84
+
+Batista, L. G., Mello, V. H., Souza, A. P., & Margarido, G. R. A. (2022). Genomic prediction with allele dosage information in highly polyploid species. Theoretical and Applied Genetics, 135(2), 723–739.
+
 R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
 
 Boer M, van Rossum B (2022). LMMsolver: Linear Mixed Model Solver. R package version 1.0.4.9000.
@@ -279,7 +283,5 @@ Boer M, van Rossum B (2022). LMMsolver: Linear Mixed Model Solver. R package ver
 Covarrubias-Pazaran G. (2024). lme4breeding: enabling genetic evaluation in the era of genomic data. bioRxiv, 2024-05.
 
 Covarrubias-Pazaran G. (2016). Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.
-
-<p>&nbsp;</p>
 
 

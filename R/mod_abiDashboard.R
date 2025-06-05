@@ -232,7 +232,7 @@ mod_abiDashboard_server <- function(id, data){
                                 parameter= c( "ocs", "rgg") , # "sta", "mta","indexD",
                                 value=c(input$versionSelection, input$versionHistory ) # input$versionMetrics, input$versionTraits, input$versionIndex,
       )
-      abiStatus <- data.frame(module="abiDash", analysisId=idAbi)
+      abiStatus <- data.frame(module="abiDash", analysisId=idAbi, analysisIdName ="")
       result$modeling <- rbind(result$modeling, abiModeling)
       result$status <- rbind(result$status, abiStatus)
 
@@ -255,11 +255,13 @@ mod_abiDashboard_server <- function(id, data){
 
         output$downloadReportAbi <- downloadHandler(
           filename = function() {
-            paste(paste0('abiDash_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('abiDash_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportAbi.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultAbi.RData')
             # temporarily switch to the temp dir, in case you do not have write
@@ -275,7 +277,15 @@ mod_abiDashboard_server <- function(id, data){
                                        HTML = rmdformats::robobook(toc_depth = 4)
                                        # HTML = rmarkdown::html_document()
                                      ))
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 

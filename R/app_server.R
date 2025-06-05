@@ -19,8 +19,8 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
-modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStr","mtaLmms"),
-                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver"))
+modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","mtaLmms","qaFilter","qaDesign","qaConsist"),
+                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
 
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
@@ -270,13 +270,16 @@ app_server <- function(input, output, session) {
       dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
       user_email    <- session$userData$temp$user
     } else {
-      dashboard_url <- "https://cgiar-service-portal-tst.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
-      user_email    <- "test@example.com"
+      dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+      user_email    <- "offline"
     }
 
     status <- session$userData$temp$status
 
     for (i in 1:nrow(status)) {
+      # avoid reporting usage of loaded data from a previous session
+      if (status[i,"analysisId"] < as.numeric(Sys.time()) - 3600*24) next
+
       # prepare the data as an R list
       module_name <- ifelse(length(modules[modules$module == status[i,"module"], "moduleName"]) == 0,
                             "", modules[modules$module == status[i,"module"], "moduleName"])
@@ -350,12 +353,15 @@ app_server <- function(input, output, session) {
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
+  mod_mtaASREMLApp_server("mtaASREMLApp_1", data = data)
   # mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
   # mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
   # mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
+  mod_gpcpApp_server("gpcpApp_1", data = data) #genomic prediction of cross performance
+
   # SELECTION - selection history
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
   mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
@@ -401,4 +407,79 @@ app_server <- function(input, output, session) {
 
   ## predictive models
   # mod_tensorMLApp_server("tensorMLApp_1")
+
+  ### START: Push Analysis Mechanism ###########################################
+
+  # http://localhost:1410/?task=18b7d89cc61fef60e93973edd9d9df38&module=STA&domain=dev
+
+  observeEvent(session$clientData$url_search, {
+
+    query <- parseQueryString(session$clientData$url_search)
+
+    # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+    if (is.character(query$task) &&
+        is.character(query$domain) &&
+        grepl("^[a-f0-9]{32}$", query$task) &&
+        grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
+
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+      ### set up paws library ################################################
+
+      # Sys.setenv("AWS_ACCESS_KEY_ID"     = "XXXXXXXXXXXXXXXXXXXX")
+      # Sys.setenv("AWS_SECRET_ACCESS_KEY" = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+      # Sys.setenv("AWS_SESSION_TOKEN"     = "xxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxx=")
+
+      # # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
+      Sys.setenv("AWS_PROFILE" = "bioflow")
+      Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+
+      bucket_name <- "ebs-bioflow"
+
+      ### get RData object file from EBS S3 clipboard ##########################
+
+      task_id        <- query$task
+      s3_object_path <- paste0(query$domain, "/", task_id, ".RData")
+
+      s3 <- paws::s3()
+
+      tryCatch({
+        s3_download <- s3$get_object(
+          Bucket = bucket_name,
+          Key = s3_object_path
+        )
+
+        raw_con <- rawConnection(s3_download$Body)
+        load(raw_con)
+        close(raw_con)
+
+        ## replace tables
+        tmp <- data()
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+
+        shinybusy::remove_modal_spinner()
+        shinyalert::shinyalert(title = "Success!", text = "Data successfully loaded from EBS.", type = "success")
+      }, error = function(e) {
+        shinybusy::remove_modal_spinner()
+        shinyalert::shinyalert(title = "Failed!", text = "The task data object could not be found in the S3 bucket clipboard.", type = "error")
+      })
+    }
+
+    if (!is.null(query$module) && query$module == "STA") {
+      # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
+      # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
+
+      updateNavbarPage(session, "tabso", selected = "staApp_tab")
+    }
+  })
+
+  ### END: Push Analysis Mechanism #############################################
+
 }

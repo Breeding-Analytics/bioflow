@@ -441,25 +441,38 @@ mod_filterPhenoApp_server <- function(id, data){
 
         output$downloadReportQaPheno <- downloadHandler(
           filename = function() {
-            paste(paste0('qaFilter_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('qaFilter_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultQaPheno.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 

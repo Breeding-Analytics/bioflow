@@ -92,8 +92,17 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                            )
                                                                          ),
                                                                          choices = NULL, multiple = TRUE),
+                                                             selectInput(ns("version2MtaAsrGeno"),
+                                                                         label = tags$span(
+                                                                           "Genotype QA/QC version(s) to analyze",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Analysis ID(s) from Genotype QA/QC used to fit a multi-trial analysis."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE),
                                                       ),
-
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -136,83 +145,45 @@ mod_mtaASREMLApp_ui <- function(id) {
                                       ),
                                       tabPanel(div(icon("dice-three"), "Form your model", icon("arrow-right") ), # icon = icon("dice-two"),
                                                br(),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=12,
-                                                             column(width=6,
-                                                                    br(),
-                                                                    radioButtons(ns("radio"), label = "Variance-covariance model to fit",
-                                                                                 choices = list(
-                                                                                   "Factor analytic"="fa_model",
-                                                                                   "Unstructure" = "us_model",
-                                                                                   "Diagonal" = "diag_model",
-                                                                                   "Simple" = "none"
-                                                                                 ),
-                                                                                 selected = "none", inline=TRUE),
-                                                                    radioTooltip(id = ns("radio"), choice = "fa_model", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "us_model", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "none", title = "", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radio"), choice = "diag_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover")
-                                                             ),
-                                                            column(width=6,
-                                                                    numericInput(ns("nFATerm"),
-                                                                                 label = tags$span(id=ns("nFATermLab"),
-                                                                                   "FA term",
-                                                                                   tags$i(
-                                                                                     class = "glyphicon glyphicon-info-sign",
-                                                                                     style = "color:#FFFFFF",
-                                                                                     title = "Number of factor analytic term in the model."
-                                                                                   )
-                                                                                 ),
-                                                                                 value = NULL, step = 1, min = 1)
-                                                            ),
-                                                      ),
-                                               ),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
-                                                             column(width=4,
-                                                                    selectInput(ns("TermsFixed"),
+                                                             column(width=3,
+                                                                    numericInput(ns("nTermsFixed"),
                                                                                  label = tags$span(
-                                                                                   "Terms fixed",
+                                                                                   "nTerms fixed",
                                                                                    tags$i(
                                                                                      class = "glyphicon glyphicon-info-sign",
                                                                                      style = "color:#FFFFFF",
-                                                                                     title = "Fixed effect(s) to specify in your model."
+                                                                                     title = "Number of fixed effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
                                                                                    )
                                                                                  ),
-                                                                                 choices = NULL,multiple=TRUE),
-                                                                    #uiOutput(ns("leftSidesFixed"))
+                                                                                 value = NULL), # , step = 1, min = 1, max=10
+                                                                    uiOutput(ns("leftSidesFixed"))
                                                              ),
-                                                             column(width=4,
-                                                                    selectInput(ns("TermsRandom"),
+                                                             column(width=3,
+                                                                    numericInput(ns("nTermsRandom"),
                                                                                  label = tags$span(
-                                                                                   "Terms random",
+                                                                                   "nTerms random",
                                                                                    tags$i(
                                                                                      class = "glyphicon glyphicon-info-sign",
                                                                                      style = "color:#FFFFFF",
-                                                                                     title = "Random effect(s) to specify in your model. By default the interaction will be added"
+                                                                                     title = "Number of random effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
                                                                                    )
                                                                                  ),
-                                                                                choices = NULL,multiple=TRUE),
-                                                                    #uiOutput(ns("leftSidesRandom"))
+                                                                                 value = NULL), #
+                                                                    uiOutput(ns("leftSidesRandom"))
+                                                             ),
+                                                             br(),
+                                                             br(),
+                                                             br(),
+                                                             br(),
+                                                             column(width=3,
+                                                                uiOutput(ns("rightSidesRandom"))
+                                                             ),
+                                                             column(width=3,
+                                                                uiOutput(ns("nFATerm"))
+                                                             ),
 
-                                                             ),
-                                                             column(width=4,
-                                                                    radioButtons(ns("radioModel"), label = "Surrogate of merit",
-                                                                                 choices = list(
-                                                                                   "TGV" = "none",
-                                                                                   "GTGV" = "genoAD_model",
-                                                                                   "EBV" = "pedigree_model",
-                                                                                   "GEBV" = "geno_model"
-                                                                                 ),
-                                                                                 selected = "none", inline=TRUE),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that not known covariance between the levels of designation is known and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
-                                                                    br(),
-                                                                    #uiOutput(ns("rightSidesRandom"))
-                                                                    uiOutput(ns("rightSidesRandom"))
-                                                             ),
                                                       ),
                                                ),
                                                column(width=12,
@@ -268,10 +239,18 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                column(width=6, style = "background-color:LightGray; color: #FFFFFF",
                                                       br(),
                                                       shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
+                                                                          checkboxInput(ns("gscamtaAsr"),
+                                                                                        label = tags$span(
+                                                                                          "Add to the results GCA/SCA",
+                                                                                          tags$i(
+                                                                                            class = "glyphicon glyphicon-info-sign",
+                                                                                            style = "color:#000000",
+                                                                                            title = "If is the case you can calculate directly the GCA for parents, line or tester and/or SCA for hybrids."
+                                                                                          )
+                                                                                        ),value=FALSE),
                                                                           textInput(ns("heritLBMet"),
                                                                                     label = tags$span(
                                                                                       "Lower H2 and R2 bound",
-                                                                                      "Lower H2&R2 bound",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -282,7 +261,6 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                           textInput(ns("heritUBMet"),
                                                                                     label = tags$span(
                                                                                       "Upper H2 and R2 bound",
-                                                                                      "Upper H2&R2 bound",
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#000000",
@@ -319,10 +297,9 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                                            title = "Restricted Maximum Likelihood iterations. If the model doesn't converge you will see that in the metrics output table."
                                                                                          )
                                                                                        ),
-                                                                                       value = 100),
                                                                                        value = 35),
                                                       ),
-                                               #),
+                                               ),
                                                column(width = 6, style = "background-color:LightGray; color: #FFFFFF",
                                                       br(),
                                                       shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
@@ -349,7 +326,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                textOutput(ns("outMtaAsr")),
                                       ),#end run analysis
                                       )#end tabset input
-                                    
+
                            ),#end input panel
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
@@ -400,18 +377,23 @@ mod_mtaASREMLApp_server <- function(id, data){
     ################
     ##ASReml license status
     output$statuslicenseasr <- renderUI(
-      # check library(asreml)
-      if("asreml"%in%rownames(installed.packages())==TRUE){
-        library(asreml)
-        csasr=asreml.license.status(quiet = FALSE, task = "checkout", json = "")
-        if(csasr$statusMessage=="No error"){
+      #check internet connection for activate license
+      if(curl::has_internet()){
+        # check library(asreml)
+        if("asreml"%in%rownames(installed.packages())==TRUE){
+          library(asreml)
+          csasr=asreml.license.status(quiet = FALSE, task = "checkout", json = "")
+          if(csasr$statusMessage=="No error"){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Correct license")) )
           }else{
-            HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure to write the activation code of license in the R console")) )
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please write the activation code of license in the R console")) )
             asreml.license.activate()
           }
+        }else{
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have library asreml installed")) )
+        }
       }else{
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have library asreml installed")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have internet connection to check asreml library")) )
       }
 
     )
@@ -421,8 +403,13 @@ mod_mtaASREMLApp_server <- function(id, data){
       req(data())
       dtMtaAsr <- data() # dtMtaAsr <- result
       dtMtaAsr <- dtMtaAsr$status
+      dtMtaAsrGeno <- dtMtaAsr[which(dtMtaAsr$module == "qaGeno"),]
       dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module == "sta"),]
       traitsMtaAsr <- unique(dtMtaAsr$analysisId)
+      traitsMtaAsrGeno <- unique(dtMtaAsrGeno$analysisId)
+
+      if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
+
       if(length(traitsMtaAsr) > 0){
         if("analysisIdName" %in% colnames(dtMtaAsr)){
           names(traitsMtaAsr) <- paste(dtMtaAsr$analysisIdName, as.POSIXct(traitsMtaAsr, origin="1970-01-01", tz="GMT"), sep = "_")
@@ -431,6 +418,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         }
       }
       updateSelectInput(session, "version2MtaAsr", choices = traitsMtaAsr)
+      updateSelectInput(session, "version2MtaAsrGeno", choices = traitsMtaAsrGeno)
     })
     #################
     ## data example loading
@@ -542,78 +530,239 @@ mod_mtaASREMLApp_server <- function(id, data){
       plotly::ggplotly(p)
     })
 
-    observeEvent(c(data(),input$version2MtaAsr,input$radio), {
+
+    #################
+    ## nTermsFixed
+    observeEvent(c(data(), input$version2MtaAsr), {
+      req(data())
+      req(input$version2MtaAsr)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2MtaAsr),]
+      envs <- unique(dtMta[,"environment"])
+      envsDg <- paste0("env",envs)
+      updateNumericInput(session, "nTermsFixed", value = 1, step = 1, min = 1, max=10)
+    })
+    #################
+    ## nTermsRandom
+    observeEvent(c(data(), input$version2MtaAsr), {
+      req(data())
+      req(input$version2MtaAsr)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2MtaAsr),]
+      envs <- unique(dtMta[,"environment"])
+      envsDg <- paste0("env",envs)
+      updateNumericInput(session, "nTermsRandom", value = 2, step = 1, min = 1, max=10)
+    })
+    ## fixed effects
+    output$leftSidesFixed <- renderUI({ # input <- list(version2Mta=result$status$analysisId[3], trait2Mta="YLD_TON",nTermsFixed=1)
       req(data())
       req(input$version2MtaAsr)
       req(input$trait2MtaAsr)
-      req(input$radio)
+      req(input$nTermsFixed)
+      dtMta <- data() # dtMta <- result
+      mydata <- dtMta$predictions #
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
+      metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("pipeline","stage","environment","year","season","timepoint","country","location","trial","study","management")),]
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
+      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
+      mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
+      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(object=dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
+      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
+
+      choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
+      envs <- unique(mydata[,"environment"])
+      envs <- gsub(" ", "",envs )
+      envsDg <- paste0("env",envs)
+      lapply(1:input$nTermsFixed, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesFixed',i)),
+            label = ifelse(i==1, "Fixed Effects",""),
+            choices = choices, multiple = TRUE, selected = "environment"
+          )
+        })
+    })
+    ## left formula (actual effects) ## input <- list(version2Mta=result$status$analysisId[2])
+    output$leftSidesRandom <- renderUI({
+      req(data())
+      req(input$version2MtaAsr)
+      req(input$trait2MtaAsr)
+      req(input$nTermsRandom)
+      dtMta <- data()
+      mydata <- dtMta$predictions #
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
+      # choices
+      metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("pipeline","stage","environment","year","season","timepoint","country","location","trial","study","management")),]
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
+      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
+      mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
+      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
+      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
+      choices <- c( setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ), "designation")
+      fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
+      # selected
+      envs <- unique(mydata[,"environment"])
+      envs <- gsub(" ", "",envs )
+      envsDg <- paste0("env",envs)
+      envsDg2 <- paste0(rep("environment",10),"")
+      desDg <-rep("designation",length(envsDg))
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"designation"}else if(i==2){c( desDg[i], envsDg2[i] )}else{"designation"}
+          )
+        })
+    })
+    # right-side equation (Cov structure)
+    output$rightSidesRandom <- renderUI({
+      req(data())
+      req(input$version2MtaAsr)
+      req(input$trait2MtaAsr)
+      req(input$nTermsRandom)
+      mydata <- data()$predictions #
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
+
+      if(input$version2MtaAsrGeno!="0" & all(is.na(data()$data$pedigree[,3]))!=T){#geno and pedrigree data
+        choices <- c("Relationship structure_Geno","Relationship structure_Pedigree","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+      }
+      if(input$version2MtaAsrGeno!="0" & all(is.na(data()$data$pedigree[,3]))==T){#geno and NO pedrigree data
+        choices <- c("Relationship structure_Geno","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+      }
+      if(input$version2MtaAsrGeno=="0" & all(is.na(data()$data$pedigree[,3]))!=T){#NO geno and pedrigree data
+        choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
+      }
+      if(input$version2MtaAsrGeno=="0" & all(is.na(data()$data$pedigree[,3]))==T){#NO geno and NO pedrigree data
+        choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
+      }
+
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          #choices <- c("Relationship structure_Geno","Relationship structure_Pedigree","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+          noness <- c("none","none.","none..","none...")
+
+          if (i==1){
+            choices<-c("none",choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = choices[1])
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = noness[1:tempval])
+          }
+        })
+    })
+    # inputFormula summarizing the fixed effects
+    inputFormulaFixed = reactive({
+      req(data());  req(input$version2MtaAsr);  req(input$trait2MtaAsr); req(input$nTermsFixed)
+      if (length(input$trait2MtaAsr) != 0) {
+        values <- vector(mode = "list", length = input$nTermsFixed)
+        for (i in 1:input$nTermsFixed) {
+          tempval <- reactive({paste0('input$','leftSidesFixed',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
+      }
+    })
+    # inputFormula summarizing the random effects
+    inputFormulaRandom = reactive({
+      req(data());  req(input$version2MtaAsr);  req(input$trait2MtaAsr); req(input$nTermsRandom)
+      if (length(input$trait2MtaAsr) != 0) {
+        values <- vector(mode = "list", length = input$nTermsRandom)
+        for (i in 1:input$nTermsRandom) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
+      }
+    })
+    # inputFormula summarizing the covariates
+    inputFormulaCovars = reactive({
+      req(data());  req(input$version2MtaAsr);  req(input$trait2MtaAsr); req(input$nTermsRandom)
+      if (length(input$trait2MtaAsr) != 0) {
+        values <- vector(mode = "list", length = input$nTermsRandom)
+        for (i in 1:input$nTermsRandom) {
+          tempval <- reactive({paste0('input$','rightSidesRandom',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
+      }
+    })
+    ####number of factor analytic
+    output$nFATerm <- renderUI({
+      req(data())
+      req(input$version2MtaAsr)
+      req(input$trait2MtaAsr)
+      req(input$nTermsRandom)
+      #req(input$rightSidesRandom)
       dtMtaAsr <- data() # dtMtaAsr <- result
       dtMtaAsr <- dtMtaAsr$predictions #
       dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$analysisId %in% input$version2MtaAsr),]
-      envs <- unique(dtMtaAsr[,"environment"])
-      if (input$radio == "fa_model") {
-        golem::invoke_js('showid', ns('nFATerm'))
-        golem::invoke_js('showid', ns('nFATermLab'))
-        #n2 <- floor(length(envs)/2)
-        n2 <- length(envs)-1
-        updateNumericInput(session, "nFATerm", value = n2, step = 1, min = 1, max=n2)
-      }else{
-        golem::invoke_js('hideid', ns('nFATerm'))
-        golem::invoke_js('hideid', ns('nFATermLab'))
+
+      lapply(1:input$nTermsRandom, function(i) {
+        tempval <- reactive({paste0('input$','rightSidesRandom',i)})
+        s1 <- eval( parse(text = tempval() ) )
+        if("Structure model_fa"%in%s1){
+          tempval2 <- reactive({paste0('input$','leftSidesRandom',i)})
+          s2 <- eval( parse(text = tempval2() ) )
+          s2 <- s2[which("Structure model_fa"%in%s1)]
+          envs <- unique(dtMtaAsr[,s2])
+          n2 <- length(envs)-1
+          if(i==1){
+            numericInput(
+              inputId=session$ns(paste0('nFATerm',i)),
+              label = tags$span("FA term",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Number of factor analytic term in the Structure model_fa.")),
+              value = 1,step=1,min=1,max=n2)
+          }else{
+            numericInput(
+              inputId=session$ns(paste0('nFATerm',i)),
+              label = "",
+              value = 1,step=1,min=1,max=n2)
+          }
+        }else{
+          if(i==1){
+          numericInput(
+            inputId=session$ns(paste0('nFATerm',i)),
+            label = tags$span("FA term",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Number of factor analytic term in the Structure model_fa.")),
+            value = 0,step=0,min=0,max=0)
+          }else{
+            numericInput(
+              inputId=session$ns(paste0('nFATerm',i)),
+              label = "",
+              value = 0,step=0,min=0,max=0)
+          }
+        }
+
+      })
+
+    })
+    # inputFormula summarizing the nFATerm
+    inputFormulanFATerm = reactive({
+      req(data());  req(input$version2MtaAsr);  req(input$trait2MtaAsr); req(input$nTermsRandom)
+      if (length(input$trait2MtaAsr) != 0) {
+        values <- vector(mode = "list", length = input$nTermsRandom)
+        for (i in 1:input$nTermsRandom) {
+          tempval <- reactive({paste0('input$','nFATerm',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
       }
-
     })
-
-    ## fixed effects
-    observeEvent(c(data(),input$version2MtaAsr,input$trait2MtaAsr), { # input <- list(version2MtaAsr=result$status$analysisId[2])
-      req(data())
-      req(input$version2MtaAsr)
-      req(input$trait2MtaAsr)
-      dtMtaAsr <- data() # dtMtaAsr <- result
-      mydata <- dtMtaAsr$predictions #
-      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
-      metaPheno <- dtMtaAsr$metadata$pheno[which(dtMtaAsr$metadata$pheno$parameter %in% c("pipeline","stage","environment","year","season","timepoint","country","location","trial","study","management")),]
-      otherMetaCols <- unique(dtMtaAsr$data$pheno[,metaPheno$value,drop=FALSE])
-      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
-      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
-      mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
-      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMtaAsr, wide=TRUE))
-      WeatherRow$environment <- rownames(WeatherRow)
-      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
-
-      choices <- as.vector(c(setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )))
-	    choicesint <- apply(combn(choices, 2), 2, \(x) paste(x, collapse = ":"))
-	    choices <- as.vector(c("none", choices, choicesint))
-      
-      updateSelectInput(session,"TermsFixed",choices = choices, selected = "environment")
-    })
-
-    
-    ## left formula (actual effects) ## input <- list(version2MtaAsr=result$status$analysisId[2])
-    observeEvent(c(data(),input$version2MtaAsr,input$trait2MtaAsr), {
-      req(data())
-      req(input$version2MtaAsr)
-      req(input$trait2MtaAsr)
-      dtMtaAsr <- data()
-      mydata <- dtMtaAsr$predictions #
-      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
-      # choices
-      metaPheno <- dtMtaAsr$metadata$pheno[which(dtMtaAsr$metadata$pheno$parameter %in% c("pipeline","stage","environment","year","season","timepoint","country","location","trial","study","management")),]
-      otherMetaCols <- unique(dtMtaAsr$data$pheno[,metaPheno$value,drop=FALSE])
-      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
-      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
-      mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
-      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMtaAsr, wide=TRUE))
-      WeatherRow$environment <- rownames(WeatherRow)
-      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
-      choices <- c("designation",setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ) )
-      choicesint <- apply(combn(choices, 2), 2, \(x) paste(x, collapse = ":"))
-      choices <- as.vector(c("none", choices, choicesint))
-      
-      updateSelectInput(session,"TermsRandom",choices = choices, selected = "designation")
-    })
-
-
     #################
     # reactive table for trait family distributions
     dtDistTrait = reactive({
@@ -760,7 +909,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else{ phenoNames <- character() }
 
       if(!is.null(object$data$geno)){
-        genoNames <- rownames(object$data$geno)
+        genoNames <- rownames(as.data.frame(object$data$geno))
       }else{ genoNames <- character() }
 
       if(!is.null(object$data$pedigree)){
@@ -927,8 +1076,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       req(data())
       req(input$version2MtaAsr)
       req(input$trait2MtaAsr)
-      req(input$TermsFixed)
-      req(input$TermsRandom)
+      req(input$nTermsFixed)
+      req(input$nTermsRandom)
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtMtaAsr <- data()
@@ -975,12 +1124,12 @@ mod_mtaASREMLApp_server <- function(id, data){
 		#
         #save(dtMtaAsr,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
         #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METasr.RData")
-        #source("C:\\Users\\RAPACHECO\\OneDrive - CIMMYT\\Documents\\GitHub\\bioflow\\metASREML.r")
+        #source("C:/Users/RAPACHECO/OneDrive - CIMMYT/Documents/CIMMYT/2025/BioflowTask/metASREML.R")
         result <- try(
           cgiarPipeline::metASREML(
           #metASREML(
-            phenoDTfile= dtMtaAsr, analysisId=input$version2MtaAsr,
-            fixedTerm= input$TermsFixed,  randomTerm=input$TermsRandom, covMod=input$radio, addG=input$radioModel,nFA=input$nFATerm,
+            phenoDTfile= dtMtaAsr, analysisId=input$version2MtaAsr,analysisIdgeno=input$version2MtaAsrGeno,gsca=input$gscamtaAsr,
+            fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), covMod=inputFormulaCovars(), addG=inputFormulaCovars(),nFA=inputFormulanFATerm(),
             envsToInclude=myEnvsTI, trait= input$trait2MtaAsr, traitFamily=myFamily, useWeights=TRUE,
             calculateSE=TRUE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
             heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
@@ -1082,27 +1231,38 @@ mod_mtaASREMLApp_server <- function(id, data){
 
         output$downloadReportMtaAsr <- downloadHandler(
           filename = function() {
-            paste(paste0('MtaAsr_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('MtaAsr_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportMtaASREML.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultMtaASREML.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMtaASREML.RData', overwrite = TRUE)
-            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
-            shinybusy::remove_modal_spinner()
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 
@@ -1120,7 +1280,7 @@ mod_mtaASREMLApp_server <- function(id, data){
     output$outMtaAsr <- renderPrint({
       outMtaAsr1()
     })
-      
+
     })
 }
 

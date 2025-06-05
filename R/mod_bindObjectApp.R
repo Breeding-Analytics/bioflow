@@ -250,6 +250,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
               tmp$status$analysisIdName <- ""
             }
           }
+          if(!is.null(result$GPCP)){tmp$GPCP <- result$GPCP}
           data(tmp) # update data with results
           shinybusy::remove_modal_spinner()
 

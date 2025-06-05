@@ -230,6 +230,7 @@ mod_staApp_ui <- function(id){
                                                textOutput(ns("outSta2")),
                                                br(),
                                                downloadButton(ns("downloadReportSta"), "Download dashboard"),
+                                               uiOutput(ns('ebsReportButton')),
                                                br(),
                                                uiOutput(ns('reportSta')),
                                       ),
@@ -338,12 +339,12 @@ mod_staApp_ui <- function(id){
 #     # QA versions to use
 #     observeEvent(c(data()), {
 #       req(data())
-#       dtMta <- data()
-#       dtMta <- dtMta$status
-#       dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign","qaConsist")),]
-#       traitsMta <- unique(dtMta$analysisId)
-#       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
-#       updateSelectInput(session, "version2Sta", choices = traitsMta)
+#       dtSta <- data()
+#       dtSta <- dtSta$status
+#       dtSta <- dtSta[which(dtSta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign","qaConsist")),]
+#       traitsSta <- unique(dtSta$analysisId)
+#       if(length(traitsSta) > 0){names(traitsSta) <- as.POSIXct(traitsSta, origin="1970-01-01", tz="GMT")}
+#       updateSelectInput(session, "version2Sta", choices = traitsSta)
 #     })
 #     # genetic evaluation unit
 #     observe({
@@ -910,18 +911,18 @@ mod_staApp_server <- function(id,data){
     # QA versions to use
     observeEvent(c(data()), {
       req(data())
-      dtMta <- data()
-      dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
-      traitsMta <- unique(dtMta$analysisId)
-      if(length(traitsMta) > 0){
-        if("analysisIdName" %in% colnames(dtMta)){
-          names(traitsMta) <- paste(dtMta$analysisIdName, as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT"), sep = "_")
+      dtSta <- data()
+      dtSta <- dtSta$status
+      dtSta <- dtSta[which(dtSta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
+      traitsSta <- unique(dtSta$analysisId)
+      if(length(traitsSta) > 0){
+        if("analysisIdName" %in% colnames(dtSta)){
+          names(traitsSta) <- paste(dtSta$analysisIdName, as.POSIXct(traitsSta, origin="1970-01-01", tz="GMT"), sep = "_")
         }else{
-          names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")
+          names(traitsSta) <- as.POSIXct(traitsSta, origin="1970-01-01", tz="GMT")
         }
       }
-      updateSelectInput(session, "version2Sta", choices = traitsMta)
+      updateSelectInput(session, "version2Sta", choices = traitsSta)
     })
     # genetic evaluation unit
     # observe({
@@ -1417,26 +1418,36 @@ mod_staApp_server <- function(id,data){
 
         output$downloadReportSta <- downloadHandler(
           filename = function() {
-            paste(paste0('sta_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('sta_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle",
-                                          text = "Generating Report...")
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportSta.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultSta.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultSta.RData', overwrite = TRUE)
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               # HTML = rmarkdown::html_document()
               HTML = rmdformats::robobook(toc_depth = 4)
             ))
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
             shinybusy::remove_modal_spinner()
           }
@@ -1455,6 +1466,80 @@ mod_staApp_server <- function(id,data){
     output$outSta <- output$outSta2 <- renderPrint({
       outSta()
     })
+
+    output$ebsReportButton <- renderUI({
+      query <- parseQueryString(session$clientData$url_search)
+
+      # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+      if (is.character(query$task) &&
+          is.character(query$domain) &&
+          grepl("^[a-f0-9]{32}$", query$task) &&
+          grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
+
+        s3 <- paws::s3()
+
+        bucket_name <- "ebs-bioflow"
+        s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
+
+        tryCatch({
+          s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
+          actionButton(ns("ebsStaReport"), "Submit Results to EBS")
+        }, error = function(e) {
+          # no such file on the S3 bucket clipboard
+          NULL
+        })
+      } else {
+        # parameters does not match the expected format
+        NULL
+      }
+    })
+
+    observeEvent(input$ebsStaReport, {
+      req(data())
+
+      query <- parseQueryString(session$clientData$url_search)
+
+      # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+      if (is.character(query$task) &&
+          is.character(query$domain) &&
+          grepl("^[a-f0-9]{32}$", query$task) &&
+          grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
+
+        shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+        result <- data()
+        s3 <- paws::s3()
+
+        # set S3 bucket parameters
+        bucket_name <- "ebs-bioflow"
+        s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
+
+        tryCatch({
+          # update S3 metadata
+          s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
+          s3_object_metadata <- s3_object_head$Metadata
+          s3_object_metadata[["Upload-Origin"]] <- "bioflow"
+
+          temp_file <- paste0(tempdir(), "/", query$task, ".RData")
+          save(result, file = temp_file)
+
+          # upload data object to S3 bucket
+          s3$put_object(
+            Body = temp_file,
+            Bucket = bucket_name,
+            Key = s3_object_path,
+            Metadata = s3_object_metadata
+          )
+
+          shinybusy::remove_modal_spinner()
+          shinyalert::shinyalert(title = "Success!", text = "Analysis results successfully submitted to EBS.", type = "success")
+        }, error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyalert::shinyalert(title = "Failed!", text = e$message, type = "error")
+        })
+      }
+    })
+
   }) ## end moduleserver
 }
 

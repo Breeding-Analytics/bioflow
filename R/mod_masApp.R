@@ -10,7 +10,6 @@
 mod_masApp_ui <- function(id){
   ns <- NS(id)
   tagList(
-
     shiny::mainPanel(width = 12,
                      tabsetPanel( id=ns("tabsMain"),
                                   type = "tabs",
@@ -86,8 +85,9 @@ mod_masApp_ui <- function(id){
                                                                                         style = "color:#FFFFFF",
                                                                                         title = "Name of QTL-markers that will be used to assign merit to individuals. The method will apply weight to each marker equal to 1 - freq, where freq is the frequency of the desired QTL in the population of individuals genotyped."
                                                                                       )
+                                                                                      # ,tags$span('(*max of 40)',style="color:#FFFFFF")
                                                                                     ),
-                                                                                    choices = NULL, multiple = TRUE) ),
+                                                                                    choices = NULL, multiple = TRUE)), #options = list(maxItems = 40)) ),
                                                               column(width=6, checkboxInput(ns("checkbox"), label = "Select all markers at once?", value = FALSE), ),
                                                        ),
                                                        column(width=12),
@@ -361,7 +361,19 @@ mod_masApp_server <- function(id, data){
     ###############################
     ###############################
     # select markers tab
-    observeEvent(c(data(),input$version2Mta,input$checkbox), {
+    observeEvent(c(data(),input$version2Mta), {
+      req(data())
+      req(input$version2Mta)
+      dtMAS <- data()
+      dtMAS <- dtMAS$data$geno
+      if(!is.null(dtMAS)){
+        traitsMAS <- colnames(dtMAS)
+        updateCheckboxInput(session, "checkbox", value = FALSE)
+        updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
+      }
+    })
+
+    observeEvent(input$checkbox,{
       req(data())
       req(input$version2Mta)
       dtMAS <- data()
@@ -371,7 +383,29 @@ mod_masApp_server <- function(id, data){
         if(input$checkbox == FALSE){
           updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
         }else{
-          updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS)
+          if (length(traitsMAS) > 40){
+            shinyalert::shinyalert(
+              "Too many markers in the data, selecting all might crash the application.
+              If you want to proceed, click OK. Or you can specify the number of markers you want to select below.",
+              type = "input", inputType = "number", showCancelButton = TRUE,
+              html = TRUE,
+              callbackR = function(x) {
+                if(x != FALSE) {
+                  if(x == ""){
+                    updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS)
+                  } else{
+                    updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS[1:x])
+                  }
+                } else{
+                  updateCheckboxInput(session, "checkbox", value = FALSE)
+                }
+              }
+            )
+            # shinyWidgets::show_alert(title = 'Too many markers in the data. Only the first 40 markers will be selected.', type = 'warning')
+            # updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS[1:numMarkers])
+          } else{
+            updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = traitsMAS)
+          }
         }
       }
     })
@@ -617,27 +651,38 @@ mod_masApp_server <- function(id, data){
 
         output$downloadReportMASGeno <- downloadHandler(
           filename = function() {
-            paste(paste0('mas_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('mas_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportMas.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultMas.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMas.RData', overwrite = TRUE)
-            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
-            shinybusy::remove_modal_spinner()
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 

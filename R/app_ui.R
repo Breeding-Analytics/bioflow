@@ -112,7 +112,7 @@ app_ui <- function(request) {
 
                  tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
 
-                 tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"),
+                 tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"), value = "staApp_tab",
                           navlistPanel( "Options:", widths = c(1, 11),
                                         tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
                                         tabPanel(div("Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
@@ -124,7 +124,7 @@ app_ui <- function(request) {
                                        tabPanel(div("LMMsolve" ), mod_mtaLMMsolveApp_ui("mtaLMMsolveApp_1") ), # biplot is part of the report in MET
                                        tabPanel(div("lme4", style = "color:red" )) , # biplot is part of the report in MET
                                        tabPanel(div("sommer", style = "color:red" )) , # biplot is part of the report in MET
-                                       tabPanel(div("asreml", style = "color:red") ),
+                                       tabPanel(div("asreml"), mod_mtaASREMLApp_ui("mtaASREMLApp_1")),
                           )
                  ),
 
@@ -138,7 +138,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("calculator"), icon("dice-four"), "Mate optimization (", icon("seedling"), icon("dna"), icon("network-wired"), ")"),
                           navlistPanel("Options:", widths = c(1, 11),
                                        tabPanel(div("OCS" ), mod_ocsApp_ui("ocsApp_1") ),
-                                       tabPanel(div("GPCP", style = "color:red") ),
+                                       tabPanel(div("GPCP"), mod_gpcpApp_ui("gpcpApp_1") ),
                           )
                  ),
 
