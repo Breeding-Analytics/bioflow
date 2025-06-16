@@ -116,6 +116,8 @@ mod_dataConsistApp_ui <- function(id){
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
                                            br(),
+                                           textOutput(ns("outConsist2")),
+                                           br(),
                                            downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
                                            br(),
                                            uiOutput(ns('reportQaPheno')),
@@ -308,10 +310,16 @@ mod_dataConsistApp_server <- function(id, data){
           data(result)
           # cat(crayon::green(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis.")))
           cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"saved. Now you can move to another module."))
+          output$outConsist2 <- renderPrint({
+            cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"saved. Now you can move to another module."))
+          })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
           shinybusy::remove_modal_spinner()
         }else{
           shinybusy::remove_modal_spinner()
+          output$outConsist2 <- renderPrint({
+            cat("Consistency rules for selected crop not available yet")
+          })
           stop("Consistency rules for selected crop not available yet", call. = FALSE)
         }
 
@@ -363,6 +371,9 @@ mod_dataConsistApp_server <- function(id, data){
         hideAll$clearAll <- FALSE
       }else{
         cat("Please meet the data conditions before you identify and save outliers.")
+        output$outConsist2 <- renderPrint({
+          cat("Please meet the data conditions before you identify and save outliers.")
+        })
       }
     })
 

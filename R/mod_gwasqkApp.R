@@ -148,14 +148,15 @@ mod_gwasqkApp_ui <- function(id){
                                                               ),
                                                       ),
                                                       br(),
-                                               ),
-                                               textOutput(ns("outGwas")),
+                                               ), textOutput(ns("outGwas")),
                                       ),
                                     )
                            ),
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
+                                               br(),
+                                               textOutput(ns("outGwas2")),
                                                br(),
                                                # div(tags$p("Please download the report below:") ),
                                                downloadButton(ns("downloadReportGwas"), "Download dashboard"),
@@ -308,7 +309,13 @@ mod_gwasqkApp_server <- function(id, data){
       dtGwas <- dtGwas$status
       dtGwas <- dtGwas[which(dtGwas$module %in% c("sta","mtaLmms")),]
       traitsGwas <- unique(dtGwas$analysisId)
-      if(length(traitsGwas) > 0){names(traitsGwas) <- as.POSIXct(traitsGwas, origin="1970-01-01", tz="GMT")}
+      if(length(traitsGwas) > 0){
+        if("analysisIdName" %in% colnames(dtGwas)){
+          names(traitsGwas) <- paste(dtGwas$analysisIdName, as.POSIXct(traitsGwas, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsGwas) <- as.POSIXct(traitsGwas, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Gwas", choices = traitsGwas)
     })
     # ## version qa marker
@@ -318,7 +325,13 @@ mod_gwasqkApp_server <- function(id, data){
       dtGwas <- dtGwas$status
       dtGwas <- dtGwas[which(dtGwas$module == "qaGeno"),]
       traitsGwas <- unique(dtGwas$analysisId)
-      if(length(traitsGwas) > 0){names(traitsGwas) <- as.POSIXct(traitsGwas, origin="1970-01-01", tz="GMT")}
+      if(length(traitsGwas) > 0){
+        if("analysisIdName" %in% colnames(dtGwas)){
+          names(traitsGwas) <- paste(dtGwas$analysisIdName, as.POSIXct(traitsGwas, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsGwas) <- as.POSIXct(traitsGwas, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "versionMarker2Gwas", choices = traitsGwas)
     })
     #################
@@ -615,10 +628,16 @@ mod_gwasqkApp_server <- function(id, data){
           if(!is.null(dtGwas$data$geno)){ # if user actually has marker data
             shinybusy::remove_modal_spinner()
             cat("Please run the 'Markers QA/QC' module prior to run a GWAS model.")
+            output$outGwas2 <- renderPrint({
+              cat("Please run the 'Markers QA/QC' module prior to run a GWAS model.")
+            })
             # stop("Please run the 'Markers QA/QC' module prior to run a gBLUP or rrBLUP model.", call. = FALSE)
           }else{ # if user does NOT have marker data and wanted a marker-based model
             shinybusy::remove_modal_spinner()
             cat("GWAS requires marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+            output$outGwas2 <- renderPrint({
+              cat("GWAS requires marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
+            })
             # stop("Please pick a different model, rrBLUP, gBLUP and ssBLUP require marker information. Alternatively, go back to the 'Retrieve Data' section and upload your marker data.")
           }
         }else{ markerVersionToUse <- input$versionMarker2Gwas} # there is a versionMarker2Mta id
@@ -655,9 +674,15 @@ mod_gwasqkApp_server <- function(id, data){
         if(!inherits(result,"try-error")) {
           data(result) # update data with results
           cat(paste("Genome wide association study step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          output$outGwas2 <- renderPrint({
+            cat(paste("Genome wide association study step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$outGwas2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          })
         }
       }
       shinybusy::remove_modal_spinner()
