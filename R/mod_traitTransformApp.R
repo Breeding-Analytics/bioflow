@@ -53,6 +53,8 @@ mod_traitTransformApp_ui <- function(id){
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output") ,value = "tabConOutput" ,
                                            br(),
+                                           textOutput(ns("outTraC2")),
+                                           br(),
                                            shinydashboard::box(status="success",width = 12, #background = "green", solidHeader = TRUE,
                                                                DT::DTOutput(ns("rawPheno")),
                                            ),
@@ -70,6 +72,8 @@ mod_traitTransformApp_ui <- function(id){
                                            # hr(style = "border-top: 1px solid #4c4c4c;"),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output") ,value = "tabEqualOutput" ,
+                                           br(),
+                                           textOutput(ns("outEqual2")),
                                            br(),
                                            DT::DTOutput(ns("rawPheno2")),
                                   ),
@@ -99,6 +103,8 @@ mod_traitTransformApp_ui <- function(id){
                                            textOutput(ns("outBal")),
                                   ),
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output") ,value = "tabFreeOutput" ,
+                                           br(),
+                                           textOutput(ns("outBal2")),
                                            br(),
                                            DT::DTOutput(ns("rawPheno3")),
                                   ),
@@ -199,8 +205,14 @@ mod_traitTransformApp_server <- function(id, data){
           observe({paramsNew$vars <- intersect(colnames(result$data$pheno), paste(selTrait, selTrans, sep="_"))})
           updateTabsetPanel(session, "tabConversion", selected = "tabConOutput")
           cat(paste("Additional traits added to the phenotypic dataset."))
+          output$outTraC2 <- renderPrint({
+            cat(paste("Additional traits added to the phenotypic dataset."))
+          })
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$outTraC2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          })
         }
       }
     })
@@ -256,12 +268,21 @@ mod_traitTransformApp_server <- function(id, data){
           observe({paramsNew$vars <- input$newName})
           updateTabsetPanel(session, "tabEqualizing", selected = "tabEqualOutput")
           cat(paste("Traits", paste(input$traitEqualPheno, collapse = ", "),"equalized. New trait created in the phenotypic dataset."))
+          output$outEqual2 <- renderPrint({
+            cat(paste("Traits", paste(input$traitEqualPheno, collapse = ", "),"equalized. New trait created in the phenotypic dataset."))
+          })
           # observe({input$newName <- NULL})
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$outEqual2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          })
         }
       }else{
-        print("You need to provide more than one trait")
+        cat("You need to provide more than one trait")
+        output$outEqual2 <- renderPrint({
+          cat("You need to provide more than one trait")
+        })
       }
     })
     output$outEqual <- renderPrint({
@@ -301,9 +322,15 @@ mod_traitTransformApp_server <- function(id, data){
         updateTabsetPanel(session, "tabFree", selected = "tabFreeOutput")
         print(paste("New variable", input$newNameCalc, "added to the dataset."))
         cat(paste("Trait", input$newNameCalc, "computed. New trait created in the phenotypic dataset."))
+        output$outBal2 <- renderPrint({
+          cat(paste("Trait", input$newNameCalc, "computed. New trait created in the phenotypic dataset."))
+        })
         # observe({input$newNameCalc <- NULL})
       }else{
         cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        output$outBal2 <- renderPrint({
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        })
       }
 
     })

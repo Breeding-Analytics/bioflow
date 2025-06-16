@@ -430,9 +430,15 @@ mod_pggApp_server <- function(id, data){
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultPgg.RData")
           cat(paste("Predicted genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT") ,"saved."))
+          output$outPgg2 <- renderPrint({
+            cat(paste("Predicted genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT") ,"saved."))
+          })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$outPgg2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          })
         }
       }
       shinybusy::remove_modal_spinner()
@@ -526,7 +532,7 @@ mod_pggApp_server <- function(id, data){
 
     }) ## end eventReactive
 
-    output$outPgg <- output$outPgg2 <- renderPrint({
+    output$outPgg <- renderPrint({
       outPgg()
     })
 

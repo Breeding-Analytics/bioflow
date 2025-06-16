@@ -1163,9 +1163,15 @@ mod_indexDesireApp_server <- function(id, data){
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Selection index step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to select the best crosses using the OCS module using this time stamp."))
+          output$outIdxD2 <- renderPrint({
+            cat(paste("Selection index step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to select the best crosses using the OCS module using this time stamp."))
+          })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$outIdxD2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          })
         }
       }
       shinybusy::remove_modal_spinner()

@@ -1468,9 +1468,9 @@ if (is.null(result)){
         cat("\n\n#####", iTrait4, "{.tabset .tabset-pills}       \n\n")
         if(!(iType4 %in% c("environment_designation", "designation_environment",
                            "environment:designation", "designation:environment"))){
-          envirTypes2 <- setdiff(envirTypes,c("(Intercept)"))
-        } else{
           envirTypes2 <- c("(Intercept)")
+        } else{
+          envirTypes2 <- setdiff(envirTypes,c("(Intercept)"))
         }
         for(iEnv4 in envirTypes2){
           cat("\n\n######", iEnv4, "{.tabset .tabset-pills}       \n\n")

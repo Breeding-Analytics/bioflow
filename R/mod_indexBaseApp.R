@@ -105,7 +105,6 @@ mod_indexBaseApp_ui <- function(id){
                                                               br(),
                                                               actionButton(ns("runIdxB"), "Calculate index", icon = icon("play-circle")),
                                                               uiOutput(ns("qaQcIdxBInfo")),
-                                                              textOutput(ns("outIdxB")),
                                                               br(),
                                                               # hr(style = "border-top: 3px solid #4c4c4c;"),
                                                        ),
@@ -115,9 +114,7 @@ mod_indexBaseApp_ui <- function(id){
                                                                                   selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
                                                                                   ),
                                                               ),
-                                                ),
-
-
+                                                ),textOutput(ns("outIdxB")),
                                        ),
                                      )
                             ),
@@ -132,6 +129,8 @@ mod_indexBaseApp_ui <- function(id){
                                                 DT::DTOutput(ns("modelingIdxB"))
                                        ),
                                        tabPanel("Dashboard", icon = icon("file-image"),
+                                                br(),
+                                                textOutput(ns("outIdxB2")),
                                                 br(),
                                                 downloadButton(ns("downloadReportIndex"), "Download dashboard"),
                                                 br(),
@@ -319,9 +318,15 @@ mod_indexBaseApp_server <- function(id, data){
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultIndex.RData")
           cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved. Please proceed to use this time stamp in the optimal cross selection."))
+          output$outIdxB2 <- renderPrint({
+            cat(paste("Selection index step with id:",result$status$analysisId[length(result$status$analysisId)],"saved. Please proceed to use this time stamp in the optimal cross selection."))
+          })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$outIdxB2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          })
         }
       }
       shinybusy::remove_modal_spinner()

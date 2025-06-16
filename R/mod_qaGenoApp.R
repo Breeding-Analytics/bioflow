@@ -112,6 +112,8 @@ mod_qaGenoApp_ui <- function(id){
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
                                                       br(),
+                                                      textOutput(ns("outQaMb2")),
+                                                      br(),
                                                       downloadButton(ns("downloadReportQaGeno"), "Download dashboard"),
                                                       br(),
                                                       uiOutput(ns('reportQaGeno'))
@@ -346,9 +348,15 @@ mod_qaGenoApp_server <- function(id, data){
         # if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         cat(paste("Modifications to genotype information saved with id:",as.POSIXct( mods$analysisId[nrow(mods)], origin="1970-01-01", tz="GMT") ))
+        output$outQaMb2 <- renderPrint({
+          cat(paste("Modifications to genotype information saved with id:",as.POSIXct( mods$analysisId[nrow(mods)], origin="1970-01-01", tz="GMT") ))
+        })
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
       }else{
         cat("No modifications to add.")
+        output$outQaMb2 <- renderPrint({
+          cat("No modifications to add.")
+        })
       }
       shinybusy::remove_modal_spinner()
 
