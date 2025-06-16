@@ -82,10 +82,9 @@ mod_qaStaApp_ui <- function(id){
                                                   column(width=3,
                                                          br(),
                                                          actionButton(ns("runQaMb"), "Tag outliers", icon = icon("play-circle")),
-                                                         textOutput(ns("outQaMb")),
                                                          br(),
                                                   )
-                                           ),
+                                           ),textOutput(ns("outQaMb")),
 
                                   ),
                                 ) # end of tabset
@@ -93,6 +92,7 @@ mod_qaStaApp_ui <- function(id){
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
+                                           br(),
                                            textOutput(ns("outQaMb2")),
                                            br(),
                                            downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
@@ -293,7 +293,15 @@ mod_qaStaApp_server <- function(id, data){
             if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
             data(result)
             cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
-          }else{cat("No modifications to add")}
+            output$outQaMb2 <- renderPrint({
+              cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
+            })
+          }else{
+            cat("No modifications to add")
+            output$outQaMb2 <- renderPrint({
+              cat("No modifications to add")
+            })
+          }
         }
 
         shinybusy::remove_modal_spinner()
@@ -347,7 +355,7 @@ mod_qaStaApp_server <- function(id, data){
 
       }
     })
-    output$outQaMb <- output$outQaMb2 <- renderPrint({
+    output$outQaMb <- renderPrint({
       outQaMb()
     })
 

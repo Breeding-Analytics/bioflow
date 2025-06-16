@@ -128,14 +128,15 @@ mod_hybridityApp_ui <- function(id){
                                                                     br(),
                                                              ),
 
-                                                      ),
-                                                      textOutput(ns("outQaMb")),
+                                                      ),textOutput(ns("outQaMb")),
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
+                                                      br(),
+                                                      textOutput(ns("outQaMb2")),
                                                       br(),
                                                       downloadButton(ns("downloadReportVerifGeno"), "Download dashboard"),
                                                       br(),
@@ -462,6 +463,9 @@ mod_hybridityApp_server <- function(id, data){
 
       if(!inherits(result,"try-error")) { # if all goes well in the run
         cat(paste("Genotype verification analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        output$outQaMb2 <- renderPrint({
+          cat(paste("Genotype verification analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        })
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")

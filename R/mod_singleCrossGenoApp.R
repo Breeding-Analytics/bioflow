@@ -109,10 +109,9 @@ mod_singleCrossGenoApp_ui <- function(id){
                                                               placeholder = "(optional name)") ) ),
                                                             column(width=3, br(),
                                                                    actionButton(ns("runScr"), "Build matrix", icon = icon("play-circle")),
-                                                                   textOutput(ns("outScr")),
                                                                    br(),
                                                             ),
-                                                     )
+                                                     ), textOutput(ns("outScr")),
 
                                             ),
                                           ), # end of tabset
@@ -120,6 +119,8 @@ mod_singleCrossGenoApp_ui <- function(id){
                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                           tabsetPanel(
                                             tabPanel("Data", icon = icon("table"),
+                                                     br(),
+                                                     textOutput(ns("outScr2")),
                                                      br(),
                                                      downloadButton(ns("downloadDataScm"), "Download Genotypic data"),
                                                      br(),
@@ -225,7 +226,13 @@ mod_singleCrossGenoApp_server <- function(id, data){
       dtScm <- dtScm$status
       dtScm <- dtScm[which(dtScm$module %in% "qaGeno"),]
       traitsScm <- unique(dtScm$analysisId)
-      if(length(traitsScm) > 0){names(traitsScm) <- as.POSIXct(traitsScm, origin="1970-01-01", tz="GMT")}
+      if(length(traitsScm) > 0){
+        if("analysisIdName" %in% colnames(dtScm)){
+          names(traitsScm) <- paste(dtScm$analysisIdName, as.POSIXct(traitsScm, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsScm) <- as.POSIXct(traitsScm, origin="1970-01-01", tz="GMT")
+        }
+      }
       updateSelectInput(session, "version2Scm", choices = traitsScm)
     })
     ## render timestamps flow
@@ -429,30 +436,48 @@ mod_singleCrossGenoApp_server <- function(id, data){
     outScr <- eventReactive(input$runScr, {
 
       if(is.null(data())){
-        cst("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+        cat("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+        output$outScr2 <- renderPrint({
+          cat("Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")
+        })
       }else{ # data is there
         ## pheno check
         if( length(which(c("designation") %in% data()$metadata$pheno$parameter)) == 0 ){
           cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
+          output$outScr2 <- renderPrint({
+            cat("Please map your 'designation' column using the 'Data Retrieval' tab in the 'Phenotype' section.")
+          })
         }else{
           ## ped check
           ped <- data()$data$pedigree
           metaPed <- data()$metadata$pedigree
           if(is.null(ped)){ # no pedigree available
             cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section.")
+            output$outScr2 <- renderPrint({
+              cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab under 'Pedigree' section.")
+            })
           }else{ # pedigree is there
             if( length(intersect(metaPed$value , colnames(ped))) != 3){
               cat("Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data.")
+              output$outScr2 <- renderPrint({
+                cat("Please map your 'designation', 'mother', and 'father' columns when retrieving the pedigree data.")
+              })
             }else{
               colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
               parents <- na.omit(c(unique(ped[,"mother"]), unique(ped[,"father"]) ))
               if(length(parents) == 0){
                 cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected.")
+                output$outScr2 <- renderPrint({
+                  cat("Please retrieve or load your pedigree data using the 'Data Retrieval' tab. No parents detected.")
+                })
               }else{
                 ## marker check
                 geno <- data()$data$geno
                 if(is.null(geno)){ # no markers available
                   cat("Please retrieve or load your marker data using the 'Data Retrieval' tab.")
+                  output$outScr2 <- renderPrint({
+                    cat("Please retrieve or load your marker data using the 'Data Retrieval' tab.")
+                  })
                 }else{ # markers are there
                   shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
                   myObject <- data()
@@ -469,9 +494,15 @@ mod_singleCrossGenoApp_server <- function(id, data){
                     if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
                     data(result) # update data with results
                     cat(paste("Single cross marker matrix building with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+                    output$outScr2 <- renderPrint({
+                      cat(paste("Single cross marker matrix building with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+                    })
                     updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
                   }else{
                     cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+                    output$outScr2 <- renderPrint({
+                      cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+                    })
                   }
                   shinybusy::remove_modal_spinner()
                 } # end of if pedigree available

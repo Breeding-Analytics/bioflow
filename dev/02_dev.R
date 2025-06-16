@@ -87,6 +87,8 @@
 #
 # usethis::use_package( "shinymanager" )
 #
+# usethis::use_package("ggcorrplot")
+#
 # # added for OFT report
 # usethis::use_package("janitor")
 # usethis::use_package("htmltools")
