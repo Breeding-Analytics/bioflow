@@ -1,3 +1,5 @@
+image_files <- list.files(paste0(getwd(),"/inst/app/www/activities"), pattern=".jpg", full.names = FALSE)
+
 #' meetTheTeamApp UI Function
 #'
 #' @description A shiny Module.
@@ -29,11 +31,52 @@ mod_meetTheTeamApp_ui <- function(id){
                                    ),
                                    shinydashboard::box(status="success", width = 7,
                                                        title = "Team Activities", solidHeader = TRUE,
-                                                       slickR::slickROutput(ns("teamPhoto")),
-                                                       br(),
-                                                       br(),
-                                                       br(),
-                                                       br(),
+
+                                                       #######
+                                                       tags$head(
+                                                        tags$style(HTML("
+                                                            #carousel-container {
+                                                              width: 600px;
+                                                              height: 400px;
+                                                              position: relative;
+                                                              margin: auto;
+                                                              overflow: hidden;
+                                                            }
+                                                            .carousel-img {
+                                                              display: none;
+                                                              width: 100%;
+                                                              height: 100%;
+                                                              object-fit: contain;
+                                                            }
+                                                            .carousel-img.active {
+                                                              display: block;
+                                                            }
+                                                          "))
+                                                      ),
+
+                                                      div(id = "carousel-container",
+                                                          lapply(seq_along(image_files), function(i) {
+                                                            tags$img(
+                                                              src = file.path("www/activities", image_files[i]),
+                                                              class = paste("carousel-img", if (i == 1) "active"),
+                                                              id = paste0("img", i)
+                                                            )
+                                                          })
+                                                      ),
+
+                                                      # JavaScript to handle automatic carousel switching
+                                                      tags$script(HTML(sprintf("
+                                                          let current = 1;
+                                                          const total = %d;
+
+                                                          setInterval(() => {
+                                                            document.getElementById('img' + current).classList.remove('active');
+                                                            current = current %% total + 1;
+                                                            document.getElementById('img' + current).classList.add('active');
+                                                          }, 5000);
+                                                        ", length(image_files)))),
+
+                                                       #############
                                                        br()
                                    ),
                                    shinydashboard::box(status="success", width = 12,
@@ -74,12 +117,6 @@ mod_meetTheTeamApp_ui <- function(id){
 mod_meetTheTeamApp_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-
-    output$teamPhoto <- slickR::renderSlickR({
-      imgs <- list.files(paste0(getwd(),"/inst/app/www/activities"), pattern=".jpg", full.names = TRUE)
-      slickR::slickR(imgs) + slickR::settings(dots = TRUE, infinite = TRUE, speed = 500,
-                                              fade = TRUE, cssEase = "linear", arrows = FALSE)
-    })
 
   })
 }
