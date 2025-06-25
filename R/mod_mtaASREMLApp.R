@@ -183,7 +183,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                              column(width=3,
                                                                 uiOutput(ns("nFATerm"))
                                                              ),
-
+                                                            
                                                       ),
                                                ),
                                                column(width=12,
@@ -239,7 +239,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                column(width=6, style = "background-color:LightGray; color: #FFFFFF",
                                                       br(),
                                                       shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
-                                                                          checkboxInput(ns("gscamtaAsr"),
+                                                                          checkboxInput(ns("gscamtaAsr"), 
                                                                                         label = tags$span(
                                                                                           "Add to the results GCA/SCA",
                                                                                           tags$i(
@@ -326,7 +326,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                textOutput(ns("outMtaAsr")),
                                       ),#end run analysis
                                       )#end tabset input
-
+                                    
                            ),#end input panel
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
@@ -407,9 +407,9 @@ mod_mtaASREMLApp_server <- function(id, data){
       dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module == "sta"),]
       traitsMtaAsr <- unique(dtMtaAsr$analysisId)
       traitsMtaAsrGeno <- unique(dtMtaAsrGeno$analysisId)
-
+      
       if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
-
+        
       if(length(traitsMtaAsr) > 0){
         if("analysisIdName" %in% colnames(dtMtaAsr)){
           names(traitsMtaAsr) <- paste(dtMtaAsr$analysisIdName, as.POSIXct(traitsMtaAsr, origin="1970-01-01", tz="GMT"), sep = "_")
@@ -529,8 +529,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       }
       plotly::ggplotly(p)
     })
-
-
+    
+    
     #################
     ## nTermsFixed
     observeEvent(c(data(), input$version2MtaAsr), {
@@ -569,10 +569,11 @@ mod_mtaASREMLApp_server <- function(id, data){
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
-      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(object=dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
-      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
-
+      #WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(object=dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
+      #mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
+      
       choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
+	  choices <- c("none","inbreeding",choices)
       envs <- unique(mydata[,"environment"])
       envs <- gsub(" ", "",envs )
       envsDg <- paste0("env",envs)
@@ -584,7 +585,7 @@ mod_mtaASREMLApp_server <- function(id, data){
           )
         })
     })
-    ## left formula (actual effects) ## input <- list(version2Mta=result$status$analysisId[2])
+    ## left formula (actual effects) 
     output$leftSidesRandom <- renderUI({
       req(data())
       req(input$version2MtaAsr)
@@ -599,10 +600,10 @@ mod_mtaASREMLApp_server <- function(id, data){
       colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
       otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
       mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
-      WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
-      mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
+      #WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
+      #mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
       choices <- c( setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ), "designation")
-      fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
+      #fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
       # selected
       envs <- unique(mydata[,"environment"])
       envs <- gsub(" ", "",envs )
@@ -626,12 +627,12 @@ mod_mtaASREMLApp_server <- function(id, data){
       req(input$nTermsRandom)
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
-
+     
       if(input$version2MtaAsrGeno!="0" & all(is.na(data()$data$pedigree[,3]))!=T){#geno and pedrigree data
-        choices <- c("Relationship structure_Geno","Relationship structure_Pedigree","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+        choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
       }
       if(input$version2MtaAsrGeno!="0" & all(is.na(data()$data$pedigree[,3]))==T){#geno and NO pedrigree data
-        choices <- c("Relationship structure_Geno","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+        choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
       }
       if(input$version2MtaAsrGeno=="0" & all(is.na(data()$data$pedigree[,3]))!=T){#NO geno and pedrigree data
         choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
@@ -639,13 +640,13 @@ mod_mtaASREMLApp_server <- function(id, data){
       if(input$version2MtaAsrGeno=="0" & all(is.na(data()$data$pedigree[,3]))==T){#NO geno and NO pedrigree data
         choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
       }
-
+      
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
           tempval <- length(eval( parse(text = tempval() ) ))
           #choices <- c("Relationship structure_Geno","Relationship structure_Pedigree","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
           noness <- c("none","none.","none..","none...")
-
+          
           if (i==1){
             choices<-c("none",choices)
             selectInput(
@@ -712,7 +713,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       dtMtaAsr <- data() # dtMtaAsr <- result
       dtMtaAsr <- dtMtaAsr$predictions #
       dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$analysisId %in% input$version2MtaAsr),]
-
+      
       lapply(1:input$nTermsRandom, function(i) {
         tempval <- reactive({paste0('input$','rightSidesRandom',i)})
         s1 <- eval( parse(text = tempval() ) )
@@ -746,9 +747,9 @@ mod_mtaASREMLApp_server <- function(id, data){
               value = 0,step=0,min=0,max=0)
           }
         }
-
+        
       })
-
+      
     })
     # inputFormula summarizing the nFATerm
     inputFormulanFATerm = reactive({
@@ -841,8 +842,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
       if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
       if(existNames){
-        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
+        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
       }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
@@ -875,8 +875,7 @@ mod_mtaASREMLApp_server <- function(id, data){
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
         };
-        rownames(X) <- networkNames
-        colnames(X) <- networkNames
+        rownames(X) <- as.character(zz$outputId)
         if(existNames){
 
         }else{
@@ -914,7 +913,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         genoNames <- rownames(as.data.frame(object$data$geno))
       }else{ genoNames <- character() }
 
-      if(!is.null(object$data$pedigree)){
+      if(!all(is.na(object$data$pedigree[,3]))){
         metaPed <- object$metadata$pedigree
         pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
         pedCols <- setdiff(pedCols,"")
@@ -1141,6 +1140,7 @@ mod_mtaASREMLApp_server <- function(id, data){
           ),
           silent=TRUE
         )
+        
         if(!inherits(result,"try-error") ) {
           if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
@@ -1233,38 +1233,27 @@ mod_mtaASREMLApp_server <- function(id, data){
 
         output$downloadReportMtaAsr <- downloadHandler(
           filename = function() {
-            paste(paste0('MtaAsr_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
+            paste(paste0('MtaAsr_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
             src <- normalizePath(system.file("rmd","reportMtaASREML.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultMtaASREML.RData')
-
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
-
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMtaASREML.RData', overwrite = TRUE)
-
+            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
-
-            # wait for it to land on disk (safety‐net)
-            wait.time <- 0
-            while (!file.exists(out) && wait.time < 60) {
-              Sys.sleep(1); wait.time <- wait.time + 1
-            }
-
-            file.rename(out, file)
             shinybusy::remove_modal_spinner()
+            file.rename(out, file)
           }
         )
 
@@ -1282,7 +1271,7 @@ mod_mtaASREMLApp_server <- function(id, data){
     output$outMtaAsr <- renderPrint({
       outMtaAsr1()
     })
-
+      
     })
 }
 
