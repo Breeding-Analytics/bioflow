@@ -34,8 +34,14 @@ mod_getDataGeno_ui <- function(id) {
                     ),
                     width   = '200px'
                   ),
-                  shinyWidgets::prettySwitch( inputId = ns('online_upload_switch'),
-                                              label = "Load online files"),
+
+                  selectInput(
+                    inputId = ns('geno_input'),
+                    label   = 'Data Source*: ',
+                    choices = list('Upload File' = 'file', 'Copy URL' = 'url'),
+                    width   = '200px'
+                  ),
+
                   uiOutput(ns("file_upload_box")),
                   actionButton(ns("load_geno_btn"), "Load"),
                 ),
@@ -102,7 +108,7 @@ mod_getDataGeno_server <-
           # Only one file uploader
           tags$span(
             id = ns('adegeno_file_holder'),
-            if(input$online_upload_switch == F){
+            if (input$geno_input == 'file') {
               fileInput(
                 inputId = ns('adegeno_file'),
                 label   = "Upload the genotypic data file:",
@@ -115,7 +121,7 @@ mod_getDataGeno_server <-
                   '.csv',
                   '.vcf'
                 ))
-            } else {
+            } else if (input$geno_input == 'url') {
              textInput(
                inputId = ns("adegeno_url"),
                label = "Insert file url",
@@ -126,7 +132,7 @@ mod_getDataGeno_server <-
           )
         } else {
           # Darttag filebox with counts and dosage uploaders
-          if(input$online_upload_switch == F){
+          if (input$geno_input == 'file') {
             tags$span(
               id = ns('adegeno_file_holder'),
               fileInput(
@@ -142,7 +148,7 @@ mod_getDataGeno_server <-
                 accept  = c('.csv')
               )
             )
-          } else {
+          } else if (input$geno_input == 'url') {
             tags$span(
               id = ns('adegeno_url_holder'),
              textInput(
@@ -207,9 +213,9 @@ mod_getDataGeno_server <-
         {
           print("Geno load btn clicked")
           if(input$custom_geno_input != "dartag"){
-            if(input$online_upload_switch == F){
+            if (input$geno_input == 'file') {
               genotype_file <- input$adegeno_file$datapath
-            } else {
+            } else if (input$geno_input == 'url') {
               temp_genofile <- tempfile(
                 tmpdir = tempdir(),
                 fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$adegeno_url))
@@ -218,10 +224,10 @@ mod_getDataGeno_server <-
               genotype_file <- temp_genofile
             }
           } else {
-            if(input$online_upload_switch == F){
+            if (input$geno_input == 'file') {
               dosage_file <- input$darttag_dosage_file$datapath
               counts_file <- input$darttag_counts_file$datapath
-            } else {
+            } else if (input$geno_input == 'url') {
               # Dosage file download
               temp_dosagefile <- tempfile(
                 tmpdir = tempdir(),
