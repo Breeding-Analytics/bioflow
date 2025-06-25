@@ -19,6 +19,7 @@ Imports:
     cgiarBase (>= 1.0.3),
     cgiarOcs (>= 1.1),
     cgiarPipeline (>= 1.0.6),
+    cgiarGenomics (>= 1.0.1),
     config (>= 0.3.2),
     data.table,
     DT,
@@ -80,7 +81,9 @@ Imports:
     digest,
     paws,
     callr,
-    ggcorrplot
+    ggcorrplot,
+    SNPRelate (>= 1.38.1),
+    dartR.base
 Suggests: 
     knitr,
     rmarkdown,
@@ -97,5 +100,7 @@ Remotes:
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
+    Breeding-Analytics/cgiarGenomics,
     reyzaguirre/st4gi,
-    covaruber/lme4breeding
+    covaruber/lme4breeding,
+    zhengxwen/SNPRelate

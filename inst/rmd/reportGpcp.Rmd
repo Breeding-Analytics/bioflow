@@ -1,0 +1,464 @@
+---
+title: "Genomic Prediction of Cross Performance Report"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+ toDownload: FALSE
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+```{r printfxn, include=FALSE}
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                         numericColNames = NULL, numRound = 3, 
+                         scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
+    oldnames <- colnames(DT)
+    DT <- data.frame(lapply(X = DT, 
+                            FUN = function(x) {
+                              if(is.numeric(x)){
+                                round(x, numRound)
+                              } else {
+                                x
+                              }
+                            }))
+    colnames(DT) <- oldnames
+    table <- DT::datatable(data = DT, 
+                           colnames = colNames,
+                           filter = "top", 
+                           options = list(autoWidth = autoWidthOpt,
+                                          dom = 'l<<t>pB>', 
+                                          buttons = c('copy', 'csv', 'excel', 'print'),
+                                          pageLength = pageLength,
+                                          searchHighlight = TRUE,
+                                          lengthMenu = c(7, 14, 21, 28, 35),
+                                          scrollX = scrollXOpt),
+                           extensions = 'Buttons',
+                           rownames = FALSE,
+                           ...)
+    if (length(numericColNames) > 0){
+      table <- table %>% DT::formatRound(columns = numericColNames,
+                                     digits = numRound)
+    }
+    
+    table
+  }
+```
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+htmltools::tagList(printTable(mtcars))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+```
+
+### Objectives of Genomic Prediction of Cross Performance
+
+The objective of this dashboard is to help scientist to understand the following points:
+
+1. Optimal crosses for the trade off between performance and genetic variance specified
+
+2. Expected performance of crosses by parent
+
+3. Performance of parents selected to go into the crossing block
+
+4. Number of crosses proposed per parent selected to go into the crossing block
+
+5. Difference in mean and variance observed for different degree runs
+
+Understanding these data features should allow the scientist to identify which crosses should be performed in the crossing block. It should also allow the scientist to assess the relationship between the degree selected (aggressiveness) and the number of parents selected and times that each parent shows up.  
+
+Keep in mind that the suggested crosses may over-represent some parents depending on the degrees selected. Some users tend to ask if they can constraint the number of times a parent should be used. Although this is possible, this implies that the user is looking for a lower sub-optimal solution since the specification of that constraint implies that the user is looking for keeping even more variance (higher degrees). 
+
+### Cross performance table
+
+The following table provides an overview of the performance of the predicted/proposed crosses across different traits. There should be as many crosses as requested in the interface. If you requested different number of crosses or degrees, the treatment column allows you to visualize the results from different runs. Remember that zero degree implies more interest in gain and 90 degrees implies more interest in genetic variance.
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/resultGpcp.RData")){
+    load("./outputs/resultGpcp.RData")
+  }else{
+    load("resultGpcp.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  mydata = result$predictions
+  idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+  idGpcp <- idGpcp[length(idGpcp)]
+  gpcpTrait <- unique(result$modeling[which(result$modeling$analysisId == idGpcp & result$modeling$parameter == "gpcpFormula"),"trait"]);
+  mydata <- mydata[which(mydata$analysisId %in% c(idGpcp)),]
+  
+  treatments <- unique(mydata$environment)
+  wideList <- list()
+  for(iTreatment in treatments){
+    wideList[[iTreatment]] <- stats::reshape(mydata[which(mydata$environment == iTreatment),c(c("designation"),"trait",c("predictedValue"))], 
+                                             direction = "wide", idvar = c("designation"),
+                                             timevar = "trait", v.names = c("predictedValue"), sep= "_")
+    wideList[[iTreatment]]$treatment <- iTreatment
+    colnames(wideList[[iTreatment]]) <- gsub("predictedValue_","",colnames(wideList[[iTreatment]]))
+  }
+  wide <- do.call(rbind, wideList)
+  rownames(wide) <- NULL
+  myTypes <- unlist(lapply(wide, class))
+  numeric.output0 <- names(myTypes[which( myTypes %in% c("numeric","integer") )])
+  
+  # cat("The trait used for GPCP was: ",gpcpTrait)
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(wide),
+           numericColNames = numeric.output0,
+           numRound = 4)
+  }else{
+    
+    DT::renderDT(printTable(wide,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(wide),
+                        numericColNames = numeric.output0,
+                        numRound = 4), server = FALSE)
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
+### Cross performance per parent
+
+The following boxplot allows you to see the performance of the different crosses predicted/proposed (dots in the boxplot) grouped by the different parents selected to go into the crossing block (x-axis).
+
+<p>&nbsp;</p>
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  predictions <- result$predictions
+  idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+  idGpcp <- idGpcp[length(idGpcp)]
+  myTraits <- predictions[which(predictions$analysisId == idGpcp),"trait"]
+  
+  if("params" %in% ls()){  # if user will download the report
+    shinyjs::hide()
+  }else{ # if user will just visualize the report in the website
+    
+    shiny::selectInput(ns("traitFilterPredictions2D2"), 
+                       label = "Trait:", 
+                       multiple = TRUE,
+                       selected = unique(myTraits),
+                       choices = unique(myTraits)
+    )
+    
+    
+  }
+  
+}
+```
+
+```{r, results='asis'}
+library(dplyr)
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){  # if user will download the report
+    
+    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
+    for(iTrait in unique(myTraits)){
+      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+      mydata = result$predictions
+      idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+      idGpcp <- idGpcp[length(idGpcp)]
+      mydata <- mydata[which(mydata$analysisId %in% c(idGpcp)),]
+      ## get the required traits
+      mydata <- mydata[which(mydata$trait %in% c(iTrait)),]
+      ##
+      mydataF <- mydataM <- mydata
+      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
+      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
+      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
+      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
+      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+      
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
+        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
+      #print(htmltools::tagList(plotly::ggplotly(p)))
+      print(p)
+      
+    }
+    
+  }else{ # if user will just visualize the report in the website
+    plotly::renderPlotly({
+      mydata = result$predictions
+      idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+      idGpcp <- idGpcp[length(idGpcp)]
+      mydata <- mydata[which(mydata$analysisId %in% c(idGpcp)),]
+      ## get the required traits
+      mydata <- mydata[which(mydata$trait %in% c(input$traitFilterPredictions2D2)),]
+      ##
+      mydataF <- mydataM <- mydata
+      mydataF <- mydataF[,-which(colnames(mydataF)=="mother")]
+      colnames(mydataF)[which(colnames(mydataF)=="father")] <- "parent"
+      mydataM <- mydataM[,-which(colnames(mydataM)=="father")]
+      colnames(mydataM)[which(colnames(mydataM)=="mother")] <- "parent"
+      mydata2 <- rbind(mydataM,mydataF[,colnames(mydataM)])
+      
+      
+      p <- ggplot2::ggplot(mydata2, ggplot2::aes(x=reorder(parent, -predictedValue), y=predictedValue, label=designation) ) + 
+        ggplot2::geom_jitter(position=ggplot2::position_jitter(width=0.3, height=0), ggplot2::aes(colour=parent), alpha=0.9) +
+        ggplot2::geom_boxplot(alpha = 0.5, show.legend = FALSE, ggplot2::aes(fill=parent)) +
+        ggplot2::theme(strip.text.x = ggplot2::element_text(size=9, color="black", face="bold"), 
+                       axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
+        ggplot2::labs(x="", y="Trait value") + ggplot2::facet_grid(trait~environment, scales = "free")# +
+      # ggplot2::guides(color=ggplot2::guide_legend(""))
+      
+      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+      fig
+    })
+  }
+  
+}
+```
+
+### Parent performance table
+
+This table shows the performance of the parents selected by the GPCP+OCS algorithm. The parental means are extracted from the multi-trial analysis results.
+
+<p>&nbsp;</p>
+
+```{r}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  mydata = result$predictions
+  idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+  idGpcp <- idGpcp[length(idGpcp)]
+  # get parents selected in crosses
+  mydataGpcp <- mydata[which(mydata$analysisId %in% c(idGpcp)),]
+  parentsSelected <- unique(c(mydataGpcp$mother, mydataGpcp$father))
+  # what was the input of gpcp? index or mta?
+  idInputGpcp <- result$modeling[which(result$modeling$analysisId == idGpcp & result$modeling$trait == "inputObject"), "value"]
+  moduleInputGpcp <- result$status[which(result$status$analysisId == idInputGpcp),"module"];
+  if(moduleInputGpcp != "mta"){ # we keep looking for mta since we had an index
+    idInputGpcp <- result$modeling[which(result$modeling$analysisId == idInputGpcp & result$modeling$trait == "inputObject"), "value"]
+    moduleInputGpcp <- result$status[which(result$status$analysisId == idInputGpcp),"module"];
+  }else{} # we stop
+  
+  mydata <- mydata[which(mydata$analysisId %in% c(idInputGpcp)),]
+  wideParents <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue"))], direction = "wide", idvar = c("designation"),
+                                timevar = "trait", v.names = c("predictedValue"), sep= "_")
+  colnames(wideParents) <- gsub("predictedValue_","",colnames(wideParents))
+  numeric.output <- colnames(wideParents)[-c(1)]
+  wideParents <- wideParents[which(wideParents$designation %in% parentsSelected),]
+  rownames(wideParents) <- NULL
+  
+  if("params" %in% ls()){  # if user will download the report
+    printTable(wideParents, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(wideParents),
+           numericColNames = numeric.output,
+           numRound = 4)
+  }else{ # if user will just examinate the report on the website
+    DT::renderDT(printTable(wideParents,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(wideParents),
+                        numericColNames = numeric.output,
+                        numRound = 4), server = FALSE)
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
+### Number of crosses per parent
+
+The following barplot allows you to assess the number of times (y-axis) that a given parent (x-axis) is suggested to be used in the crossing block for certain GPCP+OCS treatment (number of crosses by degrees specifications).
+
+<p>&nbsp;</p>
+
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  predictions <- result$predictions
+  idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+  idGpcp <- idGpcp[length(idGpcp)]
+  myEnvs <- predictions[which(predictions$analysisId == idGpcp),"environment"]
+  if("params" %in% ls()){  # if user will download the report
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("environ"), 
+                       label = "Treatment:", 
+                       multiple = TRUE,
+                       selected = unique(myEnvs),
+                       choices = unique(myEnvs)
+    )
+  }
+}
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){  # if user will download the report
+    
+    cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
+    counter <- 1
+    for(iEnv in unique(myEnvs)){
+      cat("\n\n####", iEnv, "{.tabset .tabset-pills}       \n\n")
+      mydata = result$predictions
+      idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+      idGpcp <- idGpcp[length(idGpcp)]
+      gpcpTrait <- result$modeling[which(result$modeling$analysisId == idGpcp & result$modeling$parameter == "gpcpFormula"),"trait"];
+      mydata <- mydata[which(mydata$analysisId %in% c(idGpcp[length(idGpcp)])),]
+      mydata <- mydata[which(mydata$trait == gpcpTrait),]
+      mydata <- mydata[which(mydata$environment %in% iEnv),]
+      
+      treatments <- unique(mydata$environment)
+      wideList <- list()
+      for(iTreatment in treatments){
+        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
+        countsCol <- data.frame(times=apply(overlayCounts,2,sum))
+        countsCol$parent <- as.factor(rownames(countsCol))
+        countsCol$treatment <- iTreatment
+        wideList[[iTreatment]] <- countsCol
+      }
+      countsCol <- do.call(rbind, wideList)
+      
+      p2 <- ggplot2::ggplot(data=countsCol, ggplot2::aes(x=parent, y=times)) +
+        ggplot2::geom_bar(stat="identity", fill="steelblue")+
+        ggplot2::geom_text(ggplot2::aes(label=times), vjust=6, size=3.5)+
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) + ggplot2::facet_grid(~treatment) + 
+        ggplot2::labs(x="Parent", y="Times used in a cross") 
+      print(htmltools::tagList(plotly::ggplotly(p2)))
+      cat("\n")
+    }
+    cat("\n")
+  }else{
+    
+    plotly::renderPlotly({
+      
+      mydata = result$predictions
+      idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+      idGpcp <- idGpcp[length(idGpcp)]
+      gpcpTrait <- result$modeling[which(result$modeling$analysisId == idGpcp & result$modeling$parameter == "gpcpFormula"),"trait"];
+      mydata <- mydata[which(mydata$analysisId %in% c(idGpcp[length(idGpcp)])),]
+      mydata <- mydata[which(mydata$trait == gpcpTrait),]
+      mydata <- mydata[which(mydata$environment %in% input$environ),]
+      
+      treatments <- unique(mydata$environment)
+      wideList <- list()
+      for(iTreatment in treatments){
+        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
+        countsCol <- data.frame(times=apply(overlayCounts,2,sum))
+        countsCol$parent <- as.factor(rownames(countsCol))
+        countsCol$treatment <- iTreatment
+        wideList[[iTreatment]] <- countsCol
+      }
+      countsCol <- do.call(rbind, wideList)
+      
+      p2 <- ggplot2::ggplot(data=countsCol, ggplot2::aes(x=parent, y=times)) +
+        ggplot2::geom_bar(stat="identity", fill="steelblue")+
+        ggplot2::geom_text(ggplot2::aes(label=times), vjust=6, size=3.5)+
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) + ggplot2::facet_grid(~treatment) + 
+        ggplot2::labs(x="Parent", y="Times used in a cross") 
+      fig2 <-  plotly::ggplotly(p2)#, height = get_h()); 
+      fig2
+      
+    })
+    
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
+### Treatment comparison
+
+The following table summarizes the trait means for the different GPCP+OCS runs (number of crosses and degrees treatments) in case you want to compare what would have been the resulting means and variances under different degrees or number of crosses. 
+
+<p>&nbsp;</p>
+
+```{r}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  idGpcp <- result$status[which(result$status$module == "gpcp"),"analysisId"];
+  idGpcp <- idGpcp[length(idGpcp)]
+  metrics <- result$metrics[which(result$metrics$analysisId == idGpcp),]
+  metrics <- metrics[which(metrics$parameter == "meanValue"),]
+  metrics <- metrics[with(metrics, order(trait)), c("trait","environment","parameter","value","stdError")]
+  colnames(metrics) <- cgiarBase::replaceValues(colnames(metrics), Search = "environment", Replace = "treatment")
+  rownames(metrics) <- NULL
+  numeric.output2 <- c("value","stdError")
+  
+  if("params" %in% ls()){  # if user will download the report
+    printTable(metrics, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(metrics),
+           numericColNames = numeric.output2,
+           numRound = 4)
+  }else{ # if user will just examinate the report on the website
+    DT::renderDT(printTable(metrics,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(metrics),
+                        numericColNames = numeric.output2,
+                        numRound = 4), server = FALSE)
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
+### References of methods used
+
+Werner, C. R., Gaynor, R. C., Sargent, D. J., Lillo, A., Gorjanc, G., & Hickey, J. M. (2023). Genomic selection strategies for clonally propagated crops. Theoretical and Applied Genetics, 136(4), 74.
+
+Kinghorn, B. (1999). 19. Mate Selection for the tactical implementation of breeding programs. Proceedings of the Advancement of Animal Breeding and Genetics, 13, 130-133.
+
+Woolliams, J. A., Berg, P., Dagnachew, B. S., & Meuwissen, T. H. E. (2015). Genetic contributions and their optimization. Journal of Animal Breeding and Genetics, 132(2), 89-99.
+
+https://alphagenes.roslin.ed.ac.uk/wp/wp-content/uploads/2019/05/01_OptimalContributionSelection.pdf?x44213
+
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+https://github.com/gaynorr/QuantGenResources
+
+<p>&nbsp;</p>
+
+
+
+
