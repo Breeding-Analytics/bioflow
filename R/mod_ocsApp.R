@@ -1089,7 +1089,8 @@ mod_ocsApp_server <- function(id, data){
       xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
       if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
       if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
       }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
@@ -1122,7 +1123,8 @@ mod_ocsApp_server <- function(id, data){
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
         };
-        rownames(X) <- as.character(zz$outputId)
+        rownames(X) <- networkNames
+        colnames(X) <- networkNames
         if(existNames){
 
         }else{
@@ -1212,9 +1214,15 @@ mod_ocsApp_server <- function(id, data){
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
+          output$outOcs2 <- renderPrint({
+            cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
+          })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          output$outOcs2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          })
         }
       }
       shinybusy::remove_modal_spinner()

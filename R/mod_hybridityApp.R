@@ -128,14 +128,15 @@ mod_hybridityApp_ui <- function(id){
                                                                     br(),
                                                              ),
 
-                                                      ),
-                                                      textOutput(ns("outQaMb")),
+                                                      ),textOutput(ns("outQaMb")),
                                              ),
                                            ) # end of tabset
                                   ),# end of output panel
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
+                                                      br(),
+                                                      textOutput(ns("outQaMb2")),
                                                       br(),
                                                       downloadButton(ns("downloadReportVerifGeno"), "Download dashboard"),
                                                       br(),
@@ -276,7 +277,8 @@ mod_hybridityApp_server <- function(id, data){
       xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
       if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
       if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
       }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
@@ -309,7 +311,8 @@ mod_hybridityApp_server <- function(id, data){
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
         };
-        rownames(X) <- as.character(zz$outputId)
+        rownames(X) <- networkNames
+        colnames(X) <- networkNames
         if(existNames){
 
         }else{
@@ -460,6 +463,9 @@ mod_hybridityApp_server <- function(id, data){
 
       if(!inherits(result,"try-error")) { # if all goes well in the run
         cat(paste("Genotype verification analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        output$outQaMb2 <- renderPrint({
+          cat(paste("Genotype verification analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        })
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")

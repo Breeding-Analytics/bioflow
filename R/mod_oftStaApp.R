@@ -165,11 +165,10 @@ that perform well under farmers’ conditions before these are announced to the 
                                                       column(width=3,
                                                              br(),
                                                              actionButton(ns("runOft"), "Build dashboard", icon = icon("play-circle")),
-                                                             uiOutput(ns("outOft")),
                                                              br(),
                                                       ),
 
-                                               ),
+                                               ),uiOutput(ns("outOft")),
                                       ),
                                     )
                            ),
@@ -177,7 +176,9 @@ that perform well under farmers’ conditions before these are announced to the 
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
-                                               div(tags$p("Please download the dashboard below:") ),
+                                               uiOutput(ns("outOft2")),
+                                               br(),
+                                               # div(tags$p("Please download the dashboard below:") ),
                                                downloadButton(ns("downloadReportOft"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportOft'))
@@ -671,6 +672,9 @@ mod_oftStaApp_server <- function(id, data){
 
         if(!inherits(result,"try-error")) {
           cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          output$outOft2 <- renderPrint({
+            cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+          })
           shinybusy::remove_modal_spinner()
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }

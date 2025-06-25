@@ -154,6 +154,8 @@ mod_masApp_ui <- function(id){
                                            tabsetPanel(
                                              tabPanel("Dashboard", icon = icon("file-image"),
                                                       br(),
+                                                      textOutput(ns("outMAS2")),
+                                                      br(),
                                                       downloadButton(ns("downloadReportMASGeno"), "Download dashboard"),
                                                       br(),
                                                       uiOutput(ns('reportMASGeno'))
@@ -276,7 +278,8 @@ mod_masApp_server <- function(id, data){
       xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
       if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
       if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
       }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
@@ -309,7 +312,8 @@ mod_masApp_server <- function(id, data){
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
         };
-        rownames(X) <- as.character(zz$outputId)
+        rownames(X) <- networkNames
+        colnames(X) <- networkNames
         if(existNames){
 
         }else{
@@ -581,6 +585,9 @@ mod_masApp_server <- function(id, data){
 
       if(!inherits(result,"try-error")) { # if all goes well in the run
         cat(paste("Marker Assisted Selection analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        output$outMAS2 <- renderPrint({
+          cat(paste("Marker Assisted Selection analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
+        })
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -686,7 +693,12 @@ mod_masApp_server <- function(id, data){
           }
         )
 
-      }else{ cat(paste("Analysis failed with the following error message: \n\n",result[[1]])); hideAll$clearAll <- TRUE}
+      }else{
+        cat(paste("Analysis failed with the following error message: \n\n",result[[1]])); hideAll$clearAll <- TRUE
+        output$outMAS2 <- renderPrint({
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        })
+      }
 
       hideAll$clearAll <- FALSE
 

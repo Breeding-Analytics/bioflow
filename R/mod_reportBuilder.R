@@ -67,9 +67,8 @@ mod_reportBuilder_ui <- function(id){
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
                                                       actionButton(ns("runReport"), "Build dashboard", icon = icon("play-circle")),
-                                                      textOutput(ns("outReport")),
                                                       br(),
-                                               ),
+                                               ),textOutput(ns("outReport")),
 
                                       ),
                                     )
@@ -77,6 +76,8 @@ mod_reportBuilder_ui <- function(id){
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
+                                               br(),
+                                               textOutput(ns("outReport2")),
                                                br(),
                                                downloadButton(ns("downloadReportReport"), "Download dashboard"),
                                                br(),
@@ -146,7 +147,13 @@ mod_reportBuilder_server <- function(id, data){
         status <- data()$status
         status <- status[status$module == input$module, ]
         traitsBuilder <- status$analysisId
-        if(length(traitsBuilder) > 0){names(traitsBuilder) <- as.POSIXct(traitsBuilder, origin="1970-01-01", tz="GMT")}
+        if(length(traitsBuilder) > 0){
+          if("analysisIdName" %in% colnames(status)){
+            names(traitsBuilder) <- paste(status$analysisIdName, as.POSIXct(traitsBuilder, origin="1970-01-01", tz="GMT"), sep = "_")
+          }else{
+            names(traitsBuilder) <- as.POSIXct(traitsBuilder, origin="1970-01-01", tz="GMT")
+          }
+        }
         updateSelectInput(session, "timestamp", choices =traitsBuilder  )
       }
     })
@@ -191,7 +198,8 @@ mod_reportBuilder_server <- function(id, data){
       xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
       if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
       if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
       }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
@@ -224,7 +232,8 @@ mod_reportBuilder_server <- function(id, data){
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
         };
-        rownames(X) <- as.character(zz$outputId)
+        rownames(X) <- networkNames
+        colnames(X) <- networkNames
         if(existNames){
 
         }else{
@@ -268,9 +277,15 @@ mod_reportBuilder_server <- function(id, data){
       if(!inherits(result,"try-error")) {
         data(result) # update data with results
         cat("Report ready. Please go to the report tab.")
+        output$outReport2 <- renderPrint({
+          cat("Report ready. Please go to the report tab.")
+        })
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
       }else{
         cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        output$outReport2 <- renderPrint({
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        })
       }
       ##
       shinybusy::remove_modal_spinner()

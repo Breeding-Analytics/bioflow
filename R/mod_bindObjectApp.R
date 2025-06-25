@@ -101,7 +101,8 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
       if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
       if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
+        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
       }
       v <- which(yy$parameter == "analysisId")
       if(length(v) > 0){
@@ -134,7 +135,8 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           if(!is.null(X1)){X[,colnames(X1)] <- X1}
           if(!is.null(X2)){X[,colnames(X2)] <- X2}
         };
-        rownames(X) <- as.character(zz$outputId)
+        rownames(X) <- networkNames
+        colnames(X) <- networkNames
         if(existNames){
 
         }else{
