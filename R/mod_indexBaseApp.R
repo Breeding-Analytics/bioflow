@@ -112,14 +112,22 @@ mod_indexBaseApp_ui <- function(id){
                                                               br(),
                                                               shinydashboard::box(width = 12, status = "success", solidHeader=FALSE, style = "color: #000000",collapsible = TRUE, collapsed = TRUE, title = "Additional run settings (optional)...",
                                                                                   selectInput(ns("verboseIndex"), label = "Print logs?", choices = list(TRUE,FALSE), selected = FALSE, multiple=FALSE)
-                                                                                  ),
                                                               ),
+                                                       ),
                                                 ),textOutput(ns("outIdxB")),
                                        ),
                                      )
                             ),
                             tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                      tabsetPanel(
+                                       tabPanel("Dashboard", icon = icon("file-image"),
+                                                br(),
+                                                textOutput(ns("outIdxB2")),
+                                                br(),
+                                                downloadButton(ns("downloadReportIndex"), "Download dashboard"),
+                                                br(),
+                                                uiOutput(ns("BaseIndex"))
+                                       ),
                                        tabPanel("Predictions", icon = icon("table"),
                                                 br(),
                                                 DT::DTOutput(ns("predictionsIdxB"))
@@ -128,15 +136,7 @@ mod_indexBaseApp_ui <- function(id){
                                                 br(),
                                                 DT::DTOutput(ns("modelingIdxB"))
                                        ),
-                                       tabPanel("Dashboard", icon = icon("file-image"),
-                                                br(),
-                                                textOutput(ns("outIdxB2")),
-                                                br(),
-                                                downloadButton(ns("downloadReportIndex"), "Download dashboard"),
-                                                br(),
-                                                DT::DTOutput(ns("BaseIndex"))
 
-                                       )
                                      )
                             )# end of output panel
                )) # end mainpanel
@@ -176,7 +176,7 @@ mod_indexBaseApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if(c("mta","mtaAsr") %in% data()$status$module){
+          if(any(c("mta","mtaFlex","mtaLmms","mtaAsr") %in% data()$status$module)){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -228,7 +228,7 @@ mod_indexBaseApp_server <- function(id, data){
       req(data())
       dtIdxB <- data()
       dtIdxB <- dtIdxB$status
-      dtIdxB <- dtIdxB[which(dtIdxB$module %in% c("mta","mtaAsr")),]
+      dtIdxB <- dtIdxB[which(dtIdxB$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")),]
       traitsIdxB <- unique(dtIdxB$analysisId)
       if(length(traitsIdxB) > 0){
         if("analysisIdName" %in% colnames(dtIdxB)){
@@ -294,7 +294,7 @@ mod_indexBaseApp_server <- function(id, data){
       values <- as.numeric(values)
 
       # run the modeling, but before test if mta was done
-      if(sum(dtBaseIndex$status$module %in% c("mta","mtaAsr")) == 0) {
+      if(sum(dtBaseIndex$status$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")) == 0) {
         output$qaQcIdxBInfo <- renderUI({
           if (hideAll$clearAll)
             return()
@@ -309,6 +309,7 @@ mod_indexBaseApp_server <- function(id, data){
         result <- try(cgiarPipeline::baseIndex(
           dtBaseIndex,
           input$version2IdxB,
+          input$analysisIdName,
           traitsBaseIndex,
           values),
           silent=TRUE
@@ -365,38 +366,84 @@ mod_indexBaseApp_server <- function(id, data){
           # }
         }, server = FALSE)
         # Report tab
-        analysisIdBaseIndex <- result$status[ result$status$module %in% c("mta","mtaAsr","indexB"),"analysisId"]
-        predBaseIndex <- result$predictions[result$predictions$analysisId %in% analysisIdBaseIndex,]
+        output$BaseIndex <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportIndexB.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+        })
 
-        predBaseIndexWide <- reshape(
-          data=subset(predBaseIndex, select=c(designation,trait,predictedValue)),
-          timevar = "trait",
-          idvar = "designation",
-          direction="wide"
+        output$downloadReportIndex <- downloadHandler(
+          filename = function() {
+            paste(paste0('indexB_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+            src <- normalizePath(system.file("rmd","reportIndexB.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultIndexB.RData')
+
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultIndexB.RData', overwrite = TRUE)
+
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmdformats::robobook(toc_depth = 4)
+              # HTML = rmarkdown::html_document()
+            ))
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
+            file.rename(out, file)
+            shinybusy::remove_modal_spinner()
+          }
         )
-        colnames(predBaseIndexWide)[-1] <- gsub("predictedValue.","", colnames(predBaseIndexWide)[-1])
-        predBaseIndexWide <- predBaseIndexWide[order(predBaseIndexWide$baseIndex,decreasing=TRUE),]
-        predBaseIndexWide$Rank <- 1:nrow(predBaseIndexWide)
 
-        output$BaseIndex <-  DT::renderDT({
-          # if ( hideAll$clearAll){
-          #   return()
-          # }else{
-          numeric.output <- c(input$traitsBaseIndex,"baseIndex")
-          # print(head(predBaseIndexWide))
-          DT::formatRound(DT::datatable(predBaseIndexWide,
-                                        extensions = 'Buttons',
-                                        rownames = FALSE,
-                                        class = 'cell-border',
-                                        options = list(dom = 'Blfrtip',
-                                                       scrollY = "400px",
-                                                       scrollX = "400px",
-                                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                       paging=F)
-          ), numeric.output)
+        # analysisIdBaseIndex <- result$status[ result$status$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr","indexB"),"analysisId"]
+        # predBaseIndex <- result$predictions[result$predictions$analysisId %in% analysisIdBaseIndex,]
+        #
+        # predBaseIndexWide <- reshape(
+        #   data=subset(predBaseIndex, select=c(designation,trait,predictedValue)),
+        #   timevar = "trait",
+        #   idvar = "designation",
+        #   direction="wide"
+        # )
+        # colnames(predBaseIndexWide)[-1] <- gsub("predictedValue.","", colnames(predBaseIndexWide)[-1])
+        # predBaseIndexWide <- predBaseIndexWide[order(predBaseIndexWide$baseIndex,decreasing=TRUE),]
+        # predBaseIndexWide$Rank <- 1:nrow(predBaseIndexWide)
+        #
+        # output$BaseIndex <-  DT::renderDT({
+        #   # if ( hideAll$clearAll){
+        #   #   return()
+        #   # }else{
+        #   numeric.output <- c(input$traitsBaseIndex,"baseIndex")
+        #   # print(head(predBaseIndexWide))
+        #   DT::formatRound(DT::datatable(predBaseIndexWide,
+        #                                 extensions = 'Buttons',
+        #                                 rownames = FALSE,
+        #                                 class = 'cell-border',
+        #                                 options = list(dom = 'Blfrtip',
+        #                                                scrollY = "400px",
+        #                                                scrollX = "400px",
+        #                                                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        #                                                paging=F)
+        #   ), numeric.output)
+        #
+        # }, server = FALSE)
 
-        }, server = FALSE)
-
+      } else {
+        output$predictionsIdxB <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsIdxB <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingIdxB <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        hideAll$clearAll <- TRUE
       }
 
       hideAll$clearAll <- FALSE

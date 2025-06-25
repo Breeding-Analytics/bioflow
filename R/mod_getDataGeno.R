@@ -1,4 +1,5 @@
 geno_example  <- 'www/example/geno.hmp.txt'
+
 # Currently polyploid supported formats
 polyploid_support <- c("vcf", 'dartag', 'hapmap')
 dartseq_formats <- c("dartseqsnp")
@@ -43,6 +44,11 @@ mod_getDataGeno_ui <- function(id) {
                   ),
 
                   uiOutput(ns("file_upload_box")),
+
+                  if (!is.null(geno_example)) {
+                    shinyWidgets::prettySwitch( inputId = ns('geno_example'), label = "Use example data", status = "success")
+                  },
+
                   actionButton(ns("load_geno_btn"), "Load"),
                 ),
               ),
@@ -208,6 +214,7 @@ mod_getDataGeno_server <-
           )
         }
       })
+
       # Reactive function where input functions are called
       get_geno_data <- reactive(
         {
@@ -221,6 +228,13 @@ mod_getDataGeno_server <-
                 fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$adegeno_url))
               # Download file
               utils::download.file(input$adegeno_url, temp_genofile)
+              genotype_file <- temp_genofile
+            }
+
+            if(length(input$geno_example) > 0){
+              geno_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/geno.hmp.txt'
+              temp_genofile <- tempfile(tmpdir = tempdir(), fileext = '.hmp.txt')
+              utils::download.file(geno_example_url, temp_genofile)
               genotype_file <- temp_genofile
             }
           } else {
