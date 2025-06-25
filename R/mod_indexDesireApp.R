@@ -783,7 +783,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       dtIdxD <- data()
       dtIdxD <- dtIdxD$status
-      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta",mtaAsr","mtaFlex","mtaLmms","mas") ),]
+      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","mtaAsr","mtaFlex","mtaLmms","mas") ),]
       traitsIdxD <- unique(dtIdxD$analysisId)
       if(length(traitsIdxD) > 0){
         if("analysisIdName" %in% colnames(dtIdxD)){
