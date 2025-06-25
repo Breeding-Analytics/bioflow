@@ -452,7 +452,7 @@ mod_qaPhenoApp_server <- function(id, data){
 
     # output$value <- renderPrint({ input$outlierCoefOutqPheno })
 
-    outQaRaw <- outQaRaw2 <- eventReactive(input$runQaRaw, {
+    outQaRaw <- eventReactive(input$runQaRaw, {
       req(data())
       req(input$traitOutqPhenoMultiple)
       # req(input$outlierCoefOutqPheno)
@@ -559,11 +559,18 @@ mod_qaPhenoApp_server <- function(id, data){
             }
           )
 
+          output$outQaRaw2 <- renderPrint({
+            cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis."))
+          })
+
         }else{ hideAll$clearAll <- TRUE}
 
         hideAll$clearAll <- FALSE
       }else{
         cat("Please meet the data conditions before you identify and save outliers.")
+        output$outQaRaw2 <- renderPrint({
+          cat("Please meet the data conditions before you identify and save outliers.")
+        })
       }
     })
 

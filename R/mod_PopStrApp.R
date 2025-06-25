@@ -493,9 +493,15 @@ mod_PopStrApp_server <- function(id, data){
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result) # update data with results
         cat(paste("Population structure analysis with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"was saved."))
+        output$outPopStr2 <- renderPrint({
+          cat(paste("Population structure analysis with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"was saved."))
+        })
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
       }else{
         cat(paste("Analysis failed with the following error message: \n\n",uno[[1]]))
+        output$outPopStr2 <- renderPrint({
+          cat(paste("Analysis failed with the following error message: \n\n",uno[[1]]))
+        })
       }
 
       shinybusy::remove_modal_spinner()

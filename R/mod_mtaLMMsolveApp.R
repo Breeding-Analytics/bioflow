@@ -1186,26 +1186,58 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
         if(nrow(x$df) > 1){myEnvsTI = apply(x$df,2,function(z){z})}else{myEnvsTI <- x$df}
 
-        result <- try(
-          cgiarPipeline::metLMMsolver(
-            phenoDTfile= dtMta, analysisId=input$version2Mta, analysisIdGeno=markerVersionToUse,
-            fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
-            envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
-            calculateSE=input$calcSE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
-            heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
-            meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
-            meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))), nPC=inputFormulaPCs(),   # subsetVariable=NULL, subsetVariableLevels=NULL,
-            maxIters=input$maxitMet,  verbose=TRUE
+        result1 <- try(
+          cgiarPipeline::premetLMMsolver(
+            phenoDTfile= dtMta, fixedTerm= inputFormulaFixed(), randomTerm=inputFormulaRandom()
           ),
           silent=TRUE
         )
-        if(!inherits(result,"try-error")) {
-          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
-          data(result) # update data with results
-          cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
-          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+        if(!inherits(result1,"try-error")) {
+          result <- try(
+            cgiarPipeline::metLMMsolver(
+              phenoDTfile= dtMta, analysisId=input$version2Mta, analysisIdGeno=markerVersionToUse,
+              fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
+              envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
+              calculateSE=input$calcSE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
+              heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
+              meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
+              meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))), nPC=inputFormulaPCs(),   # subsetVariable=NULL, subsetVariableLevels=NULL,
+              maxIters=input$maxitMet,  verbose=TRUE
+            ),
+            silent=TRUE
+          )
+          if(!inherits(result,"try-error")) {
+            if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+            result2 <- try(
+              cgiarPipeline::postmetLMMsolver(phenoDTfile= result, analysisId=result$status$analysisId[length(result$status$analysisId)],
+                                              gxeModelNum=result1$gxeModelNum, gxeTerms=result1$gxeTerms),
+              silent=TRUE
+            )
+            if(!inherits(result2,"try-error")) {
+              result <- result2
+              data(result) # update data with results
+              cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+              output$outMta2 <- renderPrint({
+                cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+              })
+              updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+            }else{
+              cat(paste("Analysis failed with the following error message: \n\n",result2[[1]]))
+              output$outMta2 <- renderPrint({
+                cat(paste("Analysis failed with the following error message: \n\n",result2[[1]]))
+              })
+            }
+          }else{
+            cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+            output$outMta2 <- renderPrint({
+              cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+            })
+          }
         }else{
-          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          cat(paste("Analysis failed with the following error message: \n\n",result1[[1]]))
+          output$outMta2 <- renderPrint({
+            cat(paste("Analysis failed with the following error message: \n\n",result1[[1]]))
+          })
         }
       }
 
