@@ -82,9 +82,10 @@ mod_qaStaApp_ui <- function(id){
                                                   column(width=3,
                                                          br(),
                                                          actionButton(ns("runQaMb"), "Tag outliers", icon = icon("play-circle")),
+                                                         textOutput(ns("outQaMb")),
                                                          br(),
                                                   )
-                                           ),textOutput(ns("outQaMb")),
+                                           ),
 
                                   ),
                                 ) # end of tabset
@@ -92,7 +93,6 @@ mod_qaStaApp_ui <- function(id){
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
-                                           br(),
                                            textOutput(ns("outQaMb2")),
                                            br(),
                                            downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
@@ -258,11 +258,17 @@ mod_qaStaApp_server <- function(id, data){
         req(data())
         req(input$outlierCoefOutqFont)
         req(input$traitOutqPhenoMultiple)
+		result<-data()
+		tt=input$traitOutqPhenoMultiple
+		out=input$outlierCoefOutqPheno
+		#save(result,tt,out,file="outRes.RData")
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         ## get the outlier table
         outlier <- list()
         newParamsPheno <- list()
+        #source("C:/Users/RAPACHECO/OneDrive - CIMMYT/Documents/CIMMYT/2025/BioflowTask/newOutliersFun.R")
         for(iTrait in input$traitOutqPhenoMultiple){
+          #outlier[[iTrait]] <- newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
           outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
           newParamsPheno[[iTrait]] <- data.frame(module="qaMb",analysisId=NA, trait=iTrait, environment=NA, parameter= "outlierCoefOutqPheno", value= input$outlierCoefOutqPheno)
         }
@@ -288,20 +294,12 @@ mod_qaStaApp_server <- function(id, data){
             result$modifications$pheno <- rbind(result$modifications$pheno, outlier[, colnames(result$modifications$pheno)])
             newParamsPheno$analysisId <- as.POSIXct(analysisId, origin="1970-01-01", tz="GMT")
             result$modeling <- rbind(result$modeling, newParamsPheno)
-            newStatus <- data.frame(module="qaMb", analysisId=analysisId)
+            newStatus <- data.frame(module="qaMb", analysisId=analysisId, analysisIdName="residual")
             result$status <- rbind(result$status, newStatus)
             if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
             data(result)
             cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
-            output$outQaMb2 <- renderPrint({
-              cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
-            })
-          }else{
-            cat("No modifications to add")
-            output$outQaMb2 <- renderPrint({
-              cat("No modifications to add")
-            })
-          }
+          }else{cat("No modifications to add")}
         }
 
         shinybusy::remove_modal_spinner()
@@ -314,38 +312,27 @@ mod_qaStaApp_server <- function(id, data){
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste(paste0('qaSta_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
+              paste(paste0('qaSta_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },
             content = function(file) {
-              shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
               src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
               src2 <- normalizePath('data/resultQaPheno.RData')
-
               # temporarily switch to the temp dir, in case you do not have write
               # permission to the current working directory
               owd <- setwd(tempdir())
               on.exit(setwd(owd))
-
               file.copy(src, 'report.Rmd', overwrite = TRUE)
               file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
-
+              shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
               out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
                 "HTML",
                 HTML = rmdformats::robobook(toc_depth = 4)
                 # HTML = rmarkdown::html_document()
               ))
-
-              # wait for it to land on disk (safety‐net)
-              wait.time <- 0
-              while (!file.exists(out) && wait.time < 60) {
-                Sys.sleep(1); wait.time <- wait.time + 1
-              }
-
-              file.rename(out, file)
               shinybusy::remove_modal_spinner()
+              file.rename(out, file)
             }
           )
 
@@ -355,7 +342,7 @@ mod_qaStaApp_server <- function(id, data){
 
       }
     })
-    output$outQaMb <- renderPrint({
+    output$outQaMb <- output$outQaMb2 <- renderPrint({
       outQaMb()
     })
 
