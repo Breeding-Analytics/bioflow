@@ -165,7 +165,7 @@ mod_getDataGeno_server <-
         req(input$custom_geno_input)
         if (input$custom_geno_input %in% polyploid_support) {
           print('Polyploid supported format')
-          ploidity_list <- list("Diploid" = 2, "Tetraploid" = 4)
+          ploidity_list <- list("Diploid" = 2, "Tetraploid" = 4, "Hexaploid" = 6)
         } else {
           # ADD should limit the obtions of poly lvl to only diploid
           print('Polyploid unsupported format')
