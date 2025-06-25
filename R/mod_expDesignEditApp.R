@@ -77,15 +77,16 @@ mod_expDesignEditApp_ui <- function(id){
                                                   column(width=3,
                                                          br(),
                                                          actionButton(ns("runFieldClean"), "Tag factors", icon = icon("play-circle")),
-                                                         textOutput(ns("outExp"))
                                                   ),
-                                           ),
+                                           ),textOutput(ns("outExp"))
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
+                                           br(),
+                                           textOutput(ns("outExp2")),
                                            br(),
                                            downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
                                            br(),
@@ -284,6 +285,9 @@ mod_expDesignEditApp_server <- function(id, data){
         available <- setdiff(available,"")
         if( length(available) == 0 ){
           cat( "Please map some of your experimental design columns using the 'Data Retrieval' tab in the 'Phenotype' section to use this module.")
+          output$outExp2 <- renderPrint({
+            cat( "Please map some of your experimental design columns using the 'Data Retrieval' tab in the 'Phenotype' section to use this module.")
+          })
         }else{
           object <- data()
           result <- cgiarPipeline::modifExpDesign(object, df=xx$df)
@@ -292,6 +296,9 @@ mod_expDesignEditApp_server <- function(id, data){
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result)
           cat(paste("QA step with id:",as.POSIXct( aid, origin="1970-01-01", tz="GMT"),"saved."))
+          output$outExp2 <- renderPrint({
+            cat(paste("QA step with id:",as.POSIXct( aid, origin="1970-01-01", tz="GMT"),"saved."))
+          })
         }
         shinybusy::remove_modal_spinner()
 

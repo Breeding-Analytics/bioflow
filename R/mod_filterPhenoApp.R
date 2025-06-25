@@ -86,15 +86,16 @@ mod_filterPhenoApp_ui <- function(id){
                                                   column(width=3,
                                                          br(),
                                                          actionButton(ns("runFilterRaw"), "Filter dataset", icon = icon("play-circle")),
-                                                         textOutput(ns("outFilterRaw")),
                                                   ),
-                                           ),
+                                           ),textOutput(ns("outFilterRaw")),
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
+                                           br(),
+                                           textOutput(ns("outFilterRaw2")),
                                            br(),
                                            downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
                                            br(),
@@ -405,6 +406,9 @@ mod_filterPhenoApp_server <- function(id, data){
           outliers <- data.frame(matrix(nrow=0, ncol=6))
           colnames(outliers) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
           cat("No traits selected to filter.")
+          output$outFilterRaw2 <- renderPrint({
+            cat("No traits selected to filter.")
+          })
         }
       }else{ # if user only wants to filter one trait
         outliers <- newOutliers()
@@ -413,11 +417,17 @@ mod_filterPhenoApp_server <- function(id, data){
       analysisId <- as.numeric(Sys.time())
       if(nrow(outliers) == 0){ # no outliers found
         cat("No data to filter.")
+        output$outFilterRaw2 <- renderPrint({
+          cat("No data to filter.")
+        })
       }else{ # we found outliers
         # outliers$analysisId <- analysisId
         outliers[,"analysisId"] <- analysisId
         outliers[,"module"] <- "qaFilter"
         cat(paste("Filtering step with id:",as.POSIXct(analysisId, origin="1970-01-01", tz="GMT"),"for trait",ifelse(input$multiTraitFilter, paste(input$traitFilterPhenoMultiple, collapse = ", "),input$traitFilterPheno),"saved."))
+        output$outFilterRaw2 <- renderPrint({
+          cat(paste("Filtering step with id:",as.POSIXct(analysisId, origin="1970-01-01", tz="GMT"),"for trait",ifelse(input$multiTraitFilter, paste(input$traitFilterPhenoMultiple, collapse = ", "),input$traitFilterPheno),"saved."))
+        })
       }
       myoutliersReduced <- unique(rbind(myoutliers, outliers))
 

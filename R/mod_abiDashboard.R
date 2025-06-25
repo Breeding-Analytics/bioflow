@@ -76,6 +76,8 @@ mod_abiDashboard_ui <- function(id){
                                     tabsetPanel(
                                       tabPanel("Dashboard", icon = icon("file-image"),
                                                br(),
+                                               textOutput(ns("outAbi2")),
+                                               br(),
                                                downloadButton(ns("downloadReportAbi"), "Download dashboard"),
                                                br(),
                                                uiOutput(ns('reportAbi'))
@@ -156,7 +158,13 @@ mod_abiDashboard_server <- function(id, data){
       if(!is.null(dtAbi)){
         dtAbi <- dtAbi[which(dtAbi$module %in% c("ocs")),]
         traitsAbi <- unique(dtAbi$analysisId)
-        if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+        if(length(traitsAbi) > 0){
+          if("analysisIdName" %in% colnames(dtAbi)){
+            names(traitsAbi) <- paste(dtAbi$analysisIdName, as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT"), sep = "_")
+          }else{
+            names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")
+          }
+        }
         updateSelectInput(session, "versionSelection", choices = traitsAbi)
       }
     })
@@ -167,7 +175,13 @@ mod_abiDashboard_server <- function(id, data){
       if(!is.null(dtAbi)){
         dtAbi <- dtAbi[which(dtAbi$module %in% c("rgg")),]
         traitsAbi <- unique(dtAbi$analysisId)
-        if(length(traitsAbi) > 0){names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")}
+        if(length(traitsAbi) > 0){
+          if("analysisIdName" %in% colnames(dtAbi)){
+            names(traitsAbi) <- paste(dtAbi$analysisIdName, as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT"), sep = "_")
+          }else{
+            names(traitsAbi) <- as.POSIXct(traitsAbi, origin="1970-01-01", tz="GMT")
+          }
+        }
         updateSelectInput(session, "versionHistory", choices = traitsAbi)
       }
     })
@@ -240,9 +254,15 @@ mod_abiDashboard_server <- function(id, data){
       if(!inherits(result,"try-error")) {
         data(result) # update data with results
         cat("Data ready for dashboard. Please go to the report tab.")
+        output$outAbi2 <- renderPrint({
+          cat("Data ready for dashboard. Please go to the report tab.")
+        })
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
       }else{
         cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        output$outAbi2 <- renderPrint({
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        })
       }
       ##
 
