@@ -483,7 +483,7 @@ mod_PopStrApp_server <- function(id, data){
       newPredDist=data.frame(module="PopStrM",analysisId=analysisId, pipeline=NA,trait="DistMat", gid=DistMat3[,1], designation=DistMat3[,2], mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=DistMat3[,3], stdError=NA, reliability=NA, effectType=NA)
       newPredDist$predictedValue<-as.numeric(newPredDist$predictedValue)
 	if (!is.null(result$predictions)) {
-    		if ("effectType" %!in% colnames(result$predictions)==FALSE) {
+    		if (!"effectType" %in% colnames(result$predictions)) {
       			result$predictions$effectType <- NA
     		}
   	}
