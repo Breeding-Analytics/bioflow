@@ -36,7 +36,7 @@ Contributor: Have the permission and responsibility to commit, push using forked
 
 The current list of maintainers and contributors is the following:
 
-Mainteiners: Khaled Al-Sham'aa, Angela Pacheco, Justine Bonifacio, Raul Eizaguirre, Aubin Amagnide, Giovanny Covarrubias.
+Mainteiners: Khaled Al-Sham'aa, Angela Pacheco, Justine Bonifacio, Raul Eyzaguirre, Aubin Amagnide, Giovanny Covarrubias.
 Contributor: Bert De Boeck, Abhishek Rathore, Roma Das, Keith Gardner, Fernando Toledo, Juan Burgueno, Luis Delgado Munoz, Christian Cadena, Christian Werner, Sergio Cruz, Alaine Gulles, Lorena Guimaraes, Kayode Fowobaje, Paolo Vitale.
 
 ## Demo server

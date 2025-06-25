@@ -88,7 +88,7 @@ get_h <- function() {
 
 ```{r}
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/resultIndex.RData")){
+  if(file.exists("./outputs/result.RData")){
     load("./outputs/resultIndex.RData")
   }else{
     load("resultIndex.RData")
@@ -100,13 +100,16 @@ suppressWarnings(tryCatch({
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  mydata = result$predictions
+  mydata <- result$predictions
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
   idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
   mydata <- mydata[which(mydata$analysisId %in% c(idMta,idIndex)),]
   envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
   mydata <- mydata[which(mydata$environment %in% envsUsed),]
+  mTrait <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"trait"])
+  uTrait <- c(mTrait[which(mTrait %in% unique(mydata$trait))],"desireIndex")
+  mydata <- mydata[which(mydata$trait %in% uTrait),]
   wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue", "entryType"))], direction = "wide", idvar = c("designation"),
                          timevar = "trait", v.names = c("predictedValue"), sep= "_")
   colnames(wide) <- gsub("predictedValue_","",colnames(wide))
@@ -336,21 +339,6 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  if("params" %in% ls()){ # we will download the document
-    proportionTrait <- c(0.05,0.10,0.15,0.20)
-  }else{
-    shiny::numericInput(ns("proportionTrait"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05)
-  }
-  
-}
-```
-
-```{r, results='asis'}
-library(dplyr)
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  
   dtIdxD <- result$predictions
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
@@ -362,29 +350,79 @@ if (is.null(result)){
   mydata <- mydata[which(mydata$environment %in% envsUsed),]
   desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
   entryTypes <-result$modeling[which(result$modeling$parameter %in% "entryTypeToUse" & result$modeling$analysisId == idIndex),"value"]
-  uTraits <- unique(mydata$trait)#result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
+  uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]#unique(mydata$trait)
   uTraits <- gsub("_scaled","",uTraits)
+  uTraits <- c(uTraits, "desireIndex")
   mydata$selected <- "no"
   mydata <- mydata[which(mydata$entryType %in% entryTypes),]
   
   if("params" %in% ls()){ # we will download the document
+    proportionTrait <- c(0.05,0.10,0.15,0.20)
+  }else{
+    inputPanel(
+      shiny::numericInput(ns("proportionTrait"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
+      selectInput(ns("perTrait"),
+                  label = "Trait",
+                  choices = uTraits),
+      shiny::checkboxInput(ns("perET"),
+                             label = "Show per Entry Type",
+                             value = TRUE)
+    )
     
-    cat(paste0("#### Proportion selected  {.tabset .tabset-pills}    \n\n  "))
+  }
+  
+}
+```
+
+<div style = "width:auto; height:auto; overflow:auto">
+
+```{r, results='asis'}
+library(dplyr)
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    
+    # cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("### Proportion selected  {.tabset .tabset-pills}    \n\n  "))
     for(iProportionTrait in proportionTrait){
-      cat("\n\n#####", iProportionTrait, "{.tabset .tabset-pills}       \n\n")
+      cat("\n\n####", iProportionTrait, "{.tabset .tabset-pills}       \n\n")
       
       for(iTrait in uTraits){ # iTrait = uTraits[1]
+        cat("\n\n#####", iTrait, "{.tabset .tabset-pills}       \n\n")
+        
         prov <- mydata[mydata$trait == "desireIndex", ]
         prov <- prov[with(prov, order(-predictedValue)), ]
         selected <- prov[1:round(nrow(prov)*iProportionTrait),"designation"]
         mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
+        
+        for(iEntryType in c("per trait", "per trait and entryType")){
+          cat("\n\n######", iEntryType, "{.tabset .tabset-pills}       \n\n")
+          
+          if(iEntryType == "per trait"){
+            p <- ggplot2::ggplot(mydata[which(mydata$trait == iTrait),], ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+              ggplot2::geom_histogram() +
+              ggplot2::ylab("Frequency") +
+              ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) 
+            
+            print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 400)))
+          }else{
+            p <- ggplot2::ggplot(mydata[which(mydata$trait == iTrait),], ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+              ggplot2::geom_histogram() +
+              ggplot2::ylab("Frequency") +
+              ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
+              ggplot2::facet_wrap(~entryType, ncol=2, scales = "free") + ggplot2::theme(panel.spacing = unit(1, 'lines'))
+            
+            print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, 
+                                                                    height = ceiling(length(unique(mydata[which(mydata$trait == iTrait), 
+                                                                                                   "entryType"]))/2)*400)))
+          }
+        }
+        cat("\n")
       }
-      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
-        ggplot2::geom_histogram() +
-        ggplot2::ylab("Frequency") +
-        ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-        ggplot2::facet_wrap(~trait+entryType, ncol=3, scales = "free")
-      print(htmltools::tagList(plotly::ggplotly(p)))
+      cat("\n")
+      cat("\n")
     }
     
   }else{
@@ -392,20 +430,32 @@ if (is.null(result)){
     # shiny::renderPlot({ # 
     plotly::renderPlotly({
       ## if user provides threshold values let them know the selection differentials
-      for(iTrait in uTraits){ # iTrait = uTraits[1]
-        prov <- mydata[mydata$trait == "desireIndex", ]
-        prov <- prov[with(prov, order(-predictedValue)), ]
-        selected <- prov[1:round(nrow(prov)*input$proportionTrait),"designation"]
-        mydata[which( (mydata$trait == iTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
-      }
-      p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+      prov <- mydata[mydata$trait == "desireIndex", ]
+      prov <- prov[with(prov, order(-predictedValue)), ]
+      selected <- prov[1:round(nrow(prov)*input$proportionTrait),"designation"]
+      mydata[which( (mydata$trait == input$perTrait) & (mydata$designation %in% selected) ), "selected"] <- "yes"
+      
+      if(input$perET == TRUE){
+        p <- ggplot2::ggplot(mydata[which( mydata$trait == input$perTrait),], ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
         ggplot2::geom_histogram() +
         ggplot2::ylab("Frequency") +
         ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm")) +
-        ggplot2::facet_wrap(~trait+entryType, ncol=3, scales = "free")
+        ggplot2::facet_wrap(~entryType, ncol=2, scales = "free")
+        
+        # p
+        plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, 
+                                       height = ceiling(length(unique(mydata[which(mydata$trait == input$perTrait),"entryType"]))/2)*400)
+      } else{
+        p <- ggplot2::ggplot(mydata[which( mydata$trait == input$perTrait),], ggplot2::aes(x=predictedValue, color=selected, fill = selected)) +
+        ggplot2::geom_histogram() +
+        ggplot2::ylab("Frequency") +
+        ggplot2::geom_rug(sides="t", length = ggplot2::unit(0.3, "cm"))
+        
+        # p
+        plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 400)
+      }
+
       
-      # p
-      plotly::ggplotly(p)
     })
     
   }
@@ -415,6 +465,8 @@ if (is.null(result)){
 }
 
 ```
+
+</div>
 
 ### Index versus Trait Plot
 

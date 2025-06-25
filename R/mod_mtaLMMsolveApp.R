@@ -57,10 +57,14 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                            h2(strong("References")),
                                            p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
                                            p("Odegard, J., Indahl, U., Stranden, I., & Meuwissen, T. H. (2018). Large-scale genomic prediction using singular value decomposition of the genotype matrix. Genetics Selection Evolution, 50(1), 1-12."),
+                                           p("Finlay, K. W., & Wilkinson, G. N. (1963). The analysis of adaptation in a plant-breeding programme. Australian journal of agricultural research, 14(6), 742-754."),
+                                           p("Xiang, T., Christensen, O. F., & Sørensen, A. C. (2016). Genomic evaluation by including dominance effects and inbreeding depression for purebred and crossbred performance with a unified model. Genetics Selection Evolution, 48(1), 84"),
+                                           p("Batista, L. G., Mello, V. H., Souza, A. P., & Margarido, G. R. A. (2022). Genomic prediction with allele dosage information in highly polyploid species. Theoretical and Applied Genetics, 135(2), 723–739."),
                                            h2(strong("Software used")),
                                            p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
                                 Vienna, Austria. URL https://www.R-project.org/."),
                                            p("COVARRUBIAS PAZARAN, G. E. (2024). lme4breeding: enabling genetic evaluation in the era of genomic data. bioRxiv, 2024-05."),
+                                           p("Boer M, van Rossum B (2022). LMMsolver: Linear Mixed Model Solver. R package version 1.0.4.9000."),
                                            # column(width = 6, shiny::plotOutput(ns("plotDataDependencies")), ),
                                     ),
                            ),
@@ -134,7 +138,8 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                    "Compound symmetry" = "cs_model",
                                                                                    "Finlay-Wilkinson"="fw_model",
                                                                                    "Diagonal" = "dg_model",
-                                                                                   "Main+Diagonal" = "mndg_model"
+                                                                                   "Main+Diagonal" = "mndg_model",
+                                                                                   "Main effects (A+D)" = "ad_model"
                                                                                  ),
                                                                                  selected = "mn_model", inline=TRUE),
                                                                     radioTooltip(id = ns("radio"), choice = "mn_model", title = "The main effect model assumes that there is no genotype by environment interaction or that can be ignored to focus on average effects. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments.", placement = "right", trigger = "hover"),
@@ -142,6 +147,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radio"), choice = "fw_model", title = "The Finlay-Wilkinson model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and deviations are with respect to an environmental covariate which can be the trait means at different environments or any other covariate.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "dg_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "mndg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "ad_model", title = "This model includes additve and dominance random effects for the designation. Only use in order to run GPCP in the mate optimization module", placement = "right", trigger = "hover"),
                                                              ),
                                                       ),
                                                ),
@@ -547,8 +553,27 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       envsDg <- paste0("env",envs)
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         n2 <- length(envsDg)
+      }else if (input$radio == "ad_model") {
+        n2 <- 2  # <- add 'f' alongside 'environment'
       }else{n2 <- 1}
       updateNumericInput(session, "nTermsFixed", value = n2, step = 1, min = 1, max=10)
+    })
+
+    observeEvent(input$radio, {
+      if (input$radio == "ad_model") {
+        updateRadioButtons(inputId = "radioModel",
+                           choices = list("GTGV" = "genoAD_model"),
+                           selected = "genoAD_model")
+      } else {
+        updateRadioButtons(inputId = "radioModel",
+                           choices = list(
+                             "TGV" = "none",
+                             "GTGV" = "genoAD_model",
+                             "EBV" = "pedigree_model",
+                             "GEBV" = "geno_model"
+                           ),
+                           selected = isolate(input$radioModel) %||% "none")
+      }
     })
     #################
     ## nTermsRandom
@@ -561,7 +586,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       envs <- unique(dtMta[,"environment"])
       envsDg <- paste0("env",envs)
-      if ( input$radio == "cs_model" | input$radio == "fw_model") {
+      if ( input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "ad_model") {
         n <- 2
       }else if( input$radio == "mndg_model" ){
         n <- length(envsDg) + 1
@@ -588,9 +613,17 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
 
       choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
+
+      # If model is A+D, add "f" to choices
+      if (input$radio == "ad_model") {
+        choices <- unique(c("f", choices))
+      }
+
+
       envs <- unique(mydata[,"environment"])
       envs <- gsub(" ", "",envs )
       envsDg <- paste0("env",envs)
+
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         lapply(1:input$nTermsFixed, function(i) {
           selectInput(
@@ -602,14 +635,22 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         })
       }else{
         lapply(1:input$nTermsFixed, function(i) {
+          defaultFixed <- character()
+          if (i == 1) {
+            defaultFixed <- "environment"
+          } else if (i == 2 && input$radio == "ad_model") {
+            defaultFixed <- "f"
+          }
+
           selectInput(
-            session$ns(paste0('leftSidesFixed',i)),
-            label = ifelse(i==1, "Fixed Effects",""),
-            choices = choices, multiple = TRUE, selected = "environment"
+            session$ns(paste0('leftSidesFixed', i)),
+            label = ifelse(i == 1, "Fixed Effects", ""),
+            choices = choices,
+            multiple = TRUE,
+            selected = defaultFixed
           )
         })
       }
-
 
     })
     ## left formula (actual effects) ## input <- list(version2Mta=result$status$analysisId[2])
@@ -673,6 +714,15 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             selected = if(i==1){"designation"}else if(i==2){rev(c(fwvars[1], "designation"))}else{"designation"}
           )
         })
+      }else if(input$radio == "ad_model"){ # A+D main effect
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom', i)),
+            label = ifelse(i == 1, "Random Effects", ""),
+            choices = choices, multiple = TRUE,
+            selected = "designation"
+          )
+        })
       }else { # main model specified
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
@@ -694,7 +744,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
       choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
-      if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD")}
+      if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD","genoD")}
       envs <- unique(mydata[,"environment"])
       envsDg <- paste0("env",envs)
       if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
@@ -732,6 +782,15 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             label = ifelse(i==1, "Covariance of random effect based on:",""),
             choices = choices, multiple = TRUE,
             selected = c(useMod2,useMod1)
+          )
+        })
+      }else if( input$radio == "ad_model" ){
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            inputId = session$ns(paste0('rightSidesRandom', i)),
+            label = ifelse(i == 1, "Covariance of random effect based on:", ""),
+            choices = choices, multiple = TRUE,
+            selected = ifelse(i == 1,"genoA","genoD")
           )
         })
       }else { # main model specified
@@ -981,7 +1040,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       }else{ phenoNames <- character() }
 
       if(!is.null(object$data$geno)){
-        genoNames <- rownames(object$data$geno)
+        genoNames <- rownames(as.data.frame(object$data$geno))
       }else{ genoNames <- character() }
 
       if(!is.null(object$data$pedigree)){
@@ -1218,7 +1277,16 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           predictions <- predictions[!is.na(predictions$analysisId),]
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
           current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+
+          # Move "(Intercept)" and "f" to the top in order
+          effect_order <- c("(Intercept)", "f","environment")
+          current.predictions$effectType <- factor(current.predictions$effectType,
+                                                   levels = c(effect_order,
+                                                              setdiff(unique(current.predictions$effectType), effect_order)))
+          # Sort the data by effectType first
+          current.predictions <- current.predictions[order(current.predictions$effectType), ]
           numeric.output <- c("predictedValue", "stdError", "reliability")
+
           DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
                                         options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
@@ -1263,27 +1331,38 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
         output$downloadReportMta <- downloadHandler(
           filename = function() {
-            paste(paste0('mtaLmms_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('mtaLmms_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportMtaLMMsolver.Rmd",package="bioflow"))
             src2 <- normalizePath('data/resultMtaLMMsolver.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
-            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             )) #, modelUsed=input$radio
-            shinybusy::remove_modal_spinner()
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 

@@ -65,6 +65,7 @@
 # usethis::use_package("roxygen2")
 # usethis::use_package("reshape")
 # usethis::use_package("rhub")
+# usethis::use_package("ggcorrplot")
 # usethis::use_pipe()
 # usethis::use_dev_package("cgiarBase", type = "Imports", remote = "Breeding-Analytics/cgiarBase")
 # usethis::use_dev_package("cgiarPipeline", type = "Imports", remote = "Breeding-Analytics/cgiarPipeline")
@@ -72,8 +73,10 @@
 # usethis::use_dev_package("st4gi", type = "Imports", remote = "reyzaguirre/st4gi")
 # usethis::use_dev_package("lme4breeding", type = "Imports", remote = "covaruber/lme4breeding")
 #
+# usethis::use_package("paws")
 # usethis::use_package("QBMS")
 # usethis::use_package("vcfR")
+# usethis::use_package("callr")
 # usethis::use_package("future")
 # usethis::use_package("promises")
 # usethis::use_package("rlang")

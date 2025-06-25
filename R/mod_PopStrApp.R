@@ -303,6 +303,7 @@ mod_PopStrApp_server <- function(id, data){
                      title = "Data replacement warning"
                    )
                  }
+
     )
 
     observeEvent(input$myconfirmation, {
@@ -317,6 +318,7 @@ mod_PopStrApp_server <- function(id, data){
         updateTextInput(session, 'fileenvbio_url', value = '')
         shinyWidgets::updatePrettySwitch(session, "geno_groupPopStr", value = FALSE)
       }
+      save.image(file="popstr.RData")
     }, ignoreNULL = TRUE)
 
     ## render timestamps flow plot
@@ -396,15 +398,11 @@ mod_PopStrApp_server <- function(id, data){
       result <- data()
       if(input$version2PopStr==0){
         #if(!"PopStrM" %in% data()$status$module){
-        mydata<-result$data$geno
-        genodir<-result$data$genodir
+        mydata<-as.data.frame(result$data$geno)
+        #genodir<-result$data$genodir
       }else{
-        mydata<-result$data$geno
-        genodir<-result$data$genodir
-        deletemarkmiss=result$modifications$geno[which(result$modifications$geno$module=="qaGeno" & result$modifications$geno$analysisId==input$version2PopStr & result$modifications$geno$reason=="%missing" ),5]
-        replacemark=result$modifications$geno[which(result$modifications$geno$module=="qaGeno" & result$modifications$geno$analysisId==input$version2PopStr & result$modifications$geno$reason=="impute" ),4:6]
-        mydata[replacemark[,1],replacemark[,2]]=replacemark[,3]
-        mydata<-mydata[,-deletemarkmiss]
+        qas<-which( names(result$data$geno_imp)==input$version2PopStr )
+        mydata<-as.data.frame(result$data$geno_imp[qas])
       }
       distk <- as.character(input$distk)
       nclust <- input$nclust
@@ -693,27 +691,38 @@ mod_PopStrApp_server <- function(id, data){
         ## Report tab
         output$downloadReportPopStr <- downloadHandler(
           filename = function() {
-            paste(paste0('popStrM_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+            paste(paste0('popStrM_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
               "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
             ))
           },
           content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
             src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
             src2 <- normalizePath('./resultPopStr.RData')
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-            shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
-            shinybusy::remove_modal_spinner()
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
             file.rename(out, file)
+            shinybusy::remove_modal_spinner()
           }
         )
 

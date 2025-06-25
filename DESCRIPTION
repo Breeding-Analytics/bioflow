@@ -79,6 +79,9 @@ Imports:
     utils,
     vcfR,
     digest,
+    paws,
+    callr,
+    ggcorrplot,
     SNPRelate (>= 1.38.1),
     dartR.base
 Suggests: 
