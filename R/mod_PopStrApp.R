@@ -432,21 +432,21 @@ mod_PopStrApp_server <- function(id, data){
       }else{tmpMDS=uno[[5]]}
       newPredMDS=list()
       for ( f in 2:5){
-        newPredMDS[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="MDS", trait=names(tmpMDS)[f], gid=NA, designation=tmpMDS$Gen, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=tmpMDS[,f], stdError=NA, reliability=NA, effectType=NA )
+        newPredMDS[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="MDS", trait=names(tmpMDS)[f], gid=NA, designation=tmpMDS$Gen, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=tmpMDS[,f], stdError=NA, reliability=NA)
         newPredMDS[[f]]$predictedValue<-as.numeric(newPredMDS[[f]]$predictedValue)
       }
       newPredMDS=do.call(rbind,newPredMDS)
 
       newPredGeno=list()
       for ( f in 2:7){
-        newPredGeno[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerGenotype",trait=names(uno[[4]][[5]])[f], gid=NA, designation=uno[[4]][[5]]$Genotype, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[5]][,f], stdError=NA, reliability=NA, effectType=NA )
+        newPredGeno[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerGenotype",trait=names(uno[[4]][[5]])[f], gid=NA, designation=uno[[4]][[5]]$Genotype, mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[5]][,f], stdError=NA, reliability=NA)
         newPredGeno[[f]]$predictedValue<-as.numeric(newPredGeno[[f]]$predictedValue)
       }
       newPredGeno=do.call(rbind,newPredGeno)
 
       newPredMark=list()
       for ( f in 2:8){
-        newPredMark[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerMarker",trait=names(uno[[4]][[4]])[f], gid=NA, designation=rownames(uno[[4]][[4]]), mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[4]][,f], stdError=NA, reliability=NA, effectType=NA )
+        newPredMark[[f]] <- data.frame(module="PopStrM",analysisId=analysisId, pipeline="CalculusPerMarker",trait=names(uno[[4]][[4]])[f], gid=NA, designation=rownames(uno[[4]][[4]]), mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=uno[[4]][[4]][,f], stdError=NA, reliability=NA)
         newPredMark[[f]]$predictedValue<-as.numeric(newPredMark[[f]]$predictedValue)
       }
       newPredMark=do.call(rbind,newPredMark)
@@ -480,7 +480,7 @@ mod_PopStrApp_server <- function(id, data){
       colnames(DistMat3)=uno[[4]][[7]][,2]
       rownames(DistMat3)=uno[[4]][[7]][,2]
       DistMat3=data.frame(rows=rownames(DistMat3)[row(DistMat3)],cols=colnames(DistMat3)[col(DistMat3)],values=c(DistMat3))
-      newPredDist=data.frame(module="PopStrM",analysisId=analysisId, pipeline=NA,trait="DistMat", gid=DistMat3[,1], designation=DistMat3[,2], mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=DistMat3[,3], stdError=NA, reliability=NA, effectType=NA )
+      newPredDist=data.frame(module="PopStrM",analysisId=analysisId, pipeline=NA,trait="DistMat", gid=DistMat3[,1], designation=DistMat3[,2], mother=NA, father=NA, entryType=NA, environment=NA, predictedValue=DistMat3[,3], stdError=NA, reliability=NA)
       newPredDist$predictedValue<-as.numeric(newPredDist$predictedValue)
 
       result$predictions<-rbind(result$predictions,newPredMDS,newPredGeno,newPredMark,newPredDist)
