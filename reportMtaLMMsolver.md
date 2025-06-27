@@ -1,7 +1,7 @@
 ---
 title: "Multi-Trial Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "June 04, 2025"  
+date: "June 26, 2025"  
 output: html_document
 params:
   toDownload: FALSE
@@ -44,7 +44,7 @@ Understanding these data features should allow the scientist to identify which t
 
 The following table aims to make a high-level assessment of the different types of entries included in the analysis across environments.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out910d2cd80aac2d59" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out3df5c3ed02263904" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Metadata: Map of trials planted
 
@@ -64,7 +64,9 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-boxplotMtaPredsType-label" for="mtaLMMsolveApp_1-boxplotMtaPredsType">Effect type</label>
 <div>
-<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="f" selected>f</option>
+<select id="mtaLMMsolveApp_1-boxplotMtaPredsType" class="shiny-input-select"><option value="inbreeding" selected>inbreeding</option>
+<option value="designationD">designationD</option>
+<option value="designationA">designationA</option>
 <option value="designation">designation</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-boxplotMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -88,7 +90,7 @@ The following boxplot allows you to inspect the distribution of adjusted means (
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out5264351f23776e84" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outb28b43ea9d5d7cf7" style="width:100%;height:400px;"></div><!--/html_preserve-->
 </div>
 
 ### Predictions: Connectivity between environments
@@ -124,7 +126,7 @@ The following heatmap and histogram allows you to assess the connectivity (genno
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out0e71f9d7ad7b2889" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outb4801ec2fc8fba70" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
@@ -167,7 +169,9 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsType-label" for="mtaLMMsolveApp_1-scatterMtaPredsType">Effect type:</label>
 <div>
-<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select"><option value="f" selected>f</option>
+<select id="mtaLMMsolveApp_1-scatterMtaPredsType" class="shiny-input-select"><option value="inbreeding" selected>inbreeding</option>
+<option value="designationD">designationD</option>
+<option value="designationA">designationA</option>
 <option value="designation">designation</option></select>
 <script type="application/json" data-for="mtaLMMsolveApp_1-scatterMtaPredsType" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
@@ -195,7 +199,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 <div>
 <div class="form-group shiny-input-container">
 <label class="control-label" id="mtaLMMsolveApp_1-scatterMtaPredsTop-label" for="mtaLMMsolveApp_1-scatterMtaPredsTop">Number of Entries</label>
-<input id="mtaLMMsolveApp_1-scatterMtaPredsTop" type="number" class="shiny-input-number form-control" value="100" min="1"/>
+<input id="mtaLMMsolveApp_1-scatterMtaPredsTop" type="number" class="shiny-input-number form-control" value="100" data-update-on="change" min="1"/>
 </div>
 </div>
 </div>
@@ -203,7 +207,7 @@ In the left-side plot you can observe the comparison between the top 100 entries
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-outc08c1747731b74f4" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out40a4d69edc151c5e" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
@@ -213,7 +217,7 @@ The following table allows you to inspect the trait predictions in wide format t
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outc8a849cbe13fd739" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-outa5bceaac09689d40" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 ### Predictions: Correlations between traits
 
@@ -238,7 +242,7 @@ The following heatmap and histogram allows to see the genetic correlations among
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-out1469803ae0b25c5a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="mtaLMMsolveApp_1-oute2c0e1efcd52005d" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
@@ -261,7 +265,7 @@ No checks found. Skipping percent check comparison.
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out0e33d178cc2390fc" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="mtaLMMsolveApp_1-out0de931511f7f5c97" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### References of methods used
