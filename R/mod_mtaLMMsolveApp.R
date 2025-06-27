@@ -614,9 +614,9 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
       choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
 
-      # If model is A+D, add "f" to choices
+      # If model is A+D, add "inbreeding" to choices
       if (input$radio == "ad_model") {
-        choices <- unique(c("f", choices))
+        choices <- unique(c("inbreeding", choices))
       }
 
 
@@ -639,7 +639,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           if (i == 1) {
             defaultFixed <- "environment"
           } else if (i == 2 && input$radio == "ad_model") {
-            defaultFixed <- "f"
+            defaultFixed <- "inbreeding"
           }
 
           selectInput(
@@ -1312,8 +1312,8 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
           current.predictions <- subset(current.predictions, select = -c(module,analysisId))
 
-          # Move "(Intercept)" and "f" to the top in order
-          effect_order <- c("(Intercept)", "f","environment")
+          # Move "(Intercept)" and "inbreeding" to the top in order
+          effect_order <- c("(Intercept)", "inbreeding","environment")
           current.predictions$effectType <- factor(current.predictions$effectType,
                                                    levels = c(effect_order,
                                                               setdiff(unique(current.predictions$effectType), effect_order)))

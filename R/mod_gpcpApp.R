@@ -311,9 +311,10 @@ mod_gpcpApp_server <- function(id, data){
             ))
           )
         }else{
-          hasMTA       <- any(data()$status$module %in% c("mta", "mtaFlex", "mtaLmms"))
+          hasMTA       <- any(data()$status$module %in% c("mta", "mtaAsr","mtaFlex", "mtaLmms"))
           hasMarkers   <- "qaGeno" %in% data()$status$module
-          hasGPCPslot  <- ("GPCP" %in% names(data())) && !is.null(data()$GPCP)
+          #hasGPCPslot  <- ("GPCP" %in% names(data())) && !is.null(data()$GPCP)
+		  hasGPCPslot   <- !is.null(which(data()$predictions$effectType=="designationA")) && !is.null(which(data()$predictions$effectType=="designationD")) && !is.null(which(data()$predictions$effectType=="inbreeding"))
 
           ## 3. Markers / QA missing -----------------------------------------------
           if (!hasMarkers) {
@@ -732,7 +733,7 @@ mod_gpcpApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtGpcp <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtGpcp$status$module %in% c("mta","mtaFlex","mtaLmms","indexD")) == 0) {
+      if(sum(dtGpcp$status$module %in% c("mta","mtaAsr","mtaFlex","mtaLmms","indexD")) == 0) {
         output$qaQcGpcpInfo <- renderUI({
           if (hideAll$clearAll){
             return()
@@ -745,7 +746,8 @@ mod_gpcpApp_server <- function(id, data){
         })
       }else{
         output$qaQcGpcpInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipeline::gpcp(
+        result <- try(
+		cgiarPipeline::gpcp(
           phenoDTfile= dtGpcp, # analysis to be picked from predictions database
           analysisId=input$version2Gpcp,
           analysisIdgeno = input$version2GpcpGeno,
