@@ -770,8 +770,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       traitNames = input$trait2MtaAsr
       mm = matrix(0,nrow = 4, ncol = length(traitNames));
       rownames(mm) <- c(
-        "asr_gaussian(link = 'identity')", "asr_binomial(link = 'logit')",  "asr_Gamma(link = 'inverse')",
-        "asr_poisson(link = 'log')"
+        "asr_gaussian(link = 'identity',dispersion = 1.0)", "asr_binomial(link = 'logit',dispersion = 1.0)",  "asr_Gamma(link = 'inverse',dispersion = 1.0)",
+        "asr_poisson(link = 'log',dispersion = 1.0)"
       );
       colnames(mm) <- traitNames
       dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
@@ -1102,7 +1102,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         # family distributions input
         myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
         dontHaveDist <- which(is.na(myFamily))
-        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "asr_gaussian(link = 'identity')"}
+        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "asr_gaussian(link = 'identity',dispersion = 1.0)"}
 
         myEnvsTI = apply(x$df,2,function(z){z})
 
