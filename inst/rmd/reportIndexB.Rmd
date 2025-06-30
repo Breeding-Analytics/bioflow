@@ -125,10 +125,11 @@ if (is.null(result)){
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. 
+1. Individual across environment predictions for each trait (input) 
 
-2.
+2. Individual sensitivity values from the Finlay-Wilkinson model (Finlay & Wilkinson, 1963) (input)
 
+3. Weighted sum of BLUP values with user-provided economic weights (output)
 
 ### Across-environment trait table
 
