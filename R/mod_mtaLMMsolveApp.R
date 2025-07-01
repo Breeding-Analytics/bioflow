@@ -898,8 +898,10 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     # reactive table for trait family distributions
     dtDistTrait = reactive({
       traitNames = input$trait2Mta
-      mm = matrix(0,nrow = 5, ncol = length(traitNames));
+      mm = matrix(0,nrow = 10, ncol = length(traitNames));
       rownames(mm) <- c(
+        "quasi(link='identity',variance='constant')","quasi(link='logit',variance='constant')",
+        "quasi(link='inverse',variance='constant')","quasi(link='1/mu^2',variance='constant')","quasi(link='log',variance='constant')",
         "gaussian(link = 'identity')", "binomial(link = 'logit')",  "Gamma(link = 'inverse')",
         "inverse.gaussian(link = '1/mu^2')", "poisson(link = 'log')"
       );
@@ -1241,7 +1243,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         # family distributions input
         myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
         dontHaveDist <- which(is.na(myFamily))
-        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
+        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "quasi(link = 'identity',variance='constant')"}
 
         if(nrow(x$df) > 1){myEnvsTI = apply(x$df,2,function(z){z})}else{myEnvsTI <- x$df}
 
