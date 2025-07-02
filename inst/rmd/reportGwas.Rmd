@@ -119,13 +119,12 @@ if (is.null(result)){
   tableOfTypes <- data.frame(tableOfTypes)
 
   field <- unique(pred.gwas$environment)
-  if(length(field) > 1){mod <- "sta"}else{mod <- "mta"}
+  if(length(field) > 1){mod <- "sta"}else{mod <- "mtaLmms"}
   pred.gwas <- result$predictions
   pred <- pred.gwas[pred.gwas$module == mod,]
   tableOfType <- with(pred, table(trait, environment))
   tableOfType <- data.frame(tableOfType)
   tableOfType <- tableOfType[which(tableOfType$environment %in% field),]
-  
   tableOfTyp <- merge.data.frame(tableOfType, tableOfTypes, by = c("trait", "environment"))
   colnames(tableOfTyp)[3:4] <- c("TGV_tested", "Number of markers")
   
@@ -190,7 +189,10 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mtaLmms"}
+idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+idMarkers <- idMarkers[length(idMarkers)]
+
 
   if("params" %in% ls()){ # we will download the document
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
@@ -224,14 +226,10 @@ Man <- list()
       
     # don.i <- don[don$trait == iTrait,]
     cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-    Markers <- result$data$geno
-    marker_map <- result$metadata$geno
-    marker_map <- marker_map[,c(1:3)]
-    modificationsMarkers <- result$modifications$geno
-    Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-    markers <- Markers[order(rownames(Markers)), ]
-    colnames(marker_map) <- c("SNP", "CHR", "BP")
-    
+    Markers <- result$data$geno_imp[[ as.character(as.integer(idMarkers)) ]]
+    marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
     id <- result$status[which(result$status$module == mod),"analysisId"]
     id <- id[length(id)]
     phenoData <- result$predictions[which(result$predictions$analysisId == id),]
@@ -243,8 +241,8 @@ Man <- list()
       dplyr::filter(!is.na(!!dplyr::sym(iTrait))) %>%
       dplyr::select(c("ID", all_of(iTrait)))
     
-    common_ids <- intersect(rownames(markers), phenoData$ID)
-    markers <- markers[rownames(markers) %in% common_ids, ]
+    common_ids <- intersect(Markers@ind.names, phenoData$ID)
+    markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
     phenoData <- phenoData[phenoData$ID %in% common_ids, ]
     
     ids_to_keep <- colnames(markers)
@@ -273,7 +271,7 @@ Man <- list()
     }
     Meff = sum(corr)
     p_threshold = (1-(1-0.05))/Meff # p-value to use as threshold for significance
-    Man[[iField]] <- manhattanPlot(don, threshold = -log10(p_threshold), field = iField)
+    Man[[iField]] <- cgiarPipeline::manhattanPlot(don, threshold = -log10(p_threshold), field = iField)
   }
   }
 
@@ -336,13 +334,10 @@ Man <- list()
       #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
       
       # don.i <- don[don$trait == inputTrait,]
-      Markers <- result$data$geno
-      marker_map <- result$metadata$geno
-      marker_map <- marker_map[,c(1:3)]
-      modificationsMarkers <- result$modifications$geno
-      Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-      markers <- Markers[order(rownames(Markers)), ]
-      colnames(marker_map) <- c("SNP", "CHR", "BP")
+      Markers <- result$data$geno_imp[[ as.character(as.integer(idMarkers)) ]]
+      marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
 
       id <- result$status[which(result$status$module == mod),"analysisId"]
       id <- id[length(id)]
@@ -354,9 +349,8 @@ Man <- list()
         dplyr::arrange(ID) %>%
         dplyr::filter(!is.na(!!dplyr::sym(inputTrait))) %>%
         dplyr::select(c("ID", all_of(inputTrait)))
-
-      common_ids <- intersect(rownames(markers), phenoData$ID)
-      markers <- markers[rownames(markers) %in% common_ids, ]
+      common_ids <- intersect(Markers@ind.names, phenoData$ID)
+      markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
       phenoData <- phenoData[phenoData$ID %in% common_ids, ]
 
       ids_to_keep <- colnames(markers)
@@ -385,7 +379,7 @@ Man <- list()
       # }
       # Meff = sum(corr)
       p_threshold = 1e-4 # (1-(1-0.05))/Meff # p-value to use as threshold for significance
-      Man[[inputField]] <- manhattanPlot(don, threshold = -log10(p_threshold)) # , field = inputField 
+      Man[[inputField]] <- cgiarPipeline::manhattanPlot(don, threshold = -log10(p_threshold)) # , field = inputField 
       #}
       # plotly::subplot(Man$across, QQ$across, widths = c(0.7, 0.3), nrows = 2) # length(Man)
       # plotly::subplot(M, widths = c(0.7, 0.3), nrows = 2) #
@@ -423,7 +417,7 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mtaLmms"}
 
   if("params" %in% ls()){ # we will download the document
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
@@ -446,13 +440,10 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
       
     # don.i <- don[don$trait == iTrait,]
     cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-    Markers <- result$data$geno
-    marker_map <- result$metadata$geno
-    marker_map <- marker_map[,c(1:3)]
-    modificationsMarkers <- result$modifications$geno
-    Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-    markers <- Markers[order(rownames(Markers)), ]
-    
+    Markers <- result$data$geno_imp[[ as.character(as.integer(idMarkers)) ]]
+    marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
     id <- result$status[which(result$status$module == mod),"analysisId"]
     id <- id[length(id)]
     phenoData <- result$predictions[which(result$predictions$analysisId == id),]
@@ -464,8 +455,8 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
       dplyr::filter(!is.na(!!dplyr::sym(iTrait))) %>%
       dplyr::select(c("ID", all_of(iTrait)))
     
-    common_ids <- intersect(rownames(markers), phenoData$ID)
-    markers <- markers[rownames(markers) %in% common_ids, ]
+    common_ids <- intersect(Markers@ind.names, phenoData$ID)
+    markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
     phenoData <- phenoData[phenoData$ID %in% common_ids, ]
     
     ids_to_keep <- colnames(markers)
@@ -496,13 +487,10 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
       #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
       
       # don.i <- don[don$trait == inputTrait,]
-      Markers <- result$data$geno
-      marker_map <- result$metadata$geno
-      marker_map <- marker_map[,c(1:3)]
-      modificationsMarkers <- result$modifications$geno
-      Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-      markers <- Markers[order(rownames(Markers)), ]
-      
+      Markers <- result$data$geno_imp[[ as.character(as.integer(idMarkers)) ]]
+      marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
       id <- result$status[which(result$status$module == mod),"analysisId"]
       id <- id[length(id)]
       phenoData <- result$predictions[which(result$predictions$analysisId == id),]
@@ -514,8 +502,8 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
         dplyr::filter(!is.na(!!dplyr::sym(inputTrait))) %>%
         dplyr::select(c("ID", all_of(inputTrait)))
 
-      common_ids <- intersect(rownames(markers), phenoData$ID)
-      markers <- markers[rownames(markers) %in% common_ids, ]
+      common_ids <- intersect(Markers@ind.names, phenoData$ID)
+      markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
       phenoData <- phenoData[phenoData$ID %in% common_ids, ]
 
       ids_to_keep <- colnames(markers)

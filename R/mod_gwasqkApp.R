@@ -653,8 +653,8 @@ mod_gwasqkApp_server <- function(id, data){
         # }else{field <- "across"}
 
         mod <- data()$status[which(data()$status$analysisId == input$version2Gwas),"module"]
-        if("sta" %in% mod){field <- input$env2Gwas}else{field <- "across"}
-
+#        if("sta" %in% mod){field <- input$env2Gwas}else{field <- "(Intercept)"}
+        field <- input$env2Gwas
         result <- try(cgiarPipeline::gwas(
           phenoDTfile = dtGwas, # analysis to be picked from predictions database
           analysisId = input$version2Gwas, # analysis ID
@@ -668,7 +668,6 @@ mod_gwasqkApp_server <- function(id, data){
         ),
         silent=TRUE
         )
-
         # }
 
         if(!inherits(result,"try-error")) {
