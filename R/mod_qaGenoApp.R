@@ -419,7 +419,7 @@ mod_qaGenoApp_server <- function(id, data) {
       filter_mods$analysisId <- as.numeric(Sys.time())
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
-      up_analysis_id <- as.character(filter_mods$analysisId[nrow(filter_mods)])
+      up_analysis_id <- as.character(as.integer(filter_mods$analysisId[nrow(filter_mods)]))
       print(glue::glue("Analysis_ID: {up_analysis_id}"))
       results <- data()
 
