@@ -584,68 +584,7 @@ mod_rggApp_server <- function(id, data){
     ##############################################################################################
     ##  actual run
     ## render result of "run" button click
-
-    my_rgg <- ExtendedTask$new(function(input, data) {
-      promises::future_promise({
-
-        ### pseudo code to select top n (e.g., 5) lines per yearOfOrigin #########################
-        # tmp <- data$predictions[data$predictions$module == "mtaLmms" &
-        #                         data$predictions$effectType == "designation", ]
-        #
-        # tmp <- merge(tmp, data$data$pedigree[, c("Geno", "yearOfOrigin")],
-        #              by.x = "designation", by.y = 1)
-        #
-        # top_geno <- tmp %>%
-        #   group_by(yearOfOrigin) %>%
-        #   slice_max(order_by = predictedValue, n = 5) %>%
-        #   select(yearOfOrigin, designation, predictedValue)
-        #
-        # data$predictions <- data$predictions[!(data$predictions$module == "mtaLmms" &
-        #                                        data$predictions$effectType == "designation" &
-        #                                        !(data$predictions$designation %in% top_geno$designation)),]
-        # rm(tmp, top_geno)
-        ##########################################################################################
-
-        # some long process
-        if(input$methodRgg == "piepho"){
-          result <- try(cgiarPipeline::rggPiepho(
-            phenoDTfile= data,
-            analysisId=input$version2Rgg,
-            trait=input$trait2Rgg, # per trait
-            environmentToUse = input$environmentToUse,
-            entryTypeToUse = input$entryTypeToUse,
-            effectTypeToUse = NULL,
-            yearsToUse=input$yearsToUse,
-            sampleN = input$sampleN,
-            bootstrappingN = input$bootstrappingN,
-            verbose=input$verbose,
-            forceRules = input$forceRules
-          ),
-          silent=TRUE
-          )
-        }else if(input$methodRgg == "mackay"){
-          result <- try(cgiarPipeline::rggMackay(
-            phenoDTfile= data,
-            analysisId=input$version2Rgg,
-            trait=input$trait2Rgg, # per trait
-            environmentToUse = "(Intercept)",
-            entryTypeToUse = input$entryTypeToUse,
-            effectTypeToUse = "designation",
-            deregressWeight=input$deregressWeight,
-            partition=input$partition,
-            yearsToUse=input$yearsToUse,
-            verbose=input$verbose,
-            forceRules = input$forceRules,
-            propTopIndsPerYear = input$propTopIndsPerYear
-          ),
-          silent=TRUE
-          )
-        }
-        return(result)
-      }, seed=TRUE)
-    })
-
-    observeEvent(input$runRgg, {
+    outRgg <- eventReactive(input$runRgg, {
       req(data())
       req(input$methodRgg)
       req(input$version2Rgg)
@@ -657,21 +596,53 @@ mod_rggApp_server <- function(id, data){
         req(input$environmentToUse)
       }
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+      dtRgg <- data()
 
-      ui_inputs <- shiny::reactiveValuesToList(input)
-      data_obj  <- data()
+      if(input$methodRgg == "piepho"){
+        result <- try(cgiarPipeline::rggPiepho(
+          phenoDTfile= dtRgg,
+          analysisId=input$version2Rgg,
+          trait=input$trait2Rgg, # per trait
+          environmentToUse = input$environmentToUse,
+          entryTypeToUse = input$entryTypeToUse,
+          effectTypeToUse = NULL,
+          yearsToUse=input$yearsToUse,
+          sampleN = input$sampleN,
+          bootstrappingN = input$bootstrappingN,
+          verbose=input$verbose,
+          forceRules = input$forceRules
+        ),
+        silent=TRUE
+        )
+      }else if(input$methodRgg == "mackay"){
+        result <- try(cgiarPipeline::rggMackay(
+          phenoDTfile= dtRgg,
+          analysisId=input$version2Rgg,
+          trait=input$trait2Rgg, # per trait
+          environmentToUse = "(Intercept)",
+          entryTypeToUse = input$entryTypeToUse,
+          effectTypeToUse = "designation",
+          deregressWeight=input$deregressWeight,
+          partition=input$partition,
+          yearsToUse=input$yearsToUse,
+          verbose=input$verbose,
+          forceRules = input$forceRules,
+          propTopIndsPerYear = input$propTopIndsPerYear
+        ),
+        silent=TRUE
+        )
+      }
 
-      my_rgg$invoke(ui_inputs, data_obj)
-    })
-
-    output$outRgg <- output$outRgg2 <- renderPrint({
-      result <- my_rgg$result()
       shinybusy::remove_modal_spinner()
+
       if(!inherits(result,"try-error")) {
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result) # update data with results
         # save(result, file = "./R/outputs/resultRgg.RData")
         cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+        output$outRgg2 <- renderPrint({
+          cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+        })
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 
         # view metrics
@@ -744,6 +715,9 @@ mod_rggApp_server <- function(id, data){
         )
       }else{
         cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        output$outRgg2 <- renderPrint({
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        })
         output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         output$metricsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
         output$modelingRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
@@ -751,6 +725,9 @@ mod_rggApp_server <- function(id, data){
       hideAll$clearAll <- FALSE
     })
 
+    output$outRgg <- renderPrint({
+      outRgg()
+    })
 
   })
 }
