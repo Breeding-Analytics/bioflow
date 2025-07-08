@@ -23,9 +23,9 @@ mod_gpcpApp_ui <- function(id){
                                             h2(strong("Data Status (wait to be displayed):")),
                                             uiOutput(ns("warningMessage")),
                                             tags$br(),
-                                            # column(width=4, tags$br(),
-                                            #shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                                            # ),
+                                            column(width=4, tags$br(),
+                                            shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                            ),
                                             tags$br(),
                                             img(src = "www/ocs2.png", height = 400, width = 250), # add an image
                                      ),
@@ -350,38 +350,38 @@ mod_gpcpApp_server <- function(id, data){
     })
 
     ## data example loading
-    #observeEvent(
-    #  input$launch,
-    #  if(length(input$launch) > 0){
-    #    if (input$launch) {
-    #      shinyWidgets::ask_confirmation(
-    #        inputId = ns("myconfirmation"),
-    #        text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
-    #        title = "Data replacement warning"
-    #      )
-    #    }
-    #  }
-    #)
-    #observeEvent(input$myconfirmation, {
-    #  if (isTRUE(input$myconfirmation)) {
-    #    shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
-    #    ## replace tables
-    #    tmp <- data()
-    #    data(cgiarBase::create_getData_object())
-    #    utils::data(DT_example, package = "cgiarPipeline")
-    #    if(!is.null(result$data)){tmp$data <- result$data}
-    #    if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
-    #    if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
-    #    if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
-    #    if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
-    #    if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
-    #    if(!is.null(result$status)){tmp$status <- result$status}
-    #    data(tmp) # update data with results
-    #    shinybusy::remove_modal_spinner()
-    #  }else{
-    #    shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
-    #  }
-    #}, ignoreNULL = TRUE)
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        tmp <- data()
+        data(cgiarBase::create_getData_object())
+        utils::data(gpcp_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
     #################
     ## version
     observeEvent(c(data()), {
