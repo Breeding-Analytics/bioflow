@@ -767,7 +767,7 @@ mod_gpcpApp_server <- function(id, data){
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
 
-          save(result, file = "data/resultGpcp.RData")
+          #save(result, file = "data/resultGpcp.RData")
 
           cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
