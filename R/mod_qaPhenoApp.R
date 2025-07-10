@@ -78,16 +78,43 @@ mod_qaPhenoApp_ui <- function(id){
                                                                                  h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
                                                                                  hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                           ),
-                                                                          tags$span(id = ns('holder'),
-                                                                                    column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                                    column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
-                                                                                    column(width=3, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
-                                                                                    column(width=2, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
-                                                                          ),
-                                                                          column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
                                                                           column(width=12,
-                                                                                 DT::DTOutput(ns("modificationsQa")),
-                                                                          )
+                                                                                 tabsetPanel(type = "tabs",
+                                                                                             tabPanel("Boxplot",
+                                                                                                      tags$span(id = ns('holder'),
+                                                                                                                column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                                                                column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
+                                                                                                                column(width=3, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
+                                                                                                                column(width=2, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
+                                                                                                      ),
+                                                                                                      column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut")) ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                                                      column(width=12,
+                                                                                                             DT::DTOutput(ns("modificationsQa")),
+                                                                                                      )),
+                                                                                             tabPanel("Correlations", # icon = icon("magnifying-glass-chart"),
+                                                                                                      br(),
+                                                                                                      column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                                                                             column(width=6, selectInput(ns("correlationTraits"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
+                                                                                                             column(width=6,selectInput(ns("correlationType"),
+                                                                                                                                        label = "Select Correlation Method:",
+                                                                                                                                        choices = c("spearman","pearson","kendall") ))),
+                                                                                                      #column(width=4,numericInput(ns("beta"), label = "Confidence Level",
+                                                                                                      #                             value=0.95, min=0, max=1,
+                                                                                                      #                            step=0.01))),
+                                                                                                      #column(width=4,actionButton("Run_c","Calculate"))),
+                                                                                                      column(width=12, mainPanel(plotly::plotlyOutput(ns("plotCorrelationHeatmap")))),
+                                                                                                      #shiny::plotOutput(ns("plotCorrelationHeatmap")
+
+
+                                                                                                      # column(width=12,
+                                                                                                      #        hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                                                      #        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                                                      #        hr(style = "border-top: 3px solid #4c4c4c;")),
+
+
+                                                                                                      #column(width=12, shiny::DTOutput(ns("data_table")) ),
+                                                                                             ))),
+
                                                       ),
                                              ),
                                              tabPanel(div( icon("dice-two"), "Run analysis" ), # icon = icon("dice-two"),
@@ -109,30 +136,6 @@ mod_qaPhenoApp_ui <- function(id){
                                              ),
                                            ) # end of tabset
                                   ),# end of input panel
-
-                                  tabPanel("Correlations", icon = icon("magnifying-glass-chart"),
-                                           br(),
-                                           column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                  column(width=6, selectInput(ns("correlationTraits"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
-                                                  column(width=6,selectInput(ns("correlationType"),
-                                                                             label = "Select Correlation Method:",
-                                                                             choices = c("spearman","pearson","kendall") ))),
-                                           #column(width=4,numericInput(ns("beta"), label = "Confidence Level",
-                                           #                             value=0.95, min=0, max=1,
-                                           #                            step=0.01))),
-                                           #column(width=4,actionButton("Run_c","Calculate"))),
-                                           column(width=12, mainPanel(plotly::plotlyOutput(ns("plotCorrelationHeatmap")))),
-                                           #shiny::plotOutput(ns("plotCorrelationHeatmap")
-
-
-                                           # column(width=12,
-                                           #        hr(style = "border-top: 3px solid #4c4c4c;"),
-                                           #        h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                           #        hr(style = "border-top: 3px solid #4c4c4c;")),
-
-
-                                           #column(width=12, shiny::DTOutput(ns("data_table")) ),
-                                  ),
 
                                   tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                            tabsetPanel(
@@ -271,7 +274,8 @@ mod_qaPhenoApp_server <- function(id, data){
         mt <- as.matrix(p.mat[,-1])
 
         # Barring the no significant coefficient
-        g<-ggcorrplot::ggcorrplot(matrix, hc.order = TRUE, type = "lower", p.mat = mt,lab=T)
+        g<-ggcorrplot::ggcorrplot(matrix, hc.order = TRUE, type = "lower", p.mat = mt,lab=T,
+                                  colors = c("#038542", "white", "#E46726"))
         plotly::ggplotly(g)
       } else {
         print("Select more than one!")
