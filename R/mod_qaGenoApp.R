@@ -233,7 +233,7 @@ mod_qaGenoApp_server <- function(id, data) {
         if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
         if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
         if(!is.null(result$status)){tmp$status <- result$status}
-        data(tmp) # update data with results
+        data(tmp) # update data with result
         shinybusy::remove_modal_spinner()
       }else{
         shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
@@ -479,41 +479,41 @@ mod_qaGenoApp_server <- function(id, data) {
       filter_mods$analysisId <- as.numeric(Sys.time())
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
-      up_analysis_id <- as.character(as.integer(filter_mods$analysisId[nrow(filter_mods)]))
+      up_analysis_id <- as.character(filter_mods$analysisId[nrow(filter_mods)])
       print(glue::glue("Analysis_ID: {up_analysis_id}"))
-      results <- data()
+      result <- data()
 
       # Filter modifications
-      if(!is.null(results$modifications$geno)){
-         results$modifications$geno <- rbind(results$modifications$geno, filter_mods)
+      if(!is.null(result$modifications$geno)){
+         result$modifications$geno <- rbind(result$modifications$geno, filter_mods)
       } else {
-         results$modifications$geno <- filter_mods
+         result$modifications$geno <- filter_mods
       }
 
       # Imputation modifications
-      if(!is.null(results$modifications$geno_imp)){
-         results$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
+      if(!is.null(result$modifications$geno_imp)){
+         result$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
       } else {
-         results$modifications$geno_imp <- list()
-         results$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
+         result$modifications$geno_imp <- list()
+         result$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
       }
 
       # Output gl object
-      if(!is.null(results$data$geno_imp)){
-         results$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
+      if(!is.null(result$data$geno_imp)){
+         result$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
       } else {
-         results$data$geno_imp <- list()
-         results$data$geno_imp[[up_analysis_id]] = geno_qa_data$imputation_log$gl
+         result$data$geno_imp <- list()
+         result$data$geno_imp[[up_analysis_id]] = geno_qa_data$imputation_log$gl
       }
 
       newStatus <- data.frame(module="qaGeno", analysisId=filter_mods$analysisId[nrow(filter_mods)], analysisIdName=input$analysisIdName)
       print(up_analysis_id)
-      if(!is.null(results$status)){
-        results$status <- rbind(results$status, newStatus)
+      if(!is.null(result$status)){
+        result$status <- rbind(result$status, newStatus)
       }else{
-        results$status <- newStatus
+        result$status <- newStatus
       }
-      data(results)
+      data(result)
       output$outQaMb <- output$outQaMb2 <- renderPrint({
         cat(paste("Modifications to genotype information saved with id:",as.POSIXct(newStatus$analysisId[1], origin="1970-01-01", tz="GMT")))
       })
