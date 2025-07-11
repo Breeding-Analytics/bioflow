@@ -10,19 +10,13 @@ params:
 ```{r setup, include=FALSE}
 
 # knitr R markdown chunk options
-knitr::opts_chunk$set(dependson = knitr::all_labels(),
-echo = FALSE,
-cache = FALSE,
-warning = FALSE,
-message = FALSE,
-comment = NA,
-out.width = "100%",
-error = TRUE)
+knitr::opts_chunk$set(fig.width=12, fig.height=8, echo = FALSE, warning = FALSE, message = FALSE, error = FALSE)
 options(knitr.kable.NA = '')
 
 # loading necessary R packages ####
 ## data manipulation
 library(dplyr)    # %>%, data cleaning functions
+library(tidyr)
 library(magrittr) # coerce col to factors or numeric
 
 ## outputs - graphs, tables
@@ -33,6 +27,9 @@ library(knitr)    # kable
 library(grafify)
 library(data.table)
 library(shiny)
+library(cgiarGenomics)
+library(scales)
+
 ```
 
 ```{r printfxn, include=FALSE}
@@ -41,7 +38,10 @@ library(shiny)
 # for printing tables (data.frames) - DT::datatable()
 printTable <- function(DT, pageLength = 7, 
                          numericColNames = NULL, numRound = 3, 
-                         scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
+                         scrollXOpt = FALSE,
+                       colNames = NULL,
+                       autoWidthOpt = FALSE,
+                       rowids = NULL, ...) {
     
     DT <- data.frame(lapply(X = DT, 
                             FUN = function(x) {
@@ -63,7 +63,7 @@ printTable <- function(DT, pageLength = 7,
                                           lengthMenu = c(7, 14, 21, 28, 35),
                                           scrollX = scrollXOpt),
                            extensions = 'Buttons',
-                           rownames = FALSE,
+                           rownames = rowids,
                            ...)
     if (length(numericColNames) > 0){
       table <- table %>% DT::formatRound(columns = numericColNames,
@@ -74,13 +74,12 @@ printTable <- function(DT, pageLength = 7,
   }
 ```
 
-```{r }
-
+```{r include=FALSE}
 suppressWarnings(tryCatch({
   if(file.exists("./outputs/result.RData")){
-    load("./outputs/resultQaPheno.RData")
+    load("./outputs/resultQaGeno.RData")
   }else{
-    load("resultQaPheno.RData")
+    load("resultQaGeno.RData")
   }
 }, error = function(e) {
   shinyjs::hide()
@@ -88,32 +87,89 @@ suppressWarnings(tryCatch({
 
 ```
 
-
-### Table of modifications
+### Overall Summary
 <p>&nbsp;</p>
 
-The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw genotype data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., multi trial analysis module).
+This table presents a side-by-side comparison of our dataset before and after applying the selected filtering steps, highlighting changes in key metrics: number of loci, number of individuals, overall missingness, mean individual heterozygosity, and mean minor-allele frequency (MAF).
 
-```{r }
+```{r, results='asis'}
 
-if (is.null(result)){
+if(is.null(result)){
   # invisible(NULL)
 } else {
-  modifications <- result$modifications$geno
-  idQa <- result$status[which(result$status$module %in% c("qaGeno")),"analysisId"];
-  idQa <- idQa[length(idQa)]
-  idQaType <- result$status[result$status$analysisId == idQa, "module"]
-  modifications <- modifications[which( modifications$analysisId == idQa & modifications$module == idQaType),]
-  traitsTable <- unique(modifications[which( modifications$analysisId == idQa),"reason"])
+  gl <- result$data$geno
+  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- idMarkers[length(idMarkers)]
+  # Regenerate the final filtered gl
+  modifications <- result$modifications$geno %>% 
+    filter(analysisId == idMarkers)
   
+  r_loc <- modifications$col
+  t_loc <- which(!seq(adegenet::nLoc(gl)) %in% r_loc[!is.na(r_loc)])
+  r_ind <- modifications$row
+  t_ind <- which(!seq(adegenet::nInd(gl)) %in% r_ind[!is.na(r_ind)])
+  fgl <- gl[t_ind, t_loc]
+  fgl <- cgiarGenomics::recalc_metrics(fgl)
   
-  if("params" %in% ls()){ # we will download the document
-    shinyjs::hide()
-  }else{
-    shiny::selectInput(ns("traitQa"), 
-                       label = "Reason for QA:", 
-                       choices = traitsTable, 
+  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  # Get Summaries of original and filtered dataset
+  original <-as.data.frame(cgiarGenomics::get_overall_summary(gl))
+  filtered <- as.data.frame(cgiarGenomics::get_overall_summary(fgl))
+  imputed <- as.data.frame(cgiarGenomics::get_overall_summary(imp_gl))
+  summ <- as.data.frame(rbind(original, filtered, imputed))
+  numeric_cols <- c("nind", "nloc", "ov_miss", "ov_het", "ov_maf")
+  colnames_vars <- c("No. Individuals",
+                "No. Locus",
+                "Overall Missingness (%)",
+                "Average Heterozygosity per Individual (%)",
+                "Average MAF")
+  dataset_names <- c("Original", "Filtered", "Imputed")
+  
+  if("params" %in% ls()){
+    printTable(summ, colNames = colnames_vars,
+               rowids = dataset_names)    
+  } else {
+    DT::renderDT({
+      printTable(summ,
+                 colNames = colnames_vars,
+                 rowids = dataset_names)
+    })
+  }
+}
+
+```
+
+### Variant distribution
+
+```{r}
+if(is.null(result)){
+  # pass
+} else {
+  gl <- result$data$geno
+  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- idMarkers[length(idMarkers)]
+  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  dist_chr_df <- purrr:::map2_df(c(gl, imp_gl), c("Original", "Imputed"),
+                  function(x,y){
+                    geno_map <- data.frame(CHROM = x@chromosome, POS = x@position)
+                    data.frame(chrom = unique(geno_map$CHROM),
+                      snps_count = aggregate(POS ~ CHROM, data = geno_map, FUN = length)[, 2],
+                      max_pos = aggregate(POS ~ CHROM, data = geno_map, FUN = max)[, 2],
+                      dataset = y )
+                  })
+  
+  wide_dist_chr <- dist_chr_df %>% select(-max_pos) %>% 
+    pivot_wider(names_from = dataset,
+      values_from = snps_count
     )
+  colnames <- c("Chromosome", "No. Loci Original", "No. Loci Imputed")
+  if("params" %in% ls()){
+    printTable(wide_dist_chr, colNames = colnames)    
+  } else {
+    DT::renderDT({
+      printTable(wide_dist_chr,
+                 colNames = colnames)
+    })
   }
   
 }
@@ -121,26 +177,94 @@ if (is.null(result)){
 ```
 
 
-```{r, results='asis'}
-if (is.null(result)){
+
+This plot shows the genomic positions of SNPs before (blue) and after (red) imputation, highlighting how the filtering process modify the distribution relative to the original dataset.
+```{r}
+if(is.null(result)){
   # invisible(NULL)
 } else {
-  numericalColumns <- c("value","row") 
-  
-  if("params" %in% ls()){ # we will download the document
-    printTable(modifications, autoWidthOpt = TRUE, scrollXOpt = FALSE,
-             colNames = colnames(modifications),
-           numericColNames = numericalColumns,
-           numRound = 4)
-  }else{
-    DT::renderDT(printTable(modifications[modifications$reason==input$traitQa,],
-                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                        colNames = colnames(modifications[modifications$reason==input$traitQa,]),
-                        numericColNames = numericalColumns,
-                        numRound = 4), server = FALSE)
+  WINDOW_SIZE <- 1e6
+  N_XTICKS <- 5
+  snp_density <- function(df, window_size) {
+  df %>%
+    # 1) Asignar a cada SNP el inicio de su ventana
+    mutate(
+      window_start = floor((position - 1) / window_size) * window_size + 1,
+      window_end   = window_start + window_size - 1
+    ) %>%
+    # 2) Agrupar por cromosoma y ventana
+    group_by(chromosome, window_start, window_end) %>%
+    # 3) Contar SNPs y calcular densidad (SNPs / longitud de ventana)
+    summarise(
+      snp_count = n(),
+      density   = snp_count / window_size,
+      .groups   = "drop"
+    ) %>%
+    arrange(chromosome, window_start)
   }
   
+  gl <- result$data$geno
+  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- idMarkers[length(idMarkers)]
+  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  
+  
+  df_dens <- purrr::map2_df(
+    c(gl, imp_gl),
+    c("Original", "Imputed"),
+    function(x,y){
+      df <- data.frame(chromosome = x@chromosome,
+                       position = x@position)
+      dens <- snp_density(df, WINDOW_SIZE) %>% 
+        mutate(dataset = y,
+               window_mid = floor((window_start + window_end)/2))
+    }
+  )
+  
+   ggplot(df_dens, aes(x = window_mid, y = snp_count, fill = dataset)) +
+    geom_col(position = "identity", alpha = 0.5) +
+    facet_wrap(~ chromosome, ncol = 2) +
+    scale_x_continuous(
+      name   = "Position",
+      breaks = pretty_breaks(n = N_XTICKS),
+      labels = function(x) paste0(as.integer(x / 1e6), " Mb")
+    ) +
+    ylab("SNP density") +
+    theme_bw() +
+    theme(
+      strip.background = element_blank(),
+      strip.text = element_text(face = "bold"),
+      panel.spacing = unit(0.5, "lines")
+    )
 }
+```
+
+### Table of modifications
+<p>&nbsp;</p>
+
+The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw genotype data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., multi trial analysis module).
+
+```{r}
+if(is.null(result)){
+  # invisible(NULL)
+} else {
+  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- idMarkers[length(idMarkers)]
+  
+  if("params" %in% ls()){
+    printTable(result$modifications$geno,
+               colNames = colnames(result$modifications$geno))    
+  } else {
+    DT::renderDT({
+      printTable(result$modifications$geno,
+                 colNames = colnames(result$modifications$geno))
+    })
+  }
+  #mods <- result$modifications$geno[which(result$modifications$geno$analysisId == idMarkers)]
+  
+   
+}
+
 
 ```
 
