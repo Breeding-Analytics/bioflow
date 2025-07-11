@@ -358,6 +358,14 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 ebs_client_id     <- '5qo8e9j6m61bqgbjvudhujpg7'
                 ebs_client_secret <- 'eke3bke2ikcl20955so16lesi7r6sml1mr9qd6ai6abqcpg7ibn'
 
+              } else if (ebs_domain == 'icarda.ebsproject.org') {
+
+                ebs_brapi         <- paste0('https://app-cbbrapi.', ebs_domain)
+                ebs_authorize_url <- 'https://auth.icarda.ebsproject.org/oauth2/authorize'
+                ebs_access_url    <- 'https://auth.icarda.ebsproject.org/oauth2/token'
+                ebs_client_id     <- 'b27e613di2vtmrm3okfhajidl'
+                ebs_client_secret <- '11dj6g7n5eellkmodat0n4qic7tas2iauhrov8d5ksup4suo15kb'
+
               } else {
                 ebs_instance <- sub('(.*-)', '', ebs_instance)
                 ebs_brapi    <- paste0('https://cbbrapi-', ebs_instance, '.', ebs_domain)
@@ -375,6 +383,13 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                   ebs_access_url    <- 'https://auth.ebs.iita.org/oauth2/token'
                   ebs_client_id     <- '2kvos0ijj8q3a6ek2okf431p2i'
                   ebs_client_secret <- '1p1i9ehhuf5fjg2an0qoaau3vb1c5bsmir9ci96rrpobd5mv4iqd'
+
+                } else if (ebs_instance %in% c('dcp')) {
+
+                  ebs_authorize_url <- 'https://auth.ebs.iita.org/oauth2/authorize'
+                  ebs_access_url    <- 'https://auth.ebs.iita.org/oauth2/token'
+                  ebs_client_id     <- 'lo1fpgt1gi2aucf4oj2dbgshu'
+                  ebs_client_secret <- 'k95d36vdaqugvi95augdk2k45omc44p1godm48jko17vqjrcdc0'
 
                 } else if (ebs_instance %in% c('staging', 'wheat', 'maize', 'wee', 'mee', 'ree')) {
 
