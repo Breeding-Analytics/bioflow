@@ -107,6 +107,8 @@ mod_getDataGeno_server <-
     moduleServer(id, function(input, output, session) {
       ns <- session$ns
 
+      library(adegenet)
+
       output$warningMessage <- renderUI(
         if(is.null(data())){
           HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.).")) )
