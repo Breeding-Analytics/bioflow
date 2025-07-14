@@ -467,6 +467,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               if (input$no_auth) {
                 QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1', no_auth = TRUE)
               } else {
+                QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase')
                 QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
               }
             }

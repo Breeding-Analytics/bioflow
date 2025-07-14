@@ -48,7 +48,6 @@ Imports:
     plyr,
     promises,
     psych,
-    QBMS (>= 1.5.0),
     RColorBrewer,
     reshape,
     rhub,
@@ -95,11 +94,12 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2.9000
-Remotes: 
+Remotes:  
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
     Breeding-Analytics/cgiarGenomics,
     reyzaguirre/st4gi,
     covaruber/lme4breeding,
-    zhengxwen/SNPRelate
+    zhengxwen/SNPRelate,
+    icarda/QBMS
