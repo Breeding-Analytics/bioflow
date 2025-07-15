@@ -653,15 +653,15 @@ mod_gwasqkApp_server <- function(id, data){
         # }else{field <- "across"}
 
         mod <- data()$status[which(data()$status$analysisId == input$version2Gwas),"module"]
-#        if("sta" %in% mod){field <- input$env2Gwas}else{field <- "(Intercept)"}
-        field <- input$env2Gwas
+        #if("sta" %in% mod){field <- input$env2Gwas}else{field <- "(Intercept)"}
+
         result <- try(cgiarPipeline::gwas(
           phenoDTfile = dtGwas, # analysis to be picked from predictions database
           analysisId = input$version2Gwas, # analysis ID
           analysisIdForGenoModifications = markerVersionToUse, # marker modifications
           modelGwas = input$modelGwas, # model type
           trait = input$trait2Gwas, # per trait
-          field = field, # per env
+          field = input$env2Gwas, # per env
           # verbose = input$verboseGwas,
           maxIters = 50,
           tolParInv = 1e-4
