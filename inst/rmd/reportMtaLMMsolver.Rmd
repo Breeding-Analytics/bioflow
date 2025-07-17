@@ -159,7 +159,7 @@ if (is.null(result)){
   nameOfChecks <- unique(pred[ which(pred$entryType %in% labelChecks) , "designation"])
   
   idSta <- modeling[which(modeling$trait == "inputObject" & modeling$analysisId == idMta),"value"]
-  envs2 <- unique(result$data$pheno[,result$metadata$pheno[which(result$metadata$pheno$parameter == "environment"), "value"]])
+  envs2 <- gsub("[^[:alnum:]]", "", unique(result$data$pheno[,result$metadata$pheno[which(result$metadata$pheno$parameter == "environment"), "value"]]))
   traits2 <- unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"])
     gxeList <- list("gxeCS" = c("environment_designation", "designation_environment", 
                               "environment:designation", "designation:environment"),
