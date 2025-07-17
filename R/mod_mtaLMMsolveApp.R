@@ -621,7 +621,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
 
       envs <- unique(mydata[,"environment"])
-      envs <- gsub(" ", "",envs )
+      envs <- gsub("[^[:alnum:]]", "", envs)
       envsDg <- paste0("env",envs)
 
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
@@ -674,7 +674,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
       # selected
       envs <- unique(mydata[,"environment"])
-      envs <- gsub(" ", "",envs )
+      envs <- gsub("[^[:alnum:]]", "", envs)
       envsDg <- paste0("env",envs)
       envsDg2 <- paste0(rep("environment",10),"")
       desDg <-rep("designation",length(envsDg))
@@ -746,6 +746,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
       if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD","genoD")}
       envs <- unique(mydata[,"environment"])
+      envs <- gsub("[^[:alnum:]]", "", envs)
       envsDg <- paste0("env",envs)
       if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
       if (input$radio == "cs_model") { # CS model
