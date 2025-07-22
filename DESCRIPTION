@@ -54,6 +54,7 @@ Imports:
     rlang,
     rmdformats,
     roxygen2,
+    rstatix,
     RSpectra,
     shiny (>= 1.7.5),
     shinyAce,
