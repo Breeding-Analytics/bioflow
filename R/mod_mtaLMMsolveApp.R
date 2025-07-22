@@ -130,8 +130,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12,
-                                                             column(width=12,
-                                                                    br(),
+                                                             column(width=8,
                                                                     radioButtons(ns("radio"), label = "Shortcut to popular genetic evaluation models",
                                                                                  choices = list(
                                                                                    "Main effect" = "mn_model",
@@ -149,12 +148,6 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radio"), choice = "mndg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "ad_model", title = "This model includes additve and dominance random effects for the designation. Only use in order to run GPCP in the mate optimization module", placement = "right", trigger = "hover"),
                                                              ),
-                                                      ),
-                                               ),
-                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
-                                                      column(width=12,
-                                                             column(width=4),
-                                                             column(width=4),
                                                              column(width=4,
                                                                     radioButtons(ns("radioModel"), label = "Surrogate of merit",
                                                                                  choices = list(
@@ -168,7 +161,10 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
-                                                             ),),
+                                                             ),
+                                                      ),
+                                               ),
+                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
                                                              column(width=4,
                                                                     numericInput(ns("nTermsFixed"),
@@ -197,7 +193,11 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     uiOutput(ns("leftSidesRandom"))
                                                              ),
                                                              column(width=4,
-                                                                    selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
+                                                                    selectInput(ns("versionMarker2Mta"), label = tags$span("Marker QA version to use",
+                                                                                                                           tags$i(class = "glyphicon glyphicon-info-sign",
+                                                                                                                                  style = "color:#FFFFFF",
+                                                                                                                                  title = "Analysis ID(s) from QA geno modifications that should be combined and used to fit a multi-trial analysis.")),
+                                                                                                                           choices = NULL, multiple = FALSE),
                                                                     uiOutput(ns("rightSidesRandom"))
                                                              ),
                                                       ),
@@ -561,18 +561,21 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
     observeEvent(input$radio, {
       if (input$radio == "ad_model") {
-        updateRadioButtons(inputId = "radioModel",
-                           choices = list("GTGV" = "genoAD_model"),
-                           selected = "genoAD_model")
+        updateRadioButtons(session, inputId = "radioModel",
+                           # choices = list(
+                           #   "GTGV" = "genoAD_model",
+                           # ),
+                           selected = "genoAD_model", inline = TRUE)
       } else {
-        updateRadioButtons(inputId = "radioModel",
-                           choices = list(
-                             "TGV" = "none",
-                             "GTGV" = "genoAD_model",
-                             "EBV" = "pedigree_model",
-                             "GEBV" = "geno_model"
-                           ),
-                           selected = isolate(input$radioModel) %||% "none")
+        updateRadioButtons(session, inputId = "radioModel",
+                           # choices = list(
+                           #   "TGV"="none",
+                           #   "GTGV" = "genoAD_model",
+                           #   "EBV" = "pedigree_model",
+                           #   "GEBV" = "geno_model"
+                           # ),
+                           selected = isolate(input$radioModel) %||% "none",
+                           inline = TRUE)
       }
     })
     #################

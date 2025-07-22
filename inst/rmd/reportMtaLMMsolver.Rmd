@@ -160,13 +160,13 @@ if (is.null(result)){
   
   idSta <- modeling[which(modeling$trait == "inputObject" & modeling$analysisId == idMta),"value"]
   envs2 <- gsub("[^[:alnum:]]", "", unique(result$data$pheno[,result$metadata$pheno[which(result$metadata$pheno$parameter == "environment"), "value"]]))
-  traits2 <- unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"])
+  traits2 <- gsub("[^[:alnum:]]", "", unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"]))
     gxeList <- list("gxeCS" = c("environment_designation", "designation_environment", 
                               "environment:designation", "designation:environment"),
                   "gxeDMD" = c(paste0("env",envs2,"_designation"), paste0("designation_env",envs2),
                                paste0("env",envs2,":designation"), paste0("designation:env",envs2)),
-                  "gxeFW" = c(paste0("value_",traits2,"envIndex_designation"),paste0("designation_value_",traits2,"envIndex"),
-                              paste0("value_",traits2,"envIndex:designation"),paste0("designation:value_",traits2,"envIndex")))
+                  "gxeFW" = c(paste0("value",traits2,"envIndex_designation"),paste0("designation_value",traits2,"envIndex"),
+                              paste0("value",traits2,"envIndex:designation"),paste0("designation:value",traits2,"envIndex")))
   
   gxeModelNum <- 0
   for(i in 1:3){
