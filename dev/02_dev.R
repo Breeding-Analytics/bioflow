@@ -90,6 +90,8 @@
 #
 # usethis::use_package("ggcorrplot")
 #
+# usethis::use_package("rstatix") # used in qaPheno correlation visual aid
+#
 # # added for OFT report
 # usethis::use_package("janitor")
 # usethis::use_package("htmltools")

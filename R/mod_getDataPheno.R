@@ -1048,12 +1048,13 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       if(length(environmentColumn) > 0){ # user has mapped an study column
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
-          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(gsub("[^[:alnum:]]","",x), collapse = "_")} )
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- paste0("env",myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]])
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste0("Columns ",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), " concatenated and pasted in the '",myObject$metadata$pheno[environmentColumn, "value"], "' column"), type = "success")
           # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
         }else if(length(otherEnvironmentColumn) == 1){
-          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- paste0("env",gsub("[^[:alnum:]]","",myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]))
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste0("'",myObject$metadata$pheno[environmentColumn, "value"], "' column is equal to ", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")
           # cat("No additional columns to concatenate to your 'study' column")
@@ -1066,13 +1067,14 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }else{ # user has not mapped an study column, we will add it
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
-          myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(gsub("[^[:alnum:]]","",x), collapse = "_")} )
+          myObject$data$pheno[,"environment"] <- paste0("env",myObject$data$pheno[,"environment"])
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "), type = "success")
           # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
         }else if(length(otherEnvironmentColumn) == 1){
-          myObject$data$pheno[,"environment"] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          myObject$data$pheno[,"environment"] <- paste0("env",gsub("[^[:alnum:]]","",myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]))
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("No additional columns to concatenate. 'environment' column is equal to", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")

@@ -82,7 +82,8 @@ Imports:
     callr,
     ggcorrplot,
     SNPRelate (>= 1.38.1),
-    dartR.base
+    dartR.base,
+    rstatix
 Suggests: 
     knitr,
     rmarkdown,
@@ -95,7 +96,7 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2.9000
-Remotes:  
+Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
