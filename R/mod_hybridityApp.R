@@ -368,7 +368,11 @@ mod_hybridityApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       dtVerif <- data()
-      dtVerif <- dtVerif$data$geno
+      #dtVerif <- dtVerif$data$geno
+      if (class(dtVerif$data$geno)[1] == "genlight") {
+        qas <- which(names(dtVerif$data$geno_imp) == input$version2Mta)
+        dtVerif <- as.data.frame(dtVerif$data$geno_imp[qas])
+      } 
       if(!is.null(dtVerif)){
         traitsVerif <- colnames(dtVerif)
         if(input$checkbox == FALSE){
@@ -382,7 +386,11 @@ mod_hybridityApp_server <- function(id, data){
       req(data())
       req(input$slider1)
       dtVerif <- data()
-      dtVerif <- dtVerif$data$geno
+      #dtVerif <- dtVerif$data$geno
+      if (class(dtVerif$data$geno)[1] == "genlight") {
+        qas <- which(names(dtVerif$data$geno_imp) == input$version2Mta)
+        dtVerif <- as.data.frame(dtVerif$data$geno_imp[qas])
+      } 
       if(!is.null(dtVerif)){
         DT::datatable(dtVerif[,min(c(input$slider1[1], ncol(dtVerif) )):min(c(input$slider1[2], ncol(dtVerif) ))], extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),

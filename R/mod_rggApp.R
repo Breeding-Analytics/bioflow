@@ -283,7 +283,7 @@ mod_rggApp_server <- function(id, data){
       if(input$methodRgg == "piepho"){
         dtRgg <- dtRgg[which(dtRgg$module %in% c("sta")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr","indexD")),]
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")),] #delete indexD from here because doesn't work
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){
