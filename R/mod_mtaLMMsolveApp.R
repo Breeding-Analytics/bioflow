@@ -550,7 +550,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       envs <- unique(dtMta[,"environment"])
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         n2 <- length(envsDg)
       }else if (input$radio == "ad_model") {
@@ -588,7 +588,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       envs <- unique(dtMta[,"environment"])
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       if ( input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "ad_model") {
         n <- 2
       }else if( input$radio == "mndg_model" ){
@@ -624,8 +624,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
 
       envs <- unique(mydata[,"environment"])
-      envs <- gsub("[^[:alnum:]]", "", envs)
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
 
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         lapply(1:input$nTermsFixed, function(i) {
@@ -677,8 +676,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
       # selected
       envs <- unique(mydata[,"environment"])
-      envs <- gsub("[^[:alnum:]]", "", envs)
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       envsDg2 <- paste0(rep("environment",10),"")
       desDg <-rep("designation",length(envsDg))
       if ( input$radio == "cs_model") { # CS model
@@ -749,8 +747,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
       if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD","genoD")}
       envs <- unique(mydata[,"environment"])
-      envs <- gsub("[^[:alnum:]]", "", envs)
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {

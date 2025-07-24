@@ -159,17 +159,14 @@ if (is.null(result)){
   nameOfChecks <- unique(pred[ which(pred$entryType %in% labelChecks) , "designation"])
   
   idSta <- modeling[which(modeling$trait == "inputObject" & modeling$analysisId == idMta),"value"]
-  # envs2 <- gsub("[^[:alnum:]]", "", unique(result$data$pheno[,result$metadata$pheno[which(result$metadata$pheno$parameter == "environment"), "value"]]))
   envs2 <- unique(result$data$pheno[,result$metadata$pheno[which(result$metadata$pheno$parameter == "environment"), "value"]])
-  traits2 <- gsub("[^[:alnum:]]", "", unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"]))
+  traits2 <- unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"])
     gxeList <- list("gxeCS" = c("environment_designation", "designation_environment", 
                               "environment:designation", "designation:environment"),
-                  # "gxeDMD" = c(paste0("env",envs2,"_designation"), paste0("designation_env",envs2),
-                  #              paste0("env",envs2,":designation"), paste0("designation:env",envs2)),
                   "gxeDMD" = c(paste0(envs2,"_designation"), paste0("designation_",envs2),
                                paste0(envs2,":designation"), paste0("designation:",envs2)),
-                  "gxeFW" = c(paste0("value",traits2,"envIndex_designation"),paste0("designation_value",traits2,"envIndex"),
-                              paste0("value",traits2,"envIndex:designation"),paste0("designation:value",traits2,"envIndex")))
+                  "gxeFW" = c(paste0("value_",traits2,"envIndex_designation"),paste0("designation_value_",traits2,"envIndex"),
+                              paste0("value_",traits2,"envIndex:designation"),paste0("designation:value_",traits2,"envIndex")))
   
   gxeModelNum <- 0
   for(i in 1:3){
@@ -179,8 +176,6 @@ if (is.null(result)){
   }
   
   if(gxeModelNum == 2){
-    # effectTypes2 <- setdiff(effectTypes, c(effectTypes[which(effectTypes %in% gxeList[[2]])],
-    #                                        effectTypes[which(effectTypes %in% paste0("env",envs2))]))
     effectTypes2 <- setdiff(effectTypes, c(effectTypes[which(effectTypes %in% gxeList[[2]])],
                                            effectTypes[which(effectTypes %in% envs2)]))
     if(any(grepl(":",effectTypes[which(effectTypes %in% gxeList[[2]])]))){
@@ -271,7 +266,7 @@ if (is.null(result)){
     longitude <- unique(metaWeather[which(metaWeather$parameter %in% c("longitude") ),"value"])
     
     if(length(c(latitude,longitude)) == 2){
-      colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = paste0("value",c(latitude,longitude),"mean") , Replace = c("latitude","longitude"))
+      colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = paste0("value_",c(latitude,longitude),"mean") , Replace = c("latitude","longitude"))
       if("params" %in% ls()){ # we will download the document
         
         world <- ggplot2::map_data("world")
@@ -711,9 +706,6 @@ if (is.null(result)){
         level3 <- NULL
         
         for(i in 1:length(level2)){
-          # level2[[i]][[1]]$designation <- gsub(paste0("env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]])),":"),"",
-          #                                 gsub(paste0(":","env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]]))),"",
-          #                                      row.names(level2[[i]][[1]])))
           level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
                                           gsub(paste0(":",colnames(level2[[i]][[1]])),"",
                                                row.names(level2[[i]][[1]])))
@@ -806,12 +798,8 @@ if (is.null(result)){
         level2 <- lapply(level1, function(x){x[input$traitPredictionsCorrelation]})
         level3 <- NULL
         for(i in 1:length(level2)){
-          # level2[[i]][[1]]$designation <- gsub(paste0("env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]])),":"),"",
-          #                                 gsub(paste0(":","env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]]))),"",
-          #                                      row.names(level2[[i]][[1]])))
           level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
-                                          gsub(paste0(":",colnames(level2[[i]][[1]])),"",
-                                               row.names(level2[[i]][[1]])))
+                                          gsub(paste0(":",colnames(level2[[i]][[1]])),"", row.names(level2[[i]][[1]])))
           if(i == 1){
             level3 <- level2[[i]][[1]]
           } else{
@@ -1122,12 +1110,9 @@ if (is.null(result)){
         level2 <- lapply(level1, function(x){x[iTrait3]})
         level3 <- NULL
         for(i in 1:length(level2)){
-          # level2[[i]][[1]]$designation <- gsub(paste0("env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]])),":"),"",
-          #                                 gsub(paste0(":","env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]]))),"",
-          #                                      row.names(level2[[i]][[1]])))
           level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
-                                          gsub(paste0(":",colnames(level2[[i]][[1]])),"",
-                                               row.names(level2[[i]][[1]])))
+                                               gsub(paste0(":",colnames(level2[[i]][[1]])),"",
+                                                    row.names(level2[[i]][[1]])))
           if(i == 1){
             level3 <- level2[[i]][[1]]
           } else{
@@ -1142,9 +1127,6 @@ if (is.null(result)){
           pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
           rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
           for(i in 1:ncol(pred.mta.biplot)){
-            # rownames(pred.mta.biplot) <- gsub(paste0("env",gsub("[^[:alnum:]]","",colnames(pred.mta.biplot)[i]),":"),"",
-            #                                   gsub(paste0(":","env",gsub("[^[:alnum:]]","",colnames(pred.mta.biplot)[i])),"",
-            #                                        rownames(pred.mta.biplot)))
             rownames(pred.mta.biplot) <- gsub(paste0(colnames(pred.mta.biplot)[i],":"),"",
                                               gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
                                                    rownames(pred.mta.biplot)))
@@ -1198,12 +1180,9 @@ if (is.null(result)){
         level2 <- lapply(level1, function(x){x[input$traitBiplot]})
         level3 <- NULL
         for(i in 1:length(level2)){
-          # level2[[i]][[1]]$designation <- gsub(paste0("env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]])),":"),"",
-          #                                 gsub(paste0(":","env",gsub("[^[:alnum:]]","",colnames(level2[[i]][[1]]))),"",
-          #                                      row.names(level2[[i]][[1]])))
           level2[[i]][[1]]$designation <- gsub(paste0(colnames(level2[[i]][[1]]),":"),"",
-                                          gsub(paste0(":",colnames(level2[[i]][[1]])),"",
-                                               row.names(level2[[i]][[1]])))
+                                               gsub(paste0(":",colnames(level2[[i]][[1]])),"",
+                                                    row.names(level2[[i]][[1]])))
           if(i == 1){
             level3 <- level2[[i]][[1]]
           } else{
@@ -1218,9 +1197,6 @@ if (is.null(result)){
           pred.mta.biplot <- do.call(cbind,level3[names(N)[which(N == N[1])]])
           rownames(pred.mta.biplot) <- rownames(level2[[ which(N == N[1])[1] ]][[1]] )
           for(i in 1:ncol(pred.mta.biplot)){
-            # rownames(pred.mta.biplot) <- gsub(paste0("env",gsub("[^[:alnum:]]","",colnames(pred.mta.biplot)[i]),":"),"",
-            #                                   gsub(paste0(":","env",gsub("[^[:alnum:]]","",colnames(pred.mta.biplot)[i])),"",
-            #                                        rownames(pred.mta.biplot)))
             rownames(pred.mta.biplot) <- gsub(paste0(colnames(pred.mta.biplot)[i],":"),"",
                                               gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
                                                    rownames(pred.mta.biplot)))
