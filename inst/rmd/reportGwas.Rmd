@@ -191,7 +191,7 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
 idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
 idMarkers <- idMarkers[length(idMarkers)]
 
@@ -419,7 +419,7 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
 
   if("params" %in% ls()){ # we will download the document
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
