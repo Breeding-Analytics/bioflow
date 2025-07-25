@@ -472,9 +472,9 @@ mod_qaGenoApp_server <- function(id, data) {
     observeEvent(input$runQaMb,{
       req(geno_qa_data$preview_geno)
       req(geno_qa_data$imputation_log)
+      req(geno_qa_data$filter_log)
       print('identify mods')
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-
       filter_mods <- isolate(geno_qa_data$filter_log)
       filter_mods$analysisId <- as.numeric(Sys.time())
       filter_mods$analysisIdName <- input$analysisIdName
@@ -503,7 +503,7 @@ mod_qaGenoApp_server <- function(id, data) {
          result$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
       } else {
          result$data$geno_imp <- list()
-         result$data$geno_imp[[up_analysis_id]] = geno_qa_data$imputation_log$gl
+         result$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
       }
 
       newStatus <- data.frame(module="qaGeno", analysisId=filter_mods$analysisId[nrow(filter_mods)], analysisIdName=input$analysisIdName)
@@ -589,13 +589,23 @@ mod_qaGenoApp_server <- function(id, data) {
     observeEvent(input$run_imputation, {
       req(geno_qa_data$preview_geno$gl)
       ploidity <- as.numeric(data()$metadata$geno[2,]$value)
-      # Imputation
-      shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotyope matrix...')
-      geno_qa_data$imputation_log <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
-                                           ploidity = ploidity,
-                                           method = input$imputationMethod)
+      if(sum(adegenet::glNA(geno_qa_data$preview_geno$gl)/ploidity) == 0){
+        shinybusy::show_modal_spinner('fading-circle', text = 'No missing data: using the input genotype matrix')
+        imp_dict <- lapply(seq(0,ploidity), function(x){c(NA)})
+        names(imp_dict) <- as.character(seq(0,ploidity))
+        geno_qa_data$imputation_log <- list()
+        geno_qa_data$imputation_log <- list(gl = geno_qa_data$preview_geno$gl, log = imp_dict)
+        Sys.sleep(1)
+        shinybusy::remove_modal_spinner()
+      } else{
+        # Imputation
+        shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotyope matrix...')
+        geno_qa_data$imputation_log <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
+                                                                ploidity = ploidity,
+                                                                method = input$imputationMethod)
 
-      shinybusy::remove_modal_spinner()
+        shinybusy::remove_modal_spinner()
+      }
     })
 
     get_filtering_sequence <- function(filt_seq_df) {
