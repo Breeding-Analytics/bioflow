@@ -1268,7 +1268,7 @@ mod_staApp_server <- function(id,data){
                   ggplot2::theme_minimal()+
                   ggplot2::ylab("") + ggplot2::xlab("") +
                   ggplot2::ggtitle("Field view")  +
-                  ggplot2::facet_wrap(~environment, scales = "free") +
+                  ggplot2::facet_wrap(~environment, scales = "fixed") +
                   ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
                 plotly::ggplotly(pf)
               }
