@@ -369,21 +369,26 @@ mod_masApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       dtMAS <- data()
-      dtMAS <- dtMAS$data$geno
-      if(!is.null(dtMAS)){
-        traitsMAS <- colnames(dtMAS)
+      dtMta <- as.data.frame(data()$data$geno)		
+      if(!is.null(dtMta)){
+		    dtMta <- data()
+		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    traitsMAS <- dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
         updateCheckboxInput(session, "checkbox", value = FALSE)
         updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
       }
+      
     })
 
     observeEvent(input$checkbox,{
       req(data())
       req(input$version2Mta)
       dtMAS <- data()
-      dtMAS <- dtMAS$data$geno
-      if(!is.null(dtMAS)){
-        traitsMAS <- colnames(dtMAS)
+      dtMta <- as.data.frame(data()$data$geno)		
+      if(!is.null(dtMta)){
+		    dtMta <- data()
+		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    traitsMAS <- dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
         if(input$checkbox == FALSE){
           updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
         }else{
@@ -416,10 +421,15 @@ mod_masApp_server <- function(id, data){
     output$genoDT <-  DT::renderDT({
       req(data())
       req(input$slider1)
-      dtMAS <- data()
-      dtMAS <- dtMAS$data$geno
-      if(!is.null(dtMAS)){
-        DT::datatable(dtMAS[,min(c(input$slider1[1], ncol(dtMAS) )):min(c(input$slider1[2], ncol(dtMAS) ))], extensions = 'Buttons',
+      dtMta <- data()
+      dtMta <- as.data.frame(data()$data$geno)		
+      if(!is.null(dtMta)){
+		    dtMta <- data()
+		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    namesput=dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
+		    dtMta <- as.data.frame(dtMta$data$geno_imp[qas])
+		    colnames(dtMta)<-namesput
+        DT::datatable(dtMta[,min(c(input$slider1[1], ncol(dtMta) )):min(c(input$slider1[2], ncol(dtMta) ))], extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                       caption = htmltools::tags$caption(
@@ -439,11 +449,18 @@ mod_masApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$markers2MAS)
       req(input$ploidy)
-      # req(input$scaledIndex)
-      dtMta <- data()
-      markers2MAS <- input$markers2MAS # markers2MAS <- c("Yield_Mg_ha_QTL","Ear_Height_cm") # list(markers2MAS=c("Yield_Mg_ha","Ear_Height_cm"))
-      Markers <- dtMta$data$geno[,input$markers2MAS]
-      X <- dtMta$metadata$geno[input$markers2MAS,]
+
+      markers2MAS <- input$markers2MAS       
+	    dtMta <- as.data.frame(data()$data$geno)		
+      if(!is.null(dtMta)){
+		    dtMta <- data()
+		    X<- dtMta[["data"]][["geno"]]@loc.all
+		    names(X)<-dtMta[["data"]][["geno"]]@loc.names
+		    X<-X[names(X)%in%input$markers2MAS]
+		    X<-strsplit(X,"/")
+		    X<-data.frame(do.call(rbind,X))
+		    colnames(X)<-c("refAllele","altAllele")      
+      }
 
       lapply(1:length(markers2MAS), function(i) {
         sliderInput(
@@ -483,11 +500,9 @@ mod_masApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$markers2MAS)
       req(input$ploidy)
-      dtMta <- data()
-      markers2MAS <- input$markers2MAS # markers2MAS <- c("Yield_Mg_ha_QTL","Ear_Height_cm") # list(markers2MAS=c("Yield_Mg_ha","Ear_Height_cm"))
-      Markers <- dtMta$data$geno[,input$markers2MAS]
-      X <- dtMta$metadata$geno[input$markers2MAS,]
-
+      
+      markers2MAS <- input$markers2MAS 
+      
       lapply(1:length(markers2MAS), function(i) {
         sliderInput(
           inputId=session$ns(paste0('SlideDesiredWeight',i)),
@@ -525,9 +540,16 @@ mod_masApp_server <- function(id, data){
       req(input$markers2MAS)
       req(input$ploidy)
       dtMta <- data()
-      # input <- list(markers2MAS=colnames(dtMta$data$geno)[1:10], ploidy=2)
-      Markers <- dtMta$data$geno[,input$markers2MAS]
-      X <- dtMta$metadata$geno[input$markers2MAS,]
+      qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+      Markers <- as.data.frame(dtMta$data$geno_imp[qas])
+	    colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names    
+      Markers <- Markers[,input$markers2MAS]	  
+	    X<- dtMta[["data"]][["geno"]]@loc.all
+	    names(X)<-dtMta[["data"]][["geno"]]@loc.names
+	    X<-X[names(X)%in%input$markers2MAS]
+	    X<-strsplit(X,"/")
+	    X<-data.frame(do.call(rbind,X))
+      colnames(X)<-c("refAllele","altAllele") q <- vector(mode="numeric",length = length(input$markers2MAS))
       q <- vector(mode="numeric",length = length(input$markers2MAS))
       for(k in 1:ncol(Markers)){
         ttb <- table(0:input$ploidy)-1 # table of zeros for dosages
@@ -565,13 +587,17 @@ mod_masApp_server <- function(id, data){
       ## store the new modifications table
       alleles <- desireAlleleValues() # alleles <- result$metadata$geno[input$markers2MAS,"refAllele"]
       dtMta <- data()
-      X <- dtMta$metadata$geno[input$markers2MAS,]
+      X<- dtMta[["data"]][["geno"]]@loc.all
+	    names(X)<-dtMta[["data"]][["geno"]]@loc.names
+	    X<-X[names(X)%in%input$markers2MAS]
+	    X<-strsplit(X,"/")
+	    X<-data.frame(do.call(rbind,X))
+      colnames(X)<-c("refAllele","altAllele")
+      
       positiveAlleles <- ifelse(alleles == 0, X$altAllele,X$refAllele)
-
       weights <- desireWeightValues()
-
       ui_inputs <- shiny::reactiveValuesToList(input)
-      save(ui_inputs, file="bugmas.RData")
+      #save(ui_inputs, file="bugmas.RData")
       result <- try( cgiarPipeline::markerAssistedSelection(
         object = data() ,
         analysisIdForGenoModifications= input$version2Mta,
