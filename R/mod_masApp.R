@@ -549,8 +549,8 @@ mod_masApp_server <- function(id, data){
 	    X<-X[names(X)%in%input$markers2MAS]
 	    X<-strsplit(X,"/")
 	    X<-data.frame(do.call(rbind,X))
-      colnames(X)<-c("refAllele","altAllele") q <- vector(mode="numeric",length = length(input$markers2MAS))
-      q <- vector(mode="numeric",length = length(input$markers2MAS))
+      	    colnames(X)<-c("refAllele","altAllele") 
+	    q <- vector(mode="numeric",length = length(input$markers2MAS))      
       for(k in 1:ncol(Markers)){
         ttb <- table(0:input$ploidy)-1 # table of zeros for dosages
         tto <- table(Markers[,k])
