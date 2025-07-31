@@ -343,12 +343,12 @@ app_server <- function(input, output, session) {
   ## DATA TRANSFORMATIONS
   mod_traitTransformApp_server("traitTransformApp_1", data = data)
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
-  mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
+  #mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
   mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
 
   ## DATA CONSISTENCY
-  mod_dataConsistApp_server("dataConsistApp_1", data = data)
+  #mod_dataConsistApp_server("dataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
   mod_staApp_server("staApp_1", data = data) # single trial analysis
@@ -372,16 +372,15 @@ app_server <- function(input, output, session) {
   # MUTATION - mutation discovery
   mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
   # MUTATION - mutation history
-  mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
+  #mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
   # GENE FLOW AND DRIFT - frequency-based selection
   mod_masApp_server("masApp_1", data = data) # MAS
-  mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
+  #mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
   # mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
-  # mod_poolFormApp_server("poolFormApp_1")
-  mod_poolFormApp_server("poolFormApp_1") # pool formation
+  # mod_poolFormApp_server("poolFormApp_1") # pool formation
   mod_subsetSelApp_server("subsetSelApp_1") # subset selection
 
   ## SAVE results tab
