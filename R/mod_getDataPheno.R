@@ -210,8 +210,19 @@ mod_getDataPheno_ui <- function(id){
 
                            column(width=12,
                                   tags$div(id = ns('concat_environment_holder'),
-                                           actionButton(ns("concatenateEnv"), div(p(strong('Compute Environment Column', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-                                           selectInput(ns("featuresEnvironment"), "Columns forming environment:", choices = NULL, multiple = TRUE),
+                                           actionButton(ns("concatenateEnv"),
+                                                        tags$span(
+                                                          div(p(strong('Compute Environment Column', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"),
+                                                          tags$i(
+                                                            class = "glyphicon glyphicon-info-sign",
+                                                            style = "color:#000000",
+                                                            title = "Remove non-alphanumeric characters from the selected column values, then concatenate the results with underscore as the separator, and add 'env' as a prefix"
+                                                          )
+                                                        ),
+                                                        icon = icon("play-circle"), style = "height: 45px"),
+                                           selectInput(ns("featuresEnvironment"),
+                                                       label = "Columns forming environment:",
+                                                       choices = NULL, multiple = TRUE),
                                            textOutput(ns("outConcatenateEnv")),
                                   ),
                            ),
