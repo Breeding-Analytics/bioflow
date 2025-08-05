@@ -131,7 +131,15 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12,
                                                              column(width=8,
-                                                                    radioButtons(ns("radio"), label = "Shortcut to popular genetic evaluation models",
+                                                                    radioButtons(ns("radio"),
+                                                                                 label = tags$span(
+                                                                                   "Shortcut to popular genetic evaluation models",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Selecting a popular genetic model sets a default, but if you change the terms, it may no longer match the selected model and will instead follow the terms you specified."
+                                                                                   )
+                                                                                 ),
                                                                                  choices = list(
                                                                                    "Main effect" = "mn_model",
                                                                                    "Compound symmetry" = "cs_model",
@@ -149,7 +157,15 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radio"), choice = "ad_model", title = "This model includes additve and dominance random effects for the designation. Only use in order to run GPCP in the mate optimization module", placement = "right", trigger = "hover"),
                                                              ),
                                                              column(width=4,
-                                                                    radioButtons(ns("radioModel"), label = "Surrogate of merit",
+                                                                    radioButtons(ns("radioModel"),
+                                                                                 label = tags$span(
+                                                                                   "Shortcut to different surrogates of merit",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Selecting a surrogate of merit sets a default covariance structure, but if you change the covariance structure, it may no longer match the selected surrogate of merit and will instead follow the covariance structure you specified."
+                                                                                   )
+                                                                                 ),
                                                                                  choices = list(
                                                                                    "TGV"="none",
                                                                                    "GTGV" = "genoAD_model",
