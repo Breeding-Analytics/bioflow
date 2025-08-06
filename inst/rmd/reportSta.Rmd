@@ -383,19 +383,20 @@ if (is.null(result)){
           minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           pheno$envLabel <- gsub("_", " ", pheno$environment)
-          p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
+          
+          p <- ggplot2::ggplot(data = pheno, ggplot2::aes(col, row, fill = value))+
             ggplot2::geom_tile(color = "white")+
             ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
                                           midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
                                           name=iTrait) +
             ggplot2::theme_minimal()+
             ggplot2::ylab("") + ggplot2::xlab("") +
-            ggplot2::facet_wrap(~envLabel, scales = "free", labeller = labeller(envLabel = label_wrap_gen(width = 20))) +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + ggplot2::theme(panel.spacing = unit(1, 'lines'))
+            ggplot2::facet_wrap(~envLabel, scales = "fixed", labeller = labeller(envLabel = label_wrap_gen(width = 20))) + 
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
+            ggplot2::theme(panel.spacing = unit(1, 'lines'))
           # print(p) # static
           
-          print(htmltools::tagList(plotly::ggplotly(p) %>% layout(autosize = T, height = 800)
-)) # dynamic
+          print(htmltools::tagList(plotly::ggplotly(p) %>% layout(autosize = T, height = 800, margin = list(t = 70)))) # dynamic
           
         }
         
@@ -409,16 +410,17 @@ if (is.null(result)){
           minVal <- min(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           meanVal <- mean(pheno$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
           pheno$envLabel <- gsub("_", " ", pheno$environment)
-          p <- ggplot2::ggplot(data = pheno, ggplot2::aes(row, col, fill = value))+
+          p <- ggplot2::ggplot(data = pheno, ggplot2::aes(col, row, fill = value))+
             ggplot2::geom_tile(color = "white")+
             ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
                                           midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
                                           name=input$traitStaFieldView) +
             ggplot2::theme_minimal()+
             ggplot2::ylab("") + ggplot2::xlab("") +
-            ggplot2::facet_wrap(~envLabel, scales = "free", labeller = labeller(envLabel = label_wrap_gen(width = 20))) +
-            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() ) + ggplot2::theme(panel.spacing = unit(0, 'points'))
-          plotly::ggplotly(p) %>% layout(autosize = T, height = 800)
+            ggplot2::facet_wrap(~envLabel, scales = "fixed", labeller = labeller(envLabel = label_wrap_gen(width = 20))) +
+            ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
+            ggplot2::theme(panel.spacing = unit(0, 'points'))
+          plotly::ggplotly(p) %>% layout(autosize = T, height = 800, margin = list(t = 70))
           
         })
         

@@ -99,8 +99,9 @@ mod_rggApp_ui <- function(id){
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=3, selectInput(ns("yearsToUse"), "Year(s) of origin to use", choices = NULL, multiple = TRUE) ),
-                                                       column(width=3, selectInput(ns("environmentToUse"), "Environment to use", choices = NULL, multiple = FALSE) ),
-                                                       column(width=3, selectInput(ns("effectTypeToUse"), "Effect type(s) to use", choices = NULL, multiple = TRUE) ),
+                                                       tags$span(id = ns('piephoOptions1'),
+                                                                 column(width=3, selectInput(ns("environmentToUse"), "Environment to use", choices = NULL, multiple = TRUE) ),
+                                                       ),
                                                        column(width=3, selectInput(ns("entryTypeToUse"), "Entry type(s) to use", choices = NULL, multiple = TRUE) ),
                                                 ),
                                                 column(width=12),
@@ -126,7 +127,7 @@ mod_rggApp_ui <- function(id){
                                                        column(width=2,
                                                               br(),
                                                               actionButton(ns("runRgg"), "Run analysis", icon = icon("play-circle")),
-                                                              uiOutput(ns("qaQcRggInfo")),
+                                                              # uiOutput(ns("qaQcRggInfo")),
                                                        ),
                                                        column(width=7,
                                                               br(),
@@ -185,7 +186,6 @@ mod_rggApp_ui <- function(id){
 mod_rggApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-
     # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
@@ -199,9 +199,11 @@ mod_rggApp_server <- function(id, data){
         if (input$methodRgg == 'piepho') {
           golem::invoke_js('showid', ns('piephoOptions'))
           golem::invoke_js('hideid', ns('mackayOptions'))
+          golem::invoke_js('showid', ns('piephoOptions1'))
         } else if (input$methodRgg == 'mackay') {
           golem::invoke_js('showid', ns('mackayOptions'))
           golem::invoke_js('hideid', ns('piephoOptions'))
+          golem::invoke_js('hideid', ns('piephoOptions1'))
         }
       }
     )
@@ -223,17 +225,18 @@ mod_rggApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab, compute the 'environment' column, map the 'designation' and at least one trait.")) )
       }else{ # data is there
-        mappedColumns <- setdiff(data()$metadata$pedigree[data()$metadata$pedigree$parameter == "yearOfOrigin","value"],"")
-        # mappedColumns <- length(which(c("yearOfOrigin") %in% colnames(data()$medata$pedigree)))
-        if(length(mappedColumns) == 1){
-          if(any(c("mtaLmms","mta","mtaFlex") %in% data()$status$module)){
+        mappedColName <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
+        pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
+        mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),c(NA,"")))
+        if(mappedColumns > 0){
+          if(any(c("sta","mtaLmms","mta","mtaFlex","mtaAsr") %in% data()$status$module)){
             myYearOfOrigin <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure to map the column 'yearOfOrigin' in the 'Pedigree data' extraction section under the 'Data Retrieval' to perform the realized genetic gain analysis.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single-Trial or Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -280,7 +283,7 @@ mod_rggApp_server <- function(id, data){
       if(input$methodRgg == "piepho"){
         dtRgg <- dtRgg[which(dtRgg$module %in% c("sta")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaLmms","indexD")),]
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")),] #delete indexD from here because doesn't work
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){
@@ -294,8 +297,9 @@ mod_rggApp_server <- function(id, data){
     })
     #################
     ## traits
-    observeEvent(c(data(), input$version2Rgg), {
+    observeEvent(c(data(), input$methodRgg, input$version2Rgg), {
       req(data())
+      req(input$methodRgg)
       req(input$version2Rgg)
       dtRgg <- data()
       dtRgg <- dtRgg$predictions
@@ -314,8 +318,9 @@ mod_rggApp_server <- function(id, data){
     })
     ##############
     ## years
-    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg), {
+    observeEvent(c(data(), input$methodRgg, input$version2Rgg, input$trait2Rgg), {
       req(data())
+      req(input$methodRgg)
       req(input$version2Rgg)
       req(input$trait2Rgg)
       dtRgg <- data()
@@ -327,14 +332,16 @@ mod_rggApp_server <- function(id, data){
         colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
+          dtRgg <- dtRgg[which(dtRgg$trait %in% input$trait2Rgg),]
           traitsRgg <- sort(unique(dtRgg$yearOfOrigin), decreasing = FALSE)
           updateSelectInput(session, "yearsToUse", choices = traitsRgg, selected =traitsRgg )
         }
       }
     })
-    ## environment type
-    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg, input$yearsToUse), {
+    ## environment
+    observeEvent(c(data(), input$methodRgg, input$version2Rgg, input$trait2Rgg, input$yearsToUse), {
       req(data())
+      req(input$methodRgg)
       req(input$version2Rgg)
       req(input$trait2Rgg)
       req(input$yearsToUse)
@@ -348,61 +355,45 @@ mod_rggApp_server <- function(id, data){
         colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
-          dtRgg <- dtRgg[which(dtRgg$trait == input$trait2Rgg),]
-          dtRgg <- dtRgg[which(dtRgg$year == input$yearsToUse),]
-          traitsRgg <- unique(dtRgg$environment)
-          updateSelectInput(session, "environmentToUse", choices = traitsRgg, selected =traitsRgg[1] )
-        }
-      }
-    })
-    ## effect type
-    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg, input$yearsToUse, input$environmentToUse), {
-      req(data())
-      req(input$version2Rgg)
-      req(input$trait2Rgg)
-      req(input$yearsToUse)
-      req(input$environmentToUse)
-      dtRgg <- data()
-      dtRgg <- dtRgg$predictions
-      dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
-      #
-      if(!is.null(data()$data$pedigree)){
-        myYears <- data()$data$pedigree
-        paramsPed <- data()$metadata$pedigree
-        colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
-        if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
-          dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
-          dtRgg <- dtRgg[which(dtRgg$trait == input$trait2Rgg),]
-          dtRgg <- dtRgg[which(dtRgg$year == input$yearsToUse),]
-          dtRgg <- dtRgg[which(dtRgg$environment == input$environmentToUse),]
-          traitsRgg <- unique(dtRgg$effectType)
-          updateSelectInput(session, "effectTypeToUse", choices = traitsRgg, selected =traitsRgg )
+          dtRgg <- dtRgg[which(dtRgg$trait %in% input$trait2Rgg),]
+          dtRgg <- dtRgg[which(dtRgg$year %in% input$yearsToUse),]
+          if(input$methodRgg == "piepho"){
+            traitsRgg <- unique(dtRgg$environment)
+            updateSelectInput(session, "environmentToUse", choices = traitsRgg, selected =traitsRgg)
+          } else{
+            dtRgg <- dtRgg[which(dtRgg$environment %in% "(Intercept)"),]
+            dtRgg <- dtRgg[which(dtRgg$effectType %in% "designation"),]
+            traitsRgg1 <- unique(dtRgg$entryType)
+            updateSelectInput(session, "entryTypeToUse", choices = traitsRgg1, selected =traitsRgg1)
+          }
         }
       }
     })
     ## entry type
-    observeEvent(c(data(), input$version2Rgg, input$trait2Rgg, input$yearsToUse, input$environmentToUse, input$effectTypeToUse), {
+    observeEvent(c(data(), input$methodRgg, input$version2Rgg, input$trait2Rgg, input$yearsToUse, input$environmentToUse), {
       req(data())
+      req(input$methodRgg)
       req(input$version2Rgg)
       req(input$trait2Rgg)
       req(input$yearsToUse)
       req(input$environmentToUse)
-      req(input$effectTypeToUse)
       dtRgg <- data()
-      dtRgg <- dtRgg$predictions#
+      dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
+      #
       if(!is.null(data()$data$pedigree)){
         myYears <- data()$data$pedigree
         paramsPed <- data()$metadata$pedigree
         colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           dtRgg <- merge(dtRgg, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
-          dtRgg <- dtRgg[which(dtRgg$trait == input$trait2Rgg),]
-          dtRgg <- dtRgg[which(dtRgg$year == input$yearsToUse),]
-          dtRgg <- dtRgg[which(dtRgg$environment == input$environmentToUse),]
-          dtRgg <- dtRgg[which(dtRgg$effectType == input$effectTypeToUse),]
-          traitsRgg <- unique(dtRgg$entryType)
-          updateSelectInput(session, "entryTypeToUse", choices = traitsRgg, selected =traitsRgg )
+          dtRgg <- dtRgg[which(dtRgg$trait %in% input$trait2Rgg),]
+          dtRgg <- dtRgg[which(dtRgg$year %in% input$yearsToUse),]
+          if(input$methodRgg == "piepho"){
+            dtRgg <- dtRgg[which(dtRgg$environment %in% input$environmentToUse),]
+            traitsRgg <- unique(dtRgg$entryType)
+            updateSelectInput(session, "entryTypeToUse", choices = traitsRgg, selected =traitsRgg)
+          }
         }
       }
     })
@@ -426,6 +417,7 @@ mod_rggApp_server <- function(id, data){
       req(input$trait3Rgg)
       ##
       mydata <- data()$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Rgg),]
       paramsPheno <- data()$metadata$pheno
       paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
       colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
@@ -439,14 +431,21 @@ mod_rggApp_server <- function(id, data){
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
           mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg),]
-          mydata <- mydata[which(mydata[,"environment"] %in% input$environmentToUse),]
-          mydata <- mydata[which(mydata$effectType %in% input$effectTypeToUse),]
-          mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
+          if(input$methodRgg == "mackay"){
+            mydata <- mydata[which(mydata[,"environment"] %in% "(Intercept)"),]
+            mydata <- mydata[which(mydata$effectType %in% "designation"),]
+          } else{
+            mydata <- mydata[which(mydata[,"environment"] %in% input$environmentToUse),]
+          }
+          if(!is.null(input$entryTypeToUse)){
+            mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
+          }
           mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
-          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=effectType)) +
-            ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
+          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue)) +
+            ggplot2::geom_point(colour= "#e87064") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
             ggplot2::ggtitle("View of current analyses available") + ggplot2::facet_grid(~ entryType)
+
           plotly::ggplotly(res)
         }
 
@@ -455,9 +454,11 @@ mod_rggApp_server <- function(id, data){
     })
     output$plotPredictionsCleanOut2 <- plotly::renderPlotly({ # update plot
       req(data())
+      req(input$version2Rgg)
       req(input$trait3Rgg2)
       ##
       mydata <- data()$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Rgg),]
       paramsPheno <- data()$metadata$pheno
       paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
       colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
@@ -472,17 +473,25 @@ mod_rggApp_server <- function(id, data){
         if( length(which(colnames(myYears) %in% "yearOfOrigin")) > 0){
           mydata <- merge(mydata, myYears[,c("designation","yearOfOrigin")], by="designation", all.x=TRUE)
           mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Rgg2),]
-          mydata <- mydata[which(mydata[,"environment"] %in% input$environmentToUse),]
-          mydata <- mydata[which(mydata$effectType %in% input$effectTypeToUse),]
-          mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
+          if(input$methodRgg == "mackay"){
+            mydata <- mydata[which(mydata[,"environment"] %in% "(Intercept)"),]
+            mydata <- mydata[which(mydata$effectType %in% "designation"),]
+          } else{
+            mydata <- mydata[which(mydata[,"environment"] %in% input$environmentToUse),]
+          }
+          if(!is.null(input$entryTypeToUse)){
+            mydata <- mydata[which(mydata$entryType %in% input$entryTypeToUse),]
+          }
           mydata[, "environment"] <- as.factor(mydata[, "environment"]); mydata[, "designation"] <- as.factor(mydata[, "designation"])
 
           if(length(input$yearsToUse) > 0){
             mydata <- mydata[which(mydata$yearOfOrigin %in% input$yearsToUse),]
           }
-          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue, color=effectType)) +
-            ggplot2::geom_point() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
+
+          res <- ggplot2::ggplot(mydata, ggplot2::aes(x=yearOfOrigin, y=predictedValue)) +
+            ggplot2::geom_point(colour= "#e87064") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) +
             ggplot2::ggtitle("View of current analyses available") + ggplot2::facet_grid(~ entryType)
+
           plotly::ggplotly(res)
         }
 
@@ -575,182 +584,150 @@ mod_rggApp_server <- function(id, data){
     ##############################################################################################
     ##  actual run
     ## render result of "run" button click
-
-    my_rgg <- ExtendedTask$new(function(input, data) {
-      promises::future_promise({
-
-        ### pseudo code to select top n (e.g., 5) lines per yearOfOrigin #########################
-        # tmp <- data$predictions[data$predictions$module == "mtaLmms" &
-        #                         data$predictions$effectType == "designation", ]
-        #
-        # tmp <- merge(tmp, data$data$pedigree[, c("Geno", "yearOfOrigin")],
-        #              by.x = "designation", by.y = 1)
-        #
-        # top_geno <- tmp %>%
-        #   group_by(yearOfOrigin) %>%
-        #   slice_max(order_by = predictedValue, n = 5) %>%
-        #   select(yearOfOrigin, designation, predictedValue)
-        #
-        # data$predictions <- data$predictions[!(data$predictions$module == "mtaLmms" &
-        #                                        data$predictions$effectType == "designation" &
-        #                                        !(data$predictions$designation %in% top_geno$designation)),]
-        # rm(tmp, top_geno)
-        ##########################################################################################
-
-        # some long process
-        if(input$methodRgg == "piepho"){
-          result <- try(cgiarPipeline::rggPiepho(
-            phenoDTfile= data,
-            analysisId=input$version2Rgg,
-            trait=input$trait2Rgg, # per trait
-            entryTypeToUse = input$entryTypeToUse,
-            effectTypeToUse = input$effectTypeToUse,
-            yearsToUse=input$yearsToUse,
-            sampleN = input$sampleN,
-            bootstrappingN = input$bootstrappingN,
-            verbose=input$verbose,
-            forceRules = input$forceRules
-          ),
-          silent=TRUE
-          )
-        }else if(input$methodRgg == "mackay"){
-          result <- try(cgiarPipeline::rggMackay(
-            phenoDTfile= data,
-            analysisId=input$version2Rgg,
-            trait=input$trait2Rgg, # per trait
-            entryTypeToUse = input$entryTypeToUse,
-            effectTypeToUse = input$effectTypeToUse,
-            deregressWeight=input$deregressWeight,
-            partition=input$partition,
-            yearsToUse=input$yearsToUse,
-            verbose=input$verbose,
-            forceRules = input$forceRules,
-            propTopIndsPerYear = input$propTopIndsPerYear
-          ),
-          silent=TRUE
-          )
-        }
-        return(result)
-      })
-    })
-
-    observeEvent(input$runRgg, {
+    outRgg <- eventReactive(input$runRgg, {
       req(data())
       req(input$methodRgg)
       req(input$version2Rgg)
       req(input$trait2Rgg)
-      req(input$yearsToUse)
-      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-
-      ui_inputs <- shiny::reactiveValuesToList(input)
-      data_obj  <- data()
-
-      my_rgg$invoke(ui_inputs, data_obj)
-    })
-
-    output$outRgg <- output$outRgg2 <- renderPrint({
-      # run the modeling, but before test if mta was done
-      if(sum(data()$status$module %in% c("mta","mtaLmms","indexD")) == 0) {
-        output$qaQcRggInfo <- renderUI({
-          if (hideAll$clearAll){
-            return()
-          }else{
-            req(data())
-            HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
-            )
-          }
-        })
-      }else{
-        output$qaQcRggInfo <- renderUI({return(NULL)})
-        result <- my_rgg$result()
-        shinybusy::remove_modal_spinner()
-        if(!inherits(result,"try-error")) {
-          if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
-          data(result) # update data with results
-          # save(result, file = "./R/outputs/resultRgg.RData")
-          cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
-          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-
-          # view metrics
-          output$metricsRgg <-  DT::renderDT({
-            metrics <- result$metrics
-            metrics <- metrics[metrics$module=="rgg",]
-            metrics$analysisId <- as.numeric(metrics$analysisId)
-            metrics <- metrics[!is.na(metrics$analysisId),]
-            current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
-            current.metrics <- subset(current.metrics, select = -c(module,analysisId))
-            numeric.output <- c("value", "stdError")
-            DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
-                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            ), numeric.output)
-          }, server = FALSE)
-          # view modeling
-          output$modelingRgg <-  DT::renderDT({
-            modeling <- result$modeling
-            modeling <- modeling[modeling$module=="rgg",]
-            modeling$analysisId <- as.numeric(modeling$analysisId)
-            modeling <- modeling[!is.na(modeling$analysisId),]
-            current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
-            current.modeling <- subset(current.modeling, select = -c(module,analysisId))
-            DT::datatable(current.modeling, extensions = 'Buttons',
-                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            )
-          }, server = FALSE)
-          ## Report tab
-          output$reportRgg <- renderUI({
-            HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-          })
-
-          output$downloadReportRgg <- downloadHandler(
-            filename = function() {
-              paste(paste0('rgg_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
-                "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
-              ))
-            },
-            content = function(file) {
-              shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-              src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
-              src2 <- normalizePath('data/resultRgg.RData')
-
-              # temporarily switch to the temp dir, in case you do not have write
-              # permission to the current working directory
-              owd <- setwd(tempdir())
-              on.exit(setwd(owd))
-
-              file.copy(src, 'report.Rmd', overwrite = TRUE)
-              file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
-
-              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-                "HTML",
-                HTML = rmdformats::robobook(toc_depth = 4)
-                # HTML = rmarkdown::html_document()
-              ))
-
-              # wait for it to land on disk (safety‐net)
-              wait.time <- 0
-              while (!file.exists(out) && wait.time < 60) {
-                Sys.sleep(1); wait.time <- wait.time + 1
-              }
-
-              file.rename(out, file)
-              shinybusy::remove_modal_spinner()
-            }
-          )
-        }else{
-          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
-          output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
-          output$metricsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
-          output$modelingRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
-        }
-        hideAll$clearAll <- FALSE
-
+      if(input$methodRgg == "mackay"){
+        req(input$yearsToUse)
+      } else{
+        req(input$yearsToUse)
+        req(input$environmentToUse)
       }
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+      dtRgg <- data()
+
+      if(input$methodRgg == "piepho"){
+        result <- try(cgiarPipeline::rggPiepho(
+          phenoDTfile= dtRgg,
+          analysisId=input$version2Rgg,
+          trait=input$trait2Rgg, # per trait
+          environmentToUse = input$environmentToUse,
+          entryTypeToUse = input$entryTypeToUse,
+          effectTypeToUse = NULL,
+          yearsToUse=input$yearsToUse,
+          sampleN = input$sampleN,
+          bootstrappingN = input$bootstrappingN,
+          verbose=input$verbose,
+          forceRules = input$forceRules
+        ),
+        silent=TRUE
+        )
+      }else if(input$methodRgg == "mackay"){
+        result <- try(cgiarPipeline::rggMackay(
+          phenoDTfile= dtRgg,
+          analysisId=input$version2Rgg,
+          trait=input$trait2Rgg, # per trait
+          environmentToUse = "(Intercept)",
+          entryTypeToUse = input$entryTypeToUse,
+          effectTypeToUse = "designation",
+          deregressWeight=input$deregressWeight,
+          partition=input$partition,
+          yearsToUse=input$yearsToUse,
+          verbose=input$verbose,
+          forceRules = input$forceRules,
+          propTopIndsPerYear = input$propTopIndsPerYear
+        ),
+        silent=TRUE
+        )
+      }
+
+      shinybusy::remove_modal_spinner()
+
+      if(!inherits(result,"try-error")) {
+        if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+        data(result) # update data with results
+        # save(result, file = "./R/outputs/resultRgg.RData")
+        cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+        output$outRgg2 <- renderPrint({
+          cat(paste("Realized genetic gain step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+        })
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+
+        # view metrics
+        output$metricsRgg <-  DT::renderDT({
+          metrics <- result$metrics
+          metrics <- metrics[metrics$module=="rgg",]
+          metrics$analysisId <- as.numeric(metrics$analysisId)
+          metrics <- metrics[!is.na(metrics$analysisId),]
+          current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
+          current.metrics <- subset(current.metrics, select = -c(module,analysisId))
+          numeric.output <- c("value", "stdError")
+          DT::formatRound(DT::datatable(current.metrics, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          ), numeric.output)
+        }, server = FALSE)
+        # view modeling
+        output$modelingRgg <-  DT::renderDT({
+          modeling <- result$modeling
+          modeling <- modeling[modeling$module=="rgg",]
+          modeling$analysisId <- as.numeric(modeling$analysisId)
+          modeling <- modeling[!is.na(modeling$analysisId),]
+          current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
+          current.modeling <- subset(current.modeling, select = -c(module,analysisId))
+          DT::datatable(current.modeling, extensions = 'Buttons',
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          )
+        }, server = FALSE)
+        ## Report tab
+        output$reportRgg <- renderUI({
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+        })
+
+        output$downloadReportRgg <- downloadHandler(
+          filename = function() {
+            paste(paste0('rgg_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
+              "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
+            ))
+          },
+          content = function(file) {
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+            src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultRgg.RData')
+
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
+
+            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
+              "HTML",
+              HTML = rmdformats::robobook(toc_depth = 4)
+              # HTML = rmarkdown::html_document()
+            ))
+
+            # wait for it to land on disk (safety‐net)
+            wait.time <- 0
+            while (!file.exists(out) && wait.time < 60) {
+              Sys.sleep(1); wait.time <- wait.time + 1
+            }
+
+            file.rename(out, file)
+            shinybusy::remove_modal_spinner()
+          }
+        )
+      }else{
+        cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        output$outRgg2 <- renderPrint({
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+        })
+        output$predictionsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingRgg <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+      }
+      hideAll$clearAll <- FALSE
     })
 
+    output$outRgg <- renderPrint({
+      outRgg()
+    })
 
   })
 }

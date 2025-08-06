@@ -48,13 +48,13 @@ Imports:
     plyr,
     promises,
     psych,
-    QBMS (>= 1.5.0),
     RColorBrewer,
     reshape,
     rhub,
     rlang,
     rmdformats,
     roxygen2,
+    rstatix,
     RSpectra,
     shiny (>= 1.7.5),
     shinyAce,
@@ -67,7 +67,6 @@ Imports:
     shinyjs,
     shinymanager,
     shinyWidgets,
-    slickR,
     sommer,
     st4gi (>= 3.1.1),
     stats,
@@ -83,7 +82,8 @@ Imports:
     callr,
     ggcorrplot,
     SNPRelate (>= 1.38.1),
-    dartR.base
+    dartR.base,
+    rstatix
 Suggests: 
     knitr,
     rmarkdown,
@@ -103,4 +103,5 @@ Remotes:
     Breeding-Analytics/cgiarGenomics,
     reyzaguirre/st4gi,
     covaruber/lme4breeding,
-    zhengxwen/SNPRelate
+    zhengxwen/SNPRelate,
+    icarda/QBMS

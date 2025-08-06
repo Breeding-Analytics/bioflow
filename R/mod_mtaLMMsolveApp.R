@@ -130,9 +130,16 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12,
-                                                             column(width=12,
-                                                                    br(),
-                                                                    radioButtons(ns("radio"), label = "Shortcut to popular genetic evaluation models",
+                                                             column(width=8,
+                                                                    radioButtons(ns("radio"),
+                                                                                 label = tags$span(
+                                                                                   "Shortcut to popular genetic evaluation models",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Selecting a popular genetic model sets a default, but if you change the terms, it may no longer match the selected model and will instead follow the terms you specified."
+                                                                                   )
+                                                                                 ),
                                                                                  choices = list(
                                                                                    "Main effect" = "mn_model",
                                                                                    "Compound symmetry" = "cs_model",
@@ -149,14 +156,16 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radio"), choice = "mndg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "ad_model", title = "This model includes additve and dominance random effects for the designation. Only use in order to run GPCP in the mate optimization module", placement = "right", trigger = "hover"),
                                                              ),
-                                                      ),
-                                               ),
-                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
-                                                      column(width=12,
-                                                             column(width=4),
-                                                             column(width=4),
                                                              column(width=4,
-                                                                    radioButtons(ns("radioModel"), label = "Surrogate of merit",
+                                                                    radioButtons(ns("radioModel"),
+                                                                                 label = tags$span(
+                                                                                   "Shortcut to different surrogates of merit",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Selecting a surrogate of merit sets a default covariance structure, but if you change the covariance structure, it may no longer match the selected surrogate of merit and will instead follow the covariance structure you specified."
+                                                                                   )
+                                                                                 ),
                                                                                  choices = list(
                                                                                    "TGV"="none",
                                                                                    "GTGV" = "genoAD_model",
@@ -168,7 +177,10 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
-                                                             ),),
+                                                             ),
+                                                      ),
+                                               ),
+                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(width=12,
                                                              column(width=4,
                                                                     numericInput(ns("nTermsFixed"),
@@ -197,7 +209,11 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     uiOutput(ns("leftSidesRandom"))
                                                              ),
                                                              column(width=4,
-                                                                    selectInput(ns("versionMarker2Mta"), "Marker QA version to use", choices = NULL, multiple = FALSE),
+                                                                    selectInput(ns("versionMarker2Mta"), label = tags$span("Marker QA version to use",
+                                                                                                                           tags$i(class = "glyphicon glyphicon-info-sign",
+                                                                                                                                  style = "color:#FFFFFF",
+                                                                                                                                  title = "Analysis ID(s) from QA geno modifications that should be combined and used to fit a multi-trial analysis.")),
+                                                                                                                           choices = NULL, multiple = FALSE),
                                                                     uiOutput(ns("rightSidesRandom"))
                                                              ),
                                                       ),
@@ -550,7 +566,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       envs <- unique(dtMta[,"environment"])
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         n2 <- length(envsDg)
       }else if (input$radio == "ad_model") {
@@ -561,18 +577,21 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
     observeEvent(input$radio, {
       if (input$radio == "ad_model") {
-        updateRadioButtons(inputId = "radioModel",
-                           choices = list("GTGV" = "genoAD_model"),
-                           selected = "genoAD_model")
+        updateRadioButtons(session, inputId = "radioModel",
+                           # choices = list(
+                           #   "GTGV" = "genoAD_model",
+                           # ),
+                           selected = "genoAD_model", inline = TRUE)
       } else {
-        updateRadioButtons(inputId = "radioModel",
-                           choices = list(
-                             "TGV" = "none",
-                             "GTGV" = "genoAD_model",
-                             "EBV" = "pedigree_model",
-                             "GEBV" = "geno_model"
-                           ),
-                           selected = isolate(input$radioModel) %||% "none")
+        updateRadioButtons(session, inputId = "radioModel",
+                           # choices = list(
+                           #   "TGV"="none",
+                           #   "GTGV" = "genoAD_model",
+                           #   "EBV" = "pedigree_model",
+                           #   "GEBV" = "geno_model"
+                           # ),
+                           selected = isolate(input$radioModel) %||% "none",
+                           inline = TRUE)
       }
     })
     #################
@@ -585,7 +604,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       dtMta <- dtMta$predictions
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       envs <- unique(dtMta[,"environment"])
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       if ( input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "ad_model") {
         n <- 2
       }else if( input$radio == "mndg_model" ){
@@ -614,15 +633,14 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
       choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
 
-      # If model is A+D, add "f" to choices
+      # If model is A+D, add "inbreeding" to choices
       if (input$radio == "ad_model") {
-        choices <- unique(c("f", choices))
+        choices <- unique(c("inbreeding", choices))
       }
 
 
       envs <- unique(mydata[,"environment"])
-      envs <- gsub(" ", "",envs )
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
 
       if ( input$radio == "mndg_model" | input$radio == "dg_model") {
         lapply(1:input$nTermsFixed, function(i) {
@@ -639,7 +657,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           if (i == 1) {
             defaultFixed <- "environment"
           } else if (i == 2 && input$radio == "ad_model") {
-            defaultFixed <- "f"
+            defaultFixed <- "inbreeding"
           }
 
           selectInput(
@@ -674,8 +692,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
       # selected
       envs <- unique(mydata[,"environment"])
-      envs <- gsub(" ", "",envs )
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       envsDg2 <- paste0(rep("environment",10),"")
       desDg <-rep("designation",length(envsDg))
       if ( input$radio == "cs_model") { # CS model
@@ -746,7 +763,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
       if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD","genoD")}
       envs <- unique(mydata[,"environment"])
-      envsDg <- paste0("env",envs)
+      envsDg <- envs
       if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {
@@ -898,8 +915,10 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     # reactive table for trait family distributions
     dtDistTrait = reactive({
       traitNames = input$trait2Mta
-      mm = matrix(0,nrow = 5, ncol = length(traitNames));
+      mm = matrix(0,nrow = 10, ncol = length(traitNames));
       rownames(mm) <- c(
+        "quasi(link='identity',variance='constant')","quasi(link='logit',variance='constant')",
+        "quasi(link='inverse',variance='constant')","quasi(link='1/mu^2',variance='constant')","quasi(link='log',variance='constant')",
         "gaussian(link = 'identity')", "binomial(link = 'logit')",  "Gamma(link = 'inverse')",
         "inverse.gaussian(link = '1/mu^2')", "poisson(link = 'log')"
       );
@@ -1241,7 +1260,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         # family distributions input
         myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
         dontHaveDist <- which(is.na(myFamily))
-        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
+        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "quasi(link = 'identity',variance='constant')"}
 
         if(nrow(x$df) > 1){myEnvsTI = apply(x$df,2,function(z){z})}else{myEnvsTI <- x$df}
 
@@ -1312,8 +1331,8 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
           current.predictions <- subset(current.predictions, select = -c(module,analysisId))
 
-          # Move "(Intercept)" and "f" to the top in order
-          effect_order <- c("(Intercept)", "f","environment")
+          # Move "(Intercept)" and "inbreeding" to the top in order
+          effect_order <- c("(Intercept)", "inbreeding","environment")
           current.predictions$effectType <- factor(current.predictions$effectType,
                                                    levels = c(effect_order,
                                                               setdiff(unique(current.predictions$effectType), effect_order)))

@@ -46,7 +46,7 @@ printTable <- function(DT, pageLength = 7,
 ```{r plot_init, include = FALSE}
 # Init Step to make sure that the dependencies are loaded
 htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
-htmltools::tagList(printTable(mtcars))
+#htmltools::tagList(printTable(mtcars))
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -78,7 +78,7 @@ if (is.null(result)){
   idGwas <- idGwas[length(idGwas)]
   pred <- result$predictions # predictions
   # pred <- pred[pred$analysisId == idGwas,]
-  traits <- unique(result$modeling[which(result$modeling$analysisId == idGwas  & result$modeling$environment == "across"),"trait"]) # unique(pred$trait)
+  traits <- unique(result$modeling[which(result$modeling$analysisId == idGwas  & result$modeling$environment != "general"),"trait"])
   modeling <- result$modeling
   # modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
 }
@@ -119,13 +119,14 @@ if (is.null(result)){
   tableOfTypes <- data.frame(tableOfTypes)
 
   field <- unique(pred.gwas$environment)
-  if(length(field) > 1){mod <- "sta"}else{mod <- "mta"}
+  modeling <- result$modeling
+  modeling <- modeling[which(modeling$analysisId == idGwas  & modeling$environment != "general"),]
+  if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
   pred.gwas <- result$predictions
-  pred <- pred.gwas[pred.gwas$module == mod,]
+  pred <- pred.gwas[grep(mod,pred.gwas$module),]
   tableOfType <- with(pred, table(trait, environment))
   tableOfType <- data.frame(tableOfType)
   tableOfType <- tableOfType[which(tableOfType$environment %in% field),]
-  
   tableOfTyp <- merge.data.frame(tableOfType, tableOfTypes, by = c("trait", "environment"))
   colnames(tableOfTyp)[3:4] <- c("TGV_tested", "Number of markers")
   
@@ -190,7 +191,10 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
+idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+idMarkers <- idMarkers[length(idMarkers)]
+
 
   if("params" %in% ls()){ # we will download the document
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
@@ -204,9 +208,9 @@ Man <- list()
       e = -log10(ppoints(length(pred.gwas.i$predictedValue)))
       pred.gwas.i$o <- o
       pred.gwas.i$e <- e
-      QQ[[iField]] <- ggplot2::ggplot(pred.gwas.i, aes(x=e, y=o)) + ggplot2::geom_point() +
+      QQ[[iField]] <- ggplot2::ggplot(pred.gwas.i, ggplot2::aes(x=e, y=o)) + ggplot2::geom_point() +
         ggplot2::geom_abline(intercept = 0, slope = 1, col = "deepskyblue2") + ggplot2::theme_classic() +
-        ggplot2::expand_limits(x=c(0,round(max(o)+1)),y=c(0,round(max(o)+1))) + ggplot2::scale_x_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::scale_y_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::theme(axis.text = element_text(colour = "black"), axis.title = element_text(colour = "black")) + 
+        ggplot2::expand_limits(x=c(0,round(max(o)+1)),y=c(0,round(max(o)+1))) + ggplot2::scale_x_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::scale_y_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::theme(axis.text = ggplot2::element_text(colour = "black"), axis.title = ggplot2::element_text(colour = "black")) + 
         ggpubr::border() +
         ggplot2::labs(x = expression(Expected ~ ~-log[10](italic(p))), y = expression(Observed ~ ~-log[10](italic(p))))
       
@@ -224,15 +228,11 @@ Man <- list()
       
     # don.i <- don[don$trait == iTrait,]
     cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-    Markers <- result$data$geno
-    marker_map <- result$metadata$geno
-    marker_map <- marker_map[,c(1:3)]
-    modificationsMarkers <- result$modifications$geno
-    Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-    markers <- Markers[order(rownames(Markers)), ]
-    colnames(marker_map) <- c("SNP", "CHR", "BP")
-    
-    id <- result$status[which(result$status$module == mod),"analysisId"]
+    Markers <- result$data$geno_imp[[ as.character(idMarkers) ]]
+    marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
+    id <- result$status[which(grepl(mod,result$status$module)),"analysisId"]
     id <- id[length(id)]
     phenoData <- result$predictions[which(result$predictions$analysisId == id),]
     phenoData <- phenoData[which(phenoData$environment == iField),]
@@ -243,8 +243,8 @@ Man <- list()
       dplyr::filter(!is.na(!!dplyr::sym(iTrait))) %>%
       dplyr::select(c("ID", all_of(iTrait)))
     
-    common_ids <- intersect(rownames(markers), phenoData$ID)
-    markers <- markers[rownames(markers) %in% common_ids, ]
+    common_ids <- intersect(Markers@ind.names, phenoData$ID)
+    markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
     phenoData <- phenoData[phenoData$ID %in% common_ids, ]
     
     ids_to_keep <- colnames(markers)
@@ -273,7 +273,7 @@ Man <- list()
     }
     Meff = sum(corr)
     p_threshold = (1-(1-0.05))/Meff # p-value to use as threshold for significance
-    Man[[iField]] <- manhattanPlot(don, threshold = -log10(p_threshold), field = iField)
+    Man[[iField]] <- cgiarPipeline::manhattanPlot(don, threshold = -log10(p_threshold), field = iField)
   }
   }
 
@@ -306,12 +306,12 @@ Man <- list()
       e <- -log10(ppoints(length(pred.gwas.i$predictedValue)))
       pred.gwas.i$o <- o
       pred.gwas.i$e <- e
-      qq <- ggplot2::ggplot(pred.gwas.i, aes(x=e, y=o)) + ggplot2::geom_point() +
+      qq <- ggplot2::ggplot(pred.gwas.i, ggplot2::aes(x=e, y=o)) + ggplot2::geom_point() +
         ggplot2::geom_abline(intercept = 0, slope = 1, col = "deepskyblue2") + ggplot2::theme_classic() +
         # ggplot2::expand_limits(x=c(0,round(max(o)+1)),y=c(0,round(max(o)+1))) + 
         ggplot2::scale_x_continuous(breaks = seq(0,round(max(o)+1))) + ggplot2::scale_y_continuous(breaks = seq(0,round(max(o)+1))) +
         # ggplot2::labs(x = expression(Expected ~ ~-log[10](italic(p))), y = expression(Observed ~ ~-log[10](italic(p)))) +
-        ggplot2::theme(axis.text = element_text(colour = "black"), axis.title = element_text(colour = "black")) + 
+        ggplot2::theme(axis.text = ggplot2::element_text(colour = "black"), axis.title = ggplot2::element_text(colour = "black")) + 
         ggpubr::border() #+
         #ggplot2::labs(x = expression(Expected ~ ~-log[10](italic(p))), y = expression(Observed ~ ~-log[10](italic(p))))
       # QQ$across <- plotly::plotly_build(QQ$across)
@@ -336,15 +336,12 @@ Man <- list()
       #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
       
       # don.i <- don[don$trait == inputTrait,]
-      Markers <- result$data$geno
-      marker_map <- result$metadata$geno
-      marker_map <- marker_map[,c(1:3)]
-      modificationsMarkers <- result$modifications$geno
-      Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-      markers <- Markers[order(rownames(Markers)), ]
-      colnames(marker_map) <- c("SNP", "CHR", "BP")
+      Markers <- result$data$geno_imp[[ as.character(idMarkers) ]]
+      marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
 
-      id <- result$status[which(result$status$module == mod),"analysisId"]
+      id <- result$status[which(grepl(mod,result$status$module)),"analysisId"]
       id <- id[length(id)]
       phenoData <- result$predictions[which(result$predictions$analysisId == id),]
       phenoData <- phenoData[which(phenoData$environment == inputField),]
@@ -354,9 +351,8 @@ Man <- list()
         dplyr::arrange(ID) %>%
         dplyr::filter(!is.na(!!dplyr::sym(inputTrait))) %>%
         dplyr::select(c("ID", all_of(inputTrait)))
-
-      common_ids <- intersect(rownames(markers), phenoData$ID)
-      markers <- markers[rownames(markers) %in% common_ids, ]
+      common_ids <- intersect(Markers@ind.names, phenoData$ID)
+      markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
       phenoData <- phenoData[phenoData$ID %in% common_ids, ]
 
       ids_to_keep <- colnames(markers)
@@ -385,7 +381,7 @@ Man <- list()
       # }
       # Meff = sum(corr)
       p_threshold = 1e-4 # (1-(1-0.05))/Meff # p-value to use as threshold for significance
-      Man[[inputField]] <- manhattanPlot(don, threshold = -log10(p_threshold)) # , field = inputField 
+      Man[[inputField]] <- cgiarPipeline::manhattanPlot(don, threshold = -log10(p_threshold)) # , field = inputField 
       #}
       # plotly::subplot(Man$across, QQ$across, widths = c(0.7, 0.3), nrows = 2) # length(Man)
       # plotly::subplot(M, widths = c(0.7, 0.3), nrows = 2) #
@@ -423,7 +419,7 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
+if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
 
   if("params" %in% ls()){ # we will download the document
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
@@ -446,14 +442,11 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
       
     # don.i <- don[don$trait == iTrait,]
     cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-    Markers <- result$data$geno
-    marker_map <- result$metadata$geno
-    marker_map <- marker_map[,c(1:3)]
-    modificationsMarkers <- result$modifications$geno
-    Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-    markers <- Markers[order(rownames(Markers)), ]
-    
-    id <- result$status[which(result$status$module == mod),"analysisId"]
+    Markers <- result$data$geno_imp[[ as.character(idMarkers) ]]
+    marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
+    id <- result$status[which(grepl(mod,result$status$module)),"analysisId"]
     id <- id[length(id)]
     phenoData <- result$predictions[which(result$predictions$analysisId == id),]
     phenoData <- phenoData[which(phenoData$environment == iField),]
@@ -464,8 +457,8 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
       dplyr::filter(!is.na(!!dplyr::sym(iTrait))) %>%
       dplyr::select(c("ID", all_of(iTrait)))
     
-    common_ids <- intersect(rownames(markers), phenoData$ID)
-    markers <- markers[rownames(markers) %in% common_ids, ]
+    common_ids <- intersect(Markers@ind.names, phenoData$ID)
+    markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
     phenoData <- phenoData[phenoData$ID %in% common_ids, ]
     
     ids_to_keep <- colnames(markers)
@@ -496,14 +489,11 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
       #don$text <- paste("SNP: ", don$SNP, "\nPosition: ", don$BP, "\nChromosome: ", don$CHR, "\n-log10(P) :", -log10(don$P) %>% round(2), sep="")
       
       # don.i <- don[don$trait == inputTrait,]
-      Markers <- result$data$geno
-      marker_map <- result$metadata$geno
-      marker_map <- marker_map[,c(1:3)]
-      modificationsMarkers <- result$modifications$geno
-      Markers <- cgiarBase::applyGenoModifications(M=Markers, modifications=modificationsMarkers)
-      markers <- Markers[order(rownames(Markers)), ]
-      
-      id <- result$status[which(result$status$module == mod),"analysisId"]
+      Markers <- result$data$geno_imp[[ as.character(idMarkers) ]]
+      marker_map <- data.frame(SNP = Markers@loc.names,
+                         CHR = Markers@chromosome,
+                         BP = Markers@position)
+      id <- result$status[which(grepl(mod,result$status$module)),"analysisId"]
       id <- id[length(id)]
       phenoData <- result$predictions[which(result$predictions$analysisId == id),]
       phenoData <- phenoData[which(phenoData$environment == inputField),]
@@ -514,8 +504,8 @@ if(length(fieldManP) > 1){mod <- "sta"}else{mod <- "mta"}
         dplyr::filter(!is.na(!!dplyr::sym(inputTrait))) %>%
         dplyr::select(c("ID", all_of(inputTrait)))
 
-      common_ids <- intersect(rownames(markers), phenoData$ID)
-      markers <- markers[rownames(markers) %in% common_ids, ]
+      common_ids <- intersect(Markers@ind.names, phenoData$ID)
+      markers <- as.matrix(Markers[which(Markers@ind.names %in% common_ids),])
       phenoData <- phenoData[phenoData$ID %in% common_ids, ]
 
       ids_to_keep <- colnames(markers)
@@ -531,13 +521,13 @@ top5matrix <- merge.data.frame(phenoData, top5matrix, by = "ID")
 top5matrix <- reshape2::melt(top5matrix, id.var = c("ID", colnames(top5matrix)[2]), 
                            variable.name = 'topmarkers') 
 
-s <- ggplot2::ggplot(data = top5matrix, aes(x = factor(value), y = top5matrix[,2])) + # [[inputField]]
+s <- ggplot2::ggplot(data = top5matrix, ggplot2::aes(x = factor(value), y = top5matrix[,2])) + # [[inputField]]
   #labs(x = "Genotype", y = "Phenotype") + 
-  theme_bw() + 
-  geom_boxplot(fill='#A4A4A4') + geom_jitter(alpha = .1) +
-  theme(axis.text = element_text(color="black"),
-        axis.title = element_text(color="black", size = 10)) + 
-  ggpubr::border() + ggplot2::labs(x = "Genotype", y = "Phenotype") + facet_grid(. ~ topmarkers, scales='free')
+  ggplot2::theme_bw() + 
+  ggplot2::geom_boxplot(fill='#A4A4A4') + ggplot2::geom_jitter(alpha = .1) +
+  ggplot2::theme(axis.text = ggplot2::element_text(color="black"),
+        axis.title = ggplot2::element_text(color="black", size = 10)) + 
+  ggpubr::border() + ggplot2::labs(x = "Genotype", y = "Phenotype") + ggplot2::facet_grid(. ~ topmarkers, scales='free')
 
 #plotly::plotly_build(s) # p[[inputField]] <- 
 
@@ -567,7 +557,7 @@ if (is.null(result)){
   pred.gwas <- result$predictions
   pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
   traits <- unique(pred.gwas$trait)
-  pred.gwas <- subset(pred.gwas, select = -c(module,analysisId,pipeline,gid,mother,father,entryType))
+  pred.gwas <- subset(pred.gwas, select = -c(module,analysisId,pipeline,gid,mother,father,entryType,effectType))
   pred.gwas.wide <- reshape(
     data=pred.gwas,
     timevar = c("trait"),

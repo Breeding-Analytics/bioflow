@@ -25,7 +25,9 @@ mod_saveData_ui <- function(id){
                                     width   = '200px'
                                   ),
 
-                                  DT::DTOutput(ns("statusTable"))
+                                  DT::DTOutput(ns("statusTable")),
+                                  tags$br(),
+                                  DT::DTOutput(ns('summary_data'))
                            ),
                            column(width = 4,
                                   tags$br(),
@@ -120,7 +122,7 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
       if(!is.null(dtMta$status)){
         status <- dtMta$status; status$analysisId <- as.POSIXct(status$analysisId, origin="1970-01-01", tz="GMT")
         DT::datatable(status, extensions = 'Buttons',
-                      options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                      options = list(dom = 'Blfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                      lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                       caption = htmltools::tags$caption(
                         style = 'color:cadetblue', #caption-side: bottom; text-align: center;
@@ -128,6 +130,21 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
                       )
         )
       }
+    }, server = FALSE)
+
+    ## render data summary
+    output$summary_data <- DT::renderDT({
+      req(data())
+      DT::datatable(cgiarBase::summaryData(data()),
+                    extensions = 'Buttons',
+                    options = list(dom = 'Blfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                   lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
+                    caption = htmltools::tags$caption(
+                      style = 'color:cadetblue', #caption-side: bottom; text-align: center;
+                      htmltools::em('Preview of summary data available in the current data object')
+                    )
+      )
+
     }, server = FALSE)
 
   })

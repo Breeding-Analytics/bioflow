@@ -23,9 +23,9 @@ mod_gpcpApp_ui <- function(id){
                                             h2(strong("Data Status (wait to be displayed):")),
                                             uiOutput(ns("warningMessage")),
                                             tags$br(),
-                                            # column(width=4, tags$br(),
-                                            #shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                                            # ),
+                                            column(width=4, tags$br(),
+                                            shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                            ),
                                             tags$br(),
                                             img(src = "www/ocs2.png", height = 400, width = 250), # add an image
                                      ),
@@ -311,9 +311,10 @@ mod_gpcpApp_server <- function(id, data){
             ))
           )
         }else{
-          hasMTA       <- any(data()$status$module %in% c("mta", "mtaFlex", "mtaLmms"))
+          hasMTA       <- any(data()$status$module %in% c("mta", "mtaAsr","mtaFlex", "mtaLmms"))
           hasMarkers   <- "qaGeno" %in% data()$status$module
-          hasGPCPslot  <- ("GPCP" %in% names(data())) && !is.null(data()$GPCP)
+          #hasGPCPslot  <- ("GPCP" %in% names(data())) && !is.null(data()$GPCP)
+		  hasGPCPslot   <- !is.null(which(data()$predictions$effectType=="designationA")) && !is.null(which(data()$predictions$effectType=="designationD")) && !is.null(which(data()$predictions$effectType=="inbreeding"))
 
           ## 3. Markers / QA missing -----------------------------------------------
           if (!hasMarkers) {
@@ -349,38 +350,38 @@ mod_gpcpApp_server <- function(id, data){
     })
 
     ## data example loading
-    #observeEvent(
-    #  input$launch,
-    #  if(length(input$launch) > 0){
-    #    if (input$launch) {
-    #      shinyWidgets::ask_confirmation(
-    #        inputId = ns("myconfirmation"),
-    #        text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
-    #        title = "Data replacement warning"
-    #      )
-    #    }
-    #  }
-    #)
-    #observeEvent(input$myconfirmation, {
-    #  if (isTRUE(input$myconfirmation)) {
-    #    shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
-    #    ## replace tables
-    #    tmp <- data()
-    #    data(cgiarBase::create_getData_object())
-    #    utils::data(DT_example, package = "cgiarPipeline")
-    #    if(!is.null(result$data)){tmp$data <- result$data}
-    #    if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
-    #    if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
-    #    if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
-    #    if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
-    #    if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
-    #    if(!is.null(result$status)){tmp$status <- result$status}
-    #    data(tmp) # update data with results
-    #    shinybusy::remove_modal_spinner()
-    #  }else{
-    #    shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
-    #  }
-    #}, ignoreNULL = TRUE)
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        tmp <- data()
+        data(cgiarBase::create_getData_object())
+        utils::data(gpcp_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
     #################
     ## version
     observeEvent(c(data()), {
@@ -732,7 +733,7 @@ mod_gpcpApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtGpcp <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtGpcp$status$module %in% c("mta","mtaFlex","mtaLmms","indexD")) == 0) {
+      if(sum(dtGpcp$status$module %in% c("mta","mtaAsr","mtaFlex","mtaLmms","indexD")) == 0) {
         output$qaQcGpcpInfo <- renderUI({
           if (hideAll$clearAll){
             return()
@@ -745,7 +746,8 @@ mod_gpcpApp_server <- function(id, data){
         })
       }else{
         output$qaQcGpcpInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipeline::gpcp(
+        result <- try(
+		cgiarPipeline::gpcp(
           phenoDTfile= dtGpcp, # analysis to be picked from predictions database
           analysisId=input$version2Gpcp,
           analysisIdgeno = input$version2GpcpGeno,
@@ -765,7 +767,7 @@ mod_gpcpApp_server <- function(id, data){
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
 
-          save(result, file = "data/resultGpcp.RData")
+          #save(result, file = "data/resultGpcp.RData")
 
           cat(paste("Optimal cross selection step with id:",as.POSIXct( result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to print this list and do your crossing block."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")

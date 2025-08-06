@@ -1,0 +1,200 @@
+---
+title: "Selection Index Report"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+ toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+# loading necessary R packages ####
+## data manipulation
+# library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(data.table)
+library(shiny)
+```
+
+```{r printfxn, include=FALSE}
+
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, 
+                       scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
+  oldnames <- colnames(DT)
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  colnames(DT) <- oldnames
+  table <- DT::datatable(data = DT, 
+                         colnames = colNames,
+                         filter = "top", 
+                         options = list(autoWidth = autoWidthOpt,
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'csv', 'excel', 'print'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35),
+                                        scrollX = scrollXOpt),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% DT::formatRound(columns = numericColNames,
+                                   digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r, include=FALSE}
+# Init Step to make sure that the dependencies are loaded
+htmltools::tagList(printTable(mtcars))
+htmltools::tagList(ggplotly(ggplot()))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+```
+
+```{r}
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/result.RData")){
+    load("./outputs/resultIndex.RData")
+  }else{
+    load("resultIndex.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  mydata <- result$predictions
+  idIndex <- result$status[which(result$status$module == "indexB"),"analysisId"];
+  idIndex <- idIndex[length(idIndex)]
+  idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
+  mydata <- mydata[which(mydata$analysisId %in% c(idMta,idIndex)),]
+  # envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
+  # mydata <- mydata[which(mydata$environment %in% envsUsed),]
+  mTrait <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"trait"])
+  mTrait <- gsub("_scaled","",mTrait)
+  uTrait <- c(mTrait[which(mTrait %in% unique(mydata$trait))],"baseIndex")
+  mydata <- mydata[which(mydata$trait %in% uTrait),]
+  wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue", "entryType"))], direction = "wide", idvar = c("designation"),
+                         timevar = "trait", v.names = c("predictedValue"), sep= "_")
+  colnames(wide) <- gsub("predictedValue_","",colnames(wide))
+  numeric.output <- colnames(wide)[-c(1:2)]
+  wide <- wide[order(wide$baseIndex,decreasing=TRUE),]
+  wide$Rank <- c(1:sum(!is.na(wide$baseIndex)),rep(NA,sum(is.na(wide$baseIndex))))
+  
+}
+```
+
+### Objectives of a Selection Index
+
+The objective of this dashboard is to help scientist to understand the following points:
+
+1. Individual across environment predictions for each trait (input) 
+
+2. Individual sensitivity values from the Finlay-Wilkinson model (Finlay & Wilkinson, 1963) (input)
+
+3. Weighted sum of BLUP values with user-provided economic weights (output)
+
+### Across-environment trait table
+
+The following table allows you to inspect the across-environment predictions for the different entries (rows) and different traits (columns) that were used as input to calculate the selection index.
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+           colNames = colnames(wide),
+           numericColNames = numeric.output,
+           numRound = 4)
+  }else{
+    
+    DT::renderDT(printTable(wide,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(wide),
+                        numericColNames = numeric.output,
+                        numRound = 4), server = FALSE)
+  }
+  
+}
+```
+
+<p>&nbsp;</p>
+
+### Modeling table
+
+The following table aims to keep record of the corresponding weights for this run.
+
+```{r, results='asis'}
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  modelingTable <- result$modeling
+  modelingTable <- modelingTable[which(modelingTable$analysisId %in% c(idIndex)),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modelingTable, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+           colNames = colnames(modelingTable))
+  }else{
+    
+    DT::renderDT(printTable(modelingTable,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(modelingTable)), server = FALSE)
+  }
+  
+}
+```
+
+### References of methods used
+
+Brim, C. A., Johnson, H. W., & Cockerham, C. C. (1959). Multiple selection criteria in soybeans 1. Agronomy Journal, 51(1), 42-46.
+
+Ceron-Rojas, J. J., & Crossa, J. (2018). Linear selection indices in modern plant breeding (p. 256). Springer Nature.
+
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+<p>&nbsp;</p>
+

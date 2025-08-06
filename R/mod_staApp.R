@@ -1119,7 +1119,9 @@ mod_staApp_server <- function(id,data){
           ### avoid columns mother and father in the pehnotype file
           '%!in%' <- function(x,y)!('%in%'(x,y))
 
-          if(!is.null(dtSta$data$pedigree)){
+          null.pedigree <- as.logical(max(!is.na(c(dtSta$data$pedigree$mother, dtSta$data$pedigree$father))))
+
+          if(null.pedigree){
             paramsPed <- data()$metadata$pedigree
             colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPed$value, Replace = paramsPed$parameter )
             myped <- unique(dtSta$data$pedigree[,c("designation","mother","father")])
@@ -1128,7 +1130,7 @@ mod_staApp_server <- function(id,data){
             mydata <- dtSta$data$pheno
           }
 
-          if(!is.null(dtSta$data$pedigree)){
+          if(null.pedigree){
             m1 <- aggregate(as.formula(paste("designation~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
             m2 <- aggregate(as.formula(paste("mother~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
             m3 <- aggregate(as.formula(paste("father~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
@@ -1266,7 +1268,7 @@ mod_staApp_server <- function(id,data){
                   ggplot2::theme_minimal()+
                   ggplot2::ylab("") + ggplot2::xlab("") +
                   ggplot2::ggtitle("Field view")  +
-                  ggplot2::facet_wrap(~environment, scales = "free") +
+                  ggplot2::facet_wrap(~environment, scales = "fixed") +
                   ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
                 plotly::ggplotly(pf)
               }
