@@ -94,6 +94,14 @@ app_server <- function(input, output, session) {
     valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org")
     decision <- session$clientData$url_hostname %in% valid_domains
 
+    query <- parseQueryString(session$clientData$url_search)
+
+    # check if EBS task id exists, then no need to login
+    if (is.character(query$task) &&
+        is.character(query$domain) &&
+        grepl("^[a-f0-9]{32}$", query$task) &&
+        grepl("^[a-z_0-9\\.\\-]+$", query$domain)) decision <- FALSE
+
     return(decision)
   })
 
