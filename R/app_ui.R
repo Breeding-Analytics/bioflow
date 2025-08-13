@@ -57,7 +57,18 @@ app_ui <- function(request) {
       title=div(img(src="www/cgiarmini.png"), "",style = "color:#FFFFFF"),
 
       navbarMenu("Home", icon = icon("house"),
-                 tabPanel(div( icon("battery"), "Bioflow" ), mod_homeApp_ui("homeApp_1")  ),
+                 tabPanel(div( icon("battery"), "Bioflow" ), mod_homeApp_ui("homeApp_1"), tags$script(HTML("var header = $('.navbar> .container-fluid');
+                               header.append('<div id=\"my-title\">Bioflow 1.0.0 - 2025.08.08</div>');
+                               ")),
+                          tags$style(HTML('.navbar-collapse.collapse {display: inline-block !important;}
+                                   #my-title {
+                                       float:right;
+                                       display: flex;
+                                       color: white;
+                                       align-items: flex-end;
+                                       justify-content: flex-end;
+                                       font-style: italic;
+                                   }'))),
                  tabPanel(tags$a(href="https://cgiar-service-portal-prd.azurewebsites.net/register", div( icon("envelopes-bulk"), "Service Portal (BRI)" ), target="_blank")  ),
                  tabPanel(div(icon("question"), "About us"),
                           tabsetPanel( #widths = c(1, 11),
@@ -67,7 +78,7 @@ app_ui <- function(request) {
                             tabPanel("FAQ", mod_faqUsApp_ui("faqUsApp_1"), icon = icon("question") ),
                           )
                  ),
-                 tabPanel(div(icon("rectangle-list"), "Glossary" ), mod_glossary_ui("glossary_1")  ),
+                 tabPanel(div(icon("rectangle-list"), "Glossary" ), mod_glossary_ui("glossary_1")  )
       ),
 
       navbarMenu("Data Management ", icon = icon("upload"),

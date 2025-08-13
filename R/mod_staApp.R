@@ -868,7 +868,7 @@ mod_staApp_server <- function(id,data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("qaRaw" %in% data()$status$module){
+          if(any(c("qaRaw", "qaMb") %in% data()$status$module)){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis specifying your input parameters under the 'Input' tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -938,7 +938,7 @@ mod_staApp_server <- function(id,data){
       # req(input$genoUnitSta)
       dtSta <- data()
       dtSta <- dtSta$modifications$pheno
-      dtSta <- dtSta[which(dtSta$module %in% "qaRaw"),]
+      dtSta <- dtSta[which(dtSta$module %in% c("qaRaw", "qaMb")),]
       if(nrow(dtSta) > 0){
         dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
         traitsSta <- unique(dtSta$trait)
@@ -1268,7 +1268,7 @@ mod_staApp_server <- function(id,data){
                   ggplot2::theme_minimal()+
                   ggplot2::ylab("") + ggplot2::xlab("") +
                   ggplot2::ggtitle("Field view")  +
-                  ggplot2::facet_wrap(~environment, scales = "fixed") +
+                  ggplot2::facet_wrap(~environment, scales = "free") +
                   ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank() )
                 plotly::ggplotly(pf)
               }
@@ -1321,7 +1321,7 @@ mod_staApp_server <- function(id,data){
       if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
 
       # run the modeling, but before test if qa/qc done
-      if(sum(dtSta$status$module %in% "qaRaw") == 0) {
+      if(sum(dtSta$status$module %in% c("qaRaw", "qaMb")) == 0) {
         output$qaQcStaInfo <- renderUI({
           if (hideAll$clearAll)
             return()
@@ -1360,7 +1360,7 @@ mod_staApp_server <- function(id,data){
       }
       shinybusy::remove_modal_spinner()
 
-      if(sum(dtSta$status$module %in% "qaRaw") != 0) {
+      if(sum(dtSta$status$module %in% c("qaRaw", "qaMb")) != 0) {
 
         output$predictionsSta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
