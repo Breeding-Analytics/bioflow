@@ -87,9 +87,12 @@ app_ui <- function(request) {
                  ),
                  tabPanel(div( icon("floppy-disk"), "Save Data/Results",  ), mod_saveData_ui("saveData_1")  ),
 
-                 tabPanel(strong("DATA QUALITY CHECK"), mod_sectionInfoQAApp_ui("sectionInfoQAApp_1") ),
-                 tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
-                 tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
+                 tabPanel(strong("PHENOTYPE QA/QC"), mod_sectionInfoQAApp_ui("sectionInfoPhenoQAApp_1") ),
+                 tabPanel(div(icon("soap"), "Data consistency (", icon("seedling"),")",style = "color:red"), mod_qaDataConsistApp_ui("qaDataConsistApp_1") ),
+                 tabPanel(div(icon("soap"), "Missingness (", icon("seedling"),")",style = "color:red" ), mod_qaDataMissApp_ui("qaDataMissApp_1") ),
+                 tabPanel(div(icon("soap"), "Experimental Design (", icon("seedling"),")",style = "color:red"), mod_qaDataExpDesignApp_ui("qaDataExpDesignApp_1") ),
+                 tabPanel(strong("GENOTYPE QA/QC"), mod_sectionInfoQAApp_ui("sectionInfoGenoQAApp_1") ),
+                 tabPanel(div(icon("soap"), "Filtering and Imputation (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                  #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                  # tabPanel(div(icon("filter-circle-xmark"), "Data Quality Assurance" ),
                  #          navlistPanel( "Options:", widths = c(1, 11),
@@ -114,9 +117,9 @@ app_ui <- function(request) {
 
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single-Trial Analysis (", icon("seedling"), ")"), value = "staApp_tab",
                           navlistPanel( "Options:", widths = c(1, 11),
-                                        tabPanel(div("Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
-                                        tabPanel(div("Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
-                          )
+                                        tabPanel(div("1) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
+                                        tabPanel(div("2) Single-Trial Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
+                                        )
                  ),
 
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
