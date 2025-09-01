@@ -58,9 +58,11 @@ set_cookie <- function(session, name, value){
 
 future::plan(future::multisession)
 
-options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
+
 users <- readRDS("users.rds")
 app_server <- function(input, output, session) {
+
+  options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
 
   res_auth <- shinymanager::secure_server(
     check_credentials = shinymanager::check_credentials( users  )
@@ -89,8 +91,17 @@ app_server <- function(input, output, session) {
 
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
-    decision <- session$clientData$url_hostname == "bioflow.ebsproject.org"
-    # decision <- TRUE
+    valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org")
+    decision <- session$clientData$url_hostname %in% valid_domains
+
+    query <- parseQueryString(session$clientData$url_search)
+
+    # check if EBS task id exists, then no need to login
+    if (is.character(query$task) &&
+        is.character(query$domain) &&
+        grepl("^[a-f0-9]{32}$", query$task) &&
+        grepl("^[a-z_0-9\\.\\-]+$", query$domain)) decision <- FALSE
+
     return(decision)
   })
 
@@ -99,13 +110,20 @@ app_server <- function(input, output, session) {
 
     is_local <- Sys.getenv("SHINY_PORT") == ""
 
+    # Default values
+    client_id    <- "bioflow_ebs"
+    redirect_uri <- "https://bioflow.ebsproject.org"
+
     # NOTE: check if we run it on localhost!
     if (is_local) {
-      client_id     <- "shiny_local"
-      redirect_uri  <- "http://localhost:1410"
-    } else {
-      client_id     <- "bioflow_ebs"
-      redirect_uri  <- "https://bioflow.ebsproject.org"
+      client_id    <- "shiny_local"
+      redirect_uri <- "http://localhost:1410"
+    } else if (!is.null(session$clientData$url_hostname)) {
+      hostname <- session$clientData$url_hostname
+
+      if (hostname == "bioflow-prd.ebsproject.org") {
+        redirect_uri <- "https://bioflow-prd.ebsproject.org"
+      }
     }
 
     # get the data object to access the user identifier
@@ -265,12 +283,12 @@ app_server <- function(input, output, session) {
   session$onSessionEnded(function() {
     dashboard_key <- "Bioflow@wkH71dJ&qaT"
     req_origin    <- "https://bioflow.ebsproject.org"
+    dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+    valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org")
 
-    if (session$userData$url_hostname == "bioflow.ebsproject.org") {
-      dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+    if (session$userData$url_hostname %in% valid_domains) {
       user_email    <- session$userData$temp$user
     } else {
-      dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
       user_email    <- "offline"
     }
 
@@ -341,12 +359,12 @@ app_server <- function(input, output, session) {
   ## DATA TRANSFORMATIONS
   mod_traitTransformApp_server("traitTransformApp_1", data = data)
   mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
-  mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
+  #mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
   mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
 
   ## DATA CONSISTENCY
-  mod_dataConsistApp_server("dataConsistApp_1", data = data)
+  #mod_dataConsistApp_server("dataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
   mod_staApp_server("staApp_1", data = data) # single trial analysis
@@ -370,16 +388,15 @@ app_server <- function(input, output, session) {
   # MUTATION - mutation discovery
   mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
   # MUTATION - mutation history
-  mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
+  #mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
   # GENE FLOW AND DRIFT - frequency-based selection
   mod_masApp_server("masApp_1", data = data) # MAS
-  mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
+  #mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
   # mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
-  # mod_poolFormApp_server("poolFormApp_1")
-  mod_poolFormApp_server("poolFormApp_1") # pool formation
+  # mod_poolFormApp_server("poolFormApp_1") # pool formation
   mod_subsetSelApp_server("subsetSelApp_1") # subset selection
 
   ## SAVE results tab

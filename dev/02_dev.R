@@ -75,6 +75,7 @@
 #
 # usethis::use_package("paws")
 # usethis::use_package("QBMS")
+# usethis::use_dev_package("QBMS", type = "Imports", remote = "icarda/QBMS")
 # usethis::use_package("vcfR")
 # usethis::use_package("callr")
 # usethis::use_package("future")
@@ -88,6 +89,8 @@
 # usethis::use_package( "shinymanager" )
 #
 # usethis::use_package("ggcorrplot")
+#
+# usethis::use_package("rstatix") # used in qaPheno correlation visual aid
 #
 # # added for OFT report
 # usethis::use_package("janitor")

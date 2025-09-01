@@ -57,7 +57,18 @@ app_ui <- function(request) {
       title=div(img(src="www/cgiarmini.png"), "",style = "color:#FFFFFF"),
 
       navbarMenu("Home", icon = icon("house"),
-                 tabPanel(div( icon("battery"), "Bioflow" ), mod_homeApp_ui("homeApp_1")  ),
+                 tabPanel(div( icon("battery"), "Bioflow" ), mod_homeApp_ui("homeApp_1"), tags$script(HTML("var header = $('.navbar> .container-fluid');
+                               header.append('<div id=\"my-title\">Bioflow 1.0.0 - 2025.08.08</div>');
+                               ")),
+                          tags$style(HTML('.navbar-collapse.collapse {display: inline-block !important;}
+                                   #my-title {
+                                       float:right;
+                                       display: flex;
+                                       color: white;
+                                       align-items: flex-end;
+                                       justify-content: flex-end;
+                                       font-style: italic;
+                                   }'))),
                  tabPanel(tags$a(href="https://cgiar-service-portal-prd.azurewebsites.net/register", div( icon("envelopes-bulk"), "Service Portal (BRI)" ), target="_blank")  ),
                  tabPanel(div(icon("question"), "About us"),
                           tabsetPanel( #widths = c(1, 11),
@@ -67,7 +78,7 @@ app_ui <- function(request) {
                             tabPanel("FAQ", mod_faqUsApp_ui("faqUsApp_1"), icon = icon("question") ),
                           )
                  ),
-                 tabPanel(div(icon("rectangle-list"), "Glossary" ), mod_glossary_ui("glossary_1")  ),
+                 tabPanel(div(icon("rectangle-list"), "Glossary" ), mod_glossary_ui("glossary_1")  )
       ),
 
       navbarMenu("Data Management ", icon = icon("upload"),
@@ -97,12 +108,12 @@ app_ui <- function(request) {
                  # ),
                  tabPanel(strong("DATA TRANSFORMATIONS"),  mod_sectionInfoTransformApp_ui("sectionInfoTransformApp_1") ),
                  tabPanel(div(icon("arrows-split-up-and-left"), "Trait Transformations (", icon("seedling"), ")" ),  mod_traitTransformApp_ui("traitTransformApp_1") ),
-                 tabPanel(div(icon("arrows-split-up-and-left"), "Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
+                 #tabPanel(div(icon("arrows-split-up-and-left"), "Single-Cross Markers (", icon("dna"), ")" ), mod_singleCrossGenoApp_ui("singleCrossGenoApp_1")  ),
 
                  tabPanel(strong("DATA FILTERING"),  mod_sectionInfoQAApp_ui("sectionInfoQAApp_1")),
                  tabPanel(div(icon("filter-circle-xmark"), "Trial Filtering (", icon("seedling"), ")" ),mod_filterPhenoApp_ui("filterPhenoApp_1") ),
                  tabPanel(div(icon("filter-circle-xmark"), "Design Filtering (", icon("seedling"), ")" ), mod_expDesignEditApp_ui("expDesignEditApp_1")  ),
-                 tabPanel(div(icon("filter-circle-xmark"), "Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistApp_ui("dataConsistApp_1") ),
+                 #tabPanel(div(icon("filter-circle-xmark"), "Consistency Filtering (", icon("seedling"), ")" ), mod_dataConsistApp_ui("dataConsistApp_1") ),
 
 
       ),
@@ -121,10 +132,10 @@ app_ui <- function(request) {
 
                  tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
                           navlistPanel("Engines:", widths = c(1, 11),
-                                       tabPanel(div("LMMsolve" ), mod_mtaLMMsolveApp_ui("mtaLMMsolveApp_1") ), # biplot is part of the report in MET
-                                       tabPanel(div("lme4", style = "color:red" )) , # biplot is part of the report in MET
-                                       tabPanel(div("sommer", style = "color:red" )) , # biplot is part of the report in MET
-                                       tabPanel(div("asreml"), mod_mtaASREMLApp_ui("mtaASREMLApp_1")),
+                                       tabPanel(div("LMMsolver" ), mod_mtaLMMsolveApp_ui("mtaLMMsolveApp_1") ), # biplot is part of the report in MET
+                                       # tabPanel(div("lme4", style = "color:red" )) , # biplot is part of the report in MET
+                                       # tabPanel(div("sommer", style = "color:red" )) , # biplot is part of the report in MET
+                                       tabPanel(div("ASReml"), mod_mtaASREMLApp_ui("mtaASREMLApp_1")),
                           )
                  ),
 
@@ -145,7 +156,7 @@ app_ui <- function(request) {
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
                  tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
                  tabPanel(div(icon("chart-line"), "Predicted Genetic Gain (", icon("seedling"),  icon("network-wired"),")"), mod_pggApp_ui("pggApp_1")),# user needs to perfor m a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div(icon("chart-line"), "Selection signatures (", icon("dna"),")", style = "color:red"), mod_selSignApp_ui("selSignApp_1") ), # icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
+                 #tabPanel(div(icon("chart-line"), "Selection signatures (", icon("dna"),")", style = "color:red"), mod_selSignApp_ui("selSignApp_1") ), # icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
                  # tabPanel(strong("AGRONOMIC EVALUATION"), mod_sectionInfoAEApp_ui("sectionInfoAEApp_1") ),
                  # tabPanel(div(icon("chart-line"), "Analysis of Variance (", icon("seedling"),")", style = "color:red"), mod_agrAnova_ui("agrAnova_1") )
       ),
@@ -153,8 +164,8 @@ app_ui <- function(request) {
       navbarMenu("Mutation", icon = icon("disease"),
                  tabPanel(strong("DISCOVERY"), mod_sectionInfoGDApp_ui("sectionInfoGDApp_1") ),
                  tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")"), mod_gwasqkApp_ui("gwasqkApp_1") ), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
-                 tabPanel(strong("MUTATION HISTORY"), mod_sectionInfoMHApp_ui("sectionInfoMHApp_1") ),
-                 tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red"), mod_mutatioRateApp_ui("mutatioRateApp_1") ) #  icon = icon("disease")) # may include
+                 #tabPanel(strong("MUTATION HISTORY"), mod_sectionInfoMHApp_ui("sectionInfoMHApp_1") ),
+                 #tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red"), mod_mutatioRateApp_ui("mutatioRateApp_1") ) #  icon = icon("disease")) # may include
       ),
 
       navbarMenu("Gene flow and Drift", icon = icon("wind"),
@@ -162,9 +173,9 @@ app_ui <- function(request) {
                  tabPanel(div(icon("circle-nodes"), "Population structure (", icon("dna"), icon("seedling"), ")"), mod_PopStrApp_ui("PopStrApp_1") ), #  icon = icon("diagram-project")), # may include PCA based, structure based, clustering
                  # tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
                  tabPanel(div(icon("chart-line"), "Linkage disequilibrium (",  icon("dna"), ")", style = "color:red"),  mod_linkageDisApp_ui("linkageDisApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
-                 tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
+                 #tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ), # stpga
-                 tabPanel(div(icon("barcode"), "Marker-assisted introgression (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
+                 #tabPanel(div(icon("barcode"), "Marker-assisted introgression (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
       ),
 
       navbarMenu("Other functions", icon = icon("medal"),

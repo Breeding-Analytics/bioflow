@@ -163,8 +163,8 @@ if (is.null(result)){
   traits2 <- unique(result$metadata$pheno[which(result$metadata$pheno$parameter == "trait"), "value"])
     gxeList <- list("gxeCS" = c("environment_designation", "designation_environment", 
                               "environment:designation", "designation:environment"),
-                  "gxeDMD" = c(paste0("env",envs2,"_designation"), paste0("designation_env",envs2),
-                               paste0("env",envs2,":designation"), paste0("designation:env",envs2)),
+                  "gxeDMD" = c(paste0(envs2,"_designation"), paste0("designation_",envs2),
+                               paste0(envs2,":designation"), paste0("designation:",envs2)),
                   "gxeFW" = c(paste0("value_",traits2,"envIndex_designation"),paste0("designation_value_",traits2,"envIndex"),
                               paste0("value_",traits2,"envIndex:designation"),paste0("designation:value_",traits2,"envIndex")))
   
@@ -177,7 +177,7 @@ if (is.null(result)){
   
   if(gxeModelNum == 2){
     effectTypes2 <- setdiff(effectTypes, c(effectTypes[which(effectTypes %in% gxeList[[2]])],
-                                           effectTypes[which(effectTypes %in% paste0("env",envs2))]))
+                                           effectTypes[which(effectTypes %in% envs2)]))
     if(any(grepl(":",effectTypes[which(effectTypes %in% gxeList[[2]])]))){
       effectTypes2 <- c(effectTypes2, "environment:designation")
     } else{
@@ -374,7 +374,7 @@ if (is.null(result)){
               level3 <- rbind(level3,level2[[i]][[1]])
             }
             temp.pred.box <- level3
-            temp.pred.box$environment <- substr(temp.pred.box$environment, 4, length(temp.pred.box$environment))
+            # temp.pred.box$environment <- substr(temp.pred.box$environment, 4, length(temp.pred.box$environment))
           } else{
             temp.pred.box <- predSplitSplit[[iType]][[iTrait]]
           }
@@ -419,7 +419,7 @@ if (is.null(result)){
             level3 <- rbind(level3,level2[[i]][[1]])
           }
           temp.pred.box <- level3
-          temp.pred.box$environment <- substr(temp.pred.box$environment, 4, length(temp.pred.box$environment))
+          # temp.pred.box$environment <- substr(temp.pred.box$environment, 4, length(temp.pred.box$environment))
         } else{
           temp.pred.box <- predSplitSplit[[input$boxplotMtaPredsType]][[input$boxplotMtaPredsTrait]]
         }
@@ -719,7 +719,7 @@ if (is.null(result)){
         wide2 <- level3
         row.names(wide2) <-wide2$designation
         wide2 <- wide2[,-1]
-        colnames(wide2) <- substring(colnames(wide2),4,nchar(colnames(wide2)))
+        # colnames(wide2) <- substring(colnames(wide2),4,nchar(colnames(wide2)))
         
         if(!is.null(wide2)){
           if(nrow(wide2) > 1){
@@ -812,7 +812,7 @@ if (is.null(result)){
         if(length(level3)>0){
           N <- sort(unlist(lapply(level3,length)), decreasing = TRUE)
           wide2 <- do.call(cbind,level3[ names(N)[which(N == N[1])] ])
-          colnames(wide2) <- substring(colnames(wide2),4,nchar(colnames(wide2)))
+          # colnames(wide2) <- substring(colnames(wide2),4,nchar(colnames(wide2)))
           corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
           if(nrow(corr) > 1){
             if( length(which(is.na(corr))) == 0){
@@ -1131,7 +1131,7 @@ if (is.null(result)){
                                               gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
                                                    rownames(pred.mta.biplot)))
           }
-          colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
+          # colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
           pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
           if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
             prin_comp <- prcomp(pred.mta.biplot, rank = 2)
@@ -1201,7 +1201,7 @@ if (is.null(result)){
                                               gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
                                                    rownames(pred.mta.biplot)))
           }
-          colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
+          # colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
           pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
           if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
             prin_comp <- prcomp(pred.mta.biplot, rank = 2)

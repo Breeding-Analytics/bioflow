@@ -200,7 +200,9 @@ if (is.null(result)){
   analysisIds <- unique(mo$analysisId)
   analysisIds <- analysisIds[length(analysisIds)]
   mo <- mo[which(mo$analysisId == analysisIds),]
-  
+  if(idQaType == "qaMb"){
+    mo$trait <- paste0(mo$trait,"-residual")
+  }
   
   if("params" %in% ls()){ # we will download the document
     

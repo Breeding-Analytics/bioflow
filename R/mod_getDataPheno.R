@@ -210,8 +210,19 @@ mod_getDataPheno_ui <- function(id){
 
                            column(width=12,
                                   tags$div(id = ns('concat_environment_holder'),
-                                           actionButton(ns("concatenateEnv"), div(p(strong('Compute Environment Column', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"), icon = icon("play-circle"), style = "height: 45px"),
-                                           selectInput(ns("featuresEnvironment"), "Columns forming environment:", choices = NULL, multiple = TRUE),
+                                           actionButton(ns("concatenateEnv"),
+                                                        tags$span(
+                                                          div(p(strong('Compute Environment Column', span('(*required)',style="color:red"))), style="display: inline-block; line-height:30px;"),
+                                                          tags$i(
+                                                            class = "glyphicon glyphicon-info-sign",
+                                                            style = "color:#000000",
+                                                            title = "Remove non-alphanumeric characters from the selected column values, then concatenate the results with underscore as the separator, and add 'env' as a prefix"
+                                                          )
+                                                        ),
+                                                        icon = icon("play-circle"), style = "height: 45px"),
+                                           selectInput(ns("featuresEnvironment"),
+                                                       label = "Columns forming environment:",
+                                                       choices = NULL, multiple = TRUE),
                                            textOutput(ns("outConcatenateEnv")),
                                   ),
                            ),
@@ -358,6 +369,14 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 ebs_client_id     <- '5qo8e9j6m61bqgbjvudhujpg7'
                 ebs_client_secret <- 'eke3bke2ikcl20955so16lesi7r6sml1mr9qd6ai6abqcpg7ibn'
 
+              } else if (ebs_domain == 'icarda.ebsproject.org') {
+
+                ebs_brapi         <- paste0('https://app-cbbrapi.', ebs_domain)
+                ebs_authorize_url <- 'https://auth.icarda.ebsproject.org/oauth2/authorize'
+                ebs_access_url    <- 'https://auth.icarda.ebsproject.org/oauth2/token'
+                ebs_client_id     <- 'b27e613di2vtmrm3okfhajidl'
+                ebs_client_secret <- '11dj6g7n5eellkmodat0n4qic7tas2iauhrov8d5ksup4suo15kb'
+
               } else {
                 ebs_instance <- sub('(.*-)', '', ebs_instance)
                 ebs_brapi    <- paste0('https://cbbrapi-', ebs_instance, '.', ebs_domain)
@@ -375,6 +394,13 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                   ebs_access_url    <- 'https://auth.ebs.iita.org/oauth2/token'
                   ebs_client_id     <- '2kvos0ijj8q3a6ek2okf431p2i'
                   ebs_client_secret <- '1p1i9ehhuf5fjg2an0qoaau3vb1c5bsmir9ci96rrpobd5mv4iqd'
+
+                } else if (ebs_instance %in% c('dcp')) {
+
+                  ebs_authorize_url <- 'https://auth.ebs.iita.org/oauth2/authorize'
+                  ebs_access_url    <- 'https://auth.ebs.iita.org/oauth2/token'
+                  ebs_client_id     <- 'lo1fpgt1gi2aucf4oj2dbgshu'
+                  ebs_client_secret <- 'k95d36vdaqugvi95augdk2k45omc44p1godm48jko17vqjrcdc0'
 
                 } else if (ebs_instance %in% c('staging', 'wheat', 'maize', 'wee', 'mee', 'ree')) {
 
@@ -452,6 +478,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               if (input$no_auth) {
                 QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase', brapi_ver = 'v1', no_auth = TRUE)
               } else {
+                QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'breedbase')
                 QBMS::login_breedbase(input$pheno_db_user, input$pheno_db_password)
               }
             }
@@ -1032,12 +1059,13 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       if(length(environmentColumn) > 0){ # user has mapped an study column
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
-          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(gsub("[^[:alnum:]]","",x), collapse = "_")} )
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- paste0("env",myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]])
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste0("Columns ",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), " concatenated and pasted in the '",myObject$metadata$pheno[environmentColumn, "value"], "' column"), type = "success")
           # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in the",myObject$metadata$pheno[environmentColumn, "value"], "column"))
         }else if(length(otherEnvironmentColumn) == 1){
-          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          myObject$data$pheno[,myObject$metadata$pheno[environmentColumn, "value"]] <- paste0("env",gsub("[^[:alnum:]]","",myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]))
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste0("'",myObject$metadata$pheno[environmentColumn, "value"], "' column is equal to ", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")
           # cat("No additional columns to concatenate to your 'study' column")
@@ -1050,13 +1078,14 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       }else{ # user has not mapped an study column, we will add it
         otherEnvironmentColumn <- which(myObject$metadata$pheno$parameter %in% input$featuresEnvironment)
         if(length(otherEnvironmentColumn) > 1){ # if user has mapped more than one column
-          myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(x, collapse = "_")} )
+          myObject$data$pheno[,"environment"] <- apply(myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"], drop=FALSE],1, function(x){paste(gsub("[^[:alnum:]]","",x), collapse = "_")} )
+          myObject$data$pheno[,"environment"] <- paste0("env",myObject$data$pheno[,"environment"])
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "), type = "success")
           # cat(paste("Columns",paste(myObject$metadata$pheno[otherEnvironmentColumn, "value"], collapse = ", "), "concatenated and pasted in a column named 'environment' "))
         }else if(length(otherEnvironmentColumn) == 1){
-          myObject$data$pheno[,"environment"] <- myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]
+          myObject$data$pheno[,"environment"] <- paste0("env",gsub("[^[:alnum:]]","",myObject$data$pheno[, myObject$metadata$pheno[otherEnvironmentColumn, "value"]]))
           myObject$metadata$pheno <- rbind(myObject$metadata$pheno, data.frame(parameter = 'environment', value = 'environment' ))
           data(myObject)
           shinyalert::shinyalert(title = "Success!", text = paste("No additional columns to concatenate. 'environment' column is equal to", myObject$metadata$pheno[otherEnvironmentColumn, "value"]), type = "success")

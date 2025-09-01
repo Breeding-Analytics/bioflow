@@ -230,7 +230,14 @@ For more information about GitHub Issues and Pull Request (PR)
 templates, please check the following link:
 <https://github.blog/2016-02-17-issue-and-pull-request-templates/>
 
-#### F) When it’s appropriate to follow up?
+#### F) Make you pull requests only to the dev branch
+
+The main branch should always hold a fully stable version of the app.
+New features should always be deployed first on the dev branch where
+they will be tested. Once all tests are satisfied the updates will 
+be merged to the main branch
+
+#### G) When it’s appropriate to follow up?
 
 Within 7 days after a pull request is submitted you should have a
 response. Otherwise please reach the development team.

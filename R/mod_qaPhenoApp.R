@@ -81,6 +81,7 @@ mod_qaPhenoApp_ui <- function(id){
                                                                           column(width=12,
                                                                                  tabsetPanel(type = "tabs",
                                                                                              tabPanel("Boxplot",
+                                                                                                      br(),
                                                                                                       tags$span(id = ns('holder'),
                                                                                                                 column(width=4, selectInput(ns("traitOutqPheno"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                                                                 column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.6, min=0, max=1, step=0.1) ),
@@ -93,10 +94,10 @@ mod_qaPhenoApp_ui <- function(id){
                                                                                                       )),
                                                                                              tabPanel("Correlations", # icon = icon("magnifying-glass-chart"),
                                                                                                       br(),
-                                                                                                      column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                                                                             column(width=6, selectInput(ns("correlationTraits"), "Trait(s) to QA", choices = NULL, multiple = TRUE) ),
+                                                                                                      column(width=12,
+                                                                                                             column(width=6, selectInput(ns("correlationTraits"), "Traits to visualize", choices = NULL, multiple = TRUE) ),
                                                                                                              column(width=6,selectInput(ns("correlationType"),
-                                                                                                                                        label = "Select Correlation Method:",
+                                                                                                                                        label = "Correlation Method:",
                                                                                                                                         choices = c("spearman","pearson","kendall") ))),
                                                                                                       #column(width=4,numericInput(ns("beta"), label = "Confidence Level",
                                                                                                       #                             value=0.95, min=0, max=1,
@@ -241,7 +242,7 @@ mod_qaPhenoApp_server <- function(id, data){
         traitsQaRawVarNa <- intersect(traitsQaRawVar,traitsQaRawNa)
         updateSelectInput(session, "traitOutqPheno",choices = traitsQaRawVarNa)
         updateSelectInput(session, "traitOutqPhenoMultiple",choices = traitsQaRawVarNa, selected = NULL)
-        updateSelectInput(session, "correlationTraits",choices = traitsQaRaw, selected = NULL) #correlation types
+        updateSelectInput(session, "correlationTraits",choices = traitsQaRaw, selected = traitsQaRaw) #correlation types
       }
       shinyjs::hide(ns("traitOutqPheno"))
     })
@@ -275,7 +276,7 @@ mod_qaPhenoApp_server <- function(id, data){
 
         # Barring the no significant coefficient
         g<-ggcorrplot::ggcorrplot(matrix, hc.order = TRUE, type = "lower", p.mat = mt,lab=T,
-                                  colors = c("#038542", "white", "#E46726"))
+                                  colors = c("#E46726", "white", "#038542"), show.diag = T)
         plotly::ggplotly(g)
       } else {
         print("Select more than one!")
@@ -322,11 +323,11 @@ mod_qaPhenoApp_server <- function(id, data){
     })
 
     ## display the current outliers
-    observeEvent(data(),{
-      req(data())
+    observeEvent(input$outlierCoefOutqPheno,{
       output$modificationsQa <-  DT::renderDT({
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){ # all required columns are present
+          req(data())
           req(input$outlierCoefOutqFont)
           req(input$outlierCoefOutqPheno)
           req(input$traitOutqPhenoMultiple)
@@ -336,6 +337,7 @@ mod_qaPhenoApp_server <- function(id, data){
             outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
           }
           outlier <- do.call(rbind,outlier)
+          outlier <- outlier[which(is.na(outlier$analysisId)),]
           removeCols <- c("module","analysisId","value")
           outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
           colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
@@ -380,6 +382,7 @@ mod_qaPhenoApp_server <- function(id, data){
           outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
+        outlier <- outlier[which(is.na(outlier$analysisId)),]
         removeCols <- c("module","analysisId","value")
         outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
         colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
@@ -408,6 +411,7 @@ mod_qaPhenoApp_server <- function(id, data){
           outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
+        outlier <- outlier[which(is.na(outlier$analysisId)),]
         removeCols <- c("module","analysisId","value")
         outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
         colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
@@ -436,6 +440,7 @@ mod_qaPhenoApp_server <- function(id, data){
           outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
+        outlier <- outlier[which(is.na(outlier$analysisId)),]
         removeCols <- c("module","analysisId","value")
         outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
         colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
