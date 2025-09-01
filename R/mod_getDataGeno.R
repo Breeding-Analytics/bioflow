@@ -97,9 +97,13 @@ mod_getDataGeno_ui <- function(id) {
                             hr(),
                             # Outputs
                             tableOutput(ns('summary_by_chrom')),
+                            DT::DTOutput(ns('ind_summary')),
                             verbatimTextOutput(ns('geno_summary')),
+                            actionButton(ns("ind_management_btn"), "Next")
                      )),
-            tabPanel(div("3. Check status" ),
+            tabPanel("3. Individual Management",
+                     uiOutput(ns("indManagementUI"))),
+            tabPanel("4. Check status",
                      uiOutput(ns("warningMessage")),
             )))}
 mod_getDataGeno_server <-
@@ -334,7 +338,7 @@ mod_getDataGeno_server <-
       # just for make button reactive
       observeEvent(input$load_geno_btn,{
         geno_data <- get_geno_data()
-        add_data()
+        #add_data() Commented this during duplicate handelling dev REMOVE
         updateNavlistPanel(session = session,
                            inputId = "geno_load_navpanel",
                            selected = "2. Genotype data Summary")
@@ -354,21 +358,24 @@ mod_getDataGeno_server <-
         })
 
         output$geno_summary <- renderText({
-          temp <- data()
-          ind_names <- adegenet::indNames(geno_data)
-          if (!is.null(ind_names) & any(temp$metadata$pheno$parameter == 'designation')) {
-            designationColumn <- temp$metadata$pheno[which(temp$metadata$pheno$parameter == "designation"),"value"]
-            paste(
-              "Data Integrity Checks:\n",
-              sum(ind_names %in% unique(temp$data$pheno[, designationColumn ])),
-              "Accessions exist in both phenotypic and genotypic files (will be used to train the model)\n",
-              sum(!ind_names %in% unique(temp$data$pheno[, designationColumn ])),
-              "Accessions have genotypic data but no phenotypic (will be predicted, add to pheno data file with NA value)\n",
-              sum(!unique(temp$data$pheno[, designationColumn ]) %in% ind_names),
-              'Accessions have phenotypic data but no genotypic (will not contribute to the training model)'
+            temp <- data()
+            ind_names <- adegenet::indNames(geno_data)
+            if (!is.null(ind_names)) {
+              glue::glue("Accessions in genotypic data:\n{length(ind_names)}")
+            }
+          })
+
+        output$ind_summary <- DT::renderDT({
+            DT::datatable(
+              data.frame(sample_id = adegenet::indNames(geno_data)),
+              options = list(
+                dom = "lfrtip",          # 'f' = global search box
+                pageLength = 10,
+                lengthMenu = c(5, 10, 25, 50)
+              ),
+              rownames = FALSE
             )
-          }
-        })
+          })
         })
 
       # Store the genotype data into the data structure and update the metadata
@@ -417,6 +424,28 @@ mod_getDataGeno_server <-
           data(temp)
         }
       )
+
+
+# Ind Management server ---------------------------------------------------
+
+      observeEvent(input$ind_management_btn, {
+        updateNavlistPanel(session = session,
+                           inputId = "geno_load_navpanel",
+                           selected = "3. Individual Management")
+      })
+
+      output$indManagementUI <- renderUI({
+        req(get_geno_data())
+        gl <- get_geno_data()
+        tags$div(
+          shinydashboard::box(width = 12, title = "Duplicate Detection",
+
+                              ),
+          shinydashboard::box(width = 12, title = "Duplicate Definition"),
+          shinydashboard::box(width = 12, title = "Merge Individuals"),
+          shinydashboard::box(width = 12, title = "Remove Individuals")
+        )
+      })
 
     })
   }
