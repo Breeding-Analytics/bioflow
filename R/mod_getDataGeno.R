@@ -113,6 +113,11 @@ mod_getDataGeno_server <-
 
       library(adegenet)
 
+      dup_values <- reactiveValues(
+        load_geno_data = FALSE,
+        run_det_dups = FALSE
+      )
+
       output$warningMessage <- renderUI(
         if(is.null(data())){
           HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.).")) )
@@ -238,7 +243,6 @@ mod_getDataGeno_server <-
       # Reactive function where input functions are called
       get_geno_data <- reactive({
         print("Geno load btn clicked")
-
         if(input$custom_geno_input != "dartag"){
           if (input$geno_input == 'file') {
             genotype_file <- input$adegeno_file$datapath
@@ -332,6 +336,7 @@ mod_getDataGeno_server <-
                    print("This should not execute D;")
                    }
                  )
+          dup_values$load_geno_data <- TRUE
           return(geno_data)
           })
 
@@ -435,16 +440,57 @@ mod_getDataGeno_server <-
       })
 
       output$indManagementUI <- renderUI({
-        req(get_geno_data())
+        req(dup_values$load_geno_data)
         gl <- get_geno_data()
         tags$div(
           shinydashboard::box(width = 12, title = "Duplicate Detection",
+            fluidRow(
+              column(width = 6,
+                shinydashboard::box(title = "Parameters", solidHeader = TRUE,
+                    status = "primary",
+                    "Subsample the genotypic matrix to detect duplicates based on IBS",
+                    br(), "This is an all vs all process, select a fraction of loci",
+                    sliderInput(ns("n_loc_dup_slider"), "Select a fraction of markers:", min = 0, max = 0, value = 0),
+                    sliderInput(ns("ind_miss_dup_slider"), "Set min individual missingness:",min = 1, max = 100, value = 20, step = 1),
+                    sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:", min = 1, max = 100, value = 20, step = 1),
+                    sliderInput(ns("maf_miss_dup_slider"), "Set min MAF:", min = 1, max = 100, value = 5, step = 1),
+                    numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1),
+                    actionButton(ns("run_dup_detect_btn"), "Run", status = "primary")
+                  )
+                ),
+              column(width = 6,
+                      uiOutput(ns("dup_detect_panel"))
+                     ),
+            )
 
                               ),
           shinydashboard::box(width = 12, title = "Duplicate Definition"),
           shinydashboard::box(width = 12, title = "Merge Individuals"),
           shinydashboard::box(width = 12, title = "Remove Individuals")
         )
+      })
+
+      observeEvent(input$run_dup_detect_bt, {
+        if(!dup_values$run_det_dups){
+          output$dep_detect_panel <- renderUI(tags$a("Detect duplicates is a computational demanding process. If you are confident you don't have duplicates avoid this step"))
+        } else {
+          get_general_ibs()
+        }
+      })
+
+      observe({
+        req(dup_values$load_geno_data)
+        gl <- get_geno_data()
+        updateSliderInput(session = session,
+                          inputId = "n_loc_dup_slider",
+                          min = 1,
+                          value = floor(adegenet::nLoc(gl)*0.2),
+                          max = adegenet::nLoc(gl))
+      })
+
+      get_general_ibs <- reactive({
+        req(dup_values$load_geno_data)
+
       })
 
     })
