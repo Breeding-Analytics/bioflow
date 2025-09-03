@@ -61,7 +61,7 @@ future::plan(future::multisession)
 
 users <- readRDS("users.rds")
 app_server <- function(input, output, session) {
-  
+
   options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
 
   res_auth <- shinymanager::secure_server(
@@ -91,8 +91,17 @@ app_server <- function(input, output, session) {
 
   ### START: OAuth2 flow mechanism #############################################
   use_login <- reactive({
-    decision <- session$clientData$url_hostname == "bioflow.ebsproject.org"
-    # decision <- TRUE
+    valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org")
+    decision <- session$clientData$url_hostname %in% valid_domains
+
+    query <- parseQueryString(session$clientData$url_search)
+
+    # check if EBS task id exists, then no need to login
+    if (is.character(query$task) &&
+        is.character(query$domain) &&
+        grepl("^[a-f0-9]{32}$", query$task) &&
+        grepl("^[a-z_0-9\\.\\-]+$", query$domain)) decision <- FALSE
+
     return(decision)
   })
 
@@ -101,13 +110,20 @@ app_server <- function(input, output, session) {
 
     is_local <- Sys.getenv("SHINY_PORT") == ""
 
+    # Default values
+    client_id    <- "bioflow_ebs"
+    redirect_uri <- "https://bioflow.ebsproject.org"
+
     # NOTE: check if we run it on localhost!
     if (is_local) {
-      client_id     <- "shiny_local"
-      redirect_uri  <- "http://localhost:1410"
-    } else {
-      client_id     <- "bioflow_ebs"
-      redirect_uri  <- "https://bioflow.ebsproject.org"
+      client_id    <- "shiny_local"
+      redirect_uri <- "http://localhost:1410"
+    } else if (!is.null(session$clientData$url_hostname)) {
+      hostname <- session$clientData$url_hostname
+
+      if (hostname == "bioflow-prd.ebsproject.org") {
+        redirect_uri <- "https://bioflow-prd.ebsproject.org"
+      }
     }
 
     # get the data object to access the user identifier
@@ -267,12 +283,12 @@ app_server <- function(input, output, session) {
   session$onSessionEnded(function() {
     dashboard_key <- "Bioflow@wkH71dJ&qaT"
     req_origin    <- "https://bioflow.ebsproject.org"
+    dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+    valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org")
 
-    if (session$userData$url_hostname == "bioflow.ebsproject.org") {
-      dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
+    if (session$userData$url_hostname %in% valid_domains) {
       user_email    <- session$userData$temp$user
     } else {
-      dashboard_url <- "https://cgiar-service-portal-prd.azurewebsites.net/api/BioflowUsage/AddBioflowUsage"
       user_email    <- "offline"
     }
 
