@@ -87,10 +87,10 @@ suppressWarnings(tryCatch({
 }))
 
 ```
-### Inputs and outputs of F1 (QA/QC)
+### Inputs and outputs of the F1 (QA/QC) module:
 
 
-1. INPUT: Genotypic information of F1 material and Parents to be verified 
+1. INPUT: Genotypic information of F1 individuals and Parents 
 
 2. INPUT: Pedigree information connecting each F1 individual to two parents 
 
