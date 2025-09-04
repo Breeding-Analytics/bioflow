@@ -16,6 +16,7 @@ URL: https://github.com/Breeding-Analytics/bioflow/
 BugReports: https://github.com/Breeding-Analytics/bioflow/issues
 Imports: 
     ape,
+    bslib,
     cgiarBase (>= 1.0.3),
     cgiarOcs (>= 1.1),
     cgiarPipeline (>= 1.0.6),
