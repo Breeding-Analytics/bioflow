@@ -964,20 +964,20 @@ mod_hybridityApp_server <- function(id, data){
         het=input$parentHetThreshold,
         matchThres=c(input$upper_thres_mp,input$mid_thres_mp,input$low_thres_mp)
       )
-      if(!inherits(result,"try-error")) {
-        provitional <- individualVerification(
-          #cgiarPipeline::individualVerification(
-          object= data(),
-          analysisIdForGenoModifications= input$version2F1qaqc,
-          markersToBeUsed=selMarkers,
-          colsForExpecGeno=input$units2Verif,
-          ploidy=ploidy,
-          sc_filter=filter_by_score,
-          het = input$parentHetThreshold,
-          matchThres = c(input$upper_thres_mp,input$mid_thres_mp,input$low_thres_mp),
-          onlyMats=TRUE
-        )
-      }
+      #if(!inherits(result,"try-error")) {
+      #  provitional <- individualVerification(
+      #    #cgiarPipeline::individualVerification(
+      #    object= data(),
+      #    analysisIdForGenoModifications= input$version2F1qaqc,
+      #    markersToBeUsed=selMarkers,
+      #    colsForExpecGeno=input$units2Verif,
+      #    ploidy=ploidy,
+      #    sc_filter=filter_by_score,
+      #    het = input$parentHetThreshold,
+      #    matchThres = c(input$upper_thres_mp,input$mid_thres_mp,input$low_thres_mp),
+      #    onlyMats=TRUE
+      #  )
+      #}
 
       # save(result, file = "./R/outputs/resultVerifGeno.RData")
       shinybusy::remove_modal_spinner()
