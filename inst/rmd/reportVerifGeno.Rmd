@@ -148,7 +148,7 @@ if (is.null(result)){
 
 ```
 
-```{r, results='asis'}
+```{r}
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -181,7 +181,9 @@ if (is.null(result)){
                                    stringsAsFactors = FALSE))
   
   if("params" %in% ls()){ # we will download the document
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    #cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    knitr::asis_output("### {.tabset .tabset-pills}\n\n")
+
     for (j in seq_along(traitsTable)) {
       cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
       
@@ -212,7 +214,8 @@ if (is.null(result)){
         ggplot2::labs(x = "Genotype", y = traitsTable[j]) +
         ggplot2::theme_classic() +
         ggplot2::theme(axis.text.x = ggplot2::element_blank())
-      print(htmltools::tagList(plotly::ggplotly(p, tooltip = "text")))
+      #print(htmltools::tagList(plotly::ggplotly(p, tooltip = "text")))
+      plotly::ggplotly(p, tooltip = "text")
       }
     }else{ # regular rendering
       plotly::renderPlotly({
@@ -248,7 +251,7 @@ if (is.null(result)){
 ```
 
 
-```{r, results='asis'}
+```{r}
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -292,7 +295,6 @@ if (is.null(result)){
   )
   }else{
     DT::renderDT({
-  # ensure 'status' is included so we can style by it
   cols <- c(OutputCols[1:4], input$traitQa)
 
   tbl <- printTable(
