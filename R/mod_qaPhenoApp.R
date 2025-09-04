@@ -323,11 +323,11 @@ mod_qaPhenoApp_server <- function(id, data){
     })
 
     ## display the current outliers
-    observeEvent(data(),{
-      req(data())
+    observeEvent(input$outlierCoefOutqPheno,{
       output$modificationsQa <-  DT::renderDT({
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){ # all required columns are present
+          req(data())
           req(input$outlierCoefOutqFont)
           req(input$outlierCoefOutqPheno)
           req(input$traitOutqPhenoMultiple)
@@ -337,6 +337,7 @@ mod_qaPhenoApp_server <- function(id, data){
             outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
           }
           outlier <- do.call(rbind,outlier)
+          outlier <- outlier[which(is.na(outlier$analysisId)),]
           removeCols <- c("module","analysisId","value")
           outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
           colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
@@ -381,6 +382,7 @@ mod_qaPhenoApp_server <- function(id, data){
           outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
+        outlier <- outlier[which(is.na(outlier$analysisId)),]
         removeCols <- c("module","analysisId","value")
         outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
         colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
@@ -409,6 +411,7 @@ mod_qaPhenoApp_server <- function(id, data){
           outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
+        outlier <- outlier[which(is.na(outlier$analysisId)),]
         removeCols <- c("module","analysisId","value")
         outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
         colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")
@@ -437,6 +440,7 @@ mod_qaPhenoApp_server <- function(id, data){
           outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
+        outlier <- outlier[which(is.na(outlier$analysisId)),]
         removeCols <- c("module","analysisId","value")
         outlier <- outlier[, setdiff(colnames(outlier),removeCols)]
         colnames(outlier) <- cgiarBase::replaceValues(Source = colnames(outlier), Search = "row", Replace = "record")

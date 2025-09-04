@@ -15,7 +15,7 @@ mod_qaStaApp_ui <- function(id){
     # input <- list(traitOutqPheno="YLD_TON-residual",traitLBOutqPheno=-4,traitUBOutqPheno=4,outlierCoefOutqPheno=2.5, outlierCoefOutqFont=12 )
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel( id=ns("tabsMain"), #width=9,
                        type = "tabs",
                        tabPanel(div(icon("book"), "Information") ,
                                 br(),
@@ -63,13 +63,13 @@ mod_qaStaApp_ui <- function(id){
                                                                       h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                                       hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                ),
-                                                               p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
-                                                               selectInput(ns("traitOutqPheno2"), "", choices = NULL, multiple = FALSE),
-                                                               shiny::plotOutput(ns("plotPredictionsCleanOut")), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
-                                                               shinydashboard::box(width = 12, status = "success", background="green",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Plot settings...",
-                                                                                   numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1)
+                                                               column(width=12,
+                                                                      p(span("Preview of outliers that would be tagged using current input parameters above for trait selected.", style="color:black")),
+                                                                      column(width=4, selectInput(ns("traitOutqPheno2"), "Trait to visualize", choices = NULL, multiple = FALSE)),
+                                                                      column(width=3, numericInput(ns("outlierCoefOutqFont"), label = "x-axis font size", value = 12, step=1) ),
+                                                                      column(width=12,shiny::plotOutput(ns("plotPredictionsCleanOut"))), # plotly::plotlyOutput(ns("plotPredictionsCleanOut")),
+                                                                      column(width=12,DT::DTOutput(ns("modificationsQa"))),
                                                                ),
-                                                               DT::DTOutput(ns("modificationsQa")),
                                            ),
                                   ),
                                   tabPanel("Run analysis", icon = icon("dice-two"),
@@ -82,17 +82,17 @@ mod_qaStaApp_ui <- function(id){
                                                   column(width=3,
                                                          br(),
                                                          actionButton(ns("runQaMb"), "Tag outliers", icon = icon("play-circle")),
-                                                         textOutput(ns("outQaMb")),
                                                          br(),
                                                   )
                                            ),
-
+                                           textOutput(ns("outQaMb")),
                                   ),
                                 ) # end of tabset
                        ),# end of input panel
                        tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                 tabsetPanel(
                                   tabPanel("Dashboard", icon = icon("file-image"),
+                                           br(),
                                            textOutput(ns("outQaMb2")),
                                            br(),
                                            downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
@@ -195,27 +195,29 @@ mod_qaStaApp_server <- function(id, data){
         mydata[, "environment"] <- as.factor(mydata[, "environment"])
         mydata[, "designation"] <- as.factor(mydata[, "designation"])
         mo <- cgiarPipeline::newOutliersFun(myObject=data(), trait=input$traitOutqPheno2, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
+        mo <- mo[which(is.na(mo$analysisId)),]
         mydata$color <- "valid"
         if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
         mydata$predictedValue <- mydata[,input$traitOutqPheno2]
-        ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
+        mydata <- mydata[,which(!duplicated(colnames(mydata)))]
+        p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
           ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
-          ggplot2::theme_classic()+
+          ggplot2::theme_classic()+ ggplot2::ggtitle("Preview of outliers that would be tagged using current input parameters above for the trait selected") +
           ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
           ggplot2::xlab("Environment") + ggplot2::ylab("Residual value") +
           ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45)) +
           ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
-
+        p
       }
-
     })
 
     ## display the current outliers
-    observeEvent(data(),{
+    observeEvent(input$outlierCoefOutqPheno,{
       output$modificationsQa <-  DT::renderDT({
         if("sta" %in% data()$status$module){
           req(data())
           req(input$outlierCoefOutqFont)
+          req(input$outlierCoefOutqPheno)
           req(input$traitOutqPhenoMultiple)
           ## get the outlier table
           outlier <- list()
@@ -223,6 +225,7 @@ mod_qaStaApp_server <- function(id, data){
             outlier[[iTrait]] <- cgiarPipeline::newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
           }
           outlier <- do.call(rbind,outlier)
+          outlier <- outlier[which(is.na(outlier$analysisId)),]
           outlier$reason <- "outlierResidual"
           #outlier <- newOutliers()
           removeCols <- c("module","analysisId","value")
@@ -241,9 +244,13 @@ mod_qaStaApp_server <- function(id, data){
           dtQaMb <- dtQaMb[,unique(c("outlierRow",setdiff(colnames(dtQaMb), removeCols)))]
           ## merge
           myTable <- base::merge(outlier,dtQaMb, by.x="record", by.y="outlierRow", all.x=TRUE)
-          DT::datatable(myTable, #extensions = 'Buttons', filter = "top",
+          myTable <- myTable[!duplicated(paste(myTable$record, myTable$trait)),]
+          myTable <- myTable[!is.na(myTable$record),]
+          DT::datatable(myTable, extensions = 'Buttons',# filter = "top",
+                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                         caption = htmltools::tags$caption(
-                          style = 'color:orange', #caption-side: bottom; text-align: center;
+                          style = 'color:cadetblue', #caption-side: bottom; text-align: center;
                           htmltools::em('Model-based outliers for the selected traits.')
                         ),
           )
@@ -258,14 +265,15 @@ mod_qaStaApp_server <- function(id, data){
         req(data())
         req(input$outlierCoefOutqFont)
         req(input$traitOutqPhenoMultiple)
-		result<-data()
-		tt=input$traitOutqPhenoMultiple
-		out=input$outlierCoefOutqPheno
-		#save(result,tt,out,file="outRes.RData")
+        result<-data()
+        # tt=input$traitOutqPhenoMultiple
+        # out=input$outlierCoefOutqPheno
+        #save(result,tt,out,file="outRes.RData")
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         ## get the outlier table
         outlier <- list()
         newParamsPheno <- list()
+
         #source("C:/Users/RAPACHECO/OneDrive - CIMMYT/Documents/CIMMYT/2025/BioflowTask/newOutliersFun.R")
         for(iTrait in input$traitOutqPhenoMultiple){
           #outlier[[iTrait]] <- newOutliersFun(myObject=data(), trait=iTrait, outlierCoefOutqPheno=input$outlierCoefOutqPheno)
@@ -273,6 +281,7 @@ mod_qaStaApp_server <- function(id, data){
           newParamsPheno[[iTrait]] <- data.frame(module="qaMb",analysisId=NA, trait=iTrait, environment=NA, parameter= "outlierCoefOutqPheno", value= input$outlierCoefOutqPheno)
         }
         outlier <- do.call(rbind,outlier)
+        outlier <- outlier[which(is.na(outlier$analysisId)),]
         outlier$trait <- gsub("-residual", "", outlier$trait)
         outlier$module <- "qaMb"
         outlier$reason <- "outlierResidual"
@@ -290,18 +299,21 @@ mod_qaStaApp_server <- function(id, data){
           analysisId <- as.numeric(Sys.time())
           outlier[which(is.na(outlier$analysisId)),"analysisId"] <- analysisId
           ## bind new parameters
-          if(sum(is.na(outlier$row)) != nrow(outlier)) {
-            result$modifications$pheno <- rbind(result$modifications$pheno, outlier[, colnames(result$modifications$pheno)])
-            newParamsPheno$analysisId <- as.POSIXct(analysisId, origin="1970-01-01", tz="GMT")
-            result$modeling <- rbind(result$modeling, newParamsPheno)
-            newStatus <- data.frame(module="qaMb", analysisId=analysisId, analysisIdName="residual")
-            result$status <- rbind(result$status, newStatus)
-            if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
-            data(result)
-            cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
-          }else{cat("No modifications to add")}
+          # if(sum(is.na(outlier$row)) != nrow(outlier)) {
+          #   cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
+          # } else{
+          #   cat("No modifications to add")
+          # }
+          result$modifications$pheno <- rbind(result$modifications$pheno, outlier[, colnames(result$modifications$pheno)])
+          newParamsPheno$analysisId <- as.POSIXct(analysisId, origin="1970-01-01", tz="GMT")
+          result$modeling <- rbind(result$modeling, newParamsPheno)
+          newStatus <- data.frame(module="qaMb", analysisId=analysisId, analysisIdName=input$analysisIdName)
+          result$status <- rbind(result$status, newStatus)
+          data(result)
+          cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
         }
 
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         shinybusy::remove_modal_spinner()
 
         if(!inherits(result,"try-error")) { # if all goes well in the run
@@ -336,16 +348,19 @@ mod_qaStaApp_server <- function(id, data){
             }
           )
 
+          output$outQaMb2 <- renderPrint({
+            cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
+          })
+
         }else{ hideAll$clearAll <- TRUE}
 
         hideAll$clearAll <- FALSE
-
       }
     })
-    output$outQaMb <- output$outQaMb2 <- renderPrint({
+
+    output$outQaMb <- renderPrint({
       outQaMb()
     })
-
 
   })
 }
