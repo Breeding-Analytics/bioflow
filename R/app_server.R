@@ -61,7 +61,7 @@ future::plan(future::multisession)
 
 users <- readRDS("users.rds")
 app_server <- function(input, output, session) {
-  
+
   options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
 
   res_auth <- shinymanager::secure_server(
@@ -376,7 +376,7 @@ app_server <- function(input, output, session) {
 
   # GENE FLOW AND DRIFT - frequency-based selection
   mod_masApp_server("masApp_1", data = data) # MAS
-  #mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
+  mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
   # mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
