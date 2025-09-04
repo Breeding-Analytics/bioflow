@@ -182,11 +182,11 @@ if (is.null(result)){
   
   if("params" %in% ls()){ # we will download the document
     #cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    knitr::asis_output("### {.tabset .tabset-pills}\n\n")
+    out <- list(knitr::asis_output("### {.tabset .tabset-pills}\n\n"))
 
     for (j in seq_along(traitsTable)) {
       #cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
-      knitr::asis_output(paste0("\n\n#### ", traitsTable[j], "\n\n"))
+      out[[length(out) + 1]] <- knitr::asis_output(paste0("\n\n#### ", traitsTable[j], "\n\n"))
       
       predictions2 <- predictionsX[predictionsX$trait == traitsTable[j], , drop = FALSE]
       # preserve original order through the join
@@ -216,9 +216,11 @@ if (is.null(result)){
         ggplot2::theme_classic() +
         ggplot2::theme(axis.text.x = ggplot2::element_blank())
       
-        print(htmltools::tagList(plotly::ggplotly(p, tooltip = "text")))
+        out[[length(out) + 1]] <- plotly::ggplotly(p, tooltip = "text")
       
       }
+    htmltools::tagList(out)
+
     }else{ # regular rendering
       plotly::renderPlotly({
         predictions2 <- predictionsX[which(predictionsX$trait == input$traitQa),]
