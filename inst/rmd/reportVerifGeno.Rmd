@@ -254,7 +254,7 @@ if (is.null(result)){
                               timevar  = "trait",
                               v.names  = "predictedValue")
   
-  OutputCols <- c("designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","ParentHetFilter","ParentHasGeno")
+  OutputCols <- c("designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
   numericalColumns <- c("probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers")
   
   predictions_wide <- predictions_wide[,c(which(colnames(predictions_wide)%in%c("designation","mother","father") ), grep("predictedValue",colnames(predictions_wide)))]
