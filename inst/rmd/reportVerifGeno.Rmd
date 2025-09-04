@@ -185,7 +185,8 @@ if (is.null(result)){
     knitr::asis_output("### {.tabset .tabset-pills}\n\n")
 
     for (j in seq_along(traitsTable)) {
-      cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
+      #cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
+      knitr::asis_output(paste0("\n\n#### ", traitsTable[j], "\n\n"))
       
       predictions2 <- predictionsX[predictionsX$trait == traitsTable[j], , drop = FALSE]
       # preserve original order through the join
@@ -215,7 +216,7 @@ if (is.null(result)){
         ggplot2::theme_classic() +
         ggplot2::theme(axis.text.x = ggplot2::element_blank())
       #print(htmltools::tagList(plotly::ggplotly(p, tooltip = "text")))
-      plotly::ggplotly(p, tooltip = "text")
+      print(plotly::ggplotly(p, tooltip = "text"))
       }
     }else{ # regular rendering
       plotly::renderPlotly({
