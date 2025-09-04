@@ -112,7 +112,11 @@ suppressWarnings(tryCatch({
 
 10. OUTPUT: Status of F1 invididuals (PASS, LIKELY F1, UNCERTAIN, MISMATCH, PARENT FAIL, NO GENO DATA)
 
-Understanding these data features should allow the scientist to identify which F1 individuals should be considered true F1s (PASS), which ones should be investigated further (LIKELY F1, UNCERTAIN) and which ones are not TRUE F1s (MISMATCH). This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information (HasPed), due to one of the parents not passing heterozygosity threshold (parHetFilter) or due to one of the parents having no genotypic information (ParentHasGeno) and also identify ungenotyped F1 indviduals (HasGeno / NO GENO DATA).
+This qa/qc module allows users to identify which F1 individuals should be considered a TRUE F1 (PASS), which ones should be investigated further (LIKELY F1, UNCERTAIN) and which ones are not TRUE F1s (MISMATCH). 
+
+This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information (HasPed), due to one of the parents not passing the heterozygosity threshold (parHetFilter) or due to one of the parents having no genotypic information (ParentHasGeno).
+
+Additionally, ungenotyped F1 indviduals are also flagged (HasGeno / NO GENO DATA).
 
 ### Verification results
 <p>&nbsp;</p>
