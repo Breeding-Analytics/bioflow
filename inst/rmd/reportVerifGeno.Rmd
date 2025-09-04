@@ -215,8 +215,9 @@ if (is.null(result)){
         ggplot2::labs(x = "Genotype", y = traitsTable[j]) +
         ggplot2::theme_classic() +
         ggplot2::theme(axis.text.x = ggplot2::element_blank())
-      #print(htmltools::tagList(plotly::ggplotly(p, tooltip = "text")))
-      print(plotly::ggplotly(p, tooltip = "text"))
+      
+        print(htmltools::tagList(plotly::ggplotly(p, tooltip = "text")))
+      
       }
     }else{ # regular rendering
       plotly::renderPlotly({
