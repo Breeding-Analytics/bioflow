@@ -523,8 +523,8 @@ mod_hybridityApp_server <- function(id, data){
         if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
         if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
         if(!is.null(result$status)){tmp$status <- result$status}
-        tmp$data$pedigree$Hybrid_Parent1 <- sample(result$data$pedigree$Hybrid)
-        tmp$data$pedigree$Hybrid_Parent2 <- sample(result$data$pedigree$Hybrid)
+        #tmp$data$pedigree$Hybrid_Parent1 <- sample(result$data$pedigree$Hybrid)
+        #tmp$data$pedigree$Hybrid_Parent2 <- sample(result$data$pedigree$Hybrid)
         data(tmp) # update data with results
         shinybusy::remove_modal_spinner()
       }else{
