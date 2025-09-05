@@ -515,7 +515,7 @@ mod_hybridityApp_server <- function(id, data){
         ## replace tables
         tmp <- data()
         data(cgiarBase::create_getData_object())
-        utils::data(DT_example, package = "cgiarPipeline")
+        utils::data(F1_example, package = "cgiarPipeline")
         if(!is.null(result$data)){tmp$data <- result$data}
         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
         if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
