@@ -131,8 +131,8 @@ The following table allows you to review the different metrics calculated for th
 
 modeling = result$modeling[result$modeling$module == "rgg",]
 lessThanFive = modeling[modeling$parameter == "lessThanFiveYears","value"]
-if(isTRUE(lessThanFive)){
-  cat("WARNING: LESS THAN FIVE YEARS WERE USED FOR GENETIC GAIN ANALYSIS. INTERPRET RESULTS WITH CAUTION")
+if(lessThanFive == "TRUE"){
+  cat("> **WARNING:** Less than five years were used for genetic gain analysis. Interpret results with caution.\n\n")
 }
 
 ```
