@@ -127,6 +127,16 @@ get_h <- function() {
 
 The following table allows you to review the different metrics calculated for the genetic gain analysis. You can filter the metrics using the search bar.
 
+```{r, results='asis}
+
+modeling = result$modeling[result$modeling$module == "rgg",]
+lessThanFive = modeling[modeling$parameter == "lessThanFiveYears","value"]
+if(isTRUE(lessThanFive)){
+  cat("WARNING: LESS THAN FIVE YEARS WERE USED FOR GENETIC GAIN ANALYSIS. INTERPRET RESULTS WITH CAUTION")
+}
+
+```
+
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
