@@ -515,7 +515,7 @@ mod_hybridityApp_server <- function(id, data){
         ## replace tables
         tmp <- data()
         data(cgiarBase::create_getData_object())
-        utils::data(DT_example, package = "cgiarPipeline")
+        utils::data(F1_example, package = "cgiarPipeline")
         if(!is.null(result$data)){tmp$data <- result$data}
         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
         if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
@@ -523,8 +523,8 @@ mod_hybridityApp_server <- function(id, data){
         if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
         if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
         if(!is.null(result$status)){tmp$status <- result$status}
-        tmp$data$pedigree$Hybrid_Parent1 <- sample(result$data$pedigree$Hybrid)
-        tmp$data$pedigree$Hybrid_Parent2 <- sample(result$data$pedigree$Hybrid)
+        #tmp$data$pedigree$Hybrid_Parent1 <- sample(result$data$pedigree$Hybrid)
+        #tmp$data$pedigree$Hybrid_Parent2 <- sample(result$data$pedigree$Hybrid)
         data(tmp) # update data with results
         shinybusy::remove_modal_spinner()
       }else{
@@ -964,20 +964,20 @@ mod_hybridityApp_server <- function(id, data){
         het=input$parentHetThreshold,
         matchThres=c(input$upper_thres_mp,input$mid_thres_mp,input$low_thres_mp)
       )
-      if(!inherits(result,"try-error")) {
-        provitional <- individualVerification(
-          #cgiarPipeline::individualVerification(
-          object= data(),
-          analysisIdForGenoModifications= input$version2F1qaqc,
-          markersToBeUsed=selMarkers,
-          colsForExpecGeno=input$units2Verif,
-          ploidy=ploidy,
-          sc_filter=filter_by_score,
-          het = input$parentHetThreshold,
-          matchThres = c(input$upper_thres_mp,input$mid_thres_mp,input$low_thres_mp),
-          onlyMats=TRUE
-        )
-      }
+      #if(!inherits(result,"try-error")) {
+      #  provitional <- individualVerification(
+      #    #cgiarPipeline::individualVerification(
+      #    object= data(),
+      #    analysisIdForGenoModifications= input$version2F1qaqc,
+      #    markersToBeUsed=selMarkers,
+      #    colsForExpecGeno=input$units2Verif,
+      #    ploidy=ploidy,
+      #    sc_filter=filter_by_score,
+      #    het = input$parentHetThreshold,
+      #    matchThres = c(input$upper_thres_mp,input$mid_thres_mp,input$low_thres_mp),
+      #    onlyMats=TRUE
+      #  )
+      #}
 
       # save(result, file = "./R/outputs/resultVerifGeno.RData")
       shinybusy::remove_modal_spinner()

@@ -33,6 +33,7 @@ library(knitr)    # kable
 library(grafify)
 library(data.table)
 library(shiny)
+library(bslib)
 ```
 
 ```{r printfxn, include=FALSE}
@@ -87,10 +88,10 @@ suppressWarnings(tryCatch({
 }))
 
 ```
-### Inputs and outputs of F1 (QA/QC)
+### Inputs and outputs of the F1 (QA/QC) module:
 
 
-1. INPUT: Genotypic information of F1 material and Parents to be verified 
+1. INPUT: Genotypic information of F1 individuals and Parents 
 
 2. INPUT: Pedigree information connecting each F1 individual to two parents 
 
@@ -112,7 +113,11 @@ suppressWarnings(tryCatch({
 
 10. OUTPUT: Status of F1 invididuals (PASS, LIKELY F1, UNCERTAIN, MISMATCH, PARENT FAIL, NO GENO DATA)
 
-Understanding these data features should allow the scientist to identify which F1 individuals should be considered true F1s (PASS), which ones should be investigated further (LIKELY F1, UNCERTAIN) and which ones are not TRUE F1s (MISMATCH). This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information (HasPed), due to one of the parents not passing heterozygosity threshold (parHetFilter) or due to one of the parents having no genotypic information (ParentHasGeno) and also identify ungenotyped F1 indviduals (HasGeno / NO GENO DATA).
+This qa/qc module allows users to identify which F1 individuals should be considered a TRUE F1 (PASS), which ones should be investigated further (LIKELY F1, UNCERTAIN) and which ones are not TRUE F1s (MISMATCH). 
+
+This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information (HasPed), due to one of the parents not passing the heterozygosity threshold (parHetFilter) or due to one of the parents having no genotypic information (ParentHasGeno).
+
+Additionally, ungenotyped F1 indviduals are also flagged (HasGeno / NO GENO DATA).
 
 ### Verification results
 <p>&nbsp;</p>
@@ -144,7 +149,7 @@ if (is.null(result)){
 
 ```
 
-```{r, results='asis'}
+```{r}
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -177,39 +182,46 @@ if (is.null(result)){
                                    stringsAsFactors = FALSE))
   
   if("params" %in% ls()){ # we will download the document
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    for (j in seq_along(traitsTable)) {
-      cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
-      
-      predictions2 <- predictionsX[predictionsX$trait == traitsTable[j], , drop = FALSE]
-      # preserve original order through the join
-      predictions2$..ord <- seq_len(nrow(predictions2))
-      # left join by "designation"
-      predictions2 <- merge(predictions2, prob_status, by = "designation",
-                      all.x = TRUE, sort = FALSE)
-      
-      # restore original order and clean up
-      predictions2 <- predictions2[order(predictions2$..ord), ]
-      predictions2$..ord <- NULL
-      
-      p <- ggplot2::ggplot(predictions2,
-                           ggplot2::aes(x = designation, y = predictedValue, fill = .status,
-                                        text = paste0("Genotype: ", designation,
-                                                      "<br>Value: ", round(predictedValue, 3),
-                                                      "<br>Status: ", .status))) +
-        ggplot2::geom_col() +
-        ggplot2::scale_fill_manual(name   = "Match status",
-                                   values = c('NO GENO DATA' = "#f3b0b0",
-                                              'MISMATCH' = "#f3b0b0", 
-                                              'PARENT FAIL' = "#f3b0b0",
-                                              'UNCERTAIN' = "#FFD166", 
-                                              'LIKELY F1'= "#C0CA33",
-                                              'PASS' = "#A4D65E")) +
-        ggplot2::labs(x = "Genotype", y = traitsTable[j]) +
-        ggplot2::theme_classic() +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank())
-      print(htmltools::tagList(plotly::ggplotly(p, tooltip = "text")))
-      }
+    
+       panels <- lapply(traitsTable, function(tr) {
+                  predictions2 <- predictionsX[predictionsX$trait == tr, , drop = FALSE]
+                  predictions2$..ord <- seq_len(nrow(predictions2))
+                  predictions2 <- merge(predictions2, prob_status, by = "designation",
+                                         all.x = TRUE, sort = FALSE)
+                  predictions2 <- predictions2[order(predictions2$..ord), ]
+                  predictions2$..ord <- NULL
+
+        p <- ggplot2::ggplot(
+          predictions2,
+          ggplot2::aes(
+          x = designation, y = predictedValue, fill = .status,
+          text = paste0("Genotype: ", designation,
+                    "<br>Value: ", round(predictedValue, 3),
+                    "<br>Status: ", .status)
+                      )
+          ) +
+          ggplot2::geom_col() +
+          ggplot2::scale_fill_manual(
+                                     name = "Match status",
+                                    values = c(
+                                               "NO GENO DATA" = "#f3b0b0",
+                                               "MISMATCH"     = "#f3b0b0",
+                                               "PARENT FAIL"  = "#f3b0b0",
+                                               "UNCERTAIN"    = "#FFD166",
+                                               "LIKELY F1"    = "#C0CA33",
+                                               "PASS"         = "#A4D65E"
+                                               )
+                                    ) +
+          ggplot2::labs(x = "Genotype", y = tr) +
+          ggplot2::theme_classic() +
+          ggplot2::theme(axis.text.x = ggplot2::element_blank())
+
+          bslib::nav_panel(tr, plotly::ggplotly(p, tooltip = "text"))
+      })
+
+      # Create a pill-style tabset and RETURN it as the last expression
+      do.call(bslib::navset_pill, panels)
+
     }else{ # regular rendering
       plotly::renderPlotly({
         predictions2 <- predictionsX[which(predictionsX$trait == input$traitQa),]
@@ -244,7 +256,7 @@ if (is.null(result)){
 ```
 
 
-```{r, results='asis'}
+```{r}
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -254,7 +266,7 @@ if (is.null(result)){
                               timevar  = "trait",
                               v.names  = "predictedValue")
   
-  OutputCols <- c("designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","ParentHetFilter","ParentHasGeno")
+  OutputCols <- c("designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
   numericalColumns <- c("probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers")
   
   predictions_wide <- predictions_wide[,c(which(colnames(predictions_wide)%in%c("designation","mother","father") ), grep("predictedValue",colnames(predictions_wide)))]
@@ -288,7 +300,6 @@ if (is.null(result)){
   )
   }else{
     DT::renderDT({
-  # ensure 'status' is included so we can style by it
   cols <- c(OutputCols[1:4], input$traitQa)
 
   tbl <- printTable(
