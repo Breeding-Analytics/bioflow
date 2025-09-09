@@ -444,55 +444,129 @@ mod_getDataGeno_server <-
         gl <- get_geno_data()
         tags$div(
           shinydashboard::box(width = 12, title = "Duplicate Detection",
-            fluidRow(
-              column(width = 6,
+            fluidRow(column(width = 6,
                 shinydashboard::box(title = "Parameters", solidHeader = TRUE,
                     status = "primary",
                     "Subsample the genotypic matrix to detect duplicates based on IBS",
                     br(), "This is an all vs all process, select a fraction of loci",
-                    sliderInput(ns("n_loc_dup_slider"), "Select a fraction of markers:", min = 0, max = 0, value = 0),
-                    sliderInput(ns("ind_miss_dup_slider"), "Set min individual missingness:",min = 1, max = 100, value = 20, step = 1),
-                    sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:", min = 1, max = 100, value = 20, step = 1),
-                    sliderInput(ns("maf_miss_dup_slider"), "Set min MAF:", min = 1, max = 100, value = 5, step = 1),
+                    sliderInput(ns("n_loc_dup_slider"), "Select a fraction of markers:", min = 0, max = adegenet::nLoc(gl), value = 1),
+                    sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:", min = 0, max = 1, value = 0.2, step = 0.01),
+                    sliderInput(ns("maf_dup_slider"), "Set min MAF:", min = 0, max = 1, value = 0.05, step = 0.01),
                     numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1),
-                    actionButton(ns("run_dup_detect_btn"), "Run", status = "primary")
-                  )
-                ),
+                    actionButton(ns("run_dup_detect_btn"), "Run", status = "primary"))),
               column(width = 6,
                       uiOutput(ns("dup_detect_panel"))
-                     ),
-            )
+                     ))
 
-                              ),
+              ),
           shinydashboard::box(width = 12, title = "Duplicate Definition"),
           shinydashboard::box(width = 12, title = "Merge Individuals"),
           shinydashboard::box(width = 12, title = "Remove Individuals")
         )
       })
 
-      observeEvent(input$run_dup_detect_bt, {
-        if(!dup_values$run_det_dups){
-          output$dep_detect_panel <- renderUI(tags$a("Detect duplicates is a computational demanding process. If you are confident you don't have duplicates avoid this step"))
-        } else {
+      observeEvent(input$run_dup_detect_btn, {
+          shinyWidgets::ask_confirmation(
+              inputId = ns("dup_det_conf"),
+              text = "Detect duplicates is a computational demanding process. If you are confident you don't have duplicates avoid this step",
+              title = "Duplicate detection warning"
+            )
+      })
+
+      observeEvent(input$dup_det_conf, {
+        if(isTRUE(input$dup_det_conf)){
           get_general_ibs()
         }
       })
 
-      observe({
-        req(dup_values$load_geno_data)
-        gl <- get_geno_data()
-        updateSliderInput(session = session,
-                          inputId = "n_loc_dup_slider",
-                          min = 1,
-                          value = floor(adegenet::nLoc(gl)*0.2),
-                          max = adegenet::nLoc(gl))
-      })
 
       get_general_ibs <- reactive({
         req(dup_values$load_geno_data)
+        req(input$n_loc_dup_slider)
+        req(input$loc_miss_dup_slider)
+        req(input$maf_dup_slider)
+        req(input$seed_dup)
 
+        gl <- get_geno_data()
+
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+        ibs_out <- cgiarGenomics::get_paired_IBS(gl, as.numeric(input$ploidlvl_input),
+                       n_loci = input$n_loc_dup_slider,
+                       seed = input$seed_dup,
+                       maf = input$maf_dup_slider,
+                       ind_miss = 0.2, loc_miss = input$loc_miss_dup_slider)
+        output$dup_detect_panel <- renderUI({
+          tags$div(
+            tabsetPanel(type = "tabs",
+                        tabPanel("Histogram",
+                                 plotOutput(ns('dup_det_hist'))),
+                        tabPanel("Heatmap",
+                                 plotly::plotlyOutput(ns("dup_det_heatmap"))),
+                        tabPanel("Log",
+                                 verbatimTextOutput(ns("dup_det_log")))),
+            DT::DTOutput(ns("dup_det_comps_tbl"))
+          )
+        })
+        shinybusy::remove_modal_spinner()
+        ibs_out
       })
 
+      output$dup_det_hist <- renderPlot({
+        ibs <- get_general_ibs()
+        values <- as.vector(ibs$score)
+        x <- values[is.finite(values)]
+        n <- length(values)
+        m <- mean(x)
+
+        ggplot2::ggplot(data.frame(IBS = as.vector(ibs$score)), ggplot2::aes(IBS)) +
+          ggplot2::geom_histogram(bins = 40, linewidth = 0.2) +
+          ggplot2::geom_vline(xintercept = m, linetype = "dashed", linewidth = 0.6) +
+          ggplot2::coord_cartesian(xlim = c(0, 1)) +
+          ggplot2::labs(
+            title = "IBS distribution (values near 1 ⇒ more related)",
+            subtitle = sprintf("n = %d   mean = %.3f", n, m),
+            x = "IBS", y = "Count of pairwise comparisons"
+          ) +
+          ggplot2::theme_minimal(base_size = 13) +
+          ggplot2::theme(
+            plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
+            plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(t = 4, b = 6))
+          )
+      }, res = 120)
+
+      output$dup_det_comps_tbl <- DT::renderDT({
+        ibs <- get_general_ibs()
+        ibs_df <- as.data.frame(as.table(ibs$score)) %>%
+          dplyr::filter(Var1 != Var2)
+
+        DT::datatable(ibs_df,
+          options = list(
+            dom = "lfrtip",          # 'f' = global search box
+            pageLength = 10,
+            lengthMenu = c(5, 10, 25, 50)
+          ),
+          rownames = FALSE
+        )
+      })
+
+      output$dup_det_heatmap <-   output$ibs_heat <- plotly::renderPlotly({
+
+        ibs <- get_general_ibs()
+        m <- ibs$score
+
+        plotly::plot_ly(
+          z = m, x = colnames(m), y = rownames(m),
+          type = "heatmap", colorscale = "Viridis",
+          zmin = 0, zmax = 1, colorbar = list(title = "IBS"),
+          hovertemplate = "<b>%{y}</b> × <b>%{x}</b><br>IBS: %{z:.3f}<extra></extra>"
+        ) |>
+          plotly::layout(
+            title = list(text = "IBS Heatmap (no clustering)", x = 0.5),
+            xaxis = list(title = "", tickangle = 45, automargin = TRUE, constrain = "domain"),
+            yaxis = list(title = "", autorange = "reversed", automargin = TRUE, scaleanchor = "x", scaleratio = 1),
+            margin = list(l = 60, r = 20, t = 60, b = 80)
+          )
+      })
     })
   }
 # Util functions pending to move ------------------------------------------
