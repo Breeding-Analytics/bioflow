@@ -487,6 +487,7 @@ mod_qaGenoApp_server <- function(id, data) {
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
       up_analysis_id <- as.character(filter_mods$analysisId)
+      up_analysis_id <- unique(up_analysis_id)
       print(glue::glue("Analysis_ID: {up_analysis_id}"))
       result <- data()
 
