@@ -164,22 +164,33 @@ if (is.null(result)){
   midThres = as.numeric(midThres)
   lowerThres = as.numeric(lowerThres)
   
-  idx <- predictionsX$trait == "probMatch"
-  idx2 <- predictionsX$trait == "parHetFilter" | 
-    predictionsX$trait == "ParentHasGeno" | 
-    predictionsX$trait == "HasPed"
-  idx3 <- predictionsX$trait == "HasGeno"
+  idx <- (predictionsX$trait == "probMatch") 
   
-  
-  status <- ifelse(predictionsX$predictedValue[idx3] == 0, "NO GENO DATA",
-                   ifelse(predictionsX$predictedValue[idx2] == 0, "PARENT FAIL",
-                   ifelse(predictionsX$predictedValue[idx] >= upperThres, "PASS",
-                   ifelse(predictionsX$predictedValue[idx] >= midThres, "LIKELY F1",
-                   ifelse(predictionsX$predictedValue[idx] >= lowerThres, "UNCERTAIN","MISMATCH")))))
+  status <- ifelse(predictionsX$predictedValue[idx] >= upperThres, "PASS",
+            ifelse(predictionsX$predictedValue[idx] >= midThres, "LIKELY F1",
+            ifelse(predictionsX$predictedValue[idx] >= lowerThres, "UNCERTAIN","MISMATCH")))
   
   prob_status <- unique(data.frame(designation = predictionsX$designation[idx],
                                    .status = status,
                                    stringsAsFactors = FALSE))
+  
+  na_status = prob_status[is.na(prob_status$.status),]
+  
+  idx2 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "parHetFilter") 
+  idx3 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "ParentHasGeno")
+  idx4 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "HasPed")
+  idx5 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "HasGeno")
+  
+  other_status <- ifelse(predictionsX$predictedValue[idx5] == 0, "NO GENO DATA",
+            ifelse(predictionsX$predictedValue[idx2] == 0, "PARENT FAIL",
+            ifelse(predictionsX$predictedValue[idx3] == 0, "PARENT FAIL",
+            ifelse(predictionsX$predictedValue[idx4] == 0, "PARENT FAIL",NA))))
+  
+  prob_status[is.na(prob_status$.status),".status"] = other_status
   
   if("params" %in% ls()){ # we will download the document
     
