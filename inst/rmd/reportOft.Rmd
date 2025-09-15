@@ -4,13 +4,7 @@ author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' targe
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
 params:
- fieldinst: NULL
- traits: NULL
- mdisease: NULL
- tdisease: NULL
- sdisease: NULL
- version: NULL
- toDownload: FALSE
+  toDownload: FALSE
 ---
 
 ```{r setup, include=FALSE}
@@ -114,6 +108,33 @@ suppressWarnings(tryCatch({
 ### loading the RData
 # result <- params$data
 
+# get latest analysisId for OFT
+idOFT <- result$status[which(result$status$module == "oft"), "analysisId"]
+idOFT <- idOFT[length(idOFT)]
+
+# rebuild params list
+paramsOFT <- list()
+# params$toDownload <- FALSE
+
+n <- which(result$modeling$module == "oft" & result$modeling$analysisId == idOFT & result$modeling$parameter == "analysisId")
+if(length(n) == 0) { paramsOFT$version <- NULL} else { paramsOFT$version <- result$modeling[n, "value"]}
+
+n <- which(result$modeling$module == "oft" & result$modeling$analysisId == idOFT & result$modeling$parameter == "traits")
+if(length(n) == 0) { paramsOFT$traits <- NULL} else { paramsOFT$traits <- eval(parse(text = result$modeling[n, "value"])) }
+
+n <- which(result$modeling$module == "oft" & result$modeling$analysisId == idOFT & result$modeling$parameter == "fieldinst")
+if(length(n) == 0) { paramsOFT$fieldinst <- NULL} else { paramsOFT$fieldinst <- eval(parse(text = result$modeling[n, "value"])) }
+
+n <- which(result$modeling$module == "oft" & result$modeling$analysisId == idOFT & result$modeling$parameter == "mdisease")
+if(length(n) == 0) { paramsOFT$mdisease <- NULL} else { paramsOFT$mdisease <- result$modeling[n, "value"] }
+
+n <- which(result$modeling$module == "oft" & result$modeling$analysisId == idOFT & result$modeling$parameter == "tdisease")
+if(length(n) == 0) { paramsOFT$tdisease <- NULL} else { paramsOFT$tdisease <- result$modeling[n, "value"] }
+
+n <- which(result$modeling$module == "oft" & result$modeling$analysisId == idOFT & result$modeling$parameter == "sdisease")
+if(length(n) == 0) { paramsOFT$sdisease <- NULL} else { paramsOFT$sdisease <- result$modeling[n, "value"] }
+
+
 dt_orig <- result$data$pheno
 
 # check if pheno data also has pedigree data columns, keep pedigree info
@@ -143,7 +164,7 @@ colnames(dt_orig) <- cgiarBase::replaceValues(colnames(dt_orig),
 ### remove the outliers
 dt_clean <- dt_orig
 
-qaID <- result$modeling[which(result$modeling$module == "sta" & result$modeling$analysisId == params$version & result$modeling$parameter == "analysisId"), "value"]
+qaID <- result$modeling[which(result$modeling$module == "sta" & result$modeling$analysisId == paramsOFT$version & result$modeling$parameter == "analysisId"), "value"]
 
 rowPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == qaID),"row"]
 traitPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == qaID),"trait"]
@@ -155,17 +176,17 @@ if(length(rowPheno)>0){
 }
 
 ### standardize disease info naming
-if(!is.null(params$mdisease)){
-  colnames(dt_orig)[which(names(dt_orig) == params$mdisease)] <- "MDiseases"
-  colnames(dt_orig)[which(names(dt_orig) == params$tdisease)] <- "Type_Disease"
-  colnames(dt_orig)[which(names(dt_orig) == params$sdisease)] <- "Disease_Severity"
+if(!is.null(paramsOFT$mdisease)){
+  colnames(dt_orig)[which(names(dt_orig) == paramsOFT$mdisease)] <- "MDiseases"
+  colnames(dt_orig)[which(names(dt_orig) == paramsOFT$tdisease)] <- "Type_Disease"
+  colnames(dt_orig)[which(names(dt_orig) == paramsOFT$sdisease)] <- "Disease_Severity"
 }
 
 ### get fieldinst input
-if(is.null(params$fieldinst)){
+if(is.null(paramsOFT$fieldinst)){
   fieldinst <- unique(dt_orig$environment)
 } else{
-  fieldinst <- params$fieldinst
+  fieldinst <- paramsOFT$fieldinst
 }
 
 ### filter based on selected fieldinst
@@ -174,17 +195,17 @@ dt_clean <- dt_clean[which(dt_clean$environment %in% fieldinst),]
 
 dt_sta_pred <- result$predictions[which(result$predictions$module == "sta"),]
 dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$environment %in% fieldinst),]
-dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$analysisId == params$version),]
+dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$analysisId == paramsOFT$version),]
 
 dt_sta_met <- result$metrics[which(result$metrics$module == "sta"),]
 dt_sta_met <- dt_sta_met[which(dt_sta_met$environment %in% fieldinst),]
-dt_sta_met <- dt_sta_met[which(dt_sta_met$analysisId == params$version),]
+dt_sta_met <- dt_sta_met[which(dt_sta_met$analysisId == paramsOFT$version),]
 
 ### get traits input
-if(is.null(params$traits)){
+if(is.null(paramsOFT$traits)){
   traits <- unique(dt_sta_met$trait)
 } else{
-  traits <- params$traits
+  traits <- paramsOFT$traits
 }
 numTraits <- length(traits)
 
@@ -213,7 +234,7 @@ studyInfo3 <- dt_clean %>% group_by(environment) %>% count(iBlock) %>% count() %
 
 studyInfo <- cbind(studyInfo1,studyInfo2[-1],studyInfo3[-1])
 
-  if(params$toDownload == TRUE){ # we will download the document
+  if("params" %in% ls()){ # we will download the document
     printTable(studyInfo, autoWidthOpt = TRUE, scrollXOpt = FALSE,
                colNames = c("Market Segment","Benchmark Variety", "Local Variety","Test Variety",
                             "Total Number of Variety", "Number of Trials"))
@@ -239,13 +260,13 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  if(params$toDownload == TRUE){ # we will download the document
+  if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
     shiny::selectInput(ns("traitOft"), 
                        label = "Trait to filter:", 
                        multiple = FALSE,
-                       choices = params$traits, 
+                       choices = paramsOFT$traits, 
     )
   }
   
@@ -266,7 +287,7 @@ if (is.null(result)){
   colnames(pred.traits.min)[3] <- "min"
   
   metrics <- dt_sta_met
-  metrics <- metrics[metrics$analysisId == params$version,]
+  metrics <- metrics[metrics$analysisId == paramsOFT$version,]
   metrics <- subset(metrics, select = c(trait,environment,parameter,value))
   metrics <- reshape(metrics, idvar = c("trait","environment"), timevar = "parameter", direction = "wide")
   colnames(metrics) <- gsub("value.", "", colnames(metrics)) 
@@ -278,7 +299,7 @@ if (is.null(result)){
   
   numeric.output <- setdiff(colnames(pred.traits.summary),c("trait", "environment"))
   
-  if(params$toDownload == TRUE){ # we will download the document
+  if("params" %in% ls()){ # we will download the document
     printTable(unique(pred.traits.summary),
                autoWidthOpt = TRUE, scrollXOpt = FALSE,
                colNames = c("Market Segment", "Trait", numeric.output),
@@ -604,7 +625,7 @@ for (i in 1:numTraits) {
 
 <div style = "width:100%; height:auto;">
 ```{r bargRE, echo = FALSE, message = FALSE, warning = FALSE, include=FALSE}
-if(!is.null(params$mdisease)){
+if(!is.null(paramsOFT$mdisease)){
   bar_dse <- vector(mode = "list", length = length(traits)*length(RiceEnvs))            
 TDse_tempHMP  <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
 TDse_tempHMP2  <- vector(mode = "list", length = length(traits)*length(RiceEnvs))
@@ -707,19 +728,19 @@ for (i in 1:numTraits){
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  if(params$toDownload == TRUE){ # we will download the document
+  if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
     inputPanel(
       shiny::selectInput(ns("traitOft2"),
                          label = "Trait to filter:", 
                          multiple = FALSE,
-                         choices = params$traits,
+                         choices = paramsOFT$traits,
                          ),
       shiny::selectInput(ns("envOft2"),
                          label = "Environment to filter:", 
                          multiple = FALSE,
-                         choices = params$fieldinst,
+                         choices = paramsOFT$fieldinst,
                          ),
       shiny::selectInput(ns("graphOft2"),
                          label = "Graph or Table to visualize:", 
@@ -734,7 +755,7 @@ if (is.null(result)){
 ```
 
 ```{r , results = "asis", echo = FALSE}
-if(params$toDownload == TRUE){
+if("params" %in% ls()){
   BLUPsBG <- vector(mode = "list", length = length(traits)*length(environment()))
   for (i in 1:numTraits) {
   cat("\n\n")
@@ -801,7 +822,7 @@ if(params$toDownload == TRUE){
     print(htmltools::tagList(BLUPsBG[[i]][[j]]))
     cat("\\linebreak")
     cat("\\linebreak")
-    if(!is.null(params$mdisease)){
+    if(!is.null(paramsOFT$mdisease)){
       print(htmltools::tagList(bar_dse[[i]][[j]]))
     cat("\\linebreak")
     cat("\\linebreak")
@@ -1224,7 +1245,7 @@ RG_All <- rbind(BestTest_Local,BestLocal_Benchmark) %>%
 ```
 
 ```{r , results = "asis", echo = FALSE}
-if(params$toDownload == FALSE){
+if(!("params" %in% ls())){
   shiny::renderUI({
     if(input$graphOft2 == "Comparison With the Control" & !is.null(input$controlOft2)){
       if(input$controlOft2 == "Top Performing Local Variety"){
@@ -1320,7 +1341,7 @@ if(params$toDownload == FALSE){
 ```
 
 ```{r , results = "asis", echo = FALSE}
-if(params$toDownload == FALSE){
+if(!("params" %in% ls())){
   shiny::renderUI({
     if(input$graphOft2 == "Comparison With the Control" & !is.null(input$controlOft2)){
       if(input$controlOft2 == "Top Performing Local Variety"){
@@ -1381,10 +1402,10 @@ if(!("TEST VARIETY" %in% sig_TVBM2Tab3$entryType)){
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  if(params$toDownload == TRUE){ # we will download the document
+  if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    if(!is.null(params$mdisease)){
+    if(!is.null(paramsOFT$mdisease)){
       inputPanel(
       shiny::selectInput(ns("traitOft3"),
                          label = "Trait to filter:", 
@@ -1395,7 +1416,7 @@ if (is.null(result)){
       shiny::selectInput(ns("envOft3"),
                          label = "Environment to filter:", 
                          multiple = FALSE,
-                         choices = params$fieldinst,
+                         choices = paramsOFT$fieldinst,
                          ),
       shiny::selectInput(ns("graphOft3"),
                          label = "Graph or Table to visualize:", 
@@ -1410,8 +1431,8 @@ if (is.null(result)){
 ```
 
 ```{r , results = "asis", echo = FALSE}
-if(!is.null(params$mdisease)){
-  if(params$toDownload == FALSE){
+if(!is.null(paramsOFT$mdisease)){
+  if(!("params" %in% ls())){
   bar_dse <- NULL            
   TDse_tempHMP  <- NULL
   TDse_tempHMP2  <- NULL
