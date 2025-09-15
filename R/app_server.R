@@ -364,7 +364,7 @@ app_server <- function(input, output, session) {
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
 
   ## DATA CONSISTENCY
-  #mod_dataConsistApp_server("dataConsistApp_1", data = data)
+  mod_qaDataConsistApp_server("qaDataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
   mod_staApp_server("staApp_1", data = data) # single trial analysis

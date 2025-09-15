@@ -100,7 +100,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modifications <- result$modifications$pheno
-  idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign","qaConsist")),"analysisId"];
+  idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign","qaConsist","qaConsistency")),"analysisId"];
   idQa <- idQa[length(idQa)]
   idQaType <- result$status[result$status$analysisId == idQa, "module"]
   modifications <- modifications[which( modifications$analysisId == idQa & modifications$module == idQaType),]
