@@ -292,6 +292,7 @@ if (is.null(result)){
 } else {
   
   if(!is.null(result$data$weather)){ # if weather data was extracted
+    if(nrow(result$data$weather)>0){
     yy <- result$metadata$weather
     yy <- yy[yy$parameter != "trait",]
     xx <- cgiarPipeline::summaryWeather(result)
@@ -343,7 +344,7 @@ if (is.null(result)){
         fig
         
       })
-      
+    } 
     }
   }else{
     cat("No coordinates available. Skipping planting map.")

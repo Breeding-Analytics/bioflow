@@ -243,7 +243,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
             }else{ iFile=1 }
           }
           ## replace tables
-          tmp <- data()
+          tmp <- list() #data()
           if(!is.null(result$data)){tmp$data <- result$data}
           if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
           if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
