@@ -305,7 +305,7 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- dtRgg$predictions
       dtRgg <- dtRgg[which(dtRgg$analysisId == input$version2Rgg),]
       #
-      if(!is.null(data()$data$pedigree)){
+      if(!is.null(dtRgg) & !is.null(data()$data$pedigree)){
         myYears <- data()$data$pedigree
         paramsPed <- data()$metadata$pedigree
         colnames(myYears) <- cgiarBase::replaceValues(colnames(myYears), Search = paramsPed$value, Replace = paramsPed$parameter )
