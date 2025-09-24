@@ -388,6 +388,7 @@ mod_reportBuilder_server <- function(id, data){
             shinybusy::remove_modal_spinner()
           }
         )
+
       } else {
 
       }

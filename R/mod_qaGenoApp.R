@@ -476,10 +476,18 @@ mod_qaGenoApp_server <- function(id, data) {
       print('identify mods')
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       filter_mods <- isolate(geno_qa_data$filter_log)
+      # if is filt mods empty create a dummy mods
+      if(dim(filter_mods)[1] == 0){
+        filter_mods <- data.frame(reason = c(NA),
+                                  row = c(NA),
+                                  col = c(NA),
+                                  value = c(NA))
+      }
       filter_mods$analysisId <- as.numeric(Sys.time())
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
-      up_analysis_id <- as.character(filter_mods$analysisId[nrow(filter_mods)])
+      up_analysis_id <- as.character(filter_mods$analysisId)
+      up_analysis_id <- unique(up_analysis_id)
       print(glue::glue("Analysis_ID: {up_analysis_id}"))
       result <- data()
 

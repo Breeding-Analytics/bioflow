@@ -1,5 +1,5 @@
 ---
-title: "Genotype Verification Report"
+title: "F1 QA/QC Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
@@ -33,6 +33,7 @@ library(knitr)    # kable
 library(grafify)
 library(data.table)
 library(shiny)
+library(bslib)
 ```
 
 ```{r printfxn, include=FALSE}
@@ -87,12 +88,41 @@ suppressWarnings(tryCatch({
 }))
 
 ```
+### Inputs and outputs of the F1 (QA/QC) module:
 
+
+1. INPUT: Genotypic information of F1 individuals and Parents 
+
+2. INPUT: Pedigree information connecting each F1 individual to two parents 
+
+3. INPUT: Genotype QA/QC results 
+
+3. OUTPUT: Probability that the F1 individual matches the genotype of the parents (matchProb)
+
+4. OUTPUT: Expected heterozygosity in the progeny (HeteroMexp) 
+
+5. OUTPUT: Observed heterozygosity in the progeny (HeteroMp) 
+
+6. OUTPUT: Heterozygosity deviation (Expected - Observed) in the progeny (heteroDeviation)
+
+7. OUTPUT: Number of highly informative markers for each cross (nScore2)
+
+8. OUTPUT: Total number of markers used in the analysis for each cross (nMarkers)
+
+9. OUTPUT: Average score of markers used in the analysis for each cross (AvgScore)
+
+10. OUTPUT: Status of F1 invididuals (PASS, LIKELY F1, UNCERTAIN, MISMATCH, PARENT FAIL, NO GENO DATA)
+
+This qa/qc module allows users to identify which F1 individuals should be considered a TRUE F1 (PASS), which ones should be investigated further (LIKELY F1, UNCERTAIN) and which ones are not TRUE F1s (MISMATCH). 
+
+This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information (HasPed), due to one of the parents not passing the heterozygosity threshold (parHetFilter) or due to one of the parents having no genotypic information (ParentHasGeno).
+
+Additionally, ungenotyped F1 indviduals are also flagged (HasGeno / NO GENO DATA).
 
 ### Verification results
 <p>&nbsp;</p>
 
-The following table shows the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others.
+The following plot and table shows the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others and their classification according to the thresholds chosen in the input tabs
 
 ```{r }
 
@@ -119,45 +149,116 @@ if (is.null(result)){
 
 ```
 
-```{r, results='asis'}
+```{r}
 if (is.null(result)){
   # invisible(NULL)
 } else {
   
   predictionsX <- result$predictions[which( result$predictions$analysisId == idQa),]
+  modeling <- result$modeling[which(result$modeling$analysisId == idQa),]
+  upperThres <- modeling[modeling$parameter == "UpperMatchProbThres","value"]
+  midThres <- modeling[modeling$parameter == "MidMatchProbThres","value"]
+  lowerThres <- modeling[modeling$parameter == "LowerMatchProbThres","value"]
+  
+  upperThres = as.numeric(upperThres)
+  midThres = as.numeric(midThres)
+  lowerThres = as.numeric(lowerThres)
+  
+  idx <- (predictionsX$trait == "probMatch") 
+  
+  status <- ifelse(predictionsX$predictedValue[idx] >= upperThres, "PASS",
+            ifelse(predictionsX$predictedValue[idx] >= midThres, "LIKELY F1",
+            ifelse(predictionsX$predictedValue[idx] >= lowerThres, "UNCERTAIN","MISMATCH")))
+  
+  prob_status <- unique(data.frame(designation = predictionsX$designation[idx],
+                                   .status = status,
+                                   stringsAsFactors = FALSE))
+  
+  na_status = prob_status[is.na(prob_status$.status),]
+  
+  idx2 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "parHetFilter") 
+  idx3 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "ParentHasGeno")
+  idx4 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "HasPed")
+  idx5 <- (predictionsX$designation %in% na_status$designation) & 
+    (predictionsX$trait == "HasGeno")
+  
+  other_status <- ifelse(predictionsX$predictedValue[idx5] == 0, "NO GENO DATA",
+            ifelse(predictionsX$predictedValue[idx2] == 0, "PARENT FAIL",
+            ifelse(predictionsX$predictedValue[idx3] == 0, "PARENT FAIL",
+            ifelse(predictionsX$predictedValue[idx4] == 0, "PARENT FAIL",NA))))
+  
+  prob_status[is.na(prob_status$.status),".status"] = other_status
   
   if("params" %in% ls()){ # we will download the document
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
     
-    
-    for (j in 1:length(traitsTable)){
-      cat("\n\n####", traitsTable[j], "{.tabset .tabset-pills}       \n\n")
-      
-      predictions2 <- predictionsX[which(predictionsX$trait == traitsTable[j]),]
-      p <- ggplot2::ggplot(predictions2, ggplot2::aes(x=designation, y=predictedValue  ) ) +
-        # geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
-        ggplot2::theme_classic()+
-        ggplot2::geom_point(alpha = 0.6)+
-        # geom_jitter(alpha = 0.6, width = 0.3) +
-        ggplot2::labs(x="Genotype", y = traitsTable[j] ) +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank()) 
-      print(htmltools::tagList(plotly::ggplotly(p)))
-      
-    }
-    
-  }else{ # regular rendering
-    plotly::renderPlotly({
-      # myPreds <- myResult %>% filter(trait == input$traitQa)
-      predictions2 <- predictionsX[which(predictionsX$trait == input$traitQa),]
-      p <- ggplot(predictions2, aes(x=designation, y=predictedValue  ) ) +
-        # geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
-        theme_classic()+
-        geom_point(alpha = 0.6)+
-        # geom_jitter(alpha = 0.6, width = 0.3) +
-        labs(x="Genotype", y = input$traitQa) +
-        theme(axis.text.x = element_blank() ) 
-      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
-      fig
+       panels <- lapply(traitsTable, function(tr) {
+                  predictions2 <- predictionsX[predictionsX$trait == tr, , drop = FALSE]
+                  predictions2$..ord <- seq_len(nrow(predictions2))
+                  predictions2 <- merge(predictions2, prob_status, by = "designation",
+                                         all.x = TRUE, sort = FALSE)
+                  predictions2 <- predictions2[order(predictions2$..ord), ]
+                  predictions2$..ord <- NULL
+
+        p <- ggplot2::ggplot(
+          predictions2,
+          ggplot2::aes(
+          x = designation, y = predictedValue, fill = .status,
+          text = paste0("Genotype: ", designation,
+                    "<br>Value: ", round(predictedValue, 3),
+                    "<br>Status: ", .status)
+                      )
+          ) +
+          ggplot2::geom_col() +
+          ggplot2::scale_fill_manual(
+                                     name = "Match status",
+                                    values = c(
+                                               "NO GENO DATA" = "#f3b0b0",
+                                               "MISMATCH"     = "#f3b0b0",
+                                               "PARENT FAIL"  = "#f3b0b0",
+                                               "UNCERTAIN"    = "#FFD166",
+                                               "LIKELY F1"    = "#C0CA33",
+                                               "PASS"         = "#A4D65E"
+                                               )
+                                    ) +
+          ggplot2::labs(x = "Genotype", y = tr) +
+          ggplot2::theme_classic() +
+          ggplot2::theme(axis.text.x = ggplot2::element_blank())
+
+          bslib::nav_panel(tr, plotly::ggplotly(p, tooltip = "text"))
+      })
+
+      # Create a pill-style tabset and RETURN it as the last expression
+      do.call(bslib::navset_pill, panels)
+
+    }else{ # regular rendering
+      plotly::renderPlotly({
+        predictions2 <- predictionsX[which(predictionsX$trait == input$traitQa),]
+        predictions2$..ord <- seq_len(nrow(predictions2))
+        predictions2 <- merge(predictions2, prob_status, by = "designation",
+                      all.x = TRUE, sort = FALSE)
+        predictions2 <- predictions2[order(predictions2$..ord), ]
+        predictions2$..ord <- NULL
+        p <- ggplot2::ggplot(predictions2,
+                           ggplot2::aes(x = designation, y = predictedValue, fill = .status,
+                                        text = paste0("Genotype: ", designation,
+                                                      "<br>Value: ", round(predictedValue, 3),
+                                                      "<br>Status: ", .status))) +
+        ggplot2::geom_col() +
+        ggplot2::scale_fill_manual(name   = "Match status",
+                                   values = c('NO GENO DATA' = "#f3b0b0",
+                                              'MISMATCH' = "#f3b0b0", 
+                                              'PARENT FAIL' = "#f3b0b0",
+                                              'UNCERTAIN' = "#FFD166", 
+                                              'LIKELY F1'= "#C0CA33",
+                                              'PASS' = "#A4D65E")) +
+        ggplot2::labs(x = "Genotype", y = input$traitQa) +
+        ggplot2::theme_classic() +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank())
+        fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+        fig
     })
   }
   
@@ -166,23 +267,77 @@ if (is.null(result)){
 ```
 
 
-```{r, results='asis'}
+```{r}
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  numericalColumns <- c("predictedValue") 
+  predictions_wide <- reshape(predictionsX,
+                              direction = "wide",
+                              idvar    = c("designation","mother","father"),
+                              timevar  = "trait",
+                              v.names  = "predictedValue")
+  
+  OutputCols <- c("designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
+  numericalColumns <- c("probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers")
+  
+  predictions_wide <- predictions_wide[,c(which(colnames(predictions_wide)%in%c("designation","mother","father") ), grep("predictedValue",colnames(predictions_wide)))]
+  
+  colnames(predictions_wide) = gsub("predictedValue.","",colnames(predictions_wide))
+  
+  predictions_wide <- merge(predictions_wide, prob_status, by = "designation",
+                      all.x = TRUE, sort = FALSE)
+  
+  colnames(predictions_wide)[colnames(predictions_wide)==".status"]="status"
+  predictions_wide = predictions_wide[,OutputCols]
   
   if("params" %in% ls()){ # we will download the document
-    printTable(predictions, autoWidthOpt = TRUE, scrollXOpt = FALSE,
-             colNames = colnames(predictions),
+    printTable(predictions_wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(predictions_wide),
            numericColNames = numericalColumns,
-           numRound = 4)
+           numRound = 3)%>%
+  DT::formatStyle(
+    'status',
+    target = 'row',
+    backgroundColor = DT::styleEqual(
+      c('PASS','LIKELY F1','UNCERTAIN',"MISMATCH","PARENT FAIL"),
+      c(
+          "rgba(164, 214, 94, 0.3)",
+          "rgba(192,202, 51, 0.22)",
+          "rgba(255,209,102, 0.28)",
+          "rgba(243,176,176, 0.30)",
+          "rgba(215, 48, 39, 0.30)"
+        )  
+    )
+  )
   }else{
-    DT::renderDT(printTable(predictions[predictions$trait==input$traitQa,c("trait","gid","designation","mother","father","predictedValue")],
-                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                        colNames = colnames(predictions[predictions$trait==input$traitQa,c("trait","gid","designation","mother","father","predictedValue")]),
-                        numericColNames = numericalColumns,
-                        numRound = 4), server = FALSE)
+    DT::renderDT({
+  cols <- c(OutputCols[1:4], input$traitQa)
+
+  tbl <- printTable(
+    predictions_wide[, cols, drop = FALSE],
+    autoWidthOpt = FALSE,
+    scrollXOpt   = TRUE,
+    colNames     = cols,
+    numericColNames = intersect(input$traitQa, cols),
+    numRound     = 3
+  ) %>%
+    DT::formatStyle(
+      "status",
+      target = "row",
+      backgroundColor = DT::styleEqual(
+        c("PASS","LIKELY F1","UNCERTAIN","MISMATCH","PARENT FAIL"),
+        c(
+          "rgba(164, 214, 94, 0.3)",
+          "rgba(192,202, 51, 0.22)",
+          "rgba(255,209,102, 0.28)",
+          "rgba(243,176,176, 0.30)",
+          "rgba(215, 48, 39, 0.30)"
+        )  
+      )
+    )
+
+  tbl
+}, server = FALSE)
   }
   
 }
@@ -192,6 +347,8 @@ if (is.null(result)){
 
 
 ### Verification Metrics
+
+The following table shows summary metrics of the F1 (QA/QC analysis)
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -220,6 +377,8 @@ if (is.null(result)){
 <p>&nbsp;</p>
 
 ### Verification Modeling
+
+The following table shows the input parameters of the F1 (QA/QC analysis)
 
 ```{r, results='asis'}
 if (is.null(result)){

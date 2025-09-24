@@ -31,6 +31,7 @@ library(DT)       # datatable()
 library(knitr)    # kable
 library(data.table)
 library(shiny)
+library(maps)
 ```
 
 ```{r printfxn, include=FALSE}

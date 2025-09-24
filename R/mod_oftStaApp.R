@@ -671,14 +671,12 @@ mod_oftStaApp_server <- function(id, data){
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOft.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
-        if(!inherits(result,"try-error")) {
+        cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+        output$outOft2 <- renderPrint({
           cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
-          output$outOft2 <- renderPrint({
-            cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
-          })
-          shinybusy::remove_modal_spinner()
-          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-        }
+        })
+        shinybusy::remove_modal_spinner()
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 
         ## report OFT
         output$downloadReportOft <- downloadHandler(
