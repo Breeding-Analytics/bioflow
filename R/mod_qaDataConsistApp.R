@@ -67,7 +67,7 @@ mod_qaDataConsistApp_ui <- function(id){
                                   ),
                                   tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                            tabsetPanel(
-                                             tabPanel(div(icon("dice-one"), "Set range(s)", icon("arrow-right") ), #icon = icon("dice-one"),
+                                             tabPanel(div(icon("dice-one"), "Set ranges (optional)", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                              column(width=7, style = "background-color:grey; color: #FFFFFF",
@@ -126,16 +126,16 @@ mod_qaDataConsistApp_ui <- function(id){
 
                                                       ),
                                              ),
-                                             tabPanel(div(icon("dice-two"), "Set rule(s)", icon("arrow-right") ), #icon = icon("dice-one"),
+                                             tabPanel(div(icon("dice-two"), "Set rules (optional)", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                             tags$div(tags$h5(strong("To add a rule, click the 'Add' button. To remove a rule,
+                                                           select the rule from the table then click the 'Delete' button. When you upload a rule, it will delete
+                                                           previously added rules."), style = "color: #FFFFFF;")),
+                                                             tags$div(tags$h5(strong("Note: The rules to be set are those that specify which data should be
+                                                                                            excluded from the analysis."), style = "color: #FFFFFF;")),
                                                              br(),
                                                              column(width = 6, style = "color: #000000",
-                                                                    tags$div(tags$h5(strong("To add a filter, click the 'Add' button. To remove a filter,
-                                                           select the filter from the table then click the 'Delete' button. When you upload a rule, it will delete
-                                                           previously added rules."), style = "color: #FFFFFF;")),
-                                                                    tags$div(tags$h5(strong("Note: The filters to be set are those that specify which data should be
-                                                                                            excluded from the analysis."), style = "color: #FFFFFF;")),
                                                                     tabsetPanel(id = "ruleTab",
                                                                                 tabPanel("Upload",
                                                                                          br(),
@@ -165,7 +165,6 @@ mod_qaDataConsistApp_ui <- function(id){
                                                                     ),
                                                              ),
                                                              column(width = 6,
-                                                                    downloadButton(ns("download_filt"), "Download Rules"),
                                                                     tags$div(tags$h5(strong("Comparative Rules"), style = "color: #FFFFFF;")),
                                                                     column(width = 12, style = "background-color:#FFFFFF; color: #000000",
                                                                            uiOutput(ns('filt_seq1_params')),
@@ -204,10 +203,10 @@ mod_qaDataConsistApp_ui <- function(id){
                                              tabPanel(div(icon("dice-three"), "View & Edit", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
-                                                             br(),
                                                              tags$div(tags$h5(strong("To load impossible values based on set ranges and rules, click the 'Load' button.
-                                                             To exclude an impossible value in the analysis, select the row(s) then click the 'Exclude' button.
-                                                             To modify a value, select the row(s) then click the 'Modify' button then specify the new value."), style = "color: #FFFFFF;")),
+                                                             To exclude an impossible value in the analysis, select the row(s) then click the 'Exclude' button."), style = "color: #FFFFFF;")),
+                                                             column(width = 12,
+                                                                    downloadButton(ns("download_filt"), "Download Ranges/Rules")),
                                                              column(width = 12,
                                                                     column(width = 6,
                                                                            tags$div(tags$h5(strong("Impossible Values"), style = "color: #FFFFFF;")),
@@ -376,23 +375,6 @@ mod_qaDataConsistApp_server <- function(id, data){
       traits <- input$traitOutqPhenoMultipleNum
 
       lapply(1:length(input$traitOutqPhenoMultipleNum), function(i) {
-        shinyjs::disabled(selectInput(
-          session$ns(paste0('traitNum',i)),
-          label = ifelse(i==1, "Trait(s)",""),
-          choices = traits, multiple = FALSE,
-          selected = traits[i]
-        ))
-      })
-
-    })
-
-    output$traitOutqPhenoDefCat <- renderUI({ # input <- list(version2Mta=result$status$analysisId[3], trait2Mta="YLD_TON",nTermsFixed=1)
-      req(data())
-      req(input$traitOutqPhenoMultipleCat)
-
-      traits <- input$traitOutqPhenoMultipleCat
-
-      lapply(1:length(input$traitOutqPhenoMultipleCat), function(i) {
         shinyjs::disabled(selectInput(
           session$ns(paste0('traitNum',i)),
           label = ifelse(i==1, "Trait(s)",""),
@@ -594,22 +576,17 @@ mod_qaDataConsistApp_server <- function(id, data){
                                        text = 'Trait(s) specified not available',
                                        type = 'error')
               data <- NULL
-            } else if(all(data[which(data$Type == "Comparative"), "Filter"] %!in% c(">", ">=", "<", "<="))){
-              shinyWidgets::show_alert(title = 'Error!',
-                                       text = 'Filter(s) specified not available',
-                                       type = 'error')
-              data <- NULL
-            } else if(all(data[which(data$Type == "Condition"), "Filter"] %!in% c("==", "!=", ">", ">=", "<", "<="))){
-              shinyWidgets::show_alert(title = 'Error!',
-                                       text = 'Filter(s) specified not available',
-                                       type = 'error')
-              data <- NULL
             } else{
               if(nrow(data[which(data$Type == "Comparative"),]) > 0){
                 dataRule <- data[which(data$Type == "Comparative"),c("Trait1","Filter","Trait2")]
                 if(any(is.na(dataRule))){
                   shinyWidgets::show_alert(title = 'Error!',
                                            text = 'There are some missing data',
+                                           type = 'error')
+                  data <- NULL
+                } else if(all(data[which(data$Type == "Comparative"), "Filter"] %!in% c(">", ">=", "<", "<="))){
+                  shinyWidgets::show_alert(title = 'Error!',
+                                           text = 'Filter(s) specified not available',
                                            type = 'error')
                   data <- NULL
                 } else{
@@ -621,6 +598,11 @@ mod_qaDataConsistApp_server <- function(id, data){
                 if(any(is.na(dataRule))){
                   shinyWidgets::show_alert(title = 'Error!',
                                            text = 'There are some missing data',
+                                           type = 'error')
+                  data <- NULL
+                } else if(all(data[which(data$Type == "Condition"), "Filter"] %!in% c("==", "!=", ">", ">=", "<", "<="))){
+                  shinyWidgets::show_alert(title = 'Error!',
+                                           text = 'Filter(s) specified not available',
                                            type = 'error')
                   data <- NULL
                 } else{
@@ -646,19 +628,44 @@ mod_qaDataConsistApp_server <- function(id, data){
         Trait2 = isolate(input$filt_param1b)
       )
 
-      clean_data$filt_seq1 <- rbind(clean_data$filt_seq1, added_row)
+      if(nrow(clean_data$filt_seq1) > 0){
+        if(do.call(paste0, added_row) %in% do.call(paste0, clean_data$filt_seq1)){
+          shinyWidgets::show_alert(title = 'Error!',
+                                   text = 'The rule already exists.',
+                                   type = 'error')
+        } else{
+          clean_data$filt_seq1 <- rbind(clean_data$filt_seq1, added_row)
+        }
+      } else{
+        clean_data$filt_seq1 <- rbind(clean_data$filt_seq1, added_row)
+      }
+    })
 
+    observeEvent(input$add_filt1,{
+      if(input$filt_param1b == ""){
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'The rule is incomplete. Please select Trait2.',
+                                 type = 'error')
+      }
     })
 
     observeEvent(input$del_filt1, {
       if (!is.null(input$filt_seq1_tab_rows_selected)) {
         clean_data$filt_seq1 <- clean_data$filt_seq1[-as.numeric(input$filt_seq1_tab_rows_selected), ]
+      } else{
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'No row selected. Please select row to delete.',
+                                 type = 'error')
       }
     })
 
     observeEvent(input$del_filt2, {
       if (!is.null(input$filt_seq2_tab_rows_selected)) {
         clean_data$filt_seq2 <- clean_data$filt_seq2[-as.numeric(input$filt_seq2_tab_rows_selected), ]
+      } else{
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'No row selected. Please select row to delete.',
+                                 type = 'error')
       }
     })
 
@@ -673,8 +680,25 @@ mod_qaDataConsistApp_server <- function(id, data){
         Threshold = isolate(input$filt_tresh2)
       )
 
-      clean_data$filt_seq2 <- rbind(clean_data$filt_seq2, added_row)
+      if(nrow(clean_data$filt_seq2) > 0){
+        if(do.call(paste0, added_row) %in% do.call(paste0, clean_data$filt_seq2)){
+          shinyWidgets::show_alert(title = 'Error!',
+                                   text = 'The rule already exists.',
+                                   type = 'error')
+        } else{
+          clean_data$filt_seq2 <- rbind(clean_data$filt_seq2, added_row)
+        }
+      } else{
+        clean_data$filt_seq2 <- rbind(clean_data$filt_seq2, added_row)
+      }
+    })
 
+    observeEvent(input$add_filt2,{
+      if(is.na(input$filt_tresh2)){
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'The rule is incomplete. Please enter threshold value.',
+                                 type = 'error')
+      }
     })
 
     output$filt_seq1_params <- renderUI({
@@ -807,22 +831,59 @@ mod_qaDataConsistApp_server <- function(id, data){
           if(nrow(mo) >= 1){mydata$color[which(mydata$rowindex %in% unique(mo$rowindex))]="tagged_range"}
         }
 
-        if(nrow(clean_data$filt_seq1)>0){
-          mo <- mydata[which(mydata$color == "valid"),]
-          if(input$traitOutqPheno2 %in% clean_data$filt_seq1$Trait1){
-            for (j in which(clean_data$filt_seq1$Trait1 == input$traitOutqPheno2)){
-              mo <- eval(parse(text = paste0("mo[which(mo[,input$traitOutqPheno2]", clean_data$filt_seq1[j,2], "mo[,'", clean_data$filt_seq1[j,3], "']),]")))
-              if(nrow(mo) >= 1){mydata$color[which(mydata$rowindex %in% unique(mo$rowindex))]="tagged_rule"}
-            }
+        if(nrow(clean_data$filt_seq1)>0 | nrow(clean_data$filt_seq2)>0){
+          comb_rule <- data.frame("Type" = NULL,
+                                  "Trait1" = NULL,
+                                  "Filter" = NULL,
+                                  "Trait2" = NULL,
+                                  "Threshold" = NULL)
+          if(nrow(clean_data$filt_seq1) > 0){
+            rule1 <- clean_data$filt_seq1
+            rule1$Type <- "Comparative"
+            rule1$Threshold <- NA
+            comb_rule <- rbind(comb_rule, rule1)
           }
-        }
-        if(nrow(clean_data$filt_seq2)>0){
+          if(nrow(clean_data$filt_seq2) > 0){
+            rule2 <- clean_data$filt_seq2
+            rule2$Type <- "Condition"
+            rule2$Trait2 <- NA
+            comb_rule <- rbind(comb_rule, rule2)
+          }
           mo <- mydata[which(mydata$color == "valid"),]
-          if(input$traitOutqPheno2 %in% clean_data$filt_seq2$Trait){
-            for (j in which(clean_data$filt_seq2$Trait == input$traitOutqPheno2)){
-              mo <- eval(parse(text = paste0("mo[which(mo[,input$traitOutqPheno2]", clean_data$filt_seq2[j,2], clean_data$filt_seq2[j,3],"),]")))
-              if(nrow(mo) >= 1){mydata$color[which(mydata$rowindex %in% unique(mo$rowindex))]="tagged_rule"}
+          moFormula <- NULL
+          NE_moFormula <- NULL
+          if(input$traitOutqPheno2 %in% comb_rule$Trait1){
+            for (j in which(comb_rule$Trait1 == input$traitOutqPheno2)){
+              if(comb_rule$Type[j] == "Comparative"){
+                if(j == which(comb_rule$Trait1 == input$traitOutqPheno2)[1]){
+                  moFormula <- paste0("mo[,input$traitOutqPheno2]", comb_rule[j,"Filter"], "mo[,'", comb_rule[j,"Trait2"], "']")
+                } else{
+                  moFormula <- paste(moFormula, paste0("mo[,input$traitOutqPheno2]", comb_rule[j,"Filter"], "mo[,'", comb_rule[j,"Trait2"], "']"), sep = "|")
+                }
+              } else if(comb_rule$Type[j] == "Condition" & comb_rule$Filter[j] == "!="){
+                if(j == which(comb_rule$Trait1 == input$traitOutqPheno2 & comb_rule$Filter == "!=")[1]){
+                  NE_moFormula <- paste0("mo[,input$traitOutqPheno2]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"])
+                } else{
+                  NE_moFormula <- paste(NE_moFormula, paste0("mo[,input$traitOutqPheno2]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"]), sep = "&")
+                }
+              } else{
+                if(j == which(comb_rule$Trait1 == input$traitOutqPheno2)[1]){
+                  moFormula <- paste0("mo[,input$traitOutqPheno2]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"])
+                } else{
+                  moFormula <- paste(moFormula, paste0("mo[,input$traitOutqPheno2]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"]), sep = "|")
+                }
+              }
             }
+            if(!is.null(NE_moFormula) | !is.null(moFormula)){
+              if(is.null(NE_moFormula)){
+                mo <- eval(parse(text = paste0("mo[which(",moFormula,"),]")))
+              } else if (is.null(moFormula)){
+                mo <- eval(parse(text = paste0("mo[which(",NE_moFormula,"),]")))
+              } else{
+                mo <- eval(parse(text = paste0("mo[which((",NE_moFormula,")|(",moFormula,")),]")))
+              }
+            }
+            if(nrow(mo) >= 1){mydata$color[which(mydata$rowindex %in% unique(mo$rowindex))]="tagged_rule"}
           }
         }
 
@@ -849,33 +910,51 @@ mod_qaDataConsistApp_server <- function(id, data){
         paste(paste0('qaConsistency_rule_',gsub("-", "", as.integer(Sys.time()))), sep = '.', 'csv')
       },
       content = function(file) {
-        shinybusy::show_modal_spinner(spin = "fading-circle", text = "Downloading Rule...")
+        shinybusy::show_modal_spinner(spin = "fading-circle", text = "Downloading Range and Rule...")
 
         # temporarily switch to the temp dir, in case you do not have write
         # permission to the current working directory
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
 
-        if(!is.null(clean_data$filt_seq1) | !is.null(clean_data$filt_seq2)){
-          filt_rule <- data.frame("Type" = NULL,
-                                  "Trait1" = NULL,
-                                  "Filter" = NULL,
-                                  "Trait2" = NULL,
-                                  "Threshold" = NULL)
-          if(nrow(clean_data$filt_seq1) > 0){
-            filt1_temp <- clean_data$filt_seq1
-            filt1_temp$Type <- "Comparative"
-            filt1_temp$Threshold <- NA
-            filt_rule <- rbind(filt_rule, filt1_temp)
+        filt_rule <- setNames(data.frame(matrix(ncol=5, nrow=0)), c("Type","Trait1","Filter","Trait2","Threshold"))
+        if(length(input$traitOutqPhenoMultipleNum)>0){
+          filt1a_temp <- filt_rule
+          for (i in 1:length(input$traitOutqPhenoMultipleNum)){
+            filt1a_temp <- data.frame("Type" = "Condition",
+                                      "Trait1" = eval(parse(text = paste0("input$traitNum",i))),
+                                      "Filter" = c("<", ">"),
+                                      "Trait2" = NA,
+                                      "Threshold" = c(eval(parse(text = paste0("input$traitMin",i))), eval(parse(text = paste0("input$traitMax",i))))
+            )
+            filt_rule <- rbind(filt_rule, filt1a_temp)
           }
-          if(nrow(clean_data$filt_seq2) > 0){
-            filt2_temp <- clean_data$filt_seq2
-            filt2_temp$Type <- "Condition"
-            filt2_temp$Trait2 <- NA
-            filt_rule <- rbind(filt_rule, filt2_temp)
-          }
-          utils::write.csv(filt_rule, file, row.names = FALSE)
         }
+        if(length(input$traitOutqPhenoMultipleCat)>0){
+          filt2a_temp <- filt_rule
+          for (i in 1:length(input$traitOutqPhenoMultipleCat)){
+            filt2a_temp <- data.frame("Type" = "Condition",
+                                      "Trait1" = eval(parse(text = paste0("input$traitCat",i))),
+                                      "Filter" = "!=",
+                                      "Trait2" = NA,
+                                      "Threshold" = eval(parse(text = paste0("input$traitValCat",i)))
+            )
+            filt_rule <- rbind(filt_rule, filt2a_temp)
+          }
+        }
+        if(nrow(clean_data$filt_seq1) > 0){
+          filt1_temp <- clean_data$filt_seq1
+          filt1_temp$Type <- "Comparative"
+          filt1_temp$Threshold <- NA
+          filt_rule <- rbind(filt_rule, filt1_temp)
+        }
+        if(nrow(clean_data$filt_seq2) > 0){
+          filt2_temp <- clean_data$filt_seq2
+          filt2_temp$Type <- "Condition"
+          filt2_temp$Trait2 <- NA
+          filt_rule <- rbind(filt_rule, filt2_temp)
+        }
+        utils::write.csv(unique(filt_rule), file, row.names = FALSE)
         shinybusy::remove_modal_spinner()
       }, contentType = "text/csv"
     )
@@ -916,26 +995,68 @@ mod_qaDataConsistApp_server <- function(id, data){
             if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="outlierRange"}
           }
 
-          if(nrow(clean_data$filt_seq1)>0){
-            mo <- mydata[which(mydata$rowindex %in% outData[which(outData$reason == "valid"), "row"]),]
-            if(traitQC[i] %in% clean_data$filt_seq1$Trait1){
-              for (j in which(clean_data$filt_seq1$Trait1 == traitQC[i])){
-                mo <- eval(parse(text = paste0("mo[which(mo[,traitQC[i]]", clean_data$filt_seq1[j,2], "mo[,'", clean_data$filt_seq1[j,3], "']),]")))
-                if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="outlierRule"}
-              }
+          if(nrow(clean_data$filt_seq1)>0 | nrow(clean_data$filt_seq2)>0){
+            comb_rule <- data.frame("Type" = NULL,
+                                    "Trait1" = NULL,
+                                    "Filter" = NULL,
+                                    "Trait2" = NULL,
+                                    "Threshold" = NULL)
+            if(nrow(clean_data$filt_seq1) > 0){
+              rule1 <- clean_data$filt_seq1
+              rule1$Type <- "Comparative"
+              rule1$Threshold <- NA
+              comb_rule <- rbind(comb_rule, rule1)
             }
-          }
-          if(nrow(clean_data$filt_seq2)>0){
+            if(nrow(clean_data$filt_seq2) > 0){
+              rule2 <- clean_data$filt_seq2
+              rule2$Type <- "Condition"
+              rule2$Trait2 <- NA
+              comb_rule <- rbind(comb_rule, rule2)
+            }
             mo <- mydata[which(mydata$rowindex %in% outData[which(outData$reason == "valid"), "row"]),]
-            if(traitQC[i] %in% clean_data$filt_seq2$Trait){
-              for (j in which(clean_data$filt_seq2$Trait == traitQC[i])){
-                mo <- eval(parse(text = paste0("mo[which(mo[,traitQC[i]]", clean_data$filt_seq2[j,2], clean_data$filt_seq2[j,3],"),]")))
-                if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="outlierRule"}
+            moFormula <- NULL
+            NE_moFormula <- NULL
+            if(traitQC[i] %in% comb_rule$Trait1){
+              for (j in which(comb_rule$Trait1 == traitQC[i])){
+                if(comb_rule$Type[j] == "Comparative"){
+                  if(j == which(comb_rule$Trait1 == traitQC[i])[1]){
+                    moFormula <- paste0("mo[,traitQC[i]]", comb_rule[j,"Filter"], "mo[,'", comb_rule[j,"Trait2"], "']")
+                  } else{
+                    moFormula <- paste(moFormula, paste0("mo[,traitQC[i]]", comb_rule[j,"Filter"], "mo[,'", comb_rule[j,"Trait2"], "']"), sep = "|")
+                  }
+                } else if(comb_rule$Type[j] == "Condition" & comb_rule$Filter[j] == "!="){
+                  if(j == which(comb_rule$Trait1 == traitQC[i] & comb_rule$Filter == "!=")[1]){
+                    NE_moFormula <- paste0("mo[,traitQC[i]]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"])
+                  } else{
+                    NE_moFormula <- paste(NE_moFormula, paste0("mo[,traitQC[i]]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"]), sep = "&")
+                  }
+                } else{
+                  if(j == which(comb_rule$Trait1 == traitQC[i])[1]){
+                    moFormula <- paste0("mo[,traitQC[i]]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"])
+                  } else{
+                    moFormula <- paste(moFormula, paste0("mo[,traitQC[i]]", comb_rule[j,"Filter"], comb_rule[j,"Threshold"]), sep = "|")
+                  }
+                }
               }
+              if(!is.null(NE_moFormula) | !is.null(moFormula)){
+                if(is.null(NE_moFormula)){
+                  mo <- eval(parse(text = paste0("mo[which(",moFormula,"),]")))
+                } else if (is.null(moFormula)){
+                  mo <- eval(parse(text = paste0("mo[which(",NE_moFormula,"),]")))
+                } else{
+                  mo <- eval(parse(text = paste0("mo[which((",NE_moFormula,")|(",moFormula,")),]")))
+                }
+              }
+              if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="outlierRule"}
             }
           }
           clean_data$filt_all <- rbind(clean_data$filt_all, outData[which(outData$reason != "valid"),])
         }
+      }
+      if(nrow(clean_data$filt_all)<1){
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'All values are valid',
+                                 type = 'error')
       }
     })
 
@@ -971,6 +1092,10 @@ mod_qaDataConsistApp_server <- function(id, data){
           clean_data$filt_exc <- clean_data$filt_all[as.numeric(input$filt_all_tab_rows_selected), ]
         }
         clean_data$filt_all <- clean_data$filt_all[-as.numeric(input$filt_all_tab_rows_selected), ]
+      } else{
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'No row selected. Please select row(s) to exclude.',
+                                 type = 'error')
       }
     })
 
@@ -985,6 +1110,10 @@ mod_qaDataConsistApp_server <- function(id, data){
                                           reason = NULL,
                                           row = NULL,
                                           value = NULL)
+      } else{
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'No available row(s) to exclude.',
+                                 type = 'error')
       }
     })
 
@@ -992,6 +1121,10 @@ mod_qaDataConsistApp_server <- function(id, data){
       if (!is.null(input$filt_exc_tab_rows_selected)) {
         clean_data$filt_all <- rbind(clean_data$filt_all, clean_data$filt_exc[as.numeric(input$filt_exc_tab_rows_selected), ])
         clean_data$filt_exc <- clean_data$filt_exc[-as.numeric(input$filt_exc_tab_rows_selected), ]
+      } else{
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'No row selected. Please select row(s) to include.',
+                                 type = 'error')
       }
     })
 
@@ -1002,6 +1135,10 @@ mod_qaDataConsistApp_server <- function(id, data){
                                           reason = NULL,
                                           row = NULL,
                                           value = NULL)
+      } else{
+        shinyWidgets::show_alert(title = 'Error!',
+                                 text = 'No available row(s) to include.',
+                                 type = 'error')
       }
     })
 
