@@ -111,12 +111,13 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
             yy <- yy[v,c("analysisId","value")]
             zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
           }else{ zz <- xx; zz$value <- NA}
+          if(existNames){
+            zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
+            zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
+          }
         }
       }
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
+
       if(!is.null(xx)){
         if(nrow(xx) > 0){
           if(existNames){
@@ -243,7 +244,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
             }else{ iFile=1 }
           }
           ## replace tables
-          tmp <- data()
+          tmp <- list()
           if(!is.null(result$data)){tmp$data <- result$data}
           if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
           if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
