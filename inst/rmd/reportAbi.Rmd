@@ -345,7 +345,9 @@ if (is.null(result)){
         fig
         
       })
-    }
+
+    } 
+
     }
   }else{
     cat("No coordinates available. Skipping planting map.")
