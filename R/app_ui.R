@@ -174,7 +174,7 @@ app_ui <- function(request) {
                  # tabPanel(div(icon("chart-line"),  "Number of founders (", icon("dna"), ")"), mod_neApp_ui("neApp_1") ), #  icon = icon("filter")),
                  tabPanel(div(icon("chart-line"), "Linkage disequilibrium (",  icon("dna"), ")", style = "color:red"),  mod_linkageDisApp_ui("linkageDisApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
                  #tabPanel(div(icon("circle-nodes"), "Pool formation (",  icon("dna"), icon("seedling"), ")", style = "color:red"),  mod_poolFormApp_ui("poolFormApp_1") ), #  icon = icon("circle-nodes")), # may include k-means, simulated annealing
-                 tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), ")", style = "color:red"), mod_subsetSelApp_ui("subsetSelApp_1") ), # stpga
+                 tabPanel(div(icon("circle-nodes"), "Pop-subset formation (", icon("dna"), icon("seedling"), ")"), mod_CoreSubsetApp_ui("CoreSubsetApp_1") ), # stpga
                  tabPanel(div(icon("barcode"), "F1 QA/QC (", icon("dna"), ")"), mod_hybridityApp_ui("hybridityApp_1") ),
       ),
 
