@@ -245,7 +245,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           }
           ## replace tables
 
-          tmp <- list() #data()
+          tmp <- cgiarBase::create_getData_object() #data()
 
           if(!is.null(result$data)){tmp$data <- result$data}
           if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
