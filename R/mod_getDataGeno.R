@@ -115,7 +115,8 @@ mod_getDataGeno_server <-
 
       dup_values <- reactiveValues(
         load_geno_data = FALSE,
-        run_det_dups = FALSE
+        run_det_dups = FALSE,
+        dup_df = NULL
       )
 
       output$warningMessage <- renderUI(
@@ -452,20 +453,25 @@ mod_getDataGeno_server <-
                     sliderInput(ns("n_loc_dup_slider"), "Select number of markers to consider:", min = 0, max = adegenet::nLoc(gl), value = 1),
                     sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:", min = 0, max = 1, value = 0.2, step = 0.01),
                     sliderInput(ns("maf_dup_slider"), "Set min MAF:", min = 0, max = 1, value = 0.05, step = 0.01),
-                    numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1),
-                    actionButton(ns("run_dup_detect_btn"), "Run", status = "primary"))))
+                    numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1))))
 
               ),
-          shinydashboard::box(width = 12, title = "Duplicate Definition"),
-          shinydashboard::box(width = 12, title = "Merge Individuals"),
+          shinydashboard::box(width = 12, title = "Duplicate Definition",
+              fluidRow(column(width = 6,
+                shinydashboard::box(title = "Duplicate Mapping", solidHeader = TRUE,
+                                    status = "primary",
+                                    "Upload a tab-separated file with sample_id and designation_id columns",
+                                    br(),
+                                    "Samples with same designation_id will be merged.",
+                                    br(),
+                                    downloadButton(ns("dup_det_download_template_btn"),
+                                                   "Download the template to map the duplicate samples"),
+                                    fileInput(ns("dup_det_upl_template"), "Upload the modified template")
+                                          )),
+                                   column(width = 6, uiOutput(ns("dup_det_preview_panel"))))),
+          shinydashboard::box(width = 12, title = "Merge Individuals", uiOutput(ns("dup_det_merge_panel"))),
           shinydashboard::box(width = 12, title = "Remove Individuals")
         )
-      })
-
-      observeEvent(input$dup_det_conf, {
-        if(isTRUE(input$dup_det_conf)){
-          filter_dup_det_gl()
-        }
       })
 
       filter_dup_det_gl <- reactive({
@@ -478,91 +484,150 @@ mod_getDataGeno_server <-
         gl <- get_geno_data()
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Randomly filtering genotype matrix...')
-        cgiarGenomics::random_select_loci(gl,
+        rand_gl <- cgiarGenomics::random_select_loci(gl,
                                          ind_miss = 0.2,
                                          loc_miss = input$loc_miss_dup_slider,
                                          maf = input$maf_dup_slider,
                                          size = input$n_loc_dup_slider,
                                          seed = input$seed_dup)
         shinybusy::remove_modal_spinner()
-
+        return(rand_gl)
       })
 
+      output$dup_det_download_template_btn <- downloadHandler(
+        filename = function() {
+          paste0("dup_template-", Sys.Date(), ".csv")
+        },
+        content = function(file) {
+          gl <- get_geno_data()
+          template <- data.frame(sample_id = adegenet::indNames(gl), designation_id = NA)
+          write.csv(template, file, row.names = FALSE, quote = F)
+        }
+      )
 
-      get_general_ibs <- reactive({
-        req(dup_values$load_geno_data)
-        req(input$n_loc_dup_slider)
-        req(input$loc_miss_dup_slider)
-        req(input$maf_dup_slider)
-        req(input$seed_dup)
-
-        gl <- get_geno_data()
-
-        shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-        ibs_out <- cgiarGenomics::get_paired_IBS(gl, as.numeric(input$ploidlvl_input),
-                       n_loci = input$n_loc_dup_slider,
-                       seed = input$seed_dup,
-                       maf = input$maf_dup_slider,
-                       ind_miss = 0.2, loc_miss = input$loc_miss_dup_slider)
-        output$dup_detect_panel <- renderUI({
+      output$dup_det_preview_panel <- renderUI({
+        if (is.null(input$dup_det_upl_template)) {
           tags$div(
-            tabsetPanel(type = "tabs",
-                        tabPanel("Histogram",
-                                 plotOutput(ns('dup_det_hist'))),
-                        tabPanel("Heatmap",
-                                 plotly::plotlyOutput(ns("dup_det_heatmap"))),
-                        tabPanel("Log",
-                                 verbatimTextOutput(ns("dup_det_log")))),
-            DT::DTOutput(ns("dup_det_comps_tbl"))
+            style = "padding: 1rem; border: 1px dashed #bbb; border-radius: 8px;",
+            h4("No file uploaded"),
+            p("Please upload a .csv file to see a quick preview.")
           )
-        })
-        shinybusy::remove_modal_spinner()
-        ibs_out
+        } else {
+          DT::DTOutput(ns("dup_det_preview_table"))
+        }
       })
 
-      output$dup_det_hist <- renderPlot({
-        ibs <- get_general_ibs()
-        values <- as.vector(ibs$score)
-        x <- values[is.finite(values)]
-        n <- length(values)
-        m <- mean(x)
+      read_dup_template <- reactive({
+        req(input$dup_det_upl_template)
+        df <- read.csv(input$dup_det_upl_template$datapath,
+                       check.names = FALSE, stringsAsFactors = FALSE)
+        if(sum(names(df) %in% c("sample_id", "designation_id")) != 2){
+          validate("Uploaded file should have two columns named sample_id and designation_id separated by commas.")
+        } else {
+          gl <- get_geno_data()
+          sample_ids <- adegenet::indNames(gl)
+          if(sum(df$sample_id %in% sample_ids) != length(sample_ids)){
+            validate("sample_ids provided in the template don't match with provided genotypic file")
+          }
+          df$selected <- TRUE
+          dup_values$dup_df <- df
+          return(df)
+        }})
 
-        ggplot2::ggplot(data.frame(IBS = as.vector(ibs$score)), ggplot2::aes(IBS)) +
-          ggplot2::geom_histogram(bins = 40, linewidth = 0.2) +
-          ggplot2::geom_vline(xintercept = m, linetype = "dashed", linewidth = 0.6) +
-          ggplot2::coord_cartesian(xlim = c(0, 1)) +
-          ggplot2::labs(
-            title = "IBS distribution (values near 1 ⇒ more related)",
-            subtitle = sprintf("n = %d   mean = %.3f", n, m),
-            x = "IBS", y = "Count of pairwise comparisons"
-          ) +
-          ggplot2::theme_minimal(base_size = 13) +
-          ggplot2::theme(
-            plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
-            plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(t = 4, b = 6))
-          )
-      }, res = 120)
-
-      output$dup_det_comps_tbl <- DT::renderDT({
-        ibs <- get_general_ibs()
-        ibs_df <- as.data.frame(as.table(ibs$score)) %>%
-          dplyr::filter(Var1 != Var2)
-
-        DT::datatable(ibs_df,
-          options = list(
-            dom = "lfrtip",          # 'f' = global search box
-            pageLength = 10,
-            lengthMenu = c(5, 10, 25, 50)
-          ),
-          rownames = FALSE
+      output$dup_det_preview_table <- DT::renderDT({
+        df <- read_dup_template()
+        DT::datatable(df,
+                      options = list(
+                        dom = "lfrtip",          # 'f' = global search box
+                        pageLength = 10,
+                        lengthMenu = c(5, 10, 25, 50)
+                      ),
+                      rownames = FALSE
         )
       })
 
-      output$dup_det_heatmap <-   output$ibs_heat <- plotly::renderPlotly({
+      output$dup_det_merge_panel <- renderUI({
+        req(read_dup_template())
+        duplicates <- read_dup_template()
+        dup_groups <- duplicates %>%
+          dplyr::group_by(designation_id) %>%
+          dplyr::summarise(count = dplyr::n()) %>%
+          dplyr::filter(count > 1)
 
-        ibs <- get_general_ibs()
-        m <- ibs$score
+        tags$div(
+          selectInput(ns("dup_group_pick"), "Select a duplicate group",
+                      choices = dup_groups$designation_id, multiple = FALSE),
+          fluidRow(column(width = 6,
+                          plotly::plotlyOutput(ns("dup_group_heatmap"))),
+                   column(width = 6,
+                          checkboxGroupInput(ns("dup_group_select_samples"),
+                                             "Select samples to merge:", choices = NULL),
+                          actionButton(ns("dup_update_dup_df"), "Update")))
+        )
+      })
 
+
+      picked_dup_samples <- reactive({
+        req(dup_values$dup_df)
+        req(input$dup_group_pick)
+        df <- dup_values$dup_df
+
+        df %>%
+          dplyr::filter(designation_id == input$dup_group_pick)
+      })
+
+      observe({
+        req(picked_dup_samples())
+        choices <- picked_dup_samples() %>%
+          dplyr::pull(sample_id)
+
+        print(picked_dup_samples())
+        selections <- picked_dup_samples() %>%
+          dplyr::filter(selected == TRUE) %>%
+          dplyr::pull(sample_id)
+        updateCheckboxGroupInput(session = session, "dup_group_select_samples",
+                                 choices = choices,
+                                 selected = selections)
+      })
+      observe({
+        print("Df_dup update")
+        print(dup_values$df_dup)
+      })
+      observeEvent(input$dup_update_dup_df, {
+        req(dup_values$df_dup)
+        print("update")
+        flip_idx <- which(!dup_values$df_dup$sample_id$choices %in% input$dup_group_select_samples)
+        print(dup_values$df_dup$sample_id$choices)
+        print(input$dup_group_select_samples)
+        flip_samps <- dup_values$df_dup$sample_id$choices[flip_idx]
+        print(flip_samps)
+        df_idx <- which(flip_samps %in% dup_values$df_dup$sample_id)
+        print(dup_values$df_dup$sample_id[df_idx,])
+        dup_values$df_dup$sample_id[df_idx, "selected"] <- FALSE
+      })
+
+      filt_random_gl <- reactive({
+        req(filter_dup_det_gl())
+        req(picked_dup_samples())
+        target_samples <- picked_dup_samples() %>%
+          dplyr::pull(sample_id)
+        rand_gl <- filter_dup_det_gl()
+        tg_inds <- which(target_samples %in% adegenet::indNames(rand_gl))
+        rand_gl[tg_inds,]
+      })
+
+      get_ibs <- reactive({
+        req(filt_random_gl)
+        gl <- filt_random_gl()
+        cgiarGenomics::ibs_matrix_purrr(gl, as.numeric(input$ploidlvl_input))
+      })
+
+      output$dup_group_heatmap <- plotly::renderPlotly({
+        req(filt_random_gl())
+        req(get_ibs())
+        tg_rand_gl <- filt_random_gl()
+        ibs <- get_ibs()
+        m <- ibs$ibs
         plotly::plot_ly(
           z = m, x = colnames(m), y = rownames(m),
           type = "heatmap", colorscale = "Viridis",
@@ -576,6 +641,7 @@ mod_getDataGeno_server <-
             margin = list(l = 60, r = 20, t = 60, b = 80)
           )
       })
+
     })
   }
 # Util functions pending to move ------------------------------------------
