@@ -115,45 +115,45 @@ that perform well under farmers’ conditions before these are announced to the 
                                                ),
                                       ),
                                       tabPanel( div( icon("dice-four"), "Select Disease Information", icon("arrow-right") ), # icon = icon("dice-four"),
-                                               br(),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=12, tags$br(),
-                                                             shinyWidgets::prettySwitch( inputId = ns('withDisease'), label = "With Disease Information?", status = "success")),
-                                               ),
-                                               column(width=12, style = "background-color:grey; color: #FFFFFF", uiOutput(ns('diseaseInfo')) ),
-                                               column(width=12),
-                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                   column(width=12,
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
-                                                                   column(width=12, DT::DTOutput(ns('preview_pheno2')) ),
-                                               ),
+                                                br(),
+                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                       column(width=12, tags$br(),
+                                                              shinyWidgets::prettySwitch( inputId = ns('withDisease'), label = "With Disease Information?", status = "success")),
+                                                ),
+                                                column(width=12, style = "background-color:grey; color: #FFFFFF", uiOutput(ns('diseaseInfo')) ),
+                                                column(width=12),
+                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                    column(width=12,
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                    ),
+                                                                    p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
+                                                                    column(width=12, DT::DTOutput(ns('preview_pheno2')) ),
+                                                ),
                                       ),
                                       tabPanel( div( icon("dice-five"), "Select Environment(s)",  icon("arrow-right") ), # icon = icon("dice-five"),
-                                               br(),
-                                               column(width=12, selectInput(ns("env2Oft"), "Environment(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
-                                               column(width=12),
-                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                                                   column(width=12,
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
-                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
-                                                                   ),
-                                                                   shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
-                                                                                       column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                                                                              column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
-                                                                                              column(width=3, selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
-                                                                                              column(width=3, selectInput(ns("entryTypeOft"), "Entry type to visualize", choices = NULL, multiple = FALSE) ),
-                                                                                              column(width=2, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
-                                                                                              column(width=2, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
-                                                                                              column(width=2, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
-                                                                                              column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) )
-                                                                                       ),
-                                                                   ),
-                                               ),
+                                                br(),
+                                                column(width=12, selectInput(ns("env2Oft"), "Environment(s) to include", choices = NULL, multiple = TRUE), style = "background-color:grey; color: #FFFFFF"),
+                                                column(width=12),
+                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                    column(width=12,
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                    ),
+                                                                    shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
+                                                                                        column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                                                                               column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
+                                                                                               column(width=3, selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
+                                                                                               column(width=3, selectInput(ns("entryTypeOft"), "Entry type to visualize", choices = NULL, multiple = FALSE) ),
+                                                                                               column(width=2, checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE) ),
+                                                                                               column(width=2, checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE) ),
+                                                                                               column(width=2, numericInput(ns("heatmapFontSize"), label = "Font size", value = 6) ),
+                                                                                               column(width=12, shiny::plotOutput(ns("plotPredictionsConnectivity")) )
+                                                                                        ),
+                                                                    ),
+                                                ),
                                       ),
                                       tabPanel("Build dashboard", icon = icon("dice-six"),
                                                br(),
@@ -410,6 +410,7 @@ mod_oftStaApp_server <- function(id, data){
         e <- network::network.edgecount(n)
         network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
         network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
+        library(ggnetwork)
         ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
           ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
           ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
@@ -617,67 +618,65 @@ mod_oftStaApp_server <- function(id, data){
         shinybusy::show_modal_spinner(spin = "fading-circle",
                                       text = "Generating Dashboard...")
         if(input$withDisease){
-          out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
-                                       output_format = rmarkdown::html_fragment(),
-                                       params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
-                                                     mdisease = input$mDisease, tdisease = input$typeDisease,
-                                                     sdisease = input$diseaseSeverity, version = input$version2Oft),
-                                       quiet = TRUE),silent=TRUE)
-
-          if(!inherits(out,"try-error")) {
-            oftAnalysisId <- as.numeric(Sys.time())
-            if(!"analysisIdName" %in% colnames(result$status)){
-              result$status$analysisIdName <- ""
-            }
-            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
-            modelingOft <- data.frame(module = rep("oft",6), analysisId = rep(oftAnalysisId,6),
-                                      trait = rep("inputObject",6), environment = rep("general",6),
-                                      parameter = c("traits", "fieldinst", "mdisease", "tdisease", "sdisease", "analysisId"),
-                                      value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
-                                                paste(capture.output(dput(input$env2Oft)), collapse = ""),
-                                                input$mDisease, input$typeDisease, input$diseaseSeverity,
-                                                input$version2Oft))
-            result$modeling <- rbind(result$modeling, modelingOft)
-            data(result)
+          # out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
+          #                              output_format = rmarkdown::html_fragment(),
+          #                              params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
+          #                                            mdisease = input$mDisease, tdisease = input$typeDisease,
+          #                                            sdisease = input$diseaseSeverity, version = input$version2Oft),
+          #                              quiet = TRUE),silent=TRUE)
+          #
+          # if(!inherits(out,"try-error")) {
+          oftAnalysisId <- round(as.numeric(Sys.time()))
+          if(!"analysisIdName" %in% colnames(result$status)){
+            result$status$analysisIdName <- ""
           }
+          result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
+          modelingOft <- data.frame(module = rep("oft",6), analysisId = rep(oftAnalysisId,6),
+                                    trait = rep("inputObject",6), environment = rep("general",6),
+                                    parameter = c("traits", "fieldinst", "mdisease", "tdisease", "sdisease", "analysisId"),
+                                    value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
+                                              paste(capture.output(dput(input$env2Oft)), collapse = ""),
+                                              input$mDisease, input$typeDisease, input$diseaseSeverity,
+                                              input$version2Oft))
+          result$modeling <- rbind(result$modeling, modelingOft)
+          data(result)
+          #}
 
         } else{
-          out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
-                                       output_format = rmarkdown::html_fragment(),
-                                       params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
-                                                     version = input$version2Oft),
-                                       quiet = TRUE),silent=TRUE)
-
-          if(!inherits(out,"try-error")) {
-            oftAnalysisId <- as.numeric(Sys.time())
-            if(!"analysisIdName" %in% colnames(result$status)){
-              result$status$analysisIdName <- ""
-            }
-            result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
-            modelingOft <- data.frame(module = rep("oft",3), analysisId = rep(oftAnalysisId,3),
-                                      trait = rep("inputObject",3), environment = rep("general",3),
-                                      parameter = c("traits", "fieldinst", "analysisId"),
-                                      value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
-                                                paste(capture.output(dput(input$env2Oft)), collapse = ""),
-                                                input$version2Oft))
-            result$modeling <- rbind(result$modeling, modelingOft)
-            data(result)
+          # out <- try(rmarkdown::render(input = system.file("rmd","reportOft.Rmd",package="bioflow"),
+          #                              output_format = rmarkdown::html_fragment(),
+          #                              params = list(traits = input$trait2Oft, fieldinst=input$env2Oft,
+          #                                            version = input$version2Oft),
+          #                              quiet = TRUE),silent=TRUE)
+          #
+          # if(!inherits(out,"try-error")) {
+          oftAnalysisId <- round(as.numeric(Sys.time()))
+          if(!"analysisIdName" %in% colnames(result$status)){
+            result$status$analysisIdName <- ""
           }
+          result$status <- rbind(result$status, data.frame(module = "oft", analysisId = oftAnalysisId, analysisIdName = input$analysisIdName))
+          modelingOft <- data.frame(module = rep("oft",3), analysisId = rep(oftAnalysisId,3),
+                                    trait = rep("inputObject",3), environment = rep("general",3),
+                                    parameter = c("traits", "fieldinst", "analysisId"),
+                                    value = c(paste(capture.output(dput(input$trait2Oft)), collapse = ""),
+                                              paste(capture.output(dput(input$env2Oft)), collapse = ""),
+                                              input$version2Oft))
+          result$modeling <- rbind(result$modeling, modelingOft)
+          data(result)
+          #}
         }
 
         output$reportOft <- renderUI({
-          shiny::withMathJax(HTML(readLines(out)))
-          # HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOft.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          # shiny::withMathJax(HTML(readLines(out)))
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportOft.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
-        if(!inherits(result,"try-error")) {
+        cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
+        output$outOft2 <- renderPrint({
           cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
-          output$outOft2 <- renderPrint({
-            cat(paste("Dashboard Generated Successfully with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved."))
-          })
-          shinybusy::remove_modal_spinner()
-          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
-        }
+        })
+        shinybusy::remove_modal_spinner()
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 
         ## report OFT
         output$downloadReportOft <- downloadHandler(
@@ -706,21 +705,21 @@ mod_oftStaApp_server <- function(id, data){
               #                                         mdisease = input$mDisease, tdisease = input$typeDisease,
               #                                         sdisease = input$diseaseSeverity, version = input$version2Oft),
               #                           switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
-              out2 <- rmarkdown::render('report2.Rmd',
-                                        params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
-                                                      fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
-                                                      toDownload=TRUE,
-                                                      mdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "mdisease"), "value"],
-                                                      tdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "tdisease"), "value"],
-                                                      sdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "sdisease"), "value"],
-                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
+              out2 <- rmarkdown::render('report2.Rmd', params = list(toDownload=TRUE),
+                                        # params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
+                                        #               fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
+                                        #               toDownload=TRUE,
+                                        #               mdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "mdisease"), "value"],
+                                        #               tdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "tdisease"), "value"],
+                                        #               sdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "sdisease"), "value"],
+                                        #               version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
                                         switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
             } else{
-              out2 <- rmarkdown::render('report2.Rmd',
-                                        params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
-                                                      fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
-                                                      toDownload=TRUE,
-                                                      version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
+              out2 <- rmarkdown::render('report2.Rmd', params = list(toDownload=TRUE),
+                                        # params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
+                                        #               fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
+                                        #               toDownload=TRUE,
+                                        #               version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
                                         switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
             }
 
