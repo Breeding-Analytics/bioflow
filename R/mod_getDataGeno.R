@@ -344,7 +344,7 @@ mod_getDataGeno_server <-
         # just for make button reactive
         observeEvent(input$load_geno_btn,{
           geno_data <- get_geno_data()
-          #add_data() Commented this during duplicate handelling dev REMOVE
+          add_data() # Commented this during duplicate handelling dev REMOVE
           updateNavlistPanel(session = session,
                              inputId = "geno_load_navpanel",
                              selected = "2. Genotype data Summary")
@@ -529,7 +529,7 @@ mod_getDataGeno_server <-
             if(sum(df$sample_id %in% sample_ids) != length(sample_ids)){
               validate("sample_ids provided in the template don't match with provided genotypic file")
             }
-            df$selected <- TRUE
+            df$selected <- FALSE
             dup_values$dup_df <- df
             return(df)
           }})
@@ -562,7 +562,8 @@ mod_getDataGeno_server <-
                      column(width = 6,
                             checkboxGroupInput(ns("dup_group_select_samples"),
                                                "Select samples to merge:", choices = NULL),
-                            actionButton(ns("dup_update_dup_df"), "Update")))
+                            actionButton(ns("dup_update_dup_df"), "Update"),
+                            actionButton(ns("dup_run_consensus"), "Run Consensus")))
           )
         })
 
@@ -571,7 +572,6 @@ mod_getDataGeno_server <-
           req(dup_values$dup_df)
           req(input$dup_group_pick)
           df <- dup_values$dup_df
-
           df %>%
             dplyr::filter(designation_id == input$dup_group_pick)
         })
@@ -580,8 +580,6 @@ mod_getDataGeno_server <-
           req(picked_dup_samples())
           choices <- picked_dup_samples() %>%
             dplyr::pull(sample_id)
-
-          print(picked_dup_samples())
           selections <- picked_dup_samples() %>%
             dplyr::filter(selected == TRUE) %>%
             dplyr::pull(sample_id)
@@ -589,21 +587,24 @@ mod_getDataGeno_server <-
                                    choices = choices,
                                    selected = selections)
         })
-        observe({
-          print("Df_dup update")
-          print(dup_values$df_dup)
-        })
+
+
         observeEvent(input$dup_update_dup_df, {
-          req(dup_values$df_dup)
-          print("update")
-          flip_idx <- which(!dup_values$df_dup$sample_id$choices %in% input$dup_group_select_samples)
-          print(dup_values$df_dup$sample_id$choices)
-          print(input$dup_group_select_samples)
-          flip_samps <- dup_values$df_dup$sample_id$choices[flip_idx]
-          print(flip_samps)
-          df_idx <- which(flip_samps %in% dup_values$df_dup$sample_id)
-          print(dup_values$df_dup$sample_id[df_idx,])
-          dup_values$df_dup$sample_id[df_idx, "selected"] <- FALSE
+          req(dup_values$dup_df)
+          choices <- dup_values$dup_df %>%
+            dplyr::filter(designation_id == input$dup_group_pick) %>%
+            dplyr::pull(sample_id)
+
+          choices_idx <- which(dup_values$dup_df$sample_id %in% choices)
+          selected <- which(choices %in% input$dup_group_select_samples)
+          not_selected <- which(!choices %in% input$dup_group_select_samples)
+
+          if (length(selected) > 0 ){
+            dup_values$dup_df[choices_idx[selected], "selected"] <- TRUE
+          }
+          if (length(not_selected) > 0 ){
+            dup_values$dup_df[choices_idx[not_selected], "selected"] <- FALSE
+          }
         })
 
         filt_random_gl <- reactive({
@@ -641,6 +642,28 @@ mod_getDataGeno_server <-
               margin = list(l = 60, r = 20, t = 60, b = 80)
             )
         })
+
+        observeEvent(input$dup_run_consensus, {
+          req(dup_values$dup_df)
+          print("run consensus")
+          gl <- get_geno_data()
+          shinybusy::show_modal_spinner('fading-circle', text = 'Merging duplicated samples...')
+          samp_directory <- dup_values$dup_df %>%
+            dplyr::mutate(designation_id = ifelse(selected, designation_id, sample_id)) %>%
+            dplyr::select(sample_id, designation_id)
+
+          mgl <- cgiarGenomics::merge_duplicate_inds(gl, samp_directory)
+          mgl@position <- gl@position
+          mgl@chromosome <- gl@chromosome
+          mgl@loc.all <- gl@loc.all
+          mgl <- cgiarGenomics::recalc_metrics(mgl)
+          temp <- data()
+          temp$data$geno <- mgl
+          data(temp)
+          shinybusy::remove_modal_spinner()
+        })
+
+
     })
   }
 # Util functions pending to move ------------------------------------------
