@@ -74,6 +74,22 @@ printTable <- function(DT, pageLength = 7,
 }
 ```
 
+```{r, include=FALSE}
+# Init Step to make sure that the dependencies are loaded
+htmltools::tagList(printTable(mtcars))
+htmltools::tagList(ggplotly(ggplot()))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+```
+
 ```{r }
 
 suppressWarnings(tryCatch({
@@ -156,14 +172,13 @@ if (is.null(result)){
   p <- ggplot(predictions, aes(x=designation, y=predictedValue, text=designation)) + 
     geom_point(size=2, alpha = 0.6 ) + ylab("Merit") + xlab("Designation") +
     theme(axis.text.x=element_blank())
-  plotly::ggplotly(p)
   
   if("params" %in% ls()){ # we will download the document
-    print(p)
+     print(htmltools::tagList(plotly::ggplotly(p)))
   }else{
     
     plotly::renderPlotly({
-      p
+      plotly::ggplotly(p)
     })
     
   }

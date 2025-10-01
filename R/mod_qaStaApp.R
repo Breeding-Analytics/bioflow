@@ -95,7 +95,8 @@ mod_qaStaApp_ui <- function(id){
                                            br(),
                                            textOutput(ns("outQaMb2")),
                                            br(),
-                                           downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
+                                           actionButton(ns("renderReportQaPheno"), "Download dashboard", icon = icon("download")),
+                                           downloadButton(ns("downloadReportQaPheno"), "Download dashboard", style = "visibility:hidden;"),
                                            br(),
                                            uiOutput(ns('reportQaPheno'))
                                   ),
@@ -322,6 +323,34 @@ mod_qaStaApp_server <- function(id, data){
             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
           })
 
+          report <- reactiveVal(NULL)
+
+          observeEvent(input$renderReportQaPheno,{
+            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+            src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+            src2 <- normalizePath('data/resultQaPheno.RData')
+
+            # temporarily switch to the temp dir, in case you do not have write
+            # permission to the current working directory
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+
+            file.copy(src, 'report.Rmd', overwrite = TRUE)
+            file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+
+            outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                           switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                                  # HTML = rmarkdown::html_document()
+                                           ))
+
+            report(outReport)
+
+            shinybusy::remove_modal_spinner()
+
+            shinyjs::click("downloadReportQaPheno")
+          })
+
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
               paste(paste0('qaSta_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
@@ -329,21 +358,9 @@ mod_qaStaApp_server <- function(id, data){
               ))
             },
             content = function(file) {
-              src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
-              src2 <- normalizePath('data/resultQaPheno.RData')
-              # temporarily switch to the temp dir, in case you do not have write
-              # permission to the current working directory
-              owd <- setwd(tempdir())
-              on.exit(setwd(owd))
-              file.copy(src, 'report.Rmd', overwrite = TRUE)
-              file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
-              shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-                "HTML",
-                HTML = rmdformats::robobook(toc_depth = 4)
-                # HTML = rmarkdown::html_document()
-              ))
-              shinybusy::remove_modal_spinner()
+
+              out <- report()
+
               file.rename(out, file)
             }
           )

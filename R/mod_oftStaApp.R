@@ -179,7 +179,8 @@ that perform well under farmers’ conditions before these are announced to the 
                                                uiOutput(ns("outOft2")),
                                                br(),
                                                # div(tags$p("Please download the dashboard below:") ),
-                                               downloadButton(ns("downloadReportOft"), "Download dashboard"),
+                                               actionButton(ns("renderReportOft"), "Download dashboard", icon = icon("download")),
+                                               downloadButton(ns("downloadReportOft"), "Download dashboard", style = "visibility:hidden;"),
                                                br(),
                                                uiOutput(ns('reportOft'))
                                       )
@@ -678,6 +679,34 @@ mod_oftStaApp_server <- function(id, data){
         shinybusy::remove_modal_spinner()
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 
+        report <- reactiveVal(NULL)
+
+        observeEvent(input$renderReportOft,{
+          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+          src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
+          src2 <- normalizePath('data/resultOft.RData')
+
+          # temporarily switch to the temp dir, in case you do not have write
+          # permission to the current working directory
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
+
+          file.copy(src, 'report.Rmd', overwrite = TRUE)
+          file.copy(src2, 'resultOft.RData', overwrite = TRUE)
+
+          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                                # HTML = rmarkdown::html_document()
+                                         ))
+
+          report(outReport)
+
+          shinybusy::remove_modal_spinner()
+
+          shinyjs::click("downloadReportOft")
+        })
+
         ## report OFT
         output$downloadReportOft <- downloadHandler(
           filename = function() {
@@ -686,53 +715,10 @@ mod_oftStaApp_server <- function(id, data){
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Downloading Dashboard...")
 
-            src <- normalizePath(system.file("rmd","reportOft.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultOft.RData')
+            out <- report()
 
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-
-            file.copy(src, 'report2.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultOft.RData', overwrite = TRUE)
-
-            if(input$withDisease){
-              # out2 <- rmarkdown::render('report2.Rmd',
-              #                           params = list(traits = input$trait2Oft, fieldinst=input$env2Oft, toDownload=TRUE,
-              #                                         mdisease = input$mDisease, tdisease = input$typeDisease,
-              #                                         sdisease = input$diseaseSeverity, version = input$version2Oft),
-              #                           switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
-              out2 <- rmarkdown::render('report2.Rmd', params = list(toDownload=TRUE),
-                                        # params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
-                                        #               fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
-                                        #               toDownload=TRUE,
-                                        #               mdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "mdisease"), "value"],
-                                        #               tdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "tdisease"), "value"],
-                                        #               sdisease = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "sdisease"), "value"],
-                                        #               version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
-                                        switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
-            } else{
-              out2 <- rmarkdown::render('report2.Rmd', params = list(toDownload=TRUE),
-                                        # params = list(traits = eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "traits"), "value"])),
-                                        #               fieldinst=eval(parse(text=result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "fieldinst"), "value"])),
-                                        #               toDownload=TRUE,
-                                        #               version = result$modeling[which(result$modeling$module == "oft" & result$modeling$analysisId == oftAnalysisId & result$modeling$parameter == "analysisId"), "value"]),
-                                        switch("HTML",HTML = rmdformats::robobook(toc_depth = 4)))
-            }
-
-
-            # wait for it to land on disk (safety‐net)
-            wait.time <- 0
-            while (!file.exists(out2) && wait.time < 60) {
-              Sys.sleep(1); wait.time <- wait.time + 1
-            }
-
-
-            file.rename(out2, file)
-            shinybusy::remove_modal_spinner()
+            file.rename(out, file)
           }
         )
 
