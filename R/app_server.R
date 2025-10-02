@@ -397,7 +397,7 @@ app_server <- function(input, output, session) {
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
   # mod_poolFormApp_server("poolFormApp_1") # pool formation
-  mod_subsetSelApp_server("subsetSelApp_1") # subset selection
+  mod_CoreSubsetApp_server("CoreSubsetApp_1", data = data) # subset selection
 
   ## SAVE results tab
   mod_saveData_server("saveData_1", data = data, res_auth=res_auth)
