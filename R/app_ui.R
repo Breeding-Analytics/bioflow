@@ -101,7 +101,7 @@ app_ui <- function(request) {
                  tabPanel(strong("PHENOTYPE QA/QC"), mod_sectionInfoQAApp_ui("sectionInfoPhenoQAApp_1") ),
                  tabPanel(div(icon("soap"), "Data consistency (", icon("seedling"),")",style = "color:red"), mod_qaDataConsistApp_ui("qaDataConsistApp_1") ),
                  tabPanel(div(icon("soap"), "Missingness (", icon("seedling"),")",style = "color:red" ), mod_qaDataMissApp_ui("qaDataMissApp_1") ),
-                 tabPanel(div(icon("soap"), "Experimental Design (", icon("seedling"),")",style = "color:red"), mod_qaDataExpDesignApp_ui("qaDataExpDesignApp_1") ),
+                 tabPanel(div(icon("soap"), "Experimental Design (", icon("seedling"),")"), mod_qaDataExpDesignApp_ui("qaDataExpDesignApp_1") ),
                  tabPanel(strong("GENOTYPE QA/QC"), mod_sectionInfoQAApp_ui("sectionInfoGenoQAApp_1") ),
                  tabPanel(div(icon("soap"), "Filtering and Imputation (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                  #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
