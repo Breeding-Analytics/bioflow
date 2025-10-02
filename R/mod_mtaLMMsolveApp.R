@@ -1399,11 +1399,10 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           file.copy(src, 'report.Rmd', overwrite = TRUE)
           file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
 
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-            "HTML",
-            HTML = rmdformats::robobook(toc_depth = 4)
-            # HTML = rmarkdown::html_document()
-          )) #, modelUsed=input$radio
+          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                                # HTML = rmarkdown::html_document()
+                                         ))
 
           report(outReport)
 
@@ -1423,7 +1422,6 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             out <- report()
 
             file.rename(out, file)
-            shinybusy::remove_modal_spinner()
           }
         )
 
