@@ -1,0 +1,236 @@
+---
+title: "Core subset Report"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+  toDownload: FALSE
+---
+  
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+options(knitr.kable.NA = '')
+# loading necessary R packages ####
+## data manipulation
+# library(dplyr)    # %>%, data cleaning functions
+library(magrittr) # coerce col to factors or numeric
+## outputs - graphs, tables
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(data.table)
+library(shiny)
+```
+
+```{r printfxn, include=FALSE}
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                         numericColNames = NULL, numRound = 3, 
+                         scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,...) {
+    
+    DT <- data.frame(lapply(X = DT, 
+                            FUN = function(x) {
+                              if(is.numeric(x)){
+                                round(x, numRound)
+                              } else {
+                                x
+                              }
+                            }))
+    
+    table <- DT::datatable(data = DT, 
+                           colnames = colNames,
+                           filter = "top", 
+                           options = list(autoWidth = autoWidthOpt,
+                                          dom = 'l<<t>pB>', 
+                                          buttons = c('copy', 'csv', 'excel', 'print'),
+                                          pageLength = pageLength,
+                                          searchHighlight = TRUE,
+                                          lengthMenu = c(7, 14, 21, 28, 35),
+                                          scrollX = scrollXOpt),
+                           extensions = 'Buttons',
+                           rownames = FALSE,
+                           ...)
+    if (length(numericColNames) > 0){
+      table <- table %>% DT::formatRound(columns = numericColNames,
+                                     digits = numRound)
+    }
+    
+    table
+  }
+```
+
+```{r, include=FALSE}
+# Init Step to make sure that the dependencies are loaded
+htmltools::tagList(printTable(mtcars))
+htmltools::tagList(ggplotly(ggplot()))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+```
+
+### Summary diversity
+
+The following table allows you to inspect the principal statistics for the diversity analysis with all genotypes and with only selected genotypes.
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+suppressWarnings(tryCatch({
+  if(file.exists(normalizePath("./data/resultCoreSet.RData"))){
+    load(normalizePath("./data/resultCoreSet.RData"))   
+  }else{
+    load("resultCoreSet.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+	idMta <- result$status[which(result$status$module == "CoreSetM"),"analysisId"]
+	idMta <- idMta[length(idMta)]  
+    seedatosum<-as.data.frame(result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$method=="SummaryDiversityAnalysis"),c(4,5,7)])          
+    colnames(seedatosum)=c("Population","Parameter","Value")
+    seedatosum[,3]=as.numeric(seedatosum[,3])	
+if("params"%in%ls()){ # we will download the document
+  printTable(seedatosum, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+           colNames = colnames(seedatosum),
+           numericColNames = c("Value"),
+           numRound = 4)
+  }else{
+    
+    DT::renderDT(printTable(seedatosum,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(seedatosum),
+                        numericColNames = c("Value"),
+                        numRound = 4), server = FALSE)
+  }
+  
+```
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+### Selected genotypes
+
+The following table allows you to inspect the selected genotypes.
+
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+suppressWarnings(tryCatch({
+  if(file.exists(normalizePath("./data/resultCoreSet.RData"))){
+    load(normalizePath("./data/resultCoreSet.RData"))   
+  }else{
+    load("resultCoreSet.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+	idMta <- result$status[which(result$status$module == "CoreSetM"),"analysisId"]
+  idMta <- idMta[length(idMta)]
+  uno<-as.data.frame(result$predictions[which(result$predictions$module=="CoreSetM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="MDS" ),])
+  uno$predictedValue=as.numeric(uno$predictedValue)
+  dos=subset(uno,uno$trait=="Factor1")
+  uno<-data.frame(reshape::cast(uno,designation~trait,value= "predictedValue", fun.aggregate = mean))
+  uno<-cbind(uno,dos$entryType)
+  names(uno)[5]="CoreSet"
+  seedatoMDS<-uno[,c(1,5)]        
+if("params"%in%ls()){ # we will download the document
+    printTable(seedatoMDS, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+           colNames = colnames(seedatoMDS)
+    )
+  }else{
+    DT::renderDT(printTable(seedatoMDS,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(seedatoMDS)
+                        ), server = FALSE)
+  }
+  
+```
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+### Multidimensional scaling plot
+  
+  This plot allows the user to visualize the closeness or distance between genotypes to check if the population structure was as expected.
+
+<p>&nbsp;</p>
+```{r, results='asis'}
+suppressWarnings(tryCatch({
+  if(file.exists(normalizePath("./data/resultCoreSet.RData"))){
+    load(normalizePath("./data/resultCoreSet.RData"))	
+  }else{
+    load("resultCoreSet.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+    idMta <- result$status[which(result$status$module == "CoreSetM"),"analysisId"]
+	idMta <- idMta[length(idMta)]    
+	catv <-"CoreSet"
+	eti="designation"
+	uno<-as.data.frame(result$predictions[which(result$predictions$module=="CoreSetM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="MDS" ),])
+  uno$predictedValue=as.numeric(uno$predictedValue)
+  dos=subset(uno,uno$trait=="Factor1")
+  uno<-data.frame(reshape::cast(uno,designation~trait,value= "predictedValue", fun.aggregate = mean))
+  uno<-cbind(uno,dos$entryType)
+  names(uno)[5]="CoreSet"
+	grupos=nlevels(as.factor(uno$CoreSet))
+	txlab <- paste0('Factor 1 (',result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor1" & result$metrics$method=="VarExplained"),7],'%)')
+    tylab <- paste0('Factor 2 (',result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor2" & result$metrics$method=="VarExplained"),7],'%)')
+    tzlab <- paste0('Factor 3 (',result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor3" & result$metrics$method=="VarExplained"),7],'%)')
+    figparams=list(xcol="Factor1", ycol="Factor2", sizem=7, bkgp="white", tp="MDS Plot", ts=12 ,  pnc="blue", szl=12,  ac="red", typeclust="circular", sizelab=0.6, space=0.2 , sizeline=0.9, poslen="left" )
+	    
+	txlab2=txlab
+	if(figparams$xcol=="Factor2") txlab2=tylab
+	if(figparams$xcol=="Factor3") txlab2=tzlab
+	tylab2=txlab
+	if(figparams$ycol=="Factor2") tylab2=tylab
+	if(figparams$ycol=="Factor3") tylab2=tzlab
+    d=result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$parameter=="ColorsDend"),7]
+	
+if("params" %in%ls()){ # we will download the document
+	p<-plotly::plot_ly(data=uno,x=uno[,figparams$xcol],y=uno[,figparams$ycol],color=uno[,catv],
+                   type="scatter",mode="markers",colors = d,xaxis=F, yaxis=F,
+                   text=uno[,eti],marker=list(size=figparams$sizem))
+	#color de fondo del grafico
+	p<-p %>% plotly::layout(plot_bgcolor=figparams$bkgp,autosize=F, height = "550px",width = "750px")
+	#titulo y etiquetas ejes
+	p<-p %>% plotly::layout(title=figparams$tp,titlefont=list(size=figparams$ts,color=figparams$pnc), xaxis = list(title = txlab2, titlefont=list(size=figparams$szl,color=figparams$ac)),
+                        yaxis = list(title = tylab2,titlefont=list(size=figparams$szl,color=figparams$ac)))
+	p
+}else{
+	plotly::renderPlotly({		
+		p<-plotly::plot_ly(data=uno,x=uno[,figparams$xcol],y=uno[,figparams$ycol],color=uno[,catv],
+                   type="scatter",mode="markers",colors = d,xaxis=F, yaxis=F,
+                   text=uno[,eti],marker=list(size=figparams$sizem))
+	#color de fondo del grafico
+	p<-p %>% plotly::layout(plot_bgcolor=figparams$bkgp,autosize=F, height = "550px",width = "750px")
+	#titulo y etiquetas ejes
+	p<-p %>% plotly::layout(title=figparams$tp,titlefont=list(size=figparams$ts,color=figparams$pnc), xaxis = list(title = txlab2, titlefont=list(size=figparams$szl,color=figparams$ac)),
+                        yaxis = list(title = tylab2,titlefont=list(size=figparams$szl,color=figparams$ac)))
+	p
+})
+}
+```
+

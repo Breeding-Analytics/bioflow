@@ -78,7 +78,8 @@ mod_abiDashboard_ui <- function(id){
                                                br(),
                                                textOutput(ns("outAbi2")),
                                                br(),
-                                               downloadButton(ns("downloadReportAbi"), "Download dashboard"),
+                                               actionButton(ns("renderReportAbi"), "Download dashboard", icon = icon("download")),
+                                               downloadButton(ns("downloadReportAbi"), "Download dashboard", style = "visibility:hidden;"),
                                                br(),
                                                uiOutput(ns('reportAbi'))
                                       )
@@ -273,6 +274,34 @@ mod_abiDashboard_server <- function(id, data){
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportAbi.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
+        report <- reactiveVal(NULL)
+
+        observeEvent(input$renderReportAbi,{
+          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+          src <- normalizePath(system.file("rmd","reportAbi.Rmd",package="bioflow"))
+          src2 <- normalizePath('data/resultAbi.RData')
+
+          # temporarily switch to the temp dir, in case you do not have write
+          # permission to the current working directory
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
+
+          file.copy(src, 'report.Rmd', overwrite = TRUE)
+          file.copy(src2, 'resultAbi.RData', overwrite = TRUE)
+
+          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                                # HTML = rmarkdown::html_document()
+                                         ))
+
+          report(outReport)
+
+          shinybusy::remove_modal_spinner()
+
+          shinyjs::click("downloadReportAbi")
+        })
+
         output$downloadReportAbi <- downloadHandler(
           filename = function() {
             paste(paste0('abiDash_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
@@ -280,32 +309,10 @@ mod_abiDashboard_server <- function(id, data){
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
 
-            src <- normalizePath(system.file("rmd","reportAbi.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultAbi.RData')
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultAbi.RData', overwrite = TRUE)
-            out <- rmarkdown::render('report.Rmd',
-                                     params = list(toDownload=TRUE ),
-                                     switch(
-                                       "HTML",
-                                       HTML = rmdformats::robobook(toc_depth = 4)
-                                       # HTML = rmarkdown::html_document()
-                                     ))
-
-            # wait for it to land on disk (safety‐net)
-            wait.time <- 0
-            while (!file.exists(out) && wait.time < 60) {
-              Sys.sleep(1); wait.time <- wait.time + 1
-            }
+            out <- report()
 
             file.rename(out, file)
-            shinybusy::remove_modal_spinner()
           }
         )
 

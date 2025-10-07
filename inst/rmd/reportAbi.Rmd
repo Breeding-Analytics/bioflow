@@ -136,7 +136,7 @@ if (is.null(result)){
   
   # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
   
-  mtaTraits <- setdiff( unique(result$modeling[result$modeling$analysisId == idMta,"trait"]), "inputObject")
+  mtaTraits <- setdiff( unique(result$modeling[result$modeling$analysisId == idMta,"trait"]), c("inputObject", "pedigree", "geno", "weather", "geno_imp"))
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
@@ -493,7 +493,7 @@ if (is.null(result)){
     counter <- 1
     # for(iTrait in staTraits){
     for(iParam in unique(parameters)){
-      cat("\n\n####", iParam, "{.tabset .tabset-pills}       \n\n")
+      cat("\n\n####", gsub(", ","",gsub("\\(","",gsub("\\)","",iParam))), "{.tabset .tabset-pills}       \n\n")
       
       mydata2 = mydata[which(mydata$parameter %in% iParam),]
       p <- ggplot(data=mydata2, aes(x=environment, y=value, fill=trait)) +
@@ -541,7 +541,7 @@ if (is.null(result)){
   modeling <- result$modeling
   modelingFieldsIncludedInMta <- modeling[modeling$analysisId == idMta & modeling$parameter == "includedInMta", ]
   traitsMta <- modeling[which(modeling$analysisId == idMta),"trait"]
-  traitsMta <- setdiff(traitsMta, "inputObject")
+  traitsMta <- setdiff(traitsMta, c("inputObject", "pedigree", "geno", "weather", "geno_imp"))
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
@@ -587,10 +587,12 @@ if (is.null(result)){
       
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      minVal <- min(nagm, na.rm = TRUE)
+      midVal <- (maxVal - minVal)/2
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                      midpoint = midVal, limit = c(0,maxVal+20), space = "Lab",
                                       name="Connectivity") +
         ggplot2::theme_minimal()+
         ggplot2::ylab("Environments") + ggplot2::xlab("Environments") +
@@ -608,10 +610,20 @@ if (is.null(result)){
       mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
       group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
       ub <- max(mydata4$Freq, na.rm = TRUE)
-      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-         ggplot2::ylab("Count") + ggplot2::xlab("Value") +
-        scale_fill_manual(values=group.colors)
+      lb <- min(mydata4$Freq, na.rm = TRUE)
+      mb <- (ub - lb)/2
+      
+      p2 <- ggplot() + geom_histogram(data = mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x = Freq, fill = ..x..), binwidth=10) +
+          ggplot2::scale_x_continuous(limits = c(0,ub+20)) +
+          scale_fill_gradient2(low="firebrick",mid="gold", high="#038542", midpoint=mb,
+                               limit = c(0,ub+20), space = "Lab",
+                               name="Connectivity") +
+          ggplot2::xlab("Value") + ggplot2::ylab("")
+      
+      # p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+      #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+      #    ggplot2::ylab("Count") + ggplot2::xlab("Value") +
+      #   scale_fill_manual(values=group.colors)
       # combine plots
       print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
       
@@ -636,10 +648,12 @@ if (is.null(result)){
       
       mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
       maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      minVal <- min(nagm, na.rm = TRUE)
+      midVal <- (maxVal - minVal)/2
       p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
         ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
-                                      midpoint = 60, limit = c(0,maxVal), space = "Lab",
+                                      midpoint = midVal, limit = c(0,maxVal+20), space = "Lab",
                                       name="Connectivity") +
         ggplot2::theme_minimal()+
         ggplot2::ylab("Environments") + ggplot2::xlab("Environments") +
@@ -657,14 +671,23 @@ if (is.null(result)){
       mydata4$Group <- ifelse(mydata4$Freq < 31, "Low", ifelse(mydata4$Freq < 80, "Medium", "High"))
       group.colors <- c(Low="firebrick",Medium="gold", High="#038542")
       ub <- max(mydata4$Freq, na.rm = TRUE)
-      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
-        ggplot2::ylab("Count") + ggplot2::xlab("Value") +
-        scale_fill_manual(values=group.colors)
+      lb <- min(mydata4$Freq, na.rm = TRUE)
+      mb <- (ub - lb)/2
+      
+      p2 <- ggplot() + geom_histogram(data = mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x = Freq, fill = ..x..), binwidth=10) +
+          ggplot2::scale_x_continuous(limits = c(0,ub+20)) +
+          scale_fill_gradient2(low="firebrick",mid="gold", high="#038542", midpoint=mb,
+                               limit = c(0,ub+20), space = "Lab",
+                               name="Connectivity") +
+          ggplot2::xlab("Value") + ggplot2::ylab("")
+      # p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
+      #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(0,ub)) +
+      #   ggplot2::ylab("Count") + ggplot2::xlab("Value") +
+      #   scale_fill_manual(values=group.colors)
       # combine plots
       ply1 <- plotly::ggplotly(p)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE)
+      plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE )
       
     })
     
@@ -740,11 +763,14 @@ if (is.null(result)){
       # Basic histogram
       vv$Group <- ifelse(vv$Freq < 0, "Negative", ifelse(vv$Freq < 0.2, "Low", "Positive"))
       group.colors <- c(Negative="#E46726",Low="white", Positive="#038542")
-      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
+      p2 <- ggplot() + geom_histogram(data = vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=..x..), binwidth=0.1) +
+        ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_gradient2(low="#E46726",mid="white", high="#038542", midpoint=0,
+                             limit = c(-1,1), space = "Lab",
+                             name="Pearson\nCorrelation") + 
+        ggplot2::xlab("Value") + ggplot2::ylab("")
       # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ) )
       cat("\n")
     }
     cat("\n")
@@ -778,13 +804,16 @@ if (is.null(result)){
       # Basic histogram
       vv$Group <- ifelse(vv$Freq < 0, "Negative", ifelse(vv$Freq < 0.2, "Low", "Positive"))
       group.colors <- c(Negative="#E46726",Low="white", Positive="#038542")
-      p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value")
+      p2 <- ggplot() + geom_histogram(data = vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=..x..), binwidth=0.1) +
+        ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_gradient2(low="#E46726",mid="white", high="#038542", midpoint=0,
+                             limit = c(-1,1), space = "Lab",
+                             name="Pearson\nCorrelation") + 
+        ggplot2::xlab("Value") + ggplot2::ylab("")
       # combine plots
       ply1 <- plotly::ggplotly(p)
       ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
+      plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE )
       
     })
     
@@ -836,11 +865,14 @@ if (is.null(result)){
       # Basic histogram
       mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
       group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-      p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-        geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-        scale_fill_manual(values=group.colors) + ggplot2::xlab("Value") 
+      p2 <- ggplot() + geom_histogram(data = mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=..x..), binwidth=0.1) +
+        ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_gradient2(low="#E46726",mid="white", high="#038542", midpoint=0,
+                             limit = c(-1,1), space = "Lab",
+                             name="Pearson\nCorrelation") + 
+        ggplot2::xlab("Value") + ggplot2::ylab("")
       # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE) ) )
+      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE) ) )
       
     }else{
       
@@ -864,13 +896,16 @@ if (is.null(result)){
         # Basic histogram
         mydata4$Group <- ifelse(mydata4$Freq < 0, "Low", ifelse(mydata4$Freq < 0.2, "Medium", "High"))
         group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-        p2 <- ggplot(mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=Group)) + 
-          geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-          scale_fill_manual(values=group.colors)  + ggplot2::xlab("Value") 
+        p2 <- ggplot() + geom_histogram(data = mydata4[which(mydata4$Var1 != mydata4$Var2),], aes(x=Freq, fill=..x..), binwidth=0.1) +
+        ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        scale_fill_gradient2(low="#E46726",mid="white", high="#038542", midpoint=0,
+                             limit = c(-1,1), space = "Lab",
+                             name="Pearson\nCorrelation") + 
+        ggplot2::xlab("Value") + ggplot2::ylab("")
         # combine plots
         ply1 <- plotly::ggplotly(p)
         ply2 <- plotly::ggplotly(p2)
-        plotly::subplot(ply1, ply2, nrows=1, shareY = TRUE, shareX = TRUE )
+        plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE )
       })
       
     }
@@ -897,7 +932,7 @@ if (is.null(result)){
   uTraits <- gsub("_scaled","",uTraits)
   dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
   ##
-  environmentPredictionsRadar2="across"
+  environmentPredictionsRadar2=unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
   traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId == idMta),"trait"])
   ## ensure product profile means come sorted
   meanGroupPredictionsRadar= result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),c("trait","value")]
@@ -1138,7 +1173,7 @@ if (is.null(result)){
         myMetrics <- met %>% filter(trait == traits[j])
         myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
                           round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
-                          round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+                          round(myMetrics[myMetrics$parameter == "gg%(average.year)","value"],2),"% Gain")
         p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
           geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
           theme_classic()+
@@ -1157,7 +1192,7 @@ if (is.null(result)){
         myMetrics <- met %>% filter(trait == input$traitSta3)
         myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
                           round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
-                          round(myMetrics[myMetrics$parameter == "gg%","value"],2),"% Gain")
+                          round(myMetrics[myMetrics$parameter == "gg%(average.year)","value"],2),"% Gain")
         p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue ) ) +
           geom_smooth(method = "lm", formula = y ~ poly(x, 2)) + 
           theme_classic()+

@@ -13,6 +13,15 @@ mod_getDataPheno_ui <- function(id){
   ns <- NS(id)
   tagList(
     shinyjs::useShinyjs(),
+    tags$head(
+      tags$style(HTML("
+          .selectize-input.disabled {
+            background-color: white !important; /* Change background color */
+            color: black !important; /* Change text color */
+            opacity: 1 !important; /* Prevent default opacity reduction */
+          }
+        "))
+    ),
     tags$br(),
     # tags$p("The time is ", textOutput(ns("current_time"))),
 
@@ -884,6 +893,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           # season    * <- get_study_info()$seasons
 
           ####################################################################
+        } else{
+          output$brapi_trait_map <- renderUI({NULL})
         }
         data(temp)
       }

@@ -156,7 +156,8 @@ mod_masApp_ui <- function(id){
                                                       br(),
                                                       textOutput(ns("outMAS2")),
                                                       br(),
-                                                      downloadButton(ns("downloadReportMASGeno"), "Download dashboard"),
+                                                      actionButton(ns("renderReportMASGeno"), "Download dashboard", icon = icon("download")),
+                                                      downloadButton(ns("downloadReportMASGeno"), "Download dashboard", style = "visibility:hidden;"),
                                                       br(),
                                                       uiOutput(ns('reportMASGeno'))
                                              ),
@@ -369,7 +370,7 @@ mod_masApp_server <- function(id, data){
       req(data())
       req(input$version2Mta)
       dtMAS <- data()
-      dtMta <- as.data.frame(data()$data$geno)		
+      dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
 		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
@@ -377,14 +378,14 @@ mod_masApp_server <- function(id, data){
         updateCheckboxInput(session, "checkbox", value = FALSE)
         updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
       }
-      
+
     })
 
     observeEvent(input$checkbox,{
       req(data())
       req(input$version2Mta)
       dtMAS <- data()
-      dtMta <- as.data.frame(data()$data$geno)		
+      dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
 		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
@@ -422,7 +423,7 @@ mod_masApp_server <- function(id, data){
       req(data())
       req(input$slider1)
       dtMta <- data()
-      dtMta <- as.data.frame(data()$data$geno)		
+      dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
 		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
@@ -450,8 +451,8 @@ mod_masApp_server <- function(id, data){
       req(input$markers2MAS)
       req(input$ploidy)
 
-      markers2MAS <- input$markers2MAS       
-	    dtMta <- as.data.frame(data()$data$geno)		
+      markers2MAS <- input$markers2MAS
+	    dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
 		    X<- dtMta[["data"]][["geno"]]@loc.all
@@ -459,7 +460,7 @@ mod_masApp_server <- function(id, data){
 		    X<-X[names(X)%in%input$markers2MAS]
 		    X<-strsplit(X,"/")
 		    X<-data.frame(do.call(rbind,X))
-		    colnames(X)<-c("refAllele","altAllele")      
+		    colnames(X)<-c("refAllele","altAllele")
       }
 
       lapply(1:length(markers2MAS), function(i) {
@@ -500,9 +501,9 @@ mod_masApp_server <- function(id, data){
       req(input$version2Mta)
       req(input$markers2MAS)
       req(input$ploidy)
-      
-      markers2MAS <- input$markers2MAS 
-      
+
+      markers2MAS <- input$markers2MAS
+
       lapply(1:length(markers2MAS), function(i) {
         sliderInput(
           inputId=session$ns(paste0('SlideDesiredWeight',i)),
@@ -542,15 +543,15 @@ mod_masApp_server <- function(id, data){
       dtMta <- data()
       qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
       Markers <- as.data.frame(dtMta$data$geno_imp[qas])
-	    colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names    
-      Markers <- Markers[,input$markers2MAS]	  
+	    colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
+      Markers <- Markers[,input$markers2MAS]
 	    X<- dtMta[["data"]][["geno"]]@loc.all
 	    names(X)<-dtMta[["data"]][["geno"]]@loc.names
 	    X<-X[names(X)%in%input$markers2MAS]
 	    X<-strsplit(X,"/")
 	    X<-data.frame(do.call(rbind,X))
-      	    colnames(X)<-c("refAllele","altAllele") 
-	    q <- vector(mode="numeric",length = length(input$markers2MAS))      
+      	    colnames(X)<-c("refAllele","altAllele")
+	    q <- vector(mode="numeric",length = length(input$markers2MAS))
       for(k in 1:ncol(Markers)){
         ttb <- table(0:input$ploidy)-1 # table of zeros for dosages
         tto <- table(Markers[,k])
@@ -593,7 +594,7 @@ mod_masApp_server <- function(id, data){
 	    X<-strsplit(X,"/")
 	    X<-data.frame(do.call(rbind,X))
       colnames(X)<-c("refAllele","altAllele")
-      
+
       positiveAlleles <- ifelse(alleles == 0, X$altAllele,X$refAllele)
       weights <- desireWeightValues()
       ui_inputs <- shiny::reactiveValuesToList(input)
@@ -682,6 +683,34 @@ mod_masApp_server <- function(id, data){
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMas.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
+        report <- reactiveVal(NULL)
+
+        observeEvent(input$renderReportMASGeno,{
+          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+          src <- normalizePath(system.file("rmd","reportMas.Rmd",package="bioflow"))
+          src2 <- normalizePath('data/resultMas.RData')
+
+          # temporarily switch to the temp dir, in case you do not have write
+          # permission to the current working directory
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
+
+          file.copy(src, 'report.Rmd', overwrite = TRUE)
+          file.copy(src2, 'resultMas.RData', overwrite = TRUE)
+
+          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                                # HTML = rmarkdown::html_document()
+                                         ))
+
+          report(outReport)
+
+          shinybusy::remove_modal_spinner()
+
+          shinyjs::click("downloadReportMASGeno")
+        })
+
         output$downloadReportMASGeno <- downloadHandler(
           filename = function() {
             paste(paste0('mas_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
@@ -689,33 +718,10 @@ mod_masApp_server <- function(id, data){
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
 
-            src <- normalizePath(system.file("rmd","reportMas.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultMas.RData')
-
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultMas.RData', overwrite = TRUE)
-
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmdformats::robobook(toc_depth = 4)
-              # HTML = rmarkdown::html_document()
-            ))
-
-            # wait for it to land on disk (safety‐net)
-            wait.time <- 0
-            while (!file.exists(out) && wait.time < 60) {
-              Sys.sleep(1); wait.time <- wait.time + 1
-            }
+            out <- report()
 
             file.rename(out, file)
-            shinybusy::remove_modal_spinner()
           }
         )
 
