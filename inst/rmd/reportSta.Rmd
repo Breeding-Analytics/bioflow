@@ -371,6 +371,16 @@ if (is.null(result)){
       pheno <- result$data$pheno
       pheno <- pheno[,which(!duplicated(colnames(pheno)))]
       metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
+      
+      for(i in 1:length(metaPheno$parameter)){
+        if((metaPheno$parameter[i] %in% colnames(pheno)) & 
+           (metaPheno$parameter[i] != metaPheno$value[i])){
+          colnames(pheno) <- replace(colnames(pheno), 
+                                     colnames(pheno) == metaPheno$parameter[i],
+                                     paste0(metaPheno$parameter[i],"_dup"))
+          }
+      }
+      
       colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
       
       if("params" %in% ls()){ # we will download the document
