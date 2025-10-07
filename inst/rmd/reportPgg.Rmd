@@ -15,6 +15,7 @@ get_h <- function() {
        fig.height*dpi/fig.retina)
 }
 library(dplyr)
+library(ggplot2)
 ```
 
 ```{r plot_init, include = FALSE}
