@@ -470,6 +470,36 @@ mod_qaGenoApp_server <- function(id, data) {
       geno_qa_data$filter_log <- data.frame()
     })
 
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportQaGeno,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultQaGeno.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportQaGeno")
+    })
+
     observeEvent(input$runQaMb,{
       req(geno_qa_data$preview_geno)
       req(geno_qa_data$imputation_log)
@@ -531,34 +561,6 @@ mod_qaGenoApp_server <- function(id, data) {
 
       output$reportQaGeno <- renderUI({
         HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-      })
-
-      report <- reactiveVal(NULL)
-
-      observeEvent(input$renderReportQaGeno,{
-        shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-        src <- normalizePath(system.file("rmd","reportQaGeno.Rmd",package="bioflow"))
-        src2 <- normalizePath('data/resultQaGeno.RData')
-
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
-        file.copy(src2, 'resultQaGeno.RData', overwrite = TRUE)
-
-        outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                       switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                              # HTML = rmarkdown::html_document()
-                                       ))
-
-        report(outReport)
-
-        shinybusy::remove_modal_spinner()
-
-        shinyjs::click("downloadReportQaGeno")
       })
 
       output$downloadReportQaGeno <- downloadHandler(
