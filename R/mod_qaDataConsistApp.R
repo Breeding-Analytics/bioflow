@@ -49,7 +49,7 @@ mod_qaDataConsistApp_ui <- function(id){
                                                   tags$body(
                                                     h2(strong("Details")),
                                                     p("The first step in genetic evaluation is to ensure that input phenotypic records are of good quality.
-                                                             This option aims to allow users to select outliers based on minimum, maximum and acceptable values.
+                                                             This option aims to allow users to tag impossible values based on minimum, maximum and acceptable values.
                                 The way arguments are used is the following:"),
                                                     p(strong("Trait(s) to QA - Numerical.-")," trait(s) to apply the possible range values."),
                                                     p(strong("Trait type.-")," if trait is numerical, define whether it is an integer, proportion or continuous."),
@@ -200,7 +200,7 @@ mod_qaDataConsistApp_ui <- function(id){
 
                                                       ),
                                              ),
-                                             tabPanel(div(icon("dice-three"), "View & Edit", icon("arrow-right") ), #icon = icon("dice-one"),
+                                             tabPanel(div(icon("dice-three"), "View", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
                                                              tags$div(tags$h5(strong("To load impossible values based on set ranges and rules, click the 'Load' button.
@@ -208,29 +208,14 @@ mod_qaDataConsistApp_ui <- function(id){
                                                              column(width = 12,
                                                                     downloadButton(ns("download_filt"), "Download Ranges/Rules")),
                                                              column(width = 12,
-                                                                    column(width = 6,
-                                                                           tags$div(tags$h5(strong("Impossible Values"), style = "color: #FFFFFF;")),
-                                                                           column(width = 12, style = "background-color:#FFFFFF; color: #000000",
-                                                                                  uiOutput(ns('filt_all')),
-                                                                                  br()
-                                                                           ),
-                                                                           column(width = 12, shiny::tags$p(style="font-size: 1px;")),
-                                                                           actionButton(ns('load_filt3'), 'Load'),
-                                                                           actionButton(ns('add_filt3'), 'Exclude'),
-                                                                           actionButton(ns('add_filt3_all'), 'Exclude All'),
+                                                                    tags$div(tags$h5(strong("Impossible Values"), style = "color: #FFFFFF;")),
+                                                                    column(width = 12, style = "background-color:#FFFFFF; color: #000000",
+                                                                           uiOutput(ns('filt_all')),
                                                                            br()
                                                                     ),
-                                                                    column(width = 6,
-                                                                           tags$div(tags$h5(strong("Excluded Values"), style = "color: #FFFFFF;")),
-                                                                           column(width = 12, style = "background-color:#FFFFFF; color: #000000",
-                                                                                  uiOutput(ns('filt_exc')),
-                                                                                  br()
-                                                                           ),
-                                                                           column(width = 12, shiny::tags$p(style="font-size: 1px;")),
-                                                                           actionButton(ns('del_filt3a'), 'Include'),
-                                                                           actionButton(ns('del_filt3a_all'), 'Include All'),
-                                                                           br(),
-                                                                    ),
+                                                                    column(width = 12, shiny::tags$p(style="font-size: 1px;")),
+                                                                    actionButton(ns('load_filt3'), 'Load'),
+                                                                    br()
                                                              ),
                                                              column(width = 12, shiny::tags$p()),
                                                       ),
@@ -244,7 +229,7 @@ mod_qaDataConsistApp_ui <- function(id){
                                                                placeholder = "(optional name)") ) ),
                                                              column(width=3,
                                                                     br(),
-                                                                    actionButton(ns("runQaDataCons"), "Tag outliers", icon = icon("play-circle")),
+                                                                    actionButton(ns("runQaDataCons"), "Tag impossible values", icon = icon("play-circle")),
                                                                     br(),
                                                                     br(),
                                                              ),
@@ -261,7 +246,8 @@ mod_qaDataConsistApp_ui <- function(id){
                                                       br(),
                                                       textOutput(ns("outQaDataCons2")),
                                                       br(),
-                                                      downloadButton(ns("downloadReportQaDataCons"), "Download dashboard"),
+                                                      actionButton(ns("renderReportQaDataCons"), "Download dashboard", icon = icon("download")),
+                                                      downloadButton(ns("downloadReportQaDataCons"), "Download dashboard", style = "visibility:hidden;"),
                                                       br(),
                                                       uiOutput(ns('reportQaDataCons'))
                                              ),
@@ -303,7 +289,7 @@ mod_qaDataConsistApp_server <- function(id, data){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers specifying your input parameters under the 'Input' tabs.")) )
+        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify impossible values by specifying your input parameters under the 'Input' tabs.")) )
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )
         }
       }
@@ -546,10 +532,6 @@ mod_qaDataConsistApp_server <- function(id, data){
                                  filt_all = data.frame(trait = NULL,
                                                        reason = NULL,
                                                        row = NULL,
-                                                       value = NULL),
-                                 filt_exc = data.frame(trait = NULL,
-                                                       reason = NULL,
-                                                       row = NULL,
                                                        value = NULL))
 
     observeEvent(input$rule_file,{
@@ -761,7 +743,7 @@ mod_qaDataConsistApp_server <- function(id, data){
           mydata <- mydata[which(mydata$predictedValue %!in% c(NA,NULL)),]
           p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
             ggplot2::geom_violin(fill='#A4A4A4', color="black")+
-            ggplot2::theme_classic()+ ggplot2::ggtitle("Preview of outliers that would be tagged using current input parameters above for the trait selected") +
+            ggplot2::theme_classic()+ ggplot2::ggtitle("Preview of impossible values that would be tagged using current input parameters above for the trait selected") +
             ggplot2::geom_jitter(ggplot2::aes(color = color), alpha = 0.6) +
             ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
             ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged_range = "#FC8D62")) +
@@ -785,7 +767,7 @@ mod_qaDataConsistApp_server <- function(id, data){
             ggplot2::geom_bar(ggplot2::aes(x=as.factor(predictedValue), fill=as.factor(color)))+
             ggplot2::facet_wrap(~environment, nrow = 1, scales = "fixed") +
             ggplot2::theme(strip.background = ggplot2::element_blank()) +
-            ggplot2::ggtitle("Preview of outliers that would be tagged using current input parameters above for the trait selected") +
+            ggplot2::ggtitle("Preview of impossible values that would be tagged using current input parameters above for the trait selected") +
             ggplot2::xlab("Trait value") + ggplot2::ylab("Count") +
             ggplot2::scale_fill_manual("color", values = c(valid = "#66C2A5", tagged_range = "#FC8D62"))
 
@@ -893,7 +875,7 @@ mod_qaDataConsistApp_server <- function(id, data){
 
         p <- ggplot2::ggplot(mydata, ggplot2::aes(x=as.factor(environment), y=predictedValue)) +
           ggplot2::geom_violin(fill='#A4A4A4', color="black")+
-          ggplot2::theme_classic()+ ggplot2::ggtitle("Preview of outliers that would be tagged using current input parameters above for the trait selected") +
+          ggplot2::theme_classic()+ ggplot2::ggtitle("Preview of impossible values that would be tagged using current input parameters above for the trait selected") +
           ggplot2::geom_jitter(ggplot2::aes(color = color), alpha = 0.6) +
           ggplot2::xlab("Environment") + ggplot2::ylab("Trait value") +
           ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged_range = "#FC8D62", tagged_rule = "#CD5C5C"))
@@ -963,10 +945,10 @@ mod_qaDataConsistApp_server <- function(id, data){
       req(data())
       mydata <- data()$data$pheno
       mydata$rowindex <- 1:nrow(mydata)
-      clean_data$filt_all <- clean_data$filt_exc <- clean_data$filt_mod <- data.frame(trait = NULL,
-                                                                                      reason = NULL,
-                                                                                      row = NULL,
-                                                                                      value = NULL)
+      clean_data$filt_all <- data.frame(trait = NULL,
+                                        reason = NULL,
+                                        row = NULL,
+                                        value = NULL)
       traitQC <- NULL
       traitFilter <- c("input$traitOutqPhenoMultipleNum", "input$traitOutqPhenoMultipleCat", "clean_data$filt_seq1", "clean_data$filt_seq2")
       for(j in 1:4){
@@ -988,11 +970,11 @@ mod_qaDataConsistApp_server <- function(id, data){
               mo <- mo[which(mo[,traitQC[i]] < eval(parse(text = paste0("input$traitMin",moNum))) |
                                mo[,traitQC[i]] > eval(parse(text = paste0("input$traitMax",moNum)))),]
             }
-            if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="outlierRange"}
+            if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="impossibleValueBasedOnRange"}
           } else if(traitQC[i] %in% input$traitOutqPhenoMultipleCat){
             moNum <- grep(traitQC[i],input$traitOutqPhenoMultipleCat)
             mo <- mo[which(mo[,traitQC[i]] %!in% c(eval(parse(text = paste0("input$traitValCat",moNum))),NA,NULL)),]
-            if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="outlierRange"}
+            if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="impossibleValueBasedOnRange"}
           }
 
           if(nrow(clean_data$filt_seq1)>0 | nrow(clean_data$filt_seq2)>0){
@@ -1047,7 +1029,7 @@ mod_qaDataConsistApp_server <- function(id, data){
                   mo <- eval(parse(text = paste0("mo[which((",NE_moFormula,")|(",moFormula,")),]")))
                 }
               }
-              if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="outlierRule"}
+              if(nrow(mo) >= 1){outData$reason[which(outData$row %in% unique(mo$rowindex))]="impossibleValueBasedOnRule"}
             }
           }
           clean_data$filt_all <- rbind(clean_data$filt_all, outData[which(outData$reason != "valid"),])
@@ -1063,83 +1045,41 @@ mod_qaDataConsistApp_server <- function(id, data){
     output$filt_all <- renderUI({
       if (is.data.frame(clean_data$filt_all)) {
         if(nrow(clean_data$filt_all) > 0){
-          DT::DTOutput(ns('filt_all_tab'))
+          DT::renderDT({
+            DT = clean_data$filt_all
+          }, selection = "none", options = list(paging = FALSE, scrollY = "500px", searching = FALSE, info = FALSE))
         }
       }
     })
 
-    output$filt_all_tab <- DT::renderDT({
-      DT = clean_data$filt_all
-    }, selection = "multiple", options = list(paging = FALSE, scrollY = "500px", searching = FALSE, info = FALSE))
+    report <- reactiveVal(NULL)
 
-    output$filt_exc <- renderUI({
-      if (is.data.frame(clean_data$filt_exc)) {
-        if(nrow(clean_data$filt_exc) > 0){
-          DT::DTOutput(ns('filt_exc_tab'))
-        }
-      }
-    })
+    observeEvent(input$renderReportQaDataCons,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
 
-    output$filt_exc_tab <- DT::renderDT({
-      DT = clean_data$filt_exc
-    }, selection = "multiple", options = list(paging = FALSE, scrollY = "500px", searching = FALSE, info = FALSE))
+      result <- data()
 
-    observeEvent(input$add_filt3, {
-      if (!is.null(input$filt_all_tab_rows_selected)) {
-        if(nrow(clean_data$filt_exc)>0){
-          clean_data$filt_exc <- rbind(clean_data$filt_exc, clean_data$filt_all[as.numeric(input$filt_all_tab_rows_selected), ])
-        } else{
-          clean_data$filt_exc <- clean_data$filt_all[as.numeric(input$filt_all_tab_rows_selected), ]
-        }
-        clean_data$filt_all <- clean_data$filt_all[-as.numeric(input$filt_all_tab_rows_selected), ]
-      } else{
-        shinyWidgets::show_alert(title = 'Error!',
-                                 text = 'No row selected. Please select row(s) to exclude.',
-                                 type = 'error')
-      }
-    })
+      src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultQaConsistency.RData')
 
-    observeEvent(input$add_filt3_all, {
-      if (nrow(clean_data$filt_all)>0) {
-        if(nrow(clean_data$filt_exc)>0){
-          clean_data$filt_exc <- rbind(clean_data$filt_exc, clean_data$filt_all)
-        } else{
-          clean_data$filt_exc <- clean_data$filt_all
-        }
-        clean_data$filt_all <- data.frame(trait = NULL,
-                                          reason = NULL,
-                                          row = NULL,
-                                          value = NULL)
-      } else{
-        shinyWidgets::show_alert(title = 'Error!',
-                                 text = 'No available row(s) to exclude.',
-                                 type = 'error')
-      }
-    })
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
 
-    observeEvent(input$del_filt3a, {
-      if (!is.null(input$filt_exc_tab_rows_selected)) {
-        clean_data$filt_all <- rbind(clean_data$filt_all, clean_data$filt_exc[as.numeric(input$filt_exc_tab_rows_selected), ])
-        clean_data$filt_exc <- clean_data$filt_exc[-as.numeric(input$filt_exc_tab_rows_selected), ]
-      } else{
-        shinyWidgets::show_alert(title = 'Error!',
-                                 text = 'No row selected. Please select row(s) to include.',
-                                 type = 'error')
-      }
-    })
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultQaConsistency.RData', overwrite = TRUE)
 
-    observeEvent(input$del_filt3a_all, {
-      if (nrow(clean_data$filt_exc)>0) {
-        clean_data$filt_all <- rbind(clean_data$filt_all, clean_data$filt_exc)
-        clean_data$filt_exc <- data.frame(trait = NULL,
-                                          reason = NULL,
-                                          row = NULL,
-                                          value = NULL)
-      } else{
-        shinyWidgets::show_alert(title = 'Error!',
-                                 text = 'No available row(s) to include.',
-                                 type = 'error')
-      }
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportQaDataCons")
     })
 
     outQaDataCons <- eventReactive(input$runQaDataCons, {
@@ -1152,7 +1092,7 @@ mod_qaDataConsistApp_server <- function(id, data){
 
         ## get the outlier table
         analysisId <- as.numeric(Sys.time())
-        outlier <- clean_data$filt_exc
+        outlier <- clean_data$filt_all
         if(nrow(outlier)>0){
           outlier$analysisId <- analysisId
           outlier$module <- "qaConsistency"
@@ -1187,14 +1127,14 @@ mod_qaDataConsistApp_server <- function(id, data){
                 moNum <- grep(traitQC[i],input$traitOutqPhenoMultipleNum)
 
                 provMet1[[traitQC[i]]] <- data.frame(module="qaConsistency",analysisId=analysisId, trait=traitQC[i], environment=NA,
-                                                     parameter= c("outlierRangeMin", "outlierRangeMax"),
+                                                     parameter= c("impossibleValueRangeMin", "impossibleValueRangeMax"),
                                                      value= c(eval(parse(text = paste0("input$traitMin",moNum))),
                                                               eval(parse(text = paste0("input$traitMax",moNum)))))
               } else if(traitQC[i] %in% input$traitOutqPhenoMultipleCat){
                 moNum <- grep(traitQC[i],input$traitOutqPhenoMultipleCat)
 
                 provMet1[[traitQC[i]]] <- data.frame(module="qaConsistency",analysisId=analysisId, trait=traitQC[i], environment=NA,
-                                                     parameter= "outlierRangeCat",
+                                                     parameter= "impossibleValueRangeCat",
                                                      value= eval(parse(text = paste0("input$traitValCat",moNum))))
               }
 
@@ -1203,7 +1143,7 @@ mod_qaDataConsistApp_server <- function(id, data){
                   for (j in which(clean_data$filt_seq1$Trait1 == traitQC[i])){
                     mo <- paste(clean_data$filt_seq1[j,1], clean_data$filt_seq1[j,2], clean_data$filt_seq1[j,3])
                     provMet2[[traitQC[i]]] <- data.frame(module="qaConsistency",analysisId=analysisId, trait=traitQC[i], environment=NA,
-                                                         parameter= "outlierRule",
+                                                         parameter= "impossibleValueRule",
                                                          value= mo)
                   }
                 }
@@ -1213,7 +1153,7 @@ mod_qaDataConsistApp_server <- function(id, data){
                   for (j in which(clean_data$filt_seq2$Trait == traitQC[i])){
                     mo <- paste(clean_data$filt_seq2[j,1], clean_data$filt_seq2[j,2], clean_data$filt_seq2[j,3])
                     provMet3[[traitQC[i]]] <- data.frame(module="qaConsistency",analysisId=analysisId, trait=traitQC[i], environment=NA,
-                                                         parameter= "outlierRule",
+                                                         parameter= "impossibleValueRule",
                                                          value= mo)
                   }
                 }
@@ -1248,33 +1188,10 @@ mod_qaDataConsistApp_server <- function(id, data){
                 ))
               },
               content = function(file) {
-                shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
 
-                src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
-                src2 <- normalizePath('data/resultQaConsistency.RData')
-
-                # temporarily switch to the temp dir, in case you do not have write
-                # permission to the current working directory
-                owd <- setwd(tempdir())
-                on.exit(setwd(owd))
-
-                file.copy(src, 'report.Rmd', overwrite = TRUE)
-                file.copy(src2, 'resultQaConsistency.RData', overwrite = TRUE)
-
-                out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-                  "HTML",
-                  HTML = rmdformats::robobook(toc_depth = 4)
-                  # HTML = rmarkdown::html_document()
-                ))
-
-                # wait for it to land on disk (safety‐net)
-                wait.time <- 0
-                while (!file.exists(out) && wait.time < 60) {
-                  Sys.sleep(1); wait.time <- wait.time + 1
-                }
+                out <- report()
 
                 file.rename(out, file)
-                shinybusy::remove_modal_spinner()
               }
             )
 
@@ -1294,9 +1211,9 @@ mod_qaDataConsistApp_server <- function(id, data){
         }
       }else{
         shinybusy::remove_modal_spinner()
-        cat("Please meet the data conditions before you identify and save outliers.")
+        cat("Please meet the data conditions before you identify and save impossible values.")
         output$outQaDataCons2 <- renderPrint({
-          cat("Please meet the data conditions before you identify and save outliers.")
+          cat("Please meet the data conditions before you identify and save impossible values.")
         })
       }
     })
