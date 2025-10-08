@@ -392,6 +392,37 @@ mod_PopStrApp_server <- function(id, data){
     ###################################
     ###################################
     ###################################
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportPopStr,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
+      src2 <- normalizePath('./resultPopStr.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportPopStr")
+    })
+
     ## render result of "run" button click
     outPopStr1 <- eventReactive(input$runPopStr, {
       req(data())
@@ -534,6 +565,8 @@ mod_PopStrApp_server <- function(id, data){
         updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
 
         result$metrics=rbind(result$metrics,data.frame(module="PopStrM",analysisId=idMta, trait=NA, environment=NA, parameter="ColorsDend", method=NA, value= d[1:grupos], stdError=NA))
+
+        data(result)
 
         #Ver datos en tabla dinamica Summary Diversity
         output$seeDataDiver<-DT::renderDT({
@@ -699,35 +732,6 @@ mod_PopStrApp_server <- function(id, data){
         output$reportPopStr <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPopStr.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
-
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportPopStr,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd","reportPopStr.Rmd",package="bioflow"))
-          src2 <- normalizePath('./resultPopStr.RData')
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultPopStr.RData', overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportPopStr")
-        })
-
 
         ## Report tab
         output$downloadReportPopStr <- downloadHandler(

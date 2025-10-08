@@ -1223,6 +1223,37 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     ###################################
     ###################################
     ###################################
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportMta,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportMtaLMMsolver.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultMtaLMMsolver.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportMta")
+    })
+
     ## render result of "run" button click
     outMta <- eventReactive(input$runMta, {
 
@@ -1381,34 +1412,6 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           #                                                     quiet = TRUE))))
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaLMMsolver.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
           # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
-        })
-
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportMta,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd","reportMtaLMMsolver.Rmd",package="bioflow"))
-          src2 <- normalizePath('data/resultMtaLMMsolver.RData')
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportMta")
         })
 
         output$downloadReportMta <- downloadHandler(

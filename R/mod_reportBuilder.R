@@ -261,6 +261,39 @@ mod_reportBuilder_server <- function(id, data){
     #################################
     ### ANALYSIS
 
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportReport,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd") )
+      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData") )
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd",markdownType,package="bioflow"))
+      src2 <- normalizePath(paste0('data/',resultType))
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, resultType, overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportReport")
+    })
+
     ## render result of "run" button click
     outReport <- eventReactive(input$runReport, {
       req(data())
@@ -349,34 +382,6 @@ mod_reportBuilder_server <- function(id, data){
         ## Report tab
         output$reportReport <- shiny::renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd",markdownType,package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportReport,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd",markdownType,package="bioflow"))
-          src2 <- normalizePath(paste0('data/',resultType))
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, resultType, overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportReport")
         })
 
         output$downloadReportReport <- shiny::downloadHandler(

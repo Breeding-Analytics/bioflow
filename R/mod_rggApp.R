@@ -583,6 +583,37 @@ mod_rggApp_server <- function(id, data){
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportRgg,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultRgg.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportRgg")
+    })
+
     ##  actual run
     ## render result of "run" button click
     outRgg <- eventReactive(input$runRgg, {
@@ -678,34 +709,6 @@ mod_rggApp_server <- function(id, data){
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportRgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
 
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportRgg,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd","reportRgg.Rmd",package="bioflow"))
-          src2 <- normalizePath('data/resultRgg.RData')
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportRgg")
-        })
-
         output$downloadReportRgg <- downloadHandler(
           filename = function() {
             paste(paste0('rgg_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
@@ -714,7 +717,7 @@ mod_rggApp_server <- function(id, data){
           },
           content = function(file) {
 
-            out <- report()
+            out <- isolate(report())
 
             file.rename(out, file)
           }
