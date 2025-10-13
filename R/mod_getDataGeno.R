@@ -95,21 +95,52 @@ mod_getDataGeno_ui <- function(id) {
             tabPanel("2. Genotype data Summary",
                      column(width = 8,
                             hr(),
+                            uiOutput(ns("summary_warning")),
                             # Outputs
                             tableOutput(ns('summary_by_chrom')),
                             DT::DTOutput(ns('ind_summary')),
-                            verbatimTextOutput(ns('geno_summary')),
-                            actionButton(ns("ind_management_btn"), "Next")
+                            div(
+                              id = ns("geno_summary_container"),
+                              shinydashboard::box(
+                                width = 12,
+                                title = tags$span("Data summary", style = "font-weight:600;"),  # only title bold
+                                status = NULL,            # keep neutral header
+                                solidHeader = FALSE,      # neutral/white header (not colored)
+                                collapsible = FALSE,
+
+                                # tighten box body padding a bit (less gap under title)
+                                tags$style(HTML(sprintf(
+                                  "#%s .box-body{padding-top:8px;padding-bottom:8px;}",
+                                  ns("geno_summary_container")
+                                ))),
+
+                                # light grey inner panel for the content
+                                tags$div(
+                                  style = "background:#f5f5f5; border:1px solid #e0e0e0; border-radius:6px;
+               padding:8px 12px; margin-top:4px; line-height:1.6;",
+                                  uiOutput(ns("geno_summary"))
+                                )
+                              )
+                            ),
+                            actionButton(ns("ind_management_btn"), "Accept and proceed"),
+                            div(style = "height: 32px;")
                      )),
             tabPanel("3. Individual Management",
                      uiOutput(ns("indManagementUI"))),
             tabPanel("4. Check status",
                      uiOutput(ns("warningMessage")),
             )))}
+
+
 mod_getDataGeno_server <-
   function(id, data = NULL, res_auth = NULL) {
     moduleServer(id, function(input, output, session) {
       ns <- session$ns
+
+      logIM <- function(...){
+        msg <- paste0("[IM] ", paste0(..., collapse = " "))
+        cat(msg, "\n")
+      }
 
       library(adegenet)
 
@@ -118,6 +149,16 @@ mod_getDataGeno_server <-
         run_det_dups = FALSE,
         dup_df = NULL
       )
+
+      recalc_if_nonempty <- function(gl) {
+        if (adegenet::nInd(gl) > 0) {
+          tryCatch(cgiarGenomics::recalc_metrics(gl), error = function(e) gl)
+        } else {
+          gl
+        }
+      }
+
+      rv <- reactiveValues(is_merging = FALSE)
 
       output$warningMessage <- renderUI(
         if(is.null(data())){
@@ -363,26 +404,208 @@ mod_getDataGeno_server <-
             )
           })
 
-          output$geno_summary <- renderText({
-              temp <- data()
-              ind_names <- adegenet::indNames(geno_data)
-              if (!is.null(ind_names)) {
-                glue::glue("Accessions in genotypic data:\n{length(ind_names)}")
-              }
-            })
+          output$geno_summary <- renderUI({
+            tmp <- data()
+            gl  <- if (!is.null(tmp) && !is.null(tmp$data)) tmp$data$geno else NULL
+            if (is.null(gl)) return(NULL)
 
-          output$ind_summary <- DT::renderDT({
-              DT::datatable(
-                data.frame(sample_id = adegenet::indNames(geno_data)),
-                options = list(
-                  dom = "lfrtip",          # 'f' = global search box
-                  pageLength = 10,
-                  lengthMenu = c(5, 10, 25, 50)
+            total <- tryCatch(adegenet::nInd(gl), error = function(e) NA_integer_)
+
+            # Duplicate-accession count (among non-F1s when applicable)
+            dups_tbl <- dup_groups()
+            dup_accessions <- if (!is.null(dups_tbl) && nrow(dups_tbl) > 0) {
+              sum(dups_tbl$count, na.rm = TRUE)
+            } else 0
+
+            # ---- F1/parental breakdown: support either sample_id OR designation matching ----
+            et <- entrytype_info()
+            f1_count <- NA_integer_
+            parent_count <- NA_integer_
+
+            if (!is.null(tmp) &&
+                !is.null(tmp$data$pedigree) &&
+                !is.null(tmp$metadata) &&
+                !is.null(tmp$metadata$pedigree) &&
+                ("entryType" %in% tmp$metadata$pedigree$parameter)) {
+
+              ped <- tmp$data$pedigree
+              md  <- tmp$metadata$pedigree
+
+              et_col  <- md$value[md$parameter == "entryType"]
+              sid_col <- if ("sample_id" %in% md$parameter) md$value[md$parameter == "sample_id"] else NA_character_
+
+              # choose the join key:
+              # 1) prefer sample_id if present and valid
+              # 2) otherwise fall back to 'designation' if it exists in pedigree
+              key_col <- NULL
+              if (!is.na(sid_col) && nzchar(sid_col) && sid_col %in% names(ped)) {
+                key_col <- sid_col
+              } else if ("designation" %in% names(ped)) {
+                key_col <- "designation"
+              }
+
+              if (!is.null(key_col) &&
+                  !is.na(et_col) && nzchar(et_col) && et_col %in% names(ped)) {
+
+                inds <- adegenet::indNames(gl)
+                entry_vec <- ped[[et_col]][match(inds, ped[[key_col]])]
+
+                is_f1  <- !is.na(entry_vec) & toupper(as.character(entry_vec)) == "F1"
+                f1_count     <- sum(is_f1, na.rm = TRUE)
+                parent_count <- sum(!is_f1 & !is.na(entry_vec), na.rm = TRUE)
+                # If some inds don’t map in pedigree, they’re excluded from parent_count above.
+                # You can choose to treat NA entryType as "parental" if that fits your data,
+                # but the current logic is conservative.
+              }
+            }
+
+            fmt <- function(x) if (is.na(x)) "NA" else format(x, big.mark = ",", trim = TRUE)
+
+            if (et$status == "has_f1" && !is.na(f1_count) && !is.na(parent_count)) {
+              # With F1s (works whether matched via sample_id or designation)
+              tags$ul(
+                style = "margin-top: 2px;",
+                tags$li(sprintf("%s total accessions", fmt(total))),
+                tags$li(sprintf("%s parental accessions", fmt(parent_count))),
+                tags$ul(
+                  style = "margin-top: 4px; margin-bottom: 6px;",
+                  tags$li(sprintf(
+                    "%s parental accessions have duplicated designations and will go through Individual Management",
+                    fmt(dup_accessions)
+                  ))
                 ),
-                rownames = FALSE
+                tags$li(sprintf("%s F1 accessions", fmt(f1_count)))
               )
-            })
+            } else {
+              # No F1s (or entryType unavailable) — same as before
+              tags$ul(
+                style = "margin-top: 2px;",
+                tags$li(sprintf("%s total accessions", fmt(total))),
+                tags$li(sprintf(
+                  "%s accessions have duplicated designations and will go through Individual Management",
+                  fmt(dup_accessions)
+                ))
+              )
+            }
           })
+
+
+        output$summary_warning <- renderUI({
+          temp <- data()
+
+          # Default: no warning
+          warn_needed <- FALSE
+          msg <- NULL
+
+          # 1) Check that data()$data$pedigree exists
+          if (is.null(temp) || is.null(temp$data) || is.null(temp$data$pedigree)) {
+            warn_needed <- TRUE
+          } else {
+            ped <- temp$data$pedigree
+
+            # 2) Check that data()$metadata$pedigree has parameter == "sample_id"
+            if (is.null(temp$metadata) || is.null(temp$metadata$pedigree)) {
+              warn_needed <- TRUE
+            } else {
+              md_ped <- temp$metadata$pedigree
+              if (!("sample_id" %in% md_ped$parameter)) {
+                warn_needed <- TRUE
+              } else {
+                # 3) Get the column name for sample_id from metadata$pedigree$value
+                col_name <- md_ped$value[md_ped$parameter == "sample_id"]
+                # sanity checks on column name & values
+                if (length(col_name) != 1 || is.na(col_name) || is.null(col_name) || identical(col_name, "")) {
+                  warn_needed <- TRUE
+                } else if (!(col_name %in% colnames(ped))) {
+                  warn_needed <- TRUE
+                } else {
+                  vec <- ped[[col_name]]
+                  # non-NA / non-NULL values required
+                  if (is.null(vec) || all(is.na(vec))) {
+                    warn_needed <- TRUE
+                  }
+                }
+              }
+            }
+          }
+
+          if (!warn_needed) return(NULL)
+
+          # Warning UI
+          HTML(as.character(
+            div(
+              style = "background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:12px;border-radius:6px;margin-bottom:12px;",
+              tags$b("Warning: sample_id → designation mapping is missing."),
+              tags$p(
+                "Bioflow will assume the genotypic data already uses the correct designation
+                names. If your genotyping was done using sample_id codes,
+                please provide a mapping through the Pedigree & Geno metadata tab and return here before
+                proceeding"
+              ),
+            )
+          ))
+        })
+
+
+        #Summary table
+        output$ind_summary <- DT::renderDT({
+          # Order of individuals as they appear in the genotypic file
+          inds <- adegenet::indNames(geno_data)
+
+          # Default: assume these are designations (single column named 'designation')
+          df_out <- data.frame(
+            designation = inds,
+            check.names = FALSE,
+            stringsAsFactors = FALSE
+          )
+
+          # Try to switch to a 2-column mapping if pedigree sample_id info is present
+          temp <- data()
+          if (!is.null(temp) &&
+              !is.null(temp$data) &&
+              !is.null(temp$data$pedigree) &&
+              !is.null(temp$metadata) &&
+              !is.null(temp$metadata$pedigree) &&
+              ("sample_id" %in% temp$metadata$pedigree$parameter)) {
+
+            ped <- temp$data$pedigree
+            md_ped <- temp$metadata$pedigree
+            col_name <- md_ped$value[md_ped$parameter == "sample_id"]
+
+            # Validate the mapping column name and values
+            if (length(col_name) == 1 &&
+                !is.na(col_name) &&
+                !is.null(col_name) &&
+                !identical(col_name, "") &&
+                (col_name %in% colnames(ped))) {
+
+              # Build mapping: sample_id -> designation (pedigree must have 'designation' column)
+              if ("designation" %in% colnames(ped)) {
+                idx <- match(inds, ped[[col_name]])
+                mapped_designation <- ped$designation[idx]
+
+                df_out <- data.frame(
+                  sample_id   = inds,
+                  designation = mapped_designation,
+                  check.names = FALSE,
+                  stringsAsFactors = FALSE
+                )
+              }
+            }
+          }
+
+          DT::datatable(
+            df_out,
+            options = list(
+              dom = "lfrtip",
+              pageLength = 10,
+              lengthMenu = c(5, 10, 25, 50)
+            ),
+            rownames = FALSE
+          )
+        })
+
+        })
 
         # Store the genotype data into the data structure and update the metadata
         add_data <- reactive({
@@ -396,6 +619,31 @@ mod_getDataGeno_server <-
 
             # Add the gl object in results$data$geno slot
             temp$data$geno <- get_geno_data()
+
+            {
+              mp <- ped_mapping()
+              et <- entrytype_info()
+              dups <- dup_groups()
+
+              # entryType absent or all NA
+              if (et$status %in% c("absent", "all_na")) {
+                if (is.null(dups) || nrow(dups) == 0) {
+                  # No duplicated designations -> translate all sample_ids to designation
+                  temp$data$geno <- translate_ind_names(temp$data$geno, mp, et)
+                }
+                # If duplicates exist: do nothing here; translation happens AFTER consensus (below)
+              } else if (et$status == "present_no_f1") {
+                if (is.null(dups) || nrow(dups) == 0) {
+                  temp$data$geno <- translate_ind_names(temp$data$geno, mp, et)
+                }
+              } else if (et$status == "has_f1") {
+                # With F1 present and no duplicates among non-F1 -> translate parents only (F1s retained)
+                if (is.null(dups) || nrow(dups) == 0) {
+                  temp$data$geno <- translate_ind_names(temp$data$geno, mp, et)
+                }
+                # If duplicates among non-F1 exist: handle after consensus
+              }
+            }
 
             # Add metadata
             parameter_names <- c(
@@ -433,164 +681,366 @@ mod_getDataGeno_server <-
 
 
   # Ind Management server ---------------------------------------------------
+        # ---- pedigree mapping helpers ----
+        ped_mapping <- reactive({
+          temp <- data()
+          if (is.null(temp) || is.null(temp$data$pedigree) ||
+              is.null(temp$metadata) || is.null(temp$metadata$pedigree) ||
+              !("sample_id" %in% temp$metadata$pedigree$parameter)) {
+            return(NULL)
+          }
+          md_ped   <- temp$metadata$pedigree
+          ped      <- temp$data$pedigree
+          col_name <- md_ped$value[md_ped$parameter == "sample_id"]
+
+          if (length(col_name) != 1 || is.na(col_name) || identical(col_name, "") ||
+              !(col_name %in% colnames(ped)) || !("designation" %in% colnames(ped))) {
+            return(NULL)
+          }
+
+          out <- ped[, c(col_name, "designation"), drop = FALSE]
+          colnames(out) <- c("sample_id", "designation_id")
+          # keep only non-empty sample_ids
+          out <- out[!is.na(out$sample_id) & out$sample_id != "", , drop = FALSE]
+          if (!nrow(out)) return(NULL)
+          out
+        })
+
+        dup_groups <- reactive({
+          mp <- ped_mapping()
+          if (is.null(mp)) return(NULL)
+
+          temp   <- data()
+          ped    <- temp$data$pedigree
+          md_ped <- temp$metadata$pedigree
+
+          et <- entrytype_info()
+
+          # If entryType has F1, exclude F1 rows from duplicate checking
+          if (!is.null(et$col) && et$status == "has_f1") {
+            # columns from metadata
+            sid_col <- md_ped$value[md_ped$parameter == "sample_id"]  # sample_id column name in pedigree
+            et_col  <- et$col                                         # entryType column name in pedigree
+
+            # Map each mp$sample_id to its entryType
+            ped_idx   <- match(mp$sample_id, ped[[sid_col]])
+            entry_vec <- ped[[et_col]][ped_idx]
+
+            is_f1 <- !is.na(entry_vec) & toupper(as.character(entry_vec)) == "F1"
+            mp    <- mp[!is_f1, , drop = FALSE]
+          }
+
+          if (!nrow(mp)) return(NULL)
+
+          dplyr::count(mp, designation_id, name = "count") |>
+            dplyr::filter(count > 1)
+        })
+
+        can_manage_inds <- reactive({
+          !is.null(ped_mapping()) && !is.null(dup_groups()) && nrow(dup_groups()) > 0
+        })
 
         observeEvent(input$ind_management_btn, {
-          updateNavlistPanel(session = session,
-                             inputId = "geno_load_navpanel",
-                             selected = "3. Individual Management")
+          if (isTRUE(can_manage_inds())) {
+
+            df <- ped_mapping() |>
+              dplyr::filter(.data$designation_id %in% dup_groups()$designation_id)
+
+            et <- entrytype_info()
+            if (!is.null(et$col) && et$status == "has_f1") {
+              ped <- data()$data$pedigree
+              md  <- data()$metadata$pedigree
+              sid_col <- md$value[md$parameter == "sample_id"]
+              # exclude F1 rows
+              entry_vec <- ped[[et$col]][match(df$sample_id, ped[[sid_col]])]
+              df <- df[!(toupper(as.character(entry_vec)) == "F1"), , drop = FALSE]
+            }
+
+            dup_values$dup_df <- dplyr::mutate(df, selected = FALSE)
+            logIM("Entering IM; dup df rows (pre-F1-filter)=", nrow(df))
+            logIM("IM df head:\n", paste(utils::capture.output(head(df, 5)), collapse = "\n"))
+
+            updateNavlistPanel(session = session,
+                               inputId = "geno_load_navpanel",
+                               selected = "3. Individual Management")
+          } else {
+            shinyWidgets::show_alert(
+              title = "Individual management will be skipped",
+              text = paste0(
+                "This section is enabled only when (1) a pedigree mapping ",
+                "sample_id → designation is provided, and (2) at least one ",
+                "designation maps to multiple sample_ids."
+              ),
+              type = "warning"
+            )
+
+            updateNavlistPanel(session = session,
+                               inputId = "geno_load_navpanel",
+                               selected = "4. Check status")
+          }
+        })
+
+        # ---- entryType helpers ----
+        entrytype_info <- reactive({
+          temp <- data()
+          out <- list(status = "absent", col = NULL, vec = NULL)  # statuses: absent, all_na, present_no_f1, has_f1
+
+          if (is.null(temp) || is.null(temp$metadata) || is.null(temp$metadata$pedigree)) return(out)
+          md_ped <- temp$metadata$pedigree
+          if (!("entryType" %in% md_ped$parameter)) return(out)
+
+          ped <- temp$data$pedigree
+          col_name <- md_ped$value[md_ped$parameter == "entryType"]
+          if (length(col_name) != 1 || is.na(col_name) || identical(col_name, "") || !(col_name %in% colnames(ped))) {
+            return(out)  # treat as absent
+          }
+          vec <- ped[[col_name]]
+          if (length(vec) == 0 || all(is.na(vec))) {
+            out$status <- "all_na"
+          } else if (any(toupper(as.character(vec)) == "F1", na.rm = TRUE)) {
+            out$status <- "has_f1"
+          } else {
+            out$status <- "present_no_f1"
+          }
+          out$col <- col_name
+          out$vec <- vec
+          out
         })
 
         output$indManagementUI <- renderUI({
+          if (isTRUE(rv$is_merging)) return(NULL)  # avoid mid-merge redraws
           req(dup_values$load_geno_data)
-          gl <- get_geno_data()
+          req(can_manage_inds())
+
+
+          gl <- data()$data$geno
+
+          logIM("indManagementUI render; can_manage_inds=", isTRUE(can_manage_inds()),
+                "; is_merging=", isTRUE(rv$is_merging))
+          logIM("Current genlight dims: nInd=", if (!is.null(gl)) adegenet::nInd(gl) else NA,
+                " nLoc=", if (!is.null(gl)) adegenet::nLoc(gl) else NA)
+
+          nloc <- adegenet::nLoc(gl)
+          prev <- isolate(input$n_loc_dup_slider)
+          default_val <- if (!is.null(prev) && is.finite(prev) && prev >= 1 && prev <= nloc) prev else nloc
+
           tags$div(
             shinydashboard::box(width = 12, title = "Subset genotype matrix",
-              fluidRow(column(width = 6,
-                  shinydashboard::box(title = "Parameters", solidHeader = TRUE,
-                      status = "primary",
-                      "Subsample the genotypic matrix to detect duplicates based on IBS",
-                      br(), "Samples with same designation_id will be compared using this submatrix.",
-                      sliderInput(ns("n_loc_dup_slider"), "Select number of markers to consider:", min = 0, max = adegenet::nLoc(gl), value = 1),
-                      sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:", min = 0, max = 1, value = 0.2, step = 0.01),
-                      sliderInput(ns("maf_dup_slider"), "Set min MAF:", min = 0, max = 1, value = 0.05, step = 0.01),
-                      numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1))))
+                                fluidRow(
+                                  column(
+                                    width = 6,
+                                    shinydashboard::box(
+                                      title = "Parameters", solidHeader = TRUE, status = "primary",
+                                      "Subsample the genotypic matrix to detect duplicates based on IBS",
+                                      br(), "Samples with the same designation will be compared using this submatrix.",
+                                      sliderInput(
+                                        ns("n_loc_dup_slider"),
+                                        "Select number of markers to consider:",
+                                        min = 1,
+                                        max = nloc,
+                                        value = default_val,   # defaults to all markers; keeps user's last value if still valid
+                                        step = 1
+                                      )
+                                      ,
+                                      sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:",
+                                                  min = 0, max = 1, value = 0.2, step = 0.01),
+                                      sliderInput(ns("maf_dup_slider"), "Set min MAF:",
+                                                  min = 0, max = 1, value = 0.05, step = 0.01),
+                                      numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1)
+                                    )
+                                  )
+                                )
+            ),
 
-                ),
-            shinydashboard::box(width = 12, title = "Duplicate Definition",
-                fluidRow(column(width = 6,
-                  shinydashboard::box(title = "Duplicate Mapping", solidHeader = TRUE,
-                                      status = "primary",
-                                      "Upload a tab-separated file with sample_id and designation_id columns",
-                                      br(),
-                                      "Samples with same designation_id will be merged.",
-                                      br(),
-                                      downloadButton(ns("dup_det_download_template_btn"),
-                                                     "Download the template to map the duplicate samples"),
-                                      fileInput(ns("dup_det_upl_template"), "Upload the modified template")
-                                            )),
-                                     column(width = 6, uiOutput(ns("dup_det_preview_panel"))))),
-            shinydashboard::box(width = 12, title = "Merge Individuals", uiOutput(ns("dup_det_merge_panel"))),
-            shinydashboard::box(width = 12, title = "Remove Individuals")
+            shinydashboard::box(width = 12, title = "Merge Individuals",
+                                # group picker fed from pedigree duplicates
+                                uiOutput(ns("dup_group_picker")),
+                                uiOutput(ns("dup_group_notice")),
+                                fluidRow(
+                                  column(width = 6, plotly::plotlyOutput(ns("dup_group_heatmap"))),
+                                  column(
+                                    width = 6,
+                                    tags$h4("Actions"),
+                                    checkboxGroupInput(
+                                      ns("dup_merge_samples"),
+                                      label   = "Select samples to merge into this designation (consensus):",
+                                      choices = NULL
+                                    ),
+                                    checkboxGroupInput(
+                                      ns("dup_remove_samples"),
+                                      label   = "Select samples to remove:",
+                                      choices = NULL
+                                    ),
+                                    div(
+                                      style = "display:flex; gap:8px; flex-wrap:wrap;",
+                                      actionButton(ns("btn_apply_actions"), "Run consensus & remove")
+                                    )
+                                  )
+                                )
+            ),
           )
         })
 
-        filter_dup_det_gl <- reactive({
-          req(dup_values$load_geno_data)
-          req(input$n_loc_dup_slider)
-          req(input$loc_miss_dup_slider)
-          req(input$maf_dup_slider)
-          req(input$seed_dup)
-
-          gl <- get_geno_data()
-
-          shinybusy::show_modal_spinner('fading-circle', text = 'Randomly filtering genotype matrix...')
-          rand_gl <- cgiarGenomics::random_select_loci(gl,
-                                           ind_miss = 0.2,
-                                           loc_miss = input$loc_miss_dup_slider,
-                                           maf = input$maf_dup_slider,
-                                           size = input$n_loc_dup_slider,
-                                           seed = input$seed_dup)
-          shinybusy::remove_modal_spinner()
-          return(rand_gl)
-        })
-
-        output$dup_det_download_template_btn <- downloadHandler(
-          filename = function() {
-            paste0("dup_template-", Sys.Date(), ".csv")
-          },
-          content = function(file) {
-            gl <- get_geno_data()
-            template <- data.frame(sample_id = adegenet::indNames(gl), designation_id = NA)
-            write.csv(template, file, row.names = FALSE, quote = F)
+        output$dup_group_picker <- renderUI({
+          if (isTRUE(rv$is_merging)) {
+            logIM("dup_group_picker: skipping render (is_merging)")
+            return(NULL)
           }
-        )
 
-        output$dup_det_preview_panel <- renderUI({
-          if (is.null(input$dup_det_upl_template)) {
-            tags$div(
-              style = "padding: 1rem; border: 1px dashed #bbb; border-radius: 8px;",
-              h4("No file uploaded"),
-              p("Please upload a .csv file to see a quick preview.")
-            )
-          } else {
-            DT::DTOutput(ns("dup_det_preview_table"))
+          dgs <- dup_groups()
+          if (is.null(dgs) || nrow(dgs) == 0) {
+            logIM("dup_group_picker: no duplicate groups remaining")
+            return(span("No duplicate groups remaining."))
           }
+
+          ch <- dgs$designation_id
+          prev <- isolate(input$dup_group_pick)
+          sel  <- if (length(prev) == 1 && !is.null(prev) && prev %in% ch) prev else ch[[1]]
+
+          logIM("dup_group_picker: groups=", paste(ch, collapse=","),
+                " prev=", prev, " sel=", sel)
+
+          selectInput(ns("dup_group_pick"),
+                      "Select a duplicate group (designation)",
+                      choices = ch,
+                      selected = sel,
+                      multiple = FALSE)
         })
 
-        read_dup_template <- reactive({
-          req(input$dup_det_upl_template)
-          df <- read.csv(input$dup_det_upl_template$datapath,
-                         check.names = FALSE, stringsAsFactors = FALSE)
-          if(sum(names(df) %in% c("sample_id", "designation_id")) != 2){
-            validate("Uploaded file should have two columns named sample_id and designation_id separated by commas.")
-          } else {
-            gl <- get_geno_data()
-            sample_ids <- adegenet::indNames(gl)
-            if(sum(df$sample_id %in% sample_ids) != length(sample_ids)){
-              validate("sample_ids provided in the template don't match with provided genotypic file")
-            }
-            df$selected <- FALSE
-            dup_values$dup_df <- df
-            return(df)
-          }})
-
-        output$dup_det_preview_table <- DT::renderDT({
-          df <- read_dup_template()
-          DT::datatable(df,
-                        options = list(
-                          dom = "lfrtip",          # 'f' = global search box
-                          pageLength = 10,
-                          lengthMenu = c(5, 10, 25, 50)
-                        ),
-                        rownames = FALSE
-          )
-        })
-
-        output$dup_det_merge_panel <- renderUI({
-          req(read_dup_template())
-          duplicates <- read_dup_template()
-          dup_groups <- duplicates %>%
-            dplyr::group_by(designation_id) %>%
-            dplyr::summarise(count = dplyr::n()) %>%
-            dplyr::filter(count > 1)
-
-          tags$div(
-            selectInput(ns("dup_group_pick"), "Select a duplicate group",
-                        choices = dup_groups$designation_id, multiple = FALSE),
-            fluidRow(column(width = 6,
-                            plotly::plotlyOutput(ns("dup_group_heatmap"))),
-                     column(width = 6,
-                            checkboxGroupInput(ns("dup_group_select_samples"),
-                                               "Select samples to merge:", choices = NULL),
-                            actionButton(ns("dup_update_dup_df"), "Update"),
-                            actionButton(ns("dup_run_consensus"), "Run Consensus")))
-          )
+        observeEvent(input$dup_group_pick, {
+          logIM("dup_group_pick changed to:", input$dup_group_pick)
         })
 
 
         picked_dup_samples <- reactive({
-          req(dup_values$dup_df)
-          req(input$dup_group_pick)
+          if (isTRUE(rv$is_merging)) {
+            logIM("picked_dup_samples: is_merging -> empty")
+            return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
+          }
           df <- dup_values$dup_df
-          df %>%
-            dplyr::filter(designation_id == input$dup_group_pick)
+          if (!is.data.frame(df) || !"designation_id" %in% names(df) || is.null(input$dup_group_pick)) {
+            logIM("picked_dup_samples: no dup_df or no group selected -> empty")
+            return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
+          }
+
+          out <- df[df$designation_id == input$dup_group_pick, , drop = FALSE]
+          logIM("picked_dup_samples: group=", input$dup_group_pick,
+                " rows(before exist-filter)=", nrow(out))
+
+          if (!nrow(out)) {
+            logIM("picked_dup_samples: group has 0 rows (before exist-filter)")
+            return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
+          }
+
+          existing <- tryCatch(as.character(adegenet::indNames(data()$data$geno)), error = function(e) character(0))
+          out <- out[out$sample_id %in% existing, , drop = FALSE]
+          logIM("picked_dup_samples: rows(after exist-filter)=", nrow(out),
+                " existing nInd=", length(existing))
+
+          if (!nrow(out)) {
+            logIM("picked_dup_samples: group has 0 rows (after exist-filter)")
+            return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
+          }
+          out
         })
 
         observe({
-          req(picked_dup_samples())
-          choices <- picked_dup_samples() %>%
-            dplyr::pull(sample_id)
-          selections <- picked_dup_samples() %>%
-            dplyr::filter(selected == TRUE) %>%
-            dplyr::pull(sample_id)
-          updateCheckboxGroupInput(session = session, "dup_group_select_samples",
-                                   choices = choices,
-                                   selected = selections)
+          if (isTRUE(rv$is_merging)) return()
+          p <- picked_dup_samples()
+          choices <- if (nrow(p)) p$sample_id else character(0)
+
+          gl <- data()$data$geno
+          cur_grp <- isolate(input$dup_group_pick)
+
+          merge_choices  <- choices
+          remove_choices <- choices
+
+          if (!is.null(gl) && !is.null(cur_grp) && cur_grp %in% adegenet::indNames(gl)) {
+            # add reference to both lists
+            merge_choices  <- c(merge_choices,  cur_grp)
+            remove_choices <- c(remove_choices, cur_grp)
+          }
+
+          keep <- function(x, pool) if (length(x)) intersect(x, pool) else character(0)
+          updateCheckboxGroupInput(session, "dup_merge_samples",
+                                   choices  = merge_choices,
+                                   selected = keep(isolate(input$dup_merge_samples), merge_choices))
+          updateCheckboxGroupInput(session, "dup_remove_samples",
+                                   choices  = remove_choices,
+                                   selected = keep(isolate(input$dup_remove_samples), remove_choices))
+        })
+
+        output$dup_group_notice <- renderUI({
+          cur <- input$dup_group_pick
+          tmp <- data()
+          gl  <- if (!is.null(tmp) && !is.null(tmp$data)) tmp$data$geno else NULL
+          if (is.null(cur) || is.null(gl)) return(NULL)
+
+          # If the current designation is itself present as an individual in the matrix
+          if (cur %in% adegenet::indNames(gl)) {
+            # Neutral grey note, plain text
+            div(
+              style = "background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px;",
+              # Feel free to tweak phrasing:
+              sprintf(
+                "Note: A genotype already named “%s” is present in the genotype matrix. It will appear in the heatmap and in the checkboxes",
+                cur
+              )
+            )
+          } else {
+            NULL
+          }
+        })
+
+
+
+        observeEvent(input$dup_merge_samples, ignoreInit = TRUE, {
+          # remove overlap from the remove list
+          overlap <- intersect(input$dup_merge_samples, isolate(input$dup_remove_samples))
+          if (length(overlap)) {
+            updateCheckboxGroupInput(session, "dup_remove_samples",
+                                     selected = setdiff(isolate(input$dup_remove_samples), overlap))
+          }
+        })
+
+        observeEvent(input$dup_remove_samples, ignoreInit = TRUE, {
+          # remove overlap from the merge list
+          overlap <- intersect(input$dup_remove_samples, isolate(input$dup_merge_samples))
+          if (length(overlap)) {
+            updateCheckboxGroupInput(session, "dup_merge_samples",
+                                     selected = setdiff(isolate(input$dup_merge_samples), overlap))
+          }
+        })
+
+
+        filter_dup_det_gl <- reactive({
+          req(dup_values$load_geno_data, input$n_loc_dup_slider, input$loc_miss_dup_slider, input$maf_dup_slider, input$seed_dup)
+
+          gl <- data()$data$geno
+          logIM("filter_dup_det_gl: nInd=", adegenet::nInd(gl), " nLoc=", adegenet::nLoc(gl))
+
+          shinybusy::show_modal_spinner('fading-circle', text = 'Randomly filtering genotype matrix...')
+          on.exit(shinybusy::remove_modal_spinner(), add = TRUE)
+
+          size_req <- input$n_loc_dup_slider
+          size_use <- max(1, min(size_req, adegenet::nLoc(gl)))
+
+          rand_gl <- cgiarGenomics::random_select_loci(
+            gl,
+            ind_miss = 0.2,
+            loc_miss = input$loc_miss_dup_slider,
+            maf      = input$maf_dup_slider,
+            size     = size_use,
+            seed     = input$seed_dup
+          )
+          rand_gl
         })
 
 
         observeEvent(input$dup_update_dup_df, {
           req(dup_values$dup_df)
+          logIM("dup_update_dup_df: clicked; group=", input$dup_group_pick,
+                " selected=", paste(input$dup_group_select_samples, collapse=","))
           choices <- dup_values$dup_df %>%
             dplyr::filter(designation_id == input$dup_group_pick) %>%
             dplyr::pull(sample_id)
@@ -609,26 +1059,46 @@ mod_getDataGeno_server <-
 
         filt_random_gl <- reactive({
           req(filter_dup_det_gl())
-          req(picked_dup_samples())
-          target_samples <- picked_dup_samples() %>%
-            dplyr::pull(sample_id)
+          sel <- picked_dup_samples()
+          if (!is.data.frame(sel) || nrow(sel) == 0) {
+            logIM("filt_random_gl: no picked samples -> NULL")
+            return(NULL)
+          }
+
+          target_samples <- sel$sample_id
           rand_gl <- filter_dup_det_gl()
-          tg_inds <- which(target_samples %in% adegenet::indNames(rand_gl))
-          rand_gl[tg_inds,]
+          idx <- match(target_samples, adegenet::indNames(rand_gl))
+          ok  <- !is.na(idx)
+          logIM("filt_random_gl: targets n=", length(target_samples),
+                " matched n=", sum(ok),
+                " rand nInd=", adegenet::nInd(rand_gl))
+
+          if (!any(ok)) return(NULL)
+          rand_gl[idx[ok], ]
         })
 
+
         get_ibs <- reactive({
-          req(filt_random_gl)
+          req(filt_random_gl())
           gl <- filt_random_gl()
+          logIM("get_ibs: subset nInd=", adegenet::nInd(gl), " nLoc=", adegenet::nLoc(gl))
           cgiarGenomics::ibs_matrix_purrr(gl, as.numeric(input$ploidlvl_input))
         })
 
         output$dup_group_heatmap <- plotly::renderPlotly({
-          req(filt_random_gl())
-          req(get_ibs())
+          if (isTRUE(rv$is_merging)) { logIM("heatmap: skip (is_merging)"); return(NULL) }
+          if (nrow(picked_dup_samples()) < 2) { logIM("heatmap: <2 samples in group"); return(NULL) }
+
           tg_rand_gl <- filt_random_gl()
+          if (is.null(tg_rand_gl)) { logIM("heatmap: filt_random_gl is NULL"); return(NULL) }
+
           ibs <- get_ibs()
-          m <- ibs$ibs
+          if (is.null(ibs) || is.null(ibs$ibs)) { logIM("heatmap: ibs or ibs$ibs NULL"); return(NULL) }
+          m <- tryCatch(as.matrix(ibs$ibs), error = function(e) NULL)
+          if (is.null(m) || any(dim(m) < 2)) { logIM("heatmap: bad matrix dims"); return(NULL) }
+
+          logIM("heatmap: plotting with dim=", paste(dim(m), collapse="x"))
+
           plotly::plot_ly(
             z = m, x = colnames(m), y = rownames(m),
             type = "heatmap", colorscale = "Viridis",
@@ -643,25 +1113,217 @@ mod_getDataGeno_server <-
             )
         })
 
-        observeEvent(input$dup_run_consensus, {
-          req(dup_values$dup_df)
-          print("run consensus")
-          gl <- get_geno_data()
-          shinybusy::show_modal_spinner('fading-circle', text = 'Merging duplicated samples...')
-          samp_directory <- dup_values$dup_df %>%
-            dplyr::mutate(designation_id = ifelse(selected, designation_id, sample_id)) %>%
-            dplyr::select(sample_id, designation_id)
+        observeEvent(input$btn_apply_actions, {
+          rv$is_merging <- TRUE
+          shinybusy::show_modal_spinner('fading-circle', text = 'Applying actions...')
+          on.exit({ rv$is_merging <- FALSE; shinybusy::remove_modal_spinner() }, add = TRUE)
 
-          mgl <- cgiarGenomics::merge_duplicate_inds(gl, samp_directory)
-          mgl@position <- gl@position
-          mgl@chromosome <- gl@chromosome
-          mgl@loc.all <- gl@loc.all
-          mgl <- cgiarGenomics::recalc_metrics(mgl)
-          temp <- data()
-          temp$data$geno <- mgl
-          data(temp)
-          shinybusy::remove_modal_spinner()
+          cur_grp    <- isolate(input$dup_group_pick)
+          merge_ids  <- isolate(input$dup_merge_samples)
+          remove_ids <- setdiff(isolate(input$dup_remove_samples), merge_ids)  # never remove something we're keeping
+
+          tmp <- data()
+          if (is.null(tmp) || is.null(tmp$data) || is.null(tmp$data$geno)) {
+            shinyWidgets::show_alert(title="Aborted", text="Genotype object not found.", type="error")
+            return(invisible(NULL))
+          }
+          gl_src <- tmp$data$geno
+          gl     <- gl_src
+
+          logIM("Apply actions; grp=", cur_grp,
+                " merge_ids=", paste(merge_ids, collapse=","),
+                " remove_ids=", paste(remove_ids, collapse=","))
+
+          # helper: copy marker slots (if lengths match) and recalc metrics only when non-empty
+          apply_postprocess <- function(gl_new, gl_ref) {
+            if (!is.null(gl_ref@position)   && length(gl_ref@position)   == adegenet::nLoc(gl_new)) gl_new@position   <- gl_ref@position
+            if (!is.null(gl_ref@chromosome) && length(gl_ref@chromosome) == adegenet::nLoc(gl_new)) gl_new@chromosome <- gl_ref@chromosome
+            if (!is.null(gl_ref@loc.all)    && length(gl_ref@loc.all)    == adegenet::nLoc(gl_new)) gl_new@loc.all    <- gl_ref@loc.all
+            if (adegenet::nInd(gl_new) > 0) {
+              tryCatch(cgiarGenomics::recalc_metrics(gl_new), error=function(e) gl_new)
+            } else {
+              gl_new
+            }
+          }
+
+          # ---------- FAST PATH: exactly one kept sample, no consensus needed ----------
+          if (length(merge_ids) == 1) {
+            keep_id <- merge_ids[[1]]
+            current_names <- as.character(adegenet::indNames(gl))
+
+            # try to rename kept sample to designation (cur_grp) if doing so won't collide
+            if (!identical(keep_id, cur_grp) && nzchar(cur_grp)) {
+              cur_exists <- cur_grp %in% current_names
+              cur_marked_for_removal <- cur_grp %in% remove_ids
+              if (!cur_exists || cur_marked_for_removal) {
+                idx <- match(keep_id, current_names)
+                if (!is.na(idx)) {
+                  current_names[idx] <- cur_grp
+                  adegenet::indNames(gl) <- current_names
+                }
+              }
+              # else: keep the original keep_id to avoid a duplicate name
+            }
+
+            # remove any selected for removal (allow empty)
+            if (length(remove_ids)) {
+              keep_idx <- which(!adegenet::indNames(gl) %in% remove_ids)
+              if (!length(keep_idx)) {
+                gl <- gl[0, ]  # allow empty
+              } else {
+                gl <- gl[keep_idx, ]
+              }
+            }
+
+            gl <- apply_postprocess(gl, gl_src)
+
+            # save back
+            tmp$data$geno <- gl
+            data(tmp)
+
+            # refresh dup table to only existing sample_ids; clear selections
+            existing <- tryCatch(as.character(adegenet::indNames(gl)), error=function(e) character(0))
+            if (is.data.frame(dup_values$dup_df) && nrow(dup_values$dup_df)) {
+              dup_values$dup_df <- dup_values$dup_df[dup_values$dup_df$sample_id %in% existing, , drop=FALSE]
+              if (nrow(dup_values$dup_df)) dup_values$dup_df$selected <- FALSE
+            }
+            updateCheckboxGroupInput(session, "dup_merge_samples",  selected = character(0))
+            updateCheckboxGroupInput(session, "dup_remove_samples", selected = character(0))
+
+            # keep current group if still present; otherwise fallback or advance
+            dgs <- dup_groups()
+            if (is.null(dgs) || !nrow(dgs)) {
+              updateNavlistPanel(session, "geno_load_navpanel", selected = "4. Check status")
+            } else {
+              new_choices <- dgs$designation_id
+              new_sel <- if (!is.null(cur_grp) && nzchar(cur_grp) && cur_grp %in% new_choices) cur_grp else new_choices[[1]]
+              updateSelectInput(session, "dup_group_pick", choices = new_choices, selected = new_sel)
+            }
+
+            if (adegenet::nInd(gl) == 0) {
+              shinyWidgets::show_alert(title="All samples excluded",
+                                       text="The genotype matrix is now empty. Load new data or go back.",
+                                       type="warning")
+            } else {
+              shinyWidgets::show_alert(title="Done",
+                                       text="Kept the selected sample and removed the rest.",
+                                       type="success")
+            }
+            return(invisible(NULL))
+          }
+
+          # ---------- GENERAL PATH ----------
+          did_merge   <- FALSE
+          did_remove  <- FALSE
+
+          # 1) Merge by consensus only if ≥2 samples selected
+          if (length(merge_ids) >= 2) {
+            all_samples   <- as.character(adegenet::indNames(gl))
+            sample_id_vec <- all_samples
+            target_vec    <- all_samples  # identity map
+            idx <- match(merge_ids, sample_id_vec)
+            idx <- idx[!is.na(idx)]
+            if (length(idx)) target_vec[idx] <- cur_grp
+
+            full_map <- data.frame(
+              sample_id      = sample_id_vec,
+              designation_id = target_vec,
+              check.names    = FALSE, stringsAsFactors = FALSE
+            )
+
+            logIM("Merging ", length(merge_ids), " samples -> ", cur_grp)
+            gl <- cgiarGenomics::merge_duplicate_inds(gl, full_map)
+            did_merge <- TRUE
+          }
+
+          # 2) Remove selected (after merge); allow empty
+          if (length(remove_ids)) {
+            keep_idx <- which(!adegenet::indNames(gl) %in% remove_ids)
+            if (!length(keep_idx)) {
+              gl <- gl[0, ]
+            } else {
+              gl <- gl[keep_idx, ]
+            }
+            did_remove <- TRUE
+          }
+
+          # 3) Postprocess (copy marker slots & recalc metrics if non-empty), save back
+          gl <- apply_postprocess(gl, gl_src)
+          tmp$data$geno <- gl
+          data(tmp)
+
+          # 4) Refresh dup_df: drop rows for samples that no longer exist; clear selections
+          existing <- tryCatch(as.character(adegenet::indNames(gl)), error=function(e) character(0))
+          if (is.data.frame(dup_values$dup_df) && nrow(dup_values$dup_df)) {
+            dup_values$dup_df <- dup_values$dup_df[dup_values$dup_df$sample_id %in% existing, , drop=FALSE]
+            if (nrow(dup_values$dup_df)) dup_values$dup_df$selected <- FALSE
+          }
+          updateCheckboxGroupInput(session, "dup_merge_samples",  selected = character(0))
+          updateCheckboxGroupInput(session, "dup_remove_samples", selected = character(0))
+
+          # 5) Keep current group if still present; otherwise fallback or advance
+          dgs <- dup_groups()
+          if (is.null(dgs) || !nrow(dgs)) {
+            updateNavlistPanel(session, "geno_load_navpanel", selected = "4. Check status")
+          } else {
+            new_choices <- dgs$designation_id
+            new_sel <- if (!is.null(cur_grp) && nzchar(cur_grp) && cur_grp %in% new_choices) cur_grp else new_choices[[1]]
+            updateSelectInput(session, "dup_group_pick", choices = new_choices, selected = new_sel)
+          }
+
+          # 6) Feedback
+          if (adegenet::nInd(gl) == 0) {
+            shinyWidgets::show_alert(title="All samples excluded",
+                                     text="The genotype matrix is now empty. Load new data or go back.",
+                                     type="warning")
+          } else if (did_merge && did_remove) {
+            shinyWidgets::show_alert(title="Done", text="Merged and removed selected samples.", type="success")
+          } else if (did_merge) {
+            shinyWidgets::show_alert(title="Done", text="Merged selected samples.", type="success")
+          } else if (did_remove) {
+            shinyWidgets::show_alert(title="Done", text="Removed selected samples.", type="success")
+          } else {
+            shinyWidgets::show_alert(title="Nothing to do",
+                                     text="Select samples to merge or remove.", type="info")
+          }
         })
+
+
+        # ---- name translation (sample_id -> designation, with F1 exceptions) ----
+        translate_ind_names <- function(gl, ped_map, entrytype) {
+          # ped_map: data.frame(sample_id, designation_id)
+          if (is.null(ped_map) || !inherits(gl, "genlight")) return(gl)
+
+          inds <- adegenet::indNames(gl)
+          # final name defaults to current sample_id
+          final <- inds
+
+          # build mapping vectors aligned to inds
+          m_idx <- match(inds, ped_map$sample_id)
+          desig <- ped_map$designation_id[m_idx]
+
+          et_status <- entrytype$status
+          if (et_status == "has_f1") {
+            ped <- data()$data$pedigree
+            md  <- data()$metadata$pedigree
+            sid_col <- md$value[md$parameter == "sample_id"]
+            et_col  <- entrytype$col
+            # entry type for each sample_id in inds
+            et_vec <- ped[[et_col]][match(inds, ped[[sid_col]])]
+            is_f1  <- toupper(as.character(et_vec)) == "F1"
+            # non-F1: use designation if available
+            use_desig <- !is_f1 & !is.na(desig) & nzchar(as.character(desig))
+            final[use_desig] <- as.character(desig[use_desig])
+            # F1 rows keep sample_id (no translation)
+          } else {
+            # no entryType or all NA or present without F1 -> translate all with available designation
+            use_desig <- !is.na(desig) & nzchar(as.character(desig))
+            final[use_desig] <- as.character(desig[use_desig])
+          }
+
+          adegenet::indNames(gl) <- final
+          gl
+        }
 
 
     })

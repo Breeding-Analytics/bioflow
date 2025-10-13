@@ -290,6 +290,17 @@ if (is.null(result)){
   colnames(predictions_wide)[colnames(predictions_wide)==".status"]="status"
   predictions_wide = predictions_wide[,OutputCols]
   
+  ped <- result$data$pedigree
+  metaPed <- result$metadata$pedigree
+  colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+  if("sample_id" %in% colnames(ped)){
+    F1_ind = ped[ped$entryType == "F1",c("sample_id","designation")]
+    colnames(predictions_wide)[1] = "sample_id"
+    predictions_wide = merge(predictions_wide,F1_ind)
+    OutputCols <- c("sample_id","designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
+    predictions_wide = predictions_wide[,OutputCols]
+  }
+  
   if("params" %in% ls()){ # we will download the document
     printTable(predictions_wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
              colNames = colnames(predictions_wide),
@@ -311,7 +322,12 @@ if (is.null(result)){
   )
   }else{
     DT::renderDT({
-  cols <- c(OutputCols[1:4], input$traitQa)
+  if("sample_id" %in% OutputCols){
+    cols <- c(OutputCols[1:5], input$traitQa)
+  }else{
+    cols <- c(OutputCols[1:4], input$traitQa)
+  }    
+  
 
   tbl <- printTable(
     predictions_wide[, cols, drop = FALSE],
@@ -392,6 +408,32 @@ if (is.null(result)){
              colNames = colnames(modelingVeri))
   }else{
     DT::renderDT(printTable(modelingVeri,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(modelingVeri)), server = FALSE)
+  }
+  
+}
+
+```
+
+<p>&nbsp;</p>
+
+### Verification Modifications
+
+The following table shows modifications done to the genotypic data during the F1 (QA/QC analysis)
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  # numericalColumns2 <- c("value") 
+  modVeri <- result$result$modifications$geno[which(result$modifications$geno == idQa),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modelingVeri, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(modelingVeri))
+  }else{
+    DT::renderDT(printTable(modVeri,
                         autoWidthOpt = FALSE, scrollXOpt = TRUE,
                         colNames = colnames(modelingVeri)), server = FALSE)
   }
