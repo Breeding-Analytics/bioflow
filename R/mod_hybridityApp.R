@@ -514,7 +514,16 @@ mod_hybridityApp_server <- function(id, data){
           if(is.null(data()$data$pedigree)){
             HTML( as.character(div(style="color: red; font-size: 20px;", "Pedigree information is required to run this module")))
           }else{
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform F1 QA/QC specifying your input parameters under the Input tabs.")) )
+            if("entryType" %in% data()$metadata$pedigree$parameter){
+              entryCol = data()$metadata$pedigree$value[data()$metadata$pedigree$parameter == "entryType"]
+              if(any(data()$data$pedigree[,entryCol]=="F1")){
+                HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform F1 QA/QC specifying your input parameters under the Input tabs.")) )
+              }else{
+                HTML( as.character(div(style="color: red; font-size: 20px;", "No F1 found in pedigree data. Please review entryType column in pedigree data")) )
+              }
+            }else{
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Missing entryType column in pedigree data. The entryType column is required to run this module")) )
+            }
           }
 
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}

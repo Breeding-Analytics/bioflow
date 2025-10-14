@@ -104,17 +104,15 @@ mod_getDataGeno_ui <- function(id) {
                               shinydashboard::box(
                                 width = 12,
                                 title = tags$span("Data summary", style = "font-weight:600;"),  # only title bold
-                                status = NULL,            # keep neutral header
-                                solidHeader = FALSE,      # neutral/white header (not colored)
+                                status = NULL,
+                                solidHeader = FALSE,
                                 collapsible = FALSE,
 
-                                # tighten box body padding a bit (less gap under title)
                                 tags$style(HTML(sprintf(
                                   "#%s .box-body{padding-top:8px;padding-bottom:8px;}",
                                   ns("geno_summary_container")
                                 ))),
 
-                                # light grey inner panel for the content
                                 tags$div(
                                   style = "background:#f5f5f5; border:1px solid #e0e0e0; border-radius:6px;
                padding:8px 12px; margin-top:4px; line-height:1.6;",
@@ -136,11 +134,6 @@ mod_getDataGeno_server <-
   function(id, data = NULL, res_auth = NULL) {
     moduleServer(id, function(input, output, session) {
       ns <- session$ns
-
-      logIM <- function(...){
-        msg <- paste0("[IM] ", paste0(..., collapse = " "))
-        cat(msg, "\n")
-      }
 
       library(adegenet)
 
@@ -382,10 +375,10 @@ mod_getDataGeno_server <-
             return(geno_data)
             })
 
-        # just for make button reactive
+        # just to make button reactive
         observeEvent(input$load_geno_btn,{
           geno_data <- get_geno_data()
-          add_data() # Commented this during duplicate handelling dev REMOVE
+          add_data()
           updateNavlistPanel(session = session,
                              inputId = "geno_load_navpanel",
                              selected = "2. Genotype data Summary")
@@ -417,7 +410,7 @@ mod_getDataGeno_server <-
               sum(dups_tbl$count, na.rm = TRUE)
             } else 0
 
-            # ---- F1/parental breakdown: support either sample_id OR designation matching ----
+            # F1/parental breakdown: support either sample_id OR designation matching
             et <- entrytype_info()
             f1_count <- NA_integer_
             parent_count <- NA_integer_
@@ -434,7 +427,6 @@ mod_getDataGeno_server <-
               et_col  <- md$value[md$parameter == "entryType"]
               sid_col <- if ("sample_id" %in% md$parameter) md$value[md$parameter == "sample_id"] else NA_character_
 
-              # choose the join key:
               # 1) prefer sample_id if present and valid
               # 2) otherwise fall back to 'designation' if it exists in pedigree
               key_col <- NULL
@@ -453,16 +445,13 @@ mod_getDataGeno_server <-
                 is_f1  <- !is.na(entry_vec) & toupper(as.character(entry_vec)) == "F1"
                 f1_count     <- sum(is_f1, na.rm = TRUE)
                 parent_count <- sum(!is_f1 & !is.na(entry_vec), na.rm = TRUE)
-                # If some inds don’t map in pedigree, they’re excluded from parent_count above.
-                # You can choose to treat NA entryType as "parental" if that fits your data,
-                # but the current logic is conservative.
+
               }
             }
 
             fmt <- function(x) if (is.na(x)) "NA" else format(x, big.mark = ",", trim = TRUE)
 
             if (et$status == "has_f1" && !is.na(f1_count) && !is.na(parent_count)) {
-              # With F1s (works whether matched via sample_id or designation)
               tags$ul(
                 style = "margin-top: 2px;",
                 tags$li(sprintf("%s total accessions", fmt(total))),
@@ -477,8 +466,7 @@ mod_getDataGeno_server <-
                 tags$li(sprintf("%s F1 accessions", fmt(f1_count)))
               )
             } else {
-              # No F1s (or entryType unavailable) — same as before
-              tags$ul(
+                tags$ul(
                 style = "margin-top: 2px;",
                 tags$li(sprintf("%s total accessions", fmt(total))),
                 tags$li(sprintf(
@@ -539,7 +527,7 @@ mod_getDataGeno_server <-
               tags$p(
                 "Bioflow will assume the genotypic data already uses the correct designation
                 names. If your genotyping was done using sample_id codes,
-                please provide a mapping through the Pedigree & Geno metadata tab and return here before
+                please provide a mapping through the Pedigree & Geno metadata tab and return to this step before
                 proceeding"
               ),
             )
@@ -552,7 +540,6 @@ mod_getDataGeno_server <-
           # Order of individuals as they appear in the genotypic file
           inds <- adegenet::indNames(geno_data)
 
-          # Default: assume these are designations (single column named 'designation')
           df_out <- data.frame(
             designation = inds,
             check.names = FALSE,
@@ -681,7 +668,7 @@ mod_getDataGeno_server <-
 
 
   # Ind Management server ---------------------------------------------------
-        # ---- pedigree mapping helpers ----
+        # pedigree mapping helpers
         ped_mapping <- reactive({
           temp <- data()
           if (is.null(temp) || is.null(temp$data$pedigree) ||
@@ -757,9 +744,6 @@ mod_getDataGeno_server <-
             }
 
             dup_values$dup_df <- dplyr::mutate(df, selected = FALSE)
-            logIM("Entering IM; dup df rows (pre-F1-filter)=", nrow(df))
-            logIM("IM df head:\n", paste(utils::capture.output(head(df, 5)), collapse = "\n"))
-
             updateNavlistPanel(session = session,
                                inputId = "geno_load_navpanel",
                                selected = "3. Individual Management")
@@ -780,7 +764,7 @@ mod_getDataGeno_server <-
           }
         })
 
-        # ---- entryType helpers ----
+        # entryType helpers
         entrytype_info <- reactive({
           temp <- data()
           out <- list(status = "absent", col = NULL, vec = NULL)  # statuses: absent, all_na, present_no_f1, has_f1
@@ -814,11 +798,6 @@ mod_getDataGeno_server <-
 
 
           gl <- data()$data$geno
-
-          logIM("indManagementUI render; can_manage_inds=", isTRUE(can_manage_inds()),
-                "; is_merging=", isTRUE(rv$is_merging))
-          logIM("Current genlight dims: nInd=", if (!is.null(gl)) adegenet::nInd(gl) else NA,
-                " nLoc=", if (!is.null(gl)) adegenet::nLoc(gl) else NA)
 
           nloc <- adegenet::nLoc(gl)
           prev <- isolate(input$n_loc_dup_slider)
@@ -883,22 +862,17 @@ mod_getDataGeno_server <-
 
         output$dup_group_picker <- renderUI({
           if (isTRUE(rv$is_merging)) {
-            logIM("dup_group_picker: skipping render (is_merging)")
             return(NULL)
           }
 
           dgs <- dup_groups()
           if (is.null(dgs) || nrow(dgs) == 0) {
-            logIM("dup_group_picker: no duplicate groups remaining")
             return(span("No duplicate groups remaining."))
           }
 
           ch <- dgs$designation_id
           prev <- isolate(input$dup_group_pick)
           sel  <- if (length(prev) == 1 && !is.null(prev) && prev %in% ch) prev else ch[[1]]
-
-          logIM("dup_group_picker: groups=", paste(ch, collapse=","),
-                " prev=", prev, " sel=", sel)
 
           selectInput(ns("dup_group_pick"),
                       "Select a duplicate group (designation)",
@@ -907,38 +881,25 @@ mod_getDataGeno_server <-
                       multiple = FALSE)
         })
 
-        observeEvent(input$dup_group_pick, {
-          logIM("dup_group_pick changed to:", input$dup_group_pick)
-        })
-
-
         picked_dup_samples <- reactive({
           if (isTRUE(rv$is_merging)) {
-            logIM("picked_dup_samples: is_merging -> empty")
             return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
           }
           df <- dup_values$dup_df
           if (!is.data.frame(df) || !"designation_id" %in% names(df) || is.null(input$dup_group_pick)) {
-            logIM("picked_dup_samples: no dup_df or no group selected -> empty")
             return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
           }
 
           out <- df[df$designation_id == input$dup_group_pick, , drop = FALSE]
-          logIM("picked_dup_samples: group=", input$dup_group_pick,
-                " rows(before exist-filter)=", nrow(out))
 
           if (!nrow(out)) {
-            logIM("picked_dup_samples: group has 0 rows (before exist-filter)")
             return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
           }
 
           existing <- tryCatch(as.character(adegenet::indNames(data()$data$geno)), error = function(e) character(0))
           out <- out[out$sample_id %in% existing, , drop = FALSE]
-          logIM("picked_dup_samples: rows(after exist-filter)=", nrow(out),
-                " existing nInd=", length(existing))
 
           if (!nrow(out)) {
-            logIM("picked_dup_samples: group has 0 rows (after exist-filter)")
             return(data.frame(sample_id=character(), designation_id=character(), selected=logical()))
           }
           out
@@ -1017,7 +978,6 @@ mod_getDataGeno_server <-
           req(dup_values$load_geno_data, input$n_loc_dup_slider, input$loc_miss_dup_slider, input$maf_dup_slider, input$seed_dup)
 
           gl <- data()$data$geno
-          logIM("filter_dup_det_gl: nInd=", adegenet::nInd(gl), " nLoc=", adegenet::nLoc(gl))
 
           shinybusy::show_modal_spinner('fading-circle', text = 'Randomly filtering genotype matrix...')
           on.exit(shinybusy::remove_modal_spinner(), add = TRUE)
@@ -1039,8 +999,7 @@ mod_getDataGeno_server <-
 
         observeEvent(input$dup_update_dup_df, {
           req(dup_values$dup_df)
-          logIM("dup_update_dup_df: clicked; group=", input$dup_group_pick,
-                " selected=", paste(input$dup_group_select_samples, collapse=","))
+
           choices <- dup_values$dup_df %>%
             dplyr::filter(designation_id == input$dup_group_pick) %>%
             dplyr::pull(sample_id)
@@ -1061,7 +1020,6 @@ mod_getDataGeno_server <-
           req(filter_dup_det_gl())
           sel <- picked_dup_samples()
           if (!is.data.frame(sel) || nrow(sel) == 0) {
-            logIM("filt_random_gl: no picked samples -> NULL")
             return(NULL)
           }
 
@@ -1069,9 +1027,6 @@ mod_getDataGeno_server <-
           rand_gl <- filter_dup_det_gl()
           idx <- match(target_samples, adegenet::indNames(rand_gl))
           ok  <- !is.na(idx)
-          logIM("filt_random_gl: targets n=", length(target_samples),
-                " matched n=", sum(ok),
-                " rand nInd=", adegenet::nInd(rand_gl))
 
           if (!any(ok)) return(NULL)
           rand_gl[idx[ok], ]
@@ -1081,23 +1036,20 @@ mod_getDataGeno_server <-
         get_ibs <- reactive({
           req(filt_random_gl())
           gl <- filt_random_gl()
-          logIM("get_ibs: subset nInd=", adegenet::nInd(gl), " nLoc=", adegenet::nLoc(gl))
           cgiarGenomics::ibs_matrix_purrr(gl, as.numeric(input$ploidlvl_input))
         })
 
         output$dup_group_heatmap <- plotly::renderPlotly({
-          if (isTRUE(rv$is_merging)) { logIM("heatmap: skip (is_merging)"); return(NULL) }
-          if (nrow(picked_dup_samples()) < 2) { logIM("heatmap: <2 samples in group"); return(NULL) }
+          if (isTRUE(rv$is_merging)) {return(NULL)}
+          if (nrow(picked_dup_samples()) < 2) {return(NULL)}
 
           tg_rand_gl <- filt_random_gl()
-          if (is.null(tg_rand_gl)) { logIM("heatmap: filt_random_gl is NULL"); return(NULL) }
+          if (is.null(tg_rand_gl)) {return(NULL) }
 
           ibs <- get_ibs()
-          if (is.null(ibs) || is.null(ibs$ibs)) { logIM("heatmap: ibs or ibs$ibs NULL"); return(NULL) }
+          if (is.null(ibs) || is.null(ibs$ibs)) {return(NULL) }
           m <- tryCatch(as.matrix(ibs$ibs), error = function(e) NULL)
-          if (is.null(m) || any(dim(m) < 2)) { logIM("heatmap: bad matrix dims"); return(NULL) }
-
-          logIM("heatmap: plotting with dim=", paste(dim(m), collapse="x"))
+          if (is.null(m) || any(dim(m) < 2)) {return(NULL) }
 
           plotly::plot_ly(
             z = m, x = colnames(m), y = rownames(m),
@@ -1130,10 +1082,6 @@ mod_getDataGeno_server <-
           gl_src <- tmp$data$geno
           gl     <- gl_src
 
-          logIM("Apply actions; grp=", cur_grp,
-                " merge_ids=", paste(merge_ids, collapse=","),
-                " remove_ids=", paste(remove_ids, collapse=","))
-
           # helper: copy marker slots (if lengths match) and recalc metrics only when non-empty
           apply_postprocess <- function(gl_new, gl_ref) {
             if (!is.null(gl_ref@position)   && length(gl_ref@position)   == adegenet::nLoc(gl_new)) gl_new@position   <- gl_ref@position
@@ -1146,7 +1094,7 @@ mod_getDataGeno_server <-
             }
           }
 
-          # ---------- FAST PATH: exactly one kept sample, no consensus needed ----------
+          # exactly one kept sample, no consensus needed
           if (length(merge_ids) == 1) {
             keep_id <- merge_ids[[1]]
             current_names <- as.character(adegenet::indNames(gl))
@@ -1212,7 +1160,7 @@ mod_getDataGeno_server <-
             return(invisible(NULL))
           }
 
-          # ---------- GENERAL PATH ----------
+          #Regular input
           did_merge   <- FALSE
           did_remove  <- FALSE
 
@@ -1231,7 +1179,6 @@ mod_getDataGeno_server <-
               check.names    = FALSE, stringsAsFactors = FALSE
             )
 
-            logIM("Merging ", length(merge_ids), " samples -> ", cur_grp)
             gl <- cgiarGenomics::merge_duplicate_inds(gl, full_map)
             did_merge <- TRUE
           }
@@ -1289,7 +1236,7 @@ mod_getDataGeno_server <-
         })
 
 
-        # ---- name translation (sample_id -> designation, with F1 exceptions) ----
+        # name translation (sample_id -> designation, with F1 exceptions)
         translate_ind_names <- function(gl, ped_map, entrytype) {
           # ped_map: data.frame(sample_id, designation_id)
           if (is.null(ped_map) || !inherits(gl, "genlight")) return(gl)
