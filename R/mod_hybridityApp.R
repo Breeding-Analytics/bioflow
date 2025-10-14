@@ -1021,8 +1021,7 @@ mod_hybridityApp_server <- function(id, data){
       ploidy = as.numeric(ploidy)
 
 
-      result <- #cgiarPipeline::individualVerification(
-        individualVerification(
+      result <- cgiarPipeline::individualVerification(
         object= data(),
         analysisIdForGenoModifications= input$version2F1qaqc,
         markersToBeUsed=selMarkers,
