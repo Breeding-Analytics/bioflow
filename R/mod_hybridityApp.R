@@ -946,6 +946,37 @@ mod_hybridityApp_server <- function(id, data){
     })
 
     ##########################
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportVerifGeno,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportVerifGeno.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultVerifGeno.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultVerifGeno.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportVerifGeno")
+    })
+
     ## run button
     outQaMb <- eventReactive(input$runQaMb, {
 
@@ -1139,34 +1170,6 @@ mod_hybridityApp_server <- function(id, data){
         # ## Report tab
         output$reportVerifGeno <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportVerifGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportVerifGeno,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd","reportVerifGeno.Rmd",package="bioflow"))
-          src2 <- normalizePath('data/resultVerifGeno.RData')
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultVerifGeno.RData', overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportVerifGeno")
         })
 
         output$downloadReportVerifGeno <- downloadHandler(
