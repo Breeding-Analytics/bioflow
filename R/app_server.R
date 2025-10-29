@@ -382,7 +382,7 @@ app_server <- function(input, output, session) {
 
   # SELECTION - selection history
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
-  mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
+  # mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
   mod_selSignApp_server("selSignApp_1")
 
   # MUTATION - mutation discovery
