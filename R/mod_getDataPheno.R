@@ -420,6 +420,14 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 ebs_client_id     <- 'b27e613di2vtmrm3okfhajidl'
                 ebs_client_secret <- '11dj6g7n5eellkmodat0n4qic7tas2iauhrov8d5ksup4suo15kb'
 
+              } else if (ebs_domain == 'ciat.ebsproject.org') {
+
+                ebs_brapi         <- paste0('https://cbbrapi.', ebs_domain)
+                ebs_authorize_url <- 'https://auth.ciat.ebsproject.org/oauth2/authorize'
+                ebs_access_url    <- 'https://auth.ciat.ebsproject.org/oauth2/token'
+                ebs_client_id     <- '58n0nccnih9qc0iibd9l735ksv'
+                ebs_client_secret <- '1gqsfcj2kb1p4jtdfnlu8u5jsgnom9psu7cebgfq1i2lljcv97kd'
+
               } else {
                 ebs_instance <- sub('(.*-)', '', ebs_instance)
                 ebs_brapi    <- paste0('https://cbbrapi-', ebs_instance, '.', ebs_domain)
