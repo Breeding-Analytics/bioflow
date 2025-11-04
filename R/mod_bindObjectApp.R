@@ -247,6 +247,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
       tmp <- cgiarBase::create_getData_object() #data()
 
+      if(!is.null(data()$user)){tmp$user <- data()$user}
       if(!is.null(result$data)){tmp$data <- result$data}
       if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
       if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
