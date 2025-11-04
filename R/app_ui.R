@@ -155,7 +155,7 @@ app_ui <- function(request) {
 
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
                  tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
-                 tabPanel(div(icon("chart-line"), "Predicted Genetic Gain (", icon("seedling"),  icon("network-wired"),")"), mod_pggApp_ui("pggApp_1")),# user needs to perfor m a multi-year genetic evaluation to provide the MET as input
+                 # tabPanel(div(icon("chart-line"), "Predicted Genetic Gain (", icon("seedling"),  icon("network-wired"),")"), mod_pggApp_ui("pggApp_1")),# user needs to perfor m a multi-year genetic evaluation to provide the MET as input
                  #tabPanel(div(icon("chart-line"), "Selection signatures (", icon("dna"),")", style = "color:red"), mod_selSignApp_ui("selSignApp_1") ), # icon = icon("filter")) # may include P3D, traditional single linear regression, Eigen, etc.
                  # tabPanel(strong("AGRONOMIC EVALUATION"), mod_sectionInfoAEApp_ui("sectionInfoAEApp_1") ),
                  # tabPanel(div(icon("chart-line"), "Analysis of Variance (", icon("seedling"),")", style = "color:red"), mod_agrAnova_ui("agrAnova_1") )

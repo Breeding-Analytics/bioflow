@@ -312,14 +312,46 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('pheno_map'))
           golem::invoke_js('showid', ns('pheno_map2'))
           updateCheckboxInput(session, 'pheno_example', value = FALSE)
+
+          if(input$pheno_db_save > 0){
+            updateTextInput(session, "pheno_db_url", value ='')
+
+            updateTextInput(session, "pheno_token_user", value ='')
+            updateTextInput(session, "pheno_db_user", value ='')
+            updateTextInput(session, "pheno_db_password", value ='')
+            updateCheckboxInput(session, "no_auth", value =TRUE)
+
+            if(input$pheno_db_load > 0){
+              pheno_data_brapi(NULL)
+            }
+          }
         }
       }
     )
 
+    observeEvent(input$pheno_db_type,{
+      updateTextInput(session, "pheno_db_url", value ='')
+
+      updateTextInput(session, "pheno_token_user", value ='')
+      updateTextInput(session, "pheno_db_user", value ='')
+      updateTextInput(session, "pheno_db_password", value ='')
+      updateCheckboxInput(session, "no_auth", value =TRUE)
+
+      golem::invoke_js('hideid', ns('auth_server_holder'))
+      golem::invoke_js('hideid', ns('data_server_holder'))
+      golem::invoke_js('hideid', ns('pheno_db_token_holder'))
+    })
+
     observeEvent(
       input$pheno_db_save,
       {
-        if (input$pheno_db_url == '') return(NULL)
+        if (input$pheno_db_url == ''){
+          return(NULL)
+          updateTextInput(session, "pheno_token_user", value ='')
+          updateTextInput(session, "pheno_db_user", value ='')
+          updateTextInput(session, "pheno_db_password", value ='')
+          updateCheckboxInput(session, "no_auth", value =TRUE)
+        }
 
         # TODO: check if it has a BrAPI endpoints
         # http://msdn.microsoft.com/en-us/library/ff650303.aspx
@@ -337,6 +369,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           golem::invoke_js('hideid', ns('pheno_db_password_holder'))
           golem::invoke_js('hideid', ns('pheno_db_crop_holder'))
           golem::invoke_js('hideid', ns('no_auth_holder'))
+
+          updateTextInput(session, "pheno_token_user", value ='')
 
           QBMS::set_qbms_config(url = input$pheno_db_url, engine = 'ebs', brapi_ver = 'v2')
         } else if (input$pheno_db_type == 'bms') {
@@ -587,6 +621,9 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         }
 
         shinybusy::remove_modal_spinner()
+      } else{
+        output$pheno_db_folder <- NULL
+        output$pheno_db_trial <- NULL
       }
     )
 
@@ -626,6 +663,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         )
 
         shinybusy::remove_modal_spinner()
+      } else{
+        output$pheno_db_trial <- NULL
       }
     )
 
@@ -657,6 +696,72 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         data(temp)
       }
     )
+
+    pheno_data_brapi <- reactiveVal(NULL)
+
+    observeEvent(input$pheno_db_load,{
+      if (input$pheno_input == 'brapi') {
+        req(input$pheno_db_program)
+        req(input$pheno_db_trial)
+        if(input$pheno_db_type == 'breedbase'){
+          req(input$pheno_db_folder)
+        } else if(input$pheno_db_type == 'bms'){
+          req(input$pheno_db_crop)
+        }
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
+        if (input$pheno_db_type == 'breedbase') {
+          for (trial in unlist(strsplit(input$pheno_db_trial, ","))) {
+            QBMS::set_study(trial)
+            temp <- QBMS::get_study_data()
+
+            # get breedbase trait ontology
+            ontology <- QBMS::get_trial_obs_ontology()
+            fields   <- colnames(temp)
+
+            # replace long trait names with short ones from the ontology
+            for (i in 1:length(fields)) {
+              j <- which(ontology$name %in% fields[i])
+              if (length(j) > 0) {
+                if(!is.na(ontology$synonyms[[j]][1])) {
+                  fields[i] <- ontology$synonyms[[j]][1]
+                }
+              }
+            }
+
+            colnames(temp) <- fields
+            temp$trialName <- trial
+
+            if (is.data.frame(data)) {
+              data <- plyr::rbind.fill(data, temp)
+            } else {
+              data <- temp
+            }
+          }
+        } else {
+          for (trial in unlist(strsplit(input$pheno_db_trial, ","))) {
+            QBMS::set_trial(trial)
+            temp <- QBMS::get_trial_data()
+            temp$trialName <- trial
+
+            if (is.data.frame(data)) {
+              data <- plyr::rbind.fill(data, temp)
+            } else {
+              data <- temp
+            }
+          }
+        }
+
+        shinybusy::remove_modal_spinner()
+
+        if (is.data.frame(data)) {
+          pheno_data_brapi(data)
+          shinyWidgets::show_alert(title = 'Done!', type = 'success')
+        } else {
+          pheno_data_brapi(NULL)
+          shinyWidgets::show_alert(title = 'No Data Available!', type = 'warning')
+        }
+      }
+    })
 
     pheno_data <- reactive({
       tryCatch(
@@ -693,64 +798,9 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 data <- as.data.frame(data.table::fread(input$pheno_url, sep = input$pheno_sep,
                                                         quote = input$pheno_quote, dec = input$pheno_dec, header = TRUE))
               }
-            } else if (input$pheno_input == 'brapi') {
-              if (input$pheno_db_load != 1){
-                return(NULL)
-              } else {
-                shinybusy::show_modal_spinner('fading-circle', text = 'Loading Data...')
-
-                if (input$pheno_db_type == 'breedbase') {
-                  for (trial in unlist(strsplit(input$pheno_db_trial, ","))) {
-                    QBMS::set_study(trial)
-                    temp <- QBMS::get_study_data()
-
-                    # get breedbase trait ontology
-                    ontology <- QBMS::get_trial_obs_ontology()
-                    fields   <- colnames(temp)
-
-                    # replace long trait names with short ones from the ontology
-                    for (i in 1:length(fields)) {
-                      j <- which(ontology$name %in% fields[i])
-                      if (length(j) > 0) {
-                        if(!is.na(ontology$synonyms[[j]][1])) {
-                          fields[i] <- ontology$synonyms[[j]][1]
-                        }
-                      }
-                    }
-
-                    colnames(temp) <- fields
-                    temp$trialName <- trial
-
-                    if (is.data.frame(data)) {
-                      data <- plyr::rbind.fill(data, temp)
-                    } else {
-                      data <- temp
-                    }
-                  }
-                } else {
-                  for (trial in unlist(strsplit(input$pheno_db_trial, ","))) {
-                    QBMS::set_trial(trial)
-                    temp <- QBMS::get_trial_data()
-                    temp$trialName <- trial
-
-                    if (is.data.frame(data)) {
-                      data <- plyr::rbind.fill(data, temp)
-                    } else {
-                      data <- temp
-                    }
-                  }
-                }
-
-                shinybusy::remove_modal_spinner()
-
-                if (is.data.frame(data)) {
-                  shinyWidgets::show_alert(title = 'Done!', type = 'success')
-                } else {
-                  shinyWidgets::show_alert(title = 'Empty!', type = 'warning')
-                }
-              }
+            } else if(input$pheno_input == 'brapi'){
+              data <- pheno_data_brapi()
             }
-
             return(data)
           }
         },
@@ -774,205 +824,215 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       if(!is.null(dtMta)){
         golem::invoke_js('showid', ns('concat_environment_holder'))
         # golem::invoke_js('showid', ns('mapping_title_holder'))
+      } else{
+        golem::invoke_js('hideid', ns('concat_environment_holder'))
       }
     })
 
     observeEvent(
       pheno_data(),
       {
-        #if (is.null(data())) return(NULL)
+        # if (is.null(data())) return(NULL)
 
         temp <- data()
         temp$data$pheno <- pheno_data()
-        if(!is.data.frame(temp$data$pheno)) { return() }
+        # if(!is.data.frame(temp$data$pheno)) { return() }
         if(!is.null(temp$metadata$pheno)){temp$metadata$pheno <- temp$metadata$pheno[0,]} # make sure if an user uploads a new dataset the metadata starts empty
         if(!is.null(temp$modifications$pheno)){temp$modifications$pheno <- temp$modifications$pheno[0,]} # make sure if an user uploads a new dataset the modifications starts empty
         if(!is.null(temp$status)){
           toRemove <- which(temp$status$module == "qaRaw")
           if(length(toRemove) > 0){temp$status <- temp$status[-toRemove,, drop=FALSE]}
         } # make sure if an user uploads a new dataset the qaRaw starts empty
+        if(is.data.frame(temp$data$pheno)) {
+          output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT({
+            DT::datatable(temp$data$pheno[1:min(c( round(33000/ncol(temp$data$pheno)) , nrow(temp$data$pheno))),],
+                          extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',
+                                         scrollX = TRUE,
+                                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))
+                          )#,
+                          # caption = htmltools::tags$caption(
+                          #   style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
+                          #   htmltools::em('Data preview.')
+                          # )
+            )
+          }, server = FALSE)
 
-        output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT({
-          DT::datatable(temp$data$pheno[1:min(c( round(33000/ncol(temp$data$pheno)) , nrow(temp$data$pheno))),],
-                        extensions = 'Buttons',
-                        options = list(dom = 'Blfrtip',
-                                       scrollX = TRUE,
-                                       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                       lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))
-                        )#,
-                        # caption = htmltools::tags$caption(
-                        #   style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
-                        #   htmltools::em('Data preview.')
-                        # )
-          )
-        }, server = FALSE)
+          if (input$pheno_input == 'brapi') {
+            output$brapi_trait_map <- renderUI({
+              selectInput(
+                inputId  = ns('brapi_traits'),
+                label    = HTML(as.character(p('trait', span('(*required)',style="color:red")))),
+                multiple = TRUE,
+                choices  = as.list(c('', colnames(temp$data$pheno))),
+              )
 
-        if (input$pheno_input == 'brapi') {
-          output$brapi_trait_map <- renderUI({
-            selectInput(
-              inputId  = ns('brapi_traits'),
-              label    = HTML(as.character(p('trait', span('(*required)',style="color:red")))),
-              multiple = TRUE,
-              choices  = as.list(c('', colnames(temp$data$pheno))),
+            })
+
+            ### BrAPI auto mapping ###############################################
+            mapping <- list(
+              ebs = list(
+                year = 'year',
+                study = 'studyName',
+                rep = 'rep',
+                iBlock = 'block',
+                row = 'positionCoordinateY', # 'designY',#
+                col =  'positionCoordinateX', # 'designX',
+                designation = 'germplasmName',
+                gid = 'germplasmDbId',
+                location = 'locationName',
+                trial = 'trialName',
+                entryType = 'entryType'
+              ),
+              bms = list(
+                year = 'year',
+                study = 'studyName',
+                rep = 'rep',
+                iBlock = 'block',
+                row = 'positionCoordinateY',
+                col = 'positionCoordinateX',
+                designation = 'germplasmName',
+                gid = 'germplasmDbId',
+                location = 'studyName',
+                trial = 'trialName',
+                entryType = 'entryType'
+              ),
+              breedbase = list(
+                year = 'studyYear',
+                study = 'studyName',
+                rep = 'replicate',
+                iBlock = 'blockNumber',
+                row = 'rowNumber',
+                col = 'colNumber',
+                designation = 'germplasmName',
+                gid = 'germplasmDbId',
+                location = 'locationName',
+                trial = 'trialName',
+                entryType = 'entryType'
+              )
             )
 
-          })
-
-          ### BrAPI auto mapping ###############################################
-          mapping <- list(
-            ebs = list(
-              year = 'year',
-              study = 'studyName',
-              rep = 'rep',
-              iBlock = 'block',
-              row = 'positionCoordinateY', # 'designY',#
-              col =  'positionCoordinateX', # 'designX',
-              designation = 'germplasmName',
-              gid = 'germplasmDbId',
-              location = 'locationName',
-              trial = 'trialName',
-              entryType = 'entryType'
-            ),
-            bms = list(
-              year = 'year',
-              study = 'studyName',
-              rep = 'rep',
-              iBlock = 'block',
-              row = 'positionCoordinateY',
-              col = 'positionCoordinateX',
-              designation = 'germplasmName',
-              gid = 'germplasmDbId',
-              location = 'studyName',
-              trial = 'trialName',
-              entryType = 'entryType'
-            ),
-            breedbase = list(
-              year = 'studyYear',
-              study = 'studyName',
-              rep = 'replicate',
-              iBlock = 'blockNumber',
-              row = 'rowNumber',
-              col = 'colNumber',
-              designation = 'germplasmName',
-              gid = 'germplasmDbId',
-              location = 'locationName',
-              trial = 'trialName',
-              entryType = 'entryType'
-            )
-          )
-
-          for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
-            if (mapping[[input$pheno_db_type]][[field]] %in% colnames(temp$data$pheno)) {
-              if (field %in% temp$metadata$pheno$parameter) {
-                temp$metadata$pheno[temp$metadata$pheno$parameter == field, 'value'] <- mapping[[input$pheno_db_type]][[field]]
-              } else {
-                temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = field, value = mapping[[input$pheno_db_type]][[field]]))
+            for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
+              if (mapping[[input$pheno_db_type]][[field]] %in% colnames(temp$data$pheno)) {
+                if (field %in% temp$metadata$pheno$parameter) {
+                  temp$metadata$pheno[temp$metadata$pheno$parameter == field, 'value'] <- mapping[[input$pheno_db_type]][[field]]
+                } else {
+                  temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = field, value = mapping[[input$pheno_db_type]][[field]]))
+                }
               }
             }
+
+            # shinybusy::show_modal_spinner('fading-circle', text = 'Loading Ontology...')
+            #
+            # traits <- QBMS::get_trial_obs_ontology()
+            #
+            # temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+            #
+            # for (i in traits$name) {
+            #   temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+            # }
+            #
+            # shinybusy::remove_modal_spinner()
+
+
+            # dummy pedigree table
+            temp$data$pedigree <- data.frame(germplasmName = unique(temp$data$pheno$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
+            temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("germplasmName","mother","father","yearOfOrigin") )
+            # stage       <- NA
+            # pipeline    <- NA
+            # country   **<- get_study_info()$locationDbId, then list_locations()
+            # season    * <- get_study_info()$seasons
+
+            ####################################################################
+          } else{
+            output$brapi_trait_map <- renderUI({NULL})
           }
-
-          # shinybusy::show_modal_spinner('fading-circle', text = 'Loading Ontology...')
-          #
-          # traits <- QBMS::get_trial_obs_ontology()
-          #
-          # temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
-          #
-          # for (i in traits$name) {
-          #   temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
-          # }
-          #
-          # shinybusy::remove_modal_spinner()
-
-
-          # dummy pedigree table
-          temp$data$pedigree <- data.frame(germplasmName = unique(temp$data$pheno$germplasmName), mother = NA, father = NA, yearOfOrigin = NA)
-          temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("germplasmName","mother","father","yearOfOrigin") )
-          # stage       <- NA
-          # pipeline    <- NA
-          # country   **<- get_study_info()$locationDbId, then list_locations()
-          # season    * <- get_study_info()$seasons
-
-          ####################################################################
         } else{
+          output$preview_pheno <- output$preview_pheno2 <- output$preview_pheno3 <- DT::renderDT({NULL})
           output$brapi_trait_map <- renderUI({NULL})
         }
         data(temp)
-      }
+      }, ignoreNULL = FALSE
     )
 
     output$pheno_map <- renderUI({
-      if (is.null(pheno_data())) return(NULL)
+      if (is.null(pheno_data())){
+        return(NULL)
+      } else{
+        header <- colnames(pheno_data())
+        pheno_map <- lapply(map, function(x) {
+          column(3,
+                 selectInput(
+                   inputId  = ns(paste0('select', x)),
+                   label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
+                   multiple = ifelse(x == 'trait', TRUE, FALSE),
+                   choices  = as.list(c('', header )),
+                   selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
+                 ),
 
-      header <- colnames(pheno_data())
-      pheno_map <- lapply(map, function(x) {
-        column(3,
-               selectInput(
-                 inputId  = ns(paste0('select', x)),
-                 label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
-                 multiple = ifelse(x == 'trait', TRUE, FALSE),
-                 choices  = as.list(c('', header )),
-                 selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
-               ),
+                 # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
 
-               # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
-
-               renderPrint({
-                 # req(input[[paste0('select', x)]])
-                 temp <- data()
-                 if (x == 'trait') {
-                   temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
-                   for (i in input[[paste0('select', x)]]) {
-                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
-                     if(!is.numeric(temp$data$pheno[,i])){temp$data$pheno[,i] <- as.numeric(gsub(",","",temp$data$pheno[,i]))}
+                 renderPrint({
+                   # req(input[[paste0('select', x)]])
+                   temp <- data()
+                   if (x == 'trait') {
+                     temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
+                     for (i in input[[paste0('select', x)]]) {
+                       temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
+                       if(!is.numeric(temp$data$pheno[,i])){temp$data$pheno[,i] <- as.numeric(gsub(",","",temp$data$pheno[,i]))}
+                     }
+                   } else { # is any other column other than trait
+                     # if x is already in the metadata for pheno
+                     if (x %in% temp$metadata$pheno$parameter & input[[paste0('select', x)]] != '') {
+                       temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
+                     } else { # if is not in the metadata
+                       temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                     }
+                     if(x %in% c("designation","study") & input[[paste0('select', x)]] != ''){
+                       temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII")
+                     }
+                     if(input[[paste0('select', x)]] == ''){
+                       temp$metadata$pheno <- temp$metadata$pheno[-which(temp$metadata$pheno$parameter == x), ]
+                     }
                    }
-                 } else { # is any other column other than trait
-                   # if x is already in the metadata for pheno
-                   if (x %in% temp$metadata$pheno$parameter & input[[paste0('select', x)]] != '') {
-                     temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
-                   } else { # if is not in the metadata
-                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
+                   if (x == 'designation') {
+                     if(input[[paste0('select', x)]] != ''){
+                       temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
+                       temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
+                     }
                    }
-                   if(x %in% c("designation","study") & input[[paste0('select', x)]] != ''){
-                     temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII")
-                   }
-                   if(input[[paste0('select', x)]] == ''){
-                     temp$metadata$pheno <- temp$metadata$pheno[-which(temp$metadata$pheno$parameter == x), ]
-                   }
-                 }
-                 if (x == 'designation') {
-                   if(input[[paste0('select', x)]] != ''){
-                     temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
-                     temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
-                   }
-                 }
-                 data(temp)
-               }),
-        )
-      })
-      fluidRow(do.call(tagList, pheno_map))
+                   data(temp)
+                 }),
+          )
+        })
+        fluidRow(do.call(tagList, pheno_map))
+      }
     })
 
     output$pheno_map2 <- renderUI({
-      if (is.null(pheno_data())) return(NULL)
-
-      temp <- data()
-      mapp2 <- c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')
-      header2 <- colnames(pheno_data())
-      pheno_map2 <- lapply(mapp2, function(x) {
-        column(3,
-               shinyjs::disabled(selectInput(
-                 inputId  = ns(paste0('select2', x)),
-                 label    = x,
-                 multiple = FALSE,
-                 choices  = as.list(c('', header2 )),
-                 # selected = temp$metadata$pheno[which(temp$metadata$pheno$parameter == x), 'value']
-                 selected = if(x %in% temp$metadata$pheno$parameter){
-                   temp$metadata$pheno[which(temp$metadata$pheno$parameter == x), 'value']
-                 }else{''}
-               ))
-        )
-      })
-      fluidRow(do.call(tagList,pheno_map2))
+      if (is.null(pheno_data())){
+        return(NULL)
+      } else{
+        temp <- data()
+        mapp2 <- c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')
+        header2 <- colnames(pheno_data())
+        pheno_map2 <- lapply(mapp2, function(x) {
+          column(3,
+                 shinyjs::disabled(selectInput(
+                   inputId  = ns(paste0('select2', x)),
+                   label    = x,
+                   multiple = FALSE,
+                   choices  = as.list(c('', header2 )),
+                   # selected = temp$metadata$pheno[which(temp$metadata$pheno$parameter == x), 'value']
+                   selected = if(x %in% temp$metadata$pheno$parameter){
+                     temp$metadata$pheno[which(temp$metadata$pheno$parameter == x), 'value']
+                   }else{''}
+                 ))
+          )
+        })
+        fluidRow(do.call(tagList,pheno_map2))
+      }
     })
 
     # observeEvent(

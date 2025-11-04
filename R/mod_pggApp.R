@@ -54,7 +54,7 @@ mod_pggApp_ui <- function(id){
                                        tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right")  ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2Pgg"), "STA version to analyze", choices = NULL, multiple = FALSE)),
+                                                       column(width=8, selectInput(ns("version2Pgg"), "STA or MTA version to analyze", choices = NULL, multiple = FALSE)),
 
                                                 ),
                                                 column(width=12),
@@ -172,9 +172,9 @@ mod_pggApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab, compute the 'environment' column, map the 'designation' and at least one trait.")) )
       }else{ # data is there
-        if( any(c("mtaLmms","mta","mtaFlex") %in% data()$status$module) ){
+        if( any(c("sta","mtaLmms","mta","mtaFlex","mtaAsr") %in% data()$status$module) ){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain analysis specifying your input parameters under the Input tabs.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single Trial or Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
       }
     )
     ## data example loading
@@ -216,7 +216,7 @@ mod_pggApp_server <- function(id, data){
       req(data())
       dtPgg <- data()
       dtPgg <- dtPgg$status
-      dtPgg <- dtPgg[which(dtPgg$module %in% c("sta")),]
+      dtPgg <- dtPgg[which(dtPgg$module %in% c("sta","mtaLmms","mta","mtaFlex","mtaAsr")),]
       traitsPgg <- unique(dtPgg$analysisId)
       if(length(traitsPgg) > 0){
         if("analysisIdName" %in% colnames(dtPgg)){
@@ -237,26 +237,6 @@ mod_pggApp_server <- function(id, data){
       dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
       traitsPgg <- unique(dtPgg$trait)
       updateSelectInput(session, "trait2Pgg", choices = traitsPgg)
-    })
-    # trait for report tab
-    observeEvent(c(data(), input$version2Pgg), {
-      req(data())
-      req(input$version2Pgg)
-      dtPgg <- data()
-      dtPgg <- dtPgg$predictions
-      dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
-      traitsPgg <- unique(dtPgg$trait)
-      updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsPgg)
-    })
-    # environment for report tab
-    observeEvent(c(data(), input$version2Pgg), {
-      req(data())
-      req(input$version2Pgg)
-      dtPgg <- data()
-      dtPgg <- dtPgg$predictions
-      dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
-      traitsPgg <- unique(dtPgg$environment)
-      updateSelectInput(session, "environment", choices = traitsPgg)
     })
     ##############
     ## entry type
@@ -434,7 +414,7 @@ mod_pggApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtPgg <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtPgg$status$module %in% c("mta","mtaLmms","indexD")) == 0) {
+      if(sum(dtPgg$status$module %in% c("sta","mtaLmms","mta","mtaFlex","mtaAsr")) == 0) {
         output$qaQcPggInfo <- renderUI({
           if (hideAll$clearAll){
             return()
