@@ -448,8 +448,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
 
                 } else if (ebs_instance %in% c('dcp')) {
 
-                  ebs_authorize_url <- 'https://auth.ebs.iita.org/oauth2/authorize'
-                  ebs_access_url    <- 'https://auth.ebs.iita.org/oauth2/token'
+                  ebs_authorize_url <- 'https://auth.ebsproject.org/oauth2/authorize'
+                  ebs_access_url    <- 'https://auth.ebsproject.org/oauth2/token'
                   ebs_client_id     <- 'lo1fpgt1gi2aucf4oj2dbgshu'
                   ebs_client_secret <- 'k95d36vdaqugvi95augdk2k45omc44p1godm48jko17vqjrcdc0'
 
