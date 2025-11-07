@@ -646,15 +646,15 @@ mod_mtaASREMLApp_server <- function(id, data){
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
           tempval <- length(eval( parse(text = tempval() ) ))
           #choices <- c("Relationship structure_Geno","Relationship structure_Pedigree","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
-          noness <- c("none","none.","none..","none...")
+          noness <- c("none","none.","none..","none...", "none....")
 
           if (i==1){
-            choices<-c("none",choices)
+            choices<-c(noness[1:tempval],choices)
             selectInput(
               inputId=session$ns(paste0('rightSidesRandom',i)),
               label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
               choices = choices, multiple = TRUE,
-              selected = choices[1])
+              selected = noness[1:tempval])
           }else{
             choices<-c(noness[1:tempval],choices)
             selectInput(
