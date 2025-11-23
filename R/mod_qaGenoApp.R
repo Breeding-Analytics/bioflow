@@ -121,7 +121,11 @@ mod_qaGenoApp_ui <- function(id) {
                       column(width = 2,
                              br(),
                              actionButton(ns('run_imputation'),
-                                          'Apply Imputation'))
+                                          'Apply Imputation'),
+                             br(),
+                             actionButton(ns('skip_imputation'),
+                                          'Skip imputation')
+                             )
                ),
                column(width = 12),
                # Histogram tabset
@@ -622,6 +626,27 @@ mod_qaGenoApp_server <- function(id, data) {
 
         shinybusy::remove_modal_spinner()
       }
+    })
+
+    observeEvent(input$skip_imputation, {
+      req(geno_qa_data$preview_geno$gl)
+
+      ploidity <- as.numeric(data()$metadata$geno[2,]$value)
+
+      shinybusy::show_modal_spinner('fading-circle',
+                                    text = 'Using filtered genotype matrix without imputation...')
+
+      # Same structure as the "no missing data":
+      imp_dict <- lapply(seq(0, ploidity), function(x) { c(NA) })
+      names(imp_dict) <- as.character(seq(0, ploidity))
+
+      geno_qa_data$imputation_log <- list(
+        gl  = geno_qa_data$preview_geno$gl,
+        log = imp_dict
+      )
+
+      Sys.sleep(1)
+      shinybusy::remove_modal_spinner()
     })
 
     get_filtering_sequence <- function(filt_seq_df) {

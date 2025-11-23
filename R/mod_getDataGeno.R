@@ -845,14 +845,14 @@ mod_getDataGeno_server <-
                                       label   = "Select samples to merge into this designation (consensus):",
                                       choices = NULL
                                     ),
-                                    checkboxGroupInput(
-                                      ns("dup_remove_samples"),
-                                      label   = "Select samples to remove:",
-                                      choices = NULL
-                                    ),
+                                    #checkboxGroupInput(
+                                    #  ns("dup_remove_samples"),
+                                    #  label   = "Select samples to remove:",
+                                    #  choices = NULL
+                                    #),
                                     div(
                                       style = "display:flex; gap:8px; flex-wrap:wrap;",
-                                      actionButton(ns("btn_apply_actions"), "Run consensus & remove")
+                                      actionButton(ns("btn_apply_actions"), "Run consensus")
                                     )
                                   )
                                 )
@@ -914,21 +914,21 @@ mod_getDataGeno_server <-
           cur_grp <- isolate(input$dup_group_pick)
 
           merge_choices  <- choices
-          remove_choices <- choices
+          #remove_choices <- choices[]
 
           if (!is.null(gl) && !is.null(cur_grp) && cur_grp %in% adegenet::indNames(gl)) {
             # add reference to both lists
             merge_choices  <- c(merge_choices,  cur_grp)
-            remove_choices <- c(remove_choices, cur_grp)
+            #remove_choices <- c(remove_choices, cur_grp)
           }
 
           keep <- function(x, pool) if (length(x)) intersect(x, pool) else character(0)
           updateCheckboxGroupInput(session, "dup_merge_samples",
                                    choices  = merge_choices,
                                    selected = keep(isolate(input$dup_merge_samples), merge_choices))
-          updateCheckboxGroupInput(session, "dup_remove_samples",
-                                   choices  = remove_choices,
-                                   selected = keep(isolate(input$dup_remove_samples), remove_choices))
+          #updateCheckboxGroupInput(session, "dup_remove_samples",
+          #                         choices  = remove_choices,
+          #                         selected = keep(isolate(input$dup_remove_samples), remove_choices))
         })
 
         output$dup_group_notice <- renderUI({
@@ -955,23 +955,23 @@ mod_getDataGeno_server <-
 
 
 
-        observeEvent(input$dup_merge_samples, ignoreInit = TRUE, {
-          # remove overlap from the remove list
-          overlap <- intersect(input$dup_merge_samples, isolate(input$dup_remove_samples))
-          if (length(overlap)) {
-            updateCheckboxGroupInput(session, "dup_remove_samples",
-                                     selected = setdiff(isolate(input$dup_remove_samples), overlap))
-          }
-        })
+        #observeEvent(input$dup_merge_samples, ignoreInit = TRUE, {
+        #  # remove overlap from the remove list
+        #  overlap <- intersect(input$dup_merge_samples, isolate(input$dup_remove_samples))
+        #  if (length(overlap)) {
+        #    updateCheckboxGroupInput(session, "dup_remove_samples",
+        #                             selected = setdiff(isolate(input$dup_remove_samples), overlap))
+        #  }
+        #})
 
-        observeEvent(input$dup_remove_samples, ignoreInit = TRUE, {
-          # remove overlap from the merge list
-          overlap <- intersect(input$dup_remove_samples, isolate(input$dup_merge_samples))
-          if (length(overlap)) {
-            updateCheckboxGroupInput(session, "dup_merge_samples",
-                                     selected = setdiff(isolate(input$dup_merge_samples), overlap))
-          }
-        })
+        #observeEvent(input$dup_remove_samples, ignoreInit = TRUE, {
+        #  # remove overlap from the merge list
+        #  overlap <- intersect(input$dup_remove_samples, isolate(input$dup_merge_samples))
+        #  if (length(overlap)) {
+        #    updateCheckboxGroupInput(session, "dup_merge_samples",
+        #                             selected = setdiff(isolate(input$dup_merge_samples), overlap))
+        #  }
+        #})
 
 
         filter_dup_det_gl <- reactive({
@@ -1072,7 +1072,18 @@ mod_getDataGeno_server <-
 
           cur_grp    <- isolate(input$dup_group_pick)
           merge_ids  <- isolate(input$dup_merge_samples)
-          remove_ids <- setdiff(isolate(input$dup_remove_samples), merge_ids)  # never remove something we're keeping
+
+          if (!length(merge_ids)) {
+            shinyWidgets::show_alert(
+              title = "Nothing to do",
+              text  = "Select at least one sample to keep / use as consensus in this group.",
+              type  = "info"
+            )
+            return(invisible(NULL))
+          }
+
+          group_ids <- dup_values$dup_df$sample_id[dup_values$dup_df$designation_id == cur_grp]
+          remove_ids <- setdiff(group_ids, merge_ids)
 
           tmp <- data()
           if (is.null(tmp) || is.null(tmp$data) || is.null(tmp$data$geno)) {
@@ -1113,7 +1124,7 @@ mod_getDataGeno_server <-
               # else: keep the original keep_id to avoid a duplicate name
             }
 
-            # remove any selected for removal (allow empty)
+            # remove any not selected for merge (allow empty)
             if (length(remove_ids)) {
               keep_idx <- which(!adegenet::indNames(gl) %in% remove_ids)
               if (!length(keep_idx)) {
@@ -1136,7 +1147,7 @@ mod_getDataGeno_server <-
               if (nrow(dup_values$dup_df)) dup_values$dup_df$selected <- FALSE
             }
             updateCheckboxGroupInput(session, "dup_merge_samples",  selected = character(0))
-            updateCheckboxGroupInput(session, "dup_remove_samples", selected = character(0))
+            #updateCheckboxGroupInput(session, "dup_remove_samples", selected = character(0))
 
             # keep current group if still present; otherwise fallback or advance
             dgs <- dup_groups()
@@ -1224,14 +1235,14 @@ mod_getDataGeno_server <-
                                      text="The genotype matrix is now empty. Load new data or go back.",
                                      type="warning")
           } else if (did_merge && did_remove) {
-            shinyWidgets::show_alert(title="Done", text="Merged and removed selected samples.", type="success")
+            shinyWidgets::show_alert(title="Done", text="Merged selected samples and removed the rest", type="success")
           } else if (did_merge) {
             shinyWidgets::show_alert(title="Done", text="Merged selected samples.", type="success")
           } else if (did_remove) {
-            shinyWidgets::show_alert(title="Done", text="Removed selected samples.", type="success")
+            shinyWidgets::show_alert(title="Done", text="Removed non-selected samples.", type="success")
           } else {
             shinyWidgets::show_alert(title="Nothing to do",
-                                     text="Select samples to merge or remove.", type="info")
+                                     text="Select at least one sample to keep", type="info")
           }
         })
 
