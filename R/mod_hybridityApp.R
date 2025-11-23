@@ -514,15 +514,15 @@ mod_hybridityApp_server <- function(id, data){
           if(is.null(data()$data$pedigree)){
             HTML( as.character(div(style="color: red; font-size: 20px;", "Pedigree information is required to run this module")))
           }else{
-            if("entryType" %in% data()$metadata$pedigree$parameter){
-              entryCol = data()$metadata$pedigree$value[data()$metadata$pedigree$parameter == "entryType"]
+            if("crossType" %in% data()$metadata$pedigree$parameter){
+              entryCol = data()$metadata$pedigree$value[data()$metadata$pedigree$parameter == "crossType"]
               if(any(data()$data$pedigree[,entryCol]=="F1")){
                 HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform F1 QA/QC specifying your input parameters under the Input tabs.")) )
               }else{
-                HTML( as.character(div(style="color: red; font-size: 20px;", "No F1 found in pedigree data. Please review entryType column in pedigree data")) )
+                HTML( as.character(div(style="color: red; font-size: 20px;", "No F1 found in pedigree data. Please review crossType column in pedigree data")) )
               }
             }else{
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Missing entryType column in pedigree data. The entryType column is required to run this module")) )
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Missing crossType column in pedigree data. The crossType column is required to run this module")) )
             }
           }
 
@@ -1021,7 +1021,8 @@ mod_hybridityApp_server <- function(id, data){
       ploidy = as.numeric(ploidy)
 
 
-      result <- cgiarPipeline::individualVerification(
+      result <- individualVerification(
+        #cgiarPipeline::individualVerification(
         object= data(),
         analysisIdForGenoModifications= input$version2F1qaqc,
         markersToBeUsed=selMarkers,
@@ -1040,12 +1041,12 @@ mod_hybridityApp_server <- function(id, data){
         ped <- dtVerif$data$pedigree
         metaPed <- dtVerif$metadata$pedigree
         colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-        F1_ind = ped[ped$entryType == "F1",c("sample_id","designation")]
+        F1_ind = ped[ped$crossType == "F1",c("sample_id","designation")]
 
         Markers_F1 = Markers[F1_ind$sample_id,]
 
         #Get highest scoring sample_id per designation
-        preds = result$predictions[result$module == "gVerif",]
+        preds = result$predictions[result$predictions$module == "gVerif",]
         preds = preds[preds$analysisId==max(preds$analysisId),]
         preds_mProb = preds[preds$trait == "probMatch",]
         preds_mProb = preds_mProb[,c("designation","predictedValue")]
@@ -1077,7 +1078,7 @@ mod_hybridityApp_server <- function(id, data){
         ind_metrics = gl_obj$other$ind.metrics
         ind_metrics_F1 = ind_metrics[out$sample_id,]
         rownames(ind_metrics_F1) = out$designation
-        ind_metrics_par = ind_metrics[!rownames(ind_metrics)%in%ped$sample_id[ped$entryType == "F1"],]
+        ind_metrics_par = ind_metrics[!rownames(ind_metrics)%in%ped$sample_id[ped$crossType == "F1"],]
         ind_metrics = rbind(ind_metrics_F1,ind_metrics_par)
         ind_metrics = ind_metrics[Markers$ind.names,]
 

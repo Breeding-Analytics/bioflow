@@ -122,7 +122,7 @@ Additionally, ungenotyped F1 indviduals are also flagged (HasGeno / NO GENO DATA
 ### Verification results
 <p>&nbsp;</p>
 
-The following plot and table shows the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others and their classification according to the thresholds chosen in the input tabs
+The following plot and table show the values associated for the individuals on different metrics such as probability of matching the expected genotype, heterozygosity, among others and their classification according to the thresholds chosen in the input tabs
 
 ```{r }
 
@@ -293,13 +293,49 @@ if (is.null(result)){
   ped <- result$data$pedigree
   metaPed <- result$metadata$pedigree
   colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
-  if("sample_id" %in% colnames(ped)){
-    F1_ind = ped[ped$entryType == "F1",c("sample_id","designation")]
-    colnames(predictions_wide)[1] = "sample_id"
-    predictions_wide = merge(predictions_wide,F1_ind)
-    OutputCols <- c("sample_id","designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
-    predictions_wide = predictions_wide[,OutputCols]
+
+  has_sample <- "sample_id" %in% colnames(ped)
+  has_other  <- "other"     %in% colnames(ped)
+
+if (has_sample || has_other) {
+
+  if (has_sample) {
+    id_cols <- "sample_id"
+    if (!"sample_id" %in% colnames(predictions_wide)) {
+      colnames(predictions_wide)[1] <- "sample_id"
+    }
+    if (has_other) {
+      F1_ind <- ped[ped$crossType == "F1",
+                    c("sample_id", "other", "designation")]
+    } else {
+      F1_ind <- ped[ped$crossType == "F1",
+                    c("sample_id", "designation")]
+    }
+  } else {  # only "other" present
+    id_cols <- "designation"
+    F1_ind <- ped[ped$crossType == "F1",
+                  c("other", "designation")]
   }
+
+  # merge by the chosen ID column
+  predictions_wide <- merge(predictions_wide, F1_ind, by = id_cols)
+
+  OutputCols <- c(
+    if (has_sample) "sample_id" else NULL,
+    if (has_other) "other" else NULL,
+    "designation",
+    "mother","father","status","probMatch",
+    "heteroMexp","heteroMp","heteroDeviation",
+    "avgScore","nScore2","nMarkers",
+    "HasGeno","HasPed","parHetFilter","ParentHasGeno"
+  )
+
+  # avoid duplicates and keep only existing columns
+  OutputCols <- unique(OutputCols)
+  OutputCols <- intersect(OutputCols, colnames(predictions_wide))
+
+  predictions_wide <- predictions_wide[, OutputCols, drop = FALSE]
+}
   
   if("params" %in% ls()){ # we will download the document
     printTable(predictions_wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
@@ -322,11 +358,12 @@ if (is.null(result)){
   )
   }else{
     DT::renderDT({
-  if("sample_id" %in% OutputCols){
-    cols <- c(OutputCols[1:5], input$traitQa)
-  }else{
-    cols <- c(OutputCols[1:4], input$traitQa)
-  }    
+  base_cols <- OutputCols[
+    OutputCols %in% c("sample_id", "other", "designation",
+                    "mother", "father", "status")
+    ]
+  
+  cols <- c(base_cols, input$traitQa) 
   
 
   tbl <- printTable(
@@ -360,7 +397,74 @@ if (is.null(result)){
 
 ```
 
+### Parental check
+<p>&nbsp;</p>
 
+The following plot shows how many F1 individuals derived from each parent received a "PASS" status or failed. Parents that resulted in mostly failed F1s are more likely to have genotyping errors
+
+
+```{r}
+
+if (is.null(result)){
+invisible(NULL)
+} else {
+.plot_parent_success <- function(df) {
+# Stack mothers and fathers into a single "parent" column
+parent_long <- rbind(
+data.frame(parent = df$mother,
+status = df$status,
+stringsAsFactors = FALSE),
+data.frame(parent = df$father,
+status = df$status,
+stringsAsFactors = FALSE)
+)
+
+# Drop missing/empty parents
+parent_long <- parent_long[!is.na(parent_long$parent) & parent_long$parent != "", ]
+
+# Define outcome label: PASS vs non-PASS
+parent_long$Outcome <- ifelse(
+  parent_long$status == "PASS",
+  "Crosses passed QA",
+  "Crosses failed QA"
+)
+
+# Count F1s per parent × outcome
+counts <- with(parent_long, as.data.frame(table(parent, Outcome)))
+colnames(counts)[3] <- "n"
+
+# Order parents by total number of F1s
+totals <- tapply(counts$n, counts$parent, sum)
+counts$parent <- factor(
+  counts$parent,
+  levels = names(sort(totals, decreasing = TRUE))
+)
+
+p <- ggplot2::ggplot(counts, ggplot2::aes(x = n, y = parent, fill = Outcome)) +
+  ggplot2::geom_col(position = "dodge") +
+  ggplot2::labs(
+    x    = "Number of F1s",
+    y    = "Parent",
+    fill = "QA result"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, hjust = 1))
+
+plotly::ggplotly(p)
+
+}
+
+if("params" %in% ls()){ # we will download the document
+.plot_parent_success(predictions_wide)
+} else {
+  plotly::renderPlotly({
+        .plot_parent_success(predictions_wide)
+    })
+}
+
+}
+
+```
 
 ### Verification Metrics
 
@@ -427,7 +531,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   # numericalColumns2 <- c("value") 
-  modVeri <- result$result$modifications$geno[which(result$modifications$geno == idQa),]
+  modVeri <- result$modifications$geno[which(result$modifications$geno$analysisId == idQa),]
   
   if("params" %in% ls()){ # we will download the document
     printTable(modelingVeri, autoWidthOpt = TRUE, scrollXOpt = FALSE,

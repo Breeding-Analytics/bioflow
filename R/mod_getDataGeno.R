@@ -411,7 +411,7 @@ mod_getDataGeno_server <-
             } else 0
 
             # F1/parental breakdown: support either sample_id OR designation matching
-            et <- entrytype_info()
+            et <- crosstype_info()
             f1_count <- NA_integer_
             parent_count <- NA_integer_
 
@@ -419,12 +419,12 @@ mod_getDataGeno_server <-
                 !is.null(tmp$data$pedigree) &&
                 !is.null(tmp$metadata) &&
                 !is.null(tmp$metadata$pedigree) &&
-                ("entryType" %in% tmp$metadata$pedigree$parameter)) {
+                ("crossType" %in% tmp$metadata$pedigree$parameter)) {
 
               ped <- tmp$data$pedigree
               md  <- tmp$metadata$pedigree
 
-              et_col  <- md$value[md$parameter == "entryType"]
+              et_col  <- md$value[md$parameter == "crossType"]
               sid_col <- if ("sample_id" %in% md$parameter) md$value[md$parameter == "sample_id"] else NA_character_
 
               # 1) prefer sample_id if present and valid
@@ -440,11 +440,11 @@ mod_getDataGeno_server <-
                   !is.na(et_col) && nzchar(et_col) && et_col %in% names(ped)) {
 
                 inds <- adegenet::indNames(gl)
-                entry_vec <- ped[[et_col]][match(inds, ped[[key_col]])]
+                cross_vec <- ped[[et_col]][match(inds, ped[[key_col]])]
 
-                is_f1  <- !is.na(entry_vec) & toupper(as.character(entry_vec)) == "F1"
+                is_f1  <- !is.na(cross_vec) & toupper(as.character(cross_vec)) == "F1"
                 f1_count     <- sum(is_f1, na.rm = TRUE)
-                parent_count <- sum(!is_f1 & !is.na(entry_vec), na.rm = TRUE)
+                parent_count <- sum(!is_f1 & !is.na(cross_vec), na.rm = TRUE)
 
               }
             }
@@ -609,10 +609,10 @@ mod_getDataGeno_server <-
 
             {
               mp <- ped_mapping()
-              et <- entrytype_info()
+              et <- crosstype_info()
               dups <- dup_groups()
 
-              # entryType absent or all NA
+              # crossType absent or all NA
               if (et$status %in% c("absent", "all_na")) {
                 if (is.null(dups) || nrow(dups) == 0) {
                   # No duplicated designations -> translate all sample_ids to designation
@@ -701,19 +701,19 @@ mod_getDataGeno_server <-
           ped    <- temp$data$pedigree
           md_ped <- temp$metadata$pedigree
 
-          et <- entrytype_info()
+          et <- crosstype_info()
 
-          # If entryType has F1, exclude F1 rows from duplicate checking
+          # If crossType has F1, exclude F1 rows from duplicate checking
           if (!is.null(et$col) && et$status == "has_f1") {
             # columns from metadata
             sid_col <- md_ped$value[md_ped$parameter == "sample_id"]  # sample_id column name in pedigree
-            et_col  <- et$col                                         # entryType column name in pedigree
+            et_col  <- et$col                                         # crossType column name in pedigree
 
-            # Map each mp$sample_id to its entryType
+            # Map each mp$sample_id to its crossType
             ped_idx   <- match(mp$sample_id, ped[[sid_col]])
-            entry_vec <- ped[[et_col]][ped_idx]
+            cross_vec <- ped[[et_col]][ped_idx]
 
-            is_f1 <- !is.na(entry_vec) & toupper(as.character(entry_vec)) == "F1"
+            is_f1 <- !is.na(cross_vec) & toupper(as.character(cross_vec)) == "F1"
             mp    <- mp[!is_f1, , drop = FALSE]
           }
 
@@ -733,14 +733,14 @@ mod_getDataGeno_server <-
             df <- ped_mapping() |>
               dplyr::filter(.data$designation_id %in% dup_groups()$designation_id)
 
-            et <- entrytype_info()
+            et <- crosstype_info()
             if (!is.null(et$col) && et$status == "has_f1") {
               ped <- data()$data$pedigree
               md  <- data()$metadata$pedigree
               sid_col <- md$value[md$parameter == "sample_id"]
               # exclude F1 rows
-              entry_vec <- ped[[et$col]][match(df$sample_id, ped[[sid_col]])]
-              df <- df[!(toupper(as.character(entry_vec)) == "F1"), , drop = FALSE]
+              cross_vec <- ped[[et$col]][match(df$sample_id, ped[[sid_col]])]
+              df <- df[!(toupper(as.character(cross_vec)) == "F1"), , drop = FALSE]
             }
 
             dup_values$dup_df <- dplyr::mutate(df, selected = FALSE)
@@ -764,17 +764,17 @@ mod_getDataGeno_server <-
           }
         })
 
-        # entryType helpers
-        entrytype_info <- reactive({
+        # crossType helpers
+        crosstype_info <- reactive({
           temp <- data()
           out <- list(status = "absent", col = NULL, vec = NULL)  # statuses: absent, all_na, present_no_f1, has_f1
 
           if (is.null(temp) || is.null(temp$metadata) || is.null(temp$metadata$pedigree)) return(out)
           md_ped <- temp$metadata$pedigree
-          if (!("entryType" %in% md_ped$parameter)) return(out)
+          if (!("crossType" %in% md_ped$parameter)) return(out)
 
           ped <- temp$data$pedigree
-          col_name <- md_ped$value[md_ped$parameter == "entryType"]
+          col_name <- md_ped$value[md_ped$parameter == "crossType"]
           if (length(col_name) != 1 || is.na(col_name) || identical(col_name, "") || !(col_name %in% colnames(ped))) {
             return(out)  # treat as absent
           }
@@ -801,7 +801,7 @@ mod_getDataGeno_server <-
 
           nloc <- adegenet::nLoc(gl)
           prev <- isolate(input$n_loc_dup_slider)
-          default_val <- if (!is.null(prev) && is.finite(prev) && prev >= 1 && prev <= nloc) prev else nloc
+          default_val <- if (!is.null(prev) && is.finite(prev) && prev >= 1 && prev <= nloc) prev else min(100,nloc)
 
           tags$div(
             shinydashboard::box(width = 12, title = "Subset genotype matrix",
@@ -817,7 +817,7 @@ mod_getDataGeno_server <-
                                         "Select number of markers to consider:",
                                         min = 1,
                                         max = nloc,
-                                        value = default_val,   # defaults to all markers; keeps user's last value if still valid
+                                        value = default_val,   # defaults to, at most, 100 markers; keeps user's last value if still valid
                                         step = 1
                                       )
                                       ,
@@ -1237,7 +1237,7 @@ mod_getDataGeno_server <-
 
 
         # name translation (sample_id -> designation, with F1 exceptions)
-        translate_ind_names <- function(gl, ped_map, entrytype) {
+        translate_ind_names <- function(gl, ped_map, crosstype) {
           # ped_map: data.frame(sample_id, designation_id)
           if (is.null(ped_map) || !inherits(gl, "genlight")) return(gl)
 
@@ -1249,13 +1249,13 @@ mod_getDataGeno_server <-
           m_idx <- match(inds, ped_map$sample_id)
           desig <- ped_map$designation_id[m_idx]
 
-          et_status <- entrytype$status
+          et_status <- crosstype$status
           if (et_status == "has_f1") {
             ped <- data()$data$pedigree
             md  <- data()$metadata$pedigree
             sid_col <- md$value[md$parameter == "sample_id"]
-            et_col  <- entrytype$col
-            # entry type for each sample_id in inds
+            et_col  <- crosstype$col
+            # cross type for each sample_id in inds
             et_vec <- ped[[et_col]][match(inds, ped[[sid_col]])]
             is_f1  <- toupper(as.character(et_vec)) == "F1"
             # non-F1: use designation if available
@@ -1263,7 +1263,7 @@ mod_getDataGeno_server <-
             final[use_desig] <- as.character(desig[use_desig])
             # F1 rows keep sample_id (no translation)
           } else {
-            # no entryType or all NA or present without F1 -> translate all with available designation
+            # no crossType or all NA or present without F1 -> translate all with available designation
             use_desig <- !is.na(desig) & nzchar(as.character(desig))
             final[use_desig] <- as.character(desig[use_desig])
           }

@@ -263,8 +263,27 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
           choices  = as.list(c('', header))
         )),
         column(3, selectInput(
-          inputId  = ns('ped_entryType'),
-          label    = 'entryType (optional)',
+          inputId  = ns('ped_crossType'),
+          label    = tags$span(
+            "crossType (optional)",
+            tags$i(
+              class = "glyphicon glyphicon-info-sign",
+              style = "color:#000000",
+              title = "Mandatory to run F1 qa/qc module. Select column that indicates whether an individual is an F1 or a parent"
+            )
+          ),
+          choices  = as.list(c('', header))
+        )),
+        column(3, selectInput(
+          inputId  = ns('ped_otherF1'),
+          label    = tags$span(
+            "F1 qa/qc other metadata (optional)",
+            tags$i(
+              class = "glyphicon glyphicon-info-sign",
+              style = "color:#000000",
+              title = "Allow inclusion of plant number or other metadata relevant for F1 qa/qc"
+            )
+          ),
           choices  = as.list(c('', header))
         )),
 
@@ -301,10 +320,16 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "sample_id", value = input$ped_sample_id))
           }
 
-          if ("entryType" %in% temp$metadata$pedigree$parameter) {
-            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "entryType", 'value'] <- input$ped_entryType
+          if ("crossType" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "crossType", 'value'] <- input$ped_crossType
           } else {
-            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "entryType", value = input$ped_entryType))
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "crossType", value = input$ped_crossType))
+          }
+
+          if ("other" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "other", 'value'] <- input$ped_otherF1
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "other", value = input$ped_otherF1))
           }
 
           data(temp)
