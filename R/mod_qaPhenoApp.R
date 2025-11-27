@@ -237,7 +237,7 @@ mod_qaPhenoApp_server <- function(id, data){
         varsTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw,drop=FALSE],2,var, na.rm=TRUE)
         traitsQaRawVar <- names(which(varsTraits > 0))
         # traits with at least some data in any trial
-        naTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw,drop=FALSE],2,sommer::propMissing)
+        naTraits <- apply(objectQaRaw$data$pheno[,traitsQaRaw,drop=FALSE],2,enhancer::propMissing)
         traitsQaRawNa <- names(which(naTraits < 1))
         # intersection of both trait types
         traitsQaRawVarNa <- intersect(traitsQaRawVar,traitsQaRawNa)
