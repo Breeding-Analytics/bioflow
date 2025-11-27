@@ -129,7 +129,7 @@ if (is.null(result)){
     wide0 <- reshape(x[,c("environment","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
                      timevar = "environment", v.names = "predictedValue", sep= "_")
     wide0 <- wide0[,-1,drop=FALSE]; rownames(wide0) <- x$designation[1:max(ninds)]
-    wide0 <- wide0[,apply(wide0,2,sommer::propMissing) != 1, drop=FALSE]
+    wide0 <- wide0[,apply(wide0,2,enhancer::propMissing) != 1, drop=FALSE]
     colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
     return(wide0)
   }
@@ -141,7 +141,7 @@ if (is.null(result)){
                        timevar = "trait", v.names = "predictedValue", sep= "_")
       rownamesWide0 <- wide0[,1]
       wide0 <- wide0[,-1,drop=FALSE]; 
-      wide0 <- apply(wide0,2,sommer::imputev)
+      wide0 <- apply(wide0,2,enhancer::imputev)
       if(is.matrix(wide0)){
         rownames(wide0) <- rownamesWide0
         colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
@@ -1133,7 +1133,7 @@ if (is.null(result)){
                                                    rownames(pred.mta.biplot)))
           }
           # colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
-          pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+          pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,enhancer::propMissing) == 0]
           if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
             prin_comp <- prcomp(pred.mta.biplot, rank = 2)
             components <- prin_comp[["x"]]
@@ -1203,7 +1203,7 @@ if (is.null(result)){
                                                    rownames(pred.mta.biplot)))
           }
           # colnames(pred.mta.biplot) <- substring(colnames(pred.mta.biplot),4,nchar(colnames(pred.mta.biplot)))
-          pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+          pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,enhancer::propMissing) == 0]
           if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
             prin_comp <- prcomp(pred.mta.biplot, rank = 2)
             components <- prin_comp[["x"]]
@@ -1284,7 +1284,7 @@ if (is.null(result)){
             #   tempA <- gsub(j, "",rownames(level2[[ which(N == N[1])[1] ]][[1]] ))
             #   a <- c(tempA,a)
             # }
-            pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+            pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,enhancer::propMissing) == 0]
             if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot)  ) ) ){
               prin_comp <- prcomp(pred.mta.biplot, rank = 2)
               components <- prin_comp[["x"]]
@@ -1353,7 +1353,7 @@ if (is.null(result)){
                                                 gsub(paste0(":",colnames(pred.mta.biplot)[i]),"",
                                                      rownames(pred.mta.biplot)))
             }
-            pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,sommer::propMissing) == 0]
+            pred.mta.biplot <- pred.mta.biplot[,apply(pred.mta.biplot,2,enhancer::propMissing) == 0]
             if( all(c( ncol(pred.mta.biplot) >1, is.matrix(pred.mta.biplot) ) ) ){
               prin_comp <- prcomp(pred.mta.biplot, rank = 2)
               components <- prin_comp[["x"]]
@@ -1795,7 +1795,7 @@ if (is.null(result)){
       if(!is.null(wideCorTrait2)){
         
         if(is.matrix(wideCorTrait2)){
-          wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
+          wideCorTrait2 <- apply(wideCorTrait2,2,enhancer::imputev)
           corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
           mydata4CorTraits <- cgiarBase::matToTab(corrX)
           p <- ggplot2::ggplot(data = mydata4CorTraits, ggplot2::aes(Var2, Var1, fill = Freq))+
@@ -1862,7 +1862,7 @@ if (is.null(result)){
         wideCorTrait2 <- predSplitSplitWide2[["designation"]][["(Intercept)"]]
         if(!is.null(wideCorTrait2)){
           if(is.matrix(wideCorTrait2)){
-            wideCorTrait2 <- apply(wideCorTrait2,2,sommer::imputev)
+            wideCorTrait2 <- apply(wideCorTrait2,2,enhancer::imputev)
             corrX <- round(stats::cor(wideCorTrait2, use="pairwise.complete.obs"),2)
             mydata4CorTraits <- cgiarBase::matToTab(corrX)
             

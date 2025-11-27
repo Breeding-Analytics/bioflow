@@ -316,7 +316,7 @@ if (is.null(result)){
 
 `r if (length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ) {
 coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
-if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){shinyjs::hide()}else{"### Field view\n
+if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){shinyjs::hide()}else{"### Field view\n
 The following heatmaps allow you to inspect the spatial trends in the different fields to take corrective measures in the next season and understand why some variance components may look the way they look.\n"}
 }`
 
@@ -339,7 +339,7 @@ if (is.null(result)){
       
       coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
       
-      if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+      if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
         shinyjs::hide()
       }else{ # input <- list(traitStaFieldView=traitFieldView[1])
         shiny::selectInput(ns("traitStaFieldView"), 
@@ -365,7 +365,7 @@ if (is.null(result)){
   if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){
     
     
-    if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+    if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
       shinyjs::hide()
     }else{
       pheno <- result$data$pheno
