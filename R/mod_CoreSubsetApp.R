@@ -13,7 +13,7 @@
 mod_CoreSubsetApp_ui <- function(id){
   ns <- NS(id)
   tagList(
-    
+
     shiny::mainPanel(width = 12,
                      tabsetPanel(id=ns("tabsMain"),
                                  type = "tabs",
@@ -33,19 +33,19 @@ mod_CoreSubsetApp_ui <- function(id){
                                           ),
                                           column(width=6,
                                                  h2(strong("Details")),
-                                                 p("Genebanks were established by national or international breeding, or conservation programs with the goal to safeguard genetic diversity for future use. 
-                                                   Many breeding programs have established genebanks as a resource for new variation in the crops they breed, allowing them to react to changing environments 
-                                                   and emerging biotic and abiotic stresses. Accessions are often divided between active (or working) and base collections. Examples of active collections 
-                                                   include seed stores or live plants that can be accessed quickly by plant breeders and researchers through germination or clonal propagation. In contrast, 
+                                                 p("Genebanks were established by national or international breeding, or conservation programs with the goal to safeguard genetic diversity for future use.
+                                                   Many breeding programs have established genebanks as a resource for new variation in the crops they breed, allowing them to react to changing environments
+                                                   and emerging biotic and abiotic stresses. Accessions are often divided between active (or working) and base collections. Examples of active collections
+                                                   include seed stores or live plants that can be accessed quickly by plant breeders and researchers through germination or clonal propagation. In contrast,
                                                    accessions in base collections are held in long-term storage, such as cryopreservation, and require some time for regeneration and propagation before being made available."),
-                                                   
-                                                p("During the last few decades the collections stored in genebanks have grown enormously, and cost of maintaining viable germplasm within genebanks has increased. 
-                                                   Genebank curators must make decisions about which accessions to maintain in the active collection versus the base collection, and may even consider not 
-                                                   maintaining an accession at all. The concept of a core collection was introduced to help with these decisions, and is defined as subset of the complete 
-                                                   collection which most represents the diversity of the entire collection with minimum redundancy. Genebank curators can use core collections to define 
-                                                   the active collection over the base collection. Core collections can also be used to aid researchers and plant breeders in the choice of starting material. 
+
+                                                p("During the last few decades the collections stored in genebanks have grown enormously, and cost of maintaining viable germplasm within genebanks has increased.
+                                                   Genebank curators must make decisions about which accessions to maintain in the active collection versus the base collection, and may even consider not
+                                                   maintaining an accession at all. The concept of a core collection was introduced to help with these decisions, and is defined as subset of the complete
+                                                   collection which most represents the diversity of the entire collection with minimum redundancy. Genebank curators can use core collections to define
+                                                   the active collection over the base collection. Core collections can also be used to aid researchers and plant breeders in the choice of starting material.
                                                    For example, the potential for use of core collections has been shown for association studies. "),
-                                                 
+
                                                  p(strong("Size of Core Subset.- "),"You must type numbers between [0,1] for indicate the percent of size for the new subset. If larger than one the value is used as the absolute core size after rounding."),
                                                  p(strong("Optimization by.- "),"You must select the option for maximizes or minimizes the diversity parameter for created the subset."),
                                                  h2(strong("References")),
@@ -53,7 +53,7 @@ mod_CoreSubsetApp_ui <- function(id){
                                           ),
                                           # )
                                  ),
-                                 
+
                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                           tabsetPanel(
                                             tabPanel(div( icon("dice-one"), "Pick QA-stamp", icon("arrow-right") ) , # icon = icon("dice-one"),
@@ -68,7 +68,7 @@ mod_CoreSubsetApp_ui <- function(id){
                                                               )
                                                             )
                                                             )),
-                                                            
+
                                                      ),
                                                      column(width=12),
                                                      shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -78,24 +78,24 @@ mod_CoreSubsetApp_ui <- function(id){
                                                                                 hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                          ),
                                                                          column( width=8, shiny::plotOutput(ns("plotTimeStamps")), br(),br(), ),
-                                                                         
+
                                                      ),
                                             ),
                                             tabPanel(div(icon("dice-two"), "Additional settings", icon("arrow-right") ), # icon = icon("dice-two"),
                                                      br(),
                                                      column(width=6, style = "background-color:#d6d4d4; color: black",
-                                                            
+
                                                             textInput(ns('sizeset'),label = tags$span("Size of new subset",
                                                                                                      tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#000000",
                                                                                                             title = "Numbers between [0,1] for indicate the percent of size for the new subset."
                                                                                                      )
                                                             ),value='0.2'),
-                                                            
-                                                            radioButtons(ns("optset"), "Optimization by:",choices = c("Maximizes the average distances between each selected genotype and the closest other selected genotype in the core." = "EN", 
-                                                                                                                      "Minimizes the mean distance between each genotype from the entire collection and the most similar core genotype, including itself in case the genotype has been selected." = "AN", 
-                                                                                                                      "Maximizes the average distances between each pair of selected genotypes in the core." = "EE", 
-                                                                                                                      "Maximizes the entropy, as used in information theory, of the selected core." = "SH", 
-                                                                                                                      "Maximizes the expected proportion of heterozygous loci in offspring produced from random crossing within the selected core." = "HE", 
+
+                                                            radioButtons(ns("optset"), "Optimization by:",choices = c("Maximizes the average distances between each selected genotype and the closest other selected genotype in the core." = "EN",
+                                                                                                                      "Minimizes the mean distance between each genotype from the entire collection and the most similar core genotype, including itself in case the genotype has been selected." = "AN",
+                                                                                                                      "Maximizes the average distances between each pair of selected genotypes in the core." = "EE",
+                                                                                                                      "Maximizes the entropy, as used in information theory, of the selected core." = "SH",
+                                                                                                                      "Maximizes the expected proportion of heterozygous loci in offspring produced from random crossing within the selected core." = "HE",
                                                                                                                       "Maximizes the proportion of alleles observed in the full dataset that ara retained in the selected core." = "CV")),
                                                             radioTooltip(id = ns("optset"), choice = "EN", title = "This criterion can be maximized to construct highly diverse cores in which all accessions are maximally different.", placement = "right", trigger = "hover"),
                                                             radioTooltip(id = ns("optset"), choice = "AN", title = "Minimizing this criterion yields cores that maximally represent all individual genotypes.", placement = "right", trigger = "hover"),
@@ -103,7 +103,7 @@ mod_CoreSubsetApp_ui <- function(id){
                                                             #radioTooltip(id = ns("optset"), choice = "SH", title = "Maximizes the entropy, as used in information theory, of the selected core.", placement = "right", trigger = "hover"),
                                                             #radioTooltip(id = ns("optset"), choice = "HE", title = "Maximizes the expected proportion of heterozygous loci in offspring produced from random crossing within the selected core.", placement = "right", trigger = "hover"),
                                                             #radioTooltip(id = ns("optset"), choice = "CV", title = "Maximizes the proportion of alleles observed in the full dataset that ara retained in the selected core.", placement = "right", trigger = "hover"),
-                                                            
+
                                                      )
                                             ),
                                             tabPanel("Run analysis", icon = icon("dice-three"),
@@ -119,12 +119,12 @@ mod_CoreSubsetApp_ui <- function(id){
                                                                    #uiOutput(ns("qaQcPopStrInfo")),
                                                                    br(),
                                                             ),
-                                                            
+
                                                      ),
                                                      textOutput(ns("outCoreSet")),
                                             )
                                           )),
-                                 
+
                                  tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                           tabsetPanel(
                                             tabPanel("Dashboard", icon = icon("file-image"),
@@ -179,15 +179,15 @@ mod_CoreSubsetApp_ui <- function(id){
                                                                              #grafico 2d
                                                                              div(plotly::plotlyOutput(ns("try"),height = "750px",width = "950px"),align="center")
                                                      ),
-                                                     
-                                                    
+
+
                                             )
-                                            
+
                                           )
                                  )# end of output panel
                      )) # end mainpanel
-    
-    
+
+
   )
 }
 
@@ -198,8 +198,8 @@ mod_CoreSubsetApp_ui <- function(id){
 mod_CoreSubsetApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-    
-    
+
+
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
@@ -218,7 +218,7 @@ mod_CoreSubsetApp_server <- function(id, data){
         }
       }
     })
-    
+
     #################
     ## data example loading
     observeEvent(
@@ -281,7 +281,7 @@ mod_CoreSubsetApp_server <- function(id, data){
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, sommer::overlay(outputId, inputId))
+          X <- with(zz, enhancer::overlay(outputId, inputId))
         }else{
           if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
@@ -297,7 +297,7 @@ mod_CoreSubsetApp_server <- function(id, data){
         rownames(X) <- networkNames
         colnames(X) <- networkNames
         if(existNames){
-          
+
         }else{
           rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
           colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
@@ -334,7 +334,7 @@ mod_CoreSubsetApp_server <- function(id, data){
       }
       updateSelectInput(session, "version2CoreSet", choices = c(0,traitsMta))
     })
-    
+
     ###################################
     ###################################
     ###################################
@@ -354,8 +354,8 @@ mod_CoreSubsetApp_server <- function(id, data){
         qas<-which( names(result$data$geno_imp)==input$version2CoreSet )
         mydata<-as.data.frame(result$data$geno_imp[qas])
       }
-      
-      
+
+
       paropt=input$optset
       if(paropt%in%c("EN","AN","EE")){
         dir_fileGen="none"
@@ -369,17 +369,17 @@ mod_CoreSubsetApp_server <- function(id, data){
       size1=input$sizeset
       w=rep(0,15)
       w[which(c("ENMR","ENCE","ENGD","EN","ANMR","ANCE","ANGD","AN","EEMR","EECE","EEGD","EE","SH","HE","CV")==paropt)]=1
-      
+
       #save(mydata,dir_fileGen,dir_filePhen,dir_fileDist,size1,w,file="core.RData")
       shinybusy::show_modal_spinner('fading-circle', text = 'Optimizing...')
-      
+
       #source("C:\\Users\\RAPACHECO\\Downloads\\functCORE.R")
       unocheck <- try(
         uno<-cgiarPipeline::funchunt(mydata,dir_fileGen,dir_filePhen,dir_fileDist,size1,w),
         #uno<-funchunt(mydata,dir_fileGen,dir_filePhen,dir_fileDist,size1,w),
         silent=TRUE
       )
-      
+
       # add status table
       analysisId <- as.numeric(Sys.time())
       if(input$analysisIdName!=""){
@@ -388,7 +388,7 @@ mod_CoreSubsetApp_server <- function(id, data){
         newStatus <- data.frame(module="CoreSetM", analysisId=analysisId, analysisIdName="myCoreSetOne")
       }
       result$status <- rbind(result$status, newStatus)
-      
+
       tmpMDS<-uno[[1]]
       newPredMDS=list()
       for ( f in 2:4){
@@ -396,24 +396,24 @@ mod_CoreSubsetApp_server <- function(id, data){
         newPredMDS[[f]]$predictedValue<-as.numeric(newPredMDS[[f]]$predictedValue)
       }
       newPredMDS=do.call(rbind,newPredMDS)
-      
+
       newmetricsSum=list()
       for (f in 1:14){
         newmetricsSum[[f]] <- data.frame(module="CoreSetM",analysisId=analysisId, trait=NA, environment=uno[[2]][f,2], parameter=uno[[2]][f,1], method="SummaryDiversityAnalysis", value= uno[[2]][f,3], stdError=NA)
         newmetricsSum[[f]]$value<-as.numeric(newmetricsSum[[f]]$value)
       }
       newmetricsSum=do.call(rbind,newmetricsSum)
-      
+
       newmetricsPerc=list()
       for (f in 1:3){
         newmetricsPerc[[f]] <- data.frame(module="CoreSetM",analysisId=analysisId, trait=NA, environment=NA, parameter=paste0("Factor",f), method="VarExplained", value= uno[[3]][f], stdError=NA)
         newmetricsPerc[[f]]$value<-as.numeric(newmetricsPerc[[f]]$value)
       }
       newmetricsPerc=do.call(rbind,newmetricsPerc)
-      
+
       result$predictions<-rbind(result$predictions,newPredMDS)
       result$metrics <- rbind(result$metrics, newmetricsSum, newmetricsPerc)
-                              
+
       if(!inherits(unocheck,"try-error")) {
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result) # update data with results
@@ -430,7 +430,7 @@ mod_CoreSubsetApp_server <- function(id, data){
       }
       rm(newmetricsSum,newPredMDS)
       shinybusy::remove_modal_spinner()
-      
+
       if(!inherits(unocheck,"try-error")) {
         idMta <- result$status[which(result$status$module == "CoreSetM"),"analysisId"]
         idMta <- idMta[length(idMta)]
@@ -441,7 +441,7 @@ mod_CoreSubsetApp_server <- function(id, data){
         uno<-cbind(uno,dos$entryType)
         names(uno)[5]="CoreSet"
         #if(length(names(uno))>5) {catv<-names(uno)[6]}
-        
+
         txlab <- paste0('Factor 1 (',result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor1" & result$metrics$method=="VarExplained"),7],'%)')
         tylab <- paste0('Factor 2 (',result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor2" & result$metrics$method=="VarExplained"),7],'%)')
         tzlab <- paste0('Factor 3 (',result$metrics[which(result$metrics$module=="CoreSetM" & result$metrics$analysisId==idMta & result$metrics$parameter=="Factor3" & result$metrics$method=="VarExplained"),7],'%)')
@@ -455,9 +455,9 @@ mod_CoreSubsetApp_server <- function(id, data){
         grupos=nlevels(as.factor(uno$CoreSet))
         updateSelectInput(session,'color','Choose a color',choices=d,selected=d[1:grupos])
         updateSelectInput(session,'colordend','Choose a color', choices=d,selected=d[1:grupos])
-        
+
         result$metrics=rbind(result$metrics,data.frame(module="CoreSetM",analysisId=idMta, trait=NA, environment=NA, parameter="ColorsDend", method=NA, value= d[1:grupos], stdError=NA))
-        
+
         #Ver datos en tabla dinamica Summary Diversity
         output$seeDataDiver<-DT::renderDT({
           idMta <- result$status[which(result$status$module == "CoreSetM"),"analysisId"]
@@ -470,7 +470,7 @@ mod_CoreSubsetApp_server <- function(id, data){
                                        lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
           )
         })
-        
+
         #Ver datos en tabla dinamica MDS
         output$seeDataMDS<-DT::renderDT({
           idMta <- result$status[which(result$status$module == "CoreSetM"),"analysisId"]
@@ -495,10 +495,10 @@ mod_CoreSubsetApp_server <- function(id, data){
           tylab2=txlab
           if(input$ycol=="Factor2") tylab2=tylab
           if(input$ycol=="Factor3") tylab2=tzlab
-          
+
           if(!is.null(result$data$geno)){
             idMta <- result$status[which(result$status$module == "CoreSetM"),"analysisId"]
-            idMta <- idMta[length(idMta)]    
+            idMta <- idMta[length(idMta)]
             catv <-"CoreSet"
             eti="designation"
             seedatosMDS<-as.data.frame(result$predictions[which(result$predictions$module=="CoreSetM" & result$predictions$analysisId==idMta & result$predictions$pipeline=="MDS" ),])
@@ -522,9 +522,9 @@ mod_CoreSubsetApp_server <- function(id, data){
             fig = fig %>% plotly::add_annotations(text = "Information not available.", x = 1, y = 1)#
             fig
           }
-          
+
         })
-        
+
         #For report
         output$reportCoreSet <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportCoreSet.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
@@ -538,30 +538,30 @@ mod_CoreSubsetApp_server <- function(id, data){
           },
           content = function(file) {
             shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-            
+
             src <- normalizePath(system.file("rmd","reportCoreSet.Rmd",package="bioflow"))
             src2 <- normalizePath('./resultCoreSet.RData')
-            
+
             # temporarily switch to the temp dir, in case you do not have write
             # permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
-            
+
             file.copy(src, 'report.Rmd', overwrite = TRUE)
             file.copy(src2, 'resultCoreSet.RData', overwrite = TRUE)
-            
+
             out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
               "HTML",
               HTML = rmdformats::robobook(toc_depth = 4)
               # HTML = rmarkdown::html_document()
             ))
-            
+
             # wait for it to land on disk (safety‐net)
             wait.time <- 0
             while (!file.exists(out) && wait.time < 60) {
               Sys.sleep(1); wait.time <- wait.time + 1
             }
-            
+
             file.rename(out, file)
             shinybusy::remove_modal_spinner()
           }
@@ -571,15 +571,15 @@ mod_CoreSubsetApp_server <- function(id, data){
           output$seeDataMDS <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
           hideAll$clearAll <- TRUE
         }### enf of if(!inherits(result,"try-error"))
-        
+
         hideAll$clearAll <- FALSE
     })
-            
+
         output$outCoreSet <- renderPrint({
           outCoreSet1()
         })
-    
-    
+
+
   })#end modeleServer
 }#end server
 
@@ -588,5 +588,4 @@ mod_CoreSubsetApp_server <- function(id, data){
 
 ## To be copied in the server
 # mod_CoreSubsetApp_server("CoreSubsetApp_1")
-    
-    
+
