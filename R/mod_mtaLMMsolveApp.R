@@ -1418,8 +1418,8 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         )
         if(!inherits(result1,"try-error")) {
           result <- try(
-              metLMMsolver(
-            #cgiarPipeline::metLMMsolver(
+              #metLMMsolver(
+              cgiarPipeline::metLMMsolver(
               phenoDTfile= dtMta, analysisId=input$version2Mta, analysisIdGeno=markerVersionToUse,
               fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
               envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily,
