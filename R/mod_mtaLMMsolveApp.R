@@ -130,7 +130,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=12,
-                                                             column(width=8,
+                                                             column(width=9,
                                                                     radioButtons(ns("radio"),
                                                                                  label = tags$span(
                                                                                    "Shortcut to popular genetic evaluation models",
@@ -146,7 +146,9 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                    "Finlay-Wilkinson"="fw_model",
                                                                                    "Diagonal" = "dg_model",
                                                                                    "Main+Diagonal" = "mndg_model",
-                                                                                   "Main effects (A+D)" = "ad_model"
+                                                                                   "Main effects (A+D)" = "ad_model",
+                                                                                   "SCA/GCA" = "sca_model",
+                                                                                   "GCA" = "gca_model"
                                                                                  ),
                                                                                  selected = "mn_model", inline=TRUE),
                                                                     radioTooltip(id = ns("radio"), choice = "mn_model", title = "The main effect model assumes that there is no genotype by environment interaction or that can be ignored to focus on average effects. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments.", placement = "right", trigger = "hover"),
@@ -155,8 +157,10 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radio"), choice = "dg_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "mndg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "ad_model", title = "This model includes additve and dominance random effects for the designation. Only use in order to run GPCP in the mate optimization module", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "sca_model", title = "This model includes STA random effects for the designation and GCA random effects for mother and father. Requires pedigree information to map each designation to their respective mother and father", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "gca_model", title = "This model includes GCA random effects for mother and father.Requires pedigree information to map each designation to their respective mother and father", placement = "right", trigger = "hover")
                                                              ),
-                                                             column(width=4,
+                                                             column(width=3,
                                                                     radioButtons(ns("radioModel"),
                                                                                  label = tags$span(
                                                                                    "Shortcut to different surrogates of merit",
@@ -170,13 +174,21 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                    "TGV"="none",
                                                                                    "GTGV" = "genoAD_model",
                                                                                    "EBV" = "pedigree_model",
-                                                                                   "GEBV" = "geno_model"
+                                                                                   "GEBV" = "geno_model",
+                                                                                   "SCA/GCA" = "noneSCA_model",
+                                                                                   "GCA" = "noneGCA_model",
+                                                                                   "gSCA/gGCA" = "genoSCA_model",
+                                                                                   "gGCA" = "genoGCA_model"
                                                                                  ),
                                                                                  selected = "none", inline=TRUE),
-                                                                    radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that not known covariance between the levels of designation is known and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "none", title = "The TGV model assumes that there is is no known covariance between the levels of designation and therefore the BLUP coming out of that model is considered a total genetic value (TGV). ", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "genoAD_model", title = "The GTGV model assumes that genetic markers coded both as additive and dominance effects should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated total genetic values (GTGV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "pedigree_model", title = "The EBV model assumes that the pedigree should be used to calculate the covariance between levels of designation. The resulting BLUPs are the so-called estimated breeding values (EBV).", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radioModel"), choice = "geno_model", title = "The GEBV model assumes that genetic markers should be used to calculate the covariance between levels of designation. The resulting BLUPs are considered genomic estimated breeding values (GEBV).", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "noneSCA_model", title = "The STA/GCA model assumes that there is no known covariance between the levels of designation, mother and father", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "noneGCA_model", title = "The GCA model assumes that there is no known covariance between the levels of mother and father", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "genoSCA_model", title = "The gSCA/gGCA model assumes that genetic markers should be used to calculate the covariance between levels of designation, mother and father", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radioModel"), choice = "genoGCA_model", title = "The gGCA model assumes that genetic markers should be used to calculate the covariance between levels of mother and father.", placement = "right", trigger = "hover")
                                                              ),
                                                       ),
                                                ),
@@ -263,9 +275,15 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                br(),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       br(),
-                                                      shinydashboard::box(width = 12,style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (optional)...",
-                                                                          p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
-                                                                          DT::dataTableOutput(ns("fieldsMet")),
+                                                      shinydashboard::box(
+                                                        width = 12, style = "color: #000000", status = "success",
+                                                        solidHeader = FALSE, collapsible = TRUE, collapsed = TRUE,
+                                                        title = "Fields to exclude (optional)...",
+                                                        p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                                        div(
+                                                          style = "overflow-x: auto; width: 100%;",
+                                                          DT::dataTableOutput(ns("fieldsMet"))
+                                                        )
                                                       ),
                                                ),
                                                column(width=6, style = "background-color:LightGray; color: #FFFFFF",
@@ -328,6 +346,16 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                           class = "glyphicon glyphicon-info-sign",
                                                                                           style = "color:#000000",
                                                                                           title = "A TRUE/FALSE value in case you want to avoid using the weights in the two stage analysis (not recommended). The weights are used to account for the differential error variance in each trial."
+                                                                                        )
+                                                                                      ),
+                                                                                      choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                                                          selectInput(ns("estHybrids"),
+                                                                                      label = tags$span(
+                                                                                        "Estimate hybrid ganotypes from parents?",
+                                                                                        tags$i(
+                                                                                          class = "glyphicon glyphicon-info-sign",
+                                                                                          style = "color:#000000",
+                                                                                          title = "A TRUE/FALSE value in case you want to avoid estimating hybrids from the genotypes of parents with SCA/GCA model."
                                                                                         )
                                                                                       ),
                                                                                       choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
@@ -583,14 +611,28 @@ mod_mtaLMMsolveApp_server <- function(id, data){
                            #   "GTGV" = "genoAD_model",
                            # ),
                            selected = "genoAD_model", inline = TRUE)
-      } else {
+      } else if(input$radio == "sca_model"){
         updateRadioButtons(session, inputId = "radioModel",
-                           # choices = list(
-                           #   "TGV"="none",
-                           #   "GTGV" = "genoAD_model",
-                           #   "EBV" = "pedigree_model",
-                           #   "GEBV" = "geno_model"
-                           # ),
+                            choices = list(
+                              "SCA/GCA" = "noneSCA_model",
+                              "gSCA/gGCA" = "genoSCA_model"
+                            ),
+                           selected = "noneSCA_model", inline = TRUE)
+      }else if(input$radio == "gca_model"){
+        updateRadioButtons(session, inputId = "radioModel",
+                           choices = list(
+                             "GCA" = "noneGCA_model",
+                             "gGCA" = "genoGCA_model"
+                           ),
+                           selected = "noneGCA_model", inline = TRUE)
+      } else{
+        updateRadioButtons(session, inputId = "radioModel",
+                            choices = list(
+                              "TGV"="none",
+                              "GTGV" = "genoAD_model",
+                              "EBV" = "pedigree_model",
+                              "GEBV" = "geno_model"
+                            ),
                            selected = isolate(input$radioModel) %||% "none",
                            inline = TRUE)
       }
@@ -606,8 +648,10 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2Mta),]
       envs <- unique(dtMta[,"environment"])
       envsDg <- envs
-      if ( input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "ad_model") {
+      if ( input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "ad_model" | input$radio == "gca_model") {
         n <- 2
+      }else if( input$radio == "sca_model" ){
+        n <- 3
       }else if( input$radio == "mndg_model" ){
         n <- length(envsDg) + 1
       }else if( input$radio == "dg_model" ){
@@ -635,7 +679,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
 
       # If model is A+D, add "inbreeding" to choices
-      if (input$radio == "ad_model") {
+      if (input$radio == "ad_model" | input$radio == "sca_model") {
         choices <- unique(c("inbreeding", choices))
       }
 
@@ -657,7 +701,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           defaultFixed <- character()
           if (i == 1) {
             defaultFixed <- "environment"
-          } else if (i == 2 && input$radio == "ad_model") {
+          } else if (i == 2 && (input$radio == "ad_model" |input$radio == "sca_model")) {
             defaultFixed <- "inbreeding"
           }
 
@@ -741,6 +785,44 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             selected = "designation"
           )
         })
+      }else if(input$radio == "sca_model"){
+        needed   <- c("designation", "mother", "father")
+        missing  <- setdiff(needed, choices)
+
+        validate(
+          need(
+            length(missing) == 0,
+            "To use the STA/GCA model you must have mother and father columns from pedigree data",
+          )
+        )
+
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom', i)),
+            label = ifelse(i == 1, "Random Effects", ""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"designation"}else if(i==2){"mother"}else{"father"}
+          )
+        })
+      }else if(input$radio == "gca_model"){
+        needed   <- c("mother", "father")
+        missing  <- setdiff(needed, choices)
+
+        validate(
+          need(
+            length(missing) == 0,
+            "To use the GCA model you must have mother and father columns from pedigree data",
+          )
+        )
+
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom', i)),
+            label = ifelse(i == 1, "Random Effects", ""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"mother"}else{"father"}
+          )
+        })
       }else { # main model specified
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
@@ -765,7 +847,20 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD","genoD")}
       envs <- unique(mydata[,"environment"])
       envsDg <- envs
-      if(input$radioModel == "geno_model"){useMod1 <- "none"; useMod2 <- "genoA"}else if(input$radioModel == "pedigree_model"){useMod1 <- "none"; useMod2 <- "pedigree"}else if(input$radioModel == "none"){useMod1 <- "none"; useMod2 <- "none."}else if(input$radioModel == "genoAD_model"){useMod1 <- "none"; useMod2 <- "genoAD"}
+      if(input$radioModel == "geno_model"){
+        useMod1 <- "none"
+        useMod2 <- "genoA"
+      }else if(input$radioModel == "pedigree_model"){
+        useMod1 <- "none"
+        useMod2 <- "pedigree"
+      }else if(input$radioModel == "none"){
+        useMod1 <- "none"
+        useMod2 <- "none."
+      }else if(input$radioModel == "genoAD_model"){
+        useMod1 <- "none"
+        useMod2 <- "genoAD"
+      }
+
       if (input$radio == "cs_model") { # CS model
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
@@ -809,6 +904,25 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             label = ifelse(i == 1, "Covariance of random effect based on:", ""),
             choices = choices, multiple = TRUE,
             selected = ifelse(i == 1,"genoA","genoD")
+          )
+        })
+      }else if( input$radio == "sca_model" ){
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            inputId = session$ns(paste0('rightSidesRandom', i)),
+            label = ifelse(i == 1, "Covariance of random effect based on:", ""),
+            choices = choices, multiple = TRUE,
+            selected = ifelse(i == 1, ifelse(input$radioModel == "noneSCA_model","none","genoD"),
+                              ifelse(input$radioModel == "noneSCA_model","none","genoA"))
+          )
+        })
+      }else if( input$radio == "gca_model" ){
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            inputId = session$ns(paste0('rightSidesRandom', i)),
+            label = ifelse(i == 1, "Covariance of random effect based on:", ""),
+            choices = choices, multiple = TRUE,
+            selected = ifelse(input$radioModel == "noneGCA_model","none","genoA")
           )
         })
       }else { # main model specified
@@ -1304,11 +1418,13 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         )
         if(!inherits(result1,"try-error")) {
           result <- try(
-            cgiarPipeline::metLMMsolver(
+              metLMMsolver(
+            #cgiarPipeline::metLMMsolver(
               phenoDTfile= dtMta, analysisId=input$version2Mta, analysisIdGeno=markerVersionToUse,
               fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
-              envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily, useWeights=input$useWeights,
-              calculateSE=input$calcSE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
+              envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily,
+              useWeights=input$useWeights,estHybrids = as.logical(input$estHybrids),
+              calculateSE=as.logical(input$calcSE), heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
               heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
               meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
               meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))), nPC=inputFormulaPCs(),   # subsetVariable=NULL, subsetVariableLevels=NULL,
