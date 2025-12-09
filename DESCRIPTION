@@ -84,7 +84,8 @@ Imports:
     ggcorrplot,
     SNPRelate (>= 1.38.1),
     dartR.base,
-    rstatix
+    rstatix,
+    enhancer
 Suggests: 
     knitr,
     rmarkdown,

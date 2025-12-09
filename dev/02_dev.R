@@ -98,6 +98,8 @@
 # usethis::use_package("tidyr")
 # usethis::use_package("textshape")
 #
+# usethis::use_package("enhancer")
+#
 # # remotes::install_github("Breeding-Analytics/cgiarBase")
 # # remotes::install_github("Breeding-Analytics/cgiarPipeline")
 # # remotes::install_github("Breeding-Analytics/cgiarOcs")
