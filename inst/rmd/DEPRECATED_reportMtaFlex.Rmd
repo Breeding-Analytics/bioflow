@@ -658,7 +658,7 @@ if (is.null(result)){
         rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
         pred.mta.biplot <- pred.mta.biplot[,-1]
         names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
-        pred.mta.biplot <- pred.mta.biplot[which(apply(pred.mta.biplot,1,sommer::propMissing) == 0),,drop=FALSE]
+        pred.mta.biplot <- pred.mta.biplot[which(apply(pred.mta.biplot,1,enhancer::propMissing) == 0),,drop=FALSE]
         prin_comp <- prcomp(pred.mta.biplot, rank = 2)
         components <- prin_comp[["x"]]
         components <- data.frame(components)
@@ -703,7 +703,7 @@ if (is.null(result)){
         rownames(pred.mta.biplot) <- pred.mta.biplot[,"designation"]
         pred.mta.biplot <- pred.mta.biplot[,-1, drop=FALSE]
         names(pred.mta.biplot) <- gsub("predictedValue.","",names(pred.mta.biplot))
-        pred.mta.biplot <- pred.mta.biplot[which(apply(pred.mta.biplot,1,sommer::propMissing) == 0),,drop=FALSE]
+        pred.mta.biplot <- pred.mta.biplot[which(apply(pred.mta.biplot,1,enhancer::propMissing) == 0),,drop=FALSE]
         prin_comp <- prcomp(pred.mta.biplot, rank = 2)
         components <- prin_comp[["x"]]
         components <- data.frame(components)

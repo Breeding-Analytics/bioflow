@@ -712,7 +712,7 @@ if (is.null(result)){
           pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),,drop=FALSE]
           missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
           pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8),drop=FALSE]
-          pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+          pred.mta.biplot <- apply(pred.mta.biplot,2, enhancer::imputev)
           # 
           if(ncol(pred.mta.biplot) > 1){
             prin_comp <- prcomp(pred.mta.biplot, rank = 2)
@@ -766,7 +766,7 @@ if (is.null(result)){
         pred.mta.biplot <- pred.mta.biplot[which(missing < 0.8),, drop=FALSE]
         missing <- apply(pred.mta.biplot,2, function(x){length(which(is.na(x)))/length(x)})
         pred.mta.biplot <- pred.mta.biplot[,which(missing < 0.8), drop=FALSE]
-        pred.mta.biplot <- apply(pred.mta.biplot,2, sommer::imputev)
+        pred.mta.biplot <- apply(pred.mta.biplot,2, enhancer::imputev)
         
         if(ncol(pred.mta.biplot) > 1){
           prin_comp <- prcomp(pred.mta.biplot, rank = 2)
