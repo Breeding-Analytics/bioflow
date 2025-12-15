@@ -177,7 +177,8 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
           if(!is.null(data()$data$weather)){
             if(!is.null(data()$metadata$weather)){
               if("environment" %in% data()$metadata$weather$parameter){
-                if(!setequal(unique(data()$data$weather[, input$selectenvironment]),
+                envCol <- data()$metadata$weather[which(data()$metadata$weather$parameter == 'environment'), 'value']
+                if(!setequal(unique(data()$data$weather[, envCol]),
                              unique(data()$data$pheno$environment))){
                   HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that your 'environment' column from both phenotypic and weather data matches.")) )
                 } else{
