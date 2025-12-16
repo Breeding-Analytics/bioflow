@@ -156,7 +156,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                                                      title = "Selecting a popular genetic model sets a default, but if you change the terms, it may no longer match the selected model and will instead follow the terms you specified."
                                                                                                    )
                                                                                  ),
-                                                                                 choices = list(		   
+                                                                                 choices = list(
                                                                                    "Main effect" = "mn_model",
                                                                                    "Compound symmetry" = "cs_model",
                                                                                    "Finlay-Wilkinson"="fw_model",
@@ -167,7 +167,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                                    "SCA/GCA" = "both_model",
                                                                                    "GCA" = "gca_model"
                                                                                  ),
-                                                                                 selected = "mn_model", 
+                                                                                 selected = "mn_model",
                                                                                  inline=TRUE),
                                                                     radioTooltip(id = ns("radio"), choice = "mn_model", title = "The main effect model assumes that there is no genotype by environment interaction or that can be ignored to focus on average effects. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments.", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "cs_model", title = "The compound symmetry model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and all pairs of environments have the same genetic covariance.", placement = "right", trigger = "hover"),
@@ -557,25 +557,37 @@ mod_mtaASREMLApp_server <- function(id, data){
       }
       plotly::ggplotly(p)
     })
-    
+
+    # functions for checking pedigree (father) data
+    is_valid_fatherCol <- function(x) {
+      length(x) == 1 & !is.na(x) & nzchar(x) & length(x) > 0
+    }
+
+    has_pedigree_data <- function(x) {
+      x %in% colnames(data()$data$pedigree) &
+        !all(is.na(data()$data$pedigree[[x]]))
+    }
+
     #enable and disable radio buttons when detect pedigree data
-    observeEvent(c(data(),input$version2MtaAsrGeno),{ 
+    observeEvent(c(data(),input$version2MtaAsrGeno),{
       req(data())
       req(input$version2MtaAsrGeno)
-      if(all(is.na(data()$data$pedigree[,3]))!=T){ #pedrigree data exist
+      fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+      if(is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){ #pedrigree data exist
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', false);", ns("radio")))
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', false);", ns("radio")))
       }else{
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', true);", ns("radio")))
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', true);", ns("radio")))
       }
+
       if(input$version2MtaAsrGeno!="No data available"){
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', false);", ns("radio")))
       }else{
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', true);", ns("radio")))
       }
     })
-    
+
     #################
     ## nTermsFixed
     observeEvent(c(data(), input$version2MtaAsr, input$radio), {
@@ -684,7 +696,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       #envsDg <- paste0("env",envs)
       #envsDg2 <- paste0(rep("environment",10),"")
       #desDg <-rep("designation",length(envsDg))
-      if ( input$radio == "cs_model" | input$radio == "mndg_model" | input$radio == "fa_model") { 
+      if ( input$radio == "cs_model" | input$radio == "mndg_model" | input$radio == "fa_model") {
         lapply(1:input$nTermsRandom, function(i) {
           selectInput(
             session$ns(paste0('leftSidesRandom',i)),
@@ -738,7 +750,7 @@ mod_mtaASREMLApp_server <- function(id, data){
             selected = "designation"
           )
         })
-      }  
+      }
     })
     # right-side equation (Cov structure)
     output$rightSidesRandom <- renderUI({
@@ -749,25 +761,28 @@ mod_mtaASREMLApp_server <- function(id, data){
       req(input$radio)
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
-      
-      if(input$version2MtaAsrGeno!="No data available" & all(is.na(data()$data$pedigree[,3]))!=T){#geno and pedrigree data
+
+      fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+
+      if(input$version2MtaAsrGeno!="No data available" & is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){#geno and pedrigree data
         choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
       }
-      if(input$version2MtaAsrGeno!="No data available" & all(is.na(data()$data$pedigree[,3]))==T){#geno and NO pedrigree data
+      if(input$version2MtaAsrGeno!="No data available" & !is_valid_fatherCol(fatherCol) & !has_pedigree_data(fatherCol)){#geno and NO pedrigree data
         choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
       }
-      if(input$version2MtaAsrGeno=="No data available" & all(is.na(data()$data$pedigree[,3]))!=T){#NO geno and pedrigree data
+      if(input$version2MtaAsrGeno=="No data available" & is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){#NO geno and pedrigree data
         choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
       }
-      if(input$version2MtaAsrGeno=="No data available" & all(is.na(data()$data$pedigree[,3]))==T){#NO geno and NO pedrigree data
+      if(input$version2MtaAsrGeno=="No data available" & !is_valid_fatherCol(fatherCol) & !has_pedigree_data(fatherCol)){#NO geno and NO pedrigree data
         choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
       }
+
       choices<-sort(choices)
       if(input$radio=="mndg_model"){
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
-          tempval <- length(eval( parse(text = tempval() ) ))			
-          noness <- c("none","none.","none..","none...", "none....")	
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
           if (i==1){
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -794,13 +809,13 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else if(input$radio=="dg_model"){
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
-          tempval <- length(eval( parse(text = tempval() ) ))			
-          noness <- c("none","none.","none..","none...", "none....")	
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
           if(i==1){
             choices<-c(noness[1:tempval],choices)
             selectInput(
               inputId=session$ns(paste0('rightSidesRandom',i)),
-              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),				
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
               choices = choices, multiple = TRUE,
               selected = rev(sort(c("Structure model_diag","none"))))
           }else{
@@ -815,8 +830,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else if(input$radio=="fa_model"){
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
-          tempval <- length(eval( parse(text = tempval() ) ))			
-          noness <- c("none","none.","none..","none...", "none....")	
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
           if (i==1){
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -843,8 +858,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else if(input$radio=="gca_model" & input$version2MtaAsrGeno!="No data available"){
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
-          tempval <- length(eval( parse(text = tempval() ) ))			
-          noness <- c("none","none.","none..","none...", "none....")	
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
           if (i==1){
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -871,8 +886,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else if(input$radio=="both_model" & input$version2MtaAsrGeno!="No data available"){
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
-          tempval <- length(eval( parse(text = tempval() ) ))			
-          noness <- c("none","none.","none..","none...", "none....")	
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
           if (i==1){
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -906,8 +921,8 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else if(input$radio=="ad_model" & input$version2MtaAsrGeno!="No data available"){
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
-          tempval <- length(eval( parse(text = tempval() ) ))			
-          noness <- c("none","none.","none..","none...", "none....")	
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
           if (i==1){
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -924,13 +939,13 @@ mod_mtaASREMLApp_server <- function(id, data){
               selected = noness[1:tempval])
           }
         })
-      }else{	
+      }else{
         lapply(1:input$nTermsRandom, function(i) {
           tempval <- reactive({paste0('input$','leftSidesRandom',i)})
           tempval <- length(eval( parse(text = tempval() ) ))
           #choices <- c("Relationship structure_Geno","Relationship structure_Pedigree","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
           noness <- c("none","none.","none..","none...", "none....")
-          
+
           if (i==1){
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -947,8 +962,8 @@ mod_mtaASREMLApp_server <- function(id, data){
               selected = noness[1:tempval])
           }
         })
-      }  
-      
+      }
+
     })
     # inputFormula summarizing the fixed effects
     inputFormulaFixed = reactive({
@@ -1199,7 +1214,9 @@ mod_mtaASREMLApp_server <- function(id, data){
         genoNames <- rownames(as.data.frame(object$data$geno))
       }else{ genoNames <- character() }
 
-      if(!all(is.na(object$data$pedigree[,3]))){
+      fatherCol <- object$metadata$pedigree[which(object$metadata$pedigree$parameter == 'father'),'value']
+
+      if(is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){
         metaPed <- object$metadata$pedigree
         pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
         pedCols <- setdiff(pedCols,"")
