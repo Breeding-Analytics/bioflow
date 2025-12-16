@@ -560,7 +560,7 @@ mod_mtaASREMLApp_server <- function(id, data){
 
     # functions for checking pedigree (father) data
     is_valid_fatherCol <- function(x) {
-      length(x) == 1 & !is.na(x) & nzchar(x) & length(x) > 0
+      !is.null(x) & !is.na(x) & nzchar(x) & length(x) > 0
     }
 
     has_pedigree_data <- function(x) {
