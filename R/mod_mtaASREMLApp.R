@@ -560,22 +560,36 @@ mod_mtaASREMLApp_server <- function(id, data){
 
     # functions for checking pedigree (father) data
     is_valid_fatherCol <- function(x) {
-      !is.null(x) & !is.na(x) & nzchar(x) & length(x) > 0
+      !is.null(x) && length(x) > 0 && !is.na(x) && nzchar(x)
     }
 
     has_pedigree_data <- function(x) {
-      x %in% colnames(data()$data$pedigree) &
-        !all(is.na(data()$data$pedigree[[x]]))
+      if(!is.null(data()$data$pedigree)){
+        x %in% colnames(data()$data$pedigree) &
+          !all(is.na(data()$data$pedigree[[x]]))
+      } else{
+        FALSE
+      }
     }
 
     #enable and disable radio buttons when detect pedigree data
     observeEvent(c(data(),input$version2MtaAsrGeno),{
       req(data())
       req(input$version2MtaAsrGeno)
-      fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
-      if(is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){ #pedrigree data exist
-        shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', false);", ns("radio")))
-        shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', false);", ns("radio")))
+      fatherCol <- NULL
+      if(!is.null(data()$metadata$pedigree)){
+        if("father" %in% data()$metadata$pedigree$parameter){
+          fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+        }
+      }
+      if(is_valid_fatherCol(fatherCol)){
+        if(has_pedigree_data(fatherCol)){ #pedrigree data exist
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', false);", ns("radio")))
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', false);", ns("radio")))
+        }else{
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', true);", ns("radio")))
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', true);", ns("radio")))
+        }
       }else{
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', true);", ns("radio")))
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', true);", ns("radio")))
@@ -762,19 +776,33 @@ mod_mtaASREMLApp_server <- function(id, data){
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),]
 
-      fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+      fatherCol <- NULL
+      if(!is.null(data()$metadata$pedigree)){
+        if("father" %in% data()$metadata$pedigree$parameter){
+          fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+        }
+      }
 
-      if(input$version2MtaAsrGeno!="No data available" & is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){#geno and pedrigree data
-        choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
-      }
-      if(input$version2MtaAsrGeno!="No data available" & !is_valid_fatherCol(fatherCol) & !has_pedigree_data(fatherCol)){#geno and NO pedrigree data
-        choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
-      }
-      if(input$version2MtaAsrGeno=="No data available" & is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){#NO geno and pedrigree data
-        choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
-      }
-      if(input$version2MtaAsrGeno=="No data available" & !is_valid_fatherCol(fatherCol) & !has_pedigree_data(fatherCol)){#NO geno and NO pedrigree data
-        choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
+      if(is_valid_fatherCol(fatherCol)){
+        if(input$version2MtaAsrGeno!="No data available" & has_pedigree_data(fatherCol)){#geno and pedrigree data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaAsrGeno!="No data available" & !has_pedigree_data(fatherCol)){#geno and NO pedrigree data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaAsrGeno=="No data available" & has_pedigree_data(fatherCol)){#NO geno and pedrigree data
+          choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaAsrGeno=="No data available" & !has_pedigree_data(fatherCol)){#NO geno and NO pedrigree data
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
+        }
+      } else{
+        if(input$version2MtaAsrGeno!="No data available"){#geno and NO pedrigree data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaAsrGeno=="No data available"){#NO geno and NO pedrigree data
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
+        }
       }
 
       choices<-sort(choices)
@@ -1214,13 +1242,20 @@ mod_mtaASREMLApp_server <- function(id, data){
         genoNames <- rownames(as.data.frame(object$data$geno))
       }else{ genoNames <- character() }
 
-      fatherCol <- object$metadata$pedigree[which(object$metadata$pedigree$parameter == 'father'),'value']
+      fatherCol <- NULL
+      if(!is.null(data()$metadata$pedigree)){
+        if("father" %in% data()$metadata$pedigree$parameter){
+          fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+        }
+      }
 
-      if(is_valid_fatherCol(fatherCol) & has_pedigree_data(fatherCol)){
-        metaPed <- object$metadata$pedigree
-        pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
-        pedCols <- setdiff(pedCols,"")
-        pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+      if(is_valid_fatherCol(fatherCol)){
+        if(has_pedigree_data(fatherCol)){
+          metaPed <- object$metadata$pedigree
+          pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+          pedCols <- setdiff(pedCols,"")
+          pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+        } else{ pedNames <- character() }
       }else{ pedNames <- character() }
 
       if(!is.null(object$data$qtl)){
