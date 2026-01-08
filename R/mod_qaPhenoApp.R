@@ -512,16 +512,25 @@ mod_qaPhenoApp_server <- function(id, data){
           colnames(outliers) <- cgiarBase::replaceValues(Source = colnames(outliers), Search = "row", Replace = "record")
           outliers$analysisId <- analysisId
           if (nrow(myTableNoSelected()) > 0) {
-            selections <- subset(myTableSelected(), select = c("record",iTrait))
+            selections <- subset(myTableSelected(), subset = trait == iTrait, select = c("record",iTrait))
           } else {
-            selections <- subset(myTablePrevious(), select = c("record",iTrait))
+            selections <- subset(myTablePrevious(), subset = trait == iTrait, select = c("record",iTrait))
           }
-          outliers <- base::merge(outliers,selections, by.x="record")
-          colnames(outliers) <- cgiarBase::replaceValues(Source = colnames(outliers), Search = "record", Replace = "row")
-          colnames(outliers) <- cgiarBase::replaceValues(Source = colnames(outliers), Search = iTrait, Replace = "value")
-          outliers$module <- "qaRaw"
-          outliers <- outliers[,c("module","analysisId", "trait","reason","row","value")]
-          outlier[[iTrait]] <- outliers
+          if(nrow(selections) > 0){
+            outliers <- base::merge(outliers,selections, by.x="record")
+            colnames(outliers) <- cgiarBase::replaceValues(Source = colnames(outliers), Search = "record", Replace = "row")
+            colnames(outliers) <- cgiarBase::replaceValues(Source = colnames(outliers), Search = iTrait, Replace = "value")
+            outliers$module <- "qaRaw"
+            outliers <- outliers[,c("module","analysisId", "trait","reason","row","value")]
+            outlier[[iTrait]] <- outliers
+          } else{
+            outlier[[iTrait]] <- data.frame("module" = "qaRaw",
+                                            "analysisId" = analysisId,
+                                            "trait" = iTrait,
+                                            "reason" = "none",
+                                            "row" = "",
+                                            "value" = "")
+          }
         }
         outlier <- do.call(rbind,outlier)
         ## get data structure

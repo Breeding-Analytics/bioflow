@@ -12,7 +12,7 @@ mod_filterPhenoApp_ui <- function(id){
   tagList(
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel(id=ns("tabsMain"), #width=9,
                        type = "tabs",
 
                        tabPanel(div(icon("book"), "Information") ,
@@ -97,7 +97,8 @@ mod_filterPhenoApp_ui <- function(id){
                                            br(),
                                            textOutput(ns("outFilterRaw2")),
                                            br(),
-                                           downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
+                                           actionButton(ns("renderReportQaPheno"), "Download dashboard", icon = icon("download")),
+                                           downloadButton(ns("downloadReportQaPheno"), "Download dashboard", style = "visibility:hidden;"),
                                            br(),
                                            uiOutput(ns('reportQaPheno'))
                                   ),
@@ -387,11 +388,44 @@ mod_filterPhenoApp_server <- function(id, data){
       }
     })
 
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportQaPheno,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultQaPheno.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportQaPheno")
+    })
+
     # returns the ones to exclude
     outFilterRaw <- eventReactive(input$runFilterRaw, {
       req(data());  req(input$traitFilterPheno); req(input$years);  req(input$seasons); req(input$countries); req(input$locations); req(input$trials); req(input$environments)
       req(input$multiTraitFilter)
       result <- data()
+      mydata <- result$data$pheno
+      mydata$rowindex <- 1:nrow(mydata)
+
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       if(input$multiTraitFilter){ # if user wants multiple traits at once
         outliers <- list()
@@ -399,6 +433,7 @@ mod_filterPhenoApp_server <- function(id, data){
           prov <- newOutliers()
           for(iTrait in input$traitFilterPhenoMultiple){
             if(nrow(prov) > 0){prov$trait <- iTrait}
+            prov$value <- mydata[which(mydata$rowindex %in% prov$row),iTrait]
             outliers[[iTrait]] <- prov
           }
           outliers <- do.call(rbind, outliers)
@@ -442,6 +477,7 @@ mod_filterPhenoApp_server <- function(id, data){
       result$modifications$pheno <- myoutliersReduced
       if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
       data(result)
+      updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
       shinybusy::remove_modal_spinner()
       if(!inherits(result,"try-error")) { # if all goes well in the run
         # ## Report tab
@@ -456,33 +492,10 @@ mod_filterPhenoApp_server <- function(id, data){
             ))
           },
           content = function(file) {
-            shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
 
-            src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
-            src2 <- normalizePath('data/resultQaPheno.RData')
-
-            # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
-            owd <- setwd(tempdir())
-            on.exit(setwd(owd))
-
-            file.copy(src, 'report.Rmd', overwrite = TRUE)
-            file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
-
-            out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-              "HTML",
-              HTML = rmdformats::robobook(toc_depth = 4)
-              # HTML = rmarkdown::html_document()
-            ))
-
-            # wait for it to land on disk (safety‐net)
-            wait.time <- 0
-            while (!file.exists(out) && wait.time < 60) {
-              Sys.sleep(1); wait.time <- wait.time + 1
-            }
+            out <- report()
 
             file.rename(out, file)
-            shinybusy::remove_modal_spinner()
           }
         )
 

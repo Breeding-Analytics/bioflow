@@ -1177,7 +1177,7 @@ mod_staApp_server <- function(id,data){
                                            lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                             caption = htmltools::tags$caption(
                               style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                              htmltools::em('Experimental design factos present per environment.')
+                              htmltools::em('Experimental design factors present per environment.')
                             )
               )
             }
