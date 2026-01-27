@@ -1514,10 +1514,10 @@ mod_mtaASREMLApp_server <- function(id, data){
 		#
         #save(dtMtaAsr,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
         #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METasr.RData")
-        source("C:/Users/RAPACHECO/Downloads/metASREML.R")
+        #source("C:/Users/RAPACHECO/Downloads/metASREML.R")
         result <- try(
-          #cgiarPipeline::metASREML(
-          metASREML(
+          cgiarPipeline::metASREML(
+          #metASREML(
             phenoDTfile= dtMtaAsr, analysisId=input$version2MtaAsr,analysisIdgeno=input$version2MtaAsrGeno,
             fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), covMod=inputFormulaCovars(), addG=inputFormulaCovars(),nFA=inputFormulanFATerm(),
             envsToInclude=myEnvsTI, trait= input$trait2MtaAsr, traitFamily=myFamily, useWeights=TRUE,
@@ -1658,3 +1658,4 @@ mod_mtaASREMLApp_server <- function(id, data){
 
 ## To be copied in the server
 # mod_mtaASREMLApp_server("mtaASREMLApp_1")
+
