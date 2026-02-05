@@ -331,15 +331,61 @@ if (is.null(result)){
   idSta <- idSta[length(idSta)]
   traitFieldView <- unique(result$predictions[which( result$predictions$analysisId == idSta),"trait"])
   
+  pheno <- result$data$pheno
+  pheno <- pheno[,which(!duplicated(colnames(pheno)))]
+  metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
+  
+  for(i in 1:length(metaPheno$parameter)){
+    if((metaPheno$parameter[i] %in% colnames(pheno)) & 
+       (metaPheno$parameter[i] != metaPheno$value[i])){
+      colnames(pheno) <- replace(colnames(pheno), 
+                                 colnames(pheno) == metaPheno$parameter[i],
+                                 paste0(metaPheno$parameter[i],"_dup"))
+    }
+  }
+  
+  colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
+  pheno$rowindex <- 1:nrow(pheno)
+
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
     
     if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){ # user mapped the columns
       
-      coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
+      # coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
+      idQa <- result$modeling[which(result$modeling$analysisId == idSta &
+                                      result$modeling$parameter == "analysisId"),"value"]
       
-      if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+      cleaning <- result$modifications$pheno[which(result$modifications$pheno$analysisId %in% idQa),]
+      
+      for (iID in idQa){
+        module <- result$status[which(result$status$analysisId == iID),"module"]
+        
+        if(module == "qaDesign"){
+          if(nrow(cleaning[which(cleaning$module == "qaDesign"),] > 0)){
+            cleaningSubDes <- cleaning[which(cleaning$trait %in% c("row","col","rep","iBlock")),]
+            
+            for (iDes in unique(cleaningSubDes$trait)){
+              outDes <- which(pheno$rowindex %in% cleaningSubDes[which(cleaningSubDes$trait == iDes),
+                                                                 "row"])
+              pheno[outDes,iDes] <- NA
+            }
+          }
+        } else{
+          if(nrow(cleaning[which(cleaning$module != "qaDesign"),] > 0)){
+            cleaningSub <- cleaning[which(cleaning$trait %in% traitFieldView),]
+            
+            for (iTrait in traitFieldView){
+              out <- which(pheno$rowindex %in% cleaningSub[which(cleaningSub$trait == iTrait),
+                                                           "row"])
+              pheno[out,iTrait] <- NA
+            }
+          }
+        }
+      }
+      
+      if( any( apply(pheno[,c("row", "col")],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
         shinyjs::hide()
       }else{ # input <- list(traitStaFieldView=traitFieldView[1])
         shiny::selectInput(ns("traitStaFieldView"), 
@@ -364,24 +410,9 @@ if (is.null(result)){
   
   if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){
     
-    
-    if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+    if( any( apply(pheno[,c("row", "col")],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
       shinyjs::hide()
     }else{
-      pheno <- result$data$pheno
-      pheno <- pheno[,which(!duplicated(colnames(pheno)))]
-      metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
-      
-      for(i in 1:length(metaPheno$parameter)){
-        if((metaPheno$parameter[i] %in% colnames(pheno)) & 
-           (metaPheno$parameter[i] != metaPheno$value[i])){
-          colnames(pheno) <- replace(colnames(pheno), 
-                                     colnames(pheno) == metaPheno$parameter[i],
-                                     paste0(metaPheno$parameter[i],"_dup"))
-          }
-      }
-      
-      colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
       
       if("params" %in% ls()){ # we will download the document
         

@@ -61,14 +61,22 @@ mod_bindObjectApp_ui <- function(id){
 
                            tabsetPanel( #widths = c(1, 11),
 
-                             tabPanel( div("Phenotype metadata" ),
+                             tabPanel( div(icon("seedling"), "Phenotypic" ),
                                        br(),
                                        uiOutput(ns('pheno_map')),
                              ),
-                             # tabPanel( div("Phenotype metadata" ),
-                             #           br(),
-                             #           uiOutput(ns('pheno_map')),
-                             # ),
+                             tabPanel( div(icon("code-fork"), "Pedigree" ),
+                                       br(),
+                                       uiOutput(ns('ped_map')),
+                             ),
+                             tabPanel( div(icon("anchor"), "QTL profile" ),
+                                       br(),
+                                       uiOutput(ns('qtl_map')),
+                             ),
+                             tabPanel( div(icon("cloud-sun-rain"), "Weather" ),
+                                       br(),
+                                       uiOutput(ns('weather_map')),
+                             )
                            ),
 
                   ),
@@ -249,7 +257,12 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
       if(!is.null(data()$user)){tmp$user <- data()$user}
       if(!is.null(result$data)){tmp$data <- result$data}
-      if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+      if(!is.null(result$metadata)){
+        tmp$metadata <- result$metadata
+        if(any(c("source","sourceId") %in% tmp$metadata$pheno$parameter)){
+          tmp$metadata$pheno <- tmp$metadata$pheno[-which(tmp$metadata$pheno$parameter %in% c("source", "sourceId")), ]
+        }
+      }
       if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
       if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
       if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
@@ -275,6 +288,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         # cat(paste("Datasets:", paste(input$previous_input, collapse = " and "),"binded successfully. Please proceed to perform your analysis."))
       }else{
         if(iFile == 1){
+
           shinyalert::shinyalert(title = "Success!", text = paste("Dataset",input$previous_object_file$name,"loaded successfully."), type = "success")
         }else{
           shinyalert::shinyalert(title = "Success!", text = paste("Datasets:", paste(input$previous_object_file$name, collapse = " and "),"binded successfully. Please proceed to perform your analysis.") , type = "success")
@@ -283,64 +297,342 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       }
     })
 
+    ####  Phenotypic Data Mapping ####
+    mapp <- c("pipeline", "stage", "year", "season","timepoint",
+      "country", "location", "trial","study", "management","rep", "iBlock",
+      "row", "col", "designation", "gid", "entryType", "trait")
+
     output$pheno_map <- renderUI({
-
       req(data())
-
-      if (is.null(data()$data$pheno)){
-        return(NULL)
-      }
+      req(!is.null(data()$data$pheno))
 
       header <- colnames(data()$data$pheno)
-      mapp <- c("pipeline", "stage", "year", "season","timepoint",
-                "country", "location", "trial","study", "management","rep", "iBlock",
-                "row", "col", "designation", "gid", "entryType", "trait")
-      pheno_map <- lapply(mapp, function(x) {
-        column(3,
-               selectInput(
-                 inputId  = ns(paste0('select', x)),
-                 label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
-                 multiple = ifelse(x == 'trait', TRUE, FALSE),
-                 choices  = as.list(c('', header )),
-                 selected = if( x %in% data()$metadata$pheno$parameter ){data()$metadata$pheno$value[which(data()$metadata$pheno$parameter %in% x)]}else{''}
-               ),
 
-               renderPrint({
-                 # req(input[[paste0('select', x)]])
-                 temp <- data()
-                 if (x == 'trait') {
-                   temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != 'trait',]
-                   for (i in input[[paste0('select', x)]]) {
-                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = 'trait', value = i))
-                     if(!is.numeric(temp$data$pheno[,i])){temp$data$pheno[,i] <- as.numeric(gsub(",","",temp$data$pheno[,i]))}
-                   }
-                 } else { # is any other column other than trait
-                   # if x is already in the metadata for pheno
-                   if (x %in% temp$metadata$pheno$parameter & input[[paste0('select', x)]] != '') {
-                     temp$metadata$pheno[temp$metadata$pheno$parameter == x, 'value'] <- input[[paste0('select', x)]]
-                   } else { # if is not in the metadata
-                     temp$metadata$pheno <- rbind(temp$metadata$pheno, data.frame(parameter = x, value = input[[paste0('select', x)]]))
-                   }
-                   if(x %in% c("designation","study") & input[[paste0('select', x)]] != ''){
-                     temp$data$pheno[,input[[paste0('select', x)]]] <- stringi::stri_trans_general(temp$data$pheno[,input[[paste0('select', x)]]], "Latin-ASCII")
-                   }
-                   if(input[[paste0('select', x)]] == ''){
-                     temp$metadata$pheno <- temp$metadata$pheno[-which(temp$metadata$pheno$parameter == x), ]
-                   }
-                 }
-                 # if (x == 'designation') {
-                 #   if(input[[paste0('select', x)]] != ''){
-                 #     temp$data$pedigree <- data.frame(designation = unique(pheno_data()[[input[[paste0('select', x)]]]]), mother = NA, father = NA, yearOfOrigin = NA)
-                 #     temp$metadata$pedigree <- data.frame(parameter=c("designation","mother","father","yearOfOrigin"), value=c("designation","mother","father","yearOfOrigin") )
-                 #   }
-                 # }
-                 data(temp)
-               }),
+      labels <- function(x){
+        x <- as.character(x)
+
+        if (x %in% c('designation','trait','location')) {
+          suffix <- '(*required)'
+        } else if (x %in% c('rep','iBlock','row','col')) {
+          suffix <- '(*recommended)'
+        } else {
+          suffix <- '(*optional)'
+        }
+
+        color <- ifelse (suffix == '(*required)','red','grey')
+
+        HTML(paste0(x, " <span style='color:", color, "'>", suffix, "</span>"))
+      }
+
+      tagList(
+        fluidRow(
+          lapply(mapp, function(x) {
+
+            column(
+              width = 3,
+              if(any(c("sourceId", "source") %in% data()$metadata$pheno$parameter)){
+                shinyjs::disabled(selectInput(
+                  inputId  = ns(paste0("select", x)),
+                  label    = labels(x),
+                  multiple = ifelse(x == 'trait', TRUE, FALSE),
+                  choices  = c("", header),
+                  selected = if (x %in% isolate(data()$metadata$pheno$parameter)) {
+                    isolate(data()$metadata$pheno$value[data()$metadata$pheno$parameter == x])
+                  } else {""}
+                ))
+              } else{
+                selectInput(
+                  inputId  = ns(paste0("select", x)),
+                  label    = labels(x),
+                  multiple = ifelse(x == 'trait', TRUE, FALSE),
+                  choices  = c("", header),
+                  selected = if (x %in% isolate(data()$metadata$pheno$parameter)) {
+                    isolate(data()$metadata$pheno$value[data()$metadata$pheno$parameter == x])
+                  } else {""}
+                )
+              }
+            )
+          })
         )
-      })
-      fluidRow(do.call(tagList, pheno_map))
+      )
     })
 
+    lapply(mapp, function(x) {
+      observeEvent(input[[paste0("select", x)]], {
+        req(data())
+        temp <- data()
+        new_val <- input[[paste0("select", x)]]
+
+        if (x == "trait") {
+          temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != "trait",]
+          if (length(new_val) > 0 && any(new_val != "")) {
+            for (trait in new_val) {
+              temp$metadata$pheno <- rbind(temp$metadata$pheno,
+                                           data.frame(parameter="trait", value=trait))
+              if (!is.numeric(temp$data$pheno[[trait]])) {
+                temp$data$pheno[[trait]] <- as.numeric(gsub(",", "", temp$data$pheno[[trait]]))
+              }
+            }
+          }
+          data(temp)
+          return(invisible())
+        } else{ # is any other column other than trait
+          if (length(new_val) == 0 || all(new_val == "")) {
+            temp$metadata$pheno <- temp$metadata$pheno[temp$metadata$pheno$parameter != x,]
+            data(temp)
+            return(invisible())
+          }
+          if (x %in% temp$metadata$pheno$parameter) { # if x is already in the metadata for pheno
+            temp$metadata$pheno$value[temp$metadata$pheno$parameter == x] <- new_val
+          } else { # if is not in the metadata
+            temp$metadata$pheno <- rbind(temp$metadata$pheno,
+                                         data.frame(parameter=x, value=new_val))
+          }
+          if (x %in% c("designation", "study")) {
+            temp$data$pheno[[new_val]] <- stringi::stri_trans_general(temp$data$pheno[[new_val]], "Latin-ASCII")
+          }
+          data(temp)
+        }
+      })
+    })
+
+    ####  Pedigree Data Mapping ####
+    ped_mapp <- c("designation", "mother", "father", "yearOfOrigin")
+
+    output$ped_map <- renderUI({
+      req(data())
+      req(!is.null(data()$data$pedigree))
+
+      ped_header <- colnames(data()$data$pedigree)
+
+      tagList(
+        fluidRow(
+          lapply(ped_mapp, function(x) {
+            column(
+              width = 3,
+              if(any(c("sourceId", "source") %in% data()$metadata$pheno$parameter)){
+                shinyjs::disabled(selectInput(
+                  inputId  = ns(paste0("ped_select", x)),
+                  label    = x,
+                  multiple = FALSE,
+                  choices  = c("", ped_header),
+                  selected = if (x %in% isolate(data()$metadata$pedigree$parameter)) {
+                    isolate(data()$metadata$pedigree$value[data()$metadata$pedigree$parameter == x])
+                  } else {""}
+                ))
+              } else{
+                selectInput(
+                  inputId  = ns(paste0("ped_select", x)),
+                  label    = x,
+                  multiple = FALSE,
+                  choices  = c("", ped_header),
+                  selected = if (x %in% isolate(data()$metadata$pedigree$parameter)) {
+                    isolate(data()$metadata$pedigree$value[data()$metadata$pedigree$parameter == x])
+                  } else {""}
+                )
+              }
+            )
+          })
+        )
+      )
+    })
+
+    lapply(ped_mapp, function(x) {
+      observeEvent(input[[paste0("ped_select", x)]], {
+        req(data())
+        ped_temp <- data()
+        ped_new_val <- input[[paste0("ped_select", x)]]
+
+        if (length(ped_new_val) == 0 || all(ped_new_val == "")) {
+          ped_temp$metadata$pedigree <- ped_temp$metadata$pedigree[ped_temp$metadata$pedigree$parameter != x,]
+          data(ped_temp)
+          return(invisible())
+        }
+        if (x %in% ped_temp$metadata$pedigree$parameter) { # if x is already in the metadata for pedigree
+          ped_temp$metadata$pedigree$value[ped_temp$metadata$pedigree$parameter == x] <- ped_new_val
+        } else { # if is not in the metadata
+          ped_temp$metadata$pedigree <- rbind(ped_temp$metadata$pedigree,
+                                       data.frame(parameter=x, value=ped_new_val))
+        }
+        if (x == "designation") {
+          ped_temp$data$pedigree[[ped_new_val]] <- stringi::stri_trans_general(ped_temp$data$pedigree[[ped_new_val]], "Latin-ASCII")
+        }
+        data(ped_temp)
+      })
+    })
+
+    ####  QTL Profile Data Mapping ####
+    qtl_mapp <- c("designation","qtl")
+
+    output$qtl_map <- renderUI({
+      req(data())
+      req(!is.null(data()$data$qtl))
+
+      qtl_header <- colnames(data()$data$qtl)
+
+      tagList(
+        fluidRow(
+          lapply(qtl_mapp, function(x) {
+            column(
+              width = ifelse(x == 'qtl', 9, 3),
+              if(any(c("sourceId", "source") %in% data()$metadata$pheno$parameter)){
+                shinyjs::disabled(selectInput(
+                  inputId  = ns(paste0("qtl_select", x)),
+                  label    = x,
+                  multiple = ifelse(x == 'qtl', TRUE, FALSE),
+                  choices  = c("", qtl_header),
+                  selected = if (x %in% isolate(data()$metadata$qtl$parameter)) {
+                    isolate(data()$metadata$qtl$value[data()$metadata$qtl$parameter == x])
+                  } else {""},
+                  width = "100%"
+                ))
+              } else{
+                selectInput(
+                  inputId  = ns(paste0("qtl_select", x)),
+                  label    = x,
+                  multiple = ifelse(x == 'qtl', TRUE, FALSE),
+                  choices  = c("", qtl_header),
+                  selected = if (x %in% isolate(data()$metadata$qtl$parameter)) {
+                    isolate(data()$metadata$qtl$value[data()$metadata$qtl$parameter == x])
+                  } else {""},
+                  width = "100%"
+                )
+              }
+
+            )
+          })
+        )
+      )
+    })
+
+    lapply(qtl_mapp, function(x) {
+      observeEvent(input[[paste0("qtl_select", x)]], {
+        req(data())
+        qtl_temp <- data()
+        qtl_new_val <- input[[paste0("qtl_select", x)]]
+
+        if (x == "qtl") {
+          qtl_temp$metadata$qtl <- qtl_temp$metadata$qtl[qtl_temp$metadata$qtl$parameter != "qtl",]
+          if (length(qtl_new_val) > 0 && any(qtl_new_val != "")) {
+            for (qtl in qtl_new_val) {
+              qtl_temp$metadata$qtl <- rbind(qtl_temp$metadata$qtl,
+                                           data.frame(parameter="qtl", value=qtl))
+            }
+          }
+          data(qtl_temp)
+          return(invisible())
+        } else{ # is any other column other than trait
+          if (length(qtl_new_val) == 0 || all(qtl_new_val == "")) {
+            qtl_temp$metadata$qtl <- qtl_temp$metadata$qtl[qtl_temp$metadata$qtl$parameter != x,]
+            data(qtl_temp)
+            return(invisible())
+          }
+          if (x %in% qtl_temp$metadata$qtl$parameter) { # if x is already in the metadata for pheno
+            qtl_temp$metadata$qtl$value[qtl_temp$metadata$qtl$parameter == x] <- qtl_new_val
+          } else { # if is not in the metadata
+            qtl_temp$metadata$qtl <- rbind(qtl_temp$metadata$qtl,
+                                         data.frame(parameter=x, value=qtl_new_val))
+          }
+          if (x == "designation") {
+            qtl_temp$data$qtl[[qtl_new_val]] <- stringi::stri_trans_general(qtl_temp$data$qtl[[qtl_new_val]], "Latin-ASCII")
+          }
+          data(qtl_temp)
+        }
+      })
+    })
+
+    ####  Weather Data Mapping ####
+    weather_mapp <- c("environment", "latitude", "longitude", "year", "month", "day", "date", "trait")
+
+    output$weather_map <- renderUI({
+      req(data())
+      req(!is.null(data()$data$weather))
+
+      weather_header <- colnames(data()$data$weather)
+
+      weather_labels <- function(x){
+        x <- as.character(x)
+
+        if (x %in% c('year', 'month', 'day')) {
+          suffix <- '(*recommended)'
+        } else if (x %in% c('date')) {
+          suffix <- '(*optional)'
+        } else {
+          suffix <- '(*required)'
+        }
+
+        color <- ifelse (suffix == '(*required)','red','grey')
+
+        HTML(paste0(x, " <span style='color:", color, "'>", suffix, "</span>"))
+      }
+
+      tagList(
+        fluidRow(
+          lapply(weather_mapp, function(x) {
+            column(
+              width = 3,
+              if(any(c("sourceId", "source") %in% data()$metadata$pheno$parameter)){
+                shinyjs::disabled(selectInput(
+                  inputId  = ns(paste0("weather_select", x)),
+                  label    = weather_labels(x),
+                  multiple = ifelse(x == 'trait', TRUE, FALSE),
+                  choices  = c("", weather_header),
+                  selected = if (x %in% isolate(data()$metadata$weather$parameter)) {
+                    isolate(data()$metadata$weather$value[data()$metadata$weather$parameter == x])
+                  } else {""}
+                ))
+              } else{
+                selectInput(
+                  inputId  = ns(paste0("weather_select", x)),
+                  label    = weather_labels(x),
+                  multiple = ifelse(x == 'trait', TRUE, FALSE),
+                  choices  = c("", weather_header),
+                  selected = if (x %in% isolate(data()$metadata$weather$parameter)) {
+                    isolate(data()$metadata$weather$value[data()$metadata$weather$parameter == x])
+                  } else {""}
+                )
+              }
+            )
+          })
+        )
+      )
+    })
+
+    lapply(weather_mapp, function(x) {
+      observeEvent(input[[paste0("weather_select", x)]], {
+        req(data())
+        weather_temp <- data()
+        weather_new_val <- input[[paste0("weather_select", x)]]
+
+        if (x == "trait") {
+          weather_temp$metadata$weather <- weather_temp$metadata$weather[weather_temp$metadata$weather$parameter != "trait",]
+          if (length(weather_new_val) > 0 && any(weather_new_val != "")) {
+            for (trait in weather_new_val) {
+              weather_temp$metadata$weather <- rbind(weather_temp$metadata$weather,
+                                           data.frame(parameter="trait", value=trait))
+              if (!is.numeric(weather_temp$data$weather[[trait]])) {
+                weather_temp$data$weather[[trait]] <- as.numeric(gsub(",", "", weather_temp$data$weather[[trait]]))
+              }
+            }
+          }
+          data(weather_temp)
+          return(invisible())
+        } else{ # is any other column other than trait
+          if (length(weather_new_val) == 0 || all(weather_new_val == "")) {
+            weather_temp$metadata$weather <- weather_temp$metadata$weather[weather_temp$metadata$weather$parameter != x,]
+            data(weather_temp)
+            return(invisible())
+          }
+          if (x %in% weather_temp$metadata$weather$parameter) { # if x is already in the metadata for pheno
+            weather_temp$metadata$weather$value[weather_temp$metadata$weather$parameter == x] <- weather_new_val
+          } else { # if is not in the metadata
+            weather_temp$metadata$weather <- rbind(weather_temp$metadata$weather,
+                                         data.frame(parameter=x, value=weather_new_val))
+          }
+          data(weather_temp)
+        }
+      })
+    })
 
   })
 }

@@ -12,7 +12,7 @@ mod_expDesignEditApp_ui <- function(id){
   tagList(
 
     shiny::mainPanel(width = 12,
-                     tabsetPanel( #width=9,
+                     tabsetPanel(id=ns("tabsMain"), #width=9,
                        type = "tabs",
 
                        tabPanel(div(icon("book"), "Information") ,
@@ -88,7 +88,8 @@ mod_expDesignEditApp_ui <- function(id){
                                            br(),
                                            textOutput(ns("outExp2")),
                                            br(),
-                                           downloadButton(ns("downloadReportQaPheno"), "Download dashboard"),
+                                           actionButton(ns("renderReportQaPheno"), "Download dashboard", icon = icon("download")),
+                                           downloadButton(ns("downloadReportQaPheno"), "Download dashboard", style = "visibility:hidden;"),
                                            br(),
                                            uiOutput(ns('reportQaPheno'))
                                   ),
@@ -274,6 +275,36 @@ mod_expDesignEditApp_server <- function(id, data){
     })
     ## save when user clicks
 
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportQaPheno,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultQaPheno.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportQaPheno")
+    })
+
     outExp <- eventReactive(input$runFieldClean, {
 
       if(is.null(data())){
@@ -300,6 +331,7 @@ mod_expDesignEditApp_server <- function(id, data){
             cat(paste("QA step with id:",as.POSIXct( aid, origin="1970-01-01", tz="GMT"),"saved."))
           })
         }
+        updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         shinybusy::remove_modal_spinner()
 
         if(!inherits(result,"try-error")) { # if all goes well in the run
@@ -315,33 +347,10 @@ mod_expDesignEditApp_server <- function(id, data){
               ))
             },
             content = function(file) {
-              shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
 
-              src <- normalizePath(system.file("rmd","reportQaPheno.Rmd",package="bioflow"))
-              src2 <- normalizePath('data/resultQaPheno.RData')
-
-              # temporarily switch to the temp dir, in case you do not have write
-              # permission to the current working directory
-              owd <- setwd(tempdir())
-              on.exit(setwd(owd))
-
-              file.copy(src, 'report.Rmd', overwrite = TRUE)
-              file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
-
-              out <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE),switch(
-                "HTML",
-                HTML = rmdformats::robobook(toc_depth = 4)
-                # HTML = rmarkdown::html_document()
-              ))
-
-              # wait for it to land on disk (safety‐net)
-              wait.time <- 0
-              while (!file.exists(out) && wait.time < 60) {
-                Sys.sleep(1); wait.time <- wait.time + 1
-              }
+              out <- report()
 
               file.rename(out, file)
-              shinybusy::remove_modal_spinner()
             }
           )
 

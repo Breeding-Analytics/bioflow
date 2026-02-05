@@ -28,13 +28,12 @@ mod_getDataWeather_ui <- function(id){
                  tabPanel(div("2. Set coordinates" ),
                           tags$span(id = ns('apiOptionsInput'),
                                     tabPanel("Specify coordinates", icon = icon("magnifying-glass-chart"),
-                                             br(),
                                              tags$span(id = ns('weather_message_holder'),
                                                        uiOutput(ns("warningMessage")),
                                              ),
 
                                              tags$span(id = ns('weather_file_holder'),
-                                                       column(width = 12, style = "background-color:green; color: #FFFFFF",
+                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
                                                               column(width = 2, p(strong("Environment")) ),
                                                               column(width = 2, p(strong("Latitude")) ),
                                                               column(width = 2, p(strong("Longitude")) ),
@@ -42,7 +41,7 @@ mod_getDataWeather_ui <- function(id){
                                                               column(width = 2, p(strong("Harvesting Date")) ),
                                                               column(width = 2, p(strong("Extraction interval")) ),
                                                        ),
-                                                       column(width = 12, style = "background-color:green; color: #FFFFFF",
+                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
                                                               column(width = 2, uiOutput(ns("environment")) ),
                                                               column(width = 2, uiOutput(ns("latitude")) ),
                                                               column(width = 2, uiOutput(ns("longitude")) ),
@@ -52,11 +51,13 @@ mod_getDataWeather_ui <- function(id){
                                                                      selectInput(ns("temporal"),label=NULL, choices = list("hourly","daily","monthly"), selected = "daily"  ),
                                                               ),
                                                        ),
-                                                       shinydashboard::box(status="success",width = 12, solidHeader = TRUE,
-                                                                           column(width=12, style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
-                                                                                  p(span("Preview of coordinates selected for extraction.", style="color:black")),
-                                                                                  plotly::plotlyOutput(ns("plotMeteo")),
-                                                                           ),
+                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                              HTML("&nbsp;")),
+                                                       HTML("&nbsp;"),
+                                                       shinydashboard::box(status="success",width = 12, solidHeader = TRUE, collapsible = TRUE, collapsed = FALSE,# style = "height:410px; overflow-y: scroll;overflow-x: scroll;",
+                                                                           id = ns('preview_data_map'),
+                                                                           title = "Preview of coordinates selected for extraction (click on the '+' symbol on the right to view)",
+                                                                           plotly::plotlyOutput(ns("plotMeteo"))
                                                        )
                                              ),
                                     ),
@@ -84,37 +85,37 @@ mod_getDataWeather_ui <- function(id){
                                                                                                 choices = c('Dot' = '.', 'Comma' = ',')),
                                            ),
                                      ),
-                                     column(width=12,
-                                            shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
-                                                                DT::DTOutput(ns('preview_weather2')),
-                                            ),
-                                     ),
+                                    tags$br(),
+                                    shinydashboard::box(status="success",width = 12, solidHeader = TRUE, collapsible = TRUE, collapsed = FALSE,
+                                                        id = ns('preview_data_weather2'),
+                                                        title = "Preview of uploaded data (click on the '+' symbol on the right to view)",
+                                                        DT::DTOutput(ns('preview_weather2'))
+                                    ),
                            ), # end of file upload options
                   ),
                   tabPanel(div("3. Retrieve/Match data" ),
                            tags$span(id = ns('apiOptionsRetrieve'),
-                                     tags$br(),
                                      actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
                                      textOutput(ns("outgetWeather")),
                            ),
                            tags$span(id = ns('fileOptionsRetrieve'),
-
                                      column(width=12,
                                             shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
                                                                 hr(),
                                                                 uiOutput(ns('weather_map')),
                                             ),
                                      ),
-                                     column(width=12,
-                                            shinydashboard::box(width = 12,  status = 'success', solidHeader = FALSE,
-                                                                DT::DTOutput(ns('preview_weather')),
-                                            ),
-                                     ),
-
+                           ),
+                           tags$br(),
+                           shinydashboard::box(width = 12,  status = 'success', solidHeader = TRUE, collapsible = TRUE, collapsed = TRUE,
+                                               id = ns('preview_data_weather'),
+                                               title = "Preview of uploaded data (click on the '+' symbol on the right to view)",
+                                               # hr(),
+                                               DT::DTOutput(ns('preview_weather')),
+                                               plotly::plotlyOutput(ns("plotMeteo2"))
                            ),
                   ),
                   tabPanel(div("4. Check status" ),
-                           tags$br(),
                            uiOutput(ns("warningMessage2")),
                   ),
     ),
@@ -161,27 +162,42 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
         }else{
           golem::invoke_js('hideid', ns('weather_file_holder'))
           golem::invoke_js('showid', ns('weather_message_holder'))
-          HTML( as.character(div(style="color: orange; font-size: 20px;", "Please make sure that you have defined the 'environment' column in 'Data Retrieval' tab for Phenotypes.")) )
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have defined the 'environment' column in 'Data Retrieval' tab for Phenotypes.")) )
         }
       }
     )
 
     output$warningMessage2 <- renderUI(
-      if(!is.null(data()$data$weather)){
-        HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
-      }else{
-        if(is.null(data())){
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data first to identify the environments.")) )
+      } else{ # data is there
+        if(is.null(data()$data$pheno)){
           HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data first to identify the environments.")) )
-        }else{ # data is there
-          mappedColumns <- length(which(c("environment") %in% data()$metadata$pheno$parameter))
-          if(mappedColumns == 1){
-            HTML( as.character(div(style="color: gold; font-size: 20px;", "Please specify the coordinates and retrieve weather data.")) )
-          }else{
-            HTML( as.character(div(style="color: orange; font-size: 20px;", "Please make sure that you have defined the 'environment' column in 'Data Retrieval' tab for Phenotypes.")) )
-          }
+        } else{
+          if(!is.null(data()$data$weather)){
+            if(!is.null(data()$metadata$weather)){
+              if("environment" %in% data()$metadata$weather$parameter){
+                envCol <- data()$metadata$weather[which(data()$metadata$weather$parameter == 'environment'), 'value']
+                if(!setequal(unique(data()$data$weather[, envCol]),
+                             unique(data()$data$pheno$environment))){
+                  HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that your 'environment' column from both phenotypic and weather data matches.")) )
+                } else{
+                  if(all(c("latitude", "longitude", "trait") %in% data()$metadata$weather$parameter)){
+                    HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
+                  } else{
+                    HTML( as.character(div(style="color: red; font-size: 20px;", "Please specify the coordinates and retrieve weather data.")) )
+                  }
+                }
+              } else{
+                HTML( as.character(div(style="color: red; font-size: 20px;", "Please specify the 'environment' column and retrieve weather data.")) )
+              }
+            } else{
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
+            }
+          } else{
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab. ")) )}
         }
       }
-
     )
 
     #####################################################
@@ -362,6 +378,13 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
             data(result)
             cat(paste("Weather data saved succesfully."))
 
+            output$preview_weather <- DT::renderDT({
+              DT::datatable(result$data$weather[,1:min(c(50,ncol(result$data$weather)))],
+                            extensions = 'Buttons',
+                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                           lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))))
+            }, server = FALSE)
+
           }else{
             cat(paste("Different environments cannot have the same coordinates. Please correct."))
           }
@@ -405,10 +428,10 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
         DT::datatable(weather_data_table()[,1:min(c(50,ncol(weather_data_table())))],
                       extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
-                      caption = htmltools::tags$caption(
-                        style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
-                        htmltools::em('Data preview.')
-                      )
+                      # caption = htmltools::tags$caption(
+                      #   style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
+                      #   htmltools::em('Data preview.')
+                      # )
         )
       }, server = FALSE)
       # read the data and save in the data object
@@ -457,6 +480,36 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
         )
       })
       fluidRow(do.call(tagList, weather_map))
+    })
+
+    ##produce the map plot
+    output$plotMeteo2 <-  plotly::renderPlotly({
+      req(input$selectenvironment)
+      req(input$selectlatitude)
+      req(input$selectlongitude)
+
+      xx <- data()$data$weather
+      colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = data()$metadata$weather$value, Replace = data()$metadata$weather$parameter )
+      if(!is.null(xx)){
+        fig <- xx
+        fig <- fig %>%
+          plotly::plot_ly(
+            lat = ~latitude,
+            lon = ~longitude,
+            type = "scattermapbox",
+            hovertext = ~environment, #us_cities[,"City"],
+            marker = list(color = "fuchsia"))
+        fig <- fig %>%
+          plotly::layout(
+            mapbox = list(
+              style = 'open-street-map',
+              zoom =1,
+              center = list(lon = 0, lat = 0)
+            )
+          )
+        # }
+        fig
+      }
     })
 
 

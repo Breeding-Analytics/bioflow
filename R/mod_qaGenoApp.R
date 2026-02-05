@@ -649,7 +649,7 @@ mod_qaGenoApp_server <- function(id, data) {
         shinybusy::remove_modal_spinner()
       } else{
         # Imputation
-        shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotyope matrix...')
+        shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotype matrix...')
         geno_qa_data$imputation_log <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
                                                                 ploidity = ploidity,
                                                                 method = input$imputationMethod)

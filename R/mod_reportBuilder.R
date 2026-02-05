@@ -66,9 +66,11 @@ mod_reportBuilder_ui <- function(id){
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
-                                                      actionButton(ns("runReport"), "Build dashboard", icon = icon("play-circle")),
-                                                      br(),
-                                               ),textOutput(ns("outReport")),
+                                                      actionButton(ns("runReport"), "Build dashboard", icon = icon("play-circle"))
+                                                      ),
+                                               column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                      HTML("&nbsp;")
+                                                      ),textOutput(ns("outReport")),
 
                                       ),
                                     )
@@ -266,10 +268,10 @@ mod_reportBuilder_server <- function(id, data){
     observeEvent(input$renderReportReport,{
       shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
 
-      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd") )
-      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData") )
-
       result <- data()
+
+      markdownType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd","reportCoreSet.Rmd") )
+      resultType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData","resultCoreSet.RData") )
 
       src <- normalizePath(system.file("rmd",markdownType,package="bioflow"))
       src2 <- normalizePath(paste0('data/',resultType))
@@ -286,7 +288,6 @@ mod_reportBuilder_server <- function(id, data){
                                      switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
                                             # HTML = rmarkdown::html_document()
                                      ))
-
       report(outReport)
 
       shinybusy::remove_modal_spinner()
