@@ -1682,7 +1682,17 @@ if (is.null(result)){
   pred.mta.wide2 <- pred.mta.wide[which(pred.mta.wide$effectType == "designation"),]
   
   coalesce_by_column <- function(x) {
-    return(dplyr::coalesce(!!! as.list(x)))
+  args <- as.list(x)
+
+  # Drop NULLs and length-0 elements 
+  keep <- vapply(args, function(z) !(is.null(z) || length(z) == 0L), logical(1))
+  args <- args[keep]
+
+  #NULL/empty define as NA 
+  if (length(args) == 0L) return(NA_real_)
+
+  #Coalesce values
+  dplyr::coalesce(!!!args)
   }
   
   pred.mta.wide2_trait <- pred.mta.wide2 %>% select(c("designation", all_of(traits))) %>%
