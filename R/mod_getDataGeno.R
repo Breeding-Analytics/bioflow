@@ -199,87 +199,21 @@ mod_getDataGeno_server <-
         }
         )
 
-        output$ploidity_params <- renderUI({
-          req(input$custom_geno_input)
+      output$ploidity_params <- renderUI({
+        req(input$custom_geno_input)
 
-          if (input$custom_geno_input %in% polyploid_support) {
-            print('Polyploid supported format')
-            ploidity_list <- list("Diploid" = 2, "Tetraploid" = 4, "Hexaploid" = 6)
-          } else {
-            # ADD should limit the obtions of poly lvl to only diploid
-            print('Polyploid unsupported format')
-            ploidity_list <- list("Diploid" = 2)
-          }
+        ploidity_list <- if (input$custom_geno_input %in% polyploid_support) {
+          list("Diploid" = 2, "Tetraploid" = 4, "Hexaploid" = 6)
+        } else {
+          list("Diploid" = 2)
+        }
 
-          selectInput(inputId = ns("ploidlvl_input"),
-                      label = "Ploidity level:",
-                      choices = ploidity_list,
-                      )
-
-          print(as.numeric(input$ploidlvl_input))
-          print(typeof(as.numeric(input$ploidlvl_input)))
-          switch(input$custom_geno_input,
-                 hapmap = {
-                   shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                   tryCatch({
-                     geno_data = cgiarGenomics::read_hapmap(path = genotype_file,
-                                                            ploidity = as.numeric(input$ploidlvl_input))
-                     }, error = function(e) {
-                       print(e)
-                       shinyWidgets::show_alert(title = 'Error !!',
-                                                text = 'Not a valid file format :-(',
-                                                type = 'error')
-                       })
-                   shinybusy::remove_modal_spinner()
-                   },
-                 vcf = {
-                   shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                   tryCatch({
-                     geno_data = cgiarGenomics::read_vcf(path = genotype_file,
-                                                         ploidity = as.numeric(input$ploidlvl_input))
-                     }, error = function(e) {
-                       print(e)
-                       shinyWidgets::show_alert(title = 'Error !!',
-                                                text = 'Not a valid file format :-(',
-                                                type = 'error')
-                       })
-                   shinybusy::remove_modal_spinner()
-                   },
-                 dartseqsnp = {
-                   shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                   tryCatch({
-                     geno_data = cgiarGenomics::read_DArTSeq_SNP(path = genotype_file,
-                                                                 snp_id = input$dartseq_markerid,
-                                                                 chr_name = input$dartseq_chrom,
-                                                                 pos_name = input$dartseq_position)
-                     }, error = function(e) {
-                       print(e)
-                       shinyWidgets::show_alert(title = 'Error !!',
-                                                text = 'Not a valid file format :-(',
-                                                type = 'error')
-                       })
-                   shinybusy::remove_modal_spinner()
-                   },
-                 dartag = {
-                   shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                   tryCatch({
-                     geno_data = cgiarGenomics::read_DArTag_count_dosage(dosage_path = dosage_file,
-                                                                         counts_path = counts_file,
-                                                                         ploidity = as.numeric(input$ploidlvl_input))
-                     }, error = function(e) {
-                       print(e)
-                       shinyWidgets::show_alert(title = 'Error !!',
-                                                text = 'Not a valid file format :-(',
-                                                type = 'error')
-                       })
-                   shinybusy::remove_modal_spinner()
-                   },
-                 {
-                   print("This should not execute D;")
-                   }
-                 )
-          return(geno_data)
-          })
+        selectInput(
+          inputId = ns("ploidlvl_input"),
+          label   = "Ploidity level:",
+          choices = ploidity_list
+        )
+      })
 
         output$dartseq_params <- renderUI({
           req(input$custom_geno_input)
