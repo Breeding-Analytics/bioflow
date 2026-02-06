@@ -582,6 +582,7 @@ mod_mtaASREMLApp_server <- function(id, data){
           fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
         }
       }
+
       if(is_valid_fatherCol(fatherCol)){
         if(has_pedigree_data(fatherCol)){ #pedrigree data exist
           shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', false);", ns("radio")))
@@ -595,11 +596,12 @@ mod_mtaASREMLApp_server <- function(id, data){
         shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', true);", ns("radio")))
       }
 
-      if(input$version2MtaAsrGeno!="No data available"){
-        shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', false);", ns("radio")))
-      }else{
-        shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', true);", ns("radio")))
-      }
+        if(input$version2MtaAsrGeno!="No data available"){
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', false);", ns("radio")))
+        }else{
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', true);", ns("radio")))
+        }
+
     })
 
     #################
@@ -784,23 +786,41 @@ mod_mtaASREMLApp_server <- function(id, data){
       }
 
       if(is_valid_fatherCol(fatherCol)){
-        if(input$version2MtaAsrGeno!="No data available" & has_pedigree_data(fatherCol)){#geno and pedrigree data
+        if(input$version2MtaAsrGeno!="No data available" & has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#geno,pedrigree,weather data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaAsrGeno!="No data available" & has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#geno,pedrigree, NO weather data
           choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
         }
-        if(input$version2MtaAsrGeno!="No data available" & !has_pedigree_data(fatherCol)){#geno and NO pedrigree data
+        if(input$version2MtaAsrGeno!="No data available" & !has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#geno and NO pedrigree data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaAsrGeno!="No data available" & !has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#geno and NO pedrigree data, NO weather
           choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
         }
-        if(input$version2MtaAsrGeno=="No data available" & has_pedigree_data(fatherCol)){#NO geno and pedrigree data
+        if(input$version2MtaAsrGeno=="No data available" & has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#NO geno and pedrigree, weather data
+          choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaAsrGeno=="No data available" & has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#NO geno and pedrigree, NO weather data
           choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
         }
-        if(input$version2MtaAsrGeno=="No data available" & !has_pedigree_data(fatherCol)){#NO geno and NO pedrigree data
+        if(input$version2MtaAsrGeno=="No data available" & !has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#NO geno and NO pedrigree data weather
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaAsrGeno=="No data available" & !has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#NO geno and NO pedrigree data NO weather
           choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
         }
-      } else{
-        if(input$version2MtaAsrGeno!="No data available"){#geno and NO pedrigree data
+      }else{
+        if(input$version2MtaAsrGeno!="No data available" & !is.null(data()$data$weather)){#geno and NO pedrigree data,weather
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaAsrGeno!="No data available" & is.null(data()$data$weather)){#geno and NO pedrigree data,no weather
           choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
         }
-        if(input$version2MtaAsrGeno=="No data available"){#NO geno and NO pedrigree data
+        if(input$version2MtaAsrGeno=="No data available" & !is.null(data()$data$weather)){#NO geno and NO pedrigree data,weather
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaAsrGeno=="No data available" & is.null(data()$data$weather)){#NO geno and NO pedrigree data,no weather
           choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
         }
       }
@@ -1191,7 +1211,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, sommer::overlay(outputId, inputId))
+          X <- with(zz, enhancer::overlay(outputId, inputId))
         }else{
           if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))

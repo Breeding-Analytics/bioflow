@@ -506,6 +506,7 @@ mod_hybridityApp_server <- function(id, data){
     ############################################################################
     # warning message
     output$warningMessage <- renderUI(
+
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
       }else{ # data is there
@@ -514,21 +515,25 @@ mod_hybridityApp_server <- function(id, data){
           if(is.null(data()$data$pedigree)){
             HTML( as.character(div(style="color: red; font-size: 20px;", "Pedigree information is required to run this module")))
           }else{
-            if("crossType" %in% data()$metadata$pedigree$parameter){
-              entryCol = data()$metadata$pedigree$value[data()$metadata$pedigree$parameter == "crossType"]
-              if(any(data()$data$pedigree[,entryCol]=="F1")){
+            ped <- data()$data$pedigree
+            metaPed <- data()$metadata$pedigree
+            colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+
+            if("crossType" %in% colnames(ped)){
+              if(any(ped$crossType == "F1", na.rm = TRUE)){
                 HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform F1 QA/QC specifying your input parameters under the Input tabs.")) )
               }else{
-                HTML( as.character(div(style="color: red; font-size: 20px;", "No F1 found in pedigree data. Please review crossType column in pedigree data")) )
+                HTML( as.character(div(style="color: red; font-size: 20px;","To run the F1 qa/qc module the crossType column in the pedigree data needs to indicate which individuals are F1s to be evaluated")))
               }
             }else{
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Missing crossType column in pedigree data. The crossType column is required to run this module")) )
+              HTML( as.character(div(style="color: red; font-size: 20px;","To run the F1 qa/qc module the crossType column in the pedigree data needs to indicate which individuals are F1s to be evaluated")))
             }
           }
 
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
       }
-    )
+  )
+
 
 
     ## data example loading
