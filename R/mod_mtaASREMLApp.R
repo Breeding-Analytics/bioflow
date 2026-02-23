@@ -414,8 +414,12 @@ mod_mtaASREMLApp_server <- function(id, data){
           if(csasr$statusMessage=="No error"){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Correct license")) )
           }else{
-            HTML( as.character(div(style="color: red; font-size: 20px;", "Please write the activation code of license in the R console")) )
-            asreml.license.activate()
+            if (Sys.getenv("SHINY_PORT") == "") {
+              HTML( as.character(div(style="color: red; font-size: 20px;", "Please write the activation code of license in the R console")) )
+              asreml.license.activate()
+            } else {
+              HTML( as.character(div(style="color: red; font-size: 20px;", "All ASReml-R license slots are currently in use. Please wait a few minutes and try again.")) )
+            }
           }
         }else{
           HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have library asreml installed")) )
