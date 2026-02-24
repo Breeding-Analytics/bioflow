@@ -1560,40 +1560,83 @@ mod_mtaASREMLApp_server <- function(id, data){
 
         myEnvsTI = apply(x$df,2,function(z){z})
 
-
-        #analysisId=input$version2MtaAsr
-        #fixedTerm= input$TermsFixed
-        #randomTerm=input$TermsRandom
-        #envsToInclude=myEnvsTI
-        #trait= input$trait2MtaAsr
-        #traitFamily=myFamily
-        #useWeights=TRUE
-        #modelo=input$radio
-        #modeloG=input$radioModel
-        #calculateSE=TRUE
-        #heritLB= as.numeric(unlist(strsplit(input$heritLBMet,",")))
-        #heritUB= as.numeric(unlist(strsplit(input$heritUBMet,",")))
-        #meanLB = as.numeric(unlist(strsplit(input$meanLBMet,",")))
-        #meanUB = as.numeric(unlist(strsplit(input$meanUBMet,",")))
-        #maxIters=input$maxitMet
-		#
-        #save(dtMtaAsr,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
-        #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METasr.RData")
-        #source("C:/Users/RAPACHECO/Downloads/metASREML.R")
-        result <- try(
-          cgiarPipeline::metASREML(
-          #metASREML(
-            phenoDTfile= dtMtaAsr, analysisId=input$version2MtaAsr,analysisIdgeno=input$version2MtaAsrGeno,
-            fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), covMod=inputFormulaCovars(), addG=inputFormulaCovars(),nFA=inputFormulanFATerm(),
-            envsToInclude=myEnvsTI, trait= input$trait2MtaAsr, traitFamily=myFamily, useWeights=TRUE,
-            calculateSE=TRUE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
-            heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
-            meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
-            meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
-            maxIters=input$maxitMet,  verbose=TRUE
-          ),
-          silent=TRUE
-        )
+        # Preparar valores fuera del proceso
+        fixedTerm_val  <- inputFormulaFixed()
+        randomTerm_val <- inputFormulaRandom()
+        covMod_val     <- inputFormulaCovars()
+        addG_val       <- inputFormulaCovars()
+        nFA_val        <- inputFormulanFATerm()
+        
+        heritLB_val <- as.numeric(unlist(strsplit(input$heritLBMet, ",")))
+        heritUB_val <- as.numeric(unlist(strsplit(input$heritUBMet, ",")))
+        meanLB_val  <- as.numeric(unlist(strsplit(input$meanLBMet, ",")))
+        meanUB_val  <- as.numeric(unlist(strsplit(input$meanUBMet, ",")))
+        
+        result <- tryCatch({
+          callr::r(
+            function(dtMtaAsr,
+                     analysisId,
+                     analysisIdgeno,
+                     fixedTerm,
+                     randomTerm,
+                     covMod,
+                     addG,
+                     nFA,
+                     envsToInclude,
+                     trait,
+                     traitFamily,
+                     heritLB,
+                     heritUB,
+                     meanLB,
+                     meanUB,
+                     maxIters) {
+              cgiarPipeline::metASREML(              
+                phenoDTfile = dtMtaAsr,
+                analysisId = analysisId,
+                analysisIdgeno = analysisIdgeno,
+                fixedTerm = fixedTerm,
+                randomTerm = randomTerm,
+                covMod = covMod,
+                addG = addG,
+                nFA = nFA,
+                envsToInclude = envsToInclude,
+                trait = trait,
+                traitFamily = traitFamily,
+                useWeights = TRUE,
+                calculateSE = TRUE,
+                heritLB = heritLB,
+                heritUB = heritUB,
+                meanLB = meanLB,
+                meanUB = meanUB,
+                maxIters = maxIters,
+                verbose = TRUE
+              )
+              
+            },
+            args = list(
+              dtMtaAsr = dtMtaAsr,
+              analysisId = input$version2MtaAsr,
+              analysisIdgeno = input$version2MtaAsrGeno,
+              fixedTerm = fixedTerm_val,
+              randomTerm = randomTerm_val,
+              covMod = covMod_val,
+              addG = addG_val,
+              nFA = nFA_val,
+              envsToInclude = myEnvsTI,
+              trait = input$trait2MtaAsr,
+              traitFamily = myFamily,
+              heritLB = heritLB_val,
+              heritUB = heritUB_val,
+              meanLB = meanLB_val,
+              meanUB = meanUB_val,
+              maxIters = input$maxitMet
+            )
+          )
+          
+        }, error = function(e) {
+          list(error = TRUE, message = e$message)
+        })
+        
 
         if(!inherits(result,"try-error") ) {
           if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
