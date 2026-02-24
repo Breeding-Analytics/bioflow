@@ -402,33 +402,94 @@ mod_mtaASREMLApp_server <- function(id, data){
     })
 
 
+   wait_for_asreml_license_pro <- function(
+    timeout = 120,
+    base_interval = 2,
+    max_interval = 30,
+    jitter = TRUE
+    ){
+      start <- Sys.time()
+      attempt <- 0
+      
+      while(TRUE){
+        
+        attempt <- attempt + 1
+        
+        chk <- tryCatch(
+          asreml::asreml.license.status(
+            quiet = TRUE,
+            task = "checkout",
+            json = ""
+          ),
+          error=function(e)e
+        )
+        
+        ok <- !inherits(chk,"error") && !is.null(chk$status) && (chk$expiryDays > 0)
+        
+        if(ok)
+          return(TRUE)
+        
+        if(as.numeric(difftime(Sys.time(),start,units="secs")) > timeout)
+          return(FALSE)
+        
+        wait <- min(max_interval, base_interval*2^(attempt-1))
+        
+        if(jitter)
+          wait <- runif(1, wait*0.5, wait*1.5)
+        
+        Sys.sleep(wait)
+      }
+    }
     ################
     ##ASReml license status
-    output$statuslicenseasr <- renderUI(
-      #check internet connection for activate license
-      if(curl::has_internet()){
-        # check library(asreml)
-        if("asreml"%in%rownames(installed.packages())==TRUE){
-          library(asreml)
-          csasr=asreml.license.status(quiet = FALSE, task = "checkout", json = "")
-          if(csasr$expiryDays > 0){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Correct license")) )
-          }else{
-            if (Sys.getenv("SHINY_PORT") == "") {
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Please write the activation code of license in the R console")) )
-              asreml.license.activate()
-            } else {
-              HTML( as.character(div(style="color: red; font-size: 20px;", "All ASReml-R license slots are currently in use. Please wait a few minutes and try again.")) )
-            }
-          }
-        }else{
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have library asreml installed")) )
-        }
-      }else{
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have internet connection to check asreml library")) )
+    output$statuslicenseasr <- renderUI({
+      
+      if(!"asreml" %in% rownames(installed.packages())){
+        return(
+          HTML(as.character(div(
+            style="color:red; font-size:20px;",
+            "Please make sure that you have library asreml installed"
+          )))
+        )
       }
-
-    )
+      
+      # intento inteligente de obtener licencia
+      ok <- wait_for_asreml_license_pro(
+        timeout = 60,
+        base_interval = 2
+      )
+      
+      if(ok){
+        
+        csasr <- asreml::asreml.license.status(
+          quiet = TRUE,
+          task = "status",
+          json = ""
+        )
+        
+        if(!is.null(csasr$expiryDays) && csasr$expiryDays > 0){
+          HTML(as.character(div(
+            style="color:green; font-size:20px;",
+            "Correct license"
+          )))
+        } else {
+          HTML(as.character(div(
+            style="color:red; font-size:20px;",
+            "License detected but with problems for start."
+          )))
+        }
+        
+      } else {
+        
+        HTML(as.character(div(
+          style="color:red; font-size:20px;",
+          "All ASReml-R license slots are currently in use. Please wait a few minutes and try again."
+        )))
+        
+      }
+      
+    })
+    
     #################
     ## version
     observeEvent(data(), {
