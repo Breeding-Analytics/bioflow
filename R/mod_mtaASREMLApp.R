@@ -411,7 +411,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         if("asreml"%in%rownames(installed.packages())==TRUE){
           library(asreml)
           csasr=asreml.license.status(quiet = FALSE, task = "checkout", json = "")
-          if(csasr$statusMessage=="No error"){
+          if(csasr$expiryDays > 0){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Correct license")) )
           }else{
             if (Sys.getenv("SHINY_PORT") == "") {
