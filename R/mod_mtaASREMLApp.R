@@ -65,8 +65,8 @@ mod_mtaASREMLApp_ui <- function(id) {
                                     ),
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
-                                    tabsetPanel(
-                                      tabPanel(div( icon("dice-one"), "ASReml license", icon("arrow-right") ), # icon = icon("dice-one"),
+                                    tabsetPanel(id=ns("first"),
+                                      tabPanel(div( icon("dice-one"), "ASReml license", icon("arrow-right") ), value="license_tab",# icon = icon("dice-one"),
                                                br(),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = FALSE, collapsed = FALSE, title = "Check status of license",
@@ -401,94 +401,38 @@ mod_mtaASREMLApp_server <- function(id, data){
       hideAll$clearAll <- TRUE
     })
 
-
-   wait_for_asreml_license_pro <- function(
-    timeout = 120,
-    base_interval = 2,
-    max_interval = 30,
-    jitter = TRUE
-    ){
-      start <- Sys.time()
-      attempt <- 0
+################
+    ##ASReml license status
+    observeEvent(input$first, {
       
-      while(TRUE){
-        
-        attempt <- attempt + 1
-        
-        chk <- tryCatch(
+      if (input$first == "license_tab") {        
+        csasr <- tryCatch(
           asreml::asreml.license.status(
             quiet = TRUE,
-            task = "checkout",
+            task = "status",
             json = ""
           ),
-          error=function(e)e
-        )
-        
-        ok <- !inherits(chk,"error") && !is.null(chk$status) && (chk$expiryDays > 0)
-        
-        if(ok)
-          return(TRUE)
-        
-        if(as.numeric(difftime(Sys.time(),start,units="secs")) > timeout)
-          return(FALSE)
-        
-        wait <- min(max_interval, base_interval*2^(attempt-1))
-        
-        if(jitter)
-          wait <- runif(1, wait*0.5, wait*1.5)
-        
-        Sys.sleep(wait)
-      }
-    }
-    ################
-    ##ASReml license status
-    output$statuslicenseasr <- renderUI({
-      
-      if(!"asreml" %in% rownames(installed.packages())){
-        return(
-          HTML(as.character(div(
-            style="color:red; font-size:20px;",
-            "Please make sure that you have library asreml installed"
-          )))
-        )
-      }
-      
-      # intento inteligente de obtener licencia
-      ok <- wait_for_asreml_license_pro(
-        timeout = 60,
-        base_interval = 2
-      )
-      
-      if(ok){
-        
-        csasr <- asreml::asreml.license.status(
-          quiet = TRUE,
-          task = "status",
-          json = ""
-        )
-        
-        if(!is.null(csasr$expiryDays) && csasr$expiryDays > 0){
-          HTML(as.character(div(
-            style="color:green; font-size:20px;",
-            "Correct license"
-          )))
-        } else {
-          HTML(as.character(div(
-            style="color:red; font-size:20px;",
-            "License detected but with problems for start."
-          )))
+          error = function(e) NULL
+        )        
+        if (is.null(csasr)) {          
+          output$statuslicenseasr <- renderUI({
+            div(style="color:red; font-size:20px;",
+                "License server not reachable.")
+          })          
+        } else if (csasr$expiryDays > 0) {          
+          output$statuslicenseasr <- renderUI({
+            div(style="color:green; font-size:20px;",
+                "Correct license")
+          })          
+        } else {          
+          output$statuslicenseasr <- renderUI({
+            div(style="color:red; font-size:20px;",
+                "No license slots available.")
+          })          
         }
-        
-      } else {
-        
-        HTML(as.character(div(
-          style="color:red; font-size:20px;",
-          "All ASReml-R license slots are currently in use. Please wait a few minutes and try again."
-        )))
-        
       }
       
-    })
+    })    
     
     #################
     ## version
@@ -1560,97 +1504,66 @@ mod_mtaASREMLApp_server <- function(id, data){
 
         myEnvsTI = apply(x$df,2,function(z){z})
 
-        # Preparar valores fuera del proceso
-        fixedTerm_val  <- inputFormulaFixed()
-        randomTerm_val <- inputFormulaRandom()
-        covMod_val     <- inputFormulaCovars()
-        addG_val       <- inputFormulaCovars()
-        nFA_val        <- inputFormulanFATerm()
+        # parameters
+        fixedTerm_val      <- inputFormulaFixed()
+        randomTerm_val     <- inputFormulaRandom()
+        covMod_val         <- inputFormulaCovars()
+        addG_val           <- inputFormulaCovars()
+        nFA_val            <- inputFormulanFATerm()
+		analysisId_val     <- input$version2MtaAsr
+        analysisIdgeno_val <- input$version2MtaAsrGeno
+	    trait_val          <- input$trait2MtaAsr
+		maxIters_val       <- input$maxitMet
         
         heritLB_val <- as.numeric(unlist(strsplit(input$heritLBMet, ",")))
         heritUB_val <- as.numeric(unlist(strsplit(input$heritUBMet, ",")))
         meanLB_val  <- as.numeric(unlist(strsplit(input$meanLBMet, ",")))
         meanUB_val  <- as.numeric(unlist(strsplit(input$meanUBMet, ",")))
-        
-        result <- tryCatch({
+		
+        lastt <- tryCatch({
           callr::r(
-            function(dtMtaAsr,
-                     analysisId,
-                     analysisIdgeno,
-                     fixedTerm,
-                     randomTerm,
-                     covMod,
-                     addG,
-                     nFA,
-                     envsToInclude,
-                     trait,
-                     traitFamily,
-                     heritLB,
-                     heritUB,
-                     meanLB,
-                     meanUB,
-                     maxIters) {
-              cgiarPipeline::metASREML(              
-                phenoDTfile = dtMtaAsr,
-                analysisId = analysisId,
-                analysisIdgeno = analysisIdgeno,
-                fixedTerm = fixedTerm,
-                randomTerm = randomTerm,
-                covMod = covMod,
-                addG = addG,
-                nFA = nFA,
-                envsToInclude = envsToInclude,
-                trait = trait,
-                traitFamily = traitFamily,
-                useWeights = TRUE,
-                calculateSE = TRUE,
-                heritLB = heritLB,
-                heritUB = heritUB,
-                meanLB = meanLB,
-                meanUB = meanUB,
-                maxIters = maxIters,
-                verbose = TRUE
-              )
-              
+            function(dtMtaAsr,analysisId,analysisIdgeno,fixedTerm,
+                     randomTerm,covMod,addG,nFA,envsToInclude,
+                     trait,traitFamily,heritLB,heritUB,meanLB,meanUB,maxIters) {
+				#metASREML(phenoDTfile = dtMtaAsr,analysisId = analysisId,analysisIdgeno = analysisIdgeno,
+            cgiarPipeline::metASREML(phenoDTfile = dtMtaAsr,analysisId = analysisId,analysisIdgeno = analysisIdgeno,            
+                fixedTerm = fixedTerm,randomTerm = randomTerm,covMod = covMod,addG = addG,nFA = nFA,
+				envsToInclude = envsToInclude,trait = trait,traitFamily = traitFamily,useWeights = TRUE,
+                calculateSE = TRUE,heritLB = heritLB,heritUB = heritUB,meanLB = meanLB,meanUB = meanUB,
+                maxIters = maxIters,verbose = TRUE)              
             },
-            args = list(
-              dtMtaAsr = dtMtaAsr,
-              analysisId = input$version2MtaAsr,
-              analysisIdgeno = input$version2MtaAsrGeno,
-              fixedTerm = fixedTerm_val,
-              randomTerm = randomTerm_val,
-              covMod = covMod_val,
-              addG = addG_val,
-              nFA = nFA_val,
-              envsToInclude = myEnvsTI,
-              trait = input$trait2MtaAsr,
-              traitFamily = myFamily,
-              heritLB = heritLB_val,
-              heritUB = heritUB_val,
-              meanLB = meanLB_val,
-              meanUB = meanUB_val,
-              maxIters = input$maxitMet
-            )
-          )
-          
+            args = list(dtMtaAsr = dtMtaAsr,analysisId = analysisId_val,analysisIdgeno = analysisIdgeno_val,
+              fixedTerm = fixedTerm_val,randomTerm = randomTerm_val,covMod = covMod_val,addG = addG_val,
+              nFA = nFA_val,envsToInclude = myEnvsTI,trait = trait_val,traitFamily = myFamily,
+              heritLB = heritLB_val,heritUB = heritUB_val,meanLB = meanLB_val, meanUB = meanUB_val,
+              maxIters = maxIters_val)
+          )          
         }, error = function(e) {
-          list(error = TRUE, message = e$message)
-        })
+          return(list(phenoDTfile=NULL, errorMSN = e$message))
+          message("❌ Error in run asreml function", e$message)
+        })        
+        #save.image(file = "asrResult1.RData")
+        errorMess<-lastt[[2]]
+        result<-lastt[[1]]
         
-
-        if(!inherits(result,"try-error") ) {
+        if(is.null(errorMess)) {
           if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
-          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          cat("Analysis failed: ",errorMess)
+          shinyWidgets::show_alert(            
+            title = "Status",
+            text = paste("Error:", errorMess),
+            type = "error"
+          )
         }
       }
       #save(result,file="asrResult.RData")
       shinybusy::remove_modal_spinner()
 
-      if(!inherits(result,"try-error")) { # if all goes well in the run
+      if(is.null(errorMess)) { # if all goes well in the run
         ## alert status converge
         observeEvent(result$modeling,{
           modeling <- result$modeling
@@ -1694,8 +1607,7 @@ mod_mtaASREMLApp_server <- function(id, data){
           ), numeric.output)
         }, server = FALSE)
         # metrics table
-        output$metricsMtaAsr <-  DT::renderDT({
-          if(!inherits(result,"try-error") ){
+        output$metricsMtaAsr <-  DT::renderDT({          
             metrics <- result$metrics
             MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
             MtaAsrId <- MtaAsrs[length(MtaAsrs)]
@@ -1705,12 +1617,10 @@ mod_mtaASREMLApp_server <- function(id, data){
             DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
                                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            ), numeric.output)
-          }
+            ), numeric.output)          
         }, server = FALSE)
         # modeling table
-        output$modelingMtaAsr <-  DT::renderDT({
-          if(!inherits(result,"try-error") ){
+        output$modelingMtaAsr <-  DT::renderDT({          
             modeling <- result$modeling
             MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
             MtaAsrId <- MtaAsrs[length(MtaAsrs)]
@@ -1719,8 +1629,7 @@ mod_mtaASREMLApp_server <- function(id, data){
             DT::datatable(modeling, extensions = 'Buttons',
                           options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                          lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
-            )
-          }
+            )          
         }, server = FALSE)
         ## Report tab
         output$reportMtaAsr <- renderUI({
