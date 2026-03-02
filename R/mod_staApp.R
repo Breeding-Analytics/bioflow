@@ -939,7 +939,7 @@ mod_staApp_server <- function(id,data){
       # req(input$genoUnitSta)
       dtSta <- data()
       dtSta <- dtSta$modifications$pheno
-      dtSta <- dtSta[which(dtSta$module %in% c("qaRaw", "qaFilter", "qaMb", "qaDesign")),]
+      dtSta <- dtSta[which(dtSta$module %in% c("qaRaw", "qaMb")),]
       if(nrow(dtSta) > 0){
         dtSta <- dtSta[which(dtSta$analysisId %in% input$version2Sta),] # only traits that have been QA
         traitsSta <- unique(dtSta$trait)
