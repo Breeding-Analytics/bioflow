@@ -1,0 +1,111 @@
+name: Bioflow Bug Report
+description: Report a reproducible bug in Bioflow
+title: "[Bug]: "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bioflow Bug Report Form
+        Please complete all required fields.  
+        Reports without datasets and reproducible steps cannot be evaluated.
+
+  - type: input
+    id: name_email
+    attributes:
+      label: 1. Name / Email
+      description: For follow-up communication
+      placeholder: "Full name and contact email"
+    validations:
+      required: true
+
+  - type: input
+    id: organization
+    attributes:
+      label: 2. Organization / Institute
+      description: For follow-up communication
+      placeholder: "Institution name"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: platform
+    attributes:
+      label: 3. Platform
+      options:
+        - label: Production Server
+        - label: Testing Server
+        - label: Offline
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 4. Bioflow Version
+      description: Top-right corner of the interface
+      placeholder: "e.g., v2.3.1"
+    validations:
+      required: true
+
+  - type: input
+    id: datetime
+    attributes:
+      label: 5. Date / Time / Time Zone
+      description: Required to retrieve log files for online platforms
+      placeholder: "YYYY-MM-DD HH:MM (Time Zone)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dataset
+    attributes:
+      label: 6. Dataset (Mandatory)
+      description: |
+        Data Management → Save Data/Results → Save object → Attach the ".RData" file.
+        This file is required for reproducibility.
+      placeholder: "Please attach the .RData file to this issue."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 7. Steps to Reproduce (Mandatory)
+      description: List exact steps, including selected options and configurations
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: 8. Error Message (if applicable)
+      description: Copy the full message or attach a screenshot
+      render: shell
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: 9. Observed Results
+      description: Download the dashboard from the Output tab and attach if relevant
+      placeholder: "Describe what happened and attach any relevant output files."
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 10. Expected Results
+      description: Provide supporting evidence if claiming incorrect statistical output
+      placeholder: "Describe what you expected and provide justification if relevant."
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 11. Additional Notes (Optional)
+      description: Any relevant context (recent updates, permissions, network issues, etc.)
+      placeholder: "Optional additional context."
