@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Bioflow Questions / Usage Help (Discussions)
+    url: https://github.com/OWNER/REPO/discussions
+    about: Please use Discussions for questions and troubleshooting that is not a confirmed bug.
