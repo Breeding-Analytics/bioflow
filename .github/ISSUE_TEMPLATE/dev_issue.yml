@@ -36,9 +36,7 @@ body:
         - Branch:
         - Linked issue:
         - Module:
-    validations:
-      required: true
-
+  
   - type: textarea
     id: code_location
     attributes:
@@ -48,9 +46,7 @@ body:
         - File:
         - Function:
         - Line numbers:
-    validations:
-      required: true
-
+    
   - type: textarea
     id: expected_vs_observed
     attributes:
@@ -66,7 +62,7 @@ body:
     id: repro_test
     attributes:
       label: Repro / Test Evidence
-      description: Minimal reproduction steps, logs, stack traces, or proposed unit/integration test.
+      description: Minimal reproduction steps, logs, etc.
       placeholder: |
         - Steps to reproduce:
         - Stack trace:
