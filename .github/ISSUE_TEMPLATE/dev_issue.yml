@@ -65,6 +65,3 @@ body:
       description: Minimal reproduction steps, logs, etc.
       placeholder: |
         - Steps to reproduce:
-        - Stack trace:
-        - Failing test:
-        - Proposed test:
