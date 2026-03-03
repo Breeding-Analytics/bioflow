@@ -386,7 +386,7 @@ app_server <- function(input, output, session) {
   mod_selSignApp_server("selSignApp_1")
 
   # MUTATION - mutation discovery
-  mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
+  # mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
   # MUTATION - mutation history
   #mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
