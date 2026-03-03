@@ -1,0 +1,25 @@
+---
+name: Developer-only issues
+about: For development work only (code-level bugs, refactors, chores). Do not use for user bug reports.
+title: "[Dev]: "
+labels: ["dev"]
+---
+
+## Developer-only checklist (required)
+- [ ] This is a **code-level** issue (not an end-user bug report requiring a dataset).
+- [ ] I have a suspected file/function/module location (or stack trace pointing to it).
+- [ ] I can reference a commit / branch / PR context.
+
+## Context
+What are you working on? Link PRs/branches/issues if relevant.
+
+## Where in the code?
+File(s) / function(s) / module(s), with links if possible.
+
+## Expected vs observed behavior
+Concise description.
+
+## Repro / test evidence
+- Steps to reproduce (minimal)
+- Relevant logs / stack traces
+- Proposed unit/integration test (if applicable)
