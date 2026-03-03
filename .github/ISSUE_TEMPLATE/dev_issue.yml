@@ -1,25 +1,74 @@
----
-name: Developer-only issues
-about: For development work only (code-level bugs, refactors, chores). Do not use for user bug reports.
+name: Developer-only Issue
+description: For development work only (code-level bugs, refactors, chores). Do NOT use for user bug reports.
 title: "[Dev]: "
 labels: ["dev"]
----
+assignees: []
 
-## Developer-only checklist (required)
-- [ ] This is a **code-level** issue (not an end-user bug report requiring a dataset).
-- [ ] I have a suspected file/function/module location (or stack trace pointing to it).
-- [ ] I can reference a commit / branch / PR context.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Developer-only Issue
 
-## Context
-What are you working on? Link PRs/branches/issues if relevant.
+        This template is intended for internal development work:
+        - Code-level bugs
+        - Test failures
+        Do NOT use this template for user-facing bug reports requiring datasets.
 
-## Where in the code?
-File(s) / function(s) / module(s), with links if possible.
+  - type: checkboxes
+    id: dev_checklist
+    attributes:
+      label: Developer-only checklist (required)
+      options:
+        - label: This is a code-level issue (not an end-user bug report requiring a dataset).
+        - label: I have a suspected file/function/module location (or stack trace pointing to it).
+        - label: I can reference a commit, branch, or PR context.
+    validations:
+      required: true
 
-## Expected vs observed behavior
-Concise description.
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you working on? Link PRs/branches/issues if relevant.
+      placeholder: |
+        - Related PR:
+        - Branch:
+        - Linked issue:
+        - Module:
+    validations:
+      required: true
 
-## Repro / test evidence
-- Steps to reproduce (minimal)
-- Relevant logs / stack traces
-- Proposed unit/integration test (if applicable)
+  - type: textarea
+    id: code_location
+    attributes:
+      label: Where in the code?
+      description: File(s), function(s), or module(s) involved. Provide links if possible.
+      placeholder: |
+        - File:
+        - Function:
+        - Line numbers:
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_vs_observed
+    attributes:
+      label: Expected vs Observed Behavior
+      description: Concise technical description.
+      placeholder: |
+        Expected:
+        Observed:
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro_test
+    attributes:
+      label: Repro / Test Evidence
+      description: Minimal reproduction steps, logs, stack traces, or proposed unit/integration test.
+      placeholder: |
+        - Steps to reproduce:
+        - Stack trace:
+        - Failing test:
+        - Proposed test:
