@@ -62,23 +62,23 @@ body:
   - type: textarea
     id: dataset
     attributes:
-    label: 6. Dataset (Mandatory)
-    description: |
-      Provide one of the following:
+      label: 6. Dataset (Mandatory)
+      description: |
+        Provide one of the following:
 
-      OPTION A — Attach the ".RData" file directly (will be public).
+        OPTION A — Attach the ".RData" file directly (will be public).
 
-      OPTION B — Provide a restricted SharePoint/OneDrive link.
-      Access must be granted to:
-      - l.guimaraes@cgiar.org
-      - k.el-shamaa@cgiar.org
+        OPTION B — Provide a restricted SharePoint/OneDrive link.
+        Access must be granted to:
+        - l.guimaraes@cgiar.org
+        - k.el-shamaa@cgiar.org
 
-      Reports without accessible datasets cannot be evaluated.
-    placeholder: |
-      - If attaching file: confirm attachment here.
-      - If using SharePoint: paste secure link here.
-  validations:
-    required: true
+        Reports without accessible datasets cannot be evaluated.
+      placeholder: |
+        - If attaching file: confirm attachment here.
+        - If using SharePoint: paste secure link here.
+    validations:
+      required: true
 
   - type: textarea
     id: steps
