@@ -1,0 +1,92 @@
+name: Bioflow Feature Request
+description: Propose a statistically justified feature with institutional relevance
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bioflow Feature Request Form
+
+        Feature requests must demonstrate institutional relevance and cross-program value.
+        Requests lacking sufficient justification may not be considered.
+
+        Bioflow is a shared analytical infrastructure serving multiple crops and centers.
+        Please provide rigorous justification.
+
+  - type: textarea
+    id: problem_description
+    attributes:
+      label: 1. Problem Description
+      description: |
+        Describe the operational breeding need this addresses.
+        Focus on the breeding problem, not only the desired interface or functionality.
+      placeholder: |
+        - What breeding decision or workflow is currently unsupported?
+        - What limitation exists in current Bioflow modules?
+        - In which stage (STA, MTA, GPCP, Index Selection, etc.) does this arise?
+    validations:
+      required: true
+
+  - type: textarea
+    id: institutional_justification
+    attributes:
+      label: 2. Institutional Justification
+      description: |
+        Explain why this should be implemented in Bioflow.
+        Indicate:
+        - How many crops or CGIAR centers require this
+        - Whether it supports CGIAR reporting
+        - Whether it is already widely adopted in breeding programs
+        - Whether it aligns with strategic breeding modernization efforts
+      placeholder: |
+        Provide concrete institutional context and scope.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_impact
+    attributes:
+      label: 3. Expected Impact
+      description: |
+        Describe the institutional benefit.
+        Clarify whether this:
+        - Improves selection accuracy
+        - Reduces analysis time
+        - Strengthens reporting compliance
+        - Improves reproducibility
+        - Enhances cross-center harmonization
+      placeholder: |
+        Quantify impact where possible (e.g., reduction in analysis time, improvement in reliability, etc.).
+    validations:
+      required: true
+
+  - type: textarea
+    id: statistical_framework
+    attributes:
+      label: 4. Proposed Statistical / Technical Framework
+      description: |
+        Specify:
+        - Statistical model or method
+        - Relevant literature references
+        - Whether an implementation exists in R, ASReml, sommer, LMMsolver, etc.
+        - Computational considerations (e.g., kernel size, scalability, HPC requirements)
+      placeholder: |
+        Example:
+        - Model: Multi-environment factor-analytic mixed model
+        - Reference: Smith et al. (2001)
+        - Existing implementation: asreml-R / sommer
+        - Notes on scalability:
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: governance_acknowledgement
+    attributes:
+      label: Governance Acknowledgement
+      options:
+        - label: I understand that feature prioritization depends on institutional relevance and development capacity.
+    validations:
+      required: true
