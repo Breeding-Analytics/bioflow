@@ -298,7 +298,7 @@ mod_getDataGeno_server <-
                  dartseqsnp = {
                    shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
                    tryCatch({
-                     geno_data = cgiarGenomics::read_DArTSeq_SNP(art_path = genotype_file,
+                     geno_data = cgiarGenomics::read_DArTSeq_SNP(path = genotype_file,
                                                                  snp_id = input$dartseq_markerid,
                                                                  chr_name = input$dartseq_chrom,
                                                                  pos_name = input$dartseq_position)

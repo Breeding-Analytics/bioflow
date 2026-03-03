@@ -316,7 +316,7 @@ if (is.null(result)){
 
 `r if (length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ) {
 coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
-if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){shinyjs::hide()}else{"### Field view\n
+if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){shinyjs::hide()}else{"### Field view\n
 The following heatmaps allow you to inspect the spatial trends in the different fields to take corrective measures in the next season and understand why some variance components may look the way they look.\n"}
 }`
 
@@ -339,7 +339,7 @@ if (is.null(result)){
       
       coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"),"value" ]
       
-      if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+      if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
         shinyjs::hide()
       }else{ # input <- list(traitStaFieldView=traitFieldView[1])
         shiny::selectInput(ns("traitStaFieldView"), 
@@ -365,12 +365,22 @@ if (is.null(result)){
   if(length(which( result$metadata$pheno$parameter %in% c("row","col") ))==2 ){
     
     
-    if( any( apply(result$data$pheno[,coordNames],2, sommer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
+    if( any( apply(result$data$pheno[,coordNames],2, enhancer::propMissing) == 1) ){ # we can't proceed, there's no information in one of the coordinates
       shinyjs::hide()
     }else{
       pheno <- result$data$pheno
       pheno <- pheno[,which(!duplicated(colnames(pheno)))]
       metaPheno <- result$metadata$pheno; metaPheno <- metaPheno[metaPheno$parameter != "trait", ]
+      
+      for(i in 1:length(metaPheno$parameter)){
+        if((metaPheno$parameter[i] %in% colnames(pheno)) & 
+           (metaPheno$parameter[i] != metaPheno$value[i])){
+          colnames(pheno) <- replace(colnames(pheno), 
+                                     colnames(pheno) == metaPheno$parameter[i],
+                                     paste0(metaPheno$parameter[i],"_dup"))
+          }
+      }
+      
       colnames(pheno) <- cgiarBase::replaceValues( colnames(pheno), Search = metaPheno$value, Replace = metaPheno$parameter)
       
       if("params" %in% ls()){ # we will download the document
@@ -1181,8 +1191,7 @@ if (is.null(result)){
           corr <- corr[ord,ord]
         }
         
-      }
-      vv <- cgiarBase::matToTab(corr)
+        vv <- cgiarBase::matToTab(corr)
       p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
         ggplot2::geom_tile(color = "white")+
         ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
@@ -1208,15 +1217,28 @@ if (is.null(result)){
                               limit = c(-1,1), space = "Lab", 
                               name="Pearson\nCorrelation") + 
         ggplot2::xlab("Value") + ggplot2::ylab("")
+        
+      } else{
+        p <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
+        p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
+      }
       
       for(iFreq in c("with frequency distribution", "without frequency distribution")){
         cat("\n\n#####", iFreq, "{.tabset .tabset-pills}       \n\n")
         if(iFreq == "with frequency distribution"){
-        # combine plots
-      print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
-      } else{
-        print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
-      }
+          # combine plots
+          if(nrow(corr) > 1){
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600))) 
+          } else{
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+          }
+        } else{
+          if(nrow(corr) > 1){
+            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+          }else{
+            print(htmltools::tagList(plotly::ggplotly(p)))
+          }
+        }
         
       }
       cat("\n")
@@ -1241,43 +1263,57 @@ if (is.null(result)){
           corr <- corr[ord,ord]
         }
         
+        vv <- cgiarBase::matToTab(corr)
+        p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
+          ggplot2::geom_tile(color = "white") +
+          ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
+                                        midpoint = 0, limit = c(-1,1), space = "Lab", 
+                                        name="Pearson\nCorrelation") +
+          ggplot2::theme_minimal()+ 
+          # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
+          # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
+          # ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
+          ggplot2::ylab("") + ggplot2::xlab("") +
+          ggplot2::coord_fixed()
+        # p
+        # plotly::ggplotly(p)
+        # Basic histogram
+        # vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
+        # group.colors <- c(Low="#E46726",Medium="white", High="#038542")
+        # p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
+        #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
+        #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Correlation Value")
+        
+        p2 <- ggplot() + geom_histogram(data = vv[which(vv$Var1 != vv$Var2),], 
+                                        aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
+          ggplot2::scale_x_continuous(limits = c(-1,1)) +
+          scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
+                               limit = c(-1,1), space = "Lab", 
+                               name="Pearson\nCorrelation") + 
+          ggplot2::xlab("Correlation Value") + ggplot2::ylab("")
+        
+      } else{
+        p <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
+        p2 <- ggplot2::ggplot() + ggplot2::ggtitle("Not enough rows")
       }
-      vv <- cgiarBase::matToTab(corr)
-      p <- ggplot2::ggplot(data = vv, ggplot2::aes(Var2, Var1, fill = Freq))+
-        ggplot2::geom_tile(color = "white") +
-        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white", 
-                                      midpoint = 0, limit = c(-1,1), space = "Lab", 
-                                      name="Pearson\nCorrelation") +
-        ggplot2::theme_minimal()+ 
-        # ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = 8, hjust = 1))+
-        # ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = 8, hjust = 1))+
-        # ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + 
-        ggplot2::ylab("") + ggplot2::xlab("") +
-        ggplot2::coord_fixed()
-      # p
-      # plotly::ggplotly(p)
-      # Basic histogram
-      # vv$Group <- ifelse(vv$Freq < 0, "Low", ifelse(vv$Freq < 0.2, "Medium", "High"))
-      # group.colors <- c(Low="#E46726",Medium="white", High="#038542")
-      # p2 <- ggplot(vv[which(vv$Var1 != vv$Var2),], aes(x=Freq, fill=Group)) + 
-      #   geom_histogram() + ggplot2::scale_x_continuous(limits = c(-1,1)) +
-      #   scale_fill_manual(values=group.colors) + ggplot2::xlab("Correlation Value")
-      
-      p2 <- ggplot() + geom_histogram(data = vv[which(vv$Var1 != vv$Var2),], 
-                                      aes(x = Freq, fill = ..x..), binwidth=0.1 ) + 
-        ggplot2::scale_x_continuous(limits = c(-1,1)) +
-         scale_fill_gradient2(low='#E46726', mid='white', high='#038542', midpoint=0, 
-                              limit = c(-1,1), space = "Lab", 
-                              name="Pearson\nCorrelation") + 
-        ggplot2::xlab("Correlation Value") + ggplot2::ylab("")
       
       if(input$freqCor == TRUE){
-      # combine plots
-      ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 3)) 
-      ply2 <- plotly::ggplotly(p2)
-      plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)
+        # combine plots
+        if(nrow(corr) > 1){
+          ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 3)) 
+          ply2 <- plotly::ggplotly(p2)
+          plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)
+        } else{
+          ply1 <- plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()))
+          ply2 <- plotly::ggplotly(p2)
+          plotly::subplot(ply1, ply2, nrows=1, shareY = FALSE, shareX = FALSE )
+        }
       } else{
-        plotly::ggplotly(p  + geom_text(aes(label=Freq))) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+        if(nrow(corr) > 1){
+          plotly::ggplotly(p  + geom_text(aes(label=Freq))) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)
+        } else{
+          plotly::ggplotly(p)
+        }
       }
     })
     

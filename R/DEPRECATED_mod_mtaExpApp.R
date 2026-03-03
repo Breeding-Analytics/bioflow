@@ -718,7 +718,7 @@ mod_mtaExpApp_ui <- function(id){
 #         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
 #         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
 #         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-#           X <- with(zz, sommer::overlay(outputId, inputId))
+#           X <- with(zz, enhancer::overlay(outputId, inputId))
 #         }else{
 #           if(nLevelsCheck1 <= 1){
 #             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
@@ -1607,7 +1607,7 @@ mod_mtaExpApp_server <- function(id, data){
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, sommer::overlay(outputId, inputId))
+          X <- with(zz, enhancer::overlay(outputId, inputId))
         }else{
           if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))

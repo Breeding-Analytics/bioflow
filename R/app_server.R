@@ -358,7 +358,7 @@ app_server <- function(input, output, session) {
 
   ## DATA TRANSFORMATIONS
   mod_traitTransformApp_server("traitTransformApp_1", data = data)
-  mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
+  # mod_bindObjectApp_server("bindObjectApp_1",data = data, res_auth=res_auth)
   #mod_singleCrossGenoApp_server("singleCrossGenoApp_1",data = data)
   mod_expDesignEditApp_server("expDesignEditApp_1", data = data )
   mod_filterPhenoApp_server("filterPhenoApp_1", data = data)
@@ -382,7 +382,7 @@ app_server <- function(input, output, session) {
 
   # SELECTION - selection history
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
-  mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
+  # mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
   mod_selSignApp_server("selSignApp_1")
 
   # MUTATION - mutation discovery

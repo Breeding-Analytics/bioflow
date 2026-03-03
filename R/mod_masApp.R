@@ -300,7 +300,7 @@ mod_masApp_server <- function(id, data){
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, sommer::overlay(outputId, inputId))
+          X <- with(zz, enhancer::overlay(outputId, inputId))
         }else{
           if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
@@ -575,6 +575,37 @@ mod_masApp_server <- function(id, data){
 
 
     ##########################
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportMASGeno,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportMas.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultMas.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultMas.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportMASGeno")
+    })
+
     ## run button
     outMAS <- eventReactive(input$runMAS, { # input <- list(version2Mta=result$status$analysisId[1], markers2MAS=colnames(result$data$geno)[1:10])
 
@@ -681,34 +712,6 @@ mod_masApp_server <- function(id, data){
         # ## Report tab
         output$reportMASGeno <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMas.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportMASGeno,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd","reportMas.Rmd",package="bioflow"))
-          src2 <- normalizePath('data/resultMas.RData')
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultMas.RData', overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportMASGeno")
         })
 
         output$downloadReportMASGeno <- downloadHandler(

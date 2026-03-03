@@ -54,7 +54,7 @@ mod_pggApp_ui <- function(id){
                                        tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right")  ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2Pgg"), "STA version to analyze", choices = NULL, multiple = FALSE)),
+                                                       column(width=8, selectInput(ns("version2Pgg"), "STA or MTA version to analyze", choices = NULL, multiple = FALSE)),
 
                                                 ),
                                                 column(width=12),
@@ -172,9 +172,9 @@ mod_pggApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab, compute the 'environment' column, map the 'designation' and at least one trait.")) )
       }else{ # data is there
-        if( any(c("mtaLmms","mta","mtaFlex") %in% data()$status$module) ){
+        if( any(c("sta","mtaLmms","mta","mtaFlex","mtaAsr") %in% data()$status$module) ){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain analysis specifying your input parameters under the Input tabs.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single Trial or Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
       }
     )
     ## data example loading
@@ -216,7 +216,7 @@ mod_pggApp_server <- function(id, data){
       req(data())
       dtPgg <- data()
       dtPgg <- dtPgg$status
-      dtPgg <- dtPgg[which(dtPgg$module %in% c("sta")),]
+      dtPgg <- dtPgg[which(dtPgg$module %in% c("sta","mtaLmms","mta","mtaFlex","mtaAsr")),]
       traitsPgg <- unique(dtPgg$analysisId)
       if(length(traitsPgg) > 0){
         if("analysisIdName" %in% colnames(dtPgg)){
@@ -237,26 +237,6 @@ mod_pggApp_server <- function(id, data){
       dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
       traitsPgg <- unique(dtPgg$trait)
       updateSelectInput(session, "trait2Pgg", choices = traitsPgg)
-    })
-    # trait for report tab
-    observeEvent(c(data(), input$version2Pgg), {
-      req(data())
-      req(input$version2Pgg)
-      dtPgg <- data()
-      dtPgg <- dtPgg$predictions
-      dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
-      traitsPgg <- unique(dtPgg$trait)
-      updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsPgg)
-    })
-    # environment for report tab
-    observeEvent(c(data(), input$version2Pgg), {
-      req(data())
-      req(input$version2Pgg)
-      dtPgg <- data()
-      dtPgg <- dtPgg$predictions
-      dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
-      traitsPgg <- unique(dtPgg$environment)
-      updateSelectInput(session, "environment", choices = traitsPgg)
     })
     ##############
     ## entry type
@@ -339,7 +319,7 @@ mod_pggApp_server <- function(id, data){
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, sommer::overlay(outputId, inputId))
+          X <- with(zz, enhancer::overlay(outputId, inputId))
         }else{
           if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
@@ -394,6 +374,37 @@ mod_pggApp_server <- function(id, data){
                                     )
       ), numeric.output)
     }, server = FALSE)
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportPgg,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportPgg.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultPgg.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultPgg.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportPgg")
+    })
+
     ## render result of "run" button click
     outPgg <- eventReactive(input$runPgg, {
       req(data())
@@ -403,7 +414,7 @@ mod_pggApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtPgg <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtPgg$status$module %in% c("mta","mtaLmms","indexD")) == 0) {
+      if(sum(dtPgg$status$module %in% c("sta","mtaLmms","mta","mtaFlex","mtaAsr")) == 0) {
         output$qaQcPggInfo <- renderUI({
           if (hideAll$clearAll){
             return()
@@ -483,34 +494,6 @@ mod_pggApp_server <- function(id, data){
         # Report tab
         output$reportPgg <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportPgg.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportPgg,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd","reportPgg.Rmd",package="bioflow"))
-          src2 <- normalizePath('data/resultPgg.RData')
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultPgg.RData', overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportPgg")
         })
 
         output$downloadReportPgg <- downloadHandler(

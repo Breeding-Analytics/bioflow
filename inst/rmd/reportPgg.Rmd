@@ -15,6 +15,7 @@ get_h <- function() {
        fig.height*dpi/fig.retina)
 }
 library(dplyr)
+library(ggplot2)
 ```
 
 ```{r plot_init, include = FALSE}
@@ -245,12 +246,12 @@ if (is.null(result)){
   }else{
     
     inputPanel(
-      selectInput(ns("parameterMetricsBy"),
+      selectInput(ns("paramMetricsBy"),
                   label = "Trait:",
                   # selected = "environment",
                   choices = traitsPgg
       ),
-      shiny::selectInput(ns("parameterMetrics"), 
+      shiny::selectInput(ns("paramMetrics"), 
                          label = "Parameter to filter:", 
                          multiple = FALSE,
                          # selected = unique(parameters),
@@ -303,8 +304,8 @@ if (is.null(result)){
     
     plotly::renderPlotly({
       
-      metricsPgg2 <- metricsPgg[which(metricsPgg$trait == input$parameterMetricsBy ),]
-      metricsPgg3 <- metricsPgg2[which(metricsPgg2$parameter == input$parameterMetrics ),]
+      metricsPgg2 <- metricsPgg[which(metricsPgg$trait == input$paramMetricsBy ),]
+      metricsPgg3 <- metricsPgg2[which(metricsPgg2$parameter == input$paramMetrics ),]
       
       p<-ggplot(metricsPgg3, aes(x=environment, y=value)) +
         geom_bar(stat="identity")+theme_minimal()

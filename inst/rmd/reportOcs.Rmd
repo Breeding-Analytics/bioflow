@@ -346,7 +346,7 @@ if (is.null(result)){
       treatments <- unique(mydata$environment)
       wideList <- list()
       for(iTreatment in treatments){
-        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
+        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],enhancer::overlay(mother,father))
         countsCol <- data.frame(times=apply(overlayCounts,2,sum))
         countsCol$parent <- as.factor(rownames(countsCol))
         countsCol$treatment <- iTreatment
@@ -378,7 +378,7 @@ if (is.null(result)){
       treatments <- unique(mydata$environment)
       wideList <- list()
       for(iTreatment in treatments){
-        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],sommer::overlay(mother,father))
+        overlayCounts <- with(mydata[which(mydata$environment == iTreatment),],enhancer::overlay(mother,father))
         countsCol <- data.frame(times=apply(overlayCounts,2,sum))
         countsCol$parent <- as.factor(rownames(countsCol))
         countsCol$treatment <- iTreatment

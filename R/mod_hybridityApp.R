@@ -480,6 +480,7 @@ mod_hybridityApp_server <- function(id, data){
     ############################################################################
     # warning message
     output$warningMessage <- renderUI(
+      
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab.")) )
       }else{ # data is there
@@ -488,12 +489,25 @@ mod_hybridityApp_server <- function(id, data){
           if(is.null(data()$data$pedigree)){
             HTML( as.character(div(style="color: red; font-size: 20px;", "Pedigree information is required to run this module")))
           }else{
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform F1 QA/QC specifying your input parameters under the Input tabs.")) )
+            ped <- data()$data$pedigree
+            metaPed <- data()$metadata$pedigree
+            colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+            
+            if("crossType" %in% colnames(ped)){
+              if(any(ped$crossType == "F1", na.rm = TRUE)){
+                HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform F1 QA/QC specifying your input parameters under the Input tabs.")) )
+              }else{
+                HTML( as.character(div(style="color: red; font-size: 20px;","To run the F1 qa/qc module the crossType column in the pedigree data needs to indicate which individuals are F1s to be evaluated")))
+              }
+            }else{
+              HTML( as.character(div(style="color: red; font-size: 20px;","To run the F1 qa/qc module the crossType column in the pedigree data needs to indicate which individuals are F1s to be evaluated")))
+            }
           }
-
+          
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data' tab. ")) )}
       }
-    )
+  )
+
 
 
     ## data example loading
@@ -554,7 +568,7 @@ mod_hybridityApp_server <- function(id, data){
         nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
         nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
         if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, sommer::overlay(outputId, inputId))
+          X <- with(zz, enhancer::overlay(outputId, inputId))
         }else{
           if(nLevelsCheck1 <= 1){
             X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
@@ -911,6 +925,37 @@ mod_hybridityApp_server <- function(id, data){
     })
 
     ##########################
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportVerifGeno,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportVerifGeno.Rmd",package="bioflow"))
+      src2 <- normalizePath('data/resultVerifGeno.RData')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      file.copy(src2, 'resultVerifGeno.RData', overwrite = TRUE)
+
+      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                            # HTML = rmarkdown::html_document()
+                                     ))
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportVerifGeno")
+    })
+
     ## run button
     outQaMb <- eventReactive(input$runQaMb, {
 
@@ -1041,34 +1086,6 @@ mod_hybridityApp_server <- function(id, data){
         # ## Report tab
         output$reportVerifGeno <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportVerifGeno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
-        })
-
-        report <- reactiveVal(NULL)
-
-        observeEvent(input$renderReportVerifGeno,{
-          shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-
-          src <- normalizePath(system.file("rmd","reportVerifGeno.Rmd",package="bioflow"))
-          src2 <- normalizePath('data/resultVerifGeno.RData')
-
-          # temporarily switch to the temp dir, in case you do not have write
-          # permission to the current working directory
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-
-          file.copy(src, 'report.Rmd', overwrite = TRUE)
-          file.copy(src2, 'resultVerifGeno.RData', overwrite = TRUE)
-
-          outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                         switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
-                                                # HTML = rmarkdown::html_document()
-                                         ))
-
-          report(outReport)
-
-          shinybusy::remove_modal_spinner()
-
-          shinyjs::click("downloadReportVerifGeno")
         })
 
         output$downloadReportVerifGeno <- downloadHandler(
