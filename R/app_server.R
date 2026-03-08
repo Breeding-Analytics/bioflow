@@ -441,6 +441,9 @@ app_server <- function(input, output, session) {
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
+      removeTab("tabso", "retrieveNewData_tab")
+      removeTab("tabso", "retrieveOldAnalysis_tab")
+
       ### set up paws library ################################################
 
       # Sys.setenv("AWS_ACCESS_KEY_ID"     = "XXXXXXXXXXXXXXXXXXXX")
