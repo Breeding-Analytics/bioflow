@@ -294,6 +294,8 @@ app_server <- function(input, output, session) {
 
     status <- session$userData$temp$status
 
+    if (length(status) == 0 || nrow(status) == 0) { return() }
+
     for (i in 1:nrow(status)) {
       # avoid reporting usage of loaded data from a previous session
       if (status[i,"analysisId"] < as.numeric(Sys.time()) - 3600*24) next
