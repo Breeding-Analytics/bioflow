@@ -131,20 +131,26 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
     ns <- session$ns
 
     observeEvent(
-      input$weather_input,
-      if(length(input$weather_input) > 0){ # added
-        if (input$weather_input == 'weatherfile') {
-          golem::invoke_js('showid', ns('fileOptionsInput'))
-          golem::invoke_js('hideid', ns('apiOptionsInput'))
+      input$weather_input,{
+        temp <- data()
+        temp$data$weather <- NULL
+        temp$metadata$weather <- NULL
+        data(temp)
 
-          golem::invoke_js('showid', ns('fileOptionsRetrieve'))
-          golem::invoke_js('hideid', ns('apiOptionsRetrieve'))
-        } else if (input$weather_input == 'weatherapi') {
-          golem::invoke_js('showid', ns('apiOptionsInput'))
-          golem::invoke_js('hideid', ns('fileOptionsInput'))
+        if(length(input$weather_input) > 0){ # added
+          if (input$weather_input == 'weatherfile') {
+            golem::invoke_js('showid', ns('fileOptionsInput'))
+            golem::invoke_js('hideid', ns('apiOptionsInput'))
 
-          golem::invoke_js('showid', ns('apiOptionsRetrieve'))
-          golem::invoke_js('hideid', ns('fileOptionsRetrieve'))
+            golem::invoke_js('showid', ns('fileOptionsRetrieve'))
+            golem::invoke_js('hideid', ns('apiOptionsRetrieve'))
+          } else if (input$weather_input == 'weatherapi') {
+            golem::invoke_js('showid', ns('apiOptionsInput'))
+            golem::invoke_js('hideid', ns('fileOptionsInput'))
+
+            golem::invoke_js('showid', ns('apiOptionsRetrieve'))
+            golem::invoke_js('hideid', ns('fileOptionsRetrieve'))
+          }
         }
       }
     )
@@ -295,30 +301,36 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       envCol <- which(paramsPheno$parameter == "environment")
       if (length(envCol) > 0) {
         fieldNames <- as.character(unique(dtProv[,"environment"]))
-        values <- values2 <- values3 <- values4 <- values5 <- vector()
-        for (i in 1:length(fieldNames)) {
-          tempval <- reactive({paste0('input$','latitude',i)})
-          values[i] <- tempval()
-          values[i] <- eval(parse(text = values[i]))
-          tempval <- reactive({paste0('input$','longitude',i)})
-          values2[i] <- tempval()
-          values2[i] <- eval(parse(text = values2[i]))
-          tempval <- reactive({paste0('input$','plantingDate',i)})
-          values3[i] <- tempval()
-          values3[i] <- eval(parse(text = values3[i])) # eval(lubridate::parse_date_time2(as.character(values3[i]), orders='Ymd'))
-          tempval <- reactive({paste0('input$','harvestingDate',i)})
-          values4[i] <- tempval()
-          values4[i] <- eval(parse(text = values4[i]))
-          tempval <- reactive({paste0('input$','environment',i)})
-          values5[i] <- tempval()
-          values5[i] <- eval(parse(text = values5[i]))
+        n <- length(fieldNames)
+
+        values <- numeric(n)
+        values2 <- numeric(n)
+        values3 <- as.Date(rep(NA, n), origin="1970-01-01", tz="GMT")
+        values4 <- as.Date(rep(NA, n), origin="1970-01-01", tz="GMT")
+        values5 <- character(n)
+
+        for (i in seq_len(n)) {
+          lat <- input[[paste0("latitude", i)]]
+          if (!is.null(lat)) values[i] <- lat
+
+          lon <- input[[paste0("longitude", i)]]
+          if (!is.null(lon)) values2[i] <- lon
+
+          pd <- input[[paste0("plantingDate", i)]]
+          if (!is.null(pd)) values3[i] <- pd
+
+          hd <- input[[paste0("harvestingDate", i)]]
+          if (!is.null(hd)) values4[i] <- hd
+
+          env <- input[[paste0("environment", i)]]
+          if (!is.null(env)) values5[i] <- env
         }
-        values <- as.numeric( as.data.frame(t(as.numeric(values))) );
-        values2 <- as.numeric( as.data.frame(t(as.numeric(values2))) );
-        values3 <- as.Date(as.numeric( as.data.frame(t(as.numeric(values3))) ), origin="1970-01-01", tz="GMT")
-        values4 <- as.Date(as.numeric( as.data.frame(t(as.numeric(values4))) ), origin="1970-01-01", tz="GMT")
-        values5 <- as.character(as.data.frame(t(as.character(values5))) )
-        xx <- data.frame(latitude=values, longitude=values2, plantingDate=values3, harvestingDate=values4, environment=values5)
+        xx <- data.frame( latitude = values,
+                          longitude = values2,
+                          plantingDate = values3,
+                          harvestingDate= values4,
+                          environment = values5,
+                          stringsAsFactors = FALSE )
         return(xx)
       }
     })
@@ -333,6 +345,7 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
             lat = ~latitude,
             lon = ~longitude,
             type = "scattermapbox",
+            mode = "markers",
             hovertext = ~environment, #us_cities[,"City"],
             marker = list(color = "fuchsia"))
         fig <- fig %>%
@@ -382,7 +395,13 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
               DT::datatable(result$data$weather[,1:min(c(50,ncol(result$data$weather)))],
                             extensions = 'Buttons',
                             options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                           lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))))
+                                           lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
+                            caption = htmltools::tags$caption(
+                              style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
+                              htmltools::em('Data preview.')
+                            )
+              )
+
             }, server = FALSE)
 
           }else{
@@ -428,10 +447,10 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
         DT::datatable(weather_data_table()[,1:min(c(50,ncol(weather_data_table())))],
                       extensions = 'Buttons',
                       options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
-                      # caption = htmltools::tags$caption(
-                      #   style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
-                      #   htmltools::em('Data preview.')
-                      # )
+                      caption = htmltools::tags$caption(
+                        style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
+                        htmltools::em('Data preview.')
+                      )
         )
       }, server = FALSE)
       # read the data and save in the data object
@@ -484,19 +503,28 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
 
     ##produce the map plot
     output$plotMeteo2 <-  plotly::renderPlotly({
-      req(input$selectenvironment)
-      req(input$selectlatitude)
-      req(input$selectlongitude)
+      req(data())
+      if(input$weather_input == 'weatherfile'){
+        req(input$selectenvironment)
+        req(input$selectlatitude)
+        req(input$selectlongitude)
+
+        if (is.null(weather_data_table())) return(NULL)
+      } else{
+        if (nrow(dataWeather()) == 0) return(NULL)
+      }
 
       xx <- data()$data$weather
+      req(xx)
       colnames(xx) <- cgiarBase::replaceValues(colnames(xx), Search = data()$metadata$weather$value, Replace = data()$metadata$weather$parameter )
-      if(!is.null(xx)){
+      if(all(c("latitude", "longitude", "environment") %in% colnames(xx))){
         fig <- xx
         fig <- fig %>%
           plotly::plot_ly(
             lat = ~latitude,
             lon = ~longitude,
             type = "scattermapbox",
+            mode = "markers",
             hovertext = ~environment, #us_cities[,"City"],
             marker = list(color = "fuchsia"))
         fig <- fig %>%
@@ -505,6 +533,13 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
               style = 'open-street-map',
               zoom =1,
               center = list(lon = 0, lat = 0)
+            ),
+            title = list(
+              text = '<em>Map preview.</em>',
+              x = 0,
+              xanchor = "left",
+              font = list(size = 18,
+                          color = "cadetblue")
             )
           )
         # }
