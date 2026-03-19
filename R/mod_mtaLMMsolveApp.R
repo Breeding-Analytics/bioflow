@@ -1549,7 +1549,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
             out <- report()
 
-            file.copy(out, file, overwrite = TRUE)
+            file.rename(out, file)
           }
         )
 
