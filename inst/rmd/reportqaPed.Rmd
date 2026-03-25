@@ -1,0 +1,740 @@
+---
+title: "Quality Assurance Pedigree Report"
+author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
+date: "`r format(Sys.time(), '%B %d, %Y')`"  
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+# knitr R markdown chunk options
+knitr::opts_chunk$set(dependson = knitr::all_labels(),
+                      echo = FALSE,
+                      cache = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = NA,
+                      out.width = "100%",
+                      error = TRUE)
+
+options(knitr.kable.NA = '')
+library(magrittr) # coerce col to factors or numeric
+library(ggplot2)  # ggplot(), etc.
+library(plotly)  # ggplot(), etc.
+library(DT)       # datatable()
+library(knitr)    # kable
+library(data.table)
+library(shiny)
+```
+
+```{r printfxn, include=FALSE}
+# functions ####
+# for printing tables (data.frames) - DT::datatable()
+printTable <- function(DT, pageLength = 7, 
+                       numericColNames = NULL, numRound = 3, 
+                       scrollXOpt = FALSE, colNames = NULL, autoWidthOpt = FALSE,
+                       fixedCol = 0, filt = "top",...) {
+  oldnames <- colnames(DT)
+  DT <- data.frame(lapply(X = DT, 
+                          FUN = function(x) {
+                            if(is.numeric(x)){
+                              round(x, numRound)
+                            } else {
+                              x
+                            }
+                          }))
+  colnames(DT) <- oldnames
+  table <- DT::datatable(data = DT, 
+                         colnames = colNames,
+                         filter = "top", 
+                         options = list(autoWidth = autoWidthOpt,
+                                        dom = 'l<<t>pB>', 
+                                        buttons = c('copy', 'csv', 'excel', 'print'),
+                                        pageLength = pageLength,
+                                        searchHighlight = TRUE,
+                                        lengthMenu = c(7, 14, 21, 28, 35),
+                                        scrollX = scrollXOpt),
+                         extensions = 'Buttons',
+                         rownames = FALSE,
+                         ...)
+  if (length(numericColNames) > 0){
+    table <- table %>% DT::formatRound(columns = numericColNames,
+                                       digits = numRound)
+  }
+  
+  table
+}
+```
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+library(ggplot2)
+htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+htmltools::tagList(printTable(mtcars))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+```
+
+```{r }
+
+suppressWarnings(tryCatch({
+  if(file.exists("./outputs/resultqaPed.RData")){
+    load("./outputs/resultqaPed.RData")
+  }else{
+    load("resultqaPed.RData")
+  }
+}, error = function(e) {
+  shinyjs::hide()
+}))
+
+```
+### Inputs and outputs of the Pedigree QA/QC
+<p>&nbsp;</p>
+
+1. INPUT: Genotypic information of individuals and Parents 
+
+2. INPUT: Pedigree information connecting each individual to two parents 
+
+3. INPUT: Genotype QA/QC results
+
+4. INPUT: Metadata like a row and columns of the field and position on the plate could be used
+
+5. OUTPUT: Number of markers that was wrong match for each cross (wrong)
+
+6. OUTPUT: Number of markers that was testable for each cross (testable) 
+
+7. OUTPUT: Percent of markers that was wrong match for each cross (QCPer_wrong), if this percent is less than the threshold assigned the category of classification was Allele_QC_PASS else Allele_QC_FAIL.
+
+8. OUTPUT: To determine if the individual resembles the mother are correct we used the values in G_matrix_Line_Female, and the result of classification (FEMALE_GMAT_WRONG, FEMALE_BORDERLINE_GMAT, FEMALE_HIGH_GMAT, XXX) depend of the thresholds.
+
+9. OUTPUT: To determine if the individual resembles the father are correct we used the values in G_matrix_Line_Male, and the result of classification (MALE_GMAT_WRONG, MALE_BORDERLINE_GMAT,XXX) depend of the thresholds.
+
+10. OUTPUT: In the case of the diagonal the values must be 2 because it is the comparison of the individual with itself, then if we take the value of the individual of the diagonal and subtract it from the value that relates the mother with the individual, this should be very close to zero if they are related (Diagonal_minus_Female_G_matrix) and we can classify like a PROBABLE_SELF or pass XXX depend of the thresholds assigned.
+
+11. OUTPUT: Status of individuals in the final classification (PASS, BORDERLINE, FAIL, PARENT FAIL, NO GENO DATA)
+
+This QA/QC module allows users to identify which individuals should be considered a PASS, which ones should be investigated further (BORDERLINE) and which ones FAIL. 
+
+This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information, ungenotyped individuals are also flagged like NO GENO DATA.
+
+### Verification results
+<p>&nbsp;</p>
+
+The following plot and table show the values associated for the individuals on different metrics according to the thresholds chosen in the input tabs.
+```{r }
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+	if(!is.null(result$predictions) ){
+    decisionped<-data.frame(result$predictions)
+	idQa <- result$status[which(result$status$module %in% c("qaPed")),"analysisId"];
+	idQa <- idQa[length(idQa)]
+	decisionped <- decisionped[which( decisionped$analysisId == idQa),]
+	traitsTable <- unique(decisionped$trait)  
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::selectInput(ns("traitQa"), 
+                       label = "Verification measure:", 
+                       choices = traitsTable, 
+    )
+  }
+	}
+  
+}
+
+```
+
+```{r }
+
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+ predictionsX <- result$predictions[which( result$predictions$analysisId == idQa),]
+ 
+ status <- ifelse(grepl("PASS|XXX", predictionsX$entryType), "PASS",
+           ifelse(grepl("BORDERLINE", predictionsX$entryType), "BORDERLINE",
+           ifelse(grepl("FAIL|WRONG|HIGH|SELF", predictionsX$entryType), "FAIL",
+			     ifelse(is.na(predictionsX$entryType) | grepl("NO GENO DATA", predictionsX$entryType),
+			       "NO GENO DATA","UNCERTAIN"))))
+ 
+ predictionsX$.status=status
+ 
+  if("params" %in% ls()){ # we will download the document
+    
+       panels <- lapply(traitsTable, function(tr) {
+                  predictions2 <- predictionsX[predictionsX$trait == tr, , drop = FALSE]
+                  predictions2$..ord <- seq_len(nrow(predictions2))
+                  predictions2 <- predictions2[order(predictions2$..ord), ]
+                  predictions2$..ord <- NULL
+      predictions2 <- predictions2 %>% dplyr::mutate(tooltip = paste0("Genotype: ", designation,
+                    "<br>Value: ", round(predictedValue, 3),
+                    "<br>Status: ", entryType))
+        p <- ggplot2::ggplot(
+          predictions2,
+          ggplot2::aes(
+          x = designation, y = predictedValue, fill = .status,
+          text = tooltip)
+          ) +
+          ggplot2::geom_col() +
+          ggplot2::scale_fill_manual(
+                                     name = "Match status",
+                                    values = c('NO GENO DATA' = "#f3b0b0",
+                                              'FAIL' = "#FF7F7F",
+                                              'PARENT FAIL' = "#f3b0b0",
+                                              'UNCERTAIN' = "#f3b0b0", 
+                                              'BORDERLINE'= "#CDA434",
+                                              'PASS' = "#A4D65E"))
+                                    +
+          ggplot2::labs(x = "Genotype", y = tr) +
+          ggplot2::theme_classic() +
+          ggplot2::theme(axis.text.x = ggplot2::element_blank())
+
+          bslib::nav_panel(tr, plotly::ggplotly(p, tooltip = "text"))
+      })
+
+      # Create a pill-style tabset and RETURN it as the last expression
+      do.call(bslib::navset_pill, panels)
+
+    }else{ # regular rendering
+      plotly::renderPlotly({
+        predictions2 <- predictionsX[which(predictionsX$trait == input$traitQa),]
+        predictions2$..ord <- seq_len(nrow(predictions2))
+        predictions2 <- predictions2[order(predictions2$..ord), ]
+        predictions2$..ord <- NULL
+        predictions2 <- predictions2 %>% dplyr::mutate(tooltip = paste0("Genotype: ", designation,
+                    "<br>Value: ", round(predictedValue, 3),
+                    "<br>Status: ", entryType))
+        p <- ggplot2::ggplot(predictions2,
+                           ggplot2::aes(x = designation, y = predictedValue, fill = .status,
+                                        text = tooltip)) +
+        ggplot2::geom_col() +
+        ggplot2::scale_fill_manual(name   = "Match status",
+                                   values = c('NO GENO DATA' = "#f3b0b0",
+                                              'FAIL' = "#FF7F7F",
+                                              'PARENT FAIL' = "#f3b0b0",
+                                              'UNCERTAIN' = "#f3b0b0", 
+                                              'BORDERLINE'= "#CDA434",
+                                              'PASS' = "#A4D65E")) +
+        ggplot2::labs(x = "Genotype", y = input$traitQa) +
+        ggplot2::theme_classic() +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank())
+        fig <-  plotly::ggplotly(p,tooltip="text")#, height = get_h()*2);
+        fig
+    })
+  }
+  
+}
+
+```
+
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  predictions_wide<-predictionsX[,c("designation","mother","father","trait","predictedValue","entryType",".status")]
+  names(predictions_wide)<-c("designation","mother","father","trait","predictedValue","Category","status")
+  OutputCols<-c("designation","mother","father","trait","predictedValue","Category","status")
+  numericalColumns<-"predictedValue"
+  
+  ped <- result$data$pedigree
+  metaPed <- result$metadata$pedigree
+  colnames(ped) <- cgiarBase::replaceValues(colnames(ped), Search = metaPed$value, Replace = metaPed$parameter )
+
+  has_sample <- "sample_id" %in% colnames(ped)
+  has_other  <- "other"     %in% colnames(ped)
+
+if (has_sample || has_other) {
+
+  if (has_sample) {
+    id_cols <- "sample_id"
+    if (!"sample_id" %in% colnames(predictions_wide)) {
+      colnames(predictions_wide)[1] <- "sample_id"
+    }
+    if (has_other) {
+      F1_ind <- ped[ped$crossType == "F1",
+                    c("sample_id", "other", "designation")]
+    } else {
+      F1_ind <- ped[ped$crossType == "F1",
+                    c("sample_id", "designation")]
+    }
+  } else {  # only "other" present
+    id_cols <- "designation"
+    F1_ind <- ped[ped$crossType == "F1",
+                  c("other", "designation")]
+  }
+
+  # merge by the chosen ID column
+  predictions_wide <- merge(predictions_wide, F1_ind, by = id_cols)
+
+  OutputCols <- c(
+    if (has_sample) "sample_id" else NULL,
+    if (has_other) "other" else NULL,
+    "designation",
+    "mother","father","status","wrong","testable",
+    "QCPer_wrong","G_matrix_Line_Female",
+    "G_matrix_Line_Male","Diagonal_minus_Female_G_matrix"
+  )
+
+  # avoid duplicates and keep only existing columns
+  OutputCols <- unique(OutputCols)
+  OutputCols <- intersect(OutputCols, colnames(predictions_wide))
+
+  predictions_wide <- predictions_wide[, OutputCols, drop = FALSE]
+}
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(predictions_wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(predictions_wide),
+           numericColNames = numericalColumns,
+           numRound = 3)%>%
+  DT::formatStyle(
+    'status',
+    target = 'row',
+    backgroundColor = DT::styleEqual(
+      c('PASS','BORDERLINE','UNCERTAIN',"FAIL","PARENT FAIL","NO GENO DATA"),
+      c(
+          "rgba(164, 214, 94, 0.3)",
+          "rgba(205,164, 52, 0.22)",
+          "rgba(243,176,176, 0.30)",
+          "rgba(255,127,127, 0.30)",
+          "rgba(243,176,176, 0.30)",
+          "rgba(243,176,176, 0.30)"
+        )  
+    )
+  )
+  }else{
+    DT::renderDT({
+  
+  rowss <- which(predictions_wide$trait==input$traitQa) 
+
+  tbl <- printTable(
+    predictions_wide[rowss, , drop = FALSE],
+    autoWidthOpt = FALSE,
+    scrollXOpt   = TRUE,
+    colNames     = colnames(predictions_wide),
+    numericColNames = numericalColumns,
+    numRound     = 3
+  ) %>%
+    DT::formatStyle(
+      "status",
+      target = "row",
+      backgroundColor = DT::styleEqual(
+        c('PASS','BORDERLINE','UNCERTAIN',"FAIL","PARENT FAIL","NO GENO DATA"),
+        c(
+          "rgba(164, 214, 94, 0.3)",
+          "rgba(205,164, 52, 0.22)",
+          "rgba(243,176,176, 0.30)",
+          "rgba(255,127,127, 0.30)",
+          "rgba(243,176,176, 0.30)",
+          "rgba(243,176,176, 0.30)"
+        )
+      )
+    )
+
+  tbl
+}, server = FALSE)
+  }
+  
+}
+
+```
+
+### Parental check
+<p>&nbsp;</p>
+
+The following plot shows how many individuals derived from each parent received a "PASS" status or failed. Parents that resulted in mostly failed individuals are more likely to have genotyping errors
+
+```{r }
+
+if (is.null(result)){
+invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    shiny::numericInput(ns("nPQa"), 
+                       label = "Top wrong parents to see:", 
+                       value = 15, min = 5, max = 50, step = 1
+    )
+  }
+}
+
+```
+
+```{r}
+
+if (is.null(result)){
+invisible(NULL)
+} else {
+.plot_parent_success <- function(df,nsee) {
+# Stack mothers and fathers into a single "parent" column
+parent_long <- rbind(
+data.frame(parent = df$mother,
+status = df$status,
+stringsAsFactors = FALSE),
+data.frame(parent = df$father,
+status = df$status,
+stringsAsFactors = FALSE)
+)
+
+# Drop missing/empty parents
+parent_long <- parent_long[!is.na(parent_long$parent) & parent_long$parent != "", ]
+
+# Define outcome label: PASS vs non-PASS
+parent_long$Outcome <- ifelse(
+  parent_long$status == "PASS",
+  "Crosses passed QA",
+  "Crosses failed QA"
+)
+
+# Count F1s per parent × outcome
+counts <- with(parent_long, as.data.frame(table(parent, Outcome)))
+colnames(counts)[3] <- "n"
+
+# Order parents by total number of F1s
+totals <- tapply(counts$n, counts$parent, sum)
+top_parents <- names(sort(totals, decreasing = TRUE))[1:nsee]
+counts <- counts[counts$parent %in% top_parents, ]
+counts$parent <- factor(
+  counts$parent,
+  levels = top_parents
+)
+
+p <- ggplot2::ggplot(counts, ggplot2::aes(x = n, y = parent, fill = Outcome)) +
+  ggplot2::geom_col(position = "dodge") +
+  ggplot2::labs(
+    x    = "Number of Individuals",
+    y    = "Parent",
+    fill = "QA result"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, hjust = 1))
+
+plotly::ggplotly(p)
+
+}
+
+parentR<-predictions_wide[which(predictions_wide$trait=="Status"), ]
+
+if("params" %in% ls()){ # we will download the document
+.plot_parent_success(parentR,input$nPQa)
+} else {
+  plotly::renderPlotly({
+        .plot_parent_success(parentR,input$nPQa)
+    })
+}
+
+}
+
+```
+
+### Verification Metrics
+
+The following table shows summary metrics of the Pedigree (QA/QC analysis)
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  numericalColumns2 <- c("value") 
+  metricsVeri <- result$metrics[which( result$metrics$analysisId == idQa),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(metricsVeri, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(metricsVeri),
+           numericColNames = numericalColumns2,
+           numRound = 1)
+  }else{
+    DT::renderDT(printTable(metricsVeri,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(metricsVeri),
+                        numericColNames = numericalColumns2,
+                        numRound = 1), server = FALSE)
+  }
+  
+}
+
+```
+
+<p>&nbsp;</p>
+
+### Verification Modeling
+
+The following table shows the input parameters of the Pedigree (QA/QC analysis)
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  # numericalColumns2 <- c("value") 
+  modelingVeri <- result$modeling[which( result$modeling$analysisId == idQa),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modelingVeri, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(modelingVeri))
+  }else{
+    DT::renderDT(printTable(modelingVeri,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(modelingVeri)), server = FALSE)
+  }
+  
+}
+
+```
+
+<p>&nbsp;</p>
+
+### Verification Modifications
+
+The following table shows which individuals FAIL during the Pedigree (QA/QC analysis)
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  # numericalColumns2 <- c("value") 
+  modVeri <- result$modifications$pedigree[which(result$modifications$pedigree$analysisId == idQa),]
+  
+  if("params" %in% ls()){ # we will download the document
+    printTable(modVeri, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(modVeri))
+  }else{
+    DT::renderDT(printTable(modVeri,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(modVeri)), server = FALSE)
+  }
+  
+}
+
+```
+
+<p>&nbsp;</p>
+
+### Plate map with the categories for Pedigree (QA/QC analysis)
+<p>&nbsp;</p>
+
+```{r }
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{ 
+    if( all(c("batch","plate","position")%in%result$metadata$pedigree$parameter) && !is.null(result$modifications$pedigree) ){
+      metaped<-result$metadata$pedigree
+      metaped<-metaped[-which(metaped$value==""),]
+      peddata<-result$data$pedigree
+      peddata<-peddata[,metaped$value]
+      names(peddata)=metaped$parameter
+      peddata=peddata[,c("designation","batch","plate","position")]
+      effectTypes<-unique(paste0(peddata$batch,"_",peddata$plate))
+    }else{effectTypes="NoInfoFound"}
+    inputPanel(
+      selectInput(ns("HeatmapBP"),
+                  label = "Batch-Plate",
+                  choices = effectTypes,
+                  selected=effectTypes[1]
+      ),
+    )
+  }
+  
+}
+
+```
+
+```{r, results='asis'}
+if (is.null(result)){
+  ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
+} else {
+  if( all(c("batch","plate","position")%in%result$metadata$pedigree$parameter) && !is.null(result$modifications$pedigree) ){
+      metaped<-result$metadata$pedigree
+      metaped<-metaped[-which(metaped$value==""),]
+      peddata<-result$data$pedigree
+      peddata<-peddata[,metaped$value]
+      names(peddata)=metaped$parameter
+      peddata=peddata[,c("designation","batch","plate","position")]
+      effectTypes<-unique(paste0(peddata$batch,"_",peddata$plate))
+      peddata$row=sub("^([A-Za-z]+).*", "\\1",peddata$position)
+      peddata$col=sub("^[A-Za-z]+", "",peddata$position)
+      decisionped<-data.frame(result$predictions)
+	  idQa <- result$status[which(result$status$module %in% c("qaPed")),"analysisId"];
+	  idQa <- idQa[length(idQa)]
+	  decisionped <- decisionped[which( decisionped$analysisId == idQa),] 
+	  decisionped <- decisionped[which( decisionped$trait=="Status"),c("designation","mother","father","entryType")]
+	  colnames(decisionped)[4]<-"Status"
+      ver=merge(peddata,decisionped,"designation")[,c(c("designation","batch","plate","row","col","Status"))]
+      ver$Status[which(ver$Status=="PARENT FAIL")]=NA
+      ver$Status[which(ver$Status=="NO GENO DATA")]=NA
+	  ver$Status[which(ver$Status=="UNCERTAIN")]=NA	  
+      mapa_categorias <- c("PASS" = 1, "BORDERLINE" = 2, "FAIL" = 3)
+      ver$CategoryN <- mapa_categorias[ver$Status]
+      ver$col <- as.factor(ver$col)
+      ver$col <- factor(ver$col, levels = sort(as.numeric(unique(as.character(ver$col)))))
+      ver <- ver %>%  dplyr::mutate(row = factor(row),col = factor(col) ) %>% dplyr::group_by(batch, plate) %>% tidyr::complete(row, col)
+      
+      groups <- ver %>% dplyr::group_by(batch, plate) %>% dplyr::group_split()
+      keys <- ver %>% dplyr::group_by(batch, plate) %>%  dplyr::group_keys()
+      names(groups)=paste0(keys$batch, "_", keys$plate)
+    }else{ver=NULL}
+    
+    if("params" %in% ls()){
+      if(!is.null(ver)){
+        cat(paste0("###  {.tabset .tabset-pills}    \n\n  "))
+      for(iType in effectTypes){
+        cat("\n\n####", iType, "{.tabset .tabset-pills}       \n\n")
+          df<-groups[[iType]]
+          catt=unique(df$CategoryN)
+          if(all(is.na(catt))){
+            p<-ggplot2::ggplot() + ggplot2::ggtitle("Not enough information was found")
+            print(htmltools::tagList(plotly::ggplotly(p)))
+          }else{
+            catt=catt[!is.na(catt)]
+            if(length(catt)==3){colorv=list(list(0, "#A4D65E"), list(0.5, "#CDA434"), list(1, "#FF7F7F"))}
+            if(length(catt)==2){
+              if(all(catt%in%c(2,3))){colorv=list(list(0, "#CDA434"),list(1, "#FF7F7F"))}
+              if(all(catt%in%c(1,2))){colorv=list(list(0, "#A4D65E"),list(1, "#C0CA33"))}
+              if(all(catt%in%c(1,3))){colorv=list(list(0, "#A4D65E"),list(1, "#FF7F7F"))}
+            }
+            if(length(catt)==1){
+              if(catt==3){colorv=list(list(0, "#FF7F7F"),list(1, "#FF7F7F"))}
+              if(catt==2){colorv=list(list(0, "#CDA434"),list(1, "#CDA434"))}
+              if(catt==1){colorv=list(list(0, "#A4D65E"),list(1, "#A4D65E"))}
+            }
+            fig<-plotly::plot_ly(df,x = ~col,y = ~row,z = ~CategoryN,type = "heatmap",colorscale = colorv,
+                showscale = FALSE,text = ~paste0(designation,"<br>",Status),hoverinfo = "text"
+                ) %>%
+                layout(title = list(text = paste0("Batch: ",unique(df$batch)," | Plate: ",unique(df$plate)),x = 0.5))
+                print(htmltools::tagList(fig))
+          }
+       }
+      }else{
+        p<-ggplot2::ggplot() + ggplot2::ggtitle("Not enough information was found")
+        print(htmltools::tagList(plotly::ggplotly(p)))
+      }
+    }else{
+      if(!is.null(ver)){
+        plotly::renderPlotly({
+          df<-groups[[input$HeatmapBP]]
+          catt=unique(df$CategoryN)
+          if(all(is.na(catt))){
+            ggplot2::ggplot() + ggplot2::ggtitle("Not enough information was found")
+          }else{
+            catt=catt[!is.na(catt)]
+            if(length(catt)==3){colorv=list(list(0, "#A4D65E"), list(0.5, "#CDA434"), list(1, "#FF7F7F"))}
+            if(length(catt)==2){
+              if(all(catt%in%c(2,3))){colorv=list(list(0, "#CDA434"),list(1, "#FF7F7F"))}
+              if(all(catt%in%c(1,2))){colorv=list(list(0, "#A4D65E"),list(1, "#C0CA33"))}
+              if(all(catt%in%c(1,3))){colorv=list(list(0, "#A4D65E"),list(1, "#FF7F7F"))}
+            }
+            if(length(catt)==1){
+              if(catt==3){colorv=list(list(0, "#FF7F7F"),list(1, "#FF7F7F"))}
+              if(catt==2){colorv=list(list(0, "#CDA434"),list(1, "#CDA434"))}
+              if(catt==1){colorv=list(list(0, "#A4D65E"),list(1, "#A4D65E"))}
+            }
+            fig<-plotly::plot_ly(df,x = ~col,y = ~row,z = ~CategoryN,type = "heatmap",colorscale = colorv,
+                showscale = FALSE,text = ~paste0(designation,"<br>",Status),hoverinfo = "text"
+                ) %>%
+                layout(title = list(text = paste0("Batch: ",unique(df$batch)," | Plate: ",unique(df$plate)),x = 0.5))
+                fig
+          }
+        })
+      }else{
+         ggplot2::ggplot() + ggplot2::ggtitle("Not enough information was found")
+          
+      }
+    }
+} 
+
+```
+
+### Field map with the categories for Pedigree (QA/QC analysis)
+<p>&nbsp;</p>
+
+```{r, results='asis'}
+if (is.null(result)){
+  ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
+} else {
+    phenodata<-result$data$pheno
+    if(!is.null(phenodata)&& all(c("row","col")%in%result$metadata$pheno$parameter) && !is.null(result$modifications$pedigree) ){
+      metaphen<-result$metadata$pheno
+      phenodata<-phenodata[,metaphen$value]
+      names(phenodata)=metaphen$parameter
+      phenodata=phenodata[,c("designation","row","col")]
+      decisionped<-data.frame(result$predictions)
+	  idQa <- result$status[which(result$status$module %in% c("qaPed")),"analysisId"];
+	  idQa <- idQa[length(idQa)]
+	  decisionped <- decisionped[which( decisionped$analysisId == idQa),] 
+	  decisionped <- decisionped[which( decisionped$trait=="Status"),c("designation","mother","father","entryType")]
+	  colnames(decisionped)[4]<-"Status"      
+      ver=merge(phenodata,decisionped,"designation")[,c(c("designation","row","col","Status"))]
+      ver$Status[which(ver$Status=="PARENT FAIL")]=NA
+      ver$Status[which(ver$Status=="NO GENO DATA")]=NA
+	  ver$Status[which(ver$Status=="UNCERTAIN")]=NA
+      mapa_categorias <- c("PASS" = 1, "BORDERLINE" = 2, "FAIL" = 3)
+      ver$CategoryN <- mapa_categorias[ver$Status]
+      catt=unique(ver$CategoryN)
+      catt=catt[!is.na(catt)]
+      if(length(catt)==3){colorv=list(list(0, "#A4D65E"), list(0.5, "#CDA434"), list(1, "#FF7F7F"))}
+            if(length(catt)==2){
+              if(all(catt%in%c(2,3))){colorv=list(list(0, "#CDA434"),list(1, "#FF7F7F"))}
+              if(all(catt%in%c(1,2))){colorv=list(list(0, "#A4D65E"),list(1, "#C0CA33"))}
+              if(all(catt%in%c(1,3))){colorv=list(list(0, "#A4D65E"),list(1, "#FF7F7F"))}
+            }
+            if(length(catt)==1){
+              if(catt==3){colorv=list(list(0, "#FF7F7F"),list(1, "#FF7F7F"))}
+              if(catt==2){colorv=list(list(0, "#CDA434"),list(1, "#CDA434"))}
+              if(catt==1){colorv=list(list(0, "#A4D65E"),list(1, "#A4D65E"))}
+            }
+    }else{ver=NULL}
+    
+    if("params" %in% ls()){
+      if(!is.null(ver)){
+        fig <- ver %>% plotly::plot_ly(x = ~col, y = ~row, z = ~CategoryN, type = "heatmap",
+                        colorscale = colorv,showscale=F, text=~paste0(designation,"<br>",Status), hoverinfo="text") 
+        print(htmltools::tagList(fig))
+      }else{
+        p<-ggplot2::ggplot() + ggplot2::ggtitle("Not enough information was found")
+        print(htmltools::tagList(plotly::ggplotly(p)))
+      }
+    }else{
+      if(!is.null(ver)){
+        plotly::renderPlotly({
+          fig <- ver %>% plotly::plot_ly(x = ~col, y = ~row, z = ~CategoryN, type = "heatmap",
+                        colorscale = colorv,showscale=F, text=~paste0(designation,"<br>",Status), hoverinfo="text") 
+          fig
+         })
+      }else{
+         ggplot2::ggplot() + ggplot2::ggtitle("Not enough information was found")
+          
+      }
+    }
+} 
+
+```        
+
+<p>&nbsp;</p>
+
+### References on methods used
+
+
+
+<p>&nbsp;</p>
+
+
+
