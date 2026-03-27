@@ -197,8 +197,8 @@ if (is.null(result)){
                                               'PARENT FAIL' = "#f3b0b0",
                                               'UNCERTAIN' = "#f3b0b0", 
                                               'BORDERLINE'= "#CDA434",
-                                              'PASS' = "#A4D65E"))
-                                    +
+                                              'PASS' = "#A4D65E")
+									)+
           ggplot2::labs(x = "Genotype", y = tr) +
           ggplot2::theme_classic() +
           ggplot2::theme(axis.text.x = ggplot2::element_blank())
