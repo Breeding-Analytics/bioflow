@@ -222,15 +222,17 @@ mod_qaPedApp_server <- function(id, data){
       dtMtaAsr <- dtMtaAsr$status
       dtMtaAsrGeno <- dtMtaAsr[which(dtMtaAsr$module == "qaGeno"),]
       traitsMtaAsrGeno <- unique(dtMtaAsrGeno$analysisId)
-      
-      if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
-      if(length(traitsMtaAsrGeno) > 0){
-        if("analysisIdName" %in% colnames(dtMtaAsrGeno)){
-          names(traitsMtaAsrGeno) <- paste(dtMtaAsrGeno$analysisIdName, as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"), sep = "_")
-        }else{
-          names(traitsMtaAsrGeno) <- as.character(as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"))
-        }
-      }
+
+	  if(!is.null(traitsMtaAsrGeno)){
+      	#if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
+      	if(length(traitsMtaAsrGeno) > 0){
+        	if("analysisIdName" %in% colnames(dtMtaAsrGeno)){
+          		names(traitsMtaAsrGeno) <- paste(dtMtaAsrGeno$analysisIdName, as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"), sep = "_")
+        	}else{
+          		names(traitsMtaAsrGeno) <- as.character(as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"))
+        	}
+      	}
+	  }
       updateSelectInput(session, "version2qaPed", choices = traitsMtaAsrGeno)
     })
 
