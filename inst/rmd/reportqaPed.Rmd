@@ -408,7 +408,12 @@ colnames(counts)[3] <- "n"
 
 # Order parents by total number of F1s
 totals <- tapply(counts$n, counts$parent, sum)
-top_parents <- names(sort(totals, decreasing = TRUE))[1:nsee]
+#top_parents <- names(sort(totals, decreasing = TRUE))[1:nsee]
+top_parents <- counts %>%
+  filter(Outcome == "Crosses failed QA") %>%
+  arrange(desc(n)) %>%
+  dplyr::slice_head(n = nsee) %>% dplyr::pull(parent)
+top_parents=as.character(top_parents)
 counts <- counts[counts$parent %in% top_parents, ]
 counts$parent <- factor(
   counts$parent,
