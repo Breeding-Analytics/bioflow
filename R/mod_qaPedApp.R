@@ -101,7 +101,7 @@ mod_qaPedApp_ui <- function(id) {
                                                  column(width = 4,
                                                         numericInput(ns('GLML'),'Mother wrong (<):', value = 0.2, min = 0, max = 1, step = 0.01),
                                                         numericInput(ns('GLMB'),'Mother borderline [><]:', value = 0.7, min = 0, max = 1, step = 0.01),
-                                                        numericInput(ns('GLMC'),'Mother high [>=]:', value = 1.6, min = 0, max = 1, step = 0.01),
+                                                        numericInput(ns('GLMC'),'Mother correct [>=]:', value = 1.6, min = 0, max = 1, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
 								<strong>Let us remember that the kinship matrix calculated 
@@ -459,7 +459,8 @@ mod_qaPedApp_server <- function(id, data){
       GmatML<-GRM_metric[[2]]
       GmatD_FL<-GRM_metric[[3]]
       QCc=ifelse(is.na(QCc),NA,ifelse(QCc<pwrong,"Allele_QC_PASS", ifelse(QCc>pwrong,"Allele_QC_FAIL","Allele_QC_BORDERLINE")))
-      GmatFL=ifelse(is.na(QCc),NA,ifelse(GmatFL < flong,"FEMALE_GMAT_WRONG",ifelse(GmatFL > fcorrect,"FEMALE_HIGH_GMAT",ifelse(GmatFL < fborder,"FEMALE_BORDERLINE_GMAT","XXX"))))
+      #GmatFL=ifelse(is.na(QCc),NA,ifelse(GmatFL < flong,"FEMALE_GMAT_WRONG",ifelse(GmatFL > fcorrect,"FEMALE_HIGH_GMAT",ifelse(GmatFL < fborder,"FEMALE_BORDERLINE_GMAT","XXX"))))
+	  GmatFL=ifelse(is.na(QCc),NA,ifelse(GmatFL < flong,"FEMALE_GMAT_WRONG",ifelse(GmatFL >= flong & GmatFL <= fborder,"FEMALE_BORDERLINE_GMAT","XXX")))			  
       GmatML=ifelse(is.na(QCc),NA,ifelse(GmatML<mlong,"MALE_GMAT_WRONG", ifelse(GmatML>=mlong & GmatML<=mborder,"MALE_BORDERLINE_GMAT","XXX")))
       GmatD_FL=ifelse(is.na(QCc),NA,ifelse(GmatD_FL<dllcorrect,"PROBABLE_SELF","XXX"))
       condtest=data.frame(Condicional=paste0("XXX_",QCc,"_",GmatFL,"_",GmatML,"_XXX_XXX_XXX_",GmatD_FL,"_XXX_XXX"))
