@@ -34,7 +34,8 @@ mod_bindObjectApp_ui <- function(id){
                                   tags$div(id = ns('previous_object_retrieve'), # from cloud
                                            actionButton(ns("refreshPreviousAnalysis"), "Click to retrieve data objects"),
                                   ),
-                                  uiOutput(ns('previous_input2'))
+                                  # uiOutput(ns('previous_input2'))
+                                  uiOutput(ns('aws_file_selector'))
                            ),
                            column(width=4,
                                   shinydashboard::box(width = 12, title = span(icon('youtube'), ' Tutorial'), status = "success", solidHeader=FALSE, style = "color: #000000", collapsible = TRUE, collapsed = TRUE,
@@ -197,7 +198,8 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         if (input$previous_object_input == 'pcfile') {
           golem::invoke_js('showid', ns('previous_object_file_holder'))
           golem::invoke_js('hideid', ns('previous_object_retrieve'))
-          output$previous_input2 <- renderUI({NULL})
+          output$aws_file_selector <- renderUI({NULL})
+          #output$previous_input2 <- renderUI({NULL})
         } else if (input$previous_object_input == 'cloudfile') {
           golem::invoke_js('hideid', ns('previous_object_file_holder'))
           golem::invoke_js('showid', ns('previous_object_retrieve'))
@@ -208,9 +210,55 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
     # outputOptions(output, "previous_input2", suspendWhenHidden = FALSE)
 
     observeEvent(input$refreshPreviousAnalysis,{
-      output$previous_input2 <- renderUI({
-        selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path(res_auth$repository)), multiple = TRUE)
+      ### set up paws library ##################################################
+
+      is_local     <- Sys.getenv("SHINY_PORT") == ""
+      cloud_domain <- session$clientData$url_hostname
+
+      if(is_local){
+        shinyalert::shinyalert(title = "Retrieve from Cloud Unavailable!", text = "Retrieve from cloud is not available in the offline version of Bioflow. Please use the production or testing server to access this feature.", type = "warning")
+        return(cat("Offline version detected. Retrieve from cloud is unavailable."))
+      }
+
+      # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
+      Sys.setenv("AWS_PROFILE" = "bioflow")
+      Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+
+      bucket_name <- "ebs-bioflow"
+
+      valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org", "bioflow-test.ebsproject.org")
+
+      if (cloud_domain %in% valid_domains) {
+        if (cloud_domain == "bioflow-test.ebsproject.org") {
+          data_domain <- "bioflow-test"
+        } else {
+          data_domain <- result$user
+        }
+      } else {
+        shinyalert::shinyalert(title = "Cloud Service Restricted!", text = "This feature works only on the official Bioflow cloud servers (production or testing). The current hosting server does not support it.", type = "info")
+        return(cat("Invalid hosting server. Cloud save is unavailable."))
+      }
+      ##########################################################################
+
+      s3 <- paws::s3()
+
+      obj <- s3$list_objects(Bucket = bucket_name)
+
+      df <- data.frame(
+        domain = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][1], character(1)),
+        file = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][2], character(1)),
+        stringsAsFactors = FALSE
+      )
+
+      df <- df[df$domain == data_domain,]
+
+      output$aws_file_selector <- renderUI({
+        selectInput(inputId = ns("aws_selected_file"), label = "Select file", choices = unique(df$file), multiple = TRUE)
       })
+
+      # output$previous_input2 <- renderUI({
+      #   selectInput(inputId=ns('previous_input'), label=NULL, choices=dir(file.path(res_auth$repository)), multiple = TRUE)
+      # })
     })
 
     observeEvent(input$runBind,{
@@ -218,13 +266,53 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
       if(input$previous_object_input == 'cloudfile'){ # upload from cloud
-        req(input$previous_input)
-        load( file.path( getwd(),res_auth$repository,input$previous_input[1] ) ) # old dataset
-        if(length(input$previous_input) > 1){
+
+        ### set up paws library ################################################
+
+        is_local     <- Sys.getenv("SHINY_PORT") == ""
+        cloud_domain <- session$clientData$url_hostname
+
+        if(is_local){
+          shinyalert::shinyalert(title = "Retrieve from Cloud Unavailable!", text = "Retrieve from cloud is not available in the offline version of Bioflow. Please use the production or testing server to access this feature.", type = "warning")
+          return(cat("Offline version detected. Retrieve from cloud is unavailable."))
+        }
+
+        # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
+        Sys.setenv("AWS_PROFILE" = "bioflow")
+        Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+
+        bucket_name <- "ebs-bioflow"
+
+        valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org", "bioflow-test.ebsproject.org")
+
+        if (cloud_domain %in% valid_domains) {
+          if (cloud_domain == "bioflow-test.ebsproject.org") {
+            data_domain <- "bioflow-test"
+          } else {
+            data_domain <- result$user
+          }
+        } else {
+          shinyalert::shinyalert(title = "Cloud Service Restricted!", text = "This feature works only on the official Bioflow cloud servers (production or testing). The current hosting server does not support it.", type = "info")
+          return(cat("Invalid hosting server. Cloud save is unavailable."))
+        }
+        ########################################################################
+
+        req(input$aws_selected_file)
+
+        s3 <- paws::s3()
+
+        s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[1])
+        s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
+        raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
+
+        if(length(input$aws_selected_file) > 1){
           result1 <- result
 
-          for(iFile in 2:length(input$previous_input)){
-            load( file.path( getwd(),res_auth$repository,input$previous_input[iFile] ) ) # old dataset
+          for(iFile in 2:length(input$aws_selected_file)){
+            s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[iFile])
+            s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
+            raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
+
             result2 <- result
             result1 <- try(cgiarBase::bindObjects(object1 = result1,
                                                   object2 = result2
@@ -234,6 +322,23 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
           result <- result1
         }else{ iFile=1 }
+
+        # req(input$previous_input)
+        # load( file.path( getwd(),res_auth$repository,input$previous_input[1] ) ) # old dataset
+        # if(length(input$previous_input) > 1){
+        #   result1 <- result
+        #
+        #   for(iFile in 2:length(input$previous_input)){
+        #     load( file.path( getwd(),res_auth$repository,input$previous_input[iFile] ) ) # old dataset
+        #     result2 <- result
+        #     result1 <- try(cgiarBase::bindObjects(object1 = result1,
+        #                                           object2 = result2
+        #     ), silent = TRUE
+        #     )
+        #   }
+        #
+        #   result <- result1
+        # }else{ iFile=1 }
       }else if(input$previous_object_input == 'pcfile'){ # upload rds
         req(input$previous_object_file)
         load(input$previous_object_file$datapath[1]) # old dataset
