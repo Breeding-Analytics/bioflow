@@ -211,7 +211,6 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
     observeEvent(input$refreshPreviousAnalysis,{
       ### set up paws library ##################################################
-
       is_local     <- Sys.getenv("SHINY_PORT") == ""
       cloud_domain <- session$clientData$url_hostname
 
@@ -242,18 +241,27 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
       s3 <- paws::s3()
 
-      obj <- s3$list_objects(Bucket = bucket_name)
+      shinybusy::show_modal_spinner('fading-circle', text = 'Retrieving...')
 
-      df <- data.frame(
-        domain = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][1], character(1)),
-        file = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][2], character(1)),
-        stringsAsFactors = FALSE
-      )
+      tryCatch({
+        obj <- s3$list_objects(Bucket = bucket_name)
 
-      df <- df[df$domain == data_domain,]
+        df <- data.frame(
+          domain = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][1], character(1)),
+          file = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][2], character(1)),
+          stringsAsFactors = FALSE
+        )
 
-      output$aws_file_selector <- renderUI({
-        selectInput(inputId = ns("aws_selected_file"), label = "Select file", choices = unique(df$file), multiple = TRUE)
+        df <- df[df$domain == data_domain,]
+
+        output$aws_file_selector <- renderUI({
+          selectInput(inputId = ns("aws_selected_file"), label = "Select file", choices = unique(df$file), multiple = TRUE)
+        })
+
+        shinybusy::remove_modal_spinner()
+      }, error = function(e) {
+        shinybusy::remove_modal_spinner()
+        shinyalert::shinyalert(title = "Failed!", text = e$message, type = "error")
       })
 
       # output$previous_input2 <- renderUI({
@@ -268,7 +276,6 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       if(input$previous_object_input == 'cloudfile'){ # upload from cloud
 
         ### set up paws library ################################################
-
         is_local     <- Sys.getenv("SHINY_PORT") == ""
         cloud_domain <- session$clientData$url_hostname
 
@@ -301,27 +308,29 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
         s3 <- paws::s3()
 
-        s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[1])
-        s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
-        raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
+        tryCatch({
+          s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[1])
+          s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
+          raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
 
-        if(length(input$aws_selected_file) > 1){
-          result1 <- result
+          if(length(input$aws_selected_file) > 1){
+            result1 <- result
 
-          for(iFile in 2:length(input$aws_selected_file)){
-            s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[iFile])
-            s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
-            raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
+            for(iFile in 2:length(input$aws_selected_file)){
+              s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[iFile])
+              s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
+              raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
 
-            result2 <- result
-            result1 <- try(cgiarBase::bindObjects(object1 = result1,
-                                                  object2 = result2
-            ), silent = TRUE
-            )
-          }
+              result2 <- result
+              result1 <- try(cgiarBase::bindObjects(object1 = result1, object2 = result2), silent = TRUE)
+            }
 
-          result <- result1
-        }else{ iFile=1 }
+            result <- result1
+          }else{ iFile=1 }
+
+        }, error = function(e) {
+          shinyalert::shinyalert(title = "Failed!", text = e$message, type = "error")
+        })
 
         # req(input$previous_input)
         # load( file.path( getwd(),res_auth$repository,input$previous_input[1] ) ) # old dataset
