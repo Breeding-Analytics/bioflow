@@ -248,15 +248,43 @@ mod_qaPhenoApp_server <- function(id, data){
       shinyjs::hide(ns("traitOutqPheno"))
     })
 
-    # Filtered data based on selected traits to correlations
+    # # Filtered data based on selected traits to correlations
+    #
+    # filtered_data <- reactive({
+    #   selected_traits <- input$correlationTraits
+    #   mydata <- na.omit(data()$data$pheno)
+    #   mydata <- mydata[, selected_traits, drop = FALSE]
+    #   mydata <- mydata[,which(!duplicated(colnames(mydata)))]
+    #   mydata
+    # })
 
-    filtered_data <- reactive({
-      selected_traits <- input$correlationTraits
-      mydata <- na.omit(data()$data$pheno)
-      mydata <- mydata[, selected_traits, drop = FALSE]
-      mydata <- mydata[,which(!duplicated(colnames(mydata)))]
-      mydata
-    })
+    cor_pval_matrix <- function(df, method = "spearman", conf.level = 0.95) {
+      traits <- colnames(df)
+      n <- length(traits)
+
+      cor.mat <- matrix(NA, nrow = n, ncol = n, dimnames = list(traits, traits))
+      p.mat <- matrix(NA, nrow = n, ncol = n, dimnames = list(traits, traits))
+
+      for (i in seq_len(n)) {
+        for (j in seq_len(n)) {
+          if (i != j) {
+            complete_idx <- complete.cases(df[[i]], df[[j]])
+            x <- df[[i]][complete_idx]
+            y <- df[[j]][complete_idx]
+
+            if (length(x) >= 3) {
+              test <- cor.test(x, y, method = method, conf.level = conf.level)
+              cor.mat[i, j] <- test$estimate
+              p.mat[i, j] <- test$p.value
+            }
+          } else{
+            cor.mat[i, j] <- 1
+            p.mat[i, j] <- 0
+          }
+        }
+      }
+      return(list(cor = cor.mat, p = p.mat))
+    }
 
     #plot of correlations
 
@@ -266,17 +294,21 @@ mod_qaPhenoApp_server <- function(id, data){
       req(input$correlationType)
       # Check if there are more than one selected traits
       req(length(input$correlationTraits) > 1)
-      mydata <- filtered_data()
+      #mydata <- filtered_data()
+      mydata <- data()$data$pheno
       if(length(input$correlationTraits) > 1){
+        df_num <- dplyr::select(mydata[, input$correlationTraits, drop = FALSE], where(is.numeric))
+
         # Correlation matrix
-        matrix <- cor(mydata[,input$correlationTraits], method = input$correlationType)
+        # matrix <- cor(mydata[,input$correlationTraits], method = input$correlationType)
 
         # Compute a matrix of correlation p-values
-        p.mat <- rstatix::cor_pmat(mydata[,input$correlationTraits], method = input$correlationType, conf.level = 0.95)
-        mt <- as.matrix(p.mat[,-1])
+        # p.mat <- rstatix::cor_pmat(mydata[,input$correlationTraits], method = input$correlationType, conf.level = 0.95)
+        # mt <- as.matrix(p.mat[,-1])
+        p.mat <- cor_pval_matrix(df_num, method = input$correlationType, conf.level = 0.95)
 
         # Barring the no significant coefficient
-        g<-ggcorrplot::ggcorrplot(matrix, hc.order = TRUE, type = "lower", p.mat = mt,lab=T,
+        g<-ggcorrplot::ggcorrplot(p.mat$cor, hc.order = TRUE, type = "lower", p.mat = p.mat$p, lab=T,
                                   colors = c("#E46726", "white", "#038542"), show.diag = T)
         plotly::ggplotly(g)
       } else {
