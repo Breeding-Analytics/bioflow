@@ -286,7 +286,43 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
           ),
           choices  = as.list(c('', header))
         )),
-
+        column(3, selectInput(
+          inputId  = ns('ped_batchqaPed'),
+          label    = tags$span(
+            "Pedigree qa/qc batch (optional)",
+            tags$i(
+              class = "glyphicon glyphicon-info-sign",
+              style = "color:#000000",
+              title = "Select batch number for each designation"
+            )
+          ),
+          choices  = as.list(c('', header))
+        )),
+        column(3, selectInput(
+          inputId  = ns('ped_plateqaPed'),
+          label    = tags$span(
+            "Pedigree qa/qc plate (optional)",
+            tags$i(
+              class = "glyphicon glyphicon-info-sign",
+              style = "color:#000000",
+              title = "Select plate number for each designation"
+            )
+          ),
+          choices  = as.list(c('', header))
+        )),
+        column(3, selectInput(
+          inputId  = ns('ped_posqaPed'),
+          label    = tags$span(
+            "Pedigree qa/qc position (optional)",
+            tags$i(
+              class = "glyphicon glyphicon-info-sign",
+              style = "color:#000000",
+              title = "Select position number for each designation"
+            )
+          ),
+          choices  = as.list(c('', header))
+        )),
+        
         renderPrint({
           temp <- data()
 
@@ -332,6 +368,23 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "other", value = input$ped_otherF1))
           }
 
+          if ("batch" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "batch", 'value'] <- input$ped_batchqaPed
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "batch", value = input$ped_batchqaPed))
+          }
+          
+          if ("plate" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "plate", 'value'] <- input$ped_plateqaPed
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "plate", value = input$ped_plateqaPed))
+          }
+          
+          if ("position" %in% temp$metadata$pedigree$parameter) {
+            temp$metadata$pedigree[temp$metadata$pedigree$parameter == "position", 'value'] <- input$ped_posqaPed
+          } else {
+            temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "position", value = input$ped_posqaPed))
+          }
           data(temp)
         }),
       )

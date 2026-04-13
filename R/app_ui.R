@@ -101,7 +101,7 @@ app_ui <- function(request) {
                  tabPanel(strong("DATA QUALITY CHECK"), mod_sectionInfoQAApp_ui("sectionInfoQAApp_1") ),
                  tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                  tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
-                 #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
+                 tabPanel(div(icon("soap"),"Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                  # tabPanel(div(icon("filter-circle-xmark"), "Data Quality Assurance" ),
                  #          navlistPanel( "Options:", widths = c(1, 11),
                  #          )
