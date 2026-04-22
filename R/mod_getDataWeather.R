@@ -231,13 +231,20 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+      
       if(length(envCol) > 0){
-        fieldNames <- as.character(unique(dtProv[,"environment"]))
+        nenv<-length(unique(dtProv[,"environment"]))
+        if("latitude" %in% colnames(dtProv)){
+          latCol <- dtProv[,c("environment","latitude")] %>% dplyr::distinct(environment, .keep_all = TRUE)
+          fieldNames <- as.character(latCol$latitude)
+        }else{
+          fieldNames <- rep(0,nenv)
+        }
         lapply(1:length(fieldNames), function(i) {
           tags$div(id = "inline",  numericInput(
             session$ns(paste0('latitude',i)),
             NULL,
-            value = 0
+            value = fieldNames[i],
           ))
         })
       }
@@ -248,13 +255,20 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+      
       if(length(envCol) > 0){
-        fieldNames <- as.character(unique(dtProv[,"environment"]))
+        nenv<-length(unique(dtProv[,"environment"]))
+        if("longitude" %in% colnames(dtProv)){
+          latCol <- dtProv[,c("environment","longitude")] %>% dplyr::distinct(environment, .keep_all = TRUE)
+          fieldNames <- as.character(latCol$longitude)
+        }else{
+          fieldNames <- rep(0,nenv)
+        }
         lapply(1:length(fieldNames), function(i) {
           tags$div(id = "inline", numericInput(
             session$ns(paste0('longitude',i)),
             NULL,
-            value = 0
+            value = fieldNames[i],
           ))
         })
       }
@@ -265,13 +279,20 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+      
       if(length(envCol) > 0){
-        fieldNames <- as.character(unique(dtProv[,"environment"]))
+        nenv<-length(unique(dtProv[,"environment"]))
+        if("plantingDate" %in% colnames(dtProv)){
+          latCol <- dtProv[,c("environment","plantingDate")] %>% dplyr::distinct(environment, .keep_all = TRUE)
+          fieldNames <- as.Date(latCol$plantingDate,"%m/%d/%y")
+        }else{
+          fieldNames <- rep(Sys.Date()-31,nenv)
+        }
         lapply(1:length(fieldNames), function(i) {
           tags$div(id = "inline", dateInput(
             session$ns(paste0('plantingDate',i)),
             NULL,
-            value = Sys.Date()-31
+            value=fieldNames[i],
           ))
         })
       }
@@ -282,13 +303,20 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
+      
       if(length(envCol) > 0){
-        fieldNames <- as.character(unique(dtProv[,"environment"]))
+        nenv<-length(unique(dtProv[,"environment"]))
+        if("harvestingDate" %in% colnames(dtProv)){
+          latCol <- dtProv[,c("environment","harvestingDate")] %>% dplyr::distinct(environment, .keep_all = TRUE)
+          fieldNames <- as.Date(latCol$harvestingDate,"%m/%d/%y")
+        }else{
+          fieldNames <- rep(Sys.Date()-31,nenv)
+        }
         lapply(1:length(fieldNames), function(i) {
           tags$div(id = "inline", dateInput(
             session$ns(paste0('harvestingDate',i)),
             NULL,
-            value = Sys.Date()-30
+            value=fieldNames[i],
           ))
         })
       }
