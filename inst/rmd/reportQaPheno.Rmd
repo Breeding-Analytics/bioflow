@@ -189,6 +189,14 @@ if (is.null(result)){
   ### change column names for mapping
   paramsPheno <- result$metadata$pheno
   paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
+  for(i in 1:length(paramsPheno$parameter)){
+    if((paramsPheno$parameter[i] %in% colnames(mydata)) & 
+       (paramsPheno$parameter[i] != paramsPheno$value[i])){
+      colnames(mydata) <- replace(colnames(mydata), 
+                                 colnames(mydata) == paramsPheno$parameter[i],
+                                 paste0(paramsPheno$parameter[i],"_dup"))
+    }
+  }
   colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), 
                                                Search = paramsPheno$value, 
                                                Replace = paramsPheno$parameter )

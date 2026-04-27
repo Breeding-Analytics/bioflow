@@ -111,33 +111,45 @@ mod_qaGenoApp_ui <- function(id) {
       tabPanel(
         div(icon("dice-two"), "Imputation", icon("arrow-right")),
         br(),
-        column(
-          width = 12,
-          style = "background-color:grey; color: #FFFFFF",
+        fluidRow(
           column(
-            width = 3,
-            selectInput(
-              ns("imputationMethod"),
-              "Imputation method",
-              choices = c("frequency"),
-              multiple = FALSE
-            )
-          ),
-          column(
-            width = 4,
+            width = 12,
+            style = "background-color:grey; color: #FFFFFF",
             br(),
-            div(
-              style = "display: inline-block; margin-right: 10px;",
-              actionButton(
-                ns("run_imputation"),
-                "Apply imputation"
+            column(
+              width  = 12,
+              tags$div(
+                  style = "background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:12px;border-radius:6px;margin-bottom:12px;",
+                  tags$b("Warning:"),
+                  tags$p(style = "margin-bottom:0;", "The only module that currently supports missing data in the genotype matrix is the F1 qa/qc module."),
+                  tags$p(style = "margin-top:0;margin-bottom:0;", "If you have missing data and plan to use other Bioflow modules, do not skip imputation."),
+                )
+            ),
+            column(
+              width = 3,
+              selectInput(
+                ns("imputationMethod"),
+                "Imputation method",
+                choices = c("frequency"),
+                multiple = FALSE
               )
             ),
-            div(
-              style = "display: inline-block;",
-              actionButton(
-                ns("skip_imputation"),
-                "Skip imputation"
+            column(
+              width = 4,
+              br(),
+              div(
+                style = "display: inline-block; margin-right: 10px;",
+                actionButton(
+                  ns("run_imputation"),
+                  "Apply imputation"
+                )
+              ),
+              div(
+                style = "display: inline-block;",
+                actionButton(
+                  ns("skip_imputation"),
+                  "Skip imputation"
+                )
               )
             )
           )
@@ -154,14 +166,14 @@ mod_qaGenoApp_ui <- function(id) {
             width = 6,
             verbatimTextOutput(ns("pre_imp_metrics"))
           ),
-          column(
-            width = 6,
-            tags$div(
-              style = "color: #b30000; font-weight: bold; margin-top: 10px;",
-              "Warning: The only module that currently supports missing data in the genotype matrix is the F1 qa/qc module. ",
-              "If you have missing data and plan to use other Bioflow modules, do not skip imputation."
-            )
-          )
+          # column(
+          #   width = 6,
+          #   tags$div(
+          #     style = "color: #b30000; font-weight: bold; margin-top: 10px;",
+          #     "Warning: The only module that currently supports missing data in the genotype matrix is the F1 qa/qc module. ",
+          #     "If you have missing data and plan to use other Bioflow modules, do not skip imputation."
+          #   )
+          # )
         )
       ),
       tabPanel(div( icon("dice-three"), "Run analysis" ),

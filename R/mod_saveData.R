@@ -87,16 +87,69 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
           outSave <- eventReactive(input$runSave, {
             req(data())
             req(input$fileNameUpload)
+
+            is_local     <- Sys.getenv("SHINY_PORT") == ""
+            cloud_domain <- session$clientData$url_hostname
+
+            if(is_local){
+              shinyalert::shinyalert(title = "Cloud Save Unavailable!", text = "Cloud save is not available in the offline version of Bioflow. Please use the production or testing server to access this feature.", type = "warning")
+              return(cat("Offline version detected. Cloud save is unavailable."))
+            }
+
+            result <- data()
+
+            ### set up paws library ################################################
+            # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
+            Sys.setenv("AWS_PROFILE" = "bioflow")
+            Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+
+            bucket_name <- "ebs-bioflow"
+
+            valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org", "bioflow-test.ebsproject.org")
+
+            if (cloud_domain %in% valid_domains) {
+              if (cloud_domain == "bioflow-test.ebsproject.org") {
+                data_domain <- "bioflow-test"
+              } else {
+                data_domain <- result$user
+              }
+            } else {
+              shinyalert::shinyalert(title = "Cloud Service Restricted!", text = "This feature works only on the official Bioflow cloud servers (production or testing). The current hosting server does not support it.", type = "info")
+              return(cat("Invalid hosting server. Cloud save is unavailable."))
+            }
+
+            s3_object_path <- paste0(data_domain, "/", input$fileNameUpload, ".RData")
+
+            s3 <- paws::s3()
+
             shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-            result <- data() # current or empty dataset
-            save(result, file=file.path(getwd(),res_auth$repository, paste0(input$fileNameUpload,".RData") ) ) # old dataset
-            shinybusy::remove_modal_spinner()
-            shinyalert::shinyalert(title = "Success!", text = paste("Analysis named: '",input$fileNameUpload,"' saved successfully."), type = "success")
-            # cat(paste("Analysis named: '",input$fileNameUpload,"' saved successfully."))
-          }) ## end eventReactive
+
+            tryCatch({
+              temp_file <- paste0(tempdir(), "/", input$fileNameUpload, ".RData")
+              save(result, file = temp_file)
+
+              # upload data object to S3 bucket
+              s3$put_object(
+                Body = temp_file,
+                Bucket = bucket_name,
+                Key = s3_object_path
+              )
+
+              shinybusy::remove_modal_spinner()
+              shinyalert::shinyalert(title = "Success!", text = paste("Analysis named: '",input$fileNameUpload,"' saved successfully on the cloud."), type = "success")
+            }, error = function(e) {
+              shinybusy::remove_modal_spinner()
+              shinyalert::shinyalert(title = "Failed!", text = e$message, type = "error")
+            })
+
+            # save(result, file=file.path(getwd(),res_auth$repository, paste0(input$fileNameUpload,".RData")))
+            return(cat(paste("Saved successfully on", s3_object_path)))
+          })
+
           output$outSave <- renderPrint({
             outSave()
           })
+
         }else if(input$object_output == 'pcfile'){ # upload rds
 
           output$downloadRds <- downloadHandler(

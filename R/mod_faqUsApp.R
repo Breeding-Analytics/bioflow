@@ -36,7 +36,7 @@ mod_faqUsApp_ui <- function(id){
                               can derive the sensititvity and stability of materials in few paramters and visualizations that guarantee the advacement of better and more stable products compared
                               to classical approaches."),
 
-                            p(strong("Trait discovery and introgression:"), "Biometrical genetics offer a variety of linear and non-linear models to idenify genes behind traits of human interest.
+                            p(strong("Trait discovery and introgression:"), "Biometrical genetics offer a variety of linear and non-linear models to identify genes behind traits of human interest.
                               In addition, biometrical procedures make more efficient the introgression of beneficial alleles in terms of resources like time and cost."),
 
                             br(),

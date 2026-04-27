@@ -123,12 +123,14 @@ if (is.null(result)){
   predSplitSplitWide <- lapply(predSplitSplit, function(y){lapply(y,function(x){
     tableForm <- table(x$environment)
     ninds <- tableForm; nEnvs <- length(tableForm)
-    idsmock <- unlist(apply(data.frame(as.vector(ninds)),1,function(z){paste0("id",1:z)}))
     x <- x[with(x, order(environment, designation)), ]
-    x$idsmock <- as.vector(idsmock)
+    
+    x$idsmock <- gsub(paste(unique(modelingFieldsIncludedInMta$environment), collapse = "|"), "", x$designation)
+    x$idsmock <- gsub("^:|:$", "", x$idsmock)
+    
     wide0 <- reshape(x[,c("environment","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
                      timevar = "environment", v.names = "predictedValue", sep= "_")
-    wide0 <- wide0[,-1,drop=FALSE]; rownames(wide0) <- x$designation[1:max(ninds)]
+    rownames(wide0) <- wide0$idsmock; wide0 <- wide0[,-1,drop=FALSE]
     wide0 <- wide0[,apply(wide0,2,enhancer::propMissing) != 1, drop=FALSE]
     colnames(wide0) <- gsub("predictedValue_","",colnames(wide0))
     return(wide0)
@@ -137,7 +139,11 @@ if (is.null(result)){
   predSplitSplitWide2 <- lapply(predSplitSplit2, function(y){ # for each environment do
     lapply(y,function(x){
       x <- x[with(x, order(trait, designation)), ]
-      wide0 <- reshape(x[,c("trait","predictedValue","designation")], direction = "wide", idvar = "designation",
+      
+      x$idsmock <- gsub("^:|:$", "", 
+                      gsub(paste(unique(modelingFieldsIncludedInMta$environment), collapse = "|"), "", x$designation))
+      
+      wide0 <- reshape(x[,c("trait","predictedValue","idsmock")], direction = "wide", idvar = "idsmock",
                        timevar = "trait", v.names = "predictedValue", sep= "_")
       rownamesWide0 <- wide0[,1]
       wide0 <- wide0[,-1,drop=FALSE]; 
@@ -891,7 +897,7 @@ if (is.null(result)){
         cat("\n\n####", iTrait2, "{.tabset .tabset-pills}       \n\n")
         
         # wide2 <- predSplitSplitWide[[iType2]][[iTrait2]] 
-        wide2 <- predSplitSplitWide[[which(names(predSplitSplitWide) %in% gxeList[[1]])]][[iTrait2]] 
+        wide2 <- predSplitSplitWide[[which(names(predSplitSplitWide) %in% gxeList[[1]])]][[iTrait2]]
         
         if(!is.null(wide2)){
           if(nrow(wide2) > 1){
@@ -1085,7 +1091,8 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    if(any(c("environment_designation", "designation_environment") %in% effectTypes2)){
+    if(any(c("environment_designation", "designation_environment",
+             "environment:designation", "designation:environment") %in% effectTypes2)){
       inputPanel(
         selectInput(ns("traitBiplot"),
                     label = "Trait:",
@@ -1683,14 +1690,14 @@ if (is.null(result)){
   
   coalesce_by_column <- function(x) {
   args <- as.list(x)
-
+    
   # Drop NULLs and length-0 elements 
   keep <- vapply(args, function(z) !(is.null(z) || length(z) == 0L), logical(1))
   args <- args[keep]
-
+    
   #NULL/empty define as NA 
   if (length(args) == 0L) return(NA_real_)
-
+    
   #Coalesce values
   dplyr::coalesce(!!!args)
   }

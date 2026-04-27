@@ -379,7 +379,7 @@ mod_filterPhenoApp_server <- function(id, data){
         toSilence <- setdiff(mydata$rowindex, keep)
 
         if(length(toSilence) > 0 & input$traitFilterPheno %in% colnames(mydata) ){
-          myoutliersReduced <- data.frame(module="qaFilter",analysisId=NA,trait=input$traitFilterPheno,reason="outlierIQR",row=toSilence, value=NA);
+          myoutliersReduced <- data.frame(module="qaFilter",analysisId=NA,trait=input$traitFilterPheno,reason="outlierIQR",row=toSilence, value=mydata[toSilence,input$traitFilterPheno]);
         }else{
           myoutliersReduced <- data.frame(matrix(nrow=0, ncol=6))
           colnames(myoutliersReduced) <- c("module" ,"analysisId" ,"trait","reason","row" , "value" )
