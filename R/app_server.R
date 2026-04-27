@@ -294,6 +294,8 @@ app_server <- function(input, output, session) {
 
     status <- session$userData$temp$status
 
+    if (length(status) == 0 || nrow(status) == 0) { return() }
+
     for (i in 1:nrow(status)) {
       # avoid reporting usage of loaded data from a previous session
       if (status[i,"analysisId"] < as.numeric(Sys.time()) - 3600*24) next
@@ -354,7 +356,7 @@ app_server <- function(input, output, session) {
   ## QUALITY ASSURANCE tabs
   mod_qaPhenoApp_server("qaPhenoApp_1", data = data)
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
-  #mod_qaPedApp_server("qaPedApp_1",data = data)
+  mod_qaPedApp_server("qaPedApp_1",data = data)
 
   ## DATA TRANSFORMATIONS
   mod_traitTransformApp_server("traitTransformApp_1", data = data)
@@ -386,7 +388,7 @@ app_server <- function(input, output, session) {
   mod_selSignApp_server("selSignApp_1")
 
   # MUTATION - mutation discovery
-  mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
+  # mod_gwasqkApp_server("gwasqkApp_1", data = data) # GWAS Q+K method
   # MUTATION - mutation history
   #mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
@@ -440,6 +442,9 @@ app_server <- function(input, output, session) {
         grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+      removeTab("tabso", "retrieveNewData_tab")
+      removeTab("tabso", "retrieveOldAnalysis_tab")
 
       ### set up paws library ################################################
 

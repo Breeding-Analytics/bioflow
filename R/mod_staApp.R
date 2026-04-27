@@ -175,6 +175,22 @@ mod_staApp_ui <- function(id){
                                                                                                            )
                                                                                                          ),
                                                                                                          choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
+                                                                                             selectInput(
+                                                                                               ns("rowColRoleSta"),
+                                                                                               label = tags$span(
+                                                                                                 "Row/Column effect",
+                                                                                                 tags$i(
+                                                                                                   class = "glyphicon glyphicon-info-sign",
+                                                                                                   style = "color:#FFFFFF",
+                                                                                                   title = "Choose whether row and column should be used only as spatial coordinates (residual/spline) or also as blocking/design random effects."
+                                                                                                 )
+                                                                                               ),
+                                                                                               choices = c(
+                                                                                                 "Spatial coordinates only" = "spatial",
+                                                                                                 "Blocking/design factors" = "design"
+                                                                                               ),
+                                                                                               selected = "spatial"
+                                                                                             ),
                                                                                              numericInput(ns("maxitSta"),
                                                                                                           label = tags$span(
                                                                                                             "Number of iterations",
@@ -1346,6 +1362,7 @@ mod_staApp_server <- function(id,data){
       req(input$genoAsFixedSta)
       req(input$verboseSta)
       req(input$maxitSta)
+      req(input$rowColRoleSta)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtSta <- data()
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
@@ -1370,8 +1387,11 @@ mod_staApp_server <- function(id,data){
                                             trait=input$trait2Sta,
                                             traitFamily = myFamily,
                                             fixedTerm = input$fixedTermSta2,
-                                            returnFixedGeno=input$genoAsFixedSta, genoUnit = input$genoUnitSta,
-                                            verbose = input$verboseSta, maxit = input$maxitSta),
+                                            returnFixedGeno=input$genoAsFixedSta, 
+                                            genoUnit = input$genoUnitSta,
+                                            rowColRole = input$rowColRoleSta,
+                                            verbose = input$verboseSta, 
+                                            maxit = input$maxitSta),
                       silent=TRUE
         )
         if(!inherits(result,"try-error")) {

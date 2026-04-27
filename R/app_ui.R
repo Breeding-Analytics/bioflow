@@ -84,7 +84,7 @@ app_ui <- function(request) {
       navbarMenu("Data Management ", icon = icon("upload"),
 
                  tabPanel(strong("DATA RETRIEVAL AND SAVING"), mod_sectionInfoDRASApp_ui("sectionInfoDRASApp_1") ),
-                 tabPanel(div(icon("folder"), "Retrieve New Data"),
+                 tabPanel(div(icon("folder"), "Retrieve New Data"), value = "retrieveNewData_tab",
                           tabsetPanel( #widths = c(1, 11),
                             tabPanel(div(icon("seedling"), "Phenotypic"), mod_getDataPheno_ui("getDataPheno_1")  ),
                             tabPanel(div(icon("code-fork"), "Pedigree & Geno metadata"), mod_getDataPed_ui("getDataPed_1") ),
@@ -93,7 +93,7 @@ app_ui <- function(request) {
                             tabPanel(div(icon("cloud-sun-rain"), "Weather"), mod_getDataWeather_ui("getDataWeather_1") ),
                           )
                  ),
-                 tabPanel(div(icon("folder-open"), "Retrieve Old Analysis"),
+                 tabPanel(div(icon("folder-open"), "Retrieve Old Analysis"), value = "retrieveOldAnalysis_tab",
                           mod_bindObjectApp_ui("bindObjectApp_1") ,
                  ),
                  tabPanel(div( icon("floppy-disk"), "Save Data/Results",  ), mod_saveData_ui("saveData_1")  ),
@@ -101,7 +101,7 @@ app_ui <- function(request) {
                  tabPanel(strong("DATA QUALITY CHECK"), mod_sectionInfoQAApp_ui("sectionInfoQAApp_1") ),
                  tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
                  tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
-                 #tabPanel(div("(optional) Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
+                 tabPanel(div(icon("soap"),"Pedigree QA/QC (", icon("network-wired"), ")" ), mod_qaPedApp_ui("qaPedApp_1") ),
                  # tabPanel(div(icon("filter-circle-xmark"), "Data Quality Assurance" ),
                  #          navlistPanel( "Options:", widths = c(1, 11),
                  #          )
@@ -163,7 +163,8 @@ app_ui <- function(request) {
 
       navbarMenu("Mutation", icon = icon("disease"),
                  tabPanel(strong("DISCOVERY"), mod_sectionInfoGDApp_ui("sectionInfoGDApp_1") ),
-                 tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")"), mod_gwasqkApp_ui("gwasqkApp_1") ), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
+                 #tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")"), mod_gwasqkApp_ui("gwasqkApp_1") ), #  icon = icon("chart-simple")), # may include P3D, traditional single linear regression, Eigen, etc.
+                 tabPanel(div(icon("fire"), "Genome wide association (", icon("dna"),")", style = "color:red"),  mod_linkageDisApp_ui("linkageDisApp_1")),
                  #tabPanel(strong("MUTATION HISTORY"), mod_sectionInfoMHApp_ui("sectionInfoMHApp_1") ),
                  #tabPanel(div(icon("chart-line"), "Mutation rate (", icon("dna"),")", style = "color:red"), mod_mutatioRateApp_ui("mutatioRateApp_1") ) #  icon = icon("disease")) # may include
       ),

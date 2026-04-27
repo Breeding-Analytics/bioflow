@@ -129,16 +129,26 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-three"), "Form your model", icon("arrow-right") ), # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      br(),
+                                                      column(
+                                                        width  = 12,
+                                                        tags$div(
+                                                          style = "background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:12px;border-radius:6px;margin-bottom:12px;",
+                                                          tags$b("Warning:"),
+                                                          tags$p(style = "margin-bottom:0;","Selecting a shortcut to a popular genetic evaluation model or a surrogate of merit will set the default model."),
+                                                          tags$p(style = "margin-top:0;margin-bottom:0;","If you modify the terms, it may no longer match the selected model or merit and will instead follow the terms you specified."),
+                                                        )
+                                                      ),
                                                       column(width=12,
-                                                             column(width=9,
+                                                             column(width=8,
                                                                     radioButtons(ns("radio"),
                                                                                  label = tags$span(
                                                                                    "Shortcut to popular genetic evaluation models",
-                                                                                   tags$i(
-                                                                                     class = "glyphicon glyphicon-info-sign",
-                                                                                     style = "color:#FFFFFF",
-                                                                                     title = "Selecting a popular genetic model sets a default, but if you change the terms, it may no longer match the selected model and will instead follow the terms you specified."
-                                                                                   )
+                                                                                   # tags$i(
+                                                                                   #   class = "glyphicon glyphicon-info-sign",
+                                                                                   #   style = "color:#FFFFFF",
+                                                                                   #   title = "Selecting a popular genetic model sets a default, but if you change the terms, it may no longer match the selected model and will instead follow the terms you specified."
+                                                                                   # )
                                                                                  ),
                                                                                  choices = list(
                                                                                    "Main effect" = "mn_model",
@@ -160,15 +170,15 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     radioTooltip(id = ns("radio"), choice = "sca_model", title = "This model includes STA random effects for the designation and GCA random effects for mother and father. Requires pedigree information to map each designation to their respective mother and father", placement = "right", trigger = "hover"),
                                                                     radioTooltip(id = ns("radio"), choice = "gca_model", title = "This model includes GCA random effects for mother and father.Requires pedigree information to map each designation to their respective mother and father", placement = "right", trigger = "hover")
                                                              ),
-                                                             column(width=3,
+                                                             column(width=4,
                                                                     radioButtons(ns("radioModel"),
                                                                                  label = tags$span(
                                                                                    "Shortcut to different surrogates of merit",
-                                                                                   tags$i(
-                                                                                     class = "glyphicon glyphicon-info-sign",
-                                                                                     style = "color:#FFFFFF",
-                                                                                     title = "Selecting a surrogate of merit sets a default covariance structure, but if you change the covariance structure, it may no longer match the selected surrogate of merit and will instead follow the covariance structure you specified."
-                                                                                   )
+                                                                                   # tags$i(
+                                                                                   #   class = "glyphicon glyphicon-info-sign",
+                                                                                   #   style = "color:#FFFFFF",
+                                                                                   #   title = "Selecting a surrogate of merit sets a default covariance structure, but if you change the covariance structure, it may no longer match the selected surrogate of merit and will instead follow the covariance structure you specified."
+                                                                                   # )
                                                                                  ),
                                                                                  choices = list(
                                                                                    "TGV"="none",
