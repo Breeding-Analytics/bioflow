@@ -377,6 +377,7 @@ app_server <- function(input, output, session) {
   # mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
+  mod_prodAdvApp_server("prodAdvApp_1", data = data)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
   mod_gpcpApp_server("gpcpApp_1", data = data) #genomic prediction of cross performance
 

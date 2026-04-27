@@ -1,0 +1,126 @@
+---
+title: "Product Advancement Final Report"
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  error = TRUE
+)
+
+library(DT)
+library(magrittr)
+library(shiny)
+
+load("resultProdAdv.RData")
+final_table <- final_table_export
+```
+
+```{r, include=FALSE}
+printTable <- function(DT, pageLength = 25,
+                       numericColNames = NULL, numRound = 3,
+                       scrollXOpt = TRUE, filt = "top", ...) {
+
+  oldnames <- colnames(DT)
+
+  DT <- data.frame(lapply(DT, function(x) {
+    if (is.numeric(x)) round(x, numRound) else x
+  }))
+
+  colnames(DT) <- oldnames
+
+  table <- DT::datatable(
+    data = DT,
+    filter = filt,
+    options = list(
+      dom = "l<<t>pB>",
+      buttons = c("copy", "csv", "excel", "print"),
+      pageLength = pageLength,
+      searchHighlight = TRUE,
+      lengthMenu = c(10, 25, 50, 100),
+      scrollX = scrollXOpt
+    ),
+    extensions = "Buttons",
+    rownames = FALSE,
+    ...
+  )
+
+  if (length(numericColNames) > 0) {
+    table <- table %>%
+      DT::formatRound(columns = numericColNames, digits = numRound)
+  }
+
+  table
+}
+
+```
+
+###  Final decision table
+
+```{r, include=FALSE}
+htmltools::tagList(printTable(mtcars))
+
+# Identify column groups
+trait_decision_cols <- grep("_trait_decision$", colnames(final_table), value = TRUE)
+
+main_decision_cols <- intersect(
+  c("initial_decision", "plot_decision", "final_decision"),
+  colnames(final_table)
+)
+
+# Everything else (e.g. designation, numeric traits)
+other_cols <- setdiff(
+  colnames(final_table),
+  c(trait_decision_cols, main_decision_cols)
+)
+
+# Reorder
+final_table <- final_table[, c(
+  other_cols,
+  trait_decision_cols,
+  main_decision_cols
+), drop = FALSE]
+
+```
+
+
+```{r}
+dt <- printTable(
+  final_table,
+  pageLength = 25,
+  scrollXOpt = TRUE,
+  numericColNames = names(final_table)[vapply(final_table, is.numeric, logical(1))]
+)
+
+decision_cols <- grep(
+  "(_decision$|_trait_decision$)",
+  colnames(final_table),
+  value = TRUE
+)
+
+decision_cols <- intersect(
+  decision_cols,
+  colnames(final_table)
+)
+
+for (col in decision_cols) {
+  dt <- DT::formatStyle(
+    dt,
+    columns = col,
+    backgroundColor = DT::styleEqual(
+      c("SELECTED", "NOT SELECTED", "CHECK"),
+      c("#D6EAF8", "#FADBD8", "#F5DCE9")
+    ),
+    fontWeight = "bold"
+  )
+}
+
+htmltools::tagList(dt)
+
+```
+
