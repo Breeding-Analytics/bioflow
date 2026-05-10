@@ -630,6 +630,26 @@ mod_rggApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtRgg <- data()
 
+      ### pseudo code to select top n (e.g., 5) lines per yearOfOrigin #########################
+      # n_value <- 5
+      #
+      # tmp <- dtRgg$predictions[dtRgg$predictions$module == "mtaLmms" &
+      #                          dtRgg$predictions$effectType == "designation", ]
+      #
+      # tmp <- merge(tmp, dtRgg$data$pedigree[, c("Geno", "yearOfOrigin")],
+      #              by.x = "designation", by.y = 1)
+      #
+      # top_geno <- tmp %>%
+      #   dplyr::group_by(yearOfOrigin) %>%
+      #   dplyr::slice_max(order_by = predictedValue, n = n_value) %>%
+      #   dplyr::select(yearOfOrigin, designation, predictedValue)
+      #
+      # dtRgg$predictions <- dtRgg$predictions[!(dtRgg$predictions$module == "mtaLmms" &
+      #                                          dtRgg$predictions$effectType == "designation" &
+      #                                        !(dtRgg$predictions$designation %in% top_geno$designation)),]
+      # rm(tmp, top_geno)
+      ##########################################################################################
+
       if(input$methodRgg == "piepho"){
         result <- try(cgiarPipeline::rggPiepho(
           phenoDTfile= dtRgg,
