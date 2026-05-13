@@ -111,9 +111,9 @@ suppressWarnings(tryCatch({
 
 9. OUTPUT: Average score of markers used in the analysis for each cross (AvgScore)
 
-10. OUTPUT: Status of F1 invididuals (PASS, LIKELY F1, UNCERTAIN, MISMATCH, PARENT FAIL, NO GENO DATA)
+10. OUTPUT: Status of F1 invididuals (GOOD, QUESTIONABLE, BAD, PARENT FAIL, NO GENO DATA)
 
-This qa/qc module allows users to identify which F1 individuals should be considered a TRUE F1 (PASS), which ones should be investigated further (LIKELY F1, UNCERTAIN) and which ones are not TRUE F1s (MISMATCH). 
+This qa/qc module allows users to identify which F1 individuals should be considered a TRUE F1 (GOOD), which ones should be investigated further (QUESTIONABLE) and which ones are not TRUE F1s (BAD). 
 
 This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information (HasPed), due to one of the parents not passing the heterozygosity threshold (parHetFilter) or due to one of the parents having no genotypic information (ParentHasGeno).
 
@@ -157,18 +157,18 @@ if (is.null(result)){
   predictionsX <- result$predictions[which( result$predictions$analysisId == idQa),]
   modeling <- result$modeling[which(result$modeling$analysisId == idQa),]
   upperThres <- modeling[modeling$parameter == "UpperMatchProbThres","value"]
-  midThres <- modeling[modeling$parameter == "MidMatchProbThres","value"]
+  #midThres <- modeling[modeling$parameter == "MidMatchProbThres","value"]
   lowerThres <- modeling[modeling$parameter == "LowerMatchProbThres","value"]
   
   upperThres = as.numeric(upperThres)
-  midThres = as.numeric(midThres)
+  #midThres = as.numeric(midThres)
   lowerThres = as.numeric(lowerThres)
   
   idx <- (predictionsX$trait == "probMatch") 
   
-  status <- ifelse(predictionsX$predictedValue[idx] >= upperThres, "PASS",
-            ifelse(predictionsX$predictedValue[idx] >= midThres, "LIKELY F1",
-            ifelse(predictionsX$predictedValue[idx] >= lowerThres, "UNCERTAIN","MISMATCH")))
+  status <- ifelse(predictionsX$predictedValue[idx] >= upperThres, "GOOD",
+            #ifelse(predictionsX$predictedValue[idx] >= midThres, "LIKELY F1",
+            ifelse(predictionsX$predictedValue[idx] >= lowerThres, "QUESTIONABLE","BAD"))
   
   prob_status <- unique(data.frame(designation = predictionsX$designation[idx],
                                    .status = status,
@@ -216,11 +216,11 @@ if (is.null(result)){
                                      name = "Match status",
                                     values = c(
                                                "NO GENO DATA" = "#f3b0b0",
-                                               "MISMATCH"     = "#f3b0b0",
+                                               "BAD"     = "#f3b0b0",
                                                "PARENT FAIL"  = "#f3b0b0",
                                                "UNCERTAIN"    = "#FFD166",
-                                               "LIKELY F1"    = "#C0CA33",
-                                               "PASS"         = "#A4D65E"
+                                               "QUESTIONABLE"    = "#C0CA33",
+                                               "GOOD"         = "#A4D65E"
                                                )
                                     ) +
           ggplot2::labs(x = "Genotype", y = tr) +
@@ -249,11 +249,11 @@ if (is.null(result)){
         ggplot2::geom_col() +
         ggplot2::scale_fill_manual(name   = "Match status",
                                    values = c('NO GENO DATA' = "#f3b0b0",
-                                              'MISMATCH' = "#f3b0b0", 
+                                              'BAD' = "#f3b0b0", 
                                               'PARENT FAIL' = "#f3b0b0",
                                               'UNCERTAIN' = "#FFD166", 
-                                              'LIKELY F1'= "#C0CA33",
-                                              'PASS' = "#A4D65E")) +
+                                              'QUESTIONABLE'= "#C0CA33",
+                                              'GOOD' = "#A4D65E")) +
         ggplot2::labs(x = "Genotype", y = input$traitQa) +
         ggplot2::theme_classic() +
         ggplot2::theme(axis.text.x = ggplot2::element_blank())
@@ -346,7 +346,7 @@ if (has_sample || has_other) {
     'status',
     target = 'row',
     backgroundColor = DT::styleEqual(
-      c('PASS','LIKELY F1','UNCERTAIN',"MISMATCH","PARENT FAIL"),
+      c('GOOD','QUESTIONABLE','UNCERTAIN',"BAD","PARENT FAIL"),
       c(
           "rgba(164, 214, 94, 0.3)",
           "rgba(192,202, 51, 0.22)",
@@ -378,7 +378,7 @@ if (has_sample || has_other) {
       "status",
       target = "row",
       backgroundColor = DT::styleEqual(
-        c("PASS","LIKELY F1","UNCERTAIN","MISMATCH","PARENT FAIL"),
+        c("GOOD","QUESTIONABLE","UNCERTAIN","BAD","PARENT FAIL"),
         c(
           "rgba(164, 214, 94, 0.3)",
           "rgba(192,202, 51, 0.22)",
@@ -400,7 +400,7 @@ if (has_sample || has_other) {
 ### Parental check
 <p>&nbsp;</p>
 
-The following plot shows how many F1 individuals derived from each parent received a "PASS" status or failed. Parents that resulted in mostly failed F1s are more likely to have genotyping errors
+The following plot shows how many F1 individuals derived from each parent received a "GOOD" status or failed. Parents that resulted in mostly failed F1s are more likely to have genotyping errors
 
 
 ```{r}
@@ -424,7 +424,7 @@ parent_long <- parent_long[!is.na(parent_long$parent) & parent_long$parent != ""
 
 # Define outcome label: PASS vs non-PASS
 parent_long$Outcome <- ifelse(
-  parent_long$status == "PASS",
+  parent_long$status == "GOOD",
   "Crosses passed QA",
   "Crosses failed QA"
 )
@@ -519,33 +519,6 @@ if (is.null(result)){
 }
 
 ```
-
-<p>&nbsp;</p>
-
-### Verification Modifications
-
-The following table shows modifications done to the genotypic data during the F1 (QA/QC analysis)
-
-```{r, results='asis'}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  # numericalColumns2 <- c("value") 
-  modVeri <- result$modifications$geno[which(result$modifications$geno$analysisId == idQa),]
-  
-  if("params" %in% ls()){ # we will download the document
-    printTable(modelingVeri, autoWidthOpt = TRUE, scrollXOpt = FALSE,
-             colNames = colnames(modelingVeri))
-  }else{
-    DT::renderDT(printTable(modVeri,
-                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                        colNames = colnames(modelingVeri)), server = FALSE)
-  }
-  
-}
-
-```
-
 <p>&nbsp;</p>
 
 ### References on methods used
