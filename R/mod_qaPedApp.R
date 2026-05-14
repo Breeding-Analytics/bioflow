@@ -100,7 +100,7 @@ mod_qaPedApp_ui <- function(id) {
                                                fluidRow(
                                                  column(width = 4,
                                                         numericInput(ns('GLML'),'Mother wrong (<):', value = 0.2, min = 0, max = 1, step = 0.01),
-                                                        numericInput(ns('GLMB'),'Mother borderline [><]:', value = 0.7, min = 0, max = 1, step = 0.01),
+                                                        #numericInput(ns('GLMB'),'Mother borderline [><]:', value = 0.7, min = 0, max = 1, step = 0.01),
                                                         numericInput(ns('GLMC'),'Mother correct [>=]:', value = 1.6, min = 0, max = 1, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
@@ -122,7 +122,7 @@ mod_qaPedApp_ui <- function(id) {
                                                fluidRow(
                                                  column(width = 4,
                                                         numericInput(ns('GLFL'),'Father wrong (<):', value = 0.2, min = 0, max = 1, step = 0.01),
-                                                        numericInput(ns('GLFB'),'Father borderline [><]:', value = 0.7, min = 0, max = 1, step = 0.01),
+                                                        #numericInput(ns('GLFB'),'Father borderline [><]:', value = 0.7, min = 0, max = 1, step = 0.01),
                                                         numericInput(ns('GLFC'),'Father correct [>=]:', value = 1.5, min = 0, max = 1, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
@@ -216,23 +216,23 @@ mod_qaPedApp_server <- function(id, data){
     
     #################
     ## version
-    observeEvent(data(), {
+    observeEvent(c(data()), {
       req(data())
       dtMtaAsr <- data() # dtMtaAsr <- result
       dtMtaAsr <- dtMtaAsr$status
-      dtMtaAsrGeno <- dtMtaAsr[which(dtMtaAsr$module == "qaGeno"),]
-      traitsMtaAsrGeno <- unique(dtMtaAsrGeno$analysisId)
-
-	  if(!is.null(traitsMtaAsrGeno)){
-      	#if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
-      	if(length(traitsMtaAsrGeno) > 0){
-        	if("analysisIdName" %in% colnames(dtMtaAsrGeno)){
-          		names(traitsMtaAsrGeno) <- paste(dtMtaAsrGeno$analysisIdName, as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"), sep = "_")
-        	}else{
-          		names(traitsMtaAsrGeno) <- as.character(as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"))
-        	}
-      	}
-	  }
+      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module == "qaGeno"),]
+      traitsMtaAsrGeno <- unique(dtMtaAsr$analysisId)
+      
+      if(!is.null(traitsMtaAsrGeno)){
+      if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
+      if(length(traitsMtaAsrGeno) > 0){
+        if("analysisIdName" %in% colnames(dtMtaAsr)){
+          names(traitsMtaAsrGeno) <- paste(dtMtaAsr$analysisIdName, as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMtaAsrGeno) <- as.character(as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"))
+        }
+      }}
+      
       updateSelectInput(session, "version2qaPed", choices = traitsMtaAsrGeno)
     })
 
@@ -362,7 +362,7 @@ mod_qaPedApp_server <- function(id, data){
     })
     
     
-    ped_qa_data <- reactiveValues(GRM_metric = NULL, impossible_metric = NULL)
+    ped_qa_data <- reactiveValues(GRM_metric = NULL, impossible_metric = NULL, thr=list() )
     
     plot_impossible<-function(peddata,metaped,glgeno){
       print("Comparison of triplets")
@@ -444,7 +444,23 @@ mod_qaPedApp_server <- function(id, data){
       GLF_metric<-unlist(lapply(resF,function(x){G[x[1],x[2]]}))
       GDLM_metric<-(unlist(lapply(resD,function(x){G[x[1],x[1]]}))-unlist(lapply(resM,function(x){G[x[1],x[2]]})))
       GRM_metric=list(GLM_metric,GLF_metric,GDLM_metric)
-      return(GRM_metric)
+      library(mclust)
+      fit <- mclust::Mclust(GLM_metric, G = 2)
+      means <- sort(fit$parameters$mean)
+      thr_low  <- means[1] + 0.25 * (means[2] - means[1])
+      thr_high <- means[1] + 0.75 * (means[2] - means[1])
+      
+      fit2 <- mclust::Mclust(GLF_metric, G = 2)
+      means2 <- sort(fit2$parameters$mean)
+      thr_low2  <- means2[1] + 0.25 * (means2[2] - means2[1])
+      thr_high2 <- means2[1] + 0.75 * (means2[2] - means2[1])
+      
+      fit3 <- mclust::Mclust(GDLM_metric, G = 2)
+      means3 <- sort(fit3$parameters$mean)
+      threshold <- mean(means3)
+      thr<-list(mother=c(thr_low,thr_high),father=c(thr_low2,thr_high2),MD=list(threshold,means3[1],means3[2],fit3$classification))
+      
+      return(list(GRM_metric,thr))
     }
     
     filters_ped<-function(peddata,metaped,GRM_metric,impossible_metric,pwrong,mlong,mborder,mcorrect,flong,fborder,fcorrect,dllcorrect){
@@ -460,8 +476,8 @@ mod_qaPedApp_server <- function(id, data){
       GmatD_FL<-GRM_metric[[3]]
       QCc=ifelse(is.na(QCc),NA,ifelse(QCc<pwrong,"Allele_QC_PASS", ifelse(QCc>pwrong,"Allele_QC_FAIL","Allele_QC_BORDERLINE")))
       #GmatFL=ifelse(is.na(QCc),NA,ifelse(GmatFL < flong,"FEMALE_GMAT_WRONG",ifelse(GmatFL > fcorrect,"FEMALE_HIGH_GMAT",ifelse(GmatFL < fborder,"FEMALE_BORDERLINE_GMAT","XXX"))))
-	  GmatFL=ifelse(is.na(QCc),NA,ifelse(GmatFL < flong,"FEMALE_GMAT_WRONG",ifelse(GmatFL >= flong & GmatFL <= fborder,"FEMALE_BORDERLINE_GMAT","XXX")))			  
-      GmatML=ifelse(is.na(QCc),NA,ifelse(GmatML<mlong,"MALE_GMAT_WRONG", ifelse(GmatML>=mlong & GmatML<=mborder,"MALE_BORDERLINE_GMAT","XXX")))
+      GmatFL=ifelse(is.na(QCc),NA,ifelse(GmatFL < flong,"FEMALE_GMAT_WRONG",ifelse(GmatFL >= flong & GmatFL <= fcorrect,"FEMALE_BORDERLINE_GMAT","XXX")))
+      GmatML=ifelse(is.na(QCc),NA,ifelse(GmatML<mlong,"MALE_GMAT_WRONG", ifelse(GmatML>=mlong & GmatML<=mcorrect,"MALE_BORDERLINE_GMAT","XXX")))
       GmatD_FL=ifelse(is.na(QCc),NA,ifelse(GmatD_FL<dllcorrect,"PROBABLE_SELF","XXX"))
       condtest=data.frame(Condicional=paste0("XXX_",QCc,"_",GmatFL,"_",GmatML,"_XXX_XXX_XXX_",GmatD_FL,"_XXX_XXX"))
       #save(condtest,FinalClass,file="ver.RData")
@@ -476,6 +492,21 @@ mod_qaPedApp_server <- function(id, data){
       return(tmp)
     }
     
+    observe({
+      req(data())
+      req(input$version2qaPed)
+      
+      geno <- data()$data$geno
+      qas <- which(names(data()$data$geno_imp) == input$version2qaPed)
+      geno_imp <- data()$data$geno_imp[[qas]]
+      geno <- modifyGeno(geno, geno_imp)
+      
+      maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
+      p <- pmin(maf, 1 - maf)
+      expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
+      
+      updateNumericInput(session, "wrongG", value = expected_error)
+    })
     
     output$hist_wrongG<- plotly::renderPlotly({
       req(data())
@@ -492,9 +523,42 @@ mod_qaPedApp_server <- function(id, data){
         shinybusy::remove_modal_spinner()
         
         if((length(which(impossible_metric[[2]]==3))*100)/dim(peddata)[1]>=0.8){
-          plotly::plot_ly(x = sapply(impossible_metric[[3]], function(x) x[3]),
-                          type = "histogram",
-                          name = "Percentage of wrong")
+          maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
+          p <- pmin(maf, 1 - maf)
+          expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
+          
+          w<-sapply(impossible_metric[[3]], function(x) x[3])
+          status <- ifelse(w < expected_error, "GOOD","BAD")
+          status_colors <- c(
+            "GOOD" = "#A8E6A3",         # verde claro
+            "BAD" = "#F5A3A3",      # rojo claro
+            "QUESTIONABLE" = "#F2D16B"  # mostaza claro
+          )                 
+          df <- data.frame(
+            w = w,
+            status=status
+          )
+          plotly::plot_ly(df, x = ~w, color = ~status, colors=status_colors,type = "histogram",
+                          opacity = 0.6, nbinsx = 60) %>%
+            plotly::layout(
+              title = "Diagnostic Plot",
+              barmode = "overlay",
+              shapes = list(
+                # threshold
+                list(
+                  type = "line",
+                  x0 = expected_error,
+                  x1 = expected_error,
+                  y0 = 0,
+                  y1 = 1,
+                  yref = "paper",
+                  line = list(color = "red", width = 3, dash = "dash")
+                )
+              )
+            )
+          #plotly::plot_ly(x = sapply(impossible_metric[[3]], function(x) x[3]),
+          #               type = "histogram",
+          #               name = "Percentage of wrong")
         }else{
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
@@ -522,13 +586,57 @@ mod_qaPedApp_server <- function(id, data){
       
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
         useful=ped_qa_data$impossible_metric[[1]]
-        GRM_metric=plot_GRM(peddata,metaped,Markers,useful)
+        resultgrm=plot_GRM(peddata,metaped,Markers,useful)
+        GRM_metric=resultgrm[[1]]
+        thr=resultgrm[[2]]
         ped_qa_data$GRM_metric=GRM_metric
+        ped_qa_data$thr=thr
         shinybusy::remove_modal_spinner()
         if( (length(useful)*100)/dim(peddata)[1]>=0.8){
-          plotly::plot_ly(x = GRM_metric[[1]],
+          
+          thr_low  <- thr[[1]][1]
+          thr_high <- thr[[1]][2]
+          status <- ifelse(GRM_metric[[1]] < thr_low, "BAD",
+                           ifelse(GRM_metric[[1]] > thr_high, "GOOD", "QUESTIONABLE"))
+          status_colors <- c(
+            "GOOD" = "#A8E6A3",         # verde claro
+            "BAD" = "#F5A3A3",      # rojo claro
+            "QUESTIONABLE" = "#F2D16B"  # mostaza claro
+          )
+          df <- data.frame(
+            Gij = GRM_metric[[1]],
+            status = status
+          )
+          plotly::plot_ly(df,
+                          x = ~Gij,
+                          color = ~status,
+                          colors=status_colors,
                           type = "histogram",
-                          name = "Original Data")
+                          nbinsx = 60,
+                          opacity = 0.7) %>%
+            plotly::layout(
+              title = "Diagnostic mother",
+              barmode = "overlay",
+              shapes = list(
+                list(
+                  type = "line",
+                  x0 = thr_low,
+                  x1 = thr_low,
+                  y0 = 0, y1 = 1, yref = "paper",
+                  line = list(color = "orange", dash = "dash")
+                ),
+                list(
+                  type = "line",
+                  x0 = thr_high,
+                  x1 = thr_high,
+                  y0 = 0, y1 = 1, yref = "paper",
+                  line = list(color = "green", dash = "dash")
+                )
+              )
+            )
+          #plotly::plot_ly(x = GRM_metric[[1]],
+          #               type = "histogram",
+          #               name = "Original Data")
         }else{
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
@@ -544,12 +652,70 @@ mod_qaPedApp_server <- function(id, data){
         GRM_metric=ped_qa_data$GRM_metric
         shinybusy::remove_modal_spinner()
         if((length(useful)*100)/dim(peddata)[1]>=0.8){
-          plotly::plot_ly(x = GRM_metric[[2]],
+          thr_low  <- ped_qa_data$thr[[2]][1]
+          thr_high <- ped_qa_data$thr[[2]][2]
+          status <- ifelse(GRM_metric[[2]] < thr_low, "BAD",
+                           ifelse(GRM_metric[[2]] > thr_high, "GOOD", "QUESTIONABLE"))
+          status_colors <- c(
+            "GOOD" = "#A8E6A3",         # verde claro
+            "BAD" = "#F5A3A3",      # rojo claro
+            "QUESTIONABLE" = "#F2D16B"  # mostaza claro
+          )
+          df <- data.frame(
+            Gij = GRM_metric[[2]],
+            status = status
+          )
+          plotly::plot_ly(df,
+                          x = ~Gij,
+                          color = ~status,
+                          colors=status_colors,
                           type = "histogram",
-                          name = "Original Data")
+                          nbinsx = 60,
+                          opacity = 0.7) %>%
+            plotly::layout(
+              title = "Diagnostic father",
+              barmode = "overlay",
+              shapes = list(
+                list(
+                  type = "line",
+                  x0 = thr_low,
+                  x1 = thr_low,
+                  y0 = 0, y1 = 1, yref = "paper",
+                  line = list(color = "orange", dash = "dash")
+                ),
+                list(
+                  type = "line",
+                  x0 = thr_high,
+                  x1 = thr_high,
+                  y0 = 0, y1 = 1, yref = "paper",
+                  line = list(color = "green", dash = "dash")
+                )
+              )
+            )
+          #plotly::plot_ly(x = GRM_metric[[2]],
+          #                type = "histogram",
+          #                name = "Original Data")
         }else{
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
+    })
+    
+    observe({
+      req(data())
+      req(ped_qa_data$impossible_metric)
+      req(ped_qa_data$GRM_metric)
+      req(ped_qa_data$thr)
+      print(str(ped_qa_data$thr))
+      thr<-ped_qa_data$thr
+      p1<-thr[[1]]
+      p2<-thr[[2]]
+      p3<-thr[[3]]
+      updateNumericInput(session, "GLML", value = round(as.numeric(p1[1]),1))
+      updateNumericInput(session, "GLMC", value = round(as.numeric(p1[2]),1))
+      updateNumericInput(session, "GLFL", value = round(as.numeric(p2[1]),1))
+      updateNumericInput(session, "GLFC", value = round(as.numeric(p2[2]),1))
+      updateNumericInput(session, "GDLMC", value = round(as.numeric(p3[[1]]),1))
+      
     })
     
     output$hist_GDLM<- plotly::renderPlotly({
@@ -562,13 +728,66 @@ mod_qaPedApp_server <- function(id, data){
         GRM_metric=ped_qa_data$GRM_metric
         shinybusy::remove_modal_spinner()
         if((length(useful)*100)/dim(peddata)[1]>=0.8){
-          plotly::plot_ly(x = GRM_metric[[3]],
-                          type = "histogram",
-                          name = "Original Data")
+          means <- c(ped_qa_data$thr[[3]][[2]],ped_qa_data$thr[[3]][[3]])
+          threshold <- ped_qa_data$thr[[3]][[1]]
+          D = GRM_metric[[3]][!is.na(GRM_metric[[3]])]
+          status <- ifelse(D < threshold, "BAD","GOOD")
+          status_colors <- c(
+            "GOOD" = "#A8E6A3",         # verde claro
+            "BAD" = "#F5A3A3",      # rojo claro
+            "QUESTIONABLE" = "#F2D16B"  # mostaza claro
+          )
+          
+          df <- data.frame(
+            D = D,
+            #cluster = as.factor(ped_qa_data$thr[[3]][[4]])
+            status=status
+          )
+          plotly::plot_ly(df, x = ~D, color = ~status, colors = status_colors, type = "histogram",
+                          opacity = 0.6, nbinsx = 60) %>%
+            plotly::layout(
+              title = "Diagnostic Plot",
+              barmode = "overlay",
+              shapes = list(
+                # threshold
+                list(
+                  type = "line",
+                  x0 = threshold,
+                  x1 = threshold,
+                  y0 = 0,
+                  y1 = 1,
+                  yref = "paper",
+                  line = list(color = "red", width = 3, dash = "dash")
+                ),
+                # cluster means
+                list(
+                  type = "line",
+                  x0 = means[1],
+                  x1 = means[1],
+                  y0 = 0,
+                  y1 = 1,
+                  yref = "paper",
+                  line = list(color = "blue", width = 2)
+                ),
+                list(
+                  type = "line",
+                  x0 = means[2],
+                  x1 = means[2],
+                  y0 = 0,
+                  y1 = 1,
+                  yref = "paper",
+                  line = list(color = "blue", width = 2)
+                )
+              )
+            )
+          #plotly::plot_ly(x = GRM_metric[[3]],
+          #                type = "histogram",
+          #                name = "Original Data")
         }else{
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
     })
+    
     
     report <- reactiveVal(NULL)
     
@@ -628,15 +847,19 @@ mod_qaPedApp_server <- function(id, data){
           result$status <- rbind(result$status, newStatus)
         }else{result$status <- newStatus}
         
-		newModeling <- data.frame(module=rep("qaPed",8), analysisId=rep(Idstatus,8), trait=rep("none",8), environment=rep("general",8) , parameter=c("pwrong","G_matrix_Line_Male_wrong","G_matrix_Line_Male_borderline","G_matrix_Line_Male_correct",
-		"G_matrix_Line_Female_wrong","G_matrix_Line_Female_borderline","G_matrix_Line_Female_correct", "Diagonal_minus_Female_G_matrix_correct"), value=c(input$wrongG,input$GLML,input$GLMB,input$GLMC,input$GLFL,input$GLFB,input$GLFC,input$GDLMC))
+		#newModeling <- data.frame(module=rep("qaPed",8), analysisId=rep(Idstatus,8), trait=rep("none",8), environment=rep("general",8) , parameter=c("pwrong","G_matrix_Line_Male_wrong","G_matrix_Line_Male_borderline","G_matrix_Line_Male_correct",
+		#"G_matrix_Line_Female_wrong","G_matrix_Line_Female_borderline","G_matrix_Line_Female_correct", "Diagonal_minus_Female_G_matrix_correct"), value=c(input$wrongG,input$GLML,input$GLMB,input$GLMC,input$GLFL,input$GLFB,input$GLFC,input$GDLMC))
+		
+		newModeling <- data.frame(module=rep("qaPed",6), analysisId=rep(Idstatus,6), trait=rep("none",6), environment=rep("general",6) , parameter=c("pwrong","G_matrix_Line_Male_wrong","G_matrix_Line_Male_correct",
+		 "G_matrix_Line_Female_wrong","G_matrix_Line_Female_correct", "Diagonal_minus_Female_G_matrix_correct"), value=c(input$wrongG,input$GLML,input$GLMC,input$GLFL,input$GLFC,input$GDLMC))
+		
 		if(!is.null(result$modeling)){
           result$modeling <- rbind(result$modeling, newModeling)
         }else{result$modeling <- newModeling}
         
-		delrow<-which(decisionped$Status=="FAIL")
+		delrow<-which(decisionped$Status=="BAD")
 		if(length(delrow)!=0){
-			newModifications <-data.frame(module=rep("qaPed",length(delrow)), analysisId=rep(Idstatus,length(delrow)), reason=rep("FAIL",length(delrow)),row=delrow)
+			newModifications <-data.frame(module=rep("qaPed",length(delrow)), analysisId=rep(Idstatus,length(delrow)), reason=rep("BAD",length(delrow)),row=delrow)
 		}else{
 			newModifications<-data.frame(module="qaPed", analysisId=as.numeric(Sys.time()), reason=NA,row=NA)
 		}
@@ -671,8 +894,8 @@ mod_qaPedApp_server <- function(id, data){
 		geno <- result$data$geno
 		vars <- apply(as.matrix(geno), 2, var, na.rm = TRUE)        
 		newmetrics <- data.frame(module=rep("qaPed",6), analysisId=rep(Idstatus,6), trait=rep("none",6),environment=rep("general",6),parameter=c("nMarkers","nInds","monomorphicMarkersN","polymorphicMarkersN","indivMatchedN","indivUnmatchedN"),
-		method=rep("sum",6),value=c(dim(geno)[2],dim(decisionped)[1],round(sum(vars == 0)),dim(geno)[2]-round(sum(vars == 0)),length(which(decisionped[,15]=="PASS")),(dim(decisionped)[1]-length(which(decisionped[,15]=="PASS")))),stdError=rep(NA,6) )
-		save(newmetrics,file="ver.RData")
+		method=rep("sum",6),value=c(dim(geno)[2],dim(decisionped)[1],round(sum(vars == 0)),dim(geno)[2]-round(sum(vars == 0)),length(which(decisionped[,15]=="GOOD")),(dim(decisionped)[1]-length(which(decisionped[,15]=="GOOD")))),stdError=rep(NA,6) )
+		#save(newmetrics,file="ver.RData")
         if(!is.null(result$metrics)){
           result$metrics <- rbind(result$metrics, newmetrics)
         }else{result$metrics <- newmetrics}
@@ -680,7 +903,7 @@ mod_qaPedApp_server <- function(id, data){
 		
         #if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result) # update data with results
-        save(result,file="res.RData")
+        #save(result,file="res.RData")
         cat(paste("Pedigree QA/QC step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
       }else{
