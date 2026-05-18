@@ -130,9 +130,9 @@ app_ui <- function(request) {
                           )
                  ),
 
-                 tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"),
+                 tabPanel(div(icon("calculator"), icon("dice-two"), "Multi-Trial Analysis (", icon("seedling"), icon("dna"), icon("network-wired"), icon("cloud-sun-rain"), ")"), value = "mtaApp_tab",
                           navlistPanel("Engines:", widths = c(1, 11),
-                                       tabPanel(div("LMMsolver" ), mod_mtaLMMsolveApp_ui("mtaLMMsolveApp_1") ), # biplot is part of the report in MET
+                                       tabPanel(div("LMMsolver" ), mod_mtaLMMsolveApp_ui("mtaLMMsolveApp_1")), # biplot is part of the report in MET
                                        # tabPanel(div("lme4", style = "color:red" )) , # biplot is part of the report in MET
                                        # tabPanel(div("sommer", style = "color:red" )) , # biplot is part of the report in MET
                                        tabPanel(div("ASReml"), mod_mtaASREMLApp_ui("mtaASREMLApp_1")),
