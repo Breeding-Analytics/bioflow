@@ -500,6 +500,13 @@ app_server <- function(input, output, session) {
 
       updateNavbarPage(session, "tabso", selected = "staApp_tab")
     }
+
+    if (!is.null(query$module) && query$module == "MTA") {
+      # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
+      # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
+
+      updateNavbarPage(session, "tabso", selected = "mtaApp_tab")
+    }
   })
 
   ### END: Push Analysis Mechanism #############################################

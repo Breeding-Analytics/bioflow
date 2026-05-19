@@ -1387,10 +1387,10 @@ mod_staApp_server <- function(id,data){
                                             trait=input$trait2Sta,
                                             traitFamily = myFamily,
                                             fixedTerm = input$fixedTermSta2,
-                                            returnFixedGeno=input$genoAsFixedSta, 
+                                            returnFixedGeno=input$genoAsFixedSta,
                                             genoUnit = input$genoUnitSta,
                                             rowColRole = input$rowColRoleSta,
-                                            verbose = input$verboseSta, 
+                                            verbose = input$verboseSta,
                                             maxit = input$maxitSta),
                       silent=TRUE
         )
