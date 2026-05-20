@@ -256,7 +256,7 @@ mod_qaPedApp_server <- function(id, data){
         ## replace tables
         tmp <- data()
         data(cgiarBase::create_getData_object())
-        utils::data(DT_example, package = "cgiarPipeline")
+        utils::data(PedQAQC_example, package = "cgiarPipeline")
         if(!is.null(result$data)){tmp$data <- result$data}
         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
         if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
@@ -366,7 +366,7 @@ mod_qaPedApp_server <- function(id, data){
     
     plot_impossible<-function(peddata,metaped,glgeno){
       print("Comparison of triplets")
-      load("InputInfo.RData")
+      load("data/InputInfo.RData")
       uno=data.frame(value=names(peddata))
       #tres=merge(uno,dos,by="value")
       names(peddata)=metaped$parameter[which(metaped$value%in%uno$value==T)]
