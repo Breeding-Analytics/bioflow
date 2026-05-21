@@ -367,7 +367,7 @@ mod_qaPedApp_server <- function(id, data){
     plot_impossible<-function(peddata,metaped,glgeno){
       print("Comparison of triplets")
       #load("data/InputInfo.RData")
-	  usethis::use_data(InputInfo,internal = TRUE)
+	  utils::data(InputInfo, package = "Bioflow")
       uno=data.frame(value=names(peddata))
       #tres=merge(uno,dos,by="value")
       names(peddata)=metaped$parameter[which(metaped$value%in%uno$value==T)]
