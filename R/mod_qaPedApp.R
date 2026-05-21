@@ -466,7 +466,8 @@ mod_qaPedApp_server <- function(id, data){
     
     filters_ped<-function(peddata,metaped,GRM_metric,impossible_metric,pwrong,mlong,mborder,mcorrect,flong,fborder,fcorrect,dllcorrect){
       print("Pedigree classification")
-      load("InputInfo.RData")
+      #load("InputInfo.RData")
+	  utils::data(InputInfo,package="bioflow")
       uno=data.frame(value=names(peddata))
       names(peddata)=metaped$parameter[which(metaped$value%in%uno$value==T)]
       #save(peddata,GRM_metric,impossible_metric,pwrong,mlong,mborder,mcorrect,flong,fborder,fcorrect,dllcorrect,file="list.RData")
