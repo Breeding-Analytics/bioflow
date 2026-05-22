@@ -224,7 +224,7 @@ mod_qaPedApp_server <- function(id, data){
       traitsMtaAsrGeno <- unique(dtMtaAsr$analysisId)
       
       if(!is.null(traitsMtaAsrGeno)){
-      if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
+      #if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
       if(length(traitsMtaAsrGeno) > 0){
         if("analysisIdName" %in% colnames(dtMtaAsr)){
           names(traitsMtaAsrGeno) <- paste(dtMtaAsr$analysisIdName, as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"), sep = "_")
