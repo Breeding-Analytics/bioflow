@@ -224,7 +224,7 @@ mod_qaPedApp_server <- function(id, data){
       traitsMtaAsrGeno <- unique(dtMtaAsr$analysisId)
       
       if(!is.null(traitsMtaAsrGeno)){
-      if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
+      #if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
       if(length(traitsMtaAsrGeno) > 0){
         if("analysisIdName" %in% colnames(dtMtaAsr)){
           names(traitsMtaAsrGeno) <- paste(dtMtaAsr$analysisIdName, as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"), sep = "_")
@@ -256,7 +256,7 @@ mod_qaPedApp_server <- function(id, data){
         ## replace tables
         tmp <- data()
         data(cgiarBase::create_getData_object())
-        utils::data(DT_example, package = "cgiarPipeline")
+        utils::data(PedQAQC_example, package = "cgiarPipeline")
         if(!is.null(result$data)){tmp$data <- result$data}
         if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
         if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
@@ -366,7 +366,8 @@ mod_qaPedApp_server <- function(id, data){
     
     plot_impossible<-function(peddata,metaped,glgeno){
       print("Comparison of triplets")
-      load("InputInfo.RData")
+      #load("data/InputInfo.RData")
+	  utils::data(InputInfo, package = "bioflow")
       uno=data.frame(value=names(peddata))
       #tres=merge(uno,dos,by="value")
       names(peddata)=metaped$parameter[which(metaped$value%in%uno$value==T)]
@@ -465,7 +466,8 @@ mod_qaPedApp_server <- function(id, data){
     
     filters_ped<-function(peddata,metaped,GRM_metric,impossible_metric,pwrong,mlong,mborder,mcorrect,flong,fborder,fcorrect,dllcorrect){
       print("Pedigree classification")
-      load("InputInfo.RData")
+      #load("InputInfo.RData")
+	  utils::data(InputInfo,package="bioflow")
       uno=data.frame(value=names(peddata))
       names(peddata)=metaped$parameter[which(metaped$value%in%uno$value==T)]
       #save(peddata,GRM_metric,impossible_metric,pwrong,mlong,mborder,mcorrect,flong,fborder,fcorrect,dllcorrect,file="list.RData")
