@@ -78,8 +78,11 @@ mod_qaPedApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Percent of wrong threshold", icon("arrow-right") ),
                                                br(),
                                                fluidRow(
-                                                 column(width = 4,
-                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 1, step = 0.01),
+                                                 column(width = 4,br(),
+														actionButton(ns("runParms"), "Calculate distributions", icon = icon("play-circle")),
+														br(),
+														br(),
+                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 1, step = 0.01),						
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
 										<strong>For each triplet of parents with a child, the veracity 
@@ -363,7 +366,7 @@ mod_qaPedApp_server <- function(id, data){
     
     
     ped_qa_data <- reactiveValues(GRM_metric = NULL, impossible_metric = NULL, thr=list() )
-    
+  
     plot_impossible<-function(peddata,metaped,glgeno){
       print("Comparison of triplets")
       #load("data/InputInfo.RData")
@@ -493,43 +496,69 @@ mod_qaPedApp_server <- function(id, data){
                    "Diagonal_minus_Female_G_matrix","Diagonal_Female_G_matrix_Class","Final_Classification","Status")
       return(tmp)
     }
-    
-    observe({
-      req(data())
+	
+	 modifyGeno<-function(geno, geno_imp){
+        #geno<-result$data$geno
+        #geno_imp<-result$data$geno_imp[[1]]
+        loc_names_imp<-adegenet::locNames(geno_imp)
+        ind_names_imp<-adegenet::indNames(geno_imp)
+        loc_names<-which(adegenet::locNames(geno)%in%loc_names_imp==T)
+        ind_names<-which(adegenet::indNames(geno)%in%ind_names_imp==T)
+        geno<-geno[ind_names,loc_names]
+        return(geno)
+    }
+  ###Inicia boton parametros
+  observeEvent(input$runParms, { 
+		req(data())
       req(input$version2qaPed)
-      
       geno <- data()$data$geno
       qas <- which(names(data()$data$geno_imp) == input$version2qaPed)
-      geno_imp <- data()$data$geno_imp[[qas]]
-      geno <- modifyGeno(geno, geno_imp)
-      
-      maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
-      p <- pmin(maf, 1 - maf)
-      expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
-      
+      geno_imp<-data()$data$geno_imp[[qas]]
+      geno<-modifyGeno(geno,geno_imp)
+	  Markers <- as.data.frame(data()$data$geno_imp[[qas]])
+      peddata<-data()$data$pedigree
+      metaped<-data()$metadata$pedigree
+       shinybusy::show_modal_spinner('fading-circle', text = 'Long process...')
+         impossible_metric=plot_impossible(peddata,metaped,geno)
+         ped_qa_data$impossible_metric=impossible_metric
+		 useful=impossible_metric[[1]]
+         resultgrm=plot_GRM(peddata,metaped,Markers,useful)
+		 GRM_metric=resultgrm[[1]]
+		 thr=resultgrm[[2]]
+        ped_qa_data$GRM_metric=GRM_metric
+        ped_qa_data$thr=thr
+		 maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
+         p <- pmin(maf, 1 - maf)
+         expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)      
+       shinybusy::remove_modal_spinner()     	  
+      p1<-thr[[1]]
+      p2<-thr[[2]]
+      p3<-thr[[3]]
+      updateNumericInput(session, "GLML", value = round(as.numeric(p1[1]),1))
+      updateNumericInput(session, "GLMC", value = round(as.numeric(p1[2]),1))
+      updateNumericInput(session, "GLFL", value = round(as.numeric(p2[1]),1))
+      updateNumericInput(session, "GLFC", value = round(as.numeric(p2[2]),1))
+      updateNumericInput(session, "GDLMC", value = round(as.numeric(p3[[1]]),1))
       updateNumericInput(session, "wrongG", value = expected_error)
     })
     
     output$hist_wrongG<- plotly::renderPlotly({
+      req(ped_qa_data$impossible_metric)
       req(data())
-      req(input$version2qaPed)
+	  req(input$version2qaPed)
       geno <- data()$data$geno
       qas <- which(names(data()$data$geno_imp) == input$version2qaPed)
       geno_imp<-data()$data$geno_imp[[qas]]
       geno<-modifyGeno(geno,geno_imp)
       peddata<-data()$data$pedigree
       metaped<-data()$metadata$pedigree
-        shinybusy::show_modal_spinner('fading-circle', text = 'Long process...')
-        impossible_metric=plot_impossible(peddata,metaped,geno)
-        ped_qa_data$impossible_metric=impossible_metric
-        shinybusy::remove_modal_spinner()
         
-        if((length(which(impossible_metric[[2]]==3))*100)/dim(peddata)[1]>=0.8){
+        if((length(which(ped_qa_data$impossible_metric[[2]]==3))*100)/dim(peddata)[1]>=0.8){
           maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
           p <- pmin(maf, 1 - maf)
           expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
           
-          w<-sapply(impossible_metric[[3]], function(x) x[3])
+          w<-sapply(ped_qa_data$impossible_metric[[3]], function(x) x[3])
           status <- ifelse(w < expected_error, "GOOD","BAD")
           status_colors <- c(
             "GOOD" = "#A8E6A3",         # verde claro
@@ -566,20 +595,13 @@ mod_qaPedApp_server <- function(id, data){
         }
     })
     
-    modifyGeno<-function(geno, geno_imp){
-        #geno<-result$data$geno
-        #geno_imp<-result$data$geno_imp[[1]]
-        loc_names_imp<-adegenet::locNames(geno_imp)
-        ind_names_imp<-adegenet::indNames(geno_imp)
-        loc_names<-which(adegenet::locNames(geno)%in%loc_names_imp==T)
-        ind_names<-which(adegenet::indNames(geno)%in%ind_names_imp==T)
-        geno<-geno[ind_names,loc_names]
-        return(geno)
-    }
+   
     
     output$hist_GLM<- plotly::renderPlotly({
-      req(data())
       req(ped_qa_data$impossible_metric)
+	  req(ped_qa_data$GRM_metric)
+	  req(ped_qa_data$thr)
+	  req(data())
       req(input$version2qaPed)
       qas <- which(names(data()$data$geno_imp) == input$version2qaPed)
       Markers <- as.data.frame(data()$data$geno_imp[[qas]])
@@ -588,11 +610,9 @@ mod_qaPedApp_server <- function(id, data){
       
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
         useful=ped_qa_data$impossible_metric[[1]]
-        resultgrm=plot_GRM(peddata,metaped,Markers,useful)
-        GRM_metric=resultgrm[[1]]
-        thr=resultgrm[[2]]
-        ped_qa_data$GRM_metric=GRM_metric
-        ped_qa_data$thr=thr
+        #resultgrm=plot_GRM(peddata,metaped,Markers,useful)
+        GRM_metric=ped_qa_data$GRM_metric
+        thr=ped_qa_data$thr
         shinybusy::remove_modal_spinner()
         if( (length(useful)*100)/dim(peddata)[1]>=0.8){
           
@@ -644,9 +664,11 @@ mod_qaPedApp_server <- function(id, data){
         }
     })
     
-    output$hist_GLF<- plotly::renderPlotly({
-      req(data())
+    output$hist_GLF<- plotly::renderPlotly({      
       req(ped_qa_data$impossible_metric)
+	  req(ped_qa_data$GRM_metric)
+	  req(ped_qa_data$thr)
+	  req(data())
       peddata<-data()$data$pedigree
       
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
@@ -702,27 +724,12 @@ mod_qaPedApp_server <- function(id, data){
         }
     })
     
-    observe({
-      req(data())
-      req(ped_qa_data$impossible_metric)
-      req(ped_qa_data$GRM_metric)
-      req(ped_qa_data$thr)
-      print(str(ped_qa_data$thr))
-      thr<-ped_qa_data$thr
-      p1<-thr[[1]]
-      p2<-thr[[2]]
-      p3<-thr[[3]]
-      updateNumericInput(session, "GLML", value = round(as.numeric(p1[1]),1))
-      updateNumericInput(session, "GLMC", value = round(as.numeric(p1[2]),1))
-      updateNumericInput(session, "GLFL", value = round(as.numeric(p2[1]),1))
-      updateNumericInput(session, "GLFC", value = round(as.numeric(p2[2]),1))
-      updateNumericInput(session, "GDLMC", value = round(as.numeric(p3[[1]]),1))
-      
-    })
     
-    output$hist_GDLM<- plotly::renderPlotly({
-      req(data())
+    output$hist_GDLM<- plotly::renderPlotly({      
       req(ped_qa_data$impossible_metric)
+	  req(ped_qa_data$GRM_metric)
+	  req(ped_qa_data$thr)	  
+	  req(data())
       peddata<-data()$data$pedigree
       
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
@@ -789,7 +796,7 @@ mod_qaPedApp_server <- function(id, data){
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
     })
-    
+   
     
     report <- reactiveVal(NULL)
     
