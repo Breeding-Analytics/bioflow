@@ -113,8 +113,8 @@ for (col in decision_cols) {
     dt,
     columns = col,
     backgroundColor = DT::styleEqual(
-      c("SELECTED", "NOT SELECTED", "CHECK"),
-      c("#D6EAF8", "#FADBD8", "#F5DCE9")
+      c("SELECTED", "NOT SELECTED", "CHECK","REVISE"),
+      c("#D6EAF8", "#F5C4A5", "#F5DCE9","#FFF3CD")
     ),
     fontWeight = "bold"
   )

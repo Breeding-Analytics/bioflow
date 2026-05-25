@@ -573,7 +573,6 @@ mod_prodAdvApp_ui <- function(id){
                                               label = "Visualisations to display",
                                               choices = c(
                                                 "Pair-wise trait scatterplot",
-                                                "Beeswarm trait distributions",
                                                 "Radar plot",
                                                 "Performance heatmap across TPE",
                                                 "Per-variety trait performance profile",
@@ -634,7 +633,12 @@ mod_prodAdvApp_ui <- function(id){
                                             style = "background-color:grey; color: #FFFFFF; padding:15px 0;",
 
                                             column(
-                                              width = 3,
+                                              width = 2,
+                                              uiOutput(ns("tpePeriodUI"))
+                                            ),
+
+                                            column(
+                                              width = 2,
                                               selectInput(
                                                 ns("tpePhase"),
                                                 label = tags$span(
@@ -651,7 +655,7 @@ mod_prodAdvApp_ui <- function(id){
                                             ),
 
                                             column(
-                                              width = 3,
+                                              width = 2,
                                               selectInput(
                                                 ns("tpeEnvCovariate"),
                                                 label = tags$span(
@@ -681,7 +685,7 @@ mod_prodAdvApp_ui <- function(id){
                                             column(
                                               width = 3,
                                               uiOutput(ns("tpeTraitUI"))
-                                            )
+                                            ),
                                           ),
 
                                           br()
@@ -869,7 +873,10 @@ mod_prodAdvApp_ui <- function(id){
                                                 style = "color:#FFFFFF",
                                                 title = "Final candidate decisions can be reviewed and manually adjusted here."
                                               )
-                                            )
+                                            ),
+                                            tags$br(),
+                                            tags$br(),
+                                            uiOutput(ns("finalDecisionSummary"))
                                           )
                                         ),
 
@@ -1160,6 +1167,43 @@ mod_prodAdvApp_server <- function(id, data){
       )
     }
 
+    get_prodadv_period_cols <- function(dt) {
+      mt_pheno <- dt$metadata$pheno
+
+      year_col <- mt_pheno$value[
+        mt_pheno$parameter == "year"
+      ]
+
+      season_col <- mt_pheno$value[
+        mt_pheno$parameter == "season"
+      ]
+
+      list(
+        year_col = if (length(year_col) > 0) year_col[1] else NULL,
+        season_col = if (length(season_col) > 0) season_col[1] else NULL
+      )
+    }
+
+    sample_reliability_plot_df <- function(df, max_per_status = 250, seed = 123) {
+      if (!"plot_status" %in% names(df)) {
+        return(df)
+      }
+
+      set.seed(seed)
+
+      split_df <- split(df, df$plot_status, drop = TRUE)
+
+      sampled <- lapply(split_df, function(x) {
+        if (nrow(x) <= max_per_status) {
+          return(x)
+        }
+
+        x[sample(seq_len(nrow(x)), max_per_status), , drop = FALSE]
+      })
+
+      do.call(rbind, sampled)
+    }
+
 
 
     ############################################################################ clear the console
@@ -1325,19 +1369,25 @@ mod_prodAdvApp_server <- function(id, data){
 
     observe({
       req(data())
+      req(input$mtaStamp)
+
       dt <- data()
+      dtPred <- dt$predictions
+
+      dtPred <- dtPred[dtPred$analysisId %in% input$mtaStamp, ]
 
       entryType_column <- dt$metadata$pheno
       entryType_column <- entryType_column[entryType_column$parameter == "entryType","value"]
 
       entry_type_values <- dt$data$pheno[,entryType_column]
       entry_type_values <- unique(entry_type_values[!is.na(entry_type_values)])
+      entry_type_values <- toupper(trimws(as.character(entry_type_values)))
 
       updateSelectInput(
         session,
         "checkEntryTypeValue",
-        choices = entry_type_values,
-        selected = entry_type_values[1]
+        choices = c("No checks / not applicable" = "", entry_type_values),
+        selected = ""
       )
     })
 
@@ -1586,13 +1636,26 @@ mod_prodAdvApp_server <- function(id, data){
 
           } else if (rule_type == "% over check") {
 
-            if(!is.null(input$checkEntryTypeValue)){
-              check_designations <- dtPred[dtPred$entryType == input$checkEntryTypeValue,"designation"]
-              check_designations <- unique(check_designations[!is.na(check_designations)])
-            }else{
-              check_designations <- "No entryType value selected"
+            check_entry_type_value <- input$checkEntryTypeValue
+            if (is.null(check_entry_type_value) || !nzchar(check_entry_type_value)) {
+              check_entry_type_value <- NULL
             }
 
+            if (is.null(check_entry_type_value)) {
+              return(
+                div(
+                  style = "color:#856404; background-color:#fff3cd; border-left:5px solid #ffeeba; padding:10px;",
+                  tags$strong("Checks required: "),
+                  "Select a valid check entry type before using a '% over check' rule."
+                )
+              )
+            }
+
+            check_designations <- dtPred[
+              dtPred$entryType == check_entry_type_value,
+              "designation"
+            ]
+            check_designations <- unique(check_designations[!is.na(check_designations)])
 
             tagList(
               selectInput(
@@ -1799,7 +1862,25 @@ mod_prodAdvApp_server <- function(id, data){
       #Get unique designations available
       dtPred <- dt$predictions
       dtPred <- dtPred[which(dtPred$analysisId %in% input$mtaStamp), ]
-      mta_candidates <- dtPred[dtPred$effectType == "designation" & dtPred$entryType != input$checkEntryTypeValue, "designation"]
+
+      check_entry_type_value <- input$checkEntryTypeValue
+      if (is.null(check_entry_type_value) || !nzchar(check_entry_type_value)) {
+        check_entry_type_value <- NULL
+      }
+
+      if (is.null(check_entry_type_value)) {
+        mta_candidates <- dtPred[
+          dtPred$effectType == "designation",
+          "designation"
+        ]
+      } else {
+        mta_candidates <- dtPred[
+          dtPred$effectType == "designation" &
+            dtPred$entryType != check_entry_type_value,
+          "designation"
+        ]
+      }
+
       mta_candidates <- unique(mta_candidates)
 
 
@@ -1826,7 +1907,25 @@ mod_prodAdvApp_server <- function(id, data){
       #Candidates when selecting all
       dtPred <- dt$predictions
       dtPred <- dtPred[which(dtPred$analysisId %in% input$mtaStamp), ]
-      mta_candidates <- dtPred[dtPred$effectType == "designation" & dtPred$entryType != input$checkEntryTypeValue, "designation"]
+
+      check_entry_type_value <- input$checkEntryTypeValue
+      if (is.null(check_entry_type_value) || !nzchar(check_entry_type_value)) {
+        check_entry_type_value <- NULL
+      }
+
+      if (is.null(check_entry_type_value)) {
+        mta_candidates <- dtPred[
+          dtPred$effectType == "designation",
+          "designation"
+        ]
+      } else {
+        mta_candidates <- dtPred[
+          dtPred$effectType == "designation" &
+            dtPred$entryType != check_entry_type_value,
+          "designation"
+        ]
+      }
+
       mta_candidates <- unique(mta_candidates)
 
       if (mode == "all") {
@@ -1861,38 +1960,120 @@ mod_prodAdvApp_server <- function(id, data){
     trait_rules_input <- reactive({
       req(input$traitsToEvaluate)
       req(length(input$traitsToEvaluate) > 0)
+      req(data())
+      req(input$mtaStamp)
+
+      dt <- data()
+      dtPred <- dt$predictions
+      dtPred <- dtPred[dtPred$analysisId %in% input$mtaStamp, , drop = FALSE]
 
       out <- lapply(input$traitsToEvaluate, function(trait_name) {
         safe_trait <- sanitize_trait_id(trait_name)
+
+        dtPred_trait <- dtPred[
+          dtPred$trait == trait_name &
+            dtPred$effectType == "designation",
+          ,
+          drop = FALSE
+        ]
+
+        predictedValue <- dtPred_trait$predictedValue[
+          !is.na(dtPred_trait$predictedValue)
+        ]
+
+        rng <- range(predictedValue, na.rm = TRUE)
+
         rule_type <- input[[paste0("ruleType_", safe_trait)]]
+        if (is.null(rule_type) || !nzchar(rule_type)) {
+          rule_type <- "Threshold"
+        }
+
+        direction <- input[[paste0("direction_", safe_trait)]]
+        if (is.null(direction) || !nzchar(direction)) {
+          direction <- "Higher is better"
+        }
 
         rule_list <- list(
           trait = trait_name,
           ruleType = rule_type
         )
 
-        if (!is.null(rule_type) && rule_type != "Acceptable range") {
-          rule_list$direction <- input[[paste0("direction_", safe_trait)]]
+        if (!identical(rule_type, "Acceptable range")) {
+          rule_list$direction <- direction
         } else {
           rule_list$direction <- NULL
         }
 
         if (identical(rule_type, "Threshold")) {
-          rule_list$threshold <- input[[paste0("minThreshold_", safe_trait)]]
+          threshold <- input[[paste0("minThreshold_", safe_trait)]]
+
+          if (is.null(threshold) || !is.finite(threshold)) {
+            threshold <- rng[1]
+          }
+
+          rule_list$threshold <- threshold
         }
 
         if (identical(rule_type, "Acceptable range")) {
-          rule_list$minValue <- input[[paste0("rangeMin_", safe_trait)]]
-          rule_list$maxValue <- input[[paste0("rangeMax_", safe_trait)]]
+          min_value <- input[[paste0("rangeMin_", safe_trait)]]
+          max_value <- input[[paste0("rangeMax_", safe_trait)]]
+
+          if (is.null(min_value) || !is.finite(min_value)) {
+            min_value <- rng[1]
+          }
+
+          if (is.null(max_value) || !is.finite(max_value)) {
+            max_value <- rng[2]
+          }
+
+          rule_list$minValue <- min_value
+          rule_list$maxValue <- max_value
         }
 
         if (identical(rule_type, "% over check")) {
-          rule_list$referenceCheck <- input[[paste0("checkVar_", safe_trait)]]
-          rule_list$threshold <- input[[paste0("pctOverCheck_", safe_trait)]]
+          reference_check <- input[[paste0("checkVar_", safe_trait)]]
+
+          check_entry_type_value <- input$checkEntryTypeValue
+          if (is.null(check_entry_type_value) || !nzchar(check_entry_type_value)) {
+            check_entry_type_value <- NULL
+          }
+
+          if (is.null(reference_check) || !nzchar(reference_check)) {
+            if (!is.null(check_entry_type_value)) {
+              check_designations <- unique(
+                dtPred_trait$designation[
+                  dtPred_trait$entryType == check_entry_type_value &
+                    !is.na(dtPred_trait$designation)
+                ]
+              )
+
+              reference_check <- if (length(check_designations) > 0) {
+                check_designations[1]
+              } else {
+                NULL
+              }
+            } else {
+              reference_check <- NULL
+            }
+          }
+
+          threshold <- input[[paste0("pctOverCheck_", safe_trait)]]
+          if (is.null(threshold) || !is.finite(threshold)) {
+            threshold <- 0
+          }
+
+          rule_list$referenceCheck <- reference_check
+          rule_list$threshold <- threshold
         }
 
         if (identical(rule_type, "% over mean")) {
-          rule_list$threshold <- input[[paste0("pctOverMean_", safe_trait)]]
+          threshold <- input[[paste0("pctOverMean_", safe_trait)]]
+
+          if (is.null(threshold) || !is.finite(threshold)) {
+            threshold <- 0
+          }
+
+          rule_list$threshold <- threshold
         }
 
         rule_list
@@ -1937,6 +2118,27 @@ mod_prodAdvApp_server <- function(id, data){
         req(input$topPctSelected)
       }
 
+
+      check_entry_type_value <- input$checkEntryTypeValue
+      if (is.null(check_entry_type_value) || !nzchar(check_entry_type_value)) {
+        check_entry_type_value <- NULL
+      }
+
+      trait_rules <- trait_rules_input()
+
+      uses_check_rule <- any(vapply(
+        trait_rules,
+        function(x) identical(x$ruleType, "% over check"),
+        logical(1)
+      ))
+
+      validate(
+        need(
+          !uses_check_rule || !is.null(check_entry_type_value),
+          "Checks are required when using a '% over check' rule. Select a valid check entry type or choose another rule type."
+        )
+      )
+
       list(
         analysisIdName = if (nzchar(trimws(input$initSelectionIdName))) trimws(input$initSelectionIdName) else NULL,
         staStamp = input$staStamp,
@@ -1948,9 +2150,9 @@ mod_prodAdvApp_server <- function(id, data){
         weightSource = if (identical(input$decisionLogic, "Weighted index")) input$weightSource else NULL,
         topPctSelected = if (identical(input$decisionLogic, "Weighted index")) input$topPctSelected else NULL,
         customWeights = custom_weights_input(),
-        checkEntryTypeValue = input$checkEntryTypeValue,
+        checkEntryTypeValue = check_entry_type_value,
         applySameRuleToAllTraits = isTRUE(input$applySameRuleToAllTraits),
-        traitRules = trait_rules_input(),
+        traitRules = trait_rules,
         candidateSelectionMode = input$candidateSelectionMode,
         selectionStage = if (identical(input$candidateSelectionMode, "stage")) input$selectionStage else NULL,
         candidateDesignations = if (identical(input$candidateSelectionMode, "manual")) input$candidateDesignations else NULL,
@@ -2272,8 +2474,10 @@ mod_prodAdvApp_server <- function(id, data){
         ggplot2::aes(
           x = x_value,
           y = y_value,
+          fill = plot_status,
           color = plot_status,
           size = plot_status,
+          alpha = plot_status,
           key = designation,
           text = paste0(
             "Designation: ", designation,
@@ -2285,22 +2489,38 @@ mod_prodAdvApp_server <- function(id, data){
           )
         )
       ) +
-        ggplot2::geom_point(alpha = 0.85) +
-        ggplot2::scale_color_manual(
+        ggplot2::geom_point(shape = 21, stroke = 0.8)+
+        ggplot2::scale_fill_manual(
           values = c(
-            "CHECK" = "#CC79A7",
+            "CHECK" = "#C2185B",
             "SELECTED" = "#0072B2",
             "NOT SELECTED" = "#D55E00"
           )
         ) +
         ggplot2::scale_size_manual(
           values = c(
-            "CHECK" = 3.8,
+            "CHECK" = 5.8,
             "SELECTED" = 2.8,
             "NOT SELECTED" = 2.8
           ),
           guide = "none"
         ) +
+        ggplot2::scale_color_manual(
+          values = c(
+              "CHECK" = "white",        # <-- outline for CHECK
+              "SELECTED" = NA,          # no outline
+              "NOT SELECTED" = NA
+            ),
+            guide = "none"
+        )+
+        ggplot2::scale_alpha_manual(
+          values = c(
+            "SELECTED" = 0.8,
+            "NOT SELECTED" = 0.8,
+            "CHECK" = 1.0
+          )
+        ) +
+        ggplot2::guides(alpha = "none")+
         ggplot2::labs(
           x = x_trait,
           y = y_trait,
@@ -2314,134 +2534,6 @@ mod_prodAdvApp_server <- function(id, data){
 
     observeEvent(plotly::event_data("plotly_click", source = ns("pairwiseScatter")), {
       click <- plotly::event_data("plotly_click", source = ns("pairwiseScatter"))
-      req(click)
-
-      clicked_designation <- click$key
-      req(clicked_designation)
-
-      base_df <- review_plot_data()$review_df
-      base_status <- base_df$plot_status[base_df$designation == clicked_designation][1]
-
-      if (is.na(base_status) || base_status == "CHECK") return()
-
-      overrides <- plot_selection_overrides()
-
-      if (clicked_designation %in% overrides$designation) {
-        current_status <- overrides$plot_decision[overrides$designation == clicked_designation][1]
-      } else {
-        current_status <- base_status
-      }
-
-      new_status <- if (current_status == "SELECTED") "NOT SELECTED" else "SELECTED"
-
-      if (new_status == base_status) {
-        overrides <- overrides[overrides$designation != clicked_designation, , drop = FALSE]
-      } else if (clicked_designation %in% overrides$designation) {
-        overrides$plot_decision[overrides$designation == clicked_designation] <- new_status
-      } else {
-        overrides <- rbind(
-          overrides,
-          data.frame(
-            designation = clicked_designation,
-            plot_decision = new_status,
-            stringsAsFactors = FALSE
-          )
-        )
-      }
-
-      plot_selection_overrides(overrides)
-    })
-
-    output$beeswarmPlot <- plotly::renderPlotly({
-      plot_obj <- review_plot_data()
-      req(plot_obj)
-
-      df_long <- plot_obj$mta_long
-      req(!is.null(df_long))
-      req(nrow(df_long) > 0)
-
-      status_df <- unique(plot_obj$review_df[, c("designation", "plot_status"), drop = FALSE])
-
-      df_plot <- merge(
-        df_long,
-        status_df,
-        by = "designation",
-        all.x = TRUE
-      )
-
-      overrides <- plot_selection_overrides()
-      if (nrow(overrides) > 0) {
-        df_plot <- merge(df_plot, overrides, by = "designation", all.x = TRUE)
-        df_plot$plot_status <- ifelse(
-          !is.na(df_plot$plot_decision),
-          df_plot$plot_decision,
-          as.character(df_plot$plot_status)
-        )
-        df_plot$plot_decision <- NULL
-      }
-
-      df_plot <- df_plot[
-        stats::complete.cases(df_plot[, c("trait", "predictedValue", "plot_status")]),
-        ,
-        drop = FALSE
-      ]
-
-      validate(
-        need(nrow(df_plot) > 0, "No complete observations available for beeswarm plot.")
-      )
-
-      df_plot$plot_status <- factor(
-        df_plot$plot_status,
-        levels = c("CHECK", "SELECTED", "NOT SELECTED")
-      )
-
-      p <- ggplot2::ggplot(
-        df_plot,
-        ggplot2::aes(
-          x = trait,
-          y = predictedValue,
-          color = plot_status,
-          key = designation,
-          text = paste0(
-            "Designation: ", designation,
-            "<br>Trait: ", trait,
-            "<br>Predicted value: ", signif(predictedValue, 4),
-            "<br>Reliability: ", signif(reliability, 4),
-            "<br>Status: ", plot_status
-          )
-        )
-      ) +
-        ggbeeswarm::geom_quasirandom(
-          width = 0.25,
-          alpha = 0.8,
-          size = 2.4
-        ) +
-        ggplot2::facet_wrap(~ trait, scales = "free_y") +
-        ggplot2::scale_color_manual(
-          values = c(
-            "CHECK" = "#CC79A7",
-            "SELECTED" = "#0072B2",
-            "NOT SELECTED" = "#D55E00"
-          )
-        ) +
-        ggplot2::labs(
-          x = NULL,
-          y = "Predicted value",
-          color = "Decision"
-        ) +
-        ggplot2::theme_minimal(base_size = 13) +
-        ggplot2::theme(
-          strip.text = ggplot2::element_text(face = "bold"),
-          axis.text.x = ggplot2::element_blank(),
-          axis.ticks.x = ggplot2::element_blank(),
-          legend.position = "top"
-        )
-
-      plotly::ggplotly(p, tooltip = "text", source = ns("beeswarmPlot"))
-    })
-
-    observeEvent(plotly::event_data("plotly_click", source = ns("beeswarmPlot")), {
-      click <- plotly::event_data("plotly_click", source = ns("beeswarmPlot"))
       req(click)
 
       clicked_designation <- click$key
@@ -2624,6 +2716,106 @@ mod_prodAdvApp_server <- function(id, data){
         df_panel = df_radar,
         trait_cols = trait_cols,
         title_text = "Radar plot"
+      )
+    })
+
+    tpe_period_lookup <- reactive({
+      req(data())
+
+      dt <- data()
+      dt_pheno <- dt$data$pheno
+      mt_pheno <- dt$metadata$pheno
+
+      period_cols <- get_prodadv_period_cols(dt)
+
+      if (is.null(period_cols$year_col) && is.null(period_cols$season_col)) {
+        return(NULL)
+      }
+
+      designation_col <- mt_pheno$value[mt_pheno$parameter == "designation"]
+      environment_col <- mt_pheno$value[mt_pheno$parameter == "environment"]
+
+      validate(
+        need(length(designation_col) > 0, "Could not identify designation column."),
+        need(length(environment_col) > 0, "Could not identify environment column.")
+      )
+
+      out <- data.frame(
+        designation = dt_pheno[[designation_col[1]]],
+        environment = dt_pheno[[environment_col[1]]],
+        stringsAsFactors = FALSE
+      )
+
+      if (!is.null(period_cols$year_col)) {
+        out$year <- as.character(dt_pheno[[period_cols$year_col]])
+      } else {
+        out$year <- NA_character_
+      }
+
+      if (!is.null(period_cols$season_col)) {
+        out$season <- as.character(dt_pheno[[period_cols$season_col]])
+      } else {
+        out$season <- NA_character_
+      }
+
+      if (!is.null(period_cols$year_col) && !is.null(period_cols$season_col)) {
+        out$tpe_period <- paste(out$year, out$season, sep = " - ")
+      } else if (!is.null(period_cols$year_col)) {
+        out$tpe_period <- out$year
+      } else {
+        out$tpe_period <- out$season
+      }
+
+      out <- out[
+        !is.na(out$designation) &
+          !is.na(out$environment) &
+          !is.na(out$tpe_period) &
+          nzchar(out$tpe_period),
+        ,
+        drop = FALSE
+      ]
+
+      unique(out)
+    })
+
+    output$tpePeriodUI <- renderUI({
+      lookup <- tpe_period_lookup()
+
+      if (is.null(lookup)) {
+        return(NULL)
+      }
+
+      plot_obj <- review_plot_data()
+      req(plot_obj)
+
+      candidate_designations <- unique(as.character(plot_obj$sta_long$designation))
+
+      lookup <- lookup[
+        lookup$designation %in% candidate_designations,
+        ,
+        drop = FALSE
+      ]
+
+      period_choices <- sort(unique(lookup$tpe_period))
+      period_choices <- period_choices[!is.na(period_choices) & nzchar(period_choices)]
+
+      validate(
+        need(length(period_choices) > 0, "No year/season values available for the selected candidates.")
+      )
+
+      selectInput(
+        ns("tpePeriod"),
+        label = tags$span(
+          "Year / season",
+          tags$i(
+            class = "glyphicon glyphicon-info-sign",
+            style = "color:#FFFFFF",
+            title = "Restrict the TPE performance and environmental surface to the selected year/season."
+          )
+        ),
+        choices = period_choices,
+        selected = period_choices[1],
+        multiple = FALSE
       )
     })
 
@@ -2906,6 +3098,34 @@ mod_prodAdvApp_server <- function(id, data){
 
       df_phase <- df[df$phase == input$tpePhase, , drop = FALSE]
 
+      lookup <- tpe_period_lookup()
+
+      if (!is.null(lookup)) {
+        req(input$tpePeriod)
+
+        env_period <- unique(
+          lookup[, c("environment", "tpe_period"), drop = FALSE]
+        )
+
+        df_phase <- merge(
+          df_phase,
+          env_period,
+          by = "environment",
+          all.x = TRUE
+        )
+
+        df_phase <- df_phase[
+          df_phase$tpe_period == input$tpePeriod,
+          ,
+          drop = FALSE
+        ]
+
+        validate(
+          need(nrow(df_phase) > 0,
+               paste("No environmental summaries available for year/season:", input$tpePeriod))
+        )
+      }
+
       validate(
         need(nrow(df_phase) > 0, paste("No weather summaries available for phase:", input$tpePhase))
       )
@@ -3019,6 +3239,34 @@ mod_prodAdvApp_server <- function(id, data){
         drop = FALSE
       ]
 
+      lookup <- tpe_period_lookup()
+
+      if (!is.null(lookup)) {
+        req(input$tpePeriod)
+
+        perf_period <- unique(
+          lookup[, c("designation", "environment", "tpe_period"), drop = FALSE]
+        )
+
+        df_sel <- merge(
+          df_sel,
+          perf_period,
+          by = c("designation", "environment"),
+          all.x = TRUE
+        )
+
+        df_sel <- df_sel[
+          df_sel$tpe_period == input$tpePeriod,
+          ,
+          drop = FALSE
+        ]
+
+        validate(
+          need(nrow(df_sel) > 0,
+               paste("No STA predictions found for the selected designation, trait, and year/season:", input$tpePeriod))
+        )
+      }
+
       validate(
         need(nrow(df_sel) > 0,
              paste("No STA predictions found for designation", input$tpeDesignation,
@@ -3029,7 +3277,7 @@ mod_prodAdvApp_server <- function(id, data){
 
       # Join coordinates from summarized weather data
       env_coords <- unique(
-        tpe_weather_summary()[, c("environment", "LON", "LAT"), drop = FALSE]
+        selected_env_surface_data()[, c("environment", "LON", "LAT"), drop = FALSE]
       )
 
       df_sel <- merge(
@@ -3391,9 +3639,15 @@ mod_prodAdvApp_server <- function(id, data){
         }
       }
 
+      period_label <- if (!is.null(tpe_period_lookup())) {
+        paste("-", input$tpePeriod)
+      } else {
+        ""
+      }
+
       p %>%
         plotly::layout(
-          title = paste("Environmental surface -", input$tpePhase, "-", covariate_label),
+          title = paste("Environmental surface", period_label, "-", input$tpePhase, "-", covariate_label),
           xaxis = list(
             visible = FALSE,
             range = c(unname(bbox["xmin"]), unname(bbox["xmax"])),
@@ -3429,6 +3683,19 @@ mod_prodAdvApp_server <- function(id, data){
 
       validate(
         need(nrow(modeling_init) > 0, "No modeling records found for the selected initial selection stamp.")
+      )
+
+      check_entry_type_value <- input$checkEntryTypeValue
+      if (is.null(check_entry_type_value) || !nzchar(check_entry_type_value)) {
+        check_entry_type_value <- NULL
+      }
+
+      validate(
+        need(
+          !identical(input$performanceProfileScale, "% over check") ||
+            !is.null(check_entry_type_value),
+          "Checks are required to display the performance profile as '% over check'. Use '% over mean' or select a valid check entry type."
+        )
       )
 
       tryCatch(
@@ -3684,6 +3951,7 @@ mod_prodAdvApp_server <- function(id, data){
       df <- plot_obj$mta_long
       req(nrow(df) > 0)
 
+
       df <- df[
         df$trait == input$reliabilityTrait,
         ,
@@ -3710,12 +3978,18 @@ mod_prodAdvApp_server <- function(id, data){
       df <- df[order(df$predictedValue, decreasing = TRUE), , drop = FALSE]
       df$designation <- factor(df$designation, levels = df$designation)
 
+      df <- sample_reliability_plot_df(
+        df,
+        max_per_status = 100
+      )
+
       p <- ggplot2::ggplot(
         df,
         ggplot2::aes(
           x = designation,
           y = predictedValue,
           color = plot_status,
+          alpha = plot_status,
           text = paste0(
             "Designation: ", designation,
             "<br>Trait: ", trait,
@@ -3734,8 +4008,7 @@ mod_prodAdvApp_server <- function(id, data){
             ymin = lower_2se,
             ymax = upper_2se
           ),
-          width = 0.2,
-          alpha = 0.6
+          width = 0.2
         ) +
         ggplot2::geom_point(size = 2.5) +
         ggplot2::coord_flip() +
@@ -3743,10 +4016,18 @@ mod_prodAdvApp_server <- function(id, data){
           values = c(
             "SELECTED" = "#0072B2",
             "NOT SELECTED" = "#D55E00",
-            "CHECK" = "#CC79A7"
+            "CHECK" = "#C2185B"
           ),
           drop = FALSE
         ) +
+        ggplot2::scale_alpha_manual(
+          values = c(
+            "SELECTED" = 0.6,
+            "NOT SELECTED" = 0.6,
+            "CHECK" = 1.0
+          )
+        )+
+        ggplot2::guides(alpha = "none")+
         ggplot2::labs(
           title = paste("BLUP/BLUE reliability intervals -", input$reliabilityTrait),
           x = "Designation",
@@ -3781,23 +4062,6 @@ mod_prodAdvApp_server <- function(id, data){
               collapsible = TRUE,
               collapsed = FALSE,
               plotly::plotlyOutput(ns("pairwiseScatterPlot"), height = "650px")
-            )
-          )
-        )
-      }
-
-      if ("Beeswarm trait distributions" %in% selected_plots) {
-        ui_list <- c(
-          ui_list,
-          list(
-            shinydashboard::box(
-              width = 12,
-              title = "Beeswarm trait distributions",
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = FALSE,
-              plotly::plotlyOutput(ns("beeswarmPlot"), height = "700px")
             )
           )
         )
@@ -3891,45 +4155,92 @@ mod_prodAdvApp_server <- function(id, data){
       do.call(tagList, ui_list)
     })
 
-    output$manualDesignationSelectionUI <- renderUI({
+    manual_designation_choices <- reactive({
       plot_obj <- review_plot_data()
       req(plot_obj)
 
       df <- plot_obj$review_df
       req(nrow(df) > 0)
 
+      req(all(c("designation", "plot_status") %in% colnames(df)))
+
+      df_manual <- df[, c("designation", "plot_status"), drop = FALSE]
+      df_manual$designation <- as.character(df_manual$designation)
+      df_manual$plot_status <- as.character(df_manual$plot_status)
+
+      df_manual <- df_manual[
+        !is.na(df_manual$designation) &
+          nzchar(df_manual$designation) &
+          !is.na(df_manual$plot_status) &
+          df_manual$plot_status != "CHECK",
+        ,
+        drop = FALSE
+      ]
+
       overrides <- plot_selection_overrides()
 
-      df_manual <- df[df$plot_status != "CHECK", c("designation", "plot_status"), drop = FALSE]
-
       if (nrow(overrides) > 0) {
-        df_manual <- merge(df_manual, overrides, by = "designation", all.x = TRUE)
+        df_manual <- merge(
+          df_manual,
+          overrides,
+          by = "designation",
+          all.x = TRUE
+        )
+
         df_manual$effective_status <- ifelse(
           !is.na(df_manual$plot_decision),
-          df_manual$plot_decision,
+          as.character(df_manual$plot_decision),
           as.character(df_manual$plot_status)
         )
       } else {
-        df_manual$effective_status <- as.character(df_manual$plot_status)
+        df_manual$effective_status <- df_manual$plot_status
       }
 
       df_manual <- unique(df_manual[, c("designation", "effective_status"), drop = FALSE])
+      df_manual <- df_manual[order(df_manual$designation), , drop = FALSE]
 
-      choice_labels <- paste0(df_manual$designation, " [", df_manual$effective_status, "]")
       choice_values <- df_manual$designation
-      names(choice_values) <- choice_labels
+      names(choice_values) <- paste0(
+        df_manual$designation,
+        " [",
+        df_manual$effective_status,
+        "]"
+      )
+
+      choice_values
+    })
+
+    output$manualDesignationSelectionUI <- renderUI({
+      choices <- manual_designation_choices()
 
       selectizeInput(
         ns("manualDesignationSelection"),
-        "Select designation(s)",
-        choices = choice_values,
-        selected = NULL,
+        label = "Manual designation selection",
+        choices = choices,
+        selected = character(0),
         multiple = TRUE,
         options = list(
-          placeholder = "Choose one or more designations"
+          placeholder = "Search designations...",
+          plugins = list("remove_button"),
+          maxOptions = 1000
         )
       )
     })
+
+    observeEvent(manual_designation_choices(), {
+      choices <- manual_designation_choices()
+
+      current_selection <- isolate(input$manualDesignationSelection)
+      current_selection <- current_selection[current_selection %in% unname(choices)]
+
+      updateSelectizeInput(
+        session,
+        "manualDesignationSelection",
+        choices = choices,
+        selected = current_selection,
+        server = TRUE
+      )
+    }, ignoreInit = TRUE)
 
     observeEvent(input$applyManualDesignationDecision, {
       req(input$manualDesignationSelection)
@@ -4044,8 +4355,8 @@ mod_prodAdvApp_server <- function(id, data){
       bg <- dplyr::case_when(
         is.na(value) | !nzchar(value) ~ "#F5F5F5",
         value == "SELECTED" ~ "#D6EAF8",
-        value == "NOT SELECTED" ~ "#FADBD8",
-        value == "CHECK" ~ "#F5DCE9",
+        value == "NOT SELECTED" ~ "#F5C4A5",
+        value == "CHECK" ~ "#E3A9C4",
         value == "REVISE" ~ "#FFF3CD",
         TRUE ~ "#F5F5F5"
       )
@@ -4060,9 +4371,9 @@ mod_prodAdvApp_server <- function(id, data){
 
     make_value_badge <- function(value, decision) {
       bg <- dplyr::case_when(
-        decision == "SELECTED" ~ "#D9F2D9",
-        decision == "NOT SELECTED" ~ "#F8D7DA",
-        decision == "CHECK" ~ "#D9ECFF",
+        decision == "SELECTED" ~ "#D6EAF8",
+        decision == "NOT SELECTED" ~ "#F5C4A5",
+        decision == "CHECK" ~ "#E3A9C4",
         TRUE ~ "#FFFFFF"
       )
 
@@ -4195,6 +4506,35 @@ mod_prodAdvApp_server <- function(id, data){
       req(nrow(tbl) > 0)
 
       tbl
+    })
+
+    final_decision_summary <- reactive({
+      tbl <- final_decision_table_raw()
+      req(tbl)
+      req("final_decision" %in% colnames(tbl))
+
+      x <- toupper(trimws(as.character(tbl$final_decision)))
+
+      data.frame(
+        selected = sum(x == "SELECTED", na.rm = TRUE),
+        not_selected = sum(x == "NOT SELECTED", na.rm = TRUE),
+        revise = sum(x == "REVISE", na.rm = TRUE)
+      )
+    })
+
+    output$finalDecisionSummary <- renderUI({
+      s <- final_decision_summary()
+
+      tags$div(
+        style = "margin-top:10px;",
+        tags$strong("Current final decision summary:"),
+        tags$br(),
+        tags$span(paste0("Selected: ", s$selected, " individuals")),
+        tags$br(),
+        tags$span(paste0("Non-selected: ", s$not_selected, " individuals")),
+        tags$br(),
+        tags$span(paste0("Revise: ", s$revise, " individuals"))
+      )
     })
 
     observeEvent(input$saveFinalSelection, {

@@ -231,7 +231,7 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
-      
+
       if(length(envCol) > 0){
         nenv<-length(unique(dtProv[,"environment"]))
         if("latitude" %in% colnames(dtProv)){
@@ -255,7 +255,7 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
-      
+
       if(length(envCol) > 0){
         nenv<-length(unique(dtProv[,"environment"]))
         if("longitude" %in% colnames(dtProv)){
@@ -279,7 +279,7 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
-      
+
       if(length(envCol) > 0){
         nenv<-length(unique(dtProv[,"environment"]))
         if("plantingDate" %in% colnames(dtProv)){
@@ -303,7 +303,7 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
       paramsPheno <- data()$metadata$pheno
       colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
-      
+
       if(length(envCol) > 0){
         nenv<-length(unique(dtProv[,"environment"]))
         if("harvestingDate" %in% colnames(dtProv)){
@@ -405,37 +405,45 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
           cat( "Please fill the 4 fields required (latitude, longitude, planting date and harvesting date) for all environments to extract weather data.")
         }else{
 
-          if ( nrow(unique(xx[,c("latitude","longitude")])) == nrow(xx) ){ # unique coordinates for each environment
+          if (anyDuplicated(xx$environment)) {
+
+            cat("Environment names must be unique. Please correct duplicated environment names.")
+
+          } else {
 
             result <- data()
-            weather <- cgiarPipeline::nasaPowerExtraction(LAT=xx$latitude,LONG=xx$longitude,
-                                                          date_planted=xx$plantingDate,
-                                                          date_harvest=xx$harvestingDate,
-                                                          environments=xx$environment,
-                                                          temporal=input$temporal
+            weather <- cgiarPipeline::nasaPowerExtraction(
+              LAT = xx$latitude,
+              LONG = xx$longitude,
+              date_planted = xx$plantingDate,
+              date_harvest = xx$harvestingDate,
+              environments = xx$environment,
+              temporal = input$temporal
             )
+
             result$data$weather <- weather$data
-            result$metadata$weather <- weather$metadata # unique(rbind(result$metadata$weather, weather$descriptive))
+            result$metadata$weather <- weather$metadata
             data(result)
-            cat(paste("Weather data saved succesfully."))
+
+            cat("Weather data saved succesfully.")
 
             output$preview_weather <- DT::renderDT({
-              DT::datatable(result$data$weather[,1:min(c(50,ncol(result$data$weather)))],
-                            extensions = 'Buttons',
-                            options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                           lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
-                            caption = htmltools::tags$caption(
-                              style = 'color:cadetblue; font-weight:bold; font-size: 18px', #caption-side: bottom; text-align: center;
-                              htmltools::em('Data preview.')
-                            )
+              DT::datatable(
+                result$data$weather[, 1:min(c(50, ncol(result$data$weather)))],
+                extensions = 'Buttons',
+                options = list(
+                  dom = 'Blfrtip',
+                  scrollX = TRUE,
+                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                  lengthMenu = list(c(5, 20, 50, -1), c(5, 20, 50, 'All'))
+                ),
+                caption = htmltools::tags$caption(
+                  style = 'color:cadetblue; font-weight:bold; font-size: 18px',
+                  htmltools::em('Data preview.')
+                )
               )
-
             }, server = FALSE)
-
-          }else{
-            cat(paste("Different environments cannot have the same coordinates. Please correct."))
           }
-
         }
         shinybusy::remove_modal_spinner()
       }
