@@ -370,6 +370,14 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                                       ),
                                                                                       choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
                                                                           selectInput(ns("calcSE"), label = "Calculate SEs?", choices = list(TRUE,FALSE), selected = TRUE, multiple=FALSE),
+                                                                          selectInput(ns("subGeno"), label = "Calculate GEBVs for:",
+                                                                                      choices = list("Designations with both genotype and phenotype data" = -1,
+                                                                                                     "All designations with genotype data" = 0),
+                                                                                      selected = -1, multiple=FALSE),
+                                                                          selectInput(ns("subPed"), label = "Calculate EBVs for:",
+                                                                                      choices = list("Designations with both pedigree and phenotype data" = -1,
+                                                                                                     "All designations with pedigree data" = 0),
+                                                                                      selected = -1, multiple=FALSE),
                                                       ),
                                                ),
                                                column(width = 6, style = "background-color:LightGray; color: #FFFFFF",
@@ -380,7 +388,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                       ),
                                                ),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=12, h5("Number of principal components for possible covariance kernels (0 is none, < 1 restricts to only levels present)"), ),
+                                                      column(width=12, h5("Number of principal components for possible covariance kernels"), ),
                                                       column(width=12, # multiple nesting to center ir (I didn't find any other way)
                                                              column(width=12,
                                                                     uiOutput(ns("nPC"), inline=TRUE)
@@ -957,7 +965,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
 
       mydata <- data()$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
-      choices <- c( setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait))
+      choices <- c( setdiff(names(data()$data), c("qtl","genodir","pheno","geno_imp") ), unique(mydata$trait))
       # if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD")}
 
       lapply(1:length(choices), function(i) {
@@ -965,7 +973,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           numericInput(
             session$ns(paste0('nPC',i)),
             label = paste0("nPC (",choices[i],")"),
-            value = ifelse(choices[i]%in%c("geno","pedigree"),-1,0), # -1 is to subset to only individuals present
+            value = 0, #ifelse(choices[i]%in%c("geno","pedigree"),-1,0), # -1 is to subset to only individuals present
             min = -1, max = Inf, step = 1
           ),
           style = "display: inline-block;"
@@ -1012,6 +1020,23 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         return(values)
       }
     })
+
+    observe({
+      covars <- inputFormulaCovars()
+      req(covars)
+
+      if(any("genoA" %in% inputFormulaCovars())){
+        shinyjs::hide("subPed")
+        shinyjs::show("subGeno")
+      } else if("pedigree" %in% inputFormulaCovars()){
+        shinyjs::show("subPed")
+        shinyjs::hide("subGeno")
+      } else{
+        shinyjs::hide("subPed")
+        shinyjs::hide("subGeno")
+      }
+    })
+
     # inputFormula summarizing the PCs
     inputFormulaPCs = reactive({
       req(data());  req(input$version2Mta);  req(input$trait2Mta);
@@ -1019,7 +1044,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mx <- data()
       mydata <- mx$predictions #
       mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
-      choices <- c( setdiff(names(mx$data), c("qtl","genodir","pheno") ), unique(mydata$trait))
+      choices <- c( setdiff(names(mx$data), c("qtl","genodir","pheno","geno_imp") ), unique(mydata$trait))
       # if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoD")}
 
       if (length(input$trait2Mta) != 0) {
@@ -1438,6 +1463,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
               heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
               meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
               meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))), nPC=inputFormulaPCs(),   # subsetVariable=NULL, subsetVariableLevels=NULL,
+              subsetGeno = input$subGeno, subsetPed =input$subPed,
               maxIters=input$maxitMet,  verbose=TRUE
             ),
             silent=TRUE
