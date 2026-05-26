@@ -20,7 +20,7 @@ mod_qaPedApp_ui <- function(id) {
                            tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Pedigree QA/QC",
+                                           h1(strong(span("Pedigree QA/QC for later generations",
                                                           #tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7",icon("youtube") , target="_blank"),
                                                           style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),

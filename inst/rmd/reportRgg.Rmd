@@ -235,9 +235,9 @@ if (is.null(result)){
       # subset by trait
       myPreds <- myResult %>% filter(trait == traits[j])
       myMetrics <- met %>% filter(trait == traits[j])
-      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
-                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
-                        round(myMetrics[myMetrics$parameter == "gg%(average.year)","value"],2),"% Gain")
+      myLabel <- paste0("Y = ", round(as.numeric(myMetrics[myMetrics$parameter == "ggInter","value"]),4), " + ",
+                        round(as.numeric(myMetrics[myMetrics$parameter == "ggSlope","value"]),4), " x Year, ", 
+                        round(as.numeric(myMetrics[myMetrics$parameter == "gg%(average.year)","value"]),2),"% Gain")
       p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue  ) ) +
         geom_smooth(method = "lm", formula = y ~ x) + 
         theme_classic()+
@@ -254,9 +254,9 @@ if (is.null(result)){
     plotly::renderPlotly({
       myPreds <- myResult %>% filter(trait == input$traitSta3)
       myMetrics <- met %>% filter(trait == input$traitSta3)
-      myLabel <- paste0("Y = ", round(myMetrics[myMetrics$parameter == "ggInter","value"],4), " + ",
-                        round(myMetrics[myMetrics$parameter == "ggSlope","value"],4), " x Year, ", 
-                        round(myMetrics[myMetrics$parameter == "gg%(average.year)","value"],2),"% Gain")
+      myLabel <- paste0("Y = ", round(as.numeric(myMetrics[myMetrics$parameter == "ggInter","value"]),4), " + ",
+                        round(as.numeric(myMetrics[myMetrics$parameter == "ggSlope","value"]),4), " x Year, ", 
+                        round(as.numeric(myMetrics[myMetrics$parameter == "gg%(average.year)","value"]),2),"% Gain")
       p <- ggplot(myPreds, aes(x=yearOfOrigin, y=predictedValue  ) ) +
         geom_smooth(method = "lm", formula = y ~ x) + 
         theme_classic()+
