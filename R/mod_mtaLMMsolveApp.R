@@ -626,9 +626,9 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     observeEvent(input$radio, {
       if (input$radio == "ad_model") {
         updateRadioButtons(session, inputId = "radioModel",
-                           # choices = list(
-                           #   "GTGV" = "genoAD_model",
-                           # ),
+                           choices = list(
+                             "GTGV" = "genoAD_model",
+                           ),
                            selected = "genoAD_model", inline = TRUE)
       } else if(input$radio == "sca_model"){
         updateRadioButtons(session, inputId = "radioModel",
@@ -645,14 +645,19 @@ mod_mtaLMMsolveApp_server <- function(id, data){
                            ),
                            selected = "noneGCA_model", inline = TRUE)
       } else{
+        ch <- list(
+          "TGV" = "none",
+          "GTGV" = "genoAD_model",
+          "EBV" = "pedigree_model",
+          "GEBV" = "geno_model"
+        )
+
+        current <- isolate(input$radioModel)
+        sel <- if (!is.null(current) && current %in% ch) current else "none"
+
         updateRadioButtons(session, inputId = "radioModel",
-                            choices = list(
-                              "TGV"="none",
-                              "GTGV" = "genoAD_model",
-                              "EBV" = "pedigree_model",
-                              "GEBV" = "geno_model"
-                            ),
-                           selected = isolate(input$radioModel) %||% "none",
+                           choices = ch,
+                           selected = sel,
                            inline = TRUE)
       }
     })
@@ -856,105 +861,108 @@ mod_mtaLMMsolveApp_server <- function(id, data){
     })
     # right-side equation (explanatory covariates)
     output$rightSidesRandom <- renderUI({
-      req(data())
-      req(input$version2Mta)
-      req(input$trait2Mta)
-      req(input$nTermsRandom)
-      mydata <- data()$predictions #
-      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
-      choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
-      if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD","genoD")}
-      envs <- unique(mydata[,"environment"])
-      envsDg <- envs
-      if(input$radioModel == "geno_model"){
-        useMod1 <- "none"
-        useMod2 <- "genoA"
-      }else if(input$radioModel == "pedigree_model"){
-        useMod1 <- "none"
-        useMod2 <- "pedigree"
-      }else if(input$radioModel == "none"){
-        useMod1 <- "none"
-        useMod2 <- "none."
-      }else if(input$radioModel == "genoAD_model"){
-        useMod1 <- "none"
-        useMod2 <- "genoAD"
-      }
+      tryCatch({
+        req(data())
+        req(input$version2Mta)
+        req(input$trait2Mta)
+        req(input$nTermsRandom)
+        mydata <- data()$predictions #
+        mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),]
+        choices <- c(  "none", "none.", "none..", "none...", setdiff(names(data()$data), c("qtl","genodir","pheno") ), unique(mydata$trait) )
+        if("geno" %in% choices){choices <- c( cgiarBase::replaceValues(choices,"geno","genoA"),"genoAD","genoD")}
+        envs <- unique(mydata[,"environment"])
+        envsDg <- envs
+        if(input$radioModel == "geno_model"){
+          useMod1 <- "none"
+          useMod2 <- "genoA"
+        }else if(input$radioModel == "pedigree_model"){
+          useMod1 <- "none"
+          useMod2 <- "pedigree"
+        }else if(input$radioModel == "none"){
+          useMod1 <- "none"
+          useMod2 <- "none."
+        }else if(input$radioModel == "genoAD_model"){
+          useMod1 <- "none"
+          useMod2 <- "genoAD"
+        }
 
-      if (input$radio == "cs_model") { # CS model
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            inputId=session$ns(paste0('rightSidesRandom',i)),
-            label = ifelse(i==1, "Covariance of random effect based on:",""),
-            choices = choices, multiple = TRUE,
-            selected = if(i==1){useMod2}else if(i==2){rev(c(useMod1,useMod2))}else{useMod2}
-          )
-        })
-      }else if( input$radio == "mndg_model" ){
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            inputId=session$ns(paste0('rightSidesRandom',i)),
-            label = ifelse(i==1, "Covariance of random effect based on:",""),
-            choices = choices, multiple = TRUE,
-            selected =if( i > length(envsDg) ){useMod2 }else{c( useMod2, useMod1 )}
-          )
-        })
-      }else if(input$radio == "fw_model"){
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            session$ns(paste0('rightSidesRandom',i)),
-            label = ifelse(i==1, "Covariance of random effect based on:",""),
-            choices = choices, multiple = TRUE,
-            selected = if(i==1){useMod2}else if(i==2){c(useMod2, useMod1)}else{useMod1}
-          )
-        })
-      }else if( input$radio == "dg_model" ){
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            inputId=session$ns(paste0('rightSidesRandom',i)),
-            label = ifelse(i==1, "Covariance of random effect based on:",""),
-            choices = choices, multiple = TRUE,
-            selected = c(useMod2,useMod1)
-          )
-        })
-      }else if( input$radio == "ad_model" ){
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            inputId = session$ns(paste0('rightSidesRandom', i)),
-            label = ifelse(i == 1, "Covariance of random effect based on:", ""),
-            choices = choices, multiple = TRUE,
-            selected = ifelse(i == 1,"genoA","genoD")
-          )
-        })
-      }else if( input$radio == "sca_model" ){
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            inputId = session$ns(paste0('rightSidesRandom', i)),
-            label = ifelse(i == 1, "Covariance of random effect based on:", ""),
-            choices = choices, multiple = TRUE,
-            selected = ifelse(i == 1, ifelse(input$radioModel == "noneSCA_model","none","genoD"),
-                              ifelse(input$radioModel == "noneSCA_model","none","genoA"))
-          )
-        })
-      }else if( input$radio == "gca_model" ){
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            inputId = session$ns(paste0('rightSidesRandom', i)),
-            label = ifelse(i == 1, "Covariance of random effect based on:", ""),
-            choices = choices, multiple = TRUE,
-            selected = ifelse(input$radioModel == "noneGCA_model","none","genoA")
-          )
-        })
-      }else { # main model specified
-        lapply(1:input$nTermsRandom, function(i) {
-          selectInput(
-            inputId=session$ns(paste0('rightSidesRandom',i)),
-            label = ifelse(i==1, "Covariance of random effect based on:",""),
-            choices = choices, multiple = TRUE,
-            selected = useMod2
-          )
-        })
-      }
-
+        if (input$radio == "cs_model") { # CS model
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = ifelse(i==1, "Covariance of random effect based on:",""),
+              choices = choices, multiple = TRUE,
+              selected = if(i==1){useMod2}else if(i==2){rev(c(useMod1,useMod2))}else{useMod2}
+            )
+          })
+        }else if( input$radio == "mndg_model" ){
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = ifelse(i==1, "Covariance of random effect based on:",""),
+              choices = choices, multiple = TRUE,
+              selected =if( i > length(envsDg) ){useMod2 }else{c( useMod2, useMod1 )}
+            )
+          })
+        }else if(input$radio == "fw_model"){
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              session$ns(paste0('rightSidesRandom',i)),
+              label = ifelse(i==1, "Covariance of random effect based on:",""),
+              choices = choices, multiple = TRUE,
+              selected = if(i==1){useMod2}else if(i==2){c(useMod2, useMod1)}else{useMod1}
+            )
+          })
+        }else if( input$radio == "dg_model" ){
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = ifelse(i==1, "Covariance of random effect based on:",""),
+              choices = choices, multiple = TRUE,
+              selected = c(useMod2,useMod1)
+            )
+          })
+        }else if( input$radio == "ad_model" ){
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              inputId = session$ns(paste0('rightSidesRandom', i)),
+              label = ifelse(i == 1, "Covariance of random effect based on:", ""),
+              choices = choices, multiple = TRUE,
+              selected = ifelse(i == 1,"genoA","genoD")
+            )
+          })
+        }else if( input$radio == "sca_model" ){
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              inputId = session$ns(paste0('rightSidesRandom', i)),
+              label = ifelse(i == 1, "Covariance of random effect based on:", ""),
+              choices = choices, multiple = TRUE,
+              selected = ifelse(i == 1, ifelse(input$radioModel == "noneSCA_model","none","genoD"),
+                                ifelse(input$radioModel == "noneSCA_model","none","genoA"))
+            )
+          })
+        }else if( input$radio == "gca_model" ){
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              inputId = session$ns(paste0('rightSidesRandom', i)),
+              label = ifelse(i == 1, "Covariance of random effect based on:", ""),
+              choices = choices, multiple = TRUE,
+              selected = ifelse(input$radioModel == "noneGCA_model","none","genoA")
+            )
+          })
+        }else { # main model specified
+          lapply(1:input$nTermsRandom, function(i) {
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = ifelse(i==1, "Covariance of random effect based on:",""),
+              choices = choices, multiple = TRUE,
+              selected = useMod2
+            )
+          })
+        }
+      }, error = function(e) {
+        NULL
+      })
     })
 
     # n pricipal components for explanatory covariates
