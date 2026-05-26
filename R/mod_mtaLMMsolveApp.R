@@ -753,6 +753,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
       mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
       choices <- c( setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ), "designation")
+      choices <- unique(c(choices, "envIndex"))
       fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
       # selected
       envs <- unique(mydata[,"environment"])
@@ -792,7 +793,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             session$ns(paste0('leftSidesRandom',i)),
             label = ifelse(i==1, "Random Effects",""),
             choices = choices, multiple = TRUE,
-            selected = if(i==1){"designation"}else if(i==2){rev(c(fwvars[1], "designation"))}else{"designation"}
+            selected = if(i==1){"designation"}else if(i==2){rev(c("envIndex", "designation"))}else{"designation"}
           )
         })
       }else if(input$radio == "ad_model"){ # A+D main effect
