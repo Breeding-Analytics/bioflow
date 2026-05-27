@@ -627,7 +627,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       if (input$radio == "ad_model") {
         updateRadioButtons(session, inputId = "radioModel",
                            choices = list(
-                             "GTGV" = "genoAD_model",
+                             "GTGV" = "genoAD_model"
                            ),
                            selected = "genoAD_model", inline = TRUE)
       } else if(input$radio == "sca_model"){
@@ -1463,7 +1463,8 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         )
         if(!inherits(result1,"try-error")) {
           result <- try(
-              cgiarPipeline::metLMMsolver(
+            metLMMsolver(
+              #cgiarPipeline::metLMMsolver(
               phenoDTfile= dtMta, analysisId=input$version2Mta, analysisIdGeno=markerVersionToUse,
               fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), expCovariates=inputFormulaCovars(),
               envsToInclude=myEnvsTI, trait= input$trait2Mta, traitFamily=myFamily,
