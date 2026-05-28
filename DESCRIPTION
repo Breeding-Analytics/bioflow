@@ -41,6 +41,7 @@ Imports:
     LMMsolver,
     magrittr,
     markdown,
+    mclust,
     nasapower,
     network,
     pedigreemm,
