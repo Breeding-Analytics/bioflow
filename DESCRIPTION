@@ -39,6 +39,7 @@ Imports:
     lme4,
     lme4breeding (>= 1.0.1),
     LMMsolver,
+    mclust,
     magrittr,
     markdown,
     nasapower,
