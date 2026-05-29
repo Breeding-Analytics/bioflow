@@ -18,7 +18,7 @@ mod_contactUsApp_ui <- function(id){
 
                             h3(strong("Contact us")),
                             p("Please use the following link",
-                              tags$a(href="https://github.com/Breeding-Analytics/bioflow/issues", "(BIOFLOW Github Support Desk)", target="_blank") ,
+                              tags$a(href="https://brservices.atlassian.net/servicedesk/customer/portal/3", "(BIOFLOW Service Desk)", target="_blank") ,
                               "to reach our Help Desk and send us your question or request."),
 
                             h3(strong("Local installation")),
