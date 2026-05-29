@@ -82,7 +82,7 @@ mod_qaPedApp_ui <- function(id) {
 														actionButton(ns("runParms"), "Calculate distributions", icon = icon("play-circle")),
 														br(),
 														br(),
-                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 1, step = 0.01),						
+                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 100, step = 0.01),						
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
 										<strong>For each triplet of parents with a child, the veracity 
@@ -102,9 +102,9 @@ mod_qaPedApp_ui <- function(id) {
                                                br(),
                                                fluidRow(
                                                  column(width = 4,
-                                                        numericInput(ns('GLML'),'Mother wrong (<):', value = 0.2, min = 0, max = 1, step = 0.01),
-                                                        #numericInput(ns('GLMB'),'Mother borderline [><]:', value = 0.7, min = 0, max = 1, step = 0.01),
-                                                        numericInput(ns('GLMC'),'Mother correct [>=]:', value = 1.6, min = 0, max = 1, step = 0.01),
+                                                        numericInput(ns('GLML'),'Mother wrong (<):', value = 0.2, min = 0, max = 2, step = 0.01),
+                                                        #numericInput(ns('GLMB'),'Mother borderline [><]:', value = 0.7, min = 0, max = 2, step = 0.01),
+                                                        numericInput(ns('GLMC'),'Mother correct [>=]:', value = 1.6, min = 0, max = 2, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
 								<strong>Let us remember that the kinship matrix calculated 
