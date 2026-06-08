@@ -1,7 +1,7 @@
 Package: bioflow
 Title: CGIAR Breeding Analytics Pipeline
 Description: CGIAR Breeding Analytics Pipeline
-Version: 2.0.3
+Version: 3.0.0
 Authors@R: c(
     person("Giovanny", "Covarrubias Pazaran", , "covaruberpaz@gmail.com", role = c("aut", "cre")),
     person("Ibnou", "Dieng", , "i.dieng@cgiar.org", role = c("aut")),
@@ -39,8 +39,10 @@ Imports:
     lme4,
     lme4breeding (>= 1.0.1),
     LMMsolver,
+    mclust,
     magrittr,
     markdown,
+    mclust,
     nasapower,
     network,
     pedigreemm,

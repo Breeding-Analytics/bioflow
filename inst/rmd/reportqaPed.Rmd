@@ -122,9 +122,9 @@ suppressWarnings(tryCatch({
 
 10. OUTPUT: In the case of the diagonal the values must be 2 because it is the comparison of the individual with itself, then if we take the value of the individual of the diagonal and subtract it from the value that relates the mother with the individual, this should be very close to zero if they are related (Diagonal_minus_Female_G_matrix) and we can classify like a PROBABLE_SELF or pass XXX depend of the thresholds assigned.
 
-11. OUTPUT: Status of individuals in the final classification (PASS, BORDERLINE, FAIL, PARENT FAIL, NO GENO DATA)
+11. OUTPUT: Status of individuals in the final classification (GOOD, QUESTIONABLE, BAD, PARENT FAIL, NO GENO DATA)
 
-This QA/QC module allows users to identify which individuals should be considered a PASS, which ones should be investigated further (BORDERLINE) and which ones FAIL. 
+This QA/QC module allows users to identify which individuals should be considered a GOOD, which ones should be investigated further (QUESTIONABLE) and which ones BAD. 
 
 This dashboard also helps users to identify problems in the input data with flags to identify PARENT FAIL due to lack of pedigree information, ungenotyped individuals are also flagged like NO GENO DATA.
 
@@ -165,9 +165,9 @@ if (is.null(result)){
 } else {
  predictionsX <- result$predictions[which( result$predictions$analysisId == idQa),]
  
- status <- ifelse(grepl("PASS|XXX", predictionsX$entryType), "PASS",
-           ifelse(grepl("BORDERLINE", predictionsX$entryType), "BORDERLINE",
-           ifelse(grepl("FAIL|WRONG|HIGH|SELF", predictionsX$entryType), "FAIL",
+ status <- ifelse(grepl("PASS|GOOD|XXX", predictionsX$entryType), "GOOD",
+           ifelse(grepl("BORDERLINE|QUESTIONABLE", predictionsX$entryType), "QUESTIONABLE",
+           ifelse(grepl("BAD|FAIL|WRONG|HIGH|SELF", predictionsX$entryType), "BAD",
 			     ifelse(is.na(predictionsX$entryType) | grepl("NO GENO DATA", predictionsX$entryType),
 			       "NO GENO DATA","UNCERTAIN"))))
  
@@ -193,12 +193,12 @@ if (is.null(result)){
           ggplot2::scale_fill_manual(
                                      name = "Match status",
                                     values = c('NO GENO DATA' = "#f3b0b0",
-                                              'FAIL' = "#FF7F7F",
+                                              'BAD' = "#FF7F7F",
                                               'PARENT FAIL' = "#f3b0b0",
                                               'UNCERTAIN' = "#f3b0b0", 
-                                              'BORDERLINE'= "#CDA434",
-                                              'PASS' = "#A4D65E")
-									)+
+                                              'QUESTIONABLE'= "#CDA434",
+                                              'GOOD' = "#A4D65E"))
+                                    +
           ggplot2::labs(x = "Genotype", y = tr) +
           ggplot2::theme_classic() +
           ggplot2::theme(axis.text.x = ggplot2::element_blank())
@@ -224,11 +224,11 @@ if (is.null(result)){
         ggplot2::geom_col() +
         ggplot2::scale_fill_manual(name   = "Match status",
                                    values = c('NO GENO DATA' = "#f3b0b0",
-                                              'FAIL' = "#FF7F7F",
+                                              'BAD' = "#FF7F7F",
                                               'PARENT FAIL' = "#f3b0b0",
                                               'UNCERTAIN' = "#f3b0b0", 
-                                              'BORDERLINE'= "#CDA434",
-                                              'PASS' = "#A4D65E")) +
+                                              'QUESTIONABLE'= "#CDA434",
+                                              'GOOD' = "#A4D65E")) +
         ggplot2::labs(x = "Genotype", y = input$traitQa) +
         ggplot2::theme_classic() +
         ggplot2::theme(axis.text.x = ggplot2::element_blank())
@@ -305,7 +305,7 @@ if (has_sample || has_other) {
     'status',
     target = 'row',
     backgroundColor = DT::styleEqual(
-      c('PASS','BORDERLINE','UNCERTAIN',"FAIL","PARENT FAIL","NO GENO DATA"),
+      c('GOOD','QUESTIONABLE','UNCERTAIN',"BAD","PARENT FAIL","NO GENO DATA"),
       c(
           "rgba(164, 214, 94, 0.3)",
           "rgba(205,164, 52, 0.22)",
@@ -333,7 +333,7 @@ if (has_sample || has_other) {
       "status",
       target = "row",
       backgroundColor = DT::styleEqual(
-        c('PASS','BORDERLINE','UNCERTAIN',"FAIL","PARENT FAIL","NO GENO DATA"),
+        c('GOOD','QUESTIONABLE','UNCERTAIN',"BAD","PARENT FAIL","NO GENO DATA"),
         c(
           "rgba(164, 214, 94, 0.3)",
           "rgba(205,164, 52, 0.22)",
@@ -356,7 +356,7 @@ if (has_sample || has_other) {
 ### Parental check
 <p>&nbsp;</p>
 
-The following plot shows how many individuals derived from each parent received a "PASS" status or failed. Parents that resulted in mostly failed individuals are more likely to have genotyping errors
+The following plot shows how many individuals derived from each parent received a "GOOD" status or failed. Parents that resulted in mostly failed individuals are more likely to have genotyping errors
 
 ```{r }
 
@@ -397,7 +397,7 @@ parent_long <- parent_long[!is.na(parent_long$parent) & parent_long$parent != ""
 
 # Define outcome label: PASS vs non-PASS
 parent_long$Outcome <- ifelse(
-  parent_long$status == "PASS",
+  parent_long$status == "GOOD",
   "Crosses passed QA",
   "Crosses failed QA"
 )
@@ -435,7 +435,7 @@ plotly::ggplotly(p)
 }
 
 parentR<-predictions_wide[which(predictions_wide$trait=="Status"), ]
-
+df<-predictions_wide[which(predictions_wide$trait=="Status"), ]
 if("params" %in% ls()){ # we will download the document
 .plot_parent_success(parentR,input$nPQa)
 } else {
@@ -587,7 +587,7 @@ if (is.null(result)){
       ver$Status[which(ver$Status=="PARENT FAIL")]=NA
       ver$Status[which(ver$Status=="NO GENO DATA")]=NA
 	  ver$Status[which(ver$Status=="UNCERTAIN")]=NA	  
-      mapa_categorias <- c("PASS" = 1, "BORDERLINE" = 2, "FAIL" = 3)
+      mapa_categorias <- c("GOOD" = 1, "QUESTIONABLE" = 2, "BAD" = 3)
       ver$CategoryN <- mapa_categorias[ver$Status]
       ver$col <- as.factor(ver$col)
       ver$col <- factor(ver$col, levels = sort(as.numeric(unique(as.character(ver$col)))))
@@ -691,7 +691,7 @@ if (is.null(result)){
       ver$Status[which(ver$Status=="PARENT FAIL")]=NA
       ver$Status[which(ver$Status=="NO GENO DATA")]=NA
 	  ver$Status[which(ver$Status=="UNCERTAIN")]=NA
-      mapa_categorias <- c("PASS" = 1, "BORDERLINE" = 2, "FAIL" = 3)
+      mapa_categorias <- c("GOOD" = 1, "QUESTIONABLE" = 2, "BAD" = 3)
       ver$CategoryN <- mapa_categorias[ver$Status]
       catt=unique(ver$CategoryN)
       catt=catt[!is.na(catt)]
