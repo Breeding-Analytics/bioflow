@@ -154,7 +154,12 @@ app_ui <- function(request) {
                           )
                  ),
 
-                 tabPanel(div(icon("calculator"), icon("clipboard-check"), "Product advancement (", icon("seedling"), icon("dna"), icon("network-wired"), ")"),mod_prodAdvApp_ui("prodAdvApp_1")),
+                 tabPanel(div(icon("calculator"), icon("clipboard-check"), "Product advancement (", icon("seedling"), icon("dna"), icon("network-wired"), ")"),
+                          navlistPanel("Options:", widths = c(2, 10),
+                                       tabPanel(div("Pre-advancement (", icon("seedling"), ")"),  mod_preProdAdvApp_ui("preProdAdvApp_1") ),
+                                       tabPanel(div("Advancement Meeting (", icon("people-group"), ")"), mod_advMeetingApp_ui("advMeetingApp_1") ),
+                          )
+                 ),
 
                  tabPanel(strong("SELECTION HISTORY"), mod_sectionInfoSHApp_ui("sectionInfoSHApp_1") ),  # chart-line , barcode
                  tabPanel(div(icon("chart-line"), "Realized Genetic Gain (", icon("seedling"), icon("network-wired"),")"), mod_rggApp_ui("rggApp_1") ), # user needs to do up to a multi-year genetic evaluation to provide the MET as input
