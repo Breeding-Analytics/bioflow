@@ -172,10 +172,7 @@ if (is.null(result)){
               "environment:designation", "designation:environment"),
   "gxeDMD" = c(paste0(envs2,"_designation"), paste0("designation_",envs2),
                paste0(envs2,":designation"), paste0("designation:",envs2)),
-  "gxeFW"  = c(paste0("value_",traits2,"envIndex_designation"),
-               paste0("designation_value_",traits2,"envIndex"),
-               paste0("value_",traits2,"envIndex:designation"),
-               paste0("designation:value_",traits2,"envIndex"))
+  "gxeFW"  = "fw_slope"
 )
   
   gxeModelNum <- 0

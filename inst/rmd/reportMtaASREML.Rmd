@@ -1423,7 +1423,10 @@ if (is.null(result)){
     idvar = c("environment","designation","effectType","entryType"), 
     direction="wide"
   )
-  names(pred.mta.wide) <- c("designation","environment","effectType","entryType",traits)
+  term<-grep("predictedValue", names(pred.mta.wide), ignore.case = TRUE)
+  traitsT<-gsub("predictedValue.", "", names(pred.mta.wide))
+  traitsT<-traitsT[term]  
+  names(pred.mta.wide) <- c("designation","environment","effectType","entryType",traitsT)
   # to show only 1 row per designation effectType (concatenated entryType)
   pred.mta.wide1 <- pred.mta.wide[which(pred.mta.wide$effectType != "designation"),]
   pred.mta.wide2 <- pred.mta.wide[which(pred.mta.wide$effectType == "designation"),]
@@ -1432,10 +1435,10 @@ if (is.null(result)){
     return(dplyr::coalesce(!!! as.list(x)))
   }
   
-  pred.mta.wide2_trait <- pred.mta.wide2 %>% select(c("designation", all_of(traits))) %>%
+  pred.mta.wide2_trait <- pred.mta.wide2 %>% select(c("designation", all_of(traitsT))) %>%
     group_by(designation) %>% 
-    summarise(across(traits, coalesce_by_column)) 
-  pred.mta.wide2_meta <- pred.mta.wide2 %>% select(!all_of(traits)) %>%
+    summarise(across(traitsT, coalesce_by_column)) 
+  pred.mta.wide2_meta <- pred.mta.wide2 %>% select(!all_of(traitsT)) %>%
     arrange(designation, entryType) %>% 
     group_by(designation) %>% 
     mutate(entryType2 = paste0(entryType, collapse = "#")) %>%

@@ -26,6 +26,8 @@ mod_PopStrApp_ui <- function(id){
                                          h1(strong(span("Population structure", style="color:darkcyan"))),
                                          h2(strong("Data Status (wait to be displayed):")),
                                          uiOutput(ns("warningMessage")),
+										 tags$br(),
+                                         shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),                                         
                                          tags$br(),
                                          img(src = "www/popstr.png", height = 135, width = 540), # add an image
                                        )
@@ -295,20 +297,54 @@ mod_PopStrApp_server <- function(id, data){
 
     golem::invoke_js('hideid', ns('fileenvbio_url'))
 
-
+	#################
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        tmp <- data()
+        data(cgiarBase::create_getData_object())
+        utils::data(DT_example, package = "cgiarPipeline")
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
+  
+    ##data example for groups file
     observeEvent(input$geno_groupPopStr,
                  if(input$geno_groupPopStr!=FALSE) {
                    shinyWidgets::ask_confirmation(
-                     inputId = ns("myconfirmation"),
+                     inputId = ns("myconfirmation2"),
                      text = "Are you sure you want to load the example of external groups? This will delete any external group file currently in the environment.",
                      title = "Data replacement warning"
                    )
                  }
 
     )
-
-    observeEvent(input$myconfirmation, {
-      if (isTRUE(input$myconfirmation)) {
+    observeEvent(input$myconfirmation2, {
+      if (isTRUE(input$myconfirmation2)) {
         bio_example_url <- 'https://raw.githubusercontent.com/Breeding-Analytics/bioflow/main/inst/app/www/example/Groupgeno.csv'
         updateTextInput(session, 'fileenvbio_url', value = bio_example_url)
         golem::invoke_js('hideid', ns('fileenvbio_holder'))
@@ -319,7 +355,7 @@ mod_PopStrApp_server <- function(id, data){
         updateTextInput(session, 'fileenvbio_url', value = '')
         shinyWidgets::updatePrettySwitch(session, "geno_groupPopStr", value = FALSE)
       }
-      save.image(file="popstr.RData")
+      #save.image(file="popstr.RData")
     }, ignoreNULL = TRUE)
 
     ## render timestamps flow plot

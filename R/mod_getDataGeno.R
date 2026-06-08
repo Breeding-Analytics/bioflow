@@ -317,8 +317,9 @@ mod_getDataGeno_server <-
                                                               ploidity = as.numeric(input$ploidlvl_input))
                        }, error = function(e) {
                          print(e)
+                         error_msg <- rlang::cnd_header(e)
                          shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = 'Not a valid file format :-(',
+                                                  text = glue::glue("Not a valid hapmap file: {error_msg}"),
                                                   type = 'error')
                          })
                      shinybusy::remove_modal_spinner()
@@ -330,8 +331,9 @@ mod_getDataGeno_server <-
                                                            ploidity = as.numeric(input$ploidlvl_input))
                        }, error = function(e) {
                          print(e)
+                         error_msg <- rlang::cnd_header(e)
                          shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = 'Not a valid file format :-(',
+                                                  text = glue::glue("Not a valid VCF file: {error_msg}"),
                                                   type = 'error')
                          })
                      shinybusy::remove_modal_spinner()
@@ -345,8 +347,9 @@ mod_getDataGeno_server <-
                                                                    pos_name = input$dartseq_position)
                        }, error = function(e) {
                          print(e)
+                         error_msg <- rlang::cnd_header(e)
                          shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = 'Not a valid file format :-(',
+                                                  text = glue::glue("Not a valid DArTSeq file: {error_msg}"),
                                                   type = 'error')
                          })
                      shinybusy::remove_modal_spinner()
@@ -359,8 +362,9 @@ mod_getDataGeno_server <-
                                                                            ploidity = as.numeric(input$ploidlvl_input))
                        }, error = function(e) {
                          print(e)
+                         error_msg <- rlang::cnd_header(e)
                          shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = 'Not a valid file format :-(',
+                                                  text = glue::glue("Not a valid DArTag file: {error_msg}"),
                                                   type = 'error')
                          })
                      shinybusy::remove_modal_spinner()

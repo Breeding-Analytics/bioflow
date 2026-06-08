@@ -373,17 +373,17 @@ mod_hybridityApp_ui <- function(id){
                                                                                   ),value = 1.0,min = 0,max = 1,step = 0.01)
                                                                    )
                                                             ),
-                                                            column(width = 3,
-                                                                   tags$div(
-                                                                     numericInput(ns("mid_thres_mp"),
-                                                                                  label = tags$span(
-                                                                                    "Mid match probability threshold",
-                                                                                    tags$i(class = "glyphicon glyphicon-info-sign",
-                                                                                           style = "color:#FFFFFF",
-                                                                                           title = "Value of match probability above which the progeny is considered a LIKELY F1")
-                                                                                  ),value = 0.9,min = 0,max = 1,step = 0.01)
-                                                                   )
-                                                            ),
+                                                            #column(width = 3,
+                                                            #       tags$div(
+                                                            #         numericInput(ns("mid_thres_mp"),
+                                                            #                      label = tags$span(
+                                                            #                        "Mid match probability threshold",
+                                                            #                        tags$i(class = "glyphicon glyphicon-info-sign",
+                                                            #                               style = "color:#FFFFFF",
+                                                            #                               title = "Value of match probability above which the progeny is considered a LIKELY F1")
+                                                            #                      ),value = 0.9,min = 0,max = 1,step = 0.01)
+                                                            #       )
+                                                            #),
                                                             column(width = 3,
                                                                    tags$div(
                                                                      numericInput(ns("low_thres_mp"),
@@ -1034,9 +1034,54 @@ mod_hybridityApp_server <- function(id, data){
         ploidy=ploidy,
         sc_filter=filter_by_score,
         het=input$parentHetThreshold,
-        matchThres=c(input$upper_thres_mp,input$mid_thres_mp,input$low_thres_mp)
+        matchThres=c(input$upper_thres_mp,0,input$low_thres_mp)
       )
 
+      idQa <- result$status[which(result$status$module %in% c("gVerif")),"analysisId"];
+       idQa <- idQa[length(idQa)]
+       
+       result$modeling=result$modeling[-which(result$modeling[result$modeling$analysisId==idQa,]$parameter=="MidMatchProbThres"),]
+       
+       predictionsX <- result$predictions[which( result$predictions$analysisId == idQa),]
+       modeling <- result$modeling[which(result$modeling$analysisId == idQa),]
+       upperThres <- modeling[modeling$parameter == "UpperMatchProbThres","value"]
+       #midThres <- modeling[modeling$parameter == "MidMatchProbThres","value"]
+       lowerThres <- modeling[modeling$parameter == "LowerMatchProbThres","value"]
+       
+       upperThres = as.numeric(upperThres)
+       #midThres = as.numeric(midThres)
+       lowerThres = as.numeric(lowerThres)
+       
+       idx <- (predictionsX$trait == "probMatch") 
+       
+       status <- ifelse(predictionsX$predictedValue[idx] >= upperThres, "GOOD",
+                        #ifelse(predictionsX$predictedValue[idx] >= midThres, "QUESTIONABLE",
+                        ifelse(predictionsX$predictedValue[idx] >= lowerThres, "QUESTIONABLE","BAD"))
+       prob_status <- unique(data.frame(designation = predictionsX$designation[idx],
+                                      .status = status,
+                                      stringsAsFactors = FALSE))
+      
+      na_status = prob_status[is.na(prob_status$.status),]
+      
+      idx2 <- (predictionsX$designation %in% na_status$designation) & 
+        (predictionsX$trait == "parHetFilter") 
+      idx3 <- (predictionsX$designation %in% na_status$designation) & 
+        (predictionsX$trait == "ParentHasGeno")
+      idx4 <- (predictionsX$designation %in% na_status$designation) & 
+        (predictionsX$trait == "HasPed")
+      idx5 <- (predictionsX$designation %in% na_status$designation) & 
+        (predictionsX$trait == "HasGeno")
+      
+      other_status <- ifelse(predictionsX$predictedValue[idx5] == 0, "NO GENO DATA",
+                             ifelse(predictionsX$predictedValue[idx2] == 0, "PARENT FAIL",
+                                    ifelse(predictionsX$predictedValue[idx3] == 0, "PARENT FAIL",
+                                           ifelse(predictionsX$predictedValue[idx4] == 0, "PARENT FAIL",NA))))
+      
+      prob_status[is.na(prob_status$.status),".status"] = other_status
+      
+      sst=match(prob_status$designation,result$data$pedigree$sample_id)
+      result$modifications$pedigree<-data.frame(cbind(module="gVerif",analysisId=idQa,reason=prob_status[,2],row=sst))
+      
       #If checkbox is ticked
       if(input$filterF1PerDesignation){
         Markers = as.data.frame(gl_obj)
