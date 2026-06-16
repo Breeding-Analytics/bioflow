@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 library(DT)
 library(magrittr)
 library(shiny)
+library(ggplot2)
 
 load("resultProdAdv.RData")
 final_table <- final_table_export
@@ -60,7 +61,59 @@ printTable <- function(DT, pageLength = 25,
 
 ```
 
+### About this analysis
+
+
+**Inputs used by the Pre-Advancement Module:**
+
+- **MTA predictions (BLUPs):** Multi-trial analysis best linear unbiased predictions across environments, providing the overall genetic merit estimates for each candidate.
+- **STA predictions:** Single-trial analysis per-environment estimates used for spatial performance visualisation and lollipop plots.
+- **Pedigree or genomic relatedness data (optional):** Used to compute family groupings and relatedness plots for diversity monitoring.
+- **Environmental covariates (optional):** Climate variables (temperature, rainfall, humidity indices) used for environment clustering and TPE (Target Population of Environments) visualisations.
+
+**Outputs produced:**
+
+- A **named final selection stamp** containing each designation with its selection status (**SELECTED**, **NOT SELECTED**, **REVISE**, or **CHECK**), index values, and individual trait values.
+- The final decision table consolidates initial selection (index-based), table-level overrides, and plot-level manual overrides using the hierarchy: plot > table > initial.
+
+**Sharing with stakeholders:** The output RData file from this analysis can be shared with other stakeholders for use in the **Advancement Meeting Dashboard** module, enabling collaborative review and decision-making across teams.
+
+---
+
+```{r summary-section, results='asis'}
+# Compute summary statistics
+if (!is.null(final_table) && nrow(final_table) > 0 && "final_decision" %in% colnames(final_table)) {
+  n_evaluated <- nrow(final_table)
+  n_selected <- sum(final_table$final_decision == "SELECTED", na.rm = TRUE)
+  n_not_selected <- sum(final_table$final_decision == "NOT SELECTED", na.rm = TRUE)
+  n_revise <- sum(final_table$final_decision == "REVISE", na.rm = TRUE)
+  n_checks <- sum(final_table$final_decision == "CHECK", na.rm = TRUE)
+  
+  analysis_label <- if (exists("analysis_name") && !is.null(analysis_name) && nzchar(analysis_name)) {
+    analysis_name
+  } else {
+    "Unnamed analysis"
+  }
+  
+  cat(paste0(
+    "### Summary\n\n",
+    "**Analysis name:** ", analysis_label, "\n\n",
+    "- **Candidates evaluated:** ", n_evaluated, "\n",
+    "- **Selected:** ", n_selected, "\n",
+    "- **Not selected:** ", n_not_selected, "\n",
+    "- **Revise:** ", n_revise, "\n",
+    "- **Checks:** ", n_checks, "\n\n"
+  ))
+} else {
+  cat("**No final selection stamp exists.** Complete the Final Review workflow to see results here.\n\n")
+}
+```
+
+---
+
 ###  Final decision table
+
+The table below shows all candidates with their trait values, index score, and final selection status. Columns ending in `_trait_decision` indicate whether each candidate passed the trait-specific threshold. The `final_decision` column reflects the consolidated decision after applying the hierarchy: plot-level overrides take precedence over table-level overrides, which take precedence over the initial index-based selection. Rows are color-coded by decision status (blue = selected, orange = not selected, pink = check, yellow = revise).
 
 ```{r, include=FALSE}
 htmltools::tagList(printTable(mtcars))
@@ -122,5 +175,146 @@ for (col in decision_cols) {
 
 htmltools::tagList(dt)
 
+```
+
+---
+
+### Trait Distribution by Status
+
+This plot compares the distribution of trait values across selection groups (Selected, Not Selected, and Checks). Each trait is shown as a horizontal section. Within each section, three bars summarize each group's performance: the thin line spans the full range (min to max), the thick rectangle covers the interquartile range (Q1 to Q3), the diamond marks the mean, and the vertical line marks the median. An arrow next to each trait name indicates the breeding direction (→ = higher is better, ← = lower is better). Use this plot to confirm that selected entries outperform checks and rejected entries across all traits, and to identify traits where overlap or weakness may warrant further review.
+
+```{r trait-distribution-plot, fig.height=14, fig.width=12}
+library(ggplot2)
+
+# STATUS colors
+status_colors_plot <- c(
+  "SELECTED"     = "#0072B2",
+  "NOT SELECTED" = "#D55E00",
+  "CHECK"        = "#C2185B"
+)
+
+# Use trait_directions from the RData if available
+if (!exists("trait_directions")) trait_directions <- list()
+if (!exists("trait_thresholds")) trait_thresholds <- list()
+
+# Identify numeric trait columns
+non_trait_cols <- c(
+  "designation", "entryType", "is_check_sort",
+  "initial_decision", "table_decision", "plot_decision",
+  "final_decision", "final_decision_initial", "final_manual_decision",
+  "index_value"
+)
+trait_decision_cols_dist <- grep("_trait_decision$", colnames(final_table), value = TRUE)
+candidate_trait_cols <- setdiff(colnames(final_table), c(non_trait_cols, trait_decision_cols_dist))
+numeric_trait_cols <- candidate_trait_cols[vapply(final_table[candidate_trait_cols], is.numeric, logical(1))]
+
+if ("index_value" %in% colnames(final_table)) {
+  numeric_trait_cols <- c("index_value", numeric_trait_cols)
+}
+
+if (length(numeric_trait_cols) > 0 && "final_decision" %in% colnames(final_table) && nrow(final_table) > 0) {
+
+  # Map REVISE to NOT SELECTED for the trait distribution plot (only 3 groups)
+  plot_status <- final_table$final_decision
+  plot_status[plot_status == "REVISE"] <- "NOT SELECTED"
+
+  # Build long-format data
+  plot_df <- do.call(rbind, lapply(numeric_trait_cols, function(tr) {
+    data.frame(
+      trait = tr,
+      value = as.numeric(final_table[[tr]]),
+      status = plot_status,
+      stringsAsFactors = FALSE
+    )
+  }))
+  plot_df <- plot_df[!is.na(plot_df$value) & !is.na(plot_df$status), , drop = FALSE]
+  plot_df <- plot_df[plot_df$status %in% c("SELECTED", "NOT SELECTED", "CHECK"), , drop = FALSE]
+
+  # Compute summary stats per trait x status: min, Q1, median, mean, Q3, max
+  summary_df <- do.call(rbind, lapply(numeric_trait_cols, function(tr) {
+    tr_df <- plot_df[plot_df$trait == tr, , drop = FALSE]
+    do.call(rbind, lapply(c("SELECTED", "NOT SELECTED", "CHECK"), function(st) {
+      vals <- tr_df$value[tr_df$status == st]
+      if (length(vals) == 0) return(NULL)
+      data.frame(
+        trait = tr,
+        status = st,
+        xmin = min(vals, na.rm = TRUE),
+        q1 = quantile(vals, 0.25, na.rm = TRUE),
+        median = median(vals, na.rm = TRUE),
+        mean_val = mean(vals, na.rm = TRUE),
+        q3 = quantile(vals, 0.75, na.rm = TRUE),
+        xmax = max(vals, na.rm = TRUE),
+        n = length(vals),
+        stringsAsFactors = FALSE
+      )
+    }))
+  }))
+  rownames(summary_df) <- NULL
+
+  # Build direction labels
+  dir_labels <- vapply(numeric_trait_cols, function(tr) {
+    d <- trait_directions[[tr]]
+    if (is.null(d) || identical(d, "Higher is better")) "\u2192 better" else "\u2190 better"
+  }, character(1))
+
+  # Create ordered trait factor with direction annotation
+  trait_labels <- paste0(numeric_trait_cols, "  (", dir_labels, ")")
+  summary_df$trait_label <- factor(
+    trait_labels[match(summary_df$trait, numeric_trait_cols)],
+    levels = rev(trait_labels)
+  )
+
+  # Status factor for consistent ordering (top to bottom: Selected, Not Selected, Check)
+  summary_df$status <- factor(summary_df$status, levels = c("CHECK", "NOT SELECTED", "SELECTED"))
+
+  # Create y positions: each trait gets 3 rows (one per group), with spacing between traits
+  summary_df$y_pos <- as.numeric(summary_df$trait_label) +
+    as.numeric(summary_df$status) * 0.25 - 0.5
+
+  # Trait distribution plot: horizontal range bars with IQR box and mean marker
+  p <- ggplot(summary_df) +
+    # Thin line: full range (min to max) — the "whiskers"
+    geom_segment(aes(x = xmin, xend = xmax, y = y_pos, yend = y_pos, color = status),
+                 linewidth = 0.4, alpha = 0.6) +
+    # Thick bar: IQR (Q1 to Q3) — the IQR box
+    geom_rect(aes(xmin = q1, xmax = q3, ymin = y_pos - 0.08, ymax = y_pos + 0.08, fill = status),
+              alpha = 0.7, color = NA) +
+    # Mean marker (diamond)
+    geom_point(aes(x = mean_val, y = y_pos, color = status), shape = 18, size = 3) +
+    # Median marker (vertical tick)
+    geom_segment(aes(x = median, xend = median, y = y_pos - 0.08, yend = y_pos + 0.08, color = status),
+                 linewidth = 1) +
+    # Colors
+    scale_color_manual(values = status_colors_plot, name = "Group", drop = FALSE) +
+    scale_fill_manual(values = status_colors_plot, name = "Group", drop = FALSE) +
+    # Facet by trait (free x scales since traits have different units)
+    facet_grid(trait_label ~ ., scales = "free", switch = "y", space = "fixed") +
+    # Theme
+    theme_minimal(base_size = 14) +
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.title.y = element_blank(),
+      axis.text.x = element_text(size = 12),
+      axis.title.x = element_text(size = 13),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      strip.text.y.left = element_text(angle = 0, hjust = 1, face = "bold", size = 12),
+      strip.placement = "outside",
+      legend.position = "bottom",
+      legend.text = element_text(size = 12),
+      legend.title = element_text(size = 13, face = "bold"),
+      panel.spacing = unit(0.5, "lines"),
+      plot.caption = element_text(size = 10, color = "#555555")
+    ) +
+    labs(x = "Trait value",
+         caption = "Thick bar = IQR (Q1-Q3) | Diamond = mean | Vertical line = median | Thin line = range (min-max)")
+
+  print(p)
+} else {
+  cat("Trait distribution plot requires numeric trait columns and a final_decision column in the data.\n")
+}
 ```
 

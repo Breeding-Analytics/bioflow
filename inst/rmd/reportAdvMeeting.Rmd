@@ -1,0 +1,452 @@
+---
+title: "Advancement Meeting Report"
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  error = TRUE
+)
+
+library(DT)
+library(magrittr)
+library(shiny)
+library(ggplot2)
+
+load("resultAdvMeeting.RData")
+```
+
+```{r, include=FALSE}
+printTable <- function(DT, pageLength = 25,
+                       numericColNames = NULL, numRound = 3,
+                       scrollXOpt = TRUE, filt = "top", ...) {
+
+  oldnames <- colnames(DT)
+
+  DT <- data.frame(lapply(DT, function(x) {
+    if (is.numeric(x)) round(x, numRound) else x
+  }))
+
+  colnames(DT) <- oldnames
+
+  table <- DT::datatable(
+    data = DT,
+    filter = filt,
+    options = list(
+      dom = "l<<t>pB>",
+      buttons = c("copy", "csv", "excel", "print"),
+      pageLength = pageLength,
+      searchHighlight = TRUE,
+      lengthMenu = c(10, 25, 50, 100),
+      scrollX = scrollXOpt
+    ),
+    extensions = "Buttons",
+    rownames = FALSE,
+    ...
+  )
+
+  if (length(numericColNames) > 0) {
+    table <- table %>%
+      DT::formatRound(columns = numericColNames, digits = numRound)
+  }
+
+  table
+}
+```
+
+### About this analysis
+
+**Advancement Meeting Dashboard** enables multi-stakeholder consensus on product advancement decisions. Each breeder independently completes the Pre-advancement workflow and saves their output. A meeting facilitator merges all stakeholder files and uses this module to compare decisions, discuss disagreements, and record consensus outcomes.
+
+**Inputs used:**
+
+- **Multiple Final Selection Stamps:** One per stakeholder, each containing per-designation selection decisions (SELECTED, NOT SELECTED, REVISE, CHECK).
+- **Shared MTA predictions (BLUPs):** The underlying multi-trial analysis providing trait performance data for all candidates.
+
+**Outputs produced:**
+
+- A **Meeting Stamp** recording the consensus decision for every designation, combining auto-assigned unanimous decisions with manually resolved controversial candidates.
+
+---
+
+```{r summary-section, results='asis'}
+# Expected variables from .RData:
+# comparison_matrix, meeting_decisions_df, mta_stamp, participants, meeting_name,
+# trait_directions, predictions_data
+
+if (!exists("meeting_name") || is.null(meeting_name)) meeting_name <- "Unnamed meeting"
+if (!exists("participants") || is.null(participants)) participants <- character(0)
+if (!exists("comparison_matrix") || is.null(comparison_matrix)) comparison_matrix <- data.frame()
+if (!exists("meeting_decisions_df") || is.null(meeting_decisions_df)) meeting_decisions_df <- data.frame()
+
+n_participants <- length(participants)
+participant_names <- paste(participants, collapse = ", ")
+n_total <- nrow(meeting_decisions_df)
+
+n_selected <- if (n_total > 0 && "decision" %in% colnames(meeting_decisions_df)) {
+  sum(meeting_decisions_df$decision == "SELECTED", na.rm = TRUE)
+} else { 0 }
+
+n_not_selected <- if (n_total > 0 && "decision" %in% colnames(meeting_decisions_df)) {
+  sum(meeting_decisions_df$decision == "NOT SELECTED", na.rm = TRUE)
+} else { 0 }
+
+# Discussed and resolved = controversial candidates that received a joint decision
+# These are candidates whose controversy_score is strictly between 0 and 1
+# (or all REVISE) that were manually resolved
+if (n_total > 0 && "controversy_score" %in% colnames(meeting_decisions_df)) {
+  n_discussed <- sum(
+    meeting_decisions_df$controversy_score > 0 &
+    meeting_decisions_df$controversy_score < 1,
+    na.rm = TRUE
+  )
+} else {
+  n_discussed <- 0
+}
+
+cat(paste0(
+  "### Summary\n\n",
+  "**Meeting name:** ", meeting_name, "\n\n",
+  "- **Number of participants:** ", n_participants, "\n",
+  "- **Participants:** ", participant_names, "\n",
+  "- **Total candidates evaluated:** ", n_total, "\n",
+  "- **Consensus SELECTED:** ", n_selected, "\n",
+  "- **Consensus NOT SELECTED:** ", n_not_selected, "\n",
+  "- **Discussed and resolved:** ", n_discussed, "\n\n"
+))
+```
+
+---
+
+### Final Meeting Decisions Table
+
+The table below shows all candidates with their meeting consensus decision, controversy score, and each stakeholder's individual decision. Cells are color-coded by decision status: blue = SELECTED, orange = NOT SELECTED, yellow = REVISE, pink = CHECK.
+
+```{r, include=FALSE}
+htmltools::tagList(printTable(mtcars))
+```
+
+```{r decisions-table}
+# STATUS_COLORS: SELECTED = "#0072B2", NOT SELECTED = "#D55E00",
+#                REVISE = "#F9A825", CHECK = "#C2185B"
+STATUS_COLORS <- c(
+  "SELECTED"     = "#0072B2",
+  "NOT SELECTED" = "#D55E00",
+  "REVISE"       = "#F9A825",
+  "CHECK"        = "#C2185B"
+)
+
+# Light background versions for table cells
+STATUS_BG_COLORS <- c(
+  "SELECTED"     = "#D6EAF8",
+  "NOT SELECTED" = "#F5C4A5",
+  "REVISE"       = "#FFF3CD",
+  "CHECK"        = "#F5DCE9"
+)
+
+if (nrow(comparison_matrix) > 0 && nrow(meeting_decisions_df) > 0) {
+
+  # Build display table: designation, meeting_decision, controversy_score, stakeholder columns
+  stakeholder_cols <- setdiff(
+    colnames(comparison_matrix),
+    c("designation", "controversy_score")
+  )
+
+  display_df <- data.frame(
+    designation = comparison_matrix$designation,
+    stringsAsFactors = FALSE
+  )
+
+  # Add meeting decision
+  display_df$meeting_decision <- meeting_decisions_df$decision[
+    match(display_df$designation, meeting_decisions_df$designation)
+  ]
+
+  # Add controversy score
+  if ("controversy_score" %in% colnames(comparison_matrix)) {
+    display_df$controversy_score <- comparison_matrix$controversy_score
+  }
+
+  # Add stakeholder columns
+  for (sc in stakeholder_cols) {
+    display_df[[sc]] <- comparison_matrix[[sc]]
+  }
+
+  # Sort by controversy (most controversial first: closest to 0.5)
+  if ("controversy_score" %in% colnames(display_df)) {
+    display_df <- display_df[
+      order(abs(display_df$controversy_score - 0.5)), , drop = FALSE
+    ]
+  }
+
+  # Render DT with color coding
+  dt <- printTable(
+    display_df,
+    pageLength = 25,
+    scrollXOpt = TRUE,
+    numericColNames = "controversy_score"
+  )
+
+  # Apply color coding to decision columns
+  decision_cols <- c("meeting_decision", stakeholder_cols)
+  decision_cols <- intersect(decision_cols, colnames(display_df))
+
+  for (col in decision_cols) {
+    dt <- DT::formatStyle(
+      dt,
+      columns = col,
+      backgroundColor = DT::styleEqual(
+        c("SELECTED", "NOT SELECTED", "CHECK", "REVISE"),
+        c(STATUS_BG_COLORS[["SELECTED"]], STATUS_BG_COLORS[["NOT SELECTED"]],
+          STATUS_BG_COLORS[["CHECK"]], STATUS_BG_COLORS[["REVISE"]])
+      ),
+      fontWeight = "bold"
+    )
+  }
+
+  htmltools::tagList(dt)
+} else {
+  cat("No meeting decisions data available.\n")
+}
+```
+
+---
+
+### Agreement Heatmap
+
+This heatmap shows the comparison matrix of stakeholder decisions. Rows represent designations sorted by controversy level (most disagreement at top), columns represent stakeholders. Cell colors indicate each stakeholder's decision.
+
+```{r agreement-heatmap, fig.height=10, fig.width=10}
+if (nrow(comparison_matrix) > 0) {
+
+  stakeholder_cols_hm <- setdiff(
+    colnames(comparison_matrix),
+    c("designation", "controversy_score")
+  )
+
+  if (length(stakeholder_cols_hm) > 0) {
+
+    # Sort by controversy (most controversial at top = closest to 0.5)
+    hm_df <- comparison_matrix
+    if ("controversy_score" %in% colnames(hm_df)) {
+      hm_df <- hm_df[order(abs(hm_df$controversy_score - 0.5)), , drop = FALSE]
+    }
+
+    # Convert to long format for ggplot
+    hm_long <- do.call(rbind, lapply(stakeholder_cols_hm, function(st) {
+      data.frame(
+        designation = hm_df$designation,
+        stakeholder = st,
+        decision = hm_df[[st]],
+        stringsAsFactors = FALSE
+      )
+    }))
+
+    # Create ordered factor for designation (preserve controversy sort order)
+    hm_long$designation <- factor(
+      hm_long$designation,
+      levels = rev(hm_df$designation)
+    )
+
+    # Ensure decision is a factor with known levels
+    hm_long$decision <- factor(
+      hm_long$decision,
+      levels = c("SELECTED", "NOT SELECTED", "REVISE", "CHECK")
+    )
+
+    p_hm <- ggplot(hm_long, aes(x = stakeholder, y = designation, fill = decision)) +
+      geom_tile(color = "white", linewidth = 0.5) +
+      scale_fill_manual(
+        values = STATUS_COLORS,
+        name = "Decision",
+        drop = FALSE
+      ) +
+      theme_minimal(base_size = 12) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 11),
+        axis.text.y = element_text(size = 8),
+        axis.title = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 11),
+        legend.title = element_text(size = 12, face = "bold"),
+        panel.grid = element_blank()
+      ) +
+      labs(
+        title = "Agreement Heatmap (sorted by controversy)",
+        subtitle = "Most controversial candidates at top"
+      )
+
+    print(p_hm)
+  } else {
+    cat("No stakeholder columns found in comparison matrix.\n")
+  }
+} else {
+  cat("No comparison matrix data available for heatmap.\n")
+}
+```
+
+---
+
+### Trait Distribution per Status
+
+This plot compares the distribution of trait values across the meeting consensus decision groups (SELECTED, NOT SELECTED, CHECK). Each trait is shown as a horizontal section. Within each section, three bars summarize each group's performance: the thin line spans the full range (min to max), the thick rectangle covers the interquartile range (Q1 to Q3), the diamond marks the mean, and the vertical line marks the median. An arrow next to each trait name indicates the breeding direction (→ = higher is better, ← = lower is better).
+
+```{r trait-distribution-plot, fig.height=14, fig.width=12}
+# STATUS colors for trait distribution plot (3 groups only)
+status_colors_plot <- c(
+  "SELECTED"     = "#0072B2",
+  "NOT SELECTED" = "#D55E00",
+  "CHECK"        = "#C2185B"
+)
+
+# Use trait_directions from the RData if available
+if (!exists("trait_directions")) trait_directions <- list()
+if (!exists("predictions_data") || is.null(predictions_data)) {
+  predictions_data <- data.frame()
+}
+
+# Build trait data from predictions_data (long format: designation, trait, predictedValue)
+# and meeting_decisions_df (designation, decision)
+
+if (nrow(predictions_data) > 0 && nrow(meeting_decisions_df) > 0 &&
+    "designation" %in% colnames(predictions_data) &&
+    "trait" %in% colnames(predictions_data) &&
+    "predictedValue" %in% colnames(predictions_data)) {
+
+  # Merge decisions onto predictions
+  pred_df <- merge(
+    predictions_data[, c("designation", "trait", "predictedValue"), drop = FALSE],
+    meeting_decisions_df[, c("designation", "decision"), drop = FALSE],
+    by = "designation",
+    all.x = FALSE
+  )
+
+  # Map REVISE to NOT SELECTED for the distribution plot (only 3 groups)
+  pred_df$plot_status <- pred_df$decision
+  pred_df$plot_status[pred_df$plot_status == "REVISE"] <- "NOT SELECTED"
+  pred_df <- pred_df[pred_df$plot_status %in% c("SELECTED", "NOT SELECTED", "CHECK"), , drop = FALSE]
+  pred_df <- pred_df[!is.na(pred_df$predictedValue), , drop = FALSE]
+
+  numeric_trait_cols <- unique(pred_df$trait)
+
+  if (length(numeric_trait_cols) > 0) {
+
+    # Compute summary stats per trait x status
+    summary_df <- do.call(rbind, lapply(numeric_trait_cols, function(tr) {
+      tr_df <- pred_df[pred_df$trait == tr, , drop = FALSE]
+      do.call(rbind, lapply(c("SELECTED", "NOT SELECTED", "CHECK"), function(st) {
+        vals <- tr_df$predictedValue[tr_df$plot_status == st]
+        if (length(vals) == 0) return(NULL)
+        data.frame(
+          trait = tr,
+          status = st,
+          xmin = min(vals, na.rm = TRUE),
+          q1 = quantile(vals, 0.25, na.rm = TRUE),
+          median = median(vals, na.rm = TRUE),
+          mean_val = mean(vals, na.rm = TRUE),
+          q3 = quantile(vals, 0.75, na.rm = TRUE),
+          xmax = max(vals, na.rm = TRUE),
+          n = length(vals),
+          stringsAsFactors = FALSE
+        )
+      }))
+    }))
+    rownames(summary_df) <- NULL
+
+    # Build direction labels
+    dir_labels <- vapply(numeric_trait_cols, function(tr) {
+      d <- trait_directions[[tr]]
+      if (is.null(d) || identical(d, "Higher is better")) {
+        "\u2192 better"
+      } else {
+        "\u2190 better"
+      }
+    }, character(1))
+
+    # Create ordered trait factor with direction annotation
+    trait_labels <- paste0(numeric_trait_cols, "  (", dir_labels, ")")
+    summary_df$trait_label <- factor(
+      trait_labels[match(summary_df$trait, numeric_trait_cols)],
+      levels = rev(trait_labels)
+    )
+
+    # Status factor for consistent ordering
+    summary_df$status <- factor(
+      summary_df$status,
+      levels = c("CHECK", "NOT SELECTED", "SELECTED")
+    )
+
+    # Create y positions
+    summary_df$y_pos <- as.numeric(summary_df$trait_label) +
+      as.numeric(summary_df$status) * 0.25 - 0.5
+
+    # Trait distribution plot
+    p <- ggplot(summary_df) +
+      # Thin line: full range (min to max)
+      geom_segment(
+        aes(x = xmin, xend = xmax, y = y_pos, yend = y_pos, color = status),
+        linewidth = 0.4, alpha = 0.6
+      ) +
+      # Thick bar: IQR (Q1 to Q3)
+      geom_rect(
+        aes(xmin = q1, xmax = q3, ymin = y_pos - 0.08, ymax = y_pos + 0.08, fill = status),
+        alpha = 0.7, color = NA
+      ) +
+      # Mean marker (diamond)
+      geom_point(
+        aes(x = mean_val, y = y_pos, color = status),
+        shape = 18, size = 3
+      ) +
+      # Median marker (vertical tick)
+      geom_segment(
+        aes(x = median, xend = median, y = y_pos - 0.08, yend = y_pos + 0.08, color = status),
+        linewidth = 1
+      ) +
+
+      # Colors
+      scale_color_manual(values = status_colors_plot, name = "Group", drop = FALSE) +
+      scale_fill_manual(values = status_colors_plot, name = "Group", drop = FALSE) +
+      # Facet by trait (free x scales since traits have different units)
+      facet_grid(trait_label ~ ., scales = "free", switch = "y", space = "fixed") +
+      # Theme
+      theme_minimal(base_size = 14) +
+      theme(
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 12),
+        axis.title.x = element_text(size = 13),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        strip.text.y.left = element_text(
+          angle = 0, hjust = 1, face = "bold", size = 12
+        ),
+        strip.placement = "outside",
+        legend.position = "bottom",
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 13, face = "bold"),
+        panel.spacing = unit(0.5, "lines"),
+        plot.caption = element_text(size = 10, color = "#555555")
+      ) +
+      labs(
+        x = "Trait value",
+        caption = paste0(
+          "Thick bar = IQR (Q1-Q3) | Diamond = mean | ",
+          "Vertical line = median | Thin line = range (min-max)"
+        )
+      )
+
+    print(p)
+  } else {
+    cat("No numeric trait data available for trait distribution plot.\n")
+  }
+} else {
+  cat("Trait distribution plot requires predictions_data and meeting_decisions_df.\n")
+}
+```

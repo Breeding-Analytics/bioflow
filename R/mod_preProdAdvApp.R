@@ -31,9 +31,8 @@ reliability_to_opacity <- function(rel) {
 
 STATUS_SHAPES <- c(
   "SELECTED"     = "circle",
-  "NOT SELECTED" = "circle-open",
+  "NOT SELECTED" = "circle",
   "REVISE"       = "star",
-
   "CHECK"        = "diamond"
 )
 
@@ -45,1285 +44,25 @@ STATUS_COLORS <- c(
 )
 
 # --------------------------------------------------------------------------
-# GxE model detection
+# Relatedness plot visual constants
 # --------------------------------------------------------------------------
-
-#' Detect the GxE model type used in an MTA analysis
-#'
-#' Uses a two-source approach: first checks the predictions table for
-#' unambiguous GxE indicators (fw_slope, GenCorrMat), then cross-references the
-#' modeling table to confirm that GxE interaction terms were actually fitted.
-#' This prevents false positives from main-effects models that still store
-#' per-environment BLUPs in the predictions table.
-#'
-#' @param predictions A data.frame with at least columns \code{analysisId}
-#'   and \code{effectType}.
-#' @param mta_stamp Character scalar — the analysisId to filter on.
-#' @param modeling Optional data.frame (the modeling table) with columns:
-#'   analysisId, parameter, value. When provided, used to verify that a GxE
-#'   interaction was actually fitted (avoids false "cs_diag" detection).
-#'
-#' @return Character scalar: one of \code{"fw"}, \code{"fa"},
-#'   \code{"cs_diag"}, or \code{"none"}.
-#'
-#' @details
-#' Detection priority:
-#' \enumerate{
-#'   \item If \code{"fw_slope"} is present among effectTypes → \code{"fw"}
-#'   \item Else if \code{"GenCorrMat"} is present → \code{"fa"}
-#'   \item Else if the modeling table confirms GxE interaction was fitted
-#'         (kernels contain "environment" or randomFormula references
-#'         environment interaction) AND per-environment effectTypes exist →
-#'         \code{"cs_diag"}
-#'   \item Otherwise → \code{"none"}
-#' }
-#'
-#' @noRd
-detect_gxe_model <- function(predictions, mta_stamp, modeling = NULL) {
-  mta_preds <- predictions[predictions$analysisId == mta_stamp, ]
-  effect_types <- unique(mta_preds$effectType)
-
-  # Priority 1: FW model — unambiguous indicator
-
-  if ("fw_slope" %in% effect_types) return("fw")
-
-  # Priority 2: FA model — unambiguous indicator
-  if ("GenCorrMat" %in% effect_types) return("fa")
-
-  # Priority 3: CS/Diagonal — requires confirmation from modeling table
-  # Per-environment effectTypes exist (not just "designation")
-  gxe_types <- setdiff(effect_types, c("designation", "fw_slope", "GenCorrMat"))
-
-  if (length(gxe_types) > 0) {
-    # If modeling table is provided, verify GxE was actually fitted
-    if (!is.null(modeling) && nrow(modeling) > 0) {
-      mta_modeling <- modeling[modeling$analysisId == mta_stamp, , drop = FALSE]
-
-      # Check 1: kernels parameter contains "environment" (e.g., "designation:environment")
-      kernels_rows <- mta_modeling[mta_modeling$parameter == "kernels", , drop = FALSE]
-      has_gxe_kernel <- any(grepl("environment", kernels_rows$value, ignore.case = TRUE))
-
-      # Check 2: randomFormula contains "environment" interaction term
-      formula_rows <- mta_modeling[mta_modeling$parameter == "randomFormula", , drop = FALSE]
-      has_gxe_formula <- any(grepl("environment", formula_rows$value, ignore.case = TRUE))
-
-      if (has_gxe_kernel || has_gxe_formula) {
-        return("cs_diag")
-      } else {
-        # Main-effects model with per-environment predictions — NOT a GxE model
-        return("none")
-      }
-    } else {
-      # No modeling table available — fall back to original behavior (assume GxE)
-      return("cs_diag")
-    }
-  }
-
-  return("none")
-}
-
-# --------------------------------------------------------------------------
-# FW data extraction
-# --------------------------------------------------------------------------
-
-#' Extract Finlay-Wilkinson data for the stability/adaptability plot
-#'
-#' Pure function that retrieves mean performance and FW regression slope from
-#' MTA predictions, merges with selection status from review_df, applies any
-#' user overrides, and computes visual encoding properties (color, opacity,
-#' shape) for each designation.
-#'
-#' @param predictions A data.frame with columns: analysisId, designation,
-#'   trait, effectType, predictedValue, reliability.
-#' @param review_df A data.frame with columns: designation, plot_status.
-#' @param mta_stamp Character scalar — the analysisId to filter on.
-#' @param trait Character scalar — the trait to filter on.
-#' @param overrides A data.frame with columns: designation, plot_decision
-#'   (or NULL if no overrides).
-#'
-#' @return A data.frame with one row per designation containing columns:
-#'   designation, mean_value, fw_slope, plot_status, opacity, color, shape.
-#'
-#' @noRd
-extract_fw_data <- function(predictions, review_df, mta_stamp, trait, overrides = NULL) {
-  # Filter predictions to matching analysisId and trait
-
-  preds <- predictions[predictions$analysisId == mta_stamp & predictions$trait == trait, , drop = FALSE]
-
-  # Extract mean_value from effectType == "designation"
-  means <- preds[preds$effectType == "designation", , drop = FALSE]
-  means <- means[, c("designation", "predictedValue", "reliability"), drop = FALSE]
-  names(means)[names(means) == "predictedValue"] <- "mean_value"
-  names(means)[names(means) == "reliability"] <- "mean_reliability"
-
-  # Extract fw_slope from effectType == "fw_slope"
-  slopes <- preds[preds$effectType == "fw_slope", , drop = FALSE]
-  slopes <- slopes[, c("designation", "predictedValue", "reliability"), drop = FALSE]
-  names(slopes)[names(slopes) == "predictedValue"] <- "fw_slope"
-  names(slopes)[names(slopes) == "reliability"] <- "slope_reliability"
-
-  # Merge means and slopes by designation (inner join — only keep designations with both)
-  df <- merge(means, slopes, by = "designation")
-
-  if (nrow(df) == 0) return(df)
-
-  # Use mean_reliability as the reliability for opacity computation
-  df$reliability <- df$mean_reliability
-  df$mean_reliability <- NULL
-  df$slope_reliability <- NULL
-
-  # Left-join with review_df on designation
-  review_cols <- review_df[, c("designation", "plot_status"), drop = FALSE]
-  df <- merge(df, review_cols, by = "designation", all.x = TRUE)
-
-  # Assign "NOT SELECTED" to designations absent from review_df
-  df$plot_status[is.na(df$plot_status)] <- "NOT SELECTED"
-
-  # Apply overrides (if present) to update plot_status
-  if (!is.null(overrides) && nrow(overrides) > 0) {
-    override_match <- match(df$designation, overrides$designation)
-    has_override <- !is.na(override_match)
-    df$plot_status[has_override] <- overrides$plot_decision[override_match[has_override]]
-  }
-
-  # Compute opacity: NA reliability → minimum opacity (0.15)
-  rel_for_opacity <- df$reliability
-  rel_for_opacity[is.na(rel_for_opacity)] <- 0
-  df$opacity <- reliability_to_opacity(rel_for_opacity)
-
-  # CHECK designations always get opacity = 1.0
-  df$opacity[df$plot_status == "CHECK"] <- 1.0
-
-  # Assign color from STATUS_COLORS
-  df$color <- STATUS_COLORS[df$plot_status]
-
-  # Assign shape from STATUS_SHAPES
-  df$shape <- STATUS_SHAPES[df$plot_status]
-
-  # Return only required columns, one row per designation
-  df[, c("designation", "mean_value", "fw_slope", "plot_status", "opacity", "color", "shape"), drop = FALSE]
-}
-
-# --------------------------------------------------------------------------
-# CS/Diagonal GxE stability computation
-# --------------------------------------------------------------------------
-
-#' Compute GxE stability metrics for CS/Diagonal models
-#'
-#' For Compound Symmetry or Diagonal models, extracts per-environment GxE
-#' predictions, computes the coefficient of variation (CV) and variance per
-#' genotype, and merges with review status / overrides to produce a
-#' plot-ready data frame.
-#'
-#' @param predictions Data.frame with columns: analysisId, designation, trait,
-#'   environment, effectType, predictedValue, stdError, reliability.
-#' @param review_df Data.frame with columns: designation, plot_status.
-#' @param mta_stamp Character scalar — analysisId to filter on.
-#' @param trait Character scalar — trait name to filter on.
-#' @param overrides Data.frame with columns: designation, plot_status
-#'   (or NULL if no overrides).
-#'
-#' @return A data.frame with one row per qualifying genotype and columns:
-#'   designation, mean_value, cv, env_variance, n_environments, plot_status,
-#'   opacity, color, shape.
-#'
-#' @details
-#' - Filters predictions on \code{analysisId == mta_stamp} AND
-#'   \code{trait == trait}.
-#' - Extracts per-environment rows (effectType NOT in
-#'   \{"designation", "fw_slope", "GenCorrMat"\}).
-#' - Computes per-genotype: mean, sd, CV (sd/mean), variance, and count of
-#'   environments.
-#' - Excludes genotypes with fewer than 2 environments.
-#' - Excludes genotypes with mean == 0 (division by zero protection).
-#' - Left-joins with \code{review_df}; unmatched designations get
-#'   "NOT SELECTED".
-#' - Applies overrides (if present) before computing visual properties.
-#' - Computes color, opacity, and shape from the effective plot_status.
-#'
-#' @noRd
-compute_gxe_stability <- function(predictions, review_df, mta_stamp, trait, overrides = NULL) {
-  # Step 1: Filter to MTA stamp and trait
-  mta_preds <- predictions[predictions$analysisId == mta_stamp &
-                             predictions$trait == trait, , drop = FALSE]
-
-  # Step 2: Keep only per-environment predictions
-  #   (effectType NOT in {"designation", "fw_slope", "GenCorrMat"})
-  excluded_types <- c("designation", "fw_slope", "GenCorrMat")
-  env_preds <- mta_preds[!(mta_preds$effectType %in% excluded_types), , drop = FALSE]
-
-  # Early return if no per-environment data
-  if (nrow(env_preds) == 0) {
-    return(data.frame(
-      designation    = character(0),
-      mean_value     = numeric(0),
-      cv             = numeric(0),
-      env_variance   = numeric(0),
-      n_environments = integer(0),
-      plot_status    = character(0),
-      opacity        = numeric(0),
-      color          = character(0),
-      shape          = character(0),
-      stringsAsFactors = FALSE
-    ))
-  }
-
-  # Step 3: Aggregate per genotype — mean, sd, var, n_environments
-  agg_mean <- aggregate(predictedValue ~ designation, data = env_preds, FUN = mean)
-  names(agg_mean)[2] <- "mean_value"
-
-  agg_sd <- aggregate(predictedValue ~ designation, data = env_preds, FUN = sd)
-  names(agg_sd)[2] <- "sd_value"
-
-  agg_var <- aggregate(predictedValue ~ designation, data = env_preds, FUN = var)
-  names(agg_var)[2] <- "env_variance"
-
-  agg_n <- aggregate(predictedValue ~ designation, data = env_preds, FUN = length)
-  names(agg_n)[2] <- "n_environments"
-
-  # Merge aggregates
-  result <- merge(agg_mean, agg_sd, by = "designation")
-  result <- merge(result, agg_var, by = "designation")
-  result <- merge(result, agg_n, by = "designation")
-
-  # Step 4: Exclude genotypes with fewer than 2 environments
-  result <- result[result$n_environments >= 2, , drop = FALSE]
-
-  # Step 5: Exclude genotypes with mean == 0 (division by zero protection)
-  result <- result[result$mean_value != 0, , drop = FALSE]
-
-  # Early return if no genotypes remain
-  if (nrow(result) == 0) {
-    return(data.frame(
-      designation    = character(0),
-      mean_value     = numeric(0),
-      cv             = numeric(0),
-      env_variance   = numeric(0),
-      n_environments = integer(0),
-      plot_status    = character(0),
-      opacity        = numeric(0),
-      color          = character(0),
-      shape          = character(0),
-      stringsAsFactors = FALSE
-    ))
-  }
-
-  # Step 6: Compute CV = sd / mean
-  result$cv <- result$sd_value / result$mean_value
-
-  # Remove temporary sd column
-  result$sd_value <- NULL
-
-  # Step 7: Left-join with review_df on designation
-  if (!is.null(review_df) && nrow(review_df) > 0) {
-    result <- merge(result, review_df[, c("designation", "plot_status"), drop = FALSE],
-                    by = "designation", all.x = TRUE)
-  } else {
-    result$plot_status <- NA_character_
-  }
-
-  # Assign "NOT SELECTED" to unmatched designations
-  result$plot_status[is.na(result$plot_status)] <- "NOT SELECTED"
-
-  # Step 8: Apply overrides (if present)
-  if (!is.null(overrides) && nrow(overrides) > 0) {
-    override_match <- match(result$designation, overrides$designation)
-    has_override <- !is.na(override_match)
-    if (any(has_override)) {
-      result$plot_status[has_override] <- overrides$plot_status[override_match[has_override]]
-    }
-  }
-
-  # Step 9: Compute visual properties from effective plot_status
-  # Get mean reliability per genotype for opacity computation
-  rel_agg <- aggregate(reliability ~ designation, data = env_preds, FUN = function(x) mean(x, na.rm = TRUE))
-  names(rel_agg)[2] <- "reliability"
-  result <- merge(result, rel_agg, by = "designation", all.x = TRUE)
-
-  # Opacity: reliability_to_opacity() for non-CHECK, 1.0 for CHECK
-  result$opacity <- reliability_to_opacity(result$reliability)
-  result$opacity[result$plot_status == "CHECK"] <- 1.0
-
-  # Color from status mapping
-  result$color <- STATUS_COLORS[result$plot_status]
-
-  # Shape from status mapping
-  result$shape <- STATUS_SHAPES[result$plot_status]
-
-  # Remove temporary reliability column
-  result$reliability <- NULL
-
-  # Step 10: Return final data.frame with required columns in order
-  result[, c("designation", "mean_value", "cv", "env_variance",
-             "n_environments", "plot_status", "opacity", "color", "shape"),
-         drop = FALSE]
-}
-
-# --------------------------------------------------------------------------
-# Factor Analytic data extraction
-# --------------------------------------------------------------------------
-
-#' Extract Factor Analytic biplot data from MTA predictions
-#'
-#' Pure function that extracts the genetic correlation matrix from GenCorrMat
-#' predictions, performs eigen-decomposition to derive environment loadings,
-#' projects per-environment genotype BLUPs onto the first two eigenvectors to
-#' compute genotype scores, and merges with selection status.
-#'
-#' Falls back to \code{compute_gxe_stability()} when the GenCorrMat contains
-#' fewer than 3 environments.
-#'
-#' @param predictions A data.frame with columns: analysisId, designation,
-#'   trait, environment, effectType, predictedValue, reliability.
-#' @param review_df A data.frame with columns: designation, plot_status.
-#' @param mta_stamp Character scalar — the analysisId to filter on.
-#' @param trait Character scalar — the trait to filter on.
-#' @param overrides A data.frame with columns: designation, plot_status
-#'   (or NULL if no overrides).
-#'
-#' @return A list with components:
-#'   \describe{
-#'     \item{genotype_scores}{data.frame with columns: designation, PC1, PC2,
-#'       mean_value, plot_status, color, shape, opacity}
-#'     \item{env_loadings}{data.frame with columns: environment, PC1_loading,
-#'       PC2_loading}
-#'     \item{variance_explained}{numeric vector of length 2 — proportion of
-#'       variance explained by PC1 and PC2}
-#'     \item{fallback}{logical — TRUE if fell back to compute_gxe_stability()}
-#'     \item{fallback_data}{data.frame or NULL — the CS/Diag stability data
-#'       if fallback was triggered}
-#'   }
-#'
-#' @noRd
-extract_fa_data <- function(predictions, review_df, mta_stamp, trait, overrides = NULL) {
-  # Step 1: Filter predictions to matching analysisId and trait
-  preds <- predictions[predictions$analysisId == mta_stamp &
-                         predictions$trait == trait, , drop = FALSE]
-
-  # Step 2: Extract GenCorrMat rows
-  gencorr_rows <- preds[preds$effectType == "GenCorrMat", , drop = FALSE]
-
-  # In GenCorrMat rows, 'designation' and 'environment' columns encode the
-
-  # row/column of the correlation matrix and 'predictedValue' holds the value
-  envs_from_designation <- unique(gencorr_rows$designation)
-  envs_from_environment <- unique(gencorr_rows$environment)
-  all_envs <- unique(c(envs_from_designation, envs_from_environment))
-  n_envs <- length(all_envs)
-
-  # Step 3: Fallback — fewer than 3 environments → use CS/Diag stability
-  if (n_envs < 3) {
-    fallback_result <- compute_gxe_stability(predictions, review_df, mta_stamp, trait, overrides)
-    return(list(
-      genotype_scores = NULL,
-      env_loadings = NULL,
-      variance_explained = NULL,
-      fallback = TRUE,
-      fallback_data = fallback_result
-    ))
-  }
-
-  # Step 4: Reconstruct the correlation matrix
-  corr_mat <- matrix(0, nrow = n_envs, ncol = n_envs,
-                     dimnames = list(all_envs, all_envs))
-
-  for (i in seq_len(nrow(gencorr_rows))) {
-    row_env <- gencorr_rows$designation[i]
-    col_env <- gencorr_rows$environment[i]
-    val <- gencorr_rows$predictedValue[i]
-    corr_mat[row_env, col_env] <- val
-    corr_mat[col_env, row_env] <- val
-  }
-
-  # Ensure diagonal is 1 (correlation matrix property)
-  diag(corr_mat) <- 1
-
-  # Step 5: Eigen-decomposition
-  eig <- eigen(corr_mat, symmetric = TRUE)
-  eigenvalues <- eig$values
-
-  # First 2 eigenvectors → environment loadings
-  loadings_mat <- eig$vectors[, 1:2, drop = FALSE]
-
-  # Variance explained by first 2 PCs
-  total_var <- sum(pmax(eigenvalues, 0))
-  variance_explained <- pmax(eigenvalues[1:2], 0) / total_var
-
-  # Step 6: Build environment loadings data.frame
-  env_loadings <- data.frame(
-    environment = all_envs,
-    PC1_loading = loadings_mat[, 1],
-    PC2_loading = loadings_mat[, 2],
-    stringsAsFactors = FALSE
-  )
-
-  # Step 7: Get per-environment genotype BLUPs
-  non_env_types <- c("designation", "fw_slope", "GenCorrMat")
-  env_preds <- preds[!(preds$effectType %in% non_env_types), , drop = FALSE]
-
-  if (nrow(env_preds) == 0) {
-    # No per-environment BLUPs → return empty genotype scores
-    return(list(
-      genotype_scores = data.frame(
-        designation = character(0), PC1 = numeric(0), PC2 = numeric(0),
-        mean_value = numeric(0), plot_status = character(0),
-        color = character(0), shape = character(0), opacity = numeric(0),
-        stringsAsFactors = FALSE
-      ),
-      env_loadings = env_loadings,
-      variance_explained = variance_explained,
-      fallback = FALSE,
-      fallback_data = NULL
-    ))
-  }
-
-  # Only use environments present in the correlation matrix
-  env_preds_filtered <- env_preds[env_preds$environment %in% all_envs, , drop = FALSE]
-  genotypes <- unique(env_preds_filtered$designation)
-
-  # Step 8: Build genotype-by-environment BLUP matrix
-  blup_mat <- matrix(0, nrow = length(genotypes), ncol = n_envs,
-                     dimnames = list(genotypes, all_envs))
-
-  for (i in seq_len(nrow(env_preds_filtered))) {
-    g <- env_preds_filtered$designation[i]
-    e <- env_preds_filtered$environment[i]
-    blup_mat[g, e] <- env_preds_filtered$predictedValue[i]
-  }
-
-  # Step 9: Project BLUPs onto eigenvectors → genotype scores
-  scores_mat <- blup_mat %*% loadings_mat
-
-  # Step 10: Build genotype_scores data.frame
-  genotype_scores <- data.frame(
-    designation = genotypes,
-    PC1 = scores_mat[, 1],
-    PC2 = scores_mat[, 2],
-    stringsAsFactors = FALSE
-  )
-
-  # Merge mean_value from "designation" effectType predictions
-  overall_preds <- preds[preds$effectType == "designation", , drop = FALSE]
-  if (nrow(overall_preds) > 0) {
-    mean_df <- overall_preds[, c("designation", "predictedValue", "reliability"), drop = FALSE]
-    names(mean_df)[names(mean_df) == "predictedValue"] <- "mean_value"
-    genotype_scores <- merge(genotype_scores, mean_df, by = "designation", all.x = TRUE)
-  } else {
-    genotype_scores$mean_value <- rowMeans(blup_mat[genotype_scores$designation, , drop = FALSE], na.rm = TRUE)
-    genotype_scores$reliability <- NA_real_
-  }
-
-  # Step 11: Left-join with review_df on designation
-  if (!is.null(review_df) && nrow(review_df) > 0) {
-    review_cols <- review_df[, c("designation", "plot_status"), drop = FALSE]
-    genotype_scores <- merge(genotype_scores, review_cols, by = "designation", all.x = TRUE)
-  } else {
-    genotype_scores$plot_status <- NA_character_
-  }
-
-  # Assign "NOT SELECTED" to designations absent from review_df
-  genotype_scores$plot_status[is.na(genotype_scores$plot_status)] <- "NOT SELECTED"
-
-  # Step 12: Apply overrides (if present)
-  if (!is.null(overrides) && nrow(overrides) > 0) {
-    override_match <- match(genotype_scores$designation, overrides$designation)
-    has_override <- !is.na(override_match)
-    if (any(has_override)) {
-      genotype_scores$plot_status[has_override] <- overrides$plot_status[override_match[has_override]]
-    }
-  }
-
-  # Step 13: Compute visual properties
-  rel_for_opacity <- genotype_scores$reliability
-  rel_for_opacity[is.na(rel_for_opacity)] <- 0
-  genotype_scores$opacity <- reliability_to_opacity(rel_for_opacity)
-
-  # CHECK designations always get opacity = 1.0
-  genotype_scores$opacity[genotype_scores$plot_status == "CHECK"] <- 1.0
-
-  # Assign color from STATUS_COLORS
-  genotype_scores$color <- STATUS_COLORS[genotype_scores$plot_status]
-
-  # Assign shape from STATUS_SHAPES
-  genotype_scores$shape <- STATUS_SHAPES[genotype_scores$plot_status]
-
-  # Remove temporary reliability column
-  genotype_scores$reliability <- NULL
-
-  # Step 14: Return final structure
-  genotype_scores <- genotype_scores[, c("designation", "PC1", "PC2", "mean_value",
-                                          "plot_status", "color", "shape", "opacity"),
-                                      drop = FALSE]
-
-  list(
-    genotype_scores = genotype_scores,
-    env_loadings = env_loadings,
-    variance_explained = variance_explained,
-    fallback = FALSE,
-    fallback_data = NULL
-  )
-}
-
-# --------------------------------------------------------------------------
-# Prescriptive annotation layer
-# --------------------------------------------------------------------------
-
-#' Annotate stable high-performers and adaptive responders on a stability plot
-#'
-#' Applies the prescriptive highlighting layer to any of the three GxE plot
-#' types. Computes classification thresholds, identifies qualifying genotypes,
-#' and adds gold border rings, enlarged markers, and text annotations.
-#'
-#' @param plot A plotly object (the base scatter/biplot).
-#' @param plot_data A data.frame with stability metrics. Expected columns vary
-#'   by model: FW requires designation, mean_value, fw_slope, plot_status;
-#'   cs_diag requires designation, mean_value, cv, plot_status; FA requires
-#'   designation, PC1, PC2, mean_value, plot_status.
-#' @param model_type Character: one of "fw", "cs_diag", or "fa".
-#' @param env_predictions Optional data.frame with columns designation,
-#'   environment, predictedValue. Used for identifying best environments
-#'   for adaptive responders. If NULL, adaptive annotations omit "best in".
-#'
-#' @return A plotly object with prescriptive annotations added.
-#'
-#' @noRd
-annotate_stable_and_adaptive <- function(plot, plot_data, model_type,
-                                          env_predictions = NULL) {
-  # --- Step 1: Compute Stability_Metric per model type ---
-  if (model_type == "fw") {
-    plot_data$stability_metric <- abs(plot_data$fw_slope - 1)
-  } else if (model_type == "cs_diag") {
-    plot_data$stability_metric <- plot_data$cv
-  } else if (model_type == "fa") {
-    plot_data$stability_metric <- sqrt(plot_data$PC1^2 + plot_data$PC2^2)
-  } else {
-    return(plot)
-  }
-
-  # --- Step 2: Check for degenerate case — all metrics within 1e-9 ---
-  finite_metrics <- plot_data$stability_metric[is.finite(plot_data$stability_metric)]
-  if (length(finite_metrics) < 2) return(plot)
-
-  metric_range <- max(finite_metrics) - min(finite_metrics)
-  if (metric_range <= 1e-9) return(plot)
-
-  # --- Step 3: Compute thresholds ---
-  q25 <- quantile(finite_metrics, 0.25, na.rm = TRUE, names = FALSE)
-  q75 <- quantile(finite_metrics, 0.75, na.rm = TRUE, names = FALSE)
-  median_mean <- median(plot_data$mean_value, na.rm = TRUE)
-
-
-  # Check_Mean: mean of mean_value where plot_status == "CHECK"
-  check_rows <- plot_data[plot_data$plot_status == "CHECK", , drop = FALSE]
-  if (nrow(check_rows) > 0) {
-    check_mean <- mean(check_rows$mean_value, na.rm = TRUE)
-  } else {
-    # Fallback: 75th percentile of mean_value
-    check_mean <- quantile(plot_data$mean_value, 0.75, na.rm = TRUE, names = FALSE)
-  }
-
-  # --- Step 4: Classify genotypes ---
-  plot_data$is_stable <- (plot_data$stability_metric <= q25) &
-    (plot_data$mean_value > check_mean) &
-    is.finite(plot_data$stability_metric) &
-    is.finite(plot_data$mean_value)
-
-  plot_data$is_adaptive <- (plot_data$stability_metric > q75) &
-    (plot_data$mean_value > median_mean) &
-    is.finite(plot_data$stability_metric) &
-    is.finite(plot_data$mean_value)
-
-  stable_genotypes <- plot_data$designation[plot_data$is_stable]
-  adaptive_genotypes <- plot_data$designation[plot_data$is_adaptive]
-
-  n_stable <- length(stable_genotypes)
-  n_adaptive <- length(adaptive_genotypes)
-
-  # --- Step 5: Identify best environments for adaptive genotypes ---
-  adaptive_best_envs <- list()
-  if (n_adaptive > 0 && !is.null(env_predictions) && nrow(env_predictions) > 0) {
-    for (geno in adaptive_genotypes) {
-      geno_envs <- env_predictions[env_predictions$designation == geno, , drop = FALSE]
-      if (nrow(geno_envs) < 2) {
-        adaptive_best_envs[[geno]] <- character(0)
-        next
-      }
-      geno_mean <- mean(geno_envs$predictedValue, na.rm = TRUE)
-      geno_sd <- sd(geno_envs$predictedValue, na.rm = TRUE)
-      if (!is.finite(geno_sd) || geno_sd == 0) {
-        adaptive_best_envs[[geno]] <- character(0)
-        next
-      }
-      threshold <- geno_mean + geno_sd
-      best <- geno_envs$environment[geno_envs$predictedValue > threshold]
-      adaptive_best_envs[[geno]] <- as.character(best)
-    }
-  }
-
-  # --- Step 6: Apply visual modifications via plotly_build ---
-  p_built <- plotly::plotly_build(plot)
-
-  # Find marker indices per designation in the trace data
-  # We iterate through traces and modify marker properties
-
-  for (trace_idx in seq_along(p_built$x$data)) {
-    trace <- p_built$x$data[[trace_idx]]
-    if (is.null(trace$text) && is.null(trace$customdata)) next
-
-    # Try to get designation info from customdata or text
-    trace_desigs <- NULL
-    if (!is.null(trace$customdata)) {
-      # customdata may be a list or matrix
-      if (is.list(trace$customdata)) {
-        trace_desigs <- vapply(trace$customdata, function(x) {
-          if (is.character(x)) x[1] else as.character(x[1])
-        }, character(1))
-      } else if (is.matrix(trace$customdata) || is.data.frame(trace$customdata)) {
-        trace_desigs <- as.character(trace$customdata[, 1])
-      } else if (is.character(trace$customdata)) {
-        trace_desigs <- trace$customdata
-      }
-    }
-
-    if (is.null(trace_desigs) || length(trace_desigs) == 0) next
-
-    n_points <- length(trace_desigs)
-
-    # --- Gold border for stable markers ---
-    stable_mask <- trace_desigs %in% stable_genotypes
-    if (any(stable_mask)) {
-      # Initialize marker.line if not present
-      if (is.null(p_built$x$data[[trace_idx]]$marker$line)) {
-        p_built$x$data[[trace_idx]]$marker$line <- list(
-          width = rep(0, n_points),
-          color = rep("rgba(0,0,0,0)", n_points)
-        )
-      }
-      # Ensure line properties are per-point vectors
-      current_width <- p_built$x$data[[trace_idx]]$marker$line$width
-      current_color <- p_built$x$data[[trace_idx]]$marker$line$color
-
-      if (length(current_width) == 1) {
-        current_width <- rep(current_width, n_points)
-      }
-      if (length(current_color) == 1) {
-        current_color <- rep(current_color, n_points)
-      }
-
-      current_width[stable_mask] <- 4
-      current_color[stable_mask] <- "#FFD700"
-
-      p_built$x$data[[trace_idx]]$marker$line$width <- current_width
-      p_built$x$data[[trace_idx]]$marker$line$color <- current_color
-    }
-
-    # --- 14px size for adaptive markers ---
-    adaptive_mask <- trace_desigs %in% adaptive_genotypes
-    if (any(adaptive_mask)) {
-      current_size <- p_built$x$data[[trace_idx]]$marker$size
-      if (is.null(current_size)) {
-        current_size <- rep(8, n_points)
-      }
-      if (length(current_size) == 1) {
-        current_size <- rep(current_size, n_points)
-      }
-      current_size[adaptive_mask] <- 14
-      p_built$x$data[[trace_idx]]$marker$size <- current_size
-    }
-  }
-
-  # --- Step 7: Build text annotations ---
-  annotations <- list()
-
-  # Stable high-performers annotation
-  if (n_stable > 0) {
-    if (n_stable <= 5) {
-      stable_text <- paste0("\u2605 Stable high-performers: ",
-                            paste(stable_genotypes, collapse = ", "))
-    } else {
-      stable_text <- paste0("\u2605 Stable high-performers: ",
-                            paste(stable_genotypes[1:5], collapse = ", "),
-                            " \u2026 and ", n_stable - 5, " more")
-    }
-    if (n_stable == 1) {
-      stable_text <- paste0(stable_text, " (limited data)")
-    }
-
-    annotations[[length(annotations) + 1]] <- list(
-      text = paste0("<b>", stable_text, "</b>"),
-      xref = "paper", yref = "paper",
-      x = 0.02, y = 0.98,
-      xanchor = "left", yanchor = "top",
-      showarrow = FALSE,
-      font = list(size = 11, color = "#333333")
-    )
-  }
-
-  # Adaptive responders annotations
-  if (n_adaptive > 0) {
-    adaptive_texts <- character(0)
-    for (geno in adaptive_genotypes) {
-      best <- adaptive_best_envs[[geno]]
-      if (!is.null(best) && length(best) > 0) {
-        geno_text <- paste0("\u2197 Responsive: ", geno,
-                            " (best in: ", paste(best, collapse = ", "), ")")
-      } else if (!is.null(env_predictions) && nrow(env_predictions) > 0) {
-        # env_predictions provided but no clear best environment
-        geno_text <- paste0("\u2197 Responsive: ", geno,
-                            " (no clear best environment)")
-      } else {
-        # No env_predictions at all — omit "best in"
-        geno_text <- paste0("\u2197 Responsive: ", geno)
-      }
-      adaptive_texts <- c(adaptive_texts, geno_text)
-    }
-
-    # Combine all adaptive annotations into one block
-    combined_adaptive_text <- paste(adaptive_texts, collapse = "<br>")
-
-    if (n_adaptive == 1) {
-      combined_adaptive_text <- paste0(combined_adaptive_text, " (limited data)")
-    }
-
-    annotations[[length(annotations) + 1]] <- list(
-      text = paste0("<i>", combined_adaptive_text, "</i>"),
-      xref = "paper", yref = "paper",
-      x = 0.02, y = 0.02,
-      xanchor = "left", yanchor = "bottom",
-      showarrow = FALSE,
-      font = list(size = 10, color = "#555555")
-    )
-  }
-
-  # --- Step 8: Apply annotations to the built plot ---
-  if (length(annotations) > 0) {
-    existing_annotations <- p_built$x$layout$annotations
-    if (is.null(existing_annotations)) {
-      existing_annotations <- list()
-    }
-    p_built$x$layout$annotations <- c(existing_annotations, annotations)
-  }
-
-  # Convert back to plotly object
-  p_built
-}
-
-# --------------------------------------------------------------------------
-# Finlay-Wilkinson Reaction Norm Plot Builder
-# --------------------------------------------------------------------------
-
-#' Build Finlay-Wilkinson reaction norm scatter plot
-#'
-#' Creates a plotly scatter plot of mean_value vs. fw_slope with reference lines,
-#' a shaded stable zone, and prescriptive annotations.
-#'
-#' @param fw_data A data.frame from \code{extract_fw_data()} with columns:
-#'   designation, mean_value, fw_slope, plot_status, opacity, color, shape.
-#' @param highlighted Character or NULL — designation to highlight with larger
-#'   marker and white border. All other points are dimmed.
-#' @param source_id Character — plotly source identifier for click event capture.
-#' @param env_predictions Data.frame or NULL — per-environment predictions with
-#'   columns designation, environment, predictedValue. Passed through to
-#'   \code{annotate_stable_and_adaptive()} for best-environment identification.
-#'
-#' @return A plotly object.
-#'
-#' @noRd
-build_fw_reaction_norm_plotly <- function(fw_data, highlighted = NULL,
-                                          source_id, env_predictions = NULL) {
-
-  # --- Compute reference thresholds ---
-  check_rows <- fw_data[fw_data$plot_status == "CHECK", , drop = FALSE]
-  if (nrow(check_rows) > 0) {
-    check_mean <- mean(check_rows$mean_value, na.rm = TRUE)
-  } else {
-    check_mean <- quantile(fw_data$mean_value, 0.75, na.rm = TRUE, names = FALSE)
-  }
-
-  # --- Highlighting logic ---
-  if (!is.null(highlighted)) {
-    is_highlighted <- fw_data$designation == highlighted
-    fw_data$display_opacity <- ifelse(is_highlighted, fw_data$opacity, fw_data$opacity * 0.3)
-    fw_data$marker_size <- ifelse(is_highlighted, 14, 8)
-    fw_data$line_color <- ifelse(is_highlighted, "white", "rgba(0,0,0,0)")
-    fw_data$line_width <- ifelse(is_highlighted, 3, 0)
-  } else {
-    fw_data$display_opacity <- fw_data$opacity
-    fw_data$marker_size <- 8
-    fw_data$line_color <- rep("rgba(0,0,0,0)", nrow(fw_data))
-    fw_data$line_width <- rep(0, nrow(fw_data))
-  }
-
-  # --- Classify for tooltip ---
-  # Quick classification for display purposes
-  finite_metrics <- abs(fw_data$fw_slope - 1)
-  q25 <- quantile(finite_metrics[is.finite(finite_metrics)], 0.25, na.rm = TRUE, names = FALSE)
-  q75 <- quantile(finite_metrics[is.finite(finite_metrics)], 0.75, na.rm = TRUE, names = FALSE)
-  median_mean <- median(fw_data$mean_value, na.rm = TRUE)
-
-  fw_data$classification <- vapply(seq_len(nrow(fw_data)), function(i) {
-    metric <- abs(fw_data$fw_slope[i] - 1)
-    mv <- fw_data$mean_value[i]
-    if (!is.finite(metric) || !is.finite(mv)) return("none")
-    if (metric <= q25 && mv > check_mean) return("stable")
-    if (metric > q75 && mv > median_mean) return("adaptive")
-    return("none")
-  }, character(1))
-
-  # --- Build tooltip ---
-  fw_data$hover_text <- paste0(
-    "<b>", fw_data$designation, "</b><br>",
-    "Mean value: ", sprintf("%.3f", fw_data$mean_value), "<br>",
-    "FW slope: ", sprintf("%.3f", fw_data$fw_slope), "<br>",
-    "Classification: ", fw_data$classification, "<br>",
-    "Status: ", fw_data$plot_status
-  )
-
-  # --- Build scatter plot ---
-  p <- plotly::plot_ly(source = source_id)
-
-  # Add one trace per status category for legend
-  status_colors <- c(
-    "SELECTED"     = "#0072B2",
-    "NOT SELECTED" = "#D55E00",
-    "CHECK"        = "#C2185B"
-  )
-
-  for (status in names(status_colors)) {
-    sub_df <- fw_data[fw_data$plot_status == status, , drop = FALSE]
-    if (nrow(sub_df) == 0) next
-
-    p <- plotly::add_trace(
-      p,
-      x = sub_df$mean_value,
-      y = sub_df$fw_slope,
-      type = "scatter",
-      mode = "markers",
-      marker = list(
-        color = sub_df$color,
-        opacity = sub_df$display_opacity,
-        size = sub_df$marker_size,
-        line = list(
-          color = sub_df$line_color,
-          width = sub_df$line_width
-        )
-      ),
-      customdata = sub_df$designation,
-      text = sub_df$hover_text,
-      hoverinfo = "text",
-      name = status,
-      legendgroup = status,
-      showlegend = TRUE
-    )
-  }
-
-  # --- Compute axis ranges for shapes ---
-  x_min <- min(fw_data$mean_value, na.rm = TRUE)
-  x_max <- max(fw_data$mean_value, na.rm = TRUE)
-  x_pad <- (x_max - x_min) * 0.05
-  y_min <- min(fw_data$fw_slope, na.rm = TRUE)
-  y_max <- max(fw_data$fw_slope, na.rm = TRUE)
-  y_pad <- (y_max - y_min) * 0.05
-
-  # --- Layout with reference lines and stable zone ---
-  shapes_list <- list(
-    # Horizontal reference line at slope = 1.0
-    list(
-      type = "line",
-      x0 = x_min - x_pad, x1 = x_max + x_pad,
-      y0 = 1.0, y1 = 1.0,
-      xref = "x", yref = "y",
-      line = list(color = "grey50", width = 1.5, dash = "dash")
-    ),
-    # Vertical reference line at Check_Mean
-    list(
-      type = "line",
-      x0 = check_mean, x1 = check_mean,
-      y0 = y_min - y_pad, y1 = y_max + y_pad,
-      xref = "x", yref = "y",
-      line = list(color = "grey50", width = 1.5, dash = "dash")
-    ),
-    # Shaded stable zone: slope in [0.8, 1.2] AND mean_value above check_mean
-    list(
-      type = "rect",
-      x0 = check_mean, x1 = x_max + x_pad,
-      y0 = 0.8, y1 = 1.2,
-      xref = "x", yref = "y",
-      fillcolor = "rgba(76, 175, 80, 0.10)",
-      line = list(width = 0),
-      layer = "below"
-    )
-  )
-
-  p <- plotly::layout(
-    p,
-    xaxis = list(
-      title = "Mean Performance",
-      range = c(x_min - x_pad, x_max + x_pad)
-    ),
-    yaxis = list(
-      title = "FW Regression Slope",
-      range = c(y_min - y_pad, y_max + y_pad)
-    ),
-    shapes = shapes_list,
-    hovermode = "closest",
-    legend = list(
-      orientation = "h",
-      x = 0.5,
-      xanchor = "center",
-      y = 1.05
-    )
-  )
-
-  # --- Apply prescriptive annotations ---
-  p <- annotate_stable_and_adaptive(p, fw_data, "fw", env_predictions = env_predictions)
-
-  p
-}
-
-# --------------------------------------------------------------------------
-# CS/Diagonal Stability Biplot (Mean vs. CV)
-# --------------------------------------------------------------------------
-
-#' Build the CS/Diagonal stability biplot (mean vs. CV)
-#'
-#' Renders a scatter plot with mean_value on x-axis and CV on y-axis.
-#' Bottom-right quadrant represents the ideal region (high mean, low CV).
-#' A shaded rectangle marks the "stable zone" using CHECK-based thresholds
-#' (or quantile-based fallbacks when no CHECK genotypes exist).
-#'
-#' @param stability_data data.frame from \code{compute_gxe_stability()} with
-#'   columns: designation, mean_value, cv, env_variance, n_environments,
-#'   plot_status, opacity, color, shape.
-#' @param highlighted Character scalar or NULL — if provided, this designation
-#'   is rendered at 14px with a 3px white border and other markers are dimmed.
-#' @param source_id Character string — the plotly source id for click events.
-#' @param env_predictions data.frame or NULL — per-environment predictions used
-#'   by \code{annotate_stable_and_adaptive()} to identify best environments for
-#'   adaptive responders.
-#'
-#' @return A plotly object.
-#'
-#' @noRd
-build_stability_biplot_plotly <- function(stability_data, highlighted = NULL,
-                                          source_id, env_predictions = NULL) {
-
-  # --- Step 1: Compute stable zone thresholds ---
-  check_rows <- stability_data[stability_data$plot_status == "CHECK", , drop = FALSE]
-
-  if (nrow(check_rows) > 0) {
-    check_cv <- mean(check_rows$cv, na.rm = TRUE)
-    check_mean <- mean(check_rows$mean_value, na.rm = TRUE)
-  } else {
-    # Fallback per Req 4.4: 25th percentile of CV, 75th percentile of mean_value
-    check_cv <- quantile(stability_data$cv, 0.25, na.rm = TRUE, names = FALSE)
-    check_mean <- quantile(stability_data$mean_value, 0.75, na.rm = TRUE, names = FALSE)
-  }
-
-  # --- Step 2: Adjust opacity and size for highlighting ---
-  if (!is.null(highlighted)) {
-    is_highlighted <- stability_data$designation == highlighted
-    display_opacity <- ifelse(is_highlighted, stability_data$opacity,
-                              stability_data$opacity * 0.3)
-    marker_size <- ifelse(is_highlighted, 14, 8)
-    line_colors <- ifelse(is_highlighted, "white", "rgba(0,0,0,0)")
-    line_widths <- ifelse(is_highlighted, 3, 0)
-  } else {
-    display_opacity <- stability_data$opacity
-    marker_size <- rep(8, nrow(stability_data))
-    line_colors <- rep("rgba(0,0,0,0)", nrow(stability_data))
-    line_widths <- rep(0, nrow(stability_data))
-  }
-
-  # --- Step 3: Build classification labels for tooltip ---
-  classification <- rep("", nrow(stability_data))
-  finite_metrics <- stability_data$cv[is.finite(stability_data$cv)]
-  if (length(finite_metrics) >= 2) {
-    metric_range <- max(finite_metrics) - min(finite_metrics)
-    if (metric_range > 1e-9) {
-      q25 <- quantile(finite_metrics, 0.25, na.rm = TRUE, names = FALSE)
-      q75 <- quantile(finite_metrics, 0.75, na.rm = TRUE, names = FALSE)
-      median_mean <- median(stability_data$mean_value, na.rm = TRUE)
-
-      for (i in seq_len(nrow(stability_data))) {
-        cv_i <- stability_data$cv[i]
-        mean_i <- stability_data$mean_value[i]
-        if (is.finite(cv_i) && is.finite(mean_i)) {
-          if (cv_i <= q25 && mean_i > check_mean) {
-            classification[i] <- "Stable High-Performer"
-          } else if (cv_i > q75 && mean_i > median_mean) {
-            classification[i] <- "Adaptive Responder"
-          }
-        }
-      }
-    }
-  }
-
-  # --- Step 4: Build tooltip text ---
-  hover_text <- paste0(
-    "<b>", stability_data$designation, "</b><br>",
-    "Mean Performance: ", sprintf("%.3f", stability_data$mean_value), "<br>",
-    "CV: ", sprintf("%.4f", stability_data$cv), "<br>",
-    "Classification: ", ifelse(classification == "", "None", classification), "<br>",
-    "Status: ", stability_data$plot_status
-  )
-
-  # --- Step 5: Create scatter plot ---
-  p <- plotly::plot_ly(source = source_id)
-
-  # Compute axis range for stable zone shape
-  x_max <- max(stability_data$mean_value, na.rm = TRUE)
-  x_pad <- (x_max - min(stability_data$mean_value, na.rm = TRUE)) * 0.05
-
-  # Add shaded stable zone (bottom-right quadrant: high mean, low CV)
-  shapes_list <- list(
-    list(
-      type = "rect",
-      x0 = check_mean, x1 = x_max + x_pad,
-      y0 = 0, y1 = check_cv,
-      xref = "x", yref = "y",
-      fillcolor = "rgba(144, 238, 144, 0.15)",
-      line = list(color = "rgba(144, 238, 144, 0.4)", width = 1),
-      layer = "below"
-    )
-  )
-
-  # Add markers — one trace per status for legend
-  status_colors <- c(
-    "SELECTED"     = "#0072B2",
-    "NOT SELECTED" = "#D55E00",
-    "CHECK"        = "#C2185B"
-  )
-
-  for (status in names(status_colors)) {
-    mask <- stability_data$plot_status == status
-    sub_df <- stability_data[mask, , drop = FALSE]
-    if (nrow(sub_df) == 0) next
-
-    sub_opacity <- display_opacity[mask]
-    sub_size <- marker_size[mask]
-    sub_line_colors <- line_colors[mask]
-    sub_line_widths <- line_widths[mask]
-    sub_hover <- hover_text[mask]
-
-    p <- plotly::add_trace(
-      p,
-      x = sub_df$mean_value,
-      y = sub_df$cv,
-      type = "scatter",
-      mode = "markers",
-      marker = list(
-        color = sub_df$color,
-        opacity = sub_opacity,
-        size = sub_size,
-        line = list(color = sub_line_colors, width = sub_line_widths)
-      ),
-      customdata = sub_df$designation,
-      text = sub_hover,
-      hoverinfo = "text",
-      name = status,
-      legendgroup = status,
-      showlegend = TRUE
-    )
-  }
-
-  # --- Step 6: Configure layout ---
-  p <- plotly::layout(
-    p,
-    xaxis = list(title = "Mean Performance"),
-    yaxis = list(title = "Coefficient of Variation (CV)"),
-    shapes = shapes_list,
-    hovermode = "closest",
-    legend = list(
-      orientation = "h",
-      x = 0.5,
-      xanchor = "center",
-      y = 1.05
-    )
-  )
-
-  # --- Step 7: Apply prescriptive annotations ---
-  p <- annotate_stable_and_adaptive(p, stability_data, "cs_diag",
-                                     env_predictions = env_predictions)
-
-  p
-}
-
-# --------------------------------------------------------------------------
-# Factor Analytic Biplot Builder
-# --------------------------------------------------------------------------
-
-#' Build Factor Analytic biplot (plotly)
-#'
-#' Renders a biplot of genotype scores on PC1 vs PC2 axes with environment
-#' loadings displayed as arrows from the origin. Axis labels include the
-#' percentage of variance explained by each component.
-#'
-#' @param fa_data A list with components:
-#'   \itemize{
-#'     \item genotype_scores: data.frame with columns designation, PC1, PC2,
-#'       mean_value, plot_status, color, shape, opacity
-#'     \item env_loadings: data.frame with columns environment, PC1_loading,
-#'       PC2_loading
-#'     \item variance_explained: numeric vector of length 2
-#'   }
-#' @param highlighted Character or NULL — designation to highlight with larger
-#'   marker (14px) and 3px white border. All other points are dimmed.
-#' @param source_id Character — plotly source identifier for click event capture.
-#' @param env_predictions Data.frame or NULL — per-environment predictions with
-#'   columns designation, environment, predictedValue. Passed through to
-#'   \code{annotate_stable_and_adaptive()} for best-environment identification.
-#'
-#' @return A plotly object.
-#'
-#' @noRd
-build_fa_biplot_plotly <- function(fa_data, highlighted = NULL, source_id,
-                                   env_predictions = NULL) {
-
-  scores <- fa_data$genotype_scores
-  loadings <- fa_data$env_loadings
-  var_expl <- fa_data$variance_explained
-
-  # --- Axis labels with % variance explained ---
-  xlab <- paste0("PC1 (", round(var_expl[1] * 100, 1), "%)")
-  ylab <- paste0("PC2 (", round(var_expl[2] * 100, 1), "%)")
-
-  # --- Highlighting logic ---
-  if (!is.null(highlighted)) {
-    is_highlighted <- scores$designation == highlighted
-    scores$display_opacity <- ifelse(is_highlighted, scores$opacity,
-                                     scores$opacity * 0.3)
-    scores$marker_size <- ifelse(is_highlighted, 14, 8)
-    scores$border_color <- ifelse(is_highlighted, "white", "rgba(0,0,0,0)")
-    scores$border_width <- ifelse(is_highlighted, 3, 0)
-  } else {
-    scores$display_opacity <- scores$opacity
-    scores$marker_size <- rep(8, nrow(scores))
-    scores$border_color <- rep("rgba(0,0,0,0)", nrow(scores))
-    scores$border_width <- rep(0, nrow(scores))
-  }
-
-  # --- Classification for tooltip ---
-  stability_metric <- sqrt(scores$PC1^2 + scores$PC2^2)
-  finite_metrics <- stability_metric[is.finite(stability_metric)]
-  check_rows <- scores[scores$plot_status == "CHECK", , drop = FALSE]
-  if (nrow(check_rows) > 0) {
-    check_mean <- mean(check_rows$mean_value, na.rm = TRUE)
-  } else {
-    check_mean <- quantile(scores$mean_value, 0.75, na.rm = TRUE, names = FALSE)
-  }
-  q25 <- quantile(finite_metrics, 0.25, na.rm = TRUE, names = FALSE)
-  q75 <- quantile(finite_metrics, 0.75, na.rm = TRUE, names = FALSE)
-  median_mean <- median(scores$mean_value, na.rm = TRUE)
-
-  scores$classification <- vapply(seq_len(nrow(scores)), function(i) {
-    metric <- stability_metric[i]
-    mv <- scores$mean_value[i]
-    if (!is.finite(metric) || !is.finite(mv)) return("none")
-    if (metric <= q25 && mv > check_mean) return("stable")
-    if (metric > q75 && mv > median_mean) return("adaptive")
-    return("none")
-  }, character(1))
-
-  # --- Tooltip ---
-  scores$hover_text <- paste0(
-    "<b>", scores$designation, "</b><br>",
-    "PC1: ", sprintf("%.3f", scores$PC1), "<br>",
-    "PC2: ", sprintf("%.3f", scores$PC2), "<br>",
-    "Mean: ", sprintf("%.3f", scores$mean_value), "<br>",
-    "Classification: ", scores$classification, "<br>",
-    "Status: ", scores$plot_status
-  )
-
-  # --- Build genotype scatter ---
-  p <- plotly::plot_ly(source = source_id)
-
-  p <- plotly::add_trace(
-    p,
-    x = scores$PC1,
-    y = scores$PC2,
-    type = "scatter",
-    mode = "markers",
-    marker = list(
-      color = scores$color,
-      opacity = scores$display_opacity,
-      size = scores$marker_size,
-      line = list(
-        color = scores$border_color,
-        width = scores$border_width
-      )
-    ),
-    customdata = scores$designation,
-    text = scores$hover_text,
-    hoverinfo = "text",
-    showlegend = FALSE
-  )
-
-  # --- Scale environment loadings for display ---
-  # Scale so arrows are visible relative to genotype score range
-  score_range_x <- diff(range(scores$PC1, na.rm = TRUE))
-  score_range_y <- diff(range(scores$PC2, na.rm = TRUE))
-  score_range <- max(score_range_x, score_range_y, 1)
-
-  loading_max <- max(
-    abs(loadings$PC1_loading), abs(loadings$PC2_loading), na.rm = TRUE
-  )
-  if (loading_max > 0) {
-    scale_factor <- (score_range * 0.4) / loading_max
-  } else {
-    scale_factor <- 1
-  }
-
-  scaled_pc1 <- loadings$PC1_loading * scale_factor
-  scaled_pc2 <- loadings$PC2_loading * scale_factor
-
-  # --- Add environment arrows as annotations ---
-  arrow_annotations <- list()
-  for (i in seq_len(nrow(loadings))) {
-    # Arrow from origin to loading endpoint
-    arrow_annotations[[length(arrow_annotations) + 1]] <- list(
-      x = scaled_pc1[i],
-      y = scaled_pc2[i],
-      ax = 0,
-      ay = 0,
-      xref = "x",
-      yref = "y",
-      axref = "x",
-      ayref = "y",
-      showarrow = TRUE,
-      arrowhead = 2,
-      arrowsize = 1,
-      arrowwidth = 1.5,
-      arrowcolor = "#666666"
-    )
-    # Environment label at arrow endpoint
-    arrow_annotations[[length(arrow_annotations) + 1]] <- list(
-      x = scaled_pc1[i],
-      y = scaled_pc2[i],
-      text = loadings$environment[i],
-      showarrow = FALSE,
-      xref = "x",
-      yref = "y",
-      font = list(size = 9, color = "#444444"),
-      xanchor = if (scaled_pc1[i] >= 0) "left" else "right",
-      yanchor = "bottom"
-    )
-  }
-
-  # --- Layout ---
-  p <- plotly::layout(
-    p,
-    xaxis = list(title = xlab, zeroline = TRUE, zerolinecolor = "#CCCCCC"),
-    yaxis = list(title = ylab, zeroline = TRUE, zerolinecolor = "#CCCCCC"),
-    hovermode = "closest",
-    annotations = arrow_annotations
-  )
-
-  # --- Prescriptive layer ---
-  p <- annotate_stable_and_adaptive(p, scores, "fa", env_predictions)
-
-  p
-}
+MARKER_SIZE_DEFAULT     <- 8
+MARKER_SIZE_HIGHLIGHTED <- 14
+
+DIVERSITY_BORDER_COLOR  <- "#FFD700"
+DIVERSITY_BORDER_WIDTH  <- 3
+DIVERSITY_BORDER_STYLE  <- "dash"
+
+HIGHLIGHT_BORDER_COLOR  <- "white"
+HIGHLIGHT_BORDER_WIDTH  <- 3
+
+FAMILY_PALETTE <- c(
+  "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+  "#FF7F00", "#A65628", "#F781BF", "#999999"
+)
+
+MISSING_STATUS_COLOR   <- "#999999"
+MISSING_STATUS_OPACITY <- 0.15
 
 # --------------------------------------------------------------------------
 # Human-readable covariate name mapping
@@ -1345,7 +84,7 @@ build_fa_biplot_plotly <- function(fa_data, highlighted = NULL, source_id,
 #' @param weather_summary A data.frame with columns: environment,
 #'   mean_temperature, heat_stress_index, rainfall,
 #'   rainfall_distribution_index, humidity (one row per environment).
-#' @param k NULL (auto-detect) or integer — number of clusters to use.
+#' @param k NULL (auto-detect) or integer â€” number of clusters to use.
 #'
 #' @return A named character vector mapping each environment to its cluster
 #'   label.
@@ -1500,7 +239,7 @@ cluster_environments <- function(weather_summary, k = NULL) {
 #' @param sta_long A data.frame with columns: designation, environment, trait,
 #'   predictedValue, reliability.
 #' @param review_df A data.frame with columns: designation, plot_status.
-#' @param trait Character — selected trait to filter on.
+#' @param trait Character â€” selected trait to filter on.
 #' @param cluster_assignments Named character vector mapping environment names
 #'   to cluster labels.
 #' @param overrides NULL or a data.frame with columns: designation,
@@ -1677,7 +416,7 @@ prepare_lollipop_data <- function(sta_long, review_df, trait, cluster_assignment
 #' Derives per-cluster recommend and avoid thresholds from prepared lollipop
 #' data. The recommend threshold equals the mean of CHECK designations within
 #' a cluster (falling back to the population mean if no CHECKs exist). The
-#' avoid threshold is the lower of (population mean − 1 SD) and the minimum
+#' avoid threshold is the lower of (population mean âˆ’ 1 SD) and the minimum
 #' CHECK value, enforced to never exceed the recommend threshold.
 #'
 #' @param prepared_data A data.frame output of \code{prepare_lollipop_data()}
@@ -1697,7 +436,7 @@ compute_zone_thresholds <- function(prepared_data) {
     pop_mean <- mean(cl_data$mean_value, na.rm = TRUE)
     pop_sd   <- stats::sd(cl_data$mean_value, na.rm = TRUE)
 
-    # Handle edge case: single designation or all same value → sd is NA or 0
+    # Handle edge case: single designation or all same value â†’ sd is NA or 0
 
     if (is.na(pop_sd) || !is.finite(pop_sd)) {
       pop_sd <- 0
@@ -1718,7 +457,7 @@ compute_zone_thresholds <- function(prepared_data) {
     recommend_threshold <- if (!is.na(check_mean)) check_mean else pop_mean
 
     # Avoid threshold: min(pop_mean - 1*pop_sd, min_check_value)
-    # If pop_sd is 0, pop_mean - 0 = pop_mean → avoid = pop_mean (same as recommend)
+    # If pop_sd is 0, pop_mean - 0 = pop_mean â†’ avoid = pop_mean (same as recommend)
     pop_lower <- pop_mean - 1 * pop_sd
 
     if (!is.na(min_check_value)) {
@@ -1758,10 +497,10 @@ compute_zone_thresholds <- function(prepared_data) {
 #' @param thresholds A data.frame from \code{compute_zone_thresholds()} with
 #'   columns: cluster, recommend_threshold, avoid_threshold, check_mean,
 #'   pop_mean, pop_sd.
-#' @param highlighted NULL or character — designation to highlight across facets.
-#' @param user_recommend_threshold NULL or numeric — user override for
+#' @param highlighted NULL or character â€” designation to highlight across facets.
+#' @param user_recommend_threshold NULL or numeric â€” user override for
 #'   recommend threshold (applies to all clusters).
-#' @param source_id Character — plotly source ID for click events.
+#' @param source_id Character â€” plotly source ID for click events.
 #'
 #' @return A plotly object with vertically stacked subplot facets.
 #'
@@ -1886,7 +625,7 @@ build_faceted_lollipop_plotly <- function(prepared_data, thresholds,
       showlegend = FALSE
     )
 
-    # Add markers — one trace per status for legend grouping
+    # Add markers â€” one trace per status for legend grouping
     for (st in all_statuses) {
       st_idx <- which(cl_data$plot_status == st)
       if (length(st_idx) == 0) next
@@ -2180,6 +919,215 @@ build_cluster_map_plotly <- function(weather_summary, cluster_assignments, tpe_p
   )
 
   p
+}
+
+#' Build the relatedness plotly visualization
+#'
+#' Constructs an interactive plotly figure showing genetic relatedness
+#' structure among breeding candidates, with dendrogram/cluster grouping,
+#' trait performance overlays, status-colored markers, diversity candidate
+#' highlighting, and click event capture.
+#'
+#' @param plot_data List with elements: individuals (data.frame), trait_values (data.frame),
+#'   groups (data.frame), dendrogram (hclust or NULL), mode (character), summary (list).
+#' @param highlighted Character or NULL â€” currently highlighted designation.
+#' @param source_id Character â€” plotly source identifier for event capture.
+#'
+#' @return A plotly object.
+#'
+#' @noRd
+build_relatedness_plotly <- function(plot_data, highlighted = NULL,
+                                     source_id = "relatedness_plot") {
+
+  individuals <- plot_data$individuals
+  trait_values <- plot_data$trait_values
+  groups <- plot_data$groups
+
+  # ---- Validate minimal input ----
+  if (is.null(individuals) || nrow(individuals) == 0) {
+    p <- plotly::plot_ly(source = source_id) %>%
+      plotly::layout(
+        annotations = list(list(
+          text = "No individuals to display",
+          x = 0.5, y = 0.5, xref = "paper", yref = "paper", showarrow = FALSE
+        ))
+      )
+    return(p)
+  }
+
+  # ---- Order individuals by group_id and order_within ----
+  individuals <- individuals[order(individuals$group_id, individuals$order_within), , drop = FALSE]
+  # Create ordered factor for Y-axis (bottom to top = first to last)
+  individuals$y_factor <- factor(
+    individuals$designation,
+    levels = individuals$designation
+  )
+  n_indiv <- nrow(individuals)
+
+  # ---- Apply highlighting logic ----
+  if (!is.null(highlighted) && highlighted %in% individuals$designation) {
+    hl_idx <- which(individuals$designation == highlighted)
+    non_hl_idx <- which(individuals$designation != highlighted)
+
+    # Highlighted individual: larger marker, white solid border
+    individuals$marker_size[hl_idx] <- MARKER_SIZE_HIGHLIGHTED
+    individuals$border_style[hl_idx] <- "white-solid"
+
+    # Fade non-highlighted markers
+    individuals$marker_opacity[non_hl_idx] <- individuals$marker_opacity[non_hl_idx] * 0.3
+  }
+
+  # ---- Compute marker border properties ----
+  marker_line_width <- rep(0, n_indiv)
+  marker_line_color <- rep("rgba(0,0,0,0)", n_indiv)
+  marker_line_dash <- rep("solid", n_indiv)
+
+  gold_idx <- which(individuals$border_style == "gold-dashed")
+  if (length(gold_idx) > 0) {
+    marker_line_width[gold_idx] <- DIVERSITY_BORDER_WIDTH
+    marker_line_color[gold_idx] <- DIVERSITY_BORDER_COLOR
+  }
+
+  white_idx <- which(individuals$border_style == "white-solid")
+  if (length(white_idx) > 0) {
+    marker_line_width[white_idx] <- HIGHLIGHT_BORDER_WIDTH
+    marker_line_color[white_idx] <- HIGHLIGHT_BORDER_COLOR
+  }
+
+  # ---- Build tooltip text inline ----
+  tooltip_text <- mapply(function(desig, grp, status, idx_val) {
+    paste0(
+      "<b>", desig, "</b><br>",
+      "Group: ", grp, "<br>",
+      "Status: ", status, "<br>",
+      "Index: ", if (is.finite(idx_val)) sprintf("%.2f", idx_val) else "N/A"
+    )
+  }, individuals$designation, individuals$group_label, individuals$plot_status,
+  individuals$index_value, SIMPLIFY = TRUE, USE.NAMES = FALSE)
+
+  # ---- Compute plot height (scrollable if > 100 individuals) ----
+  plot_height <- if (n_indiv > 100) n_indiv * 20 else NULL
+
+  # ---- Initialize plotly figure ----
+  fig <- plotly::plot_ly(source = source_id)
+
+  # ---- Track legend entries for decision statuses ----
+  legend_shown_statuses <- character(0)
+
+  # ---- Add trait BLUP values with error bars (X-axis) ----
+  # Split by status so error bars get the correct single color per trace
+  if (!is.null(trait_values) && nrow(trait_values) > 0) {
+    unique_traits <- unique(trait_values$trait)
+
+    for (tr in unique_traits) {
+      tr_data <- trait_values[trait_values$trait == tr, , drop = FALSE]
+      # Match to individuals ordering
+      tr_match <- match(tr_data$designation, individuals$designation)
+      tr_data <- tr_data[!is.na(tr_match), , drop = FALSE]
+      tr_match <- tr_match[!is.na(tr_match)]
+
+      if (nrow(tr_data) == 0) next
+
+      has_error <- "std_error" %in% colnames(tr_data) && any(!is.na(tr_data$std_error))
+
+      # Get status for each matched individual
+      statuses <- individuals$plot_status[tr_match]
+      unique_st <- unique(statuses)
+
+      for (st in unique_st) {
+        st_mask <- which(statuses == st)
+        if (length(st_mask) == 0) next
+
+        st_color <- individuals$marker_color[tr_match[st_mask[1]]]
+        st_opacity <- individuals$marker_opacity[tr_match[st_mask]]
+
+        error_x_config <- if (has_error) {
+          list(type = "data", array = tr_data$std_error[st_mask], visible = TRUE, color = st_color)
+        } else {
+          NULL
+        }
+
+        # Build rich tooltip: name, family, trait value, reliability (for non-index)
+        indiv_subset <- individuals[tr_match[st_mask], , drop = FALSE]
+        tooltip_texts <- paste0(
+          "<b>", indiv_subset$designation, "</b><br>",
+          "Family: ", indiv_subset$group_label, "<br>",
+          tr, ": ", sprintf("%.2f", tr_data$value[st_mask]),
+          ifelse(
+            tr != "Selection_Index" & !is.na(indiv_subset$reliability),
+            paste0("<br>Reliability: ", sprintf("%.2f", indiv_subset$reliability)),
+            ""
+          )
+        )
+
+        # Show legend on first trace per status
+        show_leg <- !(st %in% legend_shown_statuses)
+        if (show_leg) legend_shown_statuses <<- c(legend_shown_statuses, st)
+
+        fig <- plotly::add_trace(
+          fig,
+          x = tr_data$value[st_mask],
+          y = individuals$y_factor[tr_match[st_mask]],
+          type = "scatter",
+          mode = "markers",
+          marker = list(
+            color = st_color,
+            size = 8,
+            opacity = st_opacity,
+            symbol = STATUS_SHAPES[st]
+          ),
+          error_x = error_x_config,
+          hoverinfo = "text",
+          text = tooltip_texts,
+          name = st,
+          legendgroup = st,
+          showlegend = show_leg
+        )
+      }
+    }
+  }
+
+  # ---- Add horizontal separator lines between groups ----
+  shapes_list <- list()
+  if (!is.null(groups) && nrow(groups) > 1) {
+    # Find boundaries between groups
+    group_boundaries <- which(diff(individuals$group_id) != 0)
+    for (boundary in group_boundaries) {
+      shapes_list <- c(shapes_list, list(list(
+        type = "line",
+        x0 = 0, x1 = 1,
+        xref = "paper",
+        y0 = boundary - 0.5, y1 = boundary - 0.5,
+        yref = "y",
+        line = list(color = "grey60", width = 1.5, dash = "dot"),
+        layer = "below"
+      )))
+    }
+  }
+
+  # ---- Layout ----
+  layout_args <- list(
+    fig,
+    xaxis = list(title = "Trait Value"),
+    yaxis = list(
+      title = "",
+      categoryorder = "array",
+      categoryarray = levels(individuals$y_factor)
+    ),
+    shapes = shapes_list,
+    showlegend = TRUE,
+    legend = list(orientation = "v", x = 1.02, xanchor = "left", y = 0.5, yanchor = "middle"),
+    margin = list(t = 40, b = 40, l = 150, r = 120),
+    hovermode = "closest"
+  )
+
+  if (!is.null(plot_height)) {
+    layout_args$height <- plot_height
+  }
+
+  fig <- do.call(plotly::layout, layout_args)
+
+  fig
 }
 
 #' Prepare beeswarm plot data
@@ -2603,11 +1551,9 @@ mod_preProdAdvApp_ui <- function(id){
                                                   h2(strong("Data Status (wait to be displayed):")),
                                                   uiOutput(ns("warningMessage")),
                                                   tags$br(),
-                                                  # column(width=4, tags$br(),
                                                   shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                                                  # ),
                                                   tags$br(),
-                                                  img(src = "www/qaRaw.png", height = 200, width = 470), # add an image
+                                                  img(src = "www/PAM_image.png",style = "width: 500px; height: auto;")
                                            ),
                                            column(width = 6,
                                                   tags$body(
@@ -2621,12 +1567,126 @@ mod_preProdAdvApp_ui <- function(id){
                                                       tags$li("Define selection parameters (weights, thresholds, candidate set)"),
                                                       tags$li("Run the initial selection"),
                                                       tags$li("Review results in the decision table and visualisations"),
-                                                      tags$li("Make final selection decisions and save your analysis")
+                                                      tags$li("Review previous selection decisions and save your analysis")
                                                     ),
                                                     p(strong("After this step:"), " Save your results and share the RData file with other stakeholders.
                                                       Multiple saved selections can then be compared in the ", strong("Advancement Meeting Dashboard"), " tab
                                                       to reach a joint consensus during the advancement meeting."),
-                                                    # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
+
+                                                    tags$hr(),
+                                                    h3(strong("Technical Methods & Data Requirements")),
+
+                                                    p(strong("Environment Clustering:"), " Environments (trial locations) are grouped by similarity in climate covariates \u2014 ",
+                                                      "temperature, rainfall, and humidity indices \u2014 to identify mega-environments. ",
+                                                      "This clustering helps visualize how candidates perform across different environmental conditions."),
+
+                                                    p(strong("Family Grouping:"), " Genotypes are grouped by pedigree-based kinship (A-matrix hierarchical clustering) ",
+                                                      "or genomic relatedness (G-matrix) when available. This helps ensure selected candidates represent diverse genetic backgrounds."),
+
+                                                    p(strong("Reliability-Weighted Index:"), " The selection index penalizes poorly-estimated individuals using ",
+                                                      "sqrt(reliability) dampening. A candidate with high BLUP but low reliability contributes less to their index score. "),
+
+                                                    tags$hr(),
+                                                    h3(strong("Selection Quality Assessment")),
+
+                                                    p("Before running the selection, the module performs an integrated quality assessment for each trait. ",
+                                                      "This assessment combines two dimensions: (1) trait reliability and (2) boundary separability at the current selection intensity."),
+
+                                                    h4(strong("Dimension 1: Trait Reliability")),
+
+                                                    p(strong("RSR (Ranking Separability Ratio):"), " Computed as SD(BLUPs) / mean(SE) using only candidate designations. ",
+                                                      "Because BLUPs are shrunk estimates (pulled toward the population mean), the standard deviation of BLUPs is ",
+                                                      "intentionally conservative. An RSR below 1 does not necessarily mean a trait is unusable \u2014 it means that ",
+                                                      "prediction uncertainty is as large as the estimated genetic differences."),
+
+                                                    p(strong("Reliability Metrics:"), " Mean reliability across candidates and the percentage of candidates with ",
+                                                      "reliability below 0.20 are also computed. Reliability is bounded between 0 and 1, where higher values indicate ",
+                                                      "more accurate predictions."),
+
+                                                    p(strong("Trait Reliability Classification:")),
+                                                    tags$ul(
+                                                      tags$li(strong("High reliability:"), " RSR \u2265 1 AND mean reliability \u2265 0.40 AND fewer than 30% of candidates have reliability below 0.20."),
+                                                      tags$li(strong("Moderate reliability:"), " RSR < 1 OR mean reliability between 0.20 and 0.40 OR between 30% and 60% of candidates have low reliability."),
+                                                      tags$li(strong("Low reliability:"), " (RSR < 1 AND mean reliability < 0.20) OR more than 60% of candidates have reliability below 0.20.")
+                                                    ),
+
+                                                    h4(strong("Dimension 2: Boundary Separability")),
+
+                                                    p("The boundary separability assessment evaluates whether entries near the selection cutoff can be reliably distinguished."),
+
+                                                    p(strong("Index Standard Error:"), " For each designation, the approximate index SE is computed as: ",
+                                                      "SE(I", tags$sub("i"), ") = \u221A\u2211(w", tags$sub("k"), "\u00B2 \u00D7 SE", tags$sub("ik"), "\u00B2), ",
+                                                      "assuming independence between traits. This is a conservative approximation since the full prediction error variance (PEV) matrix is not available from MTA."),
+
+                                                    p(strong("Boundary Window:"), " The up to 5 selected entries immediately above the selection cutoff and ",
+                                                      "up to 5 rejected entries immediately below form the boundary window. ",
+                                                      "Pairwise z", tags$sub("ij"), " = (I", tags$sub("i"), " - I", tags$sub("j"), ") / SED", tags$sub("ij"),
+                                                      " is computed for all cross-boundary pairs, where SED", tags$sub("ij"), " = \u221A(SE(I", tags$sub("i"), ")\u00B2 + SE(I", tags$sub("j"), ")\u00B2)."),
+
+                                                    p(strong("Boundary Separability Classification:")),
+                                                    tags$ul(
+                                                      tags$li(strong("Separable boundary:"), " Median z", tags$sub("ij"), " \u2265 2 and at most 50% of comparisons below 2. ",
+                                                              "Per trait: mean reliability of boundary-window designations on that trait \u2265 0.30."),
+                                                      tags$li(strong("Non-separable boundary:"), " Median z", tags$sub("ij"), " < 2 or more than 50% below 2. ",
+                                                              "Per trait: mean reliability of boundary-window designations on that trait < 0.30.")
+                                                    ),
+
+                                                    h4(strong("Integrated Recommendation Matrix")),
+
+                                                    p("Each trait receives one combined recommendation based on both dimensions:"),
+
+                                                    tags$table(
+                                                      style = "border-collapse: collapse; width:100%; margin:10px 0;",
+                                                      tags$thead(
+                                                        tags$tr(style = "background:#f0f0f0;",
+                                                          tags$th(style = "border:1px solid #ddd; padding:6px;", "Reliability \\ Boundary"),
+                                                          tags$th(style = "border:1px solid #ddd; padding:6px;", "Separable"),
+                                                          tags$th(style = "border:1px solid #ddd; padding:6px;", "Non-separable")
+                                                        )
+                                                      ),
+                                                      tags$tbody(
+                                                        tags$tr(
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px;", strong("High")),
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#d4edda;", "Recommended to keep"),
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#fff3cd;", "Use with caution")
+                                                        ),
+                                                        tags$tr(
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px;", strong("Moderate")),
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#fff3cd;", "Use with caution"),
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#fff3cd;", "Use with caution")
+                                                        ),
+                                                        tags$tr(
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px;", strong("Low")),
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#fff3cd;", "Use with caution"),
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#f8d7da;", "Recommended to exclude")
+                                                        )
+                                                      )
+                                                    ),
+
+                                                    p(strong("Selection Intensity Context:"), " The recommendations are contextualized by the current selection intensity ",
+                                                      "(percentage of individuals selected). A trait may have poor overall reliability but still contribute to a separable ",
+                                                      "boundary at a given selection pressure. The assessment accounts for this by evaluating boundary separability specifically ",
+                                                      "at the actual decision point."),
+
+                                                    p(style = "font-style:italic; color:#666;",
+                                                      "Note: This assessment uses approximate standard error propagation (assuming trait independence). ",
+                                                      "The full PEV matrix is not available from MTA. The breeder always makes the final decision \u2014 ",
+                                                      "the assessment provides guidance, not binding constraints."),
+
+                                                    tags$hr(),
+
+                                                    h4(strong("Mandatory Inputs:")),
+                                                    tags$ul(
+                                                      tags$li(strong("MTA analysis stamp"), " \u2014 BLUPs (Best Linear Unbiased Predictions) and reliabilities from Multi-Trial Analysis"),
+                                                      tags$li(strong("STA analysis stamp"), " \u2014 Per-environment predictions from Single-Trial Analysis")
+                                                    ),
+
+                                                    h4(strong("Optional Inputs:")),
+                                                    tags$ul(
+                                                      tags$li(strong("Pedigree data"), " \u2014 enables the relatedness plot and family grouping"),
+                                                      tags$li(strong("Genomic marker data"), " \u2014 enables genomic relatedness (G-matrix) for family grouping"),
+                                                      tags$li(strong("Environmental covariates"), " \u2014 enables environment clustering and TPE (Target Population of Environments) plots")
+                                                    )
                                                   )
                                            ),
                                   ),
@@ -2969,6 +2029,7 @@ mod_preProdAdvApp_ui <- function(id){
                                         value = "selection_stamps",
                                         div(icon("tags"), "Initial selection stamp", icon("arrow-right")),
                                         br(),
+                                        uiOutput(ns("assessmentWarningsUI")),
 
                                         column(
                                           width = 12,
@@ -3177,14 +2238,11 @@ mod_preProdAdvApp_ui <- function(id){
                                             checkboxGroupInput(
                                               ns("reviewPlots"),
                                               label = "Visualisations to display",
-                                              choices = c(
-                                                "Pair-wise trait scatterplot",
-                                                "Stability/adaptability plot",
-                                                "Radar plot",
-                                                "Performance across locations",
-                                                "Per-variety trait performance profile",
-                                                "Relatedness plot"
-                                              ),
+                                                choices = c(
+                                                  "Pair-wise trait scatterplot",
+                                                  "Performance across locations",
+                                                  "Relatedness plot"
+                                                ),
                                               selected = NULL
                                             )
                                           )
@@ -3192,79 +2250,23 @@ mod_preProdAdvApp_ui <- function(id){
 
                                         br(),
 
-                                        conditionalPanel(
-                                          condition = "input.reviewPlots && input.reviewPlots.includes('Pair-wise trait scatterplot')",
-                                          ns = ns,
-
-                                          column(
-                                            width = 12,
-                                            style = "background-color:grey; color: #FFFFFF; padding:15px 0;",
-
-                                            column(
-                                              width = 4,
-                                              uiOutput(ns("scatterXTraitUI"))
-                                            ),
-
-                                            column(
-                                              width = 4,
-                                              uiOutput(ns("scatterYTraitUI"))
-                                            ),
-
-                                            column(
-                                              width = 4,
-                                              checkboxInput(
-                                                ns("scatterShowRegression"),
-                                                label = "Show regression lines & means",
-                                                value = TRUE
-                                              )
-                                            )
-                                          ),
-
-                                          br()
-                                        ),
-
-                                        conditionalPanel(
-                                          condition = "input.reviewPlots && input.reviewPlots.includes('Stability/adaptability plot')",
-                                          ns = ns,
-
-                                          column(
-                                            width = 12,
-                                            style = "background-color:grey; color: #FFFFFF; padding:15px 0;",
-
-                                            column(
-                                              width = 6,
-                                              uiOutput(ns("stabilityTraitUI"))
-                                            ),
-
-                                            column(
-                                              width = 6,
-                                              tags$div(
-                                                style = "padding-top: 25px;",
-                                                uiOutput(ns("stabilityModelLabel"))
-                                              )
-                                            )
-                                          ),
-
-                                          br()
-                                        ),
-
-                                        conditionalPanel(
-                                          condition = "input.reviewPlots && input.reviewPlots.includes('Radar plot')",
-                                          ns = ns,
-
-                                          column(
-                                            width = 12,
-                                            style = "background-color:grey; color: #FFFFFF; padding:15px 0;",
-
-                                            column(
-                                              width = 6,
-                                              uiOutput(ns("radarDesignationUI"))
-                                            )
-                                          ),
-
-                                          br()
-                                        ),
-
+#                                        conditionalPanel(
+#                                          condition = "input.reviewPlots && input.reviewPlots.includes('Radar plot')",
+#                                          ns = ns,
+#
+#                                          column(
+#                                            width = 12,
+#                                            style = "background-color:grey; color: #FFFFFF; padding:15px 0;",
+#
+#                                            column(
+#                                              width = 6,
+#                                              uiOutput(ns("radarDesignationUI"))
+#                                            )
+#                                          ),
+#
+#                                          br()
+#                                        ),
+#
                                         conditionalPanel(
                                           condition = "input.reviewPlots && input.reviewPlots.includes('Performance heatmap across TPE')",
                                           ns = ns,
@@ -3330,70 +2332,6 @@ mod_preProdAdvApp_ui <- function(id){
                                           ),
 
                                           br()
-                                        ),
-
-                                        conditionalPanel(
-                                          condition = "input.reviewPlots && input.reviewPlots.includes('Performance across locations')",
-                                          ns = ns,
-
-                                          column(
-                                            width = 12,
-                                            style = "background-color:grey; color: #FFFFFF; padding:15px 0;",
-
-                                            column(
-                                              width = 12,
-                                              uiOutput(ns("lollipopTraitUI"))
-                                            )
-                                          ),
-
-                                          br()
-                                        ),
-
-                                        conditionalPanel(
-                                          condition = "input.reviewPlots && input.reviewPlots.includes('Per-variety trait performance profile')",
-                                          ns = ns,
-                                          column(
-                                            width = 12,
-                                            style = "background-color:grey; color: #FFFFFF; padding:15px 0;",
-
-                                            column(
-                                              width = 4,
-                                              selectInput(
-                                                ns("performanceProfileScale"),
-                                                label = tags$span(
-                                                  "Per-variety profile scale",
-                                                  tags$i(
-                                                    class = "glyphicon glyphicon-info-sign",
-                                                    style = "color:#FFFFFF",
-                                                    title = "Choose how performance profiles should be displayed when the per-variety performance plot is selected."
-                                                  )
-                                                ),
-                                                choices = c("% over check", "% over mean"),
-                                                selected = "% over check"
-                                              )
-                                            ),
-                                            column(
-                                              width = 4,
-                                              numericInput(
-                                                ns("performanceProfilePage"),
-                                                label = tags$span(
-                                                  "Page",
-                                                  tags$i(
-                                                    class = "glyphicon glyphicon-info-sign",
-                                                    style = "color:#FFFFFF",
-                                                    title = "Each page shows up to 10 designations."
-                                                  )
-                                                ),
-                                                value = 1,
-                                                min = 1,
-                                                step = 1
-                                              )
-                                            ),
-                                            column(
-                                              width = 4,
-                                              uiOutput(ns("performanceProfilePageInfo"))
-                                            )
-                                          )
                                         ),
 
                                         br(),
@@ -3462,7 +2400,7 @@ mod_preProdAdvApp_ui <- function(id){
                                             selectInput(
                                               ns("manualDesignationDecision"),
                                               "Assign decision",
-                                              choices = c("SELECTED", "NOT SELECTED"),
+                                              choices = c("SELECTED", "NOT SELECTED", "REVISE"),
                                               selected = "SELECTED",
                                               multiple = FALSE
                                             )
@@ -3526,7 +2464,7 @@ mod_preProdAdvApp_ui <- function(id){
                                             width = 4,
                                             selectInput(
                                               ns("reportInitialSelectionStamp"),
-                                              label = "Initial selection stamp for report",
+                                              label = "Initial selection stamp",
                                               choices = NULL,
                                               multiple = FALSE
                                             )
@@ -3536,8 +2474,8 @@ mod_preProdAdvApp_ui <- function(id){
                                             width = 4,
                                             selectInput(
                                               ns("reportPlotSelectionStamp"),
-                                              label = "Plot selection stamp for report",
-                                              choices = c("No plot selection" = "__none__"),
+                                              label = "Table selection stamp",
+                                              choices = c("No table selection" = "__none__"),
                                               selected = "__none__",
                                               multiple = FALSE
                                             )
@@ -3547,8 +2485,8 @@ mod_preProdAdvApp_ui <- function(id){
                                             width = 4,
                                             selectInput(
                                               ns("reportFinalSelectionStamp"),
-                                              label = "Final selection stamp for report",
-                                              choices = c("No final selection" = "__none__"),
+                                              label = "Plot selection stamp",
+                                              choices = c("No plot selection" = "__none__"),
                                               selected = "__none__",
                                               multiple = FALSE
                                             )
@@ -3557,22 +2495,46 @@ mod_preProdAdvApp_ui <- function(id){
 
                                         br(),
 
+                                        # --- Summary bar ---
+                                        uiOutput(ns("finalSummaryBar")),
+
+                                        # --- Final decision table ---
+                                        shinydashboard::box(
+                                          width = 12,
+                                          title = "Final Decision Table",
+                                          status = "primary",
+                                          solidHeader = TRUE,
+                                          collapsible = TRUE,
+                                          DT::DTOutput(ns("finalDecisionDT"))
+                                        ),
+
+                                        hr(),
+
+                                        # --- Save section ---
                                         column(
                                           width = 12,
-                                          style = "background-color:grey; color: #FFFFFF",
+                                          style = "background-color:grey; color: #FFFFFF; padding:15px;",
                                           column(
-                                            width = 3,
+                                            width = 5,
+                                            textInput(
+                                              ns("finalAnalysisName"),
+                                              label = tags$span(style = "color:white;", "Decision name (required)"),
+                                              placeholder = "e.g., 2024_maize_final_v1"
+                                            )
+                                          ),
+                                          column(
+                                            width = 4,
                                             br(),
                                             actionButton(
-                                              ns("runFinalProdAdv"),
-                                              "Generate final report",
-                                              icon = icon("file-lines")
-                                            ),
-                                            br(),
-                                            br()
+                                              ns("saveFinalSelection"),
+                                              "Save decision & generate final report",
+                                              icon = icon("save"),
+                                              class = "btn-success"
+                                            )
                                           )
                                         ),
 
+                                        br(),
                                         textOutput(ns("outProdAdv_Raw"))
                                       ),
                                     )
@@ -3607,6 +2569,162 @@ mod_preProdAdvApp_server <- function(id, data){
     #Helper functions
     sanitize_trait_id <- function(x) {
       gsub("[^A-Za-z0-9_]", "_", x)
+    }
+
+    # Derive trait direction from weight sign
+    #
+    # Returns "Lower is better" for negative weights, "Higher is better" for
+    # positive weights, and NULL for zero/NA/non-finite values.
+    #
+    # @param weight Numeric scalar weight value.
+    # @return Character string or NULL.
+    derive_direction_from_weight <- function(weight) {
+      if (is.null(weight) || !is.finite(weight) || weight == 0) return(NULL)
+      if (weight < 0) "Lower is better" else "Higher is better"
+    }
+
+    # Compute final decisions by applying the decision hierarchy
+    #
+    # Merge logic: plot_selection > table_selection > initial_selection.
+    # For each designation, the most recent override wins.
+    #
+    # @param initial_decisions Data frame with columns: designation, initial_decision.
+    # @param table_decisions Data frame with columns: designation, table_decision.
+    #   May be NULL if no table stamp selected.
+    # @param plot_decisions Data frame with columns: designation, plot_decision.
+    #   May be NULL if no plot stamp selected.
+    # @return Data frame with columns: designation, initial_decision,
+    #   table_decision, plot_decision, final_decision.
+    compute_final_decisions <- function(initial_decisions,
+                                        table_decisions = NULL,
+                                        plot_decisions = NULL) {
+      result <- initial_decisions
+
+      if (!is.null(table_decisions) && nrow(table_decisions) > 0) {
+        result <- merge(result, table_decisions, by = "designation", all.x = TRUE)
+      } else {
+        result$table_decision <- NA_character_
+      }
+
+      if (!is.null(plot_decisions) && nrow(plot_decisions) > 0) {
+        result <- merge(result, plot_decisions, by = "designation", all.x = TRUE)
+      } else {
+        result$plot_decision <- NA_character_
+      }
+
+      # Apply hierarchy: plot > table > initial
+      result$final_decision <- ifelse(
+        !is.na(result$plot_decision),
+        result$plot_decision,
+        ifelse(
+          !is.na(result$table_decision),
+          result$table_decision,
+          result$initial_decision
+        )
+      )
+
+      result
+    }
+
+    # Build trait distribution per status plot using plotly
+    #
+    # Creates a faceted strip/jitter plot with one horizontal panel per trait.
+    # X-axis = trait value, markers = genotypes colored by status group.
+    # Reference lines: check mean, selected mean, unselected mean, threshold.
+    #
+    # @param plot_df Data frame with columns: designation, trait, value, status.
+    #   One row per designation x trait combination.
+    # @param trait_directions Named list: trait_name -> "Higher is better" or "Lower is better".
+    # @param thresholds Named list: trait_name -> numeric threshold value (or NULL).
+    # @return A plotly object.
+    build_trait_distribution_plotly <- function(plot_df, trait_directions, thresholds = list()) {
+      req_cols <- c("designation", "trait", "value", "status")
+      stopifnot(all(req_cols %in% colnames(plot_df)))
+
+      traits <- unique(plot_df$trait)
+      n_traits <- length(traits)
+
+      # Create subplot list (one per trait)
+      subplot_list <- lapply(seq_along(traits), function(i) {
+        tr <- traits[i]
+        tr_df <- plot_df[plot_df$trait == tr, , drop = FALSE]
+        direction <- trait_directions[[tr]]
+        hib <- is.null(direction) || identical(direction, "Higher is better")
+
+        # Compute reference means
+        selected_mean <- mean(tr_df$value[tr_df$status == "SELECTED"], na.rm = TRUE)
+        not_sel_mean <- mean(tr_df$value[tr_df$status == "NOT SELECTED"], na.rm = TRUE)
+        check_mean <- mean(tr_df$value[tr_df$status == "CHECK"], na.rm = TRUE)
+        threshold_val <- thresholds[[tr]]
+
+        # Build trace per status group
+        p <- plotly::plot_ly()
+        for (st in c("SELECTED", "NOT SELECTED", "REVISE", "CHECK")) {
+          st_df <- tr_df[tr_df$status == st, , drop = FALSE]
+          if (nrow(st_df) == 0) next
+          p <- plotly::add_trace(p,
+            x = st_df$value,
+            y = jitter(rep(0, nrow(st_df)), amount = 0.3),
+            type = "scatter", mode = "markers",
+            marker = list(
+              color = STATUS_COLORS[st],
+              size = 8,
+              symbol = STATUS_SHAPES[st]
+            ),
+            text = paste0(st_df$designation, ": ", round(st_df$value, 3)),
+            hoverinfo = "text",
+            name = st,
+            legendgroup = st,
+            showlegend = (i == 1)
+          )
+        }
+
+        # Reference lines
+        shapes <- list()
+        if (is.finite(selected_mean)) {
+          shapes <- c(shapes, list(list(
+            type = "line", x0 = selected_mean, x1 = selected_mean,
+            y0 = -0.5, y1 = 0.5, line = list(color = STATUS_COLORS["SELECTED"], dash = "dash")
+          )))
+        }
+        if (is.finite(not_sel_mean)) {
+          shapes <- c(shapes, list(list(
+            type = "line", x0 = not_sel_mean, x1 = not_sel_mean,
+            y0 = -0.5, y1 = 0.5, line = list(color = STATUS_COLORS["NOT SELECTED"], dash = "dash")
+          )))
+        }
+        if (is.finite(check_mean)) {
+          shapes <- c(shapes, list(list(
+            type = "line", x0 = check_mean, x1 = check_mean,
+            y0 = -0.5, y1 = 0.5, line = list(color = STATUS_COLORS["CHECK"], dash = "dot")
+          )))
+        }
+        if (!is.null(threshold_val) && is.finite(threshold_val)) {
+          shapes <- c(shapes, list(list(
+            type = "line", x0 = threshold_val, x1 = threshold_val,
+            y0 = -0.5, y1 = 0.5, line = list(color = "black", dash = "solid", width = 2)
+          )))
+        }
+
+        # Direction annotation
+        arrow_text <- if (hib) "\u2192 better" else "\u2190 better"
+
+        p <- plotly::layout(p,
+          xaxis = list(title = tr),
+          yaxis = list(visible = FALSE, range = c(-0.6, 0.6)),
+          shapes = shapes,
+          annotations = list(list(
+            x = 1, y = 1, xref = "paper", yref = "paper",
+            text = arrow_text, showarrow = FALSE,
+            font = list(size = 11, color = "#666")
+          ))
+        )
+
+        p
+      })
+
+      # Combine as vertical subplots
+      plotly::subplot(subplot_list, nrows = n_traits, shareX = FALSE, titleY = FALSE)
     }
 
     parse_weather_time <- function(x, tz = "UTC") {
@@ -3699,6 +2817,7 @@ mod_preProdAdvApp_server <- function(id, data){
 
     build_decision_table_data <- function(dt,
                                           initial_stamp,
+                                          table_stamp = "__none__",
                                           plot_stamp = "__none__",
                                           final_stamp = "__none__",
                                           final_overrides = NULL) {
@@ -3706,6 +2825,7 @@ mod_preProdAdvApp_server <- function(id, data){
       base_df <- cgiarPipeline::build_prodadv_decision_table_data(
         dt = dt,
         initial_stamp = initial_stamp,
+        table_stamp = table_stamp,
         plot_stamp = plot_stamp,
         final_stamp = final_stamp,
         final_overrides = final_overrides
@@ -3731,6 +2851,11 @@ mod_preProdAdvApp_server <- function(id, data){
 
       display_df$initial_decision <- sapply(
         base_df$initial_decision,
+        make_decision_badge
+      )
+
+      display_df$table_decision <- sapply(
+        base_df$table_decision,
         make_decision_badge
       )
 
@@ -3798,6 +2923,9 @@ mod_preProdAdvApp_server <- function(id, data){
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
+
+    # Track which trait directions were auto-set by weight observer (trait_id -> TRUE/FALSE)
+    direction_auto_set <- reactiveVal(list())
     ############################################################################
     # show shinyWidgets until the user can use the module
     observeEvent(c(data(), input$staStamp, input$mtaStamp, input$traitsToEvaluate), {
@@ -3926,262 +3054,6 @@ mod_preProdAdvApp_server <- function(id, data){
       updateSelectInput(session, "traitsToEvaluate", choices = traitsProdAdv)
     })
 
-    # --- Observer: Stability/adaptability checkbox availability (Task 8.1) ---
-    observe({
-      req(data())
-      req(input$mtaStamp)
-
-      dt <- data()
-      model_type <- detect_gxe_model(dt$predictions, input$mtaStamp, dt$modeling)
-
-      # Treat unexpected model values as "none" (Req 2.5)
-      valid_models <- c("fw", "fa", "cs_diag", "none")
-      if (!(model_type %in% valid_models)) {
-        model_type <- "none"
-      }
-
-      # Define all possible choices in the desired order
-      all_choices <- c(
-        "Pair-wise trait scatterplot",
-        "Stability/adaptability plot",
-        "Radar plot",
-        "Performance across locations",
-        "Per-variety trait performance profile",
-        "Relatedness plot"
-      )
-
-      if (model_type == "none") {
-        # Remove "Stability/adaptability plot" from choices
-        current_choices <- all_choices[all_choices != "Stability/adaptability plot"]
-      } else {
-        # Include "Stability/adaptability plot" in choices
-        current_choices <- all_choices
-      }
-
-      # Preserve existing selections but remove stability if model is "none"
-      current_selected <- input$reviewPlots
-      if (model_type == "none") {
-        current_selected <- setdiff(current_selected, "Stability/adaptability plot")
-      }
-
-      updateCheckboxGroupInput(
-        session,
-        "reviewPlots",
-        choices = current_choices,
-        selected = current_selected
-      )
-    })
-
-    # --- Stability trait selector (Task 8.2 server) ---
-    output$stabilityTraitUI <- renderUI({
-      req(data())
-      req(input$mtaStamp)
-
-      dt <- data()
-      dtPred <- dt$predictions
-      dtPred <- dtPred[dtPred$analysisId %in% input$mtaStamp, , drop = FALSE]
-      trait_choices <- unique(dtPred$trait)
-      req(length(trait_choices) >= 1)
-
-      selectInput(
-        ns("stabilityTrait"),
-        label = tags$span(
-          "Trait for stability plot",
-          tags$i(
-            class = "glyphicon glyphicon-info-sign",
-            style = "color:#FFFFFF",
-            title = "Select which trait to visualize in the stability/adaptability plot."
-          )
-        ),
-        choices = trait_choices,
-        selected = trait_choices[1]
-      )
-    })
-
-    # --- Stability model type label (Task 8.2 server) ---
-    output$stabilityModelLabel <- renderUI({
-      req(data())
-      req(input$mtaStamp)
-
-      model_type <- detect_gxe_model(data()$predictions, input$mtaStamp, data()$modeling)
-
-      model_label <- switch(
-        model_type,
-        "fw" = "Finlay-Wilkinson (reaction norm)",
-        "fa" = "Factor Analytic (biplot)",
-        "cs_diag" = "Compound Symmetry / Diagonal (mean vs. CV)",
-        "Model not detected"
-      )
-
-      tags$span(
-        style = "color: #FFFFFF; font-style: italic;",
-        icon("chart-line"),
-        paste("Detected model:", model_label)
-      )
-    })
-
-    # --- Stability plot informational message (Task 8.3 server) ---
-    output$stabilityPlotMessage <- renderUI({
-      req(data())
-      req(input$mtaStamp)
-
-      model_type <- detect_gxe_model(data()$predictions, input$mtaStamp, data()$modeling)
-
-      valid_models <- c("fw", "fa", "cs_diag")
-      if (!(model_type %in% valid_models)) {
-        return(tags$p(
-          style = "color: #999; padding: 10px;",
-          "No GxE model detected for this MTA stamp. Stability plot is not available."
-        ))
-      }
-
-      model_desc <- switch(
-        model_type,
-        "fw" = "Showing Finlay-Wilkinson reaction norm plot (mean performance vs. FW regression slope).",
-        "fa" = "Showing Factor Analytic biplot (genotype scores on PC1 vs. PC2 with environment loadings).",
-        "cs_diag" = "Showing mean vs. coefficient of variation (CV) stability plot."
-      )
-
-      tags$p(
-        style = "color: #555; padding: 10px;",
-        icon("info-circle"),
-        model_desc
-      )
-    })
-
-    # --- GxE model type reactive (Task 9.1) ---
-    gxe_model_type <- reactive({
-      req(data())
-      req(input$mtaStamp)
-      detect_gxe_model(data()$predictions, input$mtaStamp, data()$modeling)
-    })
-
-    # --- Stability plot data reactive (Task 9.2) ---
-    stability_plot_data <- reactive({
-      req(input$stabilityTrait)
-      model_type <- gxe_model_type()
-      req(model_type)
-      validate(need(model_type %in% c("fw", "fa", "cs_diag"), "No GxE model detected"))
-
-      dt <- data()
-      preds <- dt$predictions
-      trait <- input$stabilityTrait
-      mta_stamp <- input$mtaStamp
-      overrides <- plot_selection_overrides()
-      review_df <- review_plot_data()$review_df
-
-      # Check for sufficient data (Req 11.6)
-      validate(need(
-        nrow(preds[preds$analysisId == mta_stamp & preds$trait == trait, ]) > 0,
-        "No prediction data available for the selected analysis and trait"
-      ))
-
-      result <- switch(model_type,
-        "fw" = {
-          fw_result <- extract_fw_data(preds, review_df, mta_stamp, trait, overrides)
-          # Validate FW slope availability (Req 3.6, 11.2)
-          validate(need(nrow(fw_result) > 0, "FW slopes not available for this trait"))
-          # Validate minimum genotype count (Req 11.5)
-          validate(need(
-            nrow(fw_result) >= 4,
-            "Insufficient data for stability visualization (minimum 4 genotypes required)"
-          ))
-          list(data = fw_result, model_type = "fw")
-        },
-        "cs_diag" = {
-          cs_result <- compute_gxe_stability(preds, review_df, mta_stamp, trait, overrides)
-          # Validate minimum genotype count (Req 11.5)
-          validate(need(
-            nrow(cs_result) >= 4,
-            "Insufficient data for stability visualization (minimum 4 genotypes required)"
-          ))
-          list(data = cs_result, model_type = "cs_diag")
-        },
-        "fa" = {
-          fa_result <- extract_fa_data(preds, review_df, mta_stamp, trait, overrides)
-          if (fa_result$fallback) {
-            # FA fallback to CS/Diag (Req 5.4, 11.1)
-            validate(need(
-              nrow(fa_result$fallback_data) >= 4,
-              "Insufficient data for stability visualization (minimum 4 genotypes required)"
-            ))
-            list(data = fa_result$fallback_data, model_type = "cs_diag", is_fallback = TRUE)
-          } else {
-            validate(need(
-              nrow(fa_result$genotype_scores) >= 4,
-              "Insufficient data for stability visualization (minimum 4 genotypes required)"
-            ))
-            list(data = fa_result, model_type = "fa")
-          }
-        }
-      )
-
-      result
-    })
-
-    # --- Stability plot highlighted designation reactiveVal (shared) ---
-    highlighted_stability_designation <- reactiveVal(NULL)
-
-    # --- Stability plot informational message (Task 9.3 - fallback) ---
-    output$stabilityPlotMessage <- renderUI({
-      plot_info <- stability_plot_data()
-      if (isTRUE(plot_info$is_fallback)) {
-        tags$p(
-          style = "color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 4px;",
-          icon("info-circle"),
-          "FA biplot requires at least 3 environments; showing mean vs. stability plot instead"
-        )
-      } else {
-        NULL
-      }
-    })
-
-    # --- Stability plot renderPlotly (Task 9.3) ---
-    output$stabilityPlot <- plotly::renderPlotly({
-      plot_info <- stability_plot_data()
-      req(plot_info)
-
-      highlighted <- highlighted_stability_designation()
-      source_id <- ns("stabilityPlot")
-
-      # Get per-env predictions for adaptive responder annotations
-      dt <- data()
-      preds <- dt$predictions
-      mta_stamp <- input$mtaStamp
-      trait <- input$stabilityTrait
-      mta_preds <- preds[preds$analysisId == mta_stamp & preds$trait == trait, ]
-      excluded_types <- c("designation", "fw_slope", "GenCorrMat")
-      env_preds <- mta_preds[!(mta_preds$effectType %in% excluded_types),
-                             c("designation", "environment", "predictedValue")]
-
-      switch(plot_info$model_type,
-        "fw" = build_fw_reaction_norm_plotly(plot_info$data, highlighted, source_id, env_preds),
-        "cs_diag" = build_stability_biplot_plotly(plot_info$data, highlighted, source_id, env_preds),
-        "fa" = build_fa_biplot_plotly(plot_info$data, highlighted, source_id, env_preds)
-      )
-    })
-
-    # --- Click-to-highlight event handler for stability plot (Task 9.4) ---
-    observeEvent(
-      plotly::event_data("plotly_click", source = ns("stabilityPlot")),
-      {
-        click_data <- plotly::event_data("plotly_click", source = ns("stabilityPlot"))
-        req(click_data)
-
-        clicked_designation <- click_data$customdata
-        if (is.null(clicked_designation) || length(clicked_designation) == 0) return()
-        clicked_designation <- clicked_designation[1]
-
-        # Toggle: if same designation clicked again, clear highlight; otherwise set new
-        current <- highlighted_stability_designation()
-        if (!is.null(current) && current == clicked_designation) {
-          highlighted_stability_designation(NULL)
-        } else {
-          highlighted_stability_designation(clicked_designation)
-        }
-      },
-      ignoreInit = TRUE
-    )
 
     output$customWeightsUI <- renderUI({
       req(input$traitsToEvaluate)
@@ -4297,7 +3169,12 @@ mod_preProdAdvApp_server <- function(id, data){
                 ns(paste0("direction_", safe_trait)),
                 "Direction",
                 choices = c("Higher is better", "Lower is better"),
-                selected = "Higher is better"
+                selected = {
+                  # Derive initial direction from weight if available
+                  weight_val <- input[[paste0("weight_", safe_trait)]]
+                  derived <- derive_direction_from_weight(weight_val)
+                  if (!is.null(derived)) derived else "Higher is better"
+                }
               )
             ),
 
@@ -4395,19 +3272,30 @@ mod_preProdAdvApp_server <- function(id, data){
           }
 
           if (rule_type == "Threshold") {
+            # Default threshold based on direction:
+            # "Higher is better" -> min (everything above min passes)
+            # "Lower is better" -> max (everything below max passes)
+            direction_val <- input[[paste0("direction_", safe_trait)]]
+            # Also check weight sign as fallback (direction input may not exist yet)
+            if (is.null(direction_val)) {
+              weight_val <- input[[paste0("weight_", safe_trait)]]
+              direction_val <- derive_direction_from_weight(weight_val)
+            }
+            threshold_default <- if (!is.null(direction_val) && identical(direction_val, "Lower is better")) rng_max else rng_min
+
             tagList(
               sliderInput(
                 ns(paste0("minThresholdSlider_", safe_trait)),
                 "Threshold value",
                 min = rng_min,
                 max = rng_max,
-                value = rng_min,
+                value = threshold_default,
                 step = slider_step
               ),
               numericInput(
                 ns(paste0("minThreshold_", safe_trait)),
                 "Threshold value",
-                value = rng_min,
+                value = threshold_default,
                 min = rng_min,
                 max = rng_max,
                 step = slider_step
@@ -4661,6 +3549,60 @@ mod_preProdAdvApp_server <- function(id, data){
     })
 
     ########################################
+    # Direction auto-sync: weight sign → direction dropdown
+    ########################################
+
+    observe({
+      req(input$traitsToEvaluate)
+
+      lapply(input$traitsToEvaluate, function(trait_name) {
+        safe_trait <- sanitize_trait_id(trait_name)
+        weight_id <- paste0("weight_", safe_trait)
+        direction_id <- paste0("direction_", safe_trait)
+
+        # Observer: when weight changes, auto-update direction
+        observeEvent(input[[weight_id]], {
+          weight_val <- input[[weight_id]]
+              "| weight_val:", weight_val, "\n")
+          new_direction <- derive_direction_from_weight(weight_val)
+
+          if (is.null(new_direction)) {
+            # weight == 0, NA, or non-finite: warn and exclude
+            if (!is.null(weight_val) && is.finite(weight_val) && weight_val == 0) {
+              showNotification(
+                paste0("Trait '", trait_name, "' excluded from index: weight is 0."),
+                type = "warning", duration = 5
+              )
+            }
+            return()
+          }
+
+          current_direction <- input[[direction_id]]
+              "| direction_id:", direction_id, "\n")
+          if (!identical(current_direction, new_direction)) {
+            updateSelectInput(session, direction_id, selected = new_direction)
+            # Mark as auto-set
+            auto_map <- direction_auto_set()
+            auto_map[[safe_trait]] <- TRUE
+            direction_auto_set(auto_map)
+          } else {
+          }
+        }, ignoreInit = TRUE)
+
+        # Observer: detect manual direction override
+        observeEvent(input[[direction_id]], {
+          auto_map <- direction_auto_set()
+          if (isTRUE(auto_map[[safe_trait]])) {
+            # This change was triggered by auto-sync; clear the flag
+            auto_map[[safe_trait]] <- FALSE
+            direction_auto_set(auto_map)
+          }
+          # If flag was already FALSE, this is a manual override — preserved until next weight sign change
+        }, ignoreInit = TRUE)
+      })
+    })
+
+    ########################################
     #Pre-selection (idx4)
     ########################################
 
@@ -4786,6 +3728,12 @@ mod_preProdAdvApp_server <- function(id, data){
       out <- lapply(input$traitsToEvaluate, function(trait_name) {
         safe_trait <- sanitize_trait_id(trait_name)
 
+        # Exclude trait if weight == 0
+        weight_val <- input[[paste0("weight_", safe_trait)]]
+        if (!is.null(weight_val) && is.finite(weight_val) && weight_val == 0) {
+          return(NULL)
+        }
+
         dtPred_trait <- dtPred[
           dtPred$trait == trait_name &
             dtPred$effectType == "designation",
@@ -4806,7 +3754,10 @@ mod_preProdAdvApp_server <- function(id, data){
 
         direction <- input[[paste0("direction_", safe_trait)]]
         if (is.null(direction) || !nzchar(direction)) {
-          direction <- "Higher is better"
+          # Fallback: derive from weight sign if direction UI not rendered yet
+          weight_val <- input[[paste0("weight_", safe_trait)]]
+          direction <- derive_direction_from_weight(weight_val)
+          if (is.null(direction)) direction <- "Higher is better"
         }
 
         rule_list <- list(
@@ -4824,7 +3775,8 @@ mod_preProdAdvApp_server <- function(id, data){
           threshold <- input[[paste0("minThreshold_", safe_trait)]]
 
           if (is.null(threshold) || !is.finite(threshold)) {
-            threshold <- rng[1]
+            # Default: min for "Higher is better", max for "Lower is better"
+            threshold <- if (identical(direction, "Lower is better")) rng[2] else rng[1]
           }
 
           rule_list$threshold <- threshold
@@ -4896,6 +3848,8 @@ mod_preProdAdvApp_server <- function(id, data){
       })
 
       names(out) <- input$traitsToEvaluate
+      # Remove NULL entries (traits excluded due to weight == 0)
+      out <- out[!vapply(out, is.null, logical(1))]
       out
     })
 
@@ -4969,79 +3923,157 @@ mod_preProdAdvApp_server <- function(id, data){
 
       args <- initial_selection_args()
 
-      # Step 1: Check trait quality first
-      quality_check <- tryCatch({
-        cgiarPipeline::checkTraitQuality(args = args, dt_object = data())
+      # Step 1: Run assessment
+      assessment_result <- tryCatch({
+        cgiarPipeline::assessSelectionQuality(args = args, dt_object = data())
       }, error = function(e) {
-        list(has_issues = FALSE, flagged_traits = character(0), flag_reasons = list())
+        message("[PAM Assessment] Error: ", e$message)
+        NULL
       })
 
-      # Cache flagged traits for use by the confirm handler
-      flagged_traits_cache(quality_check$flagged_traits)
+      # Store assessment result for the modal handlers
+      assessment_cache(assessment_result)
 
-      # If traits are flagged, show modal with per-trait checkboxes
-      if (quality_check$has_issues) {
+      # Step 2: Show Assessment Modal (always)
+      if (is.null(assessment_result)) {
+        # Graceful degradation: simplified modal
+        showModal(modalDialog(
+          title = "Selection Quality Assessment",
+          tags$p(style = "color:#856404; background:#fff3cd; padding:12px; border-radius:4px;",
+                 icon("triangle-exclamation"),
+                 " Assessment could not be completed. Proceed with caution."),
+          tags$p("All traits will be included by default."),
+          footer = tagList(
+            actionButton(ns("proceedSelection"), "Proceed with selection", icon = icon("play-circle"), class = "btn-success"),
+            modalButton("Go back")
+          ),
+          size = "l",
+          easyClose = FALSE
+        ))
+      } else {
+        # Full assessment modal (Tasks 3.2 & 3.3)
+        ta <- assessment_result$trait_assessments
 
-        # Build checkbox UI for each flagged trait
-        checkbox_ui <- lapply(quality_check$flagged_traits, function(t) {
+        # Build per-trait rows with color-coded badges and keep/exclude toggles
+        trait_rows <- lapply(seq_len(nrow(ta)), function(i) {
+          t_name <- ta$trait[i]
+          rec <- ta$integrated_recommendation[i]
+          just <- ta$justification[i]
+          keep_default <- ta$default_keep[i]
+          safe_name <- gsub("[^A-Za-z0-9_]", "_", t_name)
+
+          # Color-coded badge based on recommendation
+          badge_color <- if (rec == "Recommended to keep") "#28a745"
+                         else if (grepl("Use with caution", rec)) "#ffc107"
+                         else "#dc3545"
+          badge_text_color <- if (grepl("Use with caution", rec)) "#000" else "#fff"
+
           tags$div(
-            style = "margin-bottom:8px; padding:8px; background:#fff3cd; border-radius:4px;",
-            checkboxInput(
-              inputId = ns(paste0("excludeTrait_", gsub("[^A-Za-z0-9_]", "_", t))),
-              label = tags$span(
-                tags$strong(t), " — ", quality_check$flag_reasons[[t]]
+            style = "margin-bottom:10px; padding:10px; border:1px solid #dee2e6; border-radius:6px; background:#f8f9fa;",
+            fluidRow(
+              column(8,
+                tags$div(
+                  tags$strong(t_name),
+                  tags$span(
+                    style = paste0("display:inline-block; margin-left:8px; padding:2px 8px; border-radius:4px; font-size:12px; background:", badge_color, "; color:", badge_text_color, ";"),
+                    rec
+                  )
+                ),
+                tags$p(style = "margin-top:4px; color:#555; font-size:13px;", just)
               ),
-              value = TRUE  # default: exclude flagged traits
+              column(4, style = "text-align:right; padding-top:10px;",
+                checkboxInput(
+                  inputId = ns(paste0("assessKeep_", safe_name)),
+                  label = "Keep in index",
+                  value = keep_default
+                )
+              )
             )
           )
         })
 
+        # Summary sentence (Requirement 5.7)
+        n_keep <- sum(ta$integrated_recommendation == "Recommended to keep")
+        n_total <- nrow(ta)
+        boundary_status <- if (!is.null(assessment_result$boundary_stats$median_z) &&
+                               !is.na(assessment_result$boundary_stats$median_z) &&
+                               assessment_result$boundary_stats$median_z >= 2) "adequate" else "limited"
+        summary_text <- paste0("Overall: ", n_keep, " of ", n_total,
+                               " traits recommended to keep. Boundary separability is ",
+                               boundary_status, " at current selection intensity.")
+
         showModal(modalDialog(
-          title = tags$span(icon("triangle-exclamation"), " Trait quality warning"),
-          tags$p("The following traits have low prediction quality for ranking candidates."),
-          tags$p("Checked traits will be ", tags$strong("excluded"), " from the selection index."),
-          tags$p("Uncheck a trait to ", tags$strong("keep it"), " in the analysis despite the warning."),
+          title = "Selection Quality Assessment",
+          # Header line (Requirement 5.1)
+          tags$p(strong(paste0("Selection intensity: ", assessment_result$selection_intensity, "% (",
+                               assessment_result$n_selected, " of ",
+                               assessment_result$n_total_candidates, " candidates selected)"))),
           tags$hr(),
-          do.call(tagList, checkbox_ui),
+          # Integrated trait table (Requirements 5.2, 5.3, 5.8, 5.9)
+          do.call(tagList, trait_rows),
           tags$hr(),
-          tags$p(style = "color:#666; font-size:12px;",
-                 "Traits with low RSR or reliability may produce unreliable rankings. ",
-                 "Including them will still apply the reliability-weighted penalty in the index."),
+          # Overall summary (Requirement 5.7)
+          tags$p(style = "font-style:italic; color:#666;", summary_text),
           footer = tagList(
-            actionButton(ns("confirmTraitSelection"), "Proceed", icon = icon("play-circle"), class = "btn-success"),
-            modalButton("Cancel")
+            actionButton(ns("proceedSelection"), "Proceed with selection", icon = icon("play-circle"), class = "btn-success"),
+            modalButton("Go back")
           ),
-          size = "m",
+          size = "l",
           easyClose = FALSE
         ))
-      } else {
-        # No issues — run directly
-        run_initial_selection(args, exclude_traits = NULL)
       }
     })
 
-    # Store the flagged traits for use in the confirm handler
-    flagged_traits_cache <- reactiveVal(character(0))
+    # Store the assessment result for use by the modal handlers
+    assessment_cache <- reactiveVal(NULL)
 
-    observeEvent(input$confirmTraitSelection, {
+    # Store persistent post-modal warnings for Review Output tab (Task 5.2)
+    assessment_warnings_cache <- reactiveVal(NULL)
+
+    # Task 3.4: "Proceed with selection" handler for the Assessment Modal
+    observeEvent(input$proceedSelection, {
       removeModal()
 
       args <- initial_selection_args()
-      flagged <- flagged_traits_cache()
+      assessment <- assessment_cache()
 
-      # Read which traits the user chose to exclude (checked = exclude)
+      if (is.null(assessment)) {
+        # Graceful degradation: no assessment available, proceed with all traits
+        run_initial_selection(args, exclude_traits = NULL)
+        return()
+      }
+
+      ta <- assessment$trait_assessments
+
+      # Collect keep/exclude states from checkbox inputs
       exclude_traits <- character(0)
-      for (t in flagged) {
-        safe_t <- gsub("[^A-Za-z0-9_]", "_", t)
-        if (isTRUE(input[[paste0("excludeTrait_", safe_t)]])) {
-          exclude_traits <- c(exclude_traits, t)
+      for (i in seq_len(nrow(ta))) {
+        t_name <- ta$trait[i]
+        safe_name <- gsub("[^A-Za-z0-9_]", "_", t_name)
+        keep_value <- input[[paste0("assessKeep_", safe_name)]]
+
+        # If checkbox is unchecked (FALSE or NULL), trait is excluded
+        if (!isTRUE(keep_value)) {
+          exclude_traits <- c(exclude_traits, t_name)
         }
+      }
+
+      # Validate: at least one trait must be kept
+      if (length(exclude_traits) == length(ta$trait)) {
+        showNotification(
+          "At least one trait must be kept in the selection index.",
+          type = "error",
+          duration = 5
+        )
+        return()
       }
 
       if (length(exclude_traits) == 0) exclude_traits <- NULL
 
       run_initial_selection(args, exclude_traits = exclude_traits)
     })
+
+
 
     run_initial_selection <- function(args, exclude_traits) {
       args$excludeTraits <- exclude_traits
@@ -5073,24 +4105,74 @@ mod_preProdAdvApp_server <- function(id, data){
       req(result)
       data(result)
 
-      # Show info about flagged traits that were kept
-      flagged <- attr(result, "pam_flagged_traits")
-      if (!is.null(flagged) && length(flagged) > 0) {
-        kept <- setdiff(flagged, exclude_traits)
-        if (length(kept) > 0) {
-          showNotification(
-            paste0("Note: Traits with low ranking quality included in analysis: ",
-                   paste(kept, collapse = ", "), ". Reliability weighting was applied."),
-            type = "warning",
-            duration = 10
-          )
-        }
+      # Store assessment metadata in the data object (Task 5.3)
+      assessment <- assessment_cache()
+      if (!is.null(assessment)) {
+        ta <- assessment$trait_assessments
+        kept_traits <- setdiff(ta$trait, if (!is.null(exclude_traits)) exclude_traits else character(0))
+
+        metadata <- data.frame(
+          trait = ta$trait,
+          integrated_recommendation = ta$integrated_recommendation,
+          breeder_override = ta$trait %in% kept_traits & ta$integrated_recommendation != "Recommended to keep",
+          selection_intensity = assessment$selection_intensity,
+          stringsAsFactors = FALSE
+        )
+
+        # Attach to the result object
+        result_with_meta <- data()
+        attr(result_with_meta, "pam_assessment_metadata") <- metadata
+        data(result_with_meta)
       }
 
       showNotification(
         "Initial selection completed successfully.",
         type = "message"
       )
+
+      # Post-modal warning: overridden traits notification (Task 5.1)
+      assessment <- assessment_cache()
+      if (!is.null(assessment)) {
+        ta <- assessment$trait_assessments
+        # Find traits that are KEPT but had a non-"Recommended to keep" recommendation
+        kept_traits <- setdiff(ta$trait, if (!is.null(exclude_traits)) exclude_traits else character(0))
+        overridden <- ta[ta$trait %in% kept_traits & ta$integrated_recommendation != "Recommended to keep", ]
+
+        if (nrow(overridden) > 0) {
+          showNotification(
+            paste0("Selection executed. ", nrow(overridden), " trait(s) kept with caution \u2014 see Review Output for guidance."),
+            type = "warning",
+            duration = 10
+          )
+        }
+
+        # Store persistent warnings for Review Output tab (Task 5.2)
+        if (nrow(overridden) > 0) {
+          si <- assessment$selection_intensity
+          warnings_list <- lapply(seq_len(nrow(overridden)), function(i) {
+            t_name <- overridden$trait[i]
+            rec <- overridden$integrated_recommendation[i]
+
+            if (rec == "Use with caution (boundary separable)") {
+              paste0("Trait '", t_name, "' \u2014 Use with caution (boundary separable) at ", si,
+                     "% selection intensity. Do not override the index-based ranking using this trait alone. Trust the composite index.")
+            } else if (rec == "Use with caution (boundary non-separable)") {
+              paste0("Trait '", t_name, "' \u2014 Use with caution (boundary non-separable) at ", si,
+                     "% selection intensity. Entries near the selection boundary may not be reliably distinguished on this trait. Review boundary candidates manually before finalizing advancement.")
+            } else if (rec == "Recommended to exclude") {
+              paste0("Trait '", t_name, "' \u2014 Recommended to exclude (kept by breeder override) at ", si,
+                     "% selection intensity. This trait adds substantial uncertainty to the index. Boundary decisions involving this trait should be treated as provisional. Strongly consider reviewing all entries within 5 ranks of the cutoff.")
+            } else {
+              NULL
+            }
+          })
+          assessment_warnings_cache(Filter(Negate(is.null), warnings_list))
+        } else {
+          assessment_warnings_cache(NULL)
+        }
+      } else {
+        assessment_warnings_cache(NULL)
+      }
 
       # Switch top-level tab to Review output
       updateTabsetPanel(
@@ -5106,6 +4188,25 @@ mod_preProdAdvApp_server <- function(id, data){
         selected = "selection_stamps"
       )
     }
+
+    # Render persistent assessment warnings in Review Output tab (Task 5.2)
+    output$assessmentWarningsUI <- renderUI({
+      warnings <- assessment_warnings_cache()
+      if (is.null(warnings) || length(warnings) == 0) return(NULL)
+
+      warning_divs <- lapply(warnings, function(w) {
+        tags$div(
+          style = "margin-bottom:8px; padding:10px; background:#fff3cd; border:1px solid #ffc107; border-radius:4px; color:#856404;",
+          icon("triangle-exclamation"),
+          tags$span(w)
+        )
+      })
+
+      tagList(
+        tags$h5(style = "color:#856404; margin-top:15px;", icon("triangle-exclamation"), " Assessment Warnings"),
+        do.call(tagList, warning_divs)
+      )
+    })
 
     ############################################################################
     #Review Tabs
@@ -5124,6 +4225,7 @@ mod_preProdAdvApp_server <- function(id, data){
       dtIdxD <- dt[dt$module %in% c("indexD"), , drop = FALSE]
 
       dtInitSel  <- dt[dt$module == "Init_prodAdv",  , drop = FALSE]
+      dtTableSel <- dt[dt$module == "Table_prodAdv", , drop = FALSE]
       dtPlotSel  <- dt[dt$module == "Plot_prodAdv",  , drop = FALSE]
       dtFinalSel <- dt[dt$module == "Final_prodAdv", , drop = FALSE]
 
@@ -5131,6 +4233,7 @@ mod_preProdAdvApp_server <- function(id, data){
       stampsMta      <- make_stamp_choices(dtMta)
       stampsIdxD     <- make_stamp_choices(dtIdxD)
       stampsInitSel  <- make_stamp_choices(dtInitSel)
+      stampsTableSel <- make_stamp_choices(dtTableSel)
       stampsPlotSel  <- make_stamp_choices(dtPlotSel)
       stampsFinalSel <- make_stamp_choices(dtFinalSel)
 
@@ -5171,18 +4274,18 @@ mod_preProdAdvApp_server <- function(id, data){
         selected = current_plot
       )
 
-      # Table selection stamp uses same Plot_prodAdv stamps (table selections are stored as Plot_prodAdv)
+      # Table selection stamp uses Table_prodAdv stamps
       updateSelectInput(
         session,
         "tableSelectionStampLoad",
-        choices = c("Start from initial selection" = "__none__", stampsPlotSel)
+        choices = c("Start from initial selection" = "__none__", stampsTableSel)
       )
 
       # Viz stamp dropdowns
       updateSelectInput(
         session,
         "vizTableSelectionStamp",
-        choices = c("Use initial selection" = "__none__", stampsPlotSel)
+        choices = c("Use initial selection" = "__none__", stampsTableSel)
       )
 
       updateSelectInput(
@@ -5191,6 +4294,8 @@ mod_preProdAdvApp_server <- function(id, data){
         choices = c("No final selection" = "__none__", stampsFinalSel),
         selected = current_final
       )
+
+      # (finalInitialStamp/finalTableStamp/finalPlotStamp removed - now using report stamp inputs)
     })
 
     output$selectionModelingTable <- DT::renderDT({
@@ -5242,14 +4347,6 @@ mod_preProdAdvApp_server <- function(id, data){
         , drop = FALSE
       ]
 
-      # Check for flagged (but kept) traits
-      flag_df <- dt$modeling[
-        dt$modeling$analysisId %in% input$initialSelectionStamp &
-          dt$modeling$module == "Init_prodAdv" &
-          dt$modeling$parameter == "flagged_low_quality",
-        , drop = FALSE
-      ]
-
       ui_parts <- list()
 
       if (nrow(excl_df) > 0) {
@@ -5259,20 +4356,6 @@ mod_preProdAdvApp_server <- function(id, data){
             tags$strong(icon("circle-xmark"), " Traits excluded by user:"),
             tags$p(paste(excl_df$trait, collapse = ", ")),
             tags$p("These traits were removed from the selection index at your request.")
-          )
-        ))
-      }
-
-      if (nrow(flag_df) > 0) {
-        flag_text <- paste(sapply(seq_len(nrow(flag_df)), function(i) {
-          paste0(flag_df$trait[i], ": ", flag_df$value[i])
-        }), collapse = "; ")
-        ui_parts <- c(ui_parts, list(
-          div(
-            style = "background-color:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:12px; border-radius:6px; margin-bottom:12px;",
-            tags$strong(icon("triangle-exclamation"), " Traits with low ranking quality (kept in analysis):"),
-            tags$p(flag_text),
-            tags$p("These traits were flagged but included in the selection. Consider their reliability when interpreting results.")
           )
         ))
       }
@@ -5299,12 +4382,14 @@ mod_preProdAdvApp_server <- function(id, data){
       }
 
       tryCatch({
-        cgiarPipeline::build_prodadv_decision_table_data(
+        result <- cgiarPipeline::build_prodadv_decision_table_data(
           dt = dt,
           initial_stamp = initial_stamp,
-          plot_stamp = if (!is.null(table_stamp)) table_stamp else "__none__",
+          table_stamp = if (!is.null(table_stamp)) table_stamp else "__none__",
+          plot_stamp = "__none__",
           final_stamp = "__none__"
         )
+        result
       }, error = function(e) {
         showNotification(paste("Decision table error:", e$message), type = "error", duration = 10)
         NULL
@@ -5337,6 +4422,8 @@ mod_preProdAdvApp_server <- function(id, data){
       tbl <- table_decision_data()
       req(tbl)
 
+      tryCatch({
+
       # Get trait columns from modeling
       dt <- data()
       modeling_init <- dt$modeling[
@@ -5361,6 +4448,11 @@ mod_preProdAdvApp_server <- function(id, data){
 
       # Helper: compute gradient intensity (5 levels based on 20th percentile bins)
       # Returns opacity multiplier 0.15-1.0 for pronounced gradient
+      # @param values Numeric vector of trait values.
+      # @param status Character vector of decision status per row.
+      # @param higher_is_better Logical. If TRUE, higher values get higher opacity
+      #   for SELECTED; if FALSE, lower values get higher opacity for SELECTED.
+      # @return Numeric vector of opacity values in [0.15, 1.0].
       get_quintile_opacity <- function(values, status, higher_is_better = TRUE) {
         n <- length(values)
         opacity <- rep(0.5, n)  # default mid
@@ -5371,19 +4463,37 @@ mod_preProdAdvApp_server <- function(id, data){
         for (i in which(valid)) {
           v <- numeric_vals[i]
           if (status[i] == "SELECTED") {
-            # For selected: darker = higher value
-            if (v >= quants[4]) opacity[i] <- 1.0
-            else if (v >= quants[3]) opacity[i] <- 0.75
-            else if (v >= quants[2]) opacity[i] <- 0.5
-            else if (v >= quants[1]) opacity[i] <- 0.3
-            else opacity[i] <- 0.15
+            if (higher_is_better) {
+              # Higher values -> higher opacity for SELECTED
+              if (v >= quants[4]) opacity[i] <- 1.0
+              else if (v >= quants[3]) opacity[i] <- 0.75
+              else if (v >= quants[2]) opacity[i] <- 0.5
+              else if (v >= quants[1]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            } else {
+              # Lower values -> higher opacity for SELECTED (inverted)
+              if (v <= quants[1]) opacity[i] <- 1.0
+              else if (v <= quants[2]) opacity[i] <- 0.75
+              else if (v <= quants[3]) opacity[i] <- 0.5
+              else if (v <= quants[4]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            }
           } else {
-            # For not selected: darker = lower value
-            if (v <= quants[1]) opacity[i] <- 1.0
-            else if (v <= quants[2]) opacity[i] <- 0.75
-            else if (v <= quants[3]) opacity[i] <- 0.5
-            else if (v <= quants[4]) opacity[i] <- 0.3
-            else opacity[i] <- 0.15
+            if (higher_is_better) {
+              # NOT SELECTED: lower values -> higher opacity
+              if (v <= quants[1]) opacity[i] <- 1.0
+              else if (v <= quants[2]) opacity[i] <- 0.75
+              else if (v <= quants[3]) opacity[i] <- 0.5
+              else if (v <= quants[4]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            } else {
+              # NOT SELECTED + Lower is better: higher values -> higher opacity
+              if (v >= quants[4]) opacity[i] <- 1.0
+              else if (v >= quants[3]) opacity[i] <- 0.75
+              else if (v >= quants[2]) opacity[i] <- 0.5
+              else if (v >= quants[1]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            }
           }
         }
         opacity
@@ -5403,10 +4513,28 @@ mod_preProdAdvApp_server <- function(id, data){
       # Build HTML display table
       display_df <- data.frame(designation = tbl$designation, stringsAsFactors = FALSE)
 
-      # Index value column with gradient
+      # Get trait rules for direction-aware opacity
+      # First try live UI rules, fallback to stored directions in modeling table
+      trait_rules <- tryCatch(trait_rules_input(), error = function(e) {
+        list()
+      })
+
+      # If trait_rules is empty (UI not available), get directions from modeling table
+      if (length(trait_rules) == 0) {
+        direction_rows <- modeling_init[modeling_init$parameter == "direction", , drop = FALSE]
+        for (i in seq_len(nrow(direction_rows))) {
+          tr_name <- direction_rows$trait[i]
+          if (!is.null(tr_name) && nzchar(tr_name)) {
+            trait_rules[[tr_name]] <- list(direction = direction_rows$value[i])
+          }
+        }
+      }
+
+
+      # Index value column with gradient (always higher_is_better = TRUE for index)
       if ("index_value" %in% colnames(tbl)) {
         idx_status <- tbl$initial_decision
-        idx_opacity <- get_quintile_opacity(tbl$index_value, idx_status)
+        idx_opacity <- get_quintile_opacity(tbl$index_value, idx_status, higher_is_better = TRUE)
         display_df$index_value <- mapply(function(val, st, op) {
           base_col <- if (st == "SELECTED") col_selected else if (st == "CHECK") col_check else col_not_selected
           bg <- blend_color(base_col, op)
@@ -5418,25 +4546,21 @@ mod_preProdAdvApp_server <- function(id, data){
       # Trait columns with gradient
       # Get available trait decision columns from the data
       avail_trait_decisions <- grep("_trait_decision$", colnames(tbl), value = TRUE)
-      
-      # Debug: show what columns are available
-      if (length(avail_trait_decisions) == 0) {
-        showNotification(
-          paste("Debug: No _trait_decision columns found in tbl. Columns:", paste(colnames(tbl), collapse=", ")),
-          type = "warning", duration = 15
-        )
-      }
-      
+
       for (tr in selected_traits) {
         trait_decision_col <- paste0(tr, "_trait_decision")
         if (trait_decision_col %in% avail_trait_decisions) {
           trait_status <- tbl[[trait_decision_col]]
         } else {
-          # Trait decision not available — default all to SELECTED (no threshold applied)
+          # Trait decision not available â€” default all to SELECTED (no threshold applied)
           trait_status <- rep("SELECTED", nrow(tbl))
         }
         trait_vals <- tbl[[tr]]
-        tr_opacity <- get_quintile_opacity(trait_vals, trait_status)
+        # Look up direction from trait_rules_input() for direction-aware gradient
+        trait_direction <- trait_rules[[tr]]$direction
+        hib <- is.null(trait_direction) || identical(trait_direction, "Higher is better")
+            "| hib:", hib, "\n")
+        tr_opacity <- get_quintile_opacity(trait_vals, trait_status, higher_is_better = hib)
         display_df[[tr]] <- mapply(function(val, st, op) {
           base_col <- if (st == "SELECTED") col_selected else if (st == "CHECK") col_check else col_not_selected
           bg <- blend_color(base_col, op)
@@ -5452,12 +4576,13 @@ mod_preProdAdvApp_server <- function(id, data){
       })
 
       # Table selection column (dropdown, same as old final_decision)
-      display_df$table_selection <- mapply(function(designation, initial_decision) {
+      display_df$table_selection <- mapply(function(designation, initial_decision, table_decision) {
         if (identical(initial_decision, "CHECK")) {
           bg <- col_check
           return(sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:center; font-weight:600;'>CHECK</div>", bg))
         }
-        selected_value <- initial_decision
+        # Use table_decision if available, otherwise fall back to initial
+        selected_value <- if (!is.na(table_decision) && nzchar(table_decision)) table_decision else initial_decision
         choices <- c("SELECTED", "NOT SELECTED", "REVISE")
         options <- vapply(choices, function(ch) {
           sel <- if (identical(ch, selected_value)) " selected" else ""
@@ -5465,7 +4590,10 @@ mod_preProdAdvApp_server <- function(id, data){
         }, character(1))
         sprintf("<select class='form-control table-decision-select' data-designation='%s' style='width:140px;'>%s</select>",
                 htmltools::htmlEscape(designation), paste(options, collapse = ""))
-      }, tbl$designation, tbl$initial_decision, SIMPLIFY = TRUE)
+      }, tbl$designation, tbl$initial_decision,
+         if ("table_decision" %in% colnames(tbl)) tbl$table_decision else rep(NA_character_, nrow(tbl)),
+         SIMPLIFY = TRUE)
+
 
       DT::datatable(
         display_df,
@@ -5493,17 +4621,34 @@ mod_preProdAdvApp_server <- function(id, data){
           });
         ", ns("tableDecisionChange")))
       )
+      }, error = function(e) {
+        DT::datatable(data.frame(error = e$message))
+      })
     })
 
     # Handle table selection changes from dropdown
-    observeEvent(input$tableDecisionChange, {
-      # Store overrides for saving later
-      showNotification(
-        paste0("Updated: ", input$tableDecisionChange$designation, " → ", input$tableDecisionChange$value),
-        type = "message", duration = 3
-      )
-    }, ignoreInit = TRUE)
+    table_selection_overrides <- reactiveVal(data.frame(
+      designation = character(),
+      table_decision = character(),
+      stringsAsFactors = FALSE
+    ))
 
+    observeEvent(input$tableDecisionChange, {
+      change <- input$tableDecisionChange
+      req(change$designation, change$value)
+
+      overrides <- table_selection_overrides()
+      if (change$designation %in% overrides$designation) {
+        overrides$table_decision[overrides$designation == change$designation] <- change$value
+      } else {
+        overrides <- rbind(overrides, data.frame(
+          designation = change$designation,
+          table_decision = change$value,
+          stringsAsFactors = FALSE
+        ))
+      }
+      table_selection_overrides(overrides)
+    }, ignoreInit = TRUE)
     # Save table selection
     observeEvent(input$saveTableSelection, {
       req(data())
@@ -5512,23 +4657,51 @@ mod_preProdAdvApp_server <- function(id, data){
       tbl <- table_decision_data()
       req(tbl)
 
-      # Get table selection values (from the editable table or initial decision)
-      table_decisions <- if ("table_selection" %in% colnames(tbl)) {
-        tbl[, c("designation", "table_selection"), drop = FALSE]
+      # Start from the base decisions (initial or previously loaded table stamp)
+      # If table_decision exists and has non-NA values, use it; otherwise fall back to initial_decision
+      base_decisions <- if ("table_decision" %in% colnames(tbl) && any(!is.na(tbl$table_decision))) {
+        df <- tbl[, c("designation", "table_decision"), drop = FALSE]
+        # Fill NAs with initial_decision where available
+        if ("initial_decision" %in% colnames(tbl)) {
+          df$table_decision <- ifelse(is.na(df$table_decision), tbl$initial_decision, df$table_decision)
+        }
+        df
+      } else if ("initial_decision" %in% colnames(tbl)) {
+        data.frame(designation = tbl$designation, table_decision = tbl$initial_decision, stringsAsFactors = FALSE)
       } else {
-        data.frame(designation = tbl$designation, table_selection = tbl$initial_decision, stringsAsFactors = FALSE)
+        data.frame(designation = tbl$designation, table_decision = "NOT SELECTED", stringsAsFactors = FALSE)
       }
-      names(table_decisions)[2] <- "plot_decision"
+
+      # Apply user overrides from dropdown changes
+      overrides <- table_selection_overrides()
+      if (nrow(overrides) > 0) {
+        for (i in seq_len(nrow(overrides))) {
+          idx <- which(base_decisions$designation == overrides$designation[i])
+          if (length(idx) > 0) {
+            base_decisions$table_decision[idx[1]] <- overrides$table_decision[i]
+          }
+        }
+      }
+
+      table_decisions <- base_decisions
 
       analysis_name <- if (nzchar(trimws(input$tableSelectionId))) trimws(input$tableSelectionId) else NULL
 
+      # Determine if there is a previous table selection stamp to chain from
+      table_stamp_load <- input$tableSelectionStampLoad
+      prev_table_stamp <- if (!is.null(table_stamp_load) && nzchar(table_stamp_load) && table_stamp_load != "__none__") {
+        table_stamp_load
+      } else {
+        NULL
+      }
+
       dt_object <- data()
       result <- tryCatch({
-        cgiarPipeline::savePlotProdAdvSelection(
+        cgiarPipeline::saveTableProdAdvSelection(
           analysisId = as.numeric(Sys.time()),
           analysisIdName = analysis_name,
           initialSelectionStamp = input$initialSelectionStamp,
-          plotSelectionStamp = NULL,
+          tableSelectionStamp = prev_table_stamp,
           manual_decisions = table_decisions,
           dt_object = dt_object
         )
@@ -5539,6 +4712,12 @@ mod_preProdAdvApp_server <- function(id, data){
 
       req(result)
       data(result)
+      # Reset table overrides after successful save
+      table_selection_overrides(data.frame(
+        designation = character(),
+        table_decision = character(),
+        stringsAsFactors = FALSE
+      ))
       showNotification("Table selection saved successfully.", type = "message")
     })
 
@@ -5556,13 +4735,12 @@ mod_preProdAdvApp_server <- function(id, data){
       out <- cgiarPipeline::build_prodadv_review_plot_data(
         dt = data(),
         initial_stamp = input$initialSelectionStamp,
+        table_stamp = if (!is.null(input$vizTableSelectionStamp) && input$vizTableSelectionStamp != "__none__") input$vizTableSelectionStamp else "__none__",
         plot_stamp = input$plotSelectionStamp,
         final_stamp = input$finalSelectionStamp
       )
 
       out$selected_plots <- input$reviewPlots
-      out$performanceProfileScale <- input$performanceProfileScale
-
       out
     }, ignoreInit = TRUE)
 
@@ -5572,7 +4750,7 @@ mod_preProdAdvApp_server <- function(id, data){
       req(plot_obj)
 
       trait_choices <- plot_obj$traits
-      # Always add index_value as an option — it's computed during initial selection
+      # Always add index_value as an option â€” it's computed during initial selection
       # and will be fetched from decision table data when selected
       trait_choices <- c("index_value", trait_choices)
       req(length(trait_choices) >= 1)
@@ -5829,7 +5007,7 @@ mod_preProdAdvApp_server <- function(id, data){
       validate(need(nrow(df_plot) > 0, "No complete observations available for the selected trait pair."))
 
       # Compute absolute opacity based on reliability (NOT relative to population)
-      # reliability >= 0.7 → opacity 1.0; reliability = 0 → opacity 0.15
+      # reliability >= 0.7 â†’ opacity 1.0; reliability = 0 â†’ opacity 0.15
       reliability_to_opacity <- function(rel) {
         rel[is.na(rel)] <- 0.7  # default to full opacity if NA
         pmin(1.0, 0.15 + (pmin(rel, 0.7) / 0.7) * 0.85)
@@ -5841,10 +5019,10 @@ mod_preProdAdvApp_server <- function(id, data){
       # Checks always full opacity
       df_plot$opacity[df_plot$plot_status == "CHECK"] <- 1.0
 
-      df_plot$plot_status <- factor(df_plot$plot_status, levels = c("SELECTED", "NOT SELECTED", "CHECK"))
+      df_plot$plot_status <- factor(df_plot$plot_status, levels = c("SELECTED", "NOT SELECTED", "REVISE", "CHECK"))
 
       # Colors: original scheme
-      status_colors <- c("SELECTED" = "#0072B2", "NOT SELECTED" = "#D55E00", "CHECK" = "#C2185B")
+      status_colors <- c("SELECTED" = "#0072B2", "NOT SELECTED" = "#D55E00", "REVISE" = "#F9A825", "CHECK" = "#C2185B")
 
       p <- ggplot2::ggplot(df_plot, ggplot2::aes(
         x = x_value, y = y_value, key = designation,
@@ -5887,16 +5065,26 @@ mod_preProdAdvApp_server <- function(id, data){
       }
 
       # Points with reliability-based opacity
-      # Separate layers for checks (larger) and candidates (smaller)
-      df_candidates <- df_plot[df_plot$plot_status != "CHECK", , drop = FALSE]
+      # Separate layers: REVISE gets star shape, checks get diamond, others get circle
+      df_normal <- df_plot[df_plot$plot_status %in% c("SELECTED", "NOT SELECTED"), , drop = FALSE]
+      df_revise <- df_plot[df_plot$plot_status == "REVISE", , drop = FALSE]
       df_checks <- df_plot[df_plot$plot_status == "CHECK", , drop = FALSE]
 
-      if (nrow(df_candidates) > 0) {
+      if (nrow(df_normal) > 0) {
         p <- p +
           ggplot2::geom_point(
-            data = df_candidates,
+            data = df_normal,
             ggplot2::aes(fill = plot_status, alpha = opacity),
             shape = 21, stroke = 0.5, color = "grey40", size = 2.8
+          )
+      }
+
+      if (nrow(df_revise) > 0) {
+        p <- p +
+          ggplot2::geom_point(
+            data = df_revise,
+            ggplot2::aes(fill = plot_status, alpha = opacity),
+            shape = 24, stroke = 0.8, color = "grey20", size = 3.5
           )
       }
 
@@ -5905,7 +5093,7 @@ mod_preProdAdvApp_server <- function(id, data){
           ggplot2::geom_point(
             data = df_checks,
             ggplot2::aes(fill = plot_status),
-            shape = 21, stroke = 1, color = "white", size = 5, alpha = 1
+            shape = 23, stroke = 1, color = "white", size = 5, alpha = 1
           )
       }
 
@@ -5939,7 +5127,7 @@ mod_preProdAdvApp_server <- function(id, data){
         current_status <- base_status
       }
 
-      new_status <- if (current_status == "SELECTED") "NOT SELECTED" else "SELECTED"
+      new_status <- if (current_status == "SELECTED") "NOT SELECTED" else if (current_status == "NOT SELECTED") "REVISE" else "SELECTED"
 
       if (new_status == base_status) {
         overrides <- overrides[overrides$designation != clicked_designation, , drop = FALSE]
@@ -5959,184 +5147,184 @@ mod_preProdAdvApp_server <- function(id, data){
       plot_selection_overrides(overrides)
     })
 
-    output$radarDesignationUI <- renderUI({
-      plot_obj <- review_plot_data()
-      req(plot_obj)
+    # output$radarDesignationUI <- renderUI({
+    # plot_obj <- review_plot_data()
+    # req(plot_obj)
+    #
+    # df <- plot_obj$review_df
+    # req(nrow(df) > 0)
+    #
+    # df <- df[, c("designation", "plot_status"), drop = FALSE]
+    # df <- df[!is.na(df$designation), , drop = FALSE]
+    #
+    # df$plot_status[is.na(df$plot_status) | df$plot_status == ""] <- "NOT SELECTED"
+    #
+    # df$label <- paste0(
+    # df$plot_status,
+    # " - ",
+    # df$designation
+    # )
+    #
+    # choices <- df$designation
+    # names(choices) <- df$label
+    #
+    # selected <- df$designation[df$plot_status == "CHECK"]
+    # selected <- selected[1]
+    #
+    # selectizeInput(
+    # ns("radarDesignations"),
+    # label = "Designations to display in radar plot",
+    # choices = choices,
+    # selected = selected,
+    # multiple = TRUE,
+    # options = list(
+    # maxItems = 4,
+    # placeholder = "Select up to 4 designations"
+    # )
+    # )
+    # })
 
-      df <- plot_obj$review_df
-      req(nrow(df) > 0)
+    # build_radar_plot <- function(df_panel, trait_cols, trait_labels = NULL, title_text = NULL) {
+    # req(nrow(df_panel) > 0)
+    # if (is.null(trait_labels)) trait_labels <- trait_cols
+    #
+    # designation_cols <- grDevices::hcl.colors(
+    # n = nrow(df_panel),
+    # palette = "Dark 3"
+    # )
+    #
+    # p <- plotly::plot_ly()
+    #
+    # for (i in seq_len(nrow(df_panel))) {
+    # values <- as.numeric(df_panel[i, trait_cols, drop = TRUE])
+    #
+    # status_i <- df_panel$plot_status[i]
+    # if (is.na(status_i) || !nzchar(status_i)) {
+    # status_i <- "NOT SELECTED"
+    # }
+    #
+    # color_i <- designation_cols[i]
+    #
+    # trace_name <- paste0(status_i, " - ", df_panel$designation[i])
+    #
+    # p <- p %>%
+    # plotly::add_trace(
+    # type = "scatterpolar",
+    # mode = "lines+markers",
+    # r = c(values, values[1]),
+    # theta = c(trait_labels, trait_labels[1]),
+    # name = trace_name,
+    # hovertemplate = paste0(
+    # "Designation: ", df_panel$designation[i],
+    # "<br>Decision: ", status_i,
+    # "<br>Trait: %{theta}",
+    # "<br>Scaled value: %{r:.3f}<extra></extra>"
+    # ),
+    # line = list(
+    # width = 2,
+    # color = color_i
+    # ),
+    # marker = list(
+    # size = 5,
+    # color = color_i
+    # )
+    # )
+    # }
+    #
+    # p %>%
+    # plotly::layout(
+    # title = title_text,
+    # polar = list(
+    # radialaxis = list(
+    # visible = TRUE,
+    # range = c(0, 1)
+    # )
+    # ),
+    # showlegend = TRUE
+    # )
+    # }
 
-      df <- df[, c("designation", "plot_status"), drop = FALSE]
-      df <- df[!is.na(df$designation), , drop = FALSE]
-
-      df$plot_status[is.na(df$plot_status) | df$plot_status == ""] <- "NOT SELECTED"
-
-      df$label <- paste0(
-        df$plot_status,
-        " - ",
-        df$designation
-      )
-
-      choices <- df$designation
-      names(choices) <- df$label
-
-      selected <- df$designation[df$plot_status == "CHECK"]
-      selected <- selected[1]
-
-      selectizeInput(
-        ns("radarDesignations"),
-        label = "Designations to display in radar plot",
-        choices = choices,
-        selected = selected,
-        multiple = TRUE,
-        options = list(
-          maxItems = 4,
-          placeholder = "Select up to 4 designations"
-        )
-      )
-    })
-
-    build_radar_plot <- function(df_panel, trait_cols, trait_labels = NULL, title_text = NULL) {
-      req(nrow(df_panel) > 0)
-      if (is.null(trait_labels)) trait_labels <- trait_cols
-
-      designation_cols <- grDevices::hcl.colors(
-        n = nrow(df_panel),
-        palette = "Dark 3"
-      )
-
-      p <- plotly::plot_ly()
-
-      for (i in seq_len(nrow(df_panel))) {
-        values <- as.numeric(df_panel[i, trait_cols, drop = TRUE])
-
-        status_i <- df_panel$plot_status[i]
-        if (is.na(status_i) || !nzchar(status_i)) {
-          status_i <- "NOT SELECTED"
-        }
-
-        color_i <- designation_cols[i]
-
-        trace_name <- paste0(status_i, " - ", df_panel$designation[i])
-
-        p <- p %>%
-          plotly::add_trace(
-            type = "scatterpolar",
-            mode = "lines+markers",
-            r = c(values, values[1]),
-            theta = c(trait_labels, trait_labels[1]),
-            name = trace_name,
-            hovertemplate = paste0(
-              "Designation: ", df_panel$designation[i],
-              "<br>Decision: ", status_i,
-              "<br>Trait: %{theta}",
-              "<br>Scaled value: %{r:.3f}<extra></extra>"
-            ),
-            line = list(
-              width = 2,
-              color = color_i
-            ),
-            marker = list(
-              size = 5,
-              color = color_i
-            )
-          )
-      }
-
-      p %>%
-        plotly::layout(
-          title = title_text,
-          polar = list(
-            radialaxis = list(
-              visible = TRUE,
-              range = c(0, 1)
-            )
-          ),
-          showlegend = TRUE
-        )
-    }
-
-    output$radarPlot <- plotly::renderPlotly({
-      plot_obj <- review_plot_data()
-      req(plot_obj)
-
-      req(input$radarDesignations)
-      req(length(input$radarDesignations) > 0)
-
-      validate(
-        need(length(input$radarDesignations) <= 4, "Please select a maximum of 4 designations.")
-      )
-
-      df <- plot_obj$review_df
-      trait_cols <- plot_obj$traits
-
-      req(length(trait_cols) > 0)
-
-      df_radar <- df[
-        df$designation %in% input$radarDesignations,
-        c("designation", "plot_status", trait_cols),
-        drop = FALSE
-      ]
-
-      validate(
-        need(nrow(df_radar) > 0, "No selected designations available for radar plot."),
-        need(nrow(df_radar) <= 4, "Radar plot supports a maximum of 4 designations.")
-      )
-
-      df_radar <- df_radar[stats::complete.cases(df_radar[, trait_cols, drop = FALSE]), , drop = FALSE]
-
-      validate(
-        need(nrow(df_radar) > 0, "Selected designations do not have complete trait values for the radar plot.")
-      )
-
-      # Get trait directions from modeling table (to invert "lower is better" traits)
-      dt <- data()
-      modeling_init <- dt$modeling[
-        dt$modeling$analysisId %in% input$initialSelectionStamp &
-          dt$modeling$module == "Init_prodAdv", , drop = FALSE
-      ]
-      trait_directions <- list()
-      for (tr in trait_cols) {
-        dir_row <- modeling_init[modeling_init$trait == tr & modeling_init$parameter == "direction", , drop = FALSE]
-        if (nrow(dir_row) > 0) {
-          trait_directions[[tr]] <- dir_row$value[1]
-        } else {
-          trait_directions[[tr]] <- "Higher is better"  # default
-        }
-      }
-
-      for (tr in trait_cols) {
-        x <- df[[tr]]
-        rng <- range(x, na.rm = TRUE)
-
-        if (all(is.finite(rng)) && diff(rng) > 0) {
-          scaled <- (df_radar[[tr]] - rng[1]) / diff(rng)
-          # Invert "lower is better" traits so better always points outward
-          if (identical(trait_directions[[tr]], "Lower is better")) {
-            scaled <- 1 - scaled
-          }
-          df_radar[[tr]] <- scaled
-        } else {
-          df_radar[[tr]] <- 0.5
-        }
-      }
-
-      # Update trait labels to indicate direction
-      radar_labels <- sapply(trait_cols, function(tr) {
-        if (identical(trait_directions[[tr]], "Lower is better")) {
-          paste0(tr, " (↓)")
-        } else {
-          tr
-        }
-      })
-
-      build_radar_plot(
-        df_panel = df_radar,
-        trait_cols = trait_cols,
-        trait_labels = radar_labels,
-        title_text = "Radar plot (outward = better)"
-      )
-    })
+    # output$radarPlot <- plotly::renderPlotly({
+    # plot_obj <- review_plot_data()
+    # req(plot_obj)
+    #
+    # req(input$radarDesignations)
+    # req(length(input$radarDesignations) > 0)
+    #
+    # validate(
+    # need(length(input$radarDesignations) <= 4, "Please select a maximum of 4 designations.")
+    # )
+    #
+    # df <- plot_obj$review_df
+    # trait_cols <- plot_obj$traits
+    #
+    # req(length(trait_cols) > 0)
+    #
+    # df_radar <- df[
+    # df$designation %in% input$radarDesignations,
+    # c("designation", "plot_status", trait_cols),
+    # drop = FALSE
+    # ]
+    #
+    # validate(
+    # need(nrow(df_radar) > 0, "No selected designations available for radar plot."),
+    # need(nrow(df_radar) <= 4, "Radar plot supports a maximum of 4 designations.")
+    # )
+    #
+    # df_radar <- df_radar[stats::complete.cases(df_radar[, trait_cols, drop = FALSE]), , drop = FALSE]
+    #
+    # validate(
+    # need(nrow(df_radar) > 0, "Selected designations do not have complete trait values for the radar plot.")
+    # )
+    #
+    # # Get trait directions from modeling table (to invert "lower is better" traits)
+    # dt <- data()
+    # modeling_init <- dt$modeling[
+    # dt$modeling$analysisId %in% input$initialSelectionStamp &
+    # dt$modeling$module == "Init_prodAdv", , drop = FALSE
+    # ]
+    # trait_directions <- list()
+    # for (tr in trait_cols) {
+    # dir_row <- modeling_init[modeling_init$trait == tr & modeling_init$parameter == "direction", , drop = FALSE]
+    # if (nrow(dir_row) > 0) {
+    # trait_directions[[tr]] <- dir_row$value[1]
+    # } else {
+    # trait_directions[[tr]] <- "Higher is better"  # default
+    # }
+    # }
+    #
+    # for (tr in trait_cols) {
+    # x <- df[[tr]]
+    # rng <- range(x, na.rm = TRUE)
+    #
+    # if (all(is.finite(rng)) && diff(rng) > 0) {
+    # scaled <- (df_radar[[tr]] - rng[1]) / diff(rng)
+    # # Invert "lower is better" traits so better always points outward
+    # if (identical(trait_directions[[tr]], "Lower is better")) {
+    # scaled <- 1 - scaled
+    # }
+    # df_radar[[tr]] <- scaled
+    # } else {
+    # df_radar[[tr]] <- 0.5
+    # }
+    # }
+    #
+    # # Update trait labels to indicate direction
+    # radar_labels <- sapply(trait_cols, function(tr) {
+    # if (identical(trait_directions[[tr]], "Lower is better")) {
+    # paste0(tr, " (â†“)")
+    # } else {
+    # tr
+    # }
+    # })
+    #
+    # build_radar_plot(
+    # df_panel = df_radar,
+    # trait_cols = trait_cols,
+    # trait_labels = radar_labels,
+    # title_text = "Radar plot (outward = better)"
+    # )
+    # })
 
     tpe_period_lookup <- reactive({
       req(data())
@@ -7085,267 +6273,6 @@ mod_preProdAdvApp_server <- function(id, data){
         )
     })
 
-    performance_profile_data <- reactive({
-      req(review_plot_data())
-      req(data())
-      req(input$initialSelectionStamp)
-
-      dt <- data()
-
-      modeling_init <- dt$modeling
-      modeling_init <- modeling_init[
-        modeling_init$analysisId %in% input$initialSelectionStamp &
-          modeling_init$module == "Init_prodAdv",
-        ,
-        drop = FALSE
-      ]
-
-      validate(
-        need(nrow(modeling_init) > 0, "No modeling records found for the selected initial selection stamp.")
-      )
-
-      check_entry_type_value <- input$checkEntryTypeValue
-      if (is.null(check_entry_type_value) || !nzchar(check_entry_type_value)) {
-        check_entry_type_value <- NULL
-      }
-
-      validate(
-        need(
-          !identical(input$performanceProfileScale, "% over check") ||
-            !is.null(check_entry_type_value),
-          "Checks are required to display the performance profile as '% over check'. Use '% over mean' or select a valid check entry type."
-        )
-      )
-
-      tryCatch(
-        {
-          cgiarPipeline::buildProdAdvPerformanceProfile(
-            mta_long = review_plot_data()$mta_long,
-            review_df = review_plot_data()$review_df,
-            modeling_df = modeling_init,
-            performance_profile_scale = input$performanceProfileScale,
-            plot_selection_overrides = plot_selection_overrides()
-          )
-        },
-        error = function(e) {
-          validate(need(FALSE, e$message))
-        }
-      )
-    })
-
-    get_performance_profile_page_data <- function(df_plot, page, page_size = 10) {
-      if (!is.data.frame(df_plot)) {
-        stop("'df_plot' must be a data.frame.")
-      }
-
-      required_cols <- c("designation")
-      missing_cols <- setdiff(required_cols, colnames(df_plot))
-      if (length(missing_cols) > 0) {
-        stop(
-          "Missing required columns in 'df_plot': ",
-          paste(missing_cols, collapse = ", ")
-        )
-      }
-
-      designation_order <- unique(as.character(df_plot$designation))
-      n_designations <- length(designation_order)
-
-      if (n_designations == 0) {
-        stop("No designations available for paging.")
-      }
-
-      n_pages <- max(1, ceiling(n_designations / page_size))
-
-      if (is.null(page) || !is.finite(page)) {
-        page <- 1
-      }
-
-      page <- max(1, min(as.integer(page), n_pages))
-
-      start_idx <- ((page - 1) * page_size) + 1
-      end_idx <- min(page * page_size, n_designations)
-
-      keep_designations <- designation_order[start_idx:end_idx]
-
-      df_page <- df_plot[df_plot$designation %in% keep_designations, , drop = FALSE]
-      df_page$designation <- factor(df_page$designation, levels = keep_designations)
-
-      list(
-        df = df_page,
-        page = page,
-        n_pages = n_pages,
-        n_designations = n_designations,
-        start_idx = start_idx,
-        end_idx = end_idx
-      )
-    }
-
-    output$performanceProfilePageInfo <- renderUI({
-      prof_obj <- performance_profile_data()
-      req(prof_obj)
-
-      page_obj <- get_performance_profile_page_data(
-        df_plot = prof_obj$plot_df,
-        page = input$performanceProfilePage,
-        page_size = 10
-      )
-
-      tags$div(
-        style = "padding-top: 25px;",
-        tags$strong(
-          paste0(
-            "Showing plots ",
-            page_obj$start_idx,
-            "-",
-            page_obj$end_idx,
-            " of ",
-            page_obj$n_designations
-          )
-        ),
-        if (page_obj$page < page_obj$n_pages) {
-          tags$span(paste0("  |  Next page: ", page_obj$page + 1))
-        }
-      )
-    })
-
-    observe({
-      prof_obj <- performance_profile_data()
-      req(prof_obj)
-
-      n_pages <- max(1, ceiling(length(unique(prof_obj$plot_df$designation)) / 10))
-
-      current_page <- input$performanceProfilePage
-      if (is.null(current_page) || !is.finite(current_page)) {
-        current_page <- 1
-      }
-
-      updateNumericInput(
-        session = session,
-        inputId = "performanceProfilePage",
-        min = 1,
-        max = n_pages,
-        value = max(1, min(current_page, n_pages))
-      )
-    })
-
-    output$performanceProfilePlot <- plotly::renderPlotly({
-      prof_obj <- performance_profile_data()
-      req(prof_obj)
-
-      df_plot <- prof_obj$plot_df
-      x_lab <- prof_obj$x_lab
-
-      validate(
-        need(length(unique(df_plot$designation)) > 0, "No designations available for performance profile plot."),
-        need(length(unique(df_plot$designation)) <= 50, "Per-variety performance profile supports up to 50 designations.")
-      )
-
-      page_obj <- get_performance_profile_page_data(
-        df_plot = df_plot,
-        page = input$performanceProfilePage,
-        page_size = 10
-      )
-
-      df_page <- page_obj$df
-      df_page$trait <- factor(df_page$trait, levels = rev(unique(df_page$trait)))
-
-      df_page$sign_class <- ifelse(
-        df_page$profile_value_clipped > 0, "POS",
-        ifelse(df_page$profile_value_clipped < 0, "NEG", "ZERO")
-      )
-
-      p <- ggplot2::ggplot(
-        df_page,
-        ggplot2::aes(
-          x = profile_value_clipped,
-          y = trait,
-          fill = sign_class,
-          text = paste0(
-            "Designation: ", designation,
-            "<br>Trait: ", trait,
-            "<br>", x_lab, ": ", round(profile_value, 1), "%",
-            ifelse(
-              x_lab == "% over check",
-              paste0("<br>Reference check: ", reference_check_used),
-              ""
-            ),
-            "<br>Status: ", plot_status
-          )
-        )
-      ) +
-        ggplot2::geom_col(width = 0.75, alpha = 1) +
-        ggplot2::geom_vline(
-          xintercept = 0,
-          linetype = "dashed",
-          linewidth = 0.5,
-          color = "black"
-        ) +
-        ggplot2::facet_wrap(~ designation, nrow = 2, ncol = 5, scales = "fixed") +
-        ggplot2::scale_x_continuous(
-          limits = c(-50, 50),
-          breaks = c(-50, -25, 0, 25, 50),
-          oob = scales::squish
-        ) +
-        ggplot2::scale_fill_manual(
-          values = c(
-            "POS" = "#1B9E77",
-            "NEG" = "#D95F02",
-            "ZERO" = "#BDBDBD"
-          ),
-          drop = FALSE,
-          guide = "none"
-        ) +
-        ggplot2::labs(
-          x = x_lab,
-          y = NULL
-        ) +
-        ggplot2::theme_bw(base_size = 12) +
-        ggplot2::theme(
-          panel.border = ggplot2::element_rect(
-            colour = "black",
-            fill = NA,
-            linewidth = 0.8
-          ),
-          panel.background = ggplot2::element_rect(
-            fill = "white",
-            colour = NA
-          ),
-          panel.grid.major.y = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank(),
-          panel.grid.major.x = ggplot2::element_line(
-            colour = "#D9D9D9",
-            linewidth = 0.3
-          ),
-          strip.background = ggplot2::element_rect(
-            fill = "#D9D9D9",
-            colour = "black",
-            linewidth = 0.8
-          ),
-          strip.text = ggplot2::element_text(
-            face = "bold",
-            size = 11,
-            colour = "black"
-          ),
-          axis.text.y = ggplot2::element_text(
-            colour = "black",
-            size = 10
-          ),
-          axis.text.x = ggplot2::element_text(
-            colour = "black",
-            size = 9
-          ),
-          axis.title.x = ggplot2::element_text(
-            face = "bold",
-            colour = "black"
-          ),
-          axis.title.y = ggplot2::element_blank(),
-          legend.position = "none",
-          panel.spacing = grid::unit(0.9, "lines")
-        )
-
-      plotly::ggplotly(p, tooltip = "text")
-    })
-
     output$reliabilityTraitUI <- renderUI({
       plot_obj <- review_plot_data()
       req(plot_obj)
@@ -7480,28 +6407,39 @@ mod_preProdAdvApp_server <- function(id, data){
               solidHeader = TRUE,
               collapsible = TRUE,
               collapsed = FALSE,
+              fluidRow(
+                column(4, uiOutput(ns("scatterXTraitUI"))),
+                column(4, uiOutput(ns("scatterYTraitUI"))),
+                column(4,
+                  checkboxInput(
+                    ns("scatterShowRegression"),
+                    label = "Show regression lines & means",
+                    value = TRUE
+                  )
+                )
+              ),
               plotly::plotlyOutput(ns("pairwiseScatterPlot"), height = "650px")
             )
           )
         )
       }
 
-      if ("Radar plot" %in% selected_plots) {
-        ui_list <- c(
-          ui_list,
-          list(
-            shinydashboard::box(
-              width = 12,
-              title = "Radar plot",
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = FALSE,
-              plotly::plotlyOutput(ns("radarPlot"), height = "700px")
-            )
-          )
-        )
-      }
+      # if ("Radar plot" %in% selected_plots) {
+      # ui_list <- c(
+      # ui_list,
+      # list(
+      # shinydashboard::box(
+      # width = 12,
+      # title = "Radar plot",
+      # status = "primary",
+      # solidHeader = TRUE,
+      # collapsible = TRUE,
+      # collapsed = FALSE,
+      # plotly::plotlyOutput(ns("radarPlot"), height = "700px")
+      # )
+      # )
+      # )
+      # }
 
       if ("Performance across locations" %in% selected_plots) {
         ui_list <- c(
@@ -7517,6 +6455,9 @@ mod_preProdAdvApp_server <- function(id, data){
                   solidHeader = TRUE,
                   collapsible = TRUE,
                   collapsed = FALSE,
+                  fluidRow(
+                    column(12, uiOutput(ns("lollipopTraitUI")))
+                  ),
                   plotly::plotlyOutput(ns("lollipopPlot"), height = "700px")
                 )
               )
@@ -7539,49 +6480,6 @@ mod_preProdAdvApp_server <- function(id, data){
         )
       }
 
-      if ("Per-variety trait performance profile" %in% selected_plots) {
-        ui_list <- c(
-          ui_list,
-          list(
-            shinydashboard::box(
-              width = 12,
-              title = "Per-variety trait performance profile",
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = FALSE,
-              plotly::plotlyOutput(ns("performanceProfilePlot"), height = "900px")
-            )
-          )
-        )
-      }
-
-      if ("Stability/adaptability plot" %in% selected_plots) {
-        ui_list <- c(
-          ui_list,
-          list(
-            shinydashboard::box(
-              width = 12,
-              title = "Stability/adaptability plot",
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = FALSE,
-              plotly::plotlyOutput(ns("stabilityPlot"), height = "650px")
-            ),
-            shinydashboard::box(
-              width = 12,
-              status = "info",
-              solidHeader = FALSE,
-              collapsible = TRUE,
-              collapsed = TRUE,
-              title = "Stability plot information",
-              uiOutput(ns("stabilityPlotMessage"))
-            )
-          )
-        )
-      }
-
       if ("Relatedness plot" %in% selected_plots) {
         ui_list <- c(
           ui_list,
@@ -7593,16 +6491,599 @@ mod_preProdAdvApp_server <- function(id, data){
               solidHeader = TRUE,
               collapsible = TRUE,
               collapsed = FALSE,
-              tags$p(style = "color:orange; padding:10px;",
-                     icon("triangle-exclamation"),
-                     " This plot requires pedigree information. Full implementation in Phase 4 completion."),
-              tags$p("Will show family clustering with over-represented families highlighted among selected candidates.")
+              fluidRow(
+                column(4,
+                  uiOutput(ns("relatednessGenoStampUI"))
+                ),
+                column(4,
+                  numericInput(
+                    ns("relatednessTopX"),
+                    label = "Top non-selected per unrepresented family",
+                    value = 1, min = 0, max = 20, step = 1
+                  )
+                ),
+                column(4,
+                  selectInput(
+                    ns("relatednessTraits"),
+                    label = "Trait to display",
+                    choices = NULL,
+                    selected = NULL
+                  )
+                )
+              ),
+              uiOutput(ns("relatednessSummary")),
+              uiOutput(ns("relatednessMessages")),
+              tags$p(style = "color: #666; font-size: 12px; font-style: italic; margin: 4px 0;",
+                     icon("info-circle"),
+                     " Individuals are ordered by genetic similarity within family groups. Dotted lines separate families."),
+              plotly::plotlyOutput(ns("relatednessPlot"), height = "600px")
             )
           )
         )
       }
 
       do.call(tagList, ui_list)
+    })
+
+    # ---- Relatedness plot reactives ----
+    relatedness_mode <- reactive({
+      dt_obj <- data()
+      req(dt_obj)
+      result <- cgiarPipeline::detect_relatedness_mode(dt_obj)
+      result
+    })
+
+    relatedness_geno_stamp <- reactive({
+      dt_obj <- data()
+      req(dt_obj)
+      mode_info <- relatedness_mode()
+
+      if (!mode_info$has_genomic) {
+        return(NULL)
+      }
+
+      # Use geno_imp keys directly as the available stamps
+      available_stamps <- names(dt_obj$data$geno_imp)
+      if (length(available_stamps) == 0) return(NULL)
+
+      # Use user selection or default to most recent (last key)
+      user_selection <- input$relatednessGenoStamp
+      if (is.null(user_selection) || !nzchar(user_selection)) {
+        # Default to most recent (last entry)
+        selected_stamp <- available_stamps[length(available_stamps)]
+      } else {
+        selected_stamp <- user_selection
+      }
+
+      # Validate the stamp exists in geno_imp
+      if (!(selected_stamp %in% available_stamps)) {
+        # Fallback to most recent
+        selected_stamp <- available_stamps[length(available_stamps)]
+      }
+
+      selected_stamp
+    })
+
+    output$relatednessGenoStampUI <- renderUI({
+      dt_obj <- data()
+      req(dt_obj)
+      mode_info <- relatedness_mode()
+
+      if (!mode_info$has_genomic) return(NULL)
+
+      # Use geno_imp keys directly
+      available_stamps <- names(dt_obj$data$geno_imp)
+      if (length(available_stamps) == 0) return(NULL)
+
+      # Format choices as timestamps
+      labels <- tryCatch(
+        format(as.POSIXct(as.numeric(available_stamps), origin = "1970-01-01"), "%Y-%m-%d %H:%M:%S"),
+        error = function(e) available_stamps
+      )
+      choices <- stats::setNames(available_stamps, labels)
+
+      selectInput(
+        ns("relatednessGenoStamp"),
+        label = "Genomic QA stamp",
+        choices = c("(most recent)" = "", choices),
+        selected = ""
+      )
+    })
+
+    # Populate trait picker for relatedness plot
+    observeEvent(review_plot_data(), {
+      dt_obj <- data()
+      if (is.null(dt_obj)) return()
+
+      # Get traits from MTA predictions (same traits used in the analysis)
+      preds <- dt_obj$predictions
+      if (is.null(preds) || nrow(preds) == 0) return()
+
+      # Use traits from the MTA predictions only (unique trait values)
+      mta_traits <- unique(preds$trait[preds$trait != "" & !is.na(preds$trait)])
+
+      choices <- c("Selection_Index" = "Selection_Index", stats::setNames(mta_traits, mta_traits))
+
+      updateSelectInput(
+        session,
+        "relatednessTraits",
+        choices = choices,
+        selected = "Selection_Index"
+      )
+    })
+
+    relatedness_matrix <- reactive({
+      dt_obj <- data()
+      req(dt_obj)
+      mode_info <- relatedness_mode()
+
+      if (mode_info$mode == "none") {
+        return(NULL)
+      }
+
+      a_mat <- NULL
+      grm <- NULL
+      warnings <- character(0)
+
+      # Compute A-matrix if pedigree is available
+      if (mode_info$has_pedigree) {
+        a_mat <- tryCatch(
+          cgiarPipeline::compute_a_matrix(dt_obj),
+          error = function(e) { NULL }
+        )
+      }
+
+      # Compute GRM if genomic data available
+      if (mode_info$has_genomic) {
+        stamp <- relatedness_geno_stamp()
+        if (!is.null(stamp)) {
+          genlight_obj <- tryCatch(dt_obj$data$geno_imp[[stamp]], error = function(e) NULL)
+          if (!is.null(genlight_obj) && inherits(genlight_obj, "genlight")) {
+            # Check marker count (safely)
+            n_markers <- tryCatch(adegenet::nLoc(genlight_obj), error = function(e) NA_integer_)
+            if (!is.na(n_markers) && n_markers < 10) {
+              warnings <- c(warnings, sprintf("Genomic data contains very few markers (%d). Relatedness estimates may be unreliable.", n_markers))
+            }
+            grm <- tryCatch(
+              cgiarPipeline::compute_grm(genlight_obj),
+              error = function(e) { NULL }
+            )
+          }
+        }
+      }
+
+      # Choose the similarity matrix based on mode (with fallback)
+      sim_matrix <- if (mode_info$mode == "pedigree-only") {
+        a_mat
+      } else if (mode_info$mode == "pedigree-genomic") {
+        # Prefer GRM, fall back to A-matrix if GRM failed
+        if (!is.null(grm)) grm else a_mat
+      } else if (mode_info$mode == "genomic-only") {
+        grm
+      } else {
+        NULL
+      }
+
+      if (is.null(sim_matrix)) return(NULL)
+
+      # Handle NA/non-finite values
+      na_count <- sum(!is.finite(sim_matrix))
+      total_entries <- length(sim_matrix)
+      na_pct <- na_count / total_entries * 100
+
+      if (na_pct > 50) {
+        return(list(matrix = NULL, a_mat = a_mat, grm = grm, warnings = warnings,
+                    error = sprintf("Relatedness matrix contains too many missing values (%.0f%% of pairs). Cannot compute reliable clustering.", na_pct)))
+      }
+
+      if (na_count > 0) {
+        sim_matrix[!is.finite(sim_matrix)] <- 0.0
+        warnings <- c(warnings, sprintf("%d pairs excluded from relatedness metrics (replaced with 0.0).", na_count))
+      }
+
+      list(matrix = sim_matrix, a_mat = a_mat, grm = grm, warnings = warnings, error = NULL)
+    })
+
+    relatedness_plot_data <- reactive({
+      dt_obj <- data()
+      req(dt_obj)
+      mode_info <- relatedness_mode()
+      mat_result <- relatedness_matrix()
+
+      if (is.null(mat_result) || !is.null(mat_result$error)) {
+        return(NULL)
+      }
+
+      sim_matrix <- mat_result$matrix
+      if (is.null(sim_matrix)) return(NULL)
+
+      # Get review data
+      plot_obj <- review_plot_data()
+      req(plot_obj)
+      review_df <- plot_obj$review_df
+      req(nrow(review_df) > 0)
+
+      # Apply overrides
+      overrides <- plot_selection_overrides()
+      if (!is.null(overrides) && nrow(overrides) > 0) {
+        override_map <- stats::setNames(overrides$plot_decision, overrides$designation)
+        match_idx <- match(review_df$designation, names(override_map))
+        has_override <- !is.na(match_idx)
+        review_df$plot_status[has_override] <- override_map[review_df$designation[has_override]]
+      }
+
+      # Get selected set
+      selected_set <- review_df$designation[review_df$plot_status == "SELECTED"]
+      if (length(selected_set) < 2) {
+        return(NULL)
+      }
+
+      # Get index values â€” index_value may not be in review_df, need to fetch from decision table
+      if (!"index_value" %in% colnames(review_df)) {
+        # Get the initial stamp from the review plot data
+        init_stamp <- plot_obj$initialSelectionStamp
+        tbl <- tryCatch(
+          cgiarPipeline::build_prodadv_decision_table_data(dt_obj, init_stamp),
+          error = function(e) { NULL }
+        )
+        if (!is.null(tbl) && "index_value" %in% colnames(tbl)) {
+          idx_df <- tbl[, c("designation", "index_value"), drop = FALSE]
+          review_df <- merge(review_df, idx_df, by = "designation", all.x = TRUE)
+        } else {
+          # Fallback: use NA for index_value
+          review_df$index_value <- NA_real_
+        }
+      }
+
+      index_vals <- stats::setNames(review_df$index_value, review_df$designation)
+
+      # Determine families or clusters
+      groups_df <- data.frame(group_id = integer(0), group_label = character(0),
+                              branch_color = character(0), n_members = integer(0),
+                              stringsAsFactors = FALSE)
+      individuals_df <- NULL
+      hclust_obj <- NULL
+
+      if (mode_info$mode %in% c("pedigree-only", "pedigree-genomic")) {
+        # Assign families
+        paramsPed <- dt_obj$metadata$pedigree
+        desig_col <- paramsPed[paramsPed$parameter == "designation", "value"]
+        mother_col <- paramsPed[paramsPed$parameter == "mother", "value"]
+        father_col <- paramsPed[paramsPed$parameter == "father", "value"]
+
+        # Guard against missing metadata
+        if (length(desig_col) == 0 || length(mother_col) == 0 || length(father_col) == 0) {
+          return(NULL)
+        }
+        desig_col <- desig_col[1]
+        mother_col <- mother_col[1]
+        father_col <- father_col[1]
+
+        families <- tryCatch(
+          cgiarPipeline::assign_families(dt_obj$data$pedigree, desig_col, mother_col, father_col),
+          error = function(e) { NULL }
+        )
+        if (is.null(families)) {
+          return(NULL)
+        }
+
+        # Build candidates_df with family column
+        candidates_df <- data.frame(
+          designation = review_df$designation,
+          index_value = review_df$index_value,
+          family = as.character(families[as.character(review_df$designation)]),
+          stringsAsFactors = FALSE
+        )
+        candidates_df$family[is.na(candidates_df$family)] <- "Founders / Unknown Family"
+
+        # Top X from unrepresented families (X per family, not X total)
+        top_x <- input$relatednessTopX
+        if (is.null(top_x)) top_x <- 1
+        top_x <- max(0L, min(20L, as.integer(top_x)))
+
+        top_x_df <- tryCatch(
+          cgiarPipeline::find_top_x_unrelated(candidates_df, sim_matrix, selected_set, top_x, mode = "pedigree"),
+          error = function(e) { data.frame(designation = character(0), index_value = numeric(0), family = character(0), stringsAsFactors = FALSE) }
+        )
+
+        # Individuals to display: selected + checks + top_x
+        check_set <- review_df$designation[review_df$plot_status == "CHECK"]
+        display_desigs <- unique(c(selected_set, check_set, top_x_df$designation))
+        display_df <- review_df[review_df$designation %in% display_desigs, , drop = FALSE]
+        display_df$family <- candidates_df$family[match(display_df$designation, candidates_df$designation)]
+
+        # Assign group IDs
+        unique_families <- unique(display_df$family)
+        family_to_id <- stats::setNames(seq_along(unique_families), unique_families)
+        display_df$group_id <- family_to_id[display_df$family]
+        display_df$group_label <- display_df$family
+
+        # Order within groups by index_value descending
+        display_df <- display_df[order(display_df$group_id, -display_df$index_value), , drop = FALSE]
+        display_df$order_within <- ave(seq_len(nrow(display_df)), display_df$group_id, FUN = seq_along)
+
+        # Build groups_df
+        groups_df <- data.frame(
+          group_id = seq_along(unique_families),
+          group_label = unique_families,
+          branch_color = FAMILY_PALETTE[(seq_along(unique_families) - 1) %% length(FAMILY_PALETTE) + 1],
+          n_members = as.integer(table(display_df$group_id)[as.character(seq_along(unique_families))]),
+          stringsAsFactors = FALSE
+        )
+
+        individuals_df <- display_df
+
+      } else {
+        # Genomic-only mode: cluster
+        cluster_result <- cgiarPipeline::cluster_genomic_only(sim_matrix, selected_set, index_vals)
+        hclust_obj <- cluster_result$dendrogram
+
+        # Build candidates_df for top_x
+        candidates_df <- data.frame(
+          designation = review_df$designation,
+          index_value = review_df$index_value,
+          stringsAsFactors = FALSE
+        )
+
+        top_x <- input$relatednessTopX
+        if (is.null(top_x)) top_x <- 1
+        top_x <- max(0L, min(20L, as.integer(top_x)))
+
+        top_x_df <- cgiarPipeline::find_top_x_unrelated(
+          candidates_df, sim_matrix, selected_set, top_x, mode = "genomic"
+        )
+
+        # Display: selected (with cluster assignments) + top_x
+        display_desigs <- c(names(cluster_result$clusters), top_x_df$designation)
+        display_df <- review_df[review_df$designation %in% display_desigs, , drop = FALSE]
+
+        # Assign cluster labels
+        display_df$group_id <- as.integer(cluster_result$clusters[as.character(display_df$designation)])
+        # Top X individuals get assigned to a special group
+        max_cluster <- max(c(0L, cluster_result$clusters), na.rm = TRUE)
+        display_df$group_id[is.na(display_df$group_id)] <- max_cluster + 1L
+        display_df$group_label <- paste("Cluster", display_df$group_id)
+        display_df$group_label[display_df$group_id == max_cluster + 1L] <- "Top non-selected"
+
+        display_df <- display_df[order(display_df$group_id, -display_df$index_value), , drop = FALSE]
+        display_df$order_within <- ave(seq_len(nrow(display_df)), display_df$group_id, FUN = seq_along)
+
+        unique_groups <- sort(unique(display_df$group_id))
+        groups_df <- data.frame(
+          group_id = unique_groups,
+          group_label = paste("Cluster", unique_groups),
+          branch_color = FAMILY_PALETTE[(seq_along(unique_groups) - 1) %% length(FAMILY_PALETTE) + 1],
+          n_members = as.integer(table(display_df$group_id)[as.character(unique_groups)]),
+          stringsAsFactors = FALSE
+        )
+        groups_df$group_label[groups_df$group_id == max_cluster + 1L] <- "Top non-selected"
+
+        individuals_df <- display_df
+      }
+
+      # Compute marker visual properties
+      individuals_df$is_selected <- individuals_df$plot_status == "SELECTED"
+      individuals_df$marker_color <- STATUS_COLORS[individuals_df$plot_status]
+      individuals_df$marker_color[is.na(individuals_df$marker_color)] <- MISSING_STATUS_COLOR
+
+      # Compute reliability: use minimum across available reliability columns
+      rel_cols <- grep("^reliability_", colnames(individuals_df), value = TRUE)
+      if (length(rel_cols) > 0) {
+        rel_matrix <- as.matrix(individuals_df[, rel_cols, drop = FALSE])
+        individuals_df$reliability <- apply(rel_matrix, 1, function(x) min(x, na.rm = TRUE))
+        individuals_df$reliability[!is.finite(individuals_df$reliability)] <- NA_real_
+      } else {
+        individuals_df$reliability <- NA_real_
+      }
+
+      individuals_df$marker_opacity <- rep(1.0, nrow(individuals_df))
+      individuals_df$marker_size <- MARKER_SIZE_DEFAULT
+
+      # Diversity candidates
+      div_candidates <- cgiarPipeline::classify_diversity_candidates(
+        data.frame(designation = review_df$designation, index_value = review_df$index_value, stringsAsFactors = FALSE),
+        sim_matrix,
+        selected_set
+      )
+      individuals_df$is_diversity <- individuals_df$designation %in% div_candidates
+      individuals_df$border_style <- "none"
+      individuals_df$border_style[individuals_df$is_diversity] <- "gold-dashed"
+
+      # Avg relatedness to selected
+      individuals_df$avg_relatedness <- sapply(individuals_df$designation, function(d) {
+        if (d %in% rownames(sim_matrix) && length(intersect(selected_set, colnames(sim_matrix))) > 0) {
+          sel_in_mat <- intersect(selected_set, colnames(sim_matrix))
+          mean(sim_matrix[d, sel_in_mat], na.rm = TRUE)
+        } else {
+          NA_real_
+        }
+      })
+
+      individuals_df$has_genomic <- individuals_df$designation %in% rownames(sim_matrix)
+
+      # Trait values
+      selected_traits <- input$relatednessTraits
+      trait_values_df <- data.frame(designation = character(0), trait = character(0),
+                                     value = numeric(0), std_error = numeric(0),
+                                     direction = character(0),
+                                     stringsAsFactors = FALSE)
+      if (!is.null(selected_traits) && length(selected_traits) > 0) {
+        for (tr in selected_traits) {
+          if (tr == "Selection_Index") {
+            tr_vals <- data.frame(
+              designation = individuals_df$designation,
+              trait = "Selection_Index",
+              value = individuals_df$index_value,
+              std_error = NA_real_,
+              direction = "increase",
+              stringsAsFactors = FALSE
+            )
+          } else {
+            # Get from predictions
+            preds <- dt_obj$predictions
+            tr_preds <- preds[preds$trait == tr & preds$designation %in% individuals_df$designation, , drop = FALSE]
+            if (nrow(tr_preds) == 0) next
+            tr_preds <- tr_preds[!duplicated(tr_preds$designation), , drop = FALSE]
+
+            # Get direction from metadata
+            pheno_meta <- dt_obj$metadata$pheno
+            direction <- "increase"
+            if (!is.null(pheno_meta)) {
+              dir_row <- pheno_meta[pheno_meta$trait == tr & pheno_meta$parameter == "direction", , drop = FALSE]
+              if (nrow(dir_row) > 0) direction <- dir_row$value[1]
+            }
+
+            # Get stdError if available
+            se_values <- if ("stdError" %in% colnames(tr_preds)) tr_preds$stdError else NA_real_
+
+            tr_vals <- data.frame(
+              designation = tr_preds$designation,
+              trait = tr,
+              value = cgiarPipeline::normalize_trait_direction(tr_preds$predictedValue, direction),
+              std_error = se_values,
+              direction = direction,
+              stringsAsFactors = FALSE
+            )
+          }
+          trait_values_df <- rbind(trait_values_df, tr_vals)
+        }
+      }
+
+      # Summary
+      # Count families in the selected set specifically
+      selected_individuals <- individuals_df[individuals_df$is_selected, , drop = FALSE]
+      selected_family_count <- length(unique(selected_individuals$group_label))
+
+      summary_text <- cgiarPipeline::compute_summary_bar(
+        selected_count = sum(individuals_df$is_selected),
+        selected_family_count = selected_family_count,
+        group_count = nrow(groups_df),
+        diversity_count = sum(individuals_df$is_diversity),
+        mode_string = mode_info$mode
+      )
+
+      list(
+        individuals = individuals_df,
+        trait_values = trait_values_df,
+        groups = groups_df,
+        dendrogram = hclust_obj,
+        mode = mode_info$mode,
+        summary = list(
+          selected_count = sum(individuals_df$is_selected),
+          group_count = nrow(groups_df),
+          diversity_count = sum(individuals_df$is_diversity),
+          mode_label = mode_info$mode,
+          text = summary_text
+        ),
+        warnings = mat_result$warnings
+      )
+    })
+
+    output$relatednessSummary <- renderUI({
+      plot_data <- relatedness_plot_data()
+      if (is.null(plot_data)) return(NULL)
+
+      summary_text <- plot_data$summary$text
+      tags$div(
+        style = "background-color: #f0f0f0; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; font-weight: bold;",
+        icon("chart-pie"),
+        summary_text
+      )
+    })
+
+    output$relatednessMessages <- renderUI({
+      # Check for validation messages
+      mode_info <- relatedness_mode()
+
+      if (mode_info$mode == "none") {
+        return(tags$div(
+          style = "color:orange; padding:10px;",
+          icon("triangle-exclamation"),
+          mode_info$message
+        ))
+      }
+
+      # Check matrix errors
+      mat_result <- relatedness_matrix()
+      if (!is.null(mat_result) && is.list(mat_result) && !is.null(mat_result$error)) {
+        return(tags$div(
+          style = "color:red; padding:10px;",
+          icon("circle-xmark"),
+          mat_result$error
+        ))
+      }
+
+      # Check < 2 selected
+      plot_obj <- review_plot_data()
+      if (!is.null(plot_obj)) {
+        review_df <- plot_obj$review_df
+        overrides <- plot_selection_overrides()
+        if (!is.null(overrides) && nrow(overrides) > 0) {
+          override_map <- stats::setNames(overrides$plot_decision, overrides$designation)
+          match_idx <- match(review_df$designation, names(override_map))
+          has_override <- !is.na(match_idx)
+          review_df$plot_status[has_override] <- override_map[review_df$designation[has_override]]
+        }
+        selected_count <- sum(review_df$plot_status == "SELECTED", na.rm = TRUE)
+        if (selected_count < 2) {
+          return(tags$div(
+            style = "color:orange; padding:10px;",
+            icon("triangle-exclamation"),
+            "At least 2 selected individuals are required for relatedness analysis."
+          ))
+        }
+      }
+
+      # Show warnings from the matrix computation
+      plot_data <- relatedness_plot_data()
+      if (!is.null(plot_data) && length(plot_data$warnings) > 0) {
+        warning_tags <- lapply(plot_data$warnings, function(w) {
+          tags$div(
+            style = "color:orange; padding:4px 10px;",
+            icon("triangle-exclamation"), w
+          )
+        })
+        return(do.call(tagList, warning_tags))
+      }
+
+      NULL
+    })
+
+    # ---- Relatedness plot: shared cross-plot highlight state ----
+    highlighted_designation <- reactiveVal(NULL)
+
+    output$relatednessPlot <- plotly::renderPlotly({
+      plot_data <- relatedness_plot_data()
+      validate(
+        need(!is.null(plot_data), "Relatedness data not available. Check data inputs.")
+      )
+
+      hl <- highlighted_designation()
+      result <- tryCatch(
+        build_relatedness_plotly(plot_data, highlighted = hl, source_id = "relatedness_plot"),
+        error = function(e) { NULL }
+      )
+      validate(need(!is.null(result), "Error building relatedness plot."))
+      result
+    })
+
+    # Click-to-highlight handler for relatedness plot
+    observeEvent(plotly::event_data("plotly_click", source = "relatedness_plot"), {
+      click_data <- plotly::event_data("plotly_click", source = "relatedness_plot")
+      if (is.null(click_data)) return()
+
+      clicked_desig <- click_data$key
+      if (is.null(clicked_desig) || !nzchar(clicked_desig)) return()
+
+      current_hl <- highlighted_designation()
+
+      if (!is.null(current_hl) && current_hl == clicked_desig) {
+        # Toggle off: clicking the same designation removes highlight
+        highlighted_designation(NULL)
+      } else {
+        # Set or transfer highlight to the new designation
+        highlighted_designation(clicked_desig)
+      }
     })
 
     manual_designation_choices <- reactive({
@@ -7987,58 +7468,441 @@ mod_preProdAdvApp_server <- function(id, data){
       )
     })
 
-    observeEvent(input$saveFinalSelection, {
-      req(data())
-      req(input$initialSelectionStamp)
+    ###########################################
+    # Final Review & Output tab server logic
+    ###########################################
 
-      final_tbl <- final_decision_table_raw()
+    # Reactive: compute final decisions by merging initial, table, and plot stamps
+    final_decision_data <- reactive({
+      req(data())
+      req(input$reportInitialSelectionStamp)
+
+      dt <- data()
+
+      # --- Load initial decisions ---
+      init_stamp <- input$reportInitialSelectionStamp
+      init_mods <- dt$modifications$selection[
+        as.character(dt$modifications$selection$analysisId) %in% init_stamp &
+          dt$modifications$selection$module == "Init_prodAdv" &
+          dt$modifications$selection$reason == "initial_selection",
+        , drop = FALSE
+      ]
+      req(nrow(init_mods) > 0)
+
+      initial_decisions <- unique(init_mods[, c("designation", "value"), drop = FALSE])
+      names(initial_decisions)[names(initial_decisions) == "value"] <- "initial_decision"
+
+      # --- Load table decisions (if stamp selected) ---
+      table_stamp <- input$reportPlotSelectionStamp
+      table_decisions <- NULL
+      if (!is.null(table_stamp) && nzchar(table_stamp) && table_stamp != "__none__" && table_stamp != "None") {
+        table_mods <- dt$modifications$selection[
+          as.character(dt$modifications$selection$analysisId) %in% table_stamp &
+            dt$modifications$selection$module == "Table_prodAdv" &
+            dt$modifications$selection$reason == "manual_table_selection",
+          , drop = FALSE
+        ]
+        if (nrow(table_mods) > 0) {
+          table_decisions <- unique(table_mods[, c("designation", "value"), drop = FALSE])
+          names(table_decisions)[names(table_decisions) == "value"] <- "table_decision"
+        }
+      }
+
+      # --- Load plot decisions (if stamp selected) ---
+      plot_stamp <- input$reportFinalSelectionStamp
+      plot_decisions <- NULL
+      if (!is.null(plot_stamp) && nzchar(plot_stamp) && plot_stamp != "__none__" && plot_stamp != "None") {
+        plot_mods <- dt$modifications$selection[
+          as.character(dt$modifications$selection$analysisId) %in% plot_stamp &
+            dt$modifications$selection$module == "Plot_prodAdv" &
+            dt$modifications$selection$reason == "manual_plot_selection",
+          , drop = FALSE
+        ]
+        if (nrow(plot_mods) > 0) {
+          plot_decisions <- unique(plot_mods[, c("designation", "value"), drop = FALSE])
+          names(plot_decisions)[names(plot_decisions) == "value"] <- "plot_decision"
+        }
+      }
+
+      # --- Call compute_final_decisions ---
+      merged <- compute_final_decisions(
+        initial_decisions = initial_decisions,
+        table_decisions = table_decisions,
+        plot_decisions = plot_decisions
+      )
+
+      # --- Join trait BLUPs from predictions for display ---
+      modeling_init <- dt$modeling[
+        dt$modeling$analysisId %in% init_stamp &
+          dt$modeling$module == "Init_prodAdv",
+        , drop = FALSE
+      ]
+      selected_traits <- unique(modeling_init$trait[!is.na(modeling_init$trait) & nzchar(modeling_init$trait)])
+      selected_traits <- selected_traits[!selected_traits %in%
+        modeling_init$trait[modeling_init$parameter == "user_excluded_trait"]]
+
+      mta_stamp <- modeling_init$value[modeling_init$parameter == "mta_stamp"][1]
+
+      if (!is.na(mta_stamp) && nzchar(mta_stamp)) {
+        preds <- dt$predictions[
+          dt$predictions$analysisId %in% mta_stamp &
+            dt$predictions$trait %in% selected_traits &
+            dt$predictions$designation %in% merged$designation,
+          , drop = FALSE
+        ]
+
+        if (nrow(preds) > 0) {
+          pred_wide <- reshape(
+            preds[, c("designation", "trait", "predictedValue"), drop = FALSE],
+            idvar = "designation",
+            timevar = "trait",
+            direction = "wide"
+          )
+          names(pred_wide) <- sub("^predictedValue\\.", "", names(pred_wide))
+          merged <- merge(merged, pred_wide, by = "designation", all.x = TRUE)
+        }
+
+        # Compute index_value from stored weights
+        weight_rows <- modeling_init[modeling_init$parameter == "index_weight", , drop = FALSE]
+        if (nrow(weight_rows) > 0 && length(selected_traits) > 0) {
+          index_weights <- as.numeric(weight_rows$value)
+          names(index_weights) <- weight_rows$trait
+          avail_traits <- intersect(names(index_weights), colnames(merged))
+          if (length(avail_traits) > 0) {
+            trait_matrix <- as.matrix(merged[, avail_traits, drop = FALSE])
+            # Replace NA with column means for scaling
+            for (col_idx in seq_len(ncol(trait_matrix))) {
+              na_mask <- is.na(trait_matrix[, col_idx])
+              if (any(na_mask)) {
+                trait_matrix[na_mask, col_idx] <- mean(trait_matrix[!na_mask, col_idx], na.rm = TRUE)
+              }
+            }
+            scaled_matrix <- scale(trait_matrix)
+            scaled_matrix[is.nan(scaled_matrix)] <- 0
+            w <- index_weights[avail_traits]
+
+            # Apply reliability weighting (same as build_prodadv_decision_table_data)
+            if ("reliability" %in% colnames(preds)) {
+              rel_data <- reshape(
+                preds[, c("designation", "trait", "reliability"), drop = FALSE],
+                idvar = "designation", timevar = "trait", direction = "wide"
+              )
+              names(rel_data) <- sub("^reliability\\.", "", names(rel_data))
+              rel_avail <- intersect(avail_traits, colnames(rel_data))
+              if (length(rel_avail) == length(avail_traits)) {
+                rel_matrix <- as.matrix(rel_data[match(merged$designation, rel_data$designation), avail_traits, drop = FALSE])
+                rel_matrix[is.na(rel_matrix)] <- 0
+                rel_matrix <- pmax(0, pmin(1, rel_matrix))
+                reliability_penalized <- scaled_matrix * sqrt(rel_matrix)
+                merged$index_value <- as.numeric(reliability_penalized %*% w)
+              } else {
+                merged$index_value <- as.numeric(scaled_matrix %*% w)
+              }
+            } else {
+              merged$index_value <- as.numeric(scaled_matrix %*% w)
+            }
+          } else {
+            merged$index_value <- NA_real_
+          }
+        } else {
+          merged$index_value <- NA_real_
+        }
+      }
+
+      # Sort by index_value descending
+      if ("index_value" %in% colnames(merged)) {
+        merged <- merged[order(-as.numeric(merged$index_value)), , drop = FALSE]
+      }
+
+      merged
+    })
+
+    # Render finalSummaryBar showing counts
+    output$finalSummaryBar <- renderUI({
+      tbl <- final_decision_data()
+      req(tbl)
+      req("final_decision" %in% colnames(tbl))
+
+      fd <- toupper(trimws(as.character(tbl$final_decision)))
+      n_total <- length(fd)
+      n_selected <- sum(fd == "SELECTED", na.rm = TRUE)
+      n_not_selected <- sum(fd == "NOT SELECTED", na.rm = TRUE)
+      n_revise <- sum(fd == "REVISE", na.rm = TRUE)
+      n_check <- sum(fd == "CHECK", na.rm = TRUE)
+
+      div(
+        style = "background-color:#2C3E50; color:white; padding:15px; border-radius:8px; margin-bottom:15px;",
+        fluidRow(
+          column(2, tags$h4(style = "margin:0;", paste0(n_total, " evaluated"))),
+          column(3, tags$h4(style = "margin:0; color:#0072B2;", paste0(n_selected, " SELECTED"))),
+          column(3, tags$h4(style = "margin:0; color:#D55E00;", paste0(n_not_selected, " NOT SELECTED"))),
+          column(2, tags$h4(style = "margin:0; color:#F9A825;", paste0(n_revise, " REVISE"))),
+          column(2, tags$h4(style = "margin:0; color:#C2185B;", paste0(n_check, " CHECK")))
+        )
+      )
+    })
+
+    # Render finalDecisionDT with gradient coloring (same pattern as tableDecisionDT)
+    output$finalDecisionDT <- DT::renderDT({
+      tbl <- final_decision_data()
+      req(tbl)
+
+      # Get trait columns from modeling
+      dt <- data()
+      init_stamp <- input$reportInitialSelectionStamp
+      modeling_init <- dt$modeling[
+        dt$modeling$analysisId %in% init_stamp &
+          dt$modeling$module == "Init_prodAdv", , drop = FALSE
+      ]
+      selected_traits <- unique(modeling_init$trait[!is.na(modeling_init$trait) & nzchar(modeling_init$trait)])
+      selected_traits <- selected_traits[!selected_traits %in%
+        modeling_init$trait[modeling_init$parameter == "user_excluded_trait"]]
+      selected_traits <- intersect(selected_traits, colnames(tbl))
+
+      # Colors (same as tableDecisionDT)
+      col_selected <- "#85C1E9"
+      col_not_selected <- "#E8A87C"
+      col_check <- "#C39BD3"
+      col_revise <- "#FFF3CD"
+
+      # get_quintile_opacity (same logic as tableDecisionDT)
+      get_quintile_opacity <- function(values, status, higher_is_better = TRUE) {
+        n <- length(values)
+        opacity <- rep(0.5, n)
+        numeric_vals <- as.numeric(values)
+        valid <- !is.na(numeric_vals) & status != "CHECK"
+        if (sum(valid) < 5) return(opacity)
+        quants <- quantile(numeric_vals[valid], probs = c(0.2, 0.4, 0.6, 0.8), na.rm = TRUE)
+        for (i in which(valid)) {
+          v <- numeric_vals[i]
+          if (status[i] == "SELECTED") {
+            if (higher_is_better) {
+              if (v >= quants[4]) opacity[i] <- 1.0
+              else if (v >= quants[3]) opacity[i] <- 0.75
+              else if (v >= quants[2]) opacity[i] <- 0.5
+              else if (v >= quants[1]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            } else {
+              if (v <= quants[1]) opacity[i] <- 1.0
+              else if (v <= quants[2]) opacity[i] <- 0.75
+              else if (v <= quants[3]) opacity[i] <- 0.5
+              else if (v <= quants[4]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            }
+          } else {
+            if (higher_is_better) {
+              if (v <= quants[1]) opacity[i] <- 1.0
+              else if (v <= quants[2]) opacity[i] <- 0.75
+              else if (v <= quants[3]) opacity[i] <- 0.5
+              else if (v <= quants[4]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            } else {
+              if (v >= quants[4]) opacity[i] <- 1.0
+              else if (v >= quants[3]) opacity[i] <- 0.75
+              else if (v >= quants[2]) opacity[i] <- 0.5
+              else if (v >= quants[1]) opacity[i] <- 0.3
+              else opacity[i] <- 0.15
+            }
+          }
+        }
+        opacity
+      }
+
+      # blend_color helper
+      blend_color <- function(hex_color, opacity) {
+        r <- strtoi(substr(hex_color, 2, 3), 16)
+        g <- strtoi(substr(hex_color, 4, 5), 16)
+        b <- strtoi(substr(hex_color, 6, 7), 16)
+        r2 <- as.integer(r * opacity + 255 * (1 - opacity))
+        g2 <- as.integer(g * opacity + 255 * (1 - opacity))
+        b2 <- as.integer(b * opacity + 255 * (1 - opacity))
+        sprintf("#%02X%02X%02X", r2, g2, b2)
+      }
+
+      # Build HTML display table
+      display_df <- data.frame(designation = tbl$designation, stringsAsFactors = FALSE)
+
+      # Get trait rules for direction-aware opacity
+      trait_rules <- tryCatch(trait_rules_input(), error = function(e) list())
+
+      # Index value column with gradient (always higher_is_better = TRUE for index)
+      if ("index_value" %in% colnames(tbl)) {
+        idx_status <- tbl$final_decision
+        idx_opacity <- get_quintile_opacity(tbl$index_value, idx_status, higher_is_better = TRUE)
+        display_df$index_value <- mapply(function(val, st, op) {
+          base_col <- if (st == "SELECTED") col_selected
+                      else if (st == "CHECK") col_check
+                      else if (st == "REVISE") col_revise
+                      else col_not_selected
+          bg <- blend_color(base_col, op)
+          sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:right; font-weight:600;'>%s</div>",
+                  bg, format(round(as.numeric(val), 3), nsmall = 3))
+        }, tbl$index_value, idx_status, idx_opacity, SIMPLIFY = TRUE)
+      }
+
+      # Trait columns with gradient
+      for (tr in selected_traits) {
+        trait_vals <- tbl[[tr]]
+        trait_status <- tbl$final_decision
+        # Look up direction from trait_rules_input() for direction-aware gradient
+        trait_direction <- trait_rules[[tr]]$direction
+        hib <- is.null(trait_direction) || identical(trait_direction, "Higher is better")
+        tr_opacity <- get_quintile_opacity(trait_vals, trait_status, higher_is_better = hib)
+        display_df[[tr]] <- mapply(function(val, st, op) {
+          base_col <- if (st == "SELECTED") col_selected
+                      else if (st == "CHECK") col_check
+                      else if (st == "REVISE") col_revise
+                      else col_not_selected
+          bg <- blend_color(base_col, op)
+          txt <- if (is.na(val)) "" else format(round(as.numeric(val), 3), nsmall = 3)
+          sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:right;'>%s</div>", bg, txt)
+        }, trait_vals, trait_status, tr_opacity, SIMPLIFY = TRUE)
+      }
+
+      # plot_selection column (badge, read-only)
+      if ("plot_decision" %in% colnames(tbl)) {
+        display_df$plot_selection <- sapply(tbl$plot_decision, function(st) {
+          if (is.na(st) || !nzchar(st)) {
+            return("<div style='background:#F5F5F5; padding:6px; border-radius:4px; text-align:center;'>\u2014</div>")
+          }
+          bg <- if (st == "SELECTED") "#D6EAF8"
+                else if (st == "NOT SELECTED") "#F5C4A5"
+                else if (st == "REVISE") "#FFF3CD"
+                else if (st == "CHECK") "#E3A9C4"
+                else "#F5F5F5"
+          sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:center; font-weight:600;'>%s</div>", bg, st)
+        })
+      }
+
+      # final_decision column (read-only badge)
+      display_df$final_decision <- sapply(tbl$final_decision, function(st) {
+        if (is.na(st) || !nzchar(st)) {
+          return("<div style='background:#F5F5F5; padding:6px; border-radius:4px; text-align:center;'>\u2014</div>")
+        }
+        bg <- if (st == "SELECTED") "#D6EAF8"
+              else if (st == "NOT SELECTED") "#F5C4A5"
+              else if (st == "REVISE") "#FFF3CD"
+              else if (st == "CHECK") "#E3A9C4"
+              else "#F5F5F5"
+        sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:center; font-weight:600;'>%s</div>", bg, st)
+      })
+
+      DT::datatable(
+        display_df,
+        escape = FALSE,
+        rownames = FALSE,
+        selection = "none",
+        class = "compact stripe hover nowrap decision-table",
+        options = list(
+          scrollX = TRUE,
+          scrollY = "500px",
+          paging = FALSE,
+          searching = TRUE,
+          ordering = TRUE,
+          autoWidth = FALSE,
+          dom = "ft"
+        )
+      )
+    })
+
+    # --- Trait distribution per status plot render ---
+    output$pianoPlot <- plotly::renderPlotly({
+      tbl <- final_decision_data()
+      req(tbl)
+      req("final_decision" %in% colnames(tbl))
+
+      # Get traits
+      dt <- data()
+      init_stamp <- input$reportInitialSelectionStamp
+      modeling_init <- dt$modeling[
+        dt$modeling$analysisId %in% init_stamp & dt$modeling$module == "Init_prodAdv", , drop = FALSE
+      ]
+      selected_traits <- unique(modeling_init$trait[!is.na(modeling_init$trait) & nzchar(modeling_init$trait)])
+      selected_traits <- selected_traits[!selected_traits %in%
+        modeling_init$trait[modeling_init$parameter == "user_excluded_trait"]]
+      selected_traits <- intersect(selected_traits, colnames(tbl))
+      req(length(selected_traits) > 0)
+
+      # Build long-format plot_df
+      plot_df <- do.call(rbind, lapply(selected_traits, function(tr) {
+        data.frame(
+          designation = tbl$designation,
+          trait = tr,
+          value = as.numeric(tbl[[tr]]),
+          status = tbl$final_decision,
+          stringsAsFactors = FALSE
+        )
+      }))
+      plot_df <- plot_df[!is.na(plot_df$value), , drop = FALSE]
+
+      # Get trait directions and thresholds
+      trait_rules <- tryCatch(trait_rules_input(), error = function(e) list())
+      trait_directions <- lapply(selected_traits, function(tr) {
+        d <- trait_rules[[tr]]$direction
+        if (is.null(d)) "Higher is better" else d
+      })
+      names(trait_directions) <- selected_traits
+
+      thresholds <- lapply(selected_traits, function(tr) trait_rules[[tr]]$threshold)
+      names(thresholds) <- selected_traits
+
+      build_trait_distribution_plotly(plot_df, trait_directions, thresholds)
+    })
+
+    observeEvent(input$saveFinalSelection, {
+      # 1. Validate analysis name is non-empty (trimmed)
+      analysis_name <- trimws(input$finalAnalysisName)
+      if (!nzchar(analysis_name)) {
+        showNotification(
+          "Please provide an analysis name before saving.",
+          type = "error",
+          duration = 5
+        )
+        return()
+      }
+
+      req(data())
+      req(input$reportInitialSelectionStamp)
+
+      # 2. Get the final decisions from the reactive
+      final_tbl <- final_decision_data()
       req(nrow(final_tbl) > 0)
 
+      # Build final_decisions data frame with designation and final_decision columns
+      final_decisions <- final_tbl[, c("designation", "final_decision"), drop = FALSE]
+
+      # 3. Generate analysisId as timestamp (pattern used elsewhere)
       analysis_id <- as.numeric(Sys.time())
 
-      final_modifications <- data.frame(
-        module = "Final_prodAdv",
-        analysisId = analysis_id,
-        designation = final_tbl$designation,
-        reason = "final_manual_decision",
-        value = final_tbl$final_decision,
-        stringsAsFactors = FALSE
-      )
-
-      final_status <- data.frame(
-        module = "Final_prodAdv",
-        analysisId = analysis_id,
-        analysisIdName = if (nzchar(trimws(input$finalSelectionId))) trimws(input$finalSelectionId) else NA_character_,
-        stringsAsFactors = FALSE
-      )
-
-      dt_object <- data()
-
-      if (is.null(dt_object$modifications$selection)) {
-        dt_object$modifications$selection <- final_modifications
-      } else {
-        dt_object$modifications$selection <- rbind(
-          dt_object$modifications$selection,
-          final_modifications
-        )
+      # 4. Determine table and plot stamps (NULL if "None" or empty)
+      table_stamp <- input$reportPlotSelectionStamp
+      if (is.null(table_stamp) || !nzchar(table_stamp) || table_stamp == "__none__" || table_stamp == "None") {
+        table_stamp <- NULL
       }
 
-      if (is.null(dt_object$status)) {
-        dt_object$status <- final_status
-      } else {
-        dt_object$status <- rbind(
-          dt_object$status,
-          final_status
-        )
+      plot_stamp <- input$reportFinalSelectionStamp
+      if (is.null(plot_stamp) || !nzchar(plot_stamp) || plot_stamp == "__none__" || plot_stamp == "None") {
+        plot_stamp <- NULL
       }
 
+      # 5. Call cgiarPipeline::saveFinalProdAdvSelection() with assembled parameters
+      dt_object <- cgiarPipeline::saveFinalProdAdvSelection(
+        analysisId = analysis_id,
+        analysisIdName = analysis_name,
+        initialSelectionStamp = input$reportInitialSelectionStamp,
+        tableSelectionStamp = table_stamp,
+        plotSelectionStamp = plot_stamp,
+        final_decisions = final_decisions,
+        dt_object = data()
+      )
+
+      # Update the data reactive with the returned dt_object
       data(dt_object)
 
-      final_decision_overrides(
-        final_tbl[, c("designation", "final_decision"), drop = FALSE]
-      )
+      # Update final_decision_overrides with saved decisions
+      final_decision_overrides(final_decisions)
 
-      # rebuild final stamp choices and select the newly saved final stamp
+      # Rebuild final stamp choices and select the newly saved stamp
       dt_status <- dt_object$status
       dtFinalSel <- dt_status[dt_status$module == "Final_prodAdv", , drop = FALSE]
       stampsFinalSel <- unique(dtFinalSel$analysisId)
@@ -8064,11 +7928,56 @@ mod_preProdAdvApp_server <- function(id, data){
         selected = as.character(analysis_id)
       )
 
-      # intentionally do NOT touch plotSelectionStamp here
+      # 6. Generate final report and switch to Output tab
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+      final_table_export <- final_report_table_raw()
+
+      # Gather trait directions and thresholds for the trait distribution plot
+      trait_directions <- tryCatch({
+        rules <- trait_rules_input()
+        dirs <- lapply(rules, function(r) if (!is.null(r)) r$direction else NULL)
+        names(dirs) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
+        dirs[!is.na(names(dirs))]
+      }, error = function(e) list())
+
+      trait_thresholds <- tryCatch({
+        rules <- trait_rules_input()
+        ths <- lapply(rules, function(r) if (!is.null(r) && !is.null(r$threshold)) r$threshold else NULL)
+        names(ths) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
+        ths[!is.na(names(ths))]
+      }, error = function(e) list())
+
+      src <- normalizePath(system.file("rmd","reportProdAdv.Rmd", package = "bioflow"))
+
+      tmp_report <- file.path(tempdir(), "reportProdAdv_tmp.Rmd")
+      tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
+
+      save(result, final_table_export, trait_directions, trait_thresholds,
+           STATUS_COLORS, STATUS_SHAPES, analysis_name, file = tmp_rdata)
+      file.copy(src, tmp_report, overwrite = TRUE)
+
+      updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+
+      output$reportProdAdv <- renderUI({
+        old <- setwd(tempdir())
+        on.exit(setwd(old), add = TRUE)
+
+        HTML(
+          markdown::markdownToHTML(
+            knitr::knit(tmp_report, quiet = TRUE),
+            fragment.only = TRUE
+          )
+        )
+      })
+
+      shinybusy::remove_modal_spinner()
 
       showNotification(
-        "Final decision table saved successfully.",
-        type = "message"
+        paste0("Final selection saved successfully as: ", analysis_name),
+        type = "message",
+        duration = 5
       )
     }, ignoreInit = TRUE)
 
@@ -8082,12 +7991,12 @@ mod_preProdAdvApp_server <- function(id, data){
       dt <- data()$status
 
       dtInitSel  <- dt[dt$module == "Init_prodAdv",  , drop = FALSE]
+      dtTableSel <- dt[dt$module == "Table_prodAdv", , drop = FALSE]
       dtPlotSel  <- dt[dt$module == "Plot_prodAdv",  , drop = FALSE]
-      dtFinalSel <- dt[dt$module == "Final_prodAdv", , drop = FALSE]
 
       stampsInitSel  <- make_stamp_choices(dtInitSel)
+      stampsTableSel <- make_stamp_choices(dtTableSel)
       stampsPlotSel  <- make_stamp_choices(dtPlotSel)
-      stampsFinalSel <- make_stamp_choices(dtFinalSel)
 
       updateSelectInput(
         session,
@@ -8099,15 +8008,15 @@ mod_preProdAdvApp_server <- function(id, data){
       updateSelectInput(
         session,
         "reportPlotSelectionStamp",
-        choices = c("No plot selection" = "__none__", stampsPlotSel),
-        selected = "__none__"
+        choices = c("No table selection" = "__none__", stampsTableSel),
+        selected = if (length(stampsTableSel) > 0) unname(stampsTableSel)[length(stampsTableSel)] else "__none__"
       )
 
       updateSelectInput(
         session,
         "reportFinalSelectionStamp",
-        choices = c("No final selection" = "__none__", stampsFinalSel),
-        selected = "__none__"
+        choices = c("No plot selection" = "__none__", stampsPlotSel),
+        selected = if (length(stampsPlotSel) > 0) unname(stampsPlotSel)[length(stampsPlotSel)] else "__none__"
       )
     })
 
@@ -8115,8 +8024,8 @@ mod_preProdAdvApp_server <- function(id, data){
       build_decision_table_data(
         dt = data(),
         initial_stamp = input$reportInitialSelectionStamp,
-        plot_stamp = input$reportPlotSelectionStamp,
-        final_stamp = input$reportFinalSelectionStamp,
+        table_stamp = input$reportPlotSelectionStamp,
+        plot_stamp = input$reportFinalSelectionStamp,
         final_overrides = NULL
       )
     })
@@ -8154,12 +8063,30 @@ mod_preProdAdvApp_server <- function(id, data){
       result <- data()
       final_table_export <- final_report_table_raw()
 
+      # Gather trait directions and thresholds for the trait distribution plot
+      trait_directions <- tryCatch({
+        rules <- trait_rules_input()
+        dirs <- lapply(rules, function(r) if (!is.null(r)) r$direction else NULL)
+        names(dirs) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
+        dirs[!is.na(names(dirs))]
+      }, error = function(e) list())
+
+      trait_thresholds <- tryCatch({
+        rules <- trait_rules_input()
+        ths <- lapply(rules, function(r) if (!is.null(r) && !is.null(r$threshold)) r$threshold else NULL)
+        names(ths) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
+        ths[!is.na(names(ths))]
+      }, error = function(e) list())
+
+      analysis_name <- tryCatch(input$finalAnalysisName, error = function(e) "")
+
       src <- normalizePath(system.file("rmd","reportProdAdv.Rmd", package = "bioflow"))
 
       tmp_report <- file.path(tempdir(), "reportProdAdv_download.Rmd")
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
-      save(result, final_table_export, file = tmp_rdata)
+      save(result, final_table_export, trait_directions, trait_thresholds,
+           STATUS_COLORS, STATUS_SHAPES, analysis_name, file = tmp_rdata)
       file.copy(src, tmp_report, overwrite = TRUE)
 
       old <- setwd(tempdir())
@@ -8188,12 +8115,30 @@ mod_preProdAdvApp_server <- function(id, data){
       result <- data()
       final_table_export <- final_report_table_raw()
 
+      # Gather trait directions and thresholds for the trait distribution plot
+      trait_directions <- tryCatch({
+        rules <- trait_rules_input()
+        dirs <- lapply(rules, function(r) if (!is.null(r)) r$direction else NULL)
+        names(dirs) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
+        dirs[!is.na(names(dirs))]
+      }, error = function(e) list())
+
+      trait_thresholds <- tryCatch({
+        rules <- trait_rules_input()
+        ths <- lapply(rules, function(r) if (!is.null(r) && !is.null(r$threshold)) r$threshold else NULL)
+        names(ths) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
+        ths[!is.na(names(ths))]
+      }, error = function(e) list())
+
+      analysis_name <- tryCatch(input$finalAnalysisName, error = function(e) "")
+
       src <- normalizePath(system.file("rmd","reportProdAdv.Rmd", package = "bioflow"))
 
       tmp_report <- file.path(tempdir(), "reportProdAdv_tmp.Rmd")
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
-      save(result, final_table_export, file = tmp_rdata)
+      save(result, final_table_export, trait_directions, trait_thresholds,
+           STATUS_COLORS, STATUS_SHAPES, analysis_name, file = tmp_rdata)
       file.copy(src, tmp_report, overwrite = TRUE)
 
       updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
