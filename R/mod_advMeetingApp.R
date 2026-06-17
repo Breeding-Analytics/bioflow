@@ -870,6 +870,12 @@ mod_advMeetingApp_ui <- function(id){
                                                     status = "info",
                                                     solidHeader = TRUE,
                                                     collapsible = TRUE,
+                                                    tags$p(
+                                                      style = "font-size: 12px; color: #555; margin-bottom: 10px;",
+                                                      "Only traits used by the majority of stakeholders are included (ties excluded). ",
+                                                      "Weights are the median across stakeholders (a weight of 0 is used if a stakeholder did not include a given trait). ",
+                                                      "Individual BLUPs are penalized by the square root of their reliability before index computation."
+                                                    ),
                                                     DT::DTOutput(ns("candidate_context_table"))
                                                   ),
                                                   tags$br(),
@@ -1827,17 +1833,51 @@ mod_advMeetingApp_server <- function(id, data){
       }
       status_color <- if (status_label == "Resolved") "#28a745" else "#ffc107"
 
+      # Get current meeting decision for card coloring
+      md <- meeting_decisions()
+      current_decision <- if (!is.null(md) && current_designation %in% names(md)) {
+        md[[current_designation]]
+      } else {
+        NULL
+      }
+
+      # Card background color based on meeting decision
+      card_bg <- if (!is.null(current_decision) && current_decision == "SELECTED") {
+        "#D6EAF8"   # light blue
+      } else if (!is.null(current_decision) && current_decision == "NOT SELECTED") {
+        "#FDEBD0"   # light orange
+      } else {
+        "#FFFFFF"   # white (no decision yet)
+      }
+
+      # Decision tag (shown before Resolved tag)
+      decision_tag <- if (!is.null(current_decision)) {
+        dec_color <- if (current_decision == "SELECTED") "#0072B2" else "#D55E00"
+        tags$span(
+          style = paste0("display: inline-block; padding: 2px 8px; border-radius: 4px; ",
+                         "color: white; background-color: ", dec_color, "; font-size: 12px; margin-right: 6px;"),
+          current_decision
+        )
+      } else {
+        NULL
+      }
+
       # Build card UI
       tags$div(
+        style = paste0("background-color: ", card_bg, "; padding: 15px; border-radius: 8px; border: 1px solid #ddd;"),
         tags$h4(
           style = "margin-bottom: 5px;",
           paste0("Candidate ", idx, " of ", length(candidates), ": "),
           tags$strong(current_designation)
         ),
-        tags$span(
-          style = paste0("display: inline-block; padding: 2px 8px; border-radius: 4px; ",
-                         "color: white; background-color: ", status_color, "; font-size: 12px;"),
-          status_label
+        tags$div(
+          style = "margin-bottom: 8px;",
+          decision_tag,
+          tags$span(
+            style = paste0("display: inline-block; padding: 2px 8px; border-radius: 4px; ",
+                           "color: white; background-color: ", status_color, "; font-size: 12px;"),
+            status_label
+          )
         ),
         tags$p(
           style = "margin-top: 8px;",
@@ -1877,10 +1917,7 @@ mod_advMeetingApp_server <- function(id, data){
       cm <- comparison_matrix()
       if (is.null(cm) || nrow(cm) == 0) return(NULL)
 
-      # Reactive dependencies for update triggers
-      input$vote_decision
-      input$majority_btn
-      input$toggle_status_btn
+      # Primary reactive dependencies: these reactiveVals drive the tally
       ds <- discussion_status()
       md <- meeting_decisions()
 
@@ -1981,14 +2018,57 @@ mod_advMeetingApp_server <- function(id, data){
       )
       names(pred_wide) <- sub("^predictedValue\\.", "", names(pred_wide))
 
-      # Compute index
-      weight_rows <- modeling[
-        modeling$analysisId == init_stamp & modeling$parameter == "index_weight",
-        , drop = FALSE
-      ]
-      if (nrow(weight_rows) > 0) {
-        idx_weights <- as.numeric(weight_rows$value)
-        names(idx_weights) <- weight_rows$trait
+      # Compute index: averaged weights across ALL stakeholders
+      all_weight_lists <- list()
+      all_trait_sets <- list()
+      for (stamp_id in selected_stamps) {
+        s_init_rows <- modeling[
+          modeling$module == "Final_prodAdv" &
+            modeling$analysisId == stamp_id &
+            modeling$parameter == "inputObject",
+          , drop = FALSE
+        ]
+        if (nrow(s_init_rows) == 0) next
+        s_init_stamp <- s_init_rows$value[1]
+
+        s_weight_rows <- modeling[
+          modeling$analysisId == s_init_stamp & modeling$parameter == "index_weight",
+          , drop = FALSE
+        ]
+        if (nrow(s_weight_rows) > 0) {
+          w <- as.numeric(s_weight_rows$value)
+          names(w) <- s_weight_rows$trait
+          all_weight_lists[[stamp_id]] <- w
+        }
+
+        s_all_tr <- unique(modeling$trait[
+          modeling$analysisId == s_init_stamp &
+            modeling$module == "Init_prodAdv" &
+            !is.na(modeling$trait) & nzchar(modeling$trait)
+        ])
+        s_excluded_tr <- modeling$trait[
+          modeling$analysisId == s_init_stamp &
+            modeling$parameter == "user_excluded_trait"
+        ]
+        all_trait_sets[[stamp_id]] <- setdiff(s_all_tr, s_excluded_tr)
+      }
+
+      # Majority rule: only include traits used by more than half the stakeholders (ties excluded)
+      all_traits_union <- unique(unlist(all_trait_sets))
+      n_stakeholders <- length(all_trait_sets)
+      union_traits <- all_traits_union[vapply(all_traits_union, function(tr) {
+        n_using <- sum(vapply(all_trait_sets, function(ts) tr %in% ts, logical(1)))
+        n_using > n_stakeholders / 2
+      }, logical(1))]
+
+      if (length(union_traits) > 0 && length(all_weight_lists) > 0) {
+        idx_weights <- vapply(union_traits, function(tr) {
+          trait_weights <- vapply(all_weight_lists, function(wl) {
+            if (tr %in% names(wl)) wl[[tr]] else 0
+          }, numeric(1))
+          median(trait_weights)
+        }, numeric(1))
+        names(idx_weights) <- union_traits
         avail_traits <- intersect(names(idx_weights), colnames(pred_wide))
         if (length(avail_traits) > 0) {
           trait_mat <- as.matrix(pred_wide[, avail_traits, drop = FALSE])
@@ -2270,6 +2350,22 @@ mod_advMeetingApp_server <- function(id, data){
       # Toggle using helper
       current_status <- ds[[current_designation]]
       new_status <- toggle_discussion_status(current_status)
+
+      # Ensure a meeting decision is recorded BEFORE updating discussion_status
+      # This guarantees the tally sees the decision when it re-renders
+      md <- meeting_decisions()
+      if (is.null(md)) md <- list()
+
+      if (new_status == "Resolved" && !(current_designation %in% names(md))) {
+        # No explicit decision was recorded yet — use the current vote_decision radio value
+        current_vote <- input$vote_decision
+        if (!is.null(current_vote) && nzchar(current_vote)) {
+          md[[current_designation]] <- current_vote
+          meeting_decisions(md)
+        }
+      }
+
+      # Now update discussion_status (this triggers tally re-render)
       ds[[current_designation]] <- new_status
       discussion_status(ds)
 
@@ -2549,17 +2645,86 @@ mod_advMeetingApp_server <- function(id, data){
       if (is.null(td)) td <- list()
       trait_directions_export <- as.list(td)
 
-      # 7. predictions_data (data.frame with columns: designation, trait, predictedValue)
+      # 7. predictions_data (data.frame with columns: designation, trait, predictedValue, reliability)
       predictions_data <- tryCatch({
         if (is.na(mta_stamp) || is.null(dt_obj$predictions)) return(data.frame())
         preds <- dt_obj$predictions
+        cols_to_keep <- intersect(c("designation", "trait", "predictedValue", "reliability"), colnames(preds))
         mta_preds <- preds[
           preds$analysisId == mta_stamp & preds$effectType == "designation",
-          c("designation", "trait", "predictedValue"),
+          cols_to_keep,
           drop = FALSE
         ]
         mta_preds
       }, error = function(e) data.frame())
+
+      # 8. index_weights and selected_traits: averaged across ALL stakeholders
+      # Union of traits across stakeholders, weights averaged (0 if a stakeholder didn't use a trait)
+      index_weights <- NULL
+      selected_traits <- NULL
+      tryCatch({
+        selected_stamps_val <- input$stamp_select
+        if (!is.null(selected_stamps_val) && length(selected_stamps_val) > 0) {
+          modeling <- dt_obj$modeling
+
+          # Collect weights and traits from each stakeholder's Init_prodAdv
+          all_weight_lists <- list()
+          all_trait_sets <- list()
+
+          for (stamp_id in selected_stamps_val) {
+            init_rows <- modeling[
+              modeling$module == "Final_prodAdv" &
+                modeling$analysisId == stamp_id &
+                modeling$parameter == "inputObject",
+              , drop = FALSE
+            ]
+            if (nrow(init_rows) == 0) next
+            init_stamp_val <- init_rows$value[1]
+
+            weight_rows <- modeling[
+              modeling$analysisId == init_stamp_val & modeling$parameter == "index_weight",
+              , drop = FALSE
+            ]
+            if (nrow(weight_rows) > 0) {
+              w <- as.numeric(weight_rows$value)
+              names(w) <- weight_rows$trait
+              all_weight_lists[[stamp_id]] <- w
+            }
+
+            # Get selected traits for this stakeholder
+            all_tr <- unique(modeling$trait[
+              modeling$analysisId == init_stamp_val &
+                modeling$module == "Init_prodAdv" &
+                !is.na(modeling$trait) & nzchar(modeling$trait)
+            ])
+            excluded_tr <- modeling$trait[
+              modeling$analysisId == init_stamp_val &
+                modeling$parameter == "user_excluded_trait"
+            ]
+            all_trait_sets[[stamp_id]] <- setdiff(all_tr, excluded_tr)
+          }
+
+          # Majority rule: only include traits used by more than half the stakeholders (ties excluded)
+          all_traits_union <- unique(unlist(all_trait_sets))
+          n_stk <- length(all_trait_sets)
+          selected_traits <- all_traits_union[vapply(all_traits_union, function(tr) {
+            n_using <- sum(vapply(all_trait_sets, function(ts) tr %in% ts, logical(1)))
+            n_using > n_stk / 2
+          }, logical(1))]
+
+          # Average weights: for each trait, average across stakeholders (0 if not used)
+          if (length(selected_traits) > 0 && length(all_weight_lists) > 0) {
+            n_stakeholders <- length(all_weight_lists)
+            index_weights <- vapply(selected_traits, function(tr) {
+              trait_weights <- vapply(all_weight_lists, function(wl) {
+                if (tr %in% names(wl)) wl[[tr]] else 0
+              }, numeric(1))
+              median(trait_weights)
+            }, numeric(1))
+            names(index_weights) <- selected_traits
+          }
+        }
+      }, error = function(e) NULL)
 
       # --- Save .RData and render the Rmd ---
       tryCatch({
@@ -2571,12 +2736,14 @@ mod_advMeetingApp_server <- function(id, data){
         tmp_rdata <- file.path(tempdir(), "resultAdvMeeting.RData")
 
         # The Rmd loads: comparison_matrix, meeting_decisions_df, mta_stamp,
-        #                participants, meeting_name, trait_directions, predictions_data
+        #                participants, meeting_name, trait_directions, predictions_data,
+        #                index_weights, selected_traits
         comparison_matrix <- comparison_matrix_out
         trait_directions <- trait_directions_out
         save(
           comparison_matrix, meeting_decisions_df, mta_stamp, participants,
           meeting_name, trait_directions, predictions_data,
+          index_weights, selected_traits,
           file = tmp_rdata,
           envir = environment()
         )
@@ -2721,17 +2888,81 @@ mod_advMeetingApp_server <- function(id, data){
         if (is.null(td)) td <- list()
         trait_directions <- as.list(td)
 
-        # predictions_data
+        # predictions_data (include reliability)
         predictions_data <- tryCatch({
           if (is.na(mta_stamp) || is.null(dt_obj$predictions)) return(data.frame())
           preds <- dt_obj$predictions
+          cols_to_keep <- intersect(c("designation", "trait", "predictedValue", "reliability"), colnames(preds))
           mta_preds <- preds[
             preds$analysisId == mta_stamp & preds$effectType == "designation",
-            c("designation", "trait", "predictedValue"),
+            cols_to_keep,
             drop = FALSE
           ]
           mta_preds
         }, error = function(e) data.frame())
+
+        # index_weights and selected_traits: averaged across ALL stakeholders
+        index_weights <- NULL
+        selected_traits <- NULL
+        tryCatch({
+          selected_stamps_val <- input$stamp_select
+          if (!is.null(selected_stamps_val) && length(selected_stamps_val) > 0) {
+            modeling <- dt_obj$modeling
+            all_weight_lists <- list()
+            all_trait_sets <- list()
+
+            for (stamp_id in selected_stamps_val) {
+              init_rows <- modeling[
+                modeling$module == "Final_prodAdv" &
+                  modeling$analysisId == stamp_id &
+                  modeling$parameter == "inputObject",
+                , drop = FALSE
+              ]
+              if (nrow(init_rows) == 0) next
+              init_stamp_val <- init_rows$value[1]
+
+              weight_rows <- modeling[
+                modeling$analysisId == init_stamp_val & modeling$parameter == "index_weight",
+                , drop = FALSE
+              ]
+              if (nrow(weight_rows) > 0) {
+                w <- as.numeric(weight_rows$value)
+                names(w) <- weight_rows$trait
+                all_weight_lists[[stamp_id]] <- w
+              }
+
+              all_tr <- unique(modeling$trait[
+                modeling$analysisId == init_stamp_val &
+                  modeling$module == "Init_prodAdv" &
+                  !is.na(modeling$trait) & nzchar(modeling$trait)
+              ])
+              excluded_tr <- modeling$trait[
+                modeling$analysisId == init_stamp_val &
+                  modeling$parameter == "user_excluded_trait"
+              ]
+              all_trait_sets[[stamp_id]] <- setdiff(all_tr, excluded_tr)
+            }
+
+            # Majority rule: only include traits used by more than half the stakeholders (ties excluded)
+            all_traits_union <- unique(unlist(all_trait_sets))
+            n_stk <- length(all_trait_sets)
+            selected_traits <- all_traits_union[vapply(all_traits_union, function(tr) {
+              n_using <- sum(vapply(all_trait_sets, function(ts) tr %in% ts, logical(1)))
+              n_using > n_stk / 2
+            }, logical(1))]
+
+            if (length(selected_traits) > 0 && length(all_weight_lists) > 0) {
+              n_stakeholders <- length(all_weight_lists)
+              index_weights <- vapply(selected_traits, function(tr) {
+                trait_weights <- vapply(all_weight_lists, function(wl) {
+                  if (tr %in% names(wl)) wl[[tr]] else 0
+                }, numeric(1))
+                median(trait_weights)
+              }, numeric(1))
+              names(index_weights) <- selected_traits
+            }
+          }
+        }, error = function(e) NULL)
 
         # Use cm for comparison_matrix variable in RData
         comparison_matrix <- cm
@@ -2741,6 +2972,7 @@ mod_advMeetingApp_server <- function(id, data){
         save(
           comparison_matrix, meeting_decisions_df, mta_stamp, participants,
           meeting_name, trait_directions, predictions_data,
+          index_weights, selected_traits,
           file = tmp_rdata,
           envir = environment()
         )

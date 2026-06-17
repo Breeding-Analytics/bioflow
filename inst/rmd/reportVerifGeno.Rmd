@@ -34,6 +34,7 @@ library(grafify)
 library(data.table)
 library(shiny)
 library(bslib)
+library(adegenet)
 ```
 
 ```{r printfxn, include=FALSE}
@@ -173,6 +174,11 @@ if (is.null(result)){
   prob_status <- unique(data.frame(designation = predictionsX$designation[idx],
                                    .status = status,
                                    stringsAsFactors = FALSE))
+  
+  # Override status for F1s whose parents failed the heterozygosity filter
+  idx_het <- (predictionsX$trait == "parHetFilter")
+  het_fail_desig <- predictionsX$designation[idx_het][predictionsX$predictedValue[idx_het] == 0]
+  prob_status$.status[prob_status$designation %in% het_fail_desig] <- "PARENT FAIL"
   
   na_status = prob_status[is.na(prob_status$.status),]
   
@@ -403,65 +409,176 @@ if (has_sample || has_other) {
 The following plot shows how many F1 individuals derived from each parent received a "GOOD" status or failed. Parents that resulted in mostly failed F1s are more likely to have genotyping errors
 
 
-```{r}
+```{r, out.width="100%"}
 
 if (is.null(result)){
 invisible(NULL)
 } else {
-.plot_parent_success <- function(df) {
-# Stack mothers and fathers into a single "parent" column
-parent_long <- rbind(
-data.frame(parent = df$mother,
-status = df$status,
-stringsAsFactors = FALSE),
-data.frame(parent = df$father,
-status = df$status,
-stringsAsFactors = FALSE)
-)
+.build_parent_data <- function(df, max_parents = 30) {
+  # Stack mothers and fathers into a single "parent" column
+  parent_long <- rbind(
+    data.frame(parent = df$mother, status = df$status, stringsAsFactors = FALSE),
+    data.frame(parent = df$father, status = df$status, stringsAsFactors = FALSE)
+  )
 
-# Drop missing/empty parents
-parent_long <- parent_long[!is.na(parent_long$parent) & parent_long$parent != "", ]
+  # Drop missing/empty parents
+  parent_long <- parent_long[!is.na(parent_long$parent) & parent_long$parent != "", ]
 
-# Define outcome label: PASS vs non-PASS
-parent_long$Outcome <- ifelse(
-  parent_long$status == "GOOD",
-  "Crosses passed QA",
-  "Crosses failed QA"
-)
+  # Define outcome label
+  parent_long$Outcome <- ifelse(
+    parent_long$status == "GOOD",
+    "Crosses passed QA",
+    "Crosses failed QA"
+  )
 
-# Count F1s per parent × outcome
-counts <- with(parent_long, as.data.frame(table(parent, Outcome)))
-colnames(counts)[3] <- "n"
+  # Count F1s per parent x outcome
+  counts <- with(parent_long, as.data.frame(table(parent, Outcome)))
+  colnames(counts)[3] <- "n"
 
-# Order parents by total number of F1s
-totals <- tapply(counts$n, counts$parent, sum)
-counts$parent <- factor(
-  counts$parent,
-  levels = names(sort(totals, decreasing = TRUE))
-)
+  # Order parents by total number of F1s (descending)
+  totals <- tapply(counts$n, counts$parent, sum)
+  ordered_parents <- names(sort(totals, decreasing = TRUE))
 
-p <- ggplot2::ggplot(counts, ggplot2::aes(x = n, y = parent, fill = Outcome)) +
-  ggplot2::geom_col(position = "dodge") +
-  ggplot2::labs(
-    x    = "Number of F1s",
-    y    = "Parent",
-    fill = "QA result"
-  ) +
-  ggplot2::theme_minimal() +
-  ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, hjust = 1))
+  # Limit to top N parents for readability
+  if (length(ordered_parents) > max_parents) {
+    ordered_parents <- ordered_parents[1:max_parents]
+    counts <- counts[counts$parent %in% ordered_parents, ]
+  }
 
-plotly::ggplotly(p)
+  counts$parent <- factor(counts$parent, levels = rev(ordered_parents))
+  list(counts = counts, n_parents = length(ordered_parents))
+}
+
+dat <- .build_parent_data(predictions_wide)
+
+if("params" %in% ls()){ # static HTML download — use ggplot (respects fig dimensions)
+  # Compute figure height in inches: ~0.3 inches per parent, minimum 4 inches
+  fig_h <- max(4, dat$n_parents * 0.3)
+  knitr::opts_current$set(fig.height = fig_h)
+
+  p <- ggplot2::ggplot(dat$counts, ggplot2::aes(x = n, y = parent, fill = Outcome)) +
+    ggplot2::geom_col(position = "dodge") +
+    ggplot2::scale_fill_manual(
+      name = "QA result",
+      values = c("Crosses passed QA" = "#6baed6", "Crosses failed QA" = "#fc9272")
+    ) +
+    ggplot2::labs(x = "Number of F1s", y = NULL) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(axis.text.y = ggplot2::element_text(size = 9, hjust = 1))
+
+  print(p)
+
+} else { # interactive Shiny rendering
+  plot_h <- max(350, dat$n_parents * 25)
+  p <- ggplot2::ggplot(dat$counts, ggplot2::aes(x = n, y = parent, fill = Outcome)) +
+    ggplot2::geom_col(position = "dodge") +
+    ggplot2::scale_fill_manual(
+      name = "QA result",
+      values = c("Crosses passed QA" = "#6baed6", "Crosses failed QA" = "#fc9272")
+    ) +
+    ggplot2::labs(x = "Number of F1s", y = NULL) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(axis.text.y = ggplot2::element_text(size = 9, hjust = 1))
+  fig <- plotly::ggplotly(p, height = plot_h, tooltip = "all")
+  htmltools::div(style = paste0("width:100%; height:", plot_h + 50, "px; overflow:visible; position:relative; margin-bottom:30px;"), fig)
+}
 
 }
 
-if("params" %in% ls()){ # we will download the document
-.plot_parent_success(predictions_wide)
+```
+
+#### Parental heterozygosity summary
+
+The following table lists each parent, its observed heterozygosity (%), and whether it passed or failed the heterozygosity filter.
+
+```{r}
+
+if (is.null(result)){
+  invisible(NULL)
 } else {
-  plotly::renderPlotly({
-        .plot_parent_success(predictions_wide)
-    })
-}
 
+  # Retrieve het threshold from modeling parameters
+  het_thresh <- as.numeric(modeling[modeling$parameter == "ParentMaxHetThresh", "value"])
+
+  # Build parent-level het info from predictions
+  # parHetFilter is stored per F1, but het % must be computed from genotype data
+  # We recompute per-parent heterozygosity from the marker matrix
+
+  dtVerif <- result
+  analysisIdForGeno <- modeling[modeling$parameter == "analysisId", "value"]
+
+  if (inherits(dtVerif$data$geno, "genlight")) {
+    qas <- which(names(dtVerif$data$geno_imp) == analysisIdForGeno)
+    if (length(qas) > 0) {
+      gl_obj <- dtVerif$data$geno_imp[[qas]]
+      Markers_all <- as.data.frame(gl_obj)
+      rownames(Markers_all) <- adegenet::indNames(gl_obj)
+    }
+  }
+
+  ploidy_val <- as.numeric(
+    dtVerif$metadata$geno[dtVerif$metadata$geno$parameter == "ploidity", "value"]
+  )
+
+  # Get unique parent IDs
+  parent_ids <- unique(na.omit(c(predictions_wide$mother, predictions_wide$father)))
+  present_parents <- intersect(parent_ids, rownames(Markers_all))
+
+  if (length(present_parents) > 0) {
+    M_par <- Markers_all[present_parents, , drop = FALSE]
+    homo_mat <- (M_par == 0 | M_par == ploidy_val)
+    n_non_missing <- rowSums(!is.na(M_par))
+    n_homo <- rowSums(homo_mat, na.rm = TRUE)
+    het_pct <- (pmax(n_non_missing - n_homo, 0) / pmax(n_non_missing, 1)) * 100
+
+    par_het_df <- data.frame(
+      Parent = present_parents,
+      Heterozygosity_pct = round(het_pct, 2),
+      Filter_Status = ifelse(het_pct <= het_thresh, "PASS", "FAIL"),
+      stringsAsFactors = FALSE
+    )
+
+    # Add parents without genotype data
+    missing_parents <- setdiff(parent_ids, present_parents)
+    if (length(missing_parents) > 0) {
+      par_het_df <- rbind(par_het_df, data.frame(
+        Parent = missing_parents,
+        Heterozygosity_pct = NA_real_,
+        Filter_Status = "NO GENO DATA",
+        stringsAsFactors = FALSE
+      ))
+    }
+
+    # Sort: FAIL first, then by het descending
+    par_het_df <- par_het_df[order(
+      factor(par_het_df$Filter_Status, levels = c("FAIL", "NO GENO DATA", "PASS")),
+      -par_het_df$Heterozygosity_pct
+    ), ]
+    rownames(par_het_df) <- NULL
+
+    tbl <- printTable(
+      par_het_df,
+      autoWidthOpt = TRUE,
+      scrollXOpt = FALSE,
+      colNames = c("Parent", "Heterozygosity (%)", "Filter Status"),
+      numericColNames = "Heterozygosity_pct",
+      numRound = 2
+    ) %>%
+      DT::formatStyle(
+        "Filter_Status",
+        target = "row",
+        backgroundColor = DT::styleEqual(
+          c("PASS", "FAIL", "NO GENO DATA"),
+          c("rgba(164, 214, 94, 0.3)", "rgba(215, 48, 39, 0.30)", "rgba(243,176,176, 0.30)")
+        )
+      )
+
+    if ("params" %in% ls()) {
+      tbl
+    } else {
+      DT::renderDT(tbl, server = FALSE)
+    }
+  }
 }
 
 ```

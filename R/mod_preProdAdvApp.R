@@ -1005,8 +1005,9 @@ build_relatedness_plotly <- function(plot_data, highlighted = NULL,
   }, individuals$designation, individuals$group_label, individuals$plot_status,
   individuals$index_value, SIMPLIFY = TRUE, USE.NAMES = FALSE)
 
-  # ---- Compute plot height (scrollable if > 100 individuals) ----
-  plot_height <- if (n_indiv > 100) n_indiv * 20 else NULL
+  # ---- Compute plot height (scale with number of individuals) ----
+  # Minimum 600px, scale at 25px per individual for readability, cap at 4000px
+  plot_height <- max(600, min(4000, n_indiv * 25))
 
   # ---- Initialize plotly figure ----
   fig <- plotly::plot_ly(source = source_id)
@@ -1105,6 +1106,29 @@ build_relatedness_plotly <- function(plot_data, highlighted = NULL,
     }
   }
 
+  # ---- Add pale blue ribbon for selected individuals' trait value range ----
+  if (!is.null(trait_values) && nrow(trait_values) > 0) {
+    selected_desigs <- individuals$designation[individuals$plot_status == "SELECTED"]
+    selected_trait_vals <- trait_values$value[trait_values$designation %in% selected_desigs]
+    selected_trait_vals <- selected_trait_vals[is.finite(selected_trait_vals)]
+
+    if (length(selected_trait_vals) > 0) {
+      sel_min <- min(selected_trait_vals)
+      sel_max <- max(selected_trait_vals)
+
+      shapes_list <- c(shapes_list, list(list(
+        type = "rect",
+        x0 = sel_min, x1 = sel_max,
+        xref = "x",
+        y0 = 0, y1 = 1,
+        yref = "paper",
+        fillcolor = "rgba(173, 216, 230, 0.25)",
+        line = list(width = 0),
+        layer = "below"
+      )))
+    }
+  }
+
   # ---- Layout ----
   layout_args <- list(
     fig,
@@ -1112,18 +1136,16 @@ build_relatedness_plotly <- function(plot_data, highlighted = NULL,
     yaxis = list(
       title = "",
       categoryorder = "array",
-      categoryarray = levels(individuals$y_factor)
+      categoryarray = levels(individuals$y_factor),
+      tickfont = list(size = if (n_indiv > 80) 9 else 11)
     ),
     shapes = shapes_list,
     showlegend = TRUE,
     legend = list(orientation = "v", x = 1.02, xanchor = "left", y = 0.5, yanchor = "middle"),
     margin = list(t = 40, b = 40, l = 150, r = 120),
-    hovermode = "closest"
+    hovermode = "closest",
+    height = plot_height
   )
-
-  if (!is.null(plot_height)) {
-    layout_args$height <- plot_height
-  }
 
   fig <- do.call(plotly::layout, layout_args)
 
@@ -1653,11 +1675,11 @@ mod_preProdAdvApp_ui <- function(id){
                                                         tags$tr(
                                                           tags$td(style = "border:1px solid #ddd; padding:6px;", strong("Moderate")),
                                                           tags$td(style = "border:1px solid #ddd; padding:6px; background:#fff3cd;", "Use with caution"),
-                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#fff3cd;", "Use with caution")
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#f8d7da;", "Recommended to exclude")
                                                         ),
                                                         tags$tr(
                                                           tags$td(style = "border:1px solid #ddd; padding:6px;", strong("Low")),
-                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#fff3cd;", "Use with caution"),
+                                                          tags$td(style = "border:1px solid #ddd; padding:6px; background:#f8d7da;", "Recommended to exclude"),
                                                           tags$td(style = "border:1px solid #ddd; padding:6px; background:#f8d7da;", "Recommended to exclude")
                                                         )
                                                       )
@@ -3563,7 +3585,6 @@ mod_preProdAdvApp_server <- function(id, data){
         # Observer: when weight changes, auto-update direction
         observeEvent(input[[weight_id]], {
           weight_val <- input[[weight_id]]
-              "| weight_val:", weight_val, "\n")
           new_direction <- derive_direction_from_weight(weight_val)
 
           if (is.null(new_direction)) {
@@ -3578,7 +3599,6 @@ mod_preProdAdvApp_server <- function(id, data){
           }
 
           current_direction <- input[[direction_id]]
-              "| direction_id:", direction_id, "\n")
           if (!identical(current_direction, new_direction)) {
             updateSelectInput(session, direction_id, selected = new_direction)
             # Mark as auto-set
@@ -4559,7 +4579,6 @@ mod_preProdAdvApp_server <- function(id, data){
         # Look up direction from trait_rules_input() for direction-aware gradient
         trait_direction <- trait_rules[[tr]]$direction
         hib <- is.null(trait_direction) || identical(trait_direction, "Higher is better")
-            "| hib:", hib, "\n")
         tr_opacity <- get_quintile_opacity(trait_vals, trait_status, higher_is_better = hib)
         display_df[[tr]] <- mapply(function(val, st, op) {
           base_col <- if (st == "SELECTED") col_selected else if (st == "CHECK") col_check else col_not_selected
@@ -6516,7 +6535,7 @@ mod_preProdAdvApp_server <- function(id, data){
               tags$p(style = "color: #666; font-size: 12px; font-style: italic; margin: 4px 0;",
                      icon("info-circle"),
                      " Individuals are ordered by genetic similarity within family groups. Dotted lines separate families."),
-              plotly::plotlyOutput(ns("relatednessPlot"), height = "600px")
+              plotly::plotlyOutput(ns("relatednessPlot"), height = "auto")
             )
           )
         )
@@ -7723,7 +7742,19 @@ mod_preProdAdvApp_server <- function(id, data){
       display_df <- data.frame(designation = tbl$designation, stringsAsFactors = FALSE)
 
       # Get trait rules for direction-aware opacity
+      # First try live UI rules, fallback to stored directions in modeling table
       trait_rules <- tryCatch(trait_rules_input(), error = function(e) list())
+
+      # If trait_rules is empty (UI not available), get directions from modeling table
+      if (length(trait_rules) == 0) {
+        direction_rows <- modeling_init[modeling_init$parameter == "direction", , drop = FALSE]
+        for (i in seq_len(nrow(direction_rows))) {
+          tr_name <- direction_rows$trait[i]
+          if (!is.null(tr_name) && nzchar(tr_name)) {
+            trait_rules[[tr_name]] <- list(direction = direction_rows$value[i])
+          }
+        }
+      }
 
       # Index value column with gradient (always higher_is_better = TRUE for index)
       if ("index_value" %in% colnames(tbl)) {
@@ -7837,6 +7868,16 @@ mod_preProdAdvApp_server <- function(id, data){
 
       # Get trait directions and thresholds
       trait_rules <- tryCatch(trait_rules_input(), error = function(e) list())
+      # Fallback to modeling table if trait_rules_input() is empty
+      if (length(trait_rules) == 0) {
+        direction_rows <- modeling_init[modeling_init$parameter == "direction", , drop = FALSE]
+        for (i in seq_len(nrow(direction_rows))) {
+          tr_name <- direction_rows$trait[i]
+          if (!is.null(tr_name) && nzchar(tr_name)) {
+            trait_rules[[tr_name]] <- list(direction = direction_rows$value[i])
+          }
+        }
+      }
       trait_directions <- lapply(selected_traits, function(tr) {
         d <- trait_rules[[tr]]$direction
         if (is.null(d)) "Higher is better" else d
@@ -7941,6 +7982,21 @@ mod_preProdAdvApp_server <- function(id, data){
         names(dirs) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
         dirs[!is.na(names(dirs))]
       }, error = function(e) list())
+
+      # Fallback to modeling table if trait_rules_input() is not available
+      if (length(trait_directions) == 0) {
+        init_mod <- result$modeling[
+          result$modeling$analysisId %in% input$reportInitialSelectionStamp &
+            result$modeling$module == "Init_prodAdv" &
+            result$modeling$parameter == "direction", , drop = FALSE
+        ]
+        for (i in seq_len(nrow(init_mod))) {
+          tr_name <- init_mod$trait[i]
+          if (!is.null(tr_name) && nzchar(tr_name)) {
+            trait_directions[[tr_name]] <- init_mod$value[i]
+          }
+        }
+      }
 
       trait_thresholds <- tryCatch({
         rules <- trait_rules_input()
@@ -8071,6 +8127,21 @@ mod_preProdAdvApp_server <- function(id, data){
         dirs[!is.na(names(dirs))]
       }, error = function(e) list())
 
+      # Fallback to modeling table if trait_rules_input() is not available
+      if (length(trait_directions) == 0) {
+        init_mod <- result$modeling[
+          result$modeling$analysisId %in% input$reportInitialSelectionStamp &
+            result$modeling$module == "Init_prodAdv" &
+            result$modeling$parameter == "direction", , drop = FALSE
+        ]
+        for (i in seq_len(nrow(init_mod))) {
+          tr_name <- init_mod$trait[i]
+          if (!is.null(tr_name) && nzchar(tr_name)) {
+            trait_directions[[tr_name]] <- init_mod$value[i]
+          }
+        }
+      }
+
       trait_thresholds <- tryCatch({
         rules <- trait_rules_input()
         ths <- lapply(rules, function(r) if (!is.null(r) && !is.null(r$threshold)) r$threshold else NULL)
@@ -8122,6 +8193,21 @@ mod_preProdAdvApp_server <- function(id, data){
         names(dirs) <- vapply(rules, function(r) if (!is.null(r)) r$trait else NA_character_, character(1))
         dirs[!is.na(names(dirs))]
       }, error = function(e) list())
+
+      # Fallback to modeling table if trait_rules_input() is not available
+      if (length(trait_directions) == 0) {
+        init_mod <- result$modeling[
+          result$modeling$analysisId %in% input$reportInitialSelectionStamp &
+            result$modeling$module == "Init_prodAdv" &
+            result$modeling$parameter == "direction", , drop = FALSE
+        ]
+        for (i in seq_len(nrow(init_mod))) {
+          tr_name <- init_mod$trait[i]
+          if (!is.null(tr_name) && nzchar(tr_name)) {
+            trait_directions[[tr_name]] <- init_mod$value[i]
+          }
+        }
+      }
 
       trait_thresholds <- tryCatch({
         rules <- trait_rules_input()

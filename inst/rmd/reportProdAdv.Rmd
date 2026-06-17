@@ -113,29 +113,27 @@ if (!is.null(final_table) && nrow(final_table) > 0 && "final_decision" %in% coln
 
 ###  Final decision table
 
-The table below shows all candidates with their trait values, index score, and final selection status. Columns ending in `_trait_decision` indicate whether each candidate passed the trait-specific threshold. The `final_decision` column reflects the consolidated decision after applying the hierarchy: plot-level overrides take precedence over table-level overrides, which take precedence over the initial index-based selection. Rows are color-coded by decision status (blue = selected, orange = not selected, pink = check, yellow = revise).
+The table below shows all candidates with their trait values, index score, and final selection status. The `final_decision` column reflects the consolidated decision after applying the hierarchy: plot-level overrides take precedence over table-level overrides, which take precedence over the initial index-based selection. Rows are color-coded by decision status (blue = selected, orange = not selected, pink = check, yellow = revise).
 
 ```{r, include=FALSE}
 htmltools::tagList(printTable(mtcars))
 
-# Identify column groups
+# Remove trait_decision columns (keep trait values only)
 trait_decision_cols <- grep("_trait_decision$", colnames(final_table), value = TRUE)
+final_table <- final_table[, setdiff(colnames(final_table), trait_decision_cols), drop = FALSE]
 
+# Define decision columns in desired order: initial, table, plot, final
 main_decision_cols <- intersect(
-  c("initial_decision", "plot_decision", "final_decision"),
+  c("initial_decision", "table_decision", "plot_decision", "final_decision"),
   colnames(final_table)
 )
 
-# Everything else (e.g. designation, numeric traits)
-other_cols <- setdiff(
-  colnames(final_table),
-  c(trait_decision_cols, main_decision_cols)
-)
+# Everything else (e.g. designation, numeric traits, index_value)
+other_cols <- setdiff(colnames(final_table), main_decision_cols)
 
-# Reorder
+# Reorder: trait values first, then decision columns
 final_table <- final_table[, c(
   other_cols,
-  trait_decision_cols,
   main_decision_cols
 ), drop = FALSE]
 
@@ -151,7 +149,7 @@ dt <- printTable(
 )
 
 decision_cols <- grep(
-  "(_decision$|_trait_decision$)",
+  "_decision$",
   colnames(final_table),
   value = TRUE
 )
