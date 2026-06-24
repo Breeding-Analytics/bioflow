@@ -284,7 +284,11 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
         nenv<-length(unique(dtProv[,"environment"]))
         if("plantingDate" %in% colnames(dtProv)){
           latCol <- dtProv[,c("environment","plantingDate")] %>% dplyr::distinct(environment, .keep_all = TRUE)
-          fieldNames <- as.Date(latCol$plantingDate,"%m/%d/%y")
+          fieldNames <- as.Date(latCol$plantingDate)
+          # Fallback: try alternative format if parsing failed
+          if (all(is.na(fieldNames))) {
+            fieldNames <- as.Date(latCol$plantingDate, "%m/%d/%y")
+          }
         }else{
           fieldNames <- rep(Sys.Date()-31,nenv)
         }
@@ -308,7 +312,11 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
         nenv<-length(unique(dtProv[,"environment"]))
         if("harvestingDate" %in% colnames(dtProv)){
           latCol <- dtProv[,c("environment","harvestingDate")] %>% dplyr::distinct(environment, .keep_all = TRUE)
-          fieldNames <- as.Date(latCol$harvestingDate,"%m/%d/%y")
+          fieldNames <- as.Date(latCol$harvestingDate)
+          # Fallback: try alternative format if parsing failed
+          if (all(is.na(fieldNames))) {
+            fieldNames <- as.Date(latCol$harvestingDate, "%m/%d/%y")
+          }
         }else{
           fieldNames <- rep(Sys.Date()-31,nenv)
         }

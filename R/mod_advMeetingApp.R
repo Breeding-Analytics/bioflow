@@ -433,25 +433,28 @@ auto_assign_non_controversial <- function(comparison_matrix) {
 
   for (i in seq_len(nrow(comparison_matrix))) {
     decisions <- as.character(unlist(comparison_matrix[i, stakeholder_cols]))
-    score <- comparison_matrix$controversy_score[i]
     desig <- comparison_matrix$designation[i]
 
+    # Remove NAs for reliable comparison
+    decisions <- decisions[!is.na(decisions)]
+    if (length(decisions) == 0) next
+
     # CHECK: any stakeholder assigned CHECK -> auto-assign CHECK
-    if (any(decisions == "CHECK", na.rm = TRUE)) {
+    if (any(decisions == "CHECK")) {
       result_designation <- c(result_designation, desig)
       result_decision <- c(result_decision, "CHECK")
       next
     }
 
-    # Unanimous SELECTED: controversy_score = 1.0
-    if (!is.na(score) && score == 1.0) {
+    # Unanimous SELECTED: all stakeholders said SELECTED
+    if (all(decisions == "SELECTED")) {
       result_designation <- c(result_designation, desig)
       result_decision <- c(result_decision, "SELECTED")
       next
     }
 
-    # Unanimous NOT SELECTED: all stakeholders = "NOT SELECTED"
-    if (all(decisions == "NOT SELECTED", na.rm = TRUE)) {
+    # Unanimous NOT SELECTED: all stakeholders said NOT SELECTED
+    if (all(decisions == "NOT SELECTED")) {
       result_designation <- c(result_designation, desig)
       result_decision <- c(result_decision, "NOT SELECTED")
       next
@@ -489,25 +492,21 @@ requires_discussion <- function(comparison_matrix) {
 
   for (i in seq_len(nrow(comparison_matrix))) {
     decisions <- as.character(unlist(comparison_matrix[i, stakeholder_cols]))
-    score <- comparison_matrix$controversy_score[i]
     desig <- comparison_matrix$designation[i]
 
+    # Remove NAs
+    decisions <- decisions[!is.na(decisions)]
+    if (length(decisions) == 0) next
+
     # Skip CHECK designations (any stakeholder assigned CHECK)
-    if (any(decisions == "CHECK", na.rm = TRUE)) {
-      next
-    }
+    if (any(decisions == "CHECK")) next
 
-    # Controversial: 0 < score < 1
-    if (!is.na(score) && score > 0 && score < 1) {
-      discussion_designations <- c(discussion_designations, desig)
-      next
-    }
+    # Consensus cases — do NOT need discussion
+    if (all(decisions == "SELECTED")) next
+    if (all(decisions == "NOT SELECTED")) next
 
-    # Unanimous REVISE: all stakeholders assigned "REVISE"
-    if (all(decisions == "REVISE", na.rm = TRUE)) {
-      discussion_designations <- c(discussion_designations, desig)
-      next
-    }
+    # Everything else needs discussion (controversial + unanimous REVISE)
+    discussion_designations <- c(discussion_designations, desig)
   }
 
   discussion_designations
@@ -812,23 +811,6 @@ mod_advMeetingApp_ui <- function(id){
                                                   uiOutput(ns("consensus_summary_text")),
                                                   tags$hr(),
 
-                                                  # --- SECTION: Candidate Detail Panel ---
-                                                  h3(strong("Candidate Detail Comparison")),
-                                                  selectizeInput(
-                                                    ns("detail_candidates"),
-                                                    label = "Select designations to compare (up to 5, including CHECK references):",
-                                                    choices = NULL,
-                                                    multiple = TRUE,
-                                                    options = list(maxItems = 5,
-                                                                   placeholder = "Select up to 5 designations...")
-                                                  ),
-                                                  fluidRow(
-                                                    column(6, plotly::plotlyOutput(ns("radar_plot"), height = "450px")),
-                                                    column(6, DT::dataTableOutput(ns("detail_table")))
-                                                  ),
-                                                  uiOutput(ns("stakeholder_breakdown")),
-                                                  tags$hr(),
-
                                                   # --- SECTION: Joint Decision Workflow ---
                                                   h3(strong("Joint Decision Workflow")),
                                                   textOutput(ns("progress_indicator")),
@@ -863,6 +845,23 @@ mod_advMeetingApp_ui <- function(id){
                                                       )
                                                     )
                                                   ),
+                                                  tags$hr(),
+                                                  # --- SECTION: Radar plot + detail table ---
+                                                  h3(strong("Candidate Detail Comparison")),
+                                                  selectizeInput(
+                                                    ns("detail_candidates"),
+                                                    label = "Select designations to compare (up to 5, including CHECK references):",
+                                                    choices = NULL,
+                                                    multiple = TRUE,
+                                                    options = list(maxItems = 5,
+                                                                   placeholder = "Select up to 5 designations...")
+                                                  ),
+                                                  fluidRow(
+                                                    column(6, plotly::plotlyOutput(ns("radar_plot"), height = "450px")),
+                                                    column(6, DT::dataTableOutput(ns("detail_table")))
+                                                  ),
+                                                  uiOutput(ns("stakeholder_breakdown")),
+                                                  tags$hr(),
                                                   # Population context table for current candidate
                                                   shinydashboard::box(
                                                     width = 12,
@@ -1215,17 +1214,25 @@ mod_advMeetingApp_server <- function(id, data){
 
       for (i in seq_len(nrow(cm))) {
         decisions <- as.character(unlist(cm[i, stakeholder_cols]))
-        score <- cm$controversy_score[i]
+        # Remove NAs for comparison
+        decisions <- decisions[!is.na(decisions)]
 
         # Skip check varieties
         if (any(decisions == "CHECK", na.rm = TRUE)) next
 
-        if (all(decisions == "REVISE", na.rm = TRUE)) {
+        # Skip if no valid decisions
+        if (length(decisions) == 0) next
+
+        # Consensus REVISE: ALL stakeholders said REVISE
+        if (all(decisions == "REVISE")) {
           n_revise <- n_revise + 1
-        } else if (!is.na(score) && score == 1.0) {
+        # Consensus SELECTED: ALL stakeholders said SELECTED
+        } else if (all(decisions == "SELECTED")) {
           n_selected <- n_selected + 1
-        } else if (!is.na(score) && score == 0.0) {
+        # Consensus NOT SELECTED: ALL stakeholders said NOT SELECTED
+        } else if (all(decisions == "NOT SELECTED")) {
           n_not_selected <- n_not_selected + 1
+        # Everything else is controversial
         } else {
           n_controversial <- n_controversial + 1
         }
@@ -1279,27 +1286,38 @@ mod_advMeetingApp_server <- function(id, data){
       stakeholder_cols <- setdiff(colnames(cm), c("designation", "controversy_score"))
       n_agreement <- 0
       n_discussion <- 0
+      n_checks <- 0
 
       for (i in seq_len(nrow(cm))) {
         decisions <- as.character(unlist(cm[i, stakeholder_cols]))
-        score <- cm$controversy_score[i]
+        decisions <- decisions[!is.na(decisions)]
 
         # Skip check varieties
-        if (any(decisions == "CHECK", na.rm = TRUE)) next
+        if (any(decisions == "CHECK", na.rm = TRUE)) {
+          n_checks <- n_checks + 1
+          next
+        }
 
-        if (all(decisions == "REVISE", na.rm = TRUE)) {
+        if (length(decisions) == 0) next
+
+        # Unanimous REVISE requires discussion
+        if (all(decisions == "REVISE")) {
           n_discussion <- n_discussion + 1
-        } else if (!is.na(score) && (score == 1.0 || score == 0.0)) {
+        # Unanimous SELECTED or NOT SELECTED = full agreement
+        } else if (all(decisions == "SELECTED") || all(decisions == "NOT SELECTED")) {
           n_agreement <- n_agreement + 1
         } else {
           n_discussion <- n_discussion + 1
         }
       }
 
+      total_candidates <- nrow(cm) - n_checks
+
       tags$p(
         style = "font-size: 16px; font-weight: bold; margin-top: 10px;",
-        paste0(n_agreement, " candidates with full agreement, ",
-               n_discussion, " candidates requiring discussion.")
+        paste0(total_candidates, " candidates: ",
+               n_agreement, " with full agreement, ",
+               n_discussion, " requiring discussion.")
       )
     })
 
@@ -1309,6 +1327,7 @@ mod_advMeetingApp_server <- function(id, data){
     # =========================================================================
     observe({
       cm <- comparison_matrix()
+      md <- meeting_decisions()
       if (is.null(cm) || nrow(cm) == 0) {
         updateSelectizeInput(session, "detail_candidates",
                             choices = character(0),
@@ -1316,43 +1335,56 @@ mod_advMeetingApp_server <- function(id, data){
         return()
       }
 
-      # Build labelled choices with consensus status
+      # Build labelled choices with consensus status (incorporating meeting decisions)
       stakeholder_cols <- setdiff(colnames(cm), c("designation", "controversy_score"))
 
       status_labels <- vapply(seq_len(nrow(cm)), function(i) {
+        desig <- cm$designation[i]
+        # If resolved in meeting, show the meeting decision
+        if (!is.null(md) && desig %in% names(md)) {
+          return(paste0("RESOLVED - ", md[[desig]]))
+        }
         decisions <- as.character(unlist(cm[i, stakeholder_cols]))
-        score <- cm$controversy_score[i]
+        decisions <- decisions[!is.na(decisions)]
 
-        if (any(decisions == "CHECK", na.rm = TRUE)) {
+        if (any(decisions == "CHECK")) {
           "CHECK"
-        } else if (all(decisions == "REVISE", na.rm = TRUE)) {
-          "CONSENSUS - REVISE"
-        } else if (!is.na(score) && score == 1.0) {
+        } else if (all(decisions == "SELECTED")) {
           "CONSENSUS - SELECTED"
-        } else if (!is.na(score) && score == 0.0) {
+        } else if (all(decisions == "NOT SELECTED")) {
           "CONSENSUS - NOT SELECTED"
+        } else if (all(decisions == "REVISE")) {
+          "CONSENSUS - REVISE"
         } else {
           "CONTROVERSIAL"
         }
       }, character(1))
 
-      # Sort order: Controversial, Check, Consensus Selected, Consensus Not Selected
+      # Sort order: Controversial first, then resolved, then consensus
       sort_priority <- c(
         "CONTROVERSIAL" = 1,
-        "CONSENSUS - REVISE" = 2,
-        "CHECK" = 3,
-        "CONSENSUS - SELECTED" = 4,
-        "CONSENSUS - NOT SELECTED" = 5
+        "CONSENSUS - REVISE" = 2
       )
-      sort_order <- order(sort_priority[status_labels], cm$designation)
+      # Assign priority: resolved and consensus go after controversial
+      priority_vals <- vapply(status_labels, function(lbl) {
+        if (lbl %in% names(sort_priority)) return(sort_priority[[lbl]])
+        if (grepl("^RESOLVED", lbl)) return(3)
+        if (lbl == "CHECK") return(4)
+        if (lbl == "CONSENSUS - SELECTED") return(5)
+        if (lbl == "CONSENSUS - NOT SELECTED") return(6)
+        return(3)
+      }, numeric(1))
+      sort_order <- order(priority_vals, cm$designation)
 
       desigs <- cm$designation[sort_order]
       labels <- paste0(cm$designation[sort_order], " [", status_labels[sort_order], "]")
 
       choices <- setNames(desigs, labels)
+      current_selected <- isolate(input$detail_candidates)
+      current_selected <- current_selected[current_selected %in% desigs]
       updateSelectizeInput(session, "detail_candidates",
                           choices = choices,
-                          selected = character(0))
+                          selected = current_selected)
     })
 
     # =========================================================================
@@ -2103,17 +2135,23 @@ mod_advMeetingApp_server <- function(id, data){
         pred_wide$index_value <- NA_real_
       }
 
-      # Classify each designation's consensus status
+      # Classify each designation's consensus status — incorporate meeting decisions
       stakeholder_cols <- setdiff(colnames(cm), c("designation", "controversy_score"))
+      md <- meeting_decisions()
       desig_status <- vapply(pred_wide$designation, function(d) {
+        # If already resolved in meeting, use the meeting decision
+        if (!is.null(md) && d %in% names(md)) {
+          return(md[[d]])
+        }
         row <- cm[cm$designation == d, , drop = FALSE]
         if (nrow(row) == 0) return("CONTROVERSIAL")
         decisions <- as.character(unlist(row[1, stakeholder_cols]))
-        if (any(decisions == "CHECK", na.rm = TRUE)) return("CHECK")
-        if (all(decisions == "REVISE", na.rm = TRUE)) return("REVISE")
-        score <- row$controversy_score[1]
-        if (!is.na(score) && score == 1.0) return("SELECTED")
-        if (!is.na(score) && score == 0.0) return("NOT SELECTED")
+        decisions <- decisions[!is.na(decisions)]
+        if (length(decisions) == 0) return("CONTROVERSIAL")
+        if (any(decisions == "CHECK")) return("CHECK")
+        if (all(decisions == "SELECTED")) return("SELECTED")
+        if (all(decisions == "NOT SELECTED")) return("NOT SELECTED")
+        if (all(decisions == "REVISE")) return("REVISE")
         "CONTROVERSIAL"
       }, character(1))
 
@@ -2122,15 +2160,20 @@ mod_advMeetingApp_server <- function(id, data){
       # Sort by index descending
       pred_wide <- pred_wide[order(-pred_wide$index_value), , drop = FALSE]
 
-      # Determine which designations need discussion (grey)
-      needs_discussion <- candidates  # all discussion candidates
+      # Determine which designations still need discussion (unresolved only)
+      ds <- discussion_status()
+      needs_discussion <- if (!is.null(ds)) {
+        names(ds)[ds != "Resolved"]
+      } else {
+        candidates
+      }
 
       # Build color-coded HTML table
-      # Colors: SELECTED=#85C1E9, NOT SELECTED=#E8A87C, CHECK=#C39BD3, grey for controversial
+      # Colors: SELECTED=#85C1E9, NOT SELECTED=#E8A87C, CHECK=#C39BD3, yellow for unresolved
       col_selected <- "#85C1E9"
       col_not_selected <- "#E8A87C"
       col_check <- "#C39BD3"
-      col_controversial <- "#FFF8DC"  # Muted pale yellow for discussion candidates
+      col_controversial <- "#FFF8DC"  # Muted pale yellow for unresolved discussion candidates
       col_highlight <- "#FFD700"  # Bright gold for current candidate
 
       # Columns to display: designation, index_value, traits
@@ -2795,118 +2838,110 @@ mod_advMeetingApp_server <- function(id, data){
         paste0("advancement_meeting_dashboard_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".html")
       },
       content = function(file) {
-        # Gather data (same logic as renderUI above)
-        dt_obj <- data()
-        cm <- comparison_matrix()
-        if (is.null(cm)) cm <- data.frame()
+        tryCatch({
+          # Gather data (same logic as renderUI above)
+          dt_obj <- data()
+          cm <- comparison_matrix()
+          if (is.null(cm)) cm <- data.frame()
 
-        # meeting_decisions_df
-        meeting_decisions_df <- tryCatch({
-          meeting_status <- dt_obj$status[dt_obj$status$module == "Meeting_prodAdv", , drop = FALSE]
-          if (nrow(meeting_status) == 0) return(data.frame())
-          meeting_stamp_id <- meeting_status$analysisId[nrow(meeting_status)]
-          mods <- dt_obj$modifications$selection
-          meeting_mods <- mods[
-            mods$analysisId == meeting_stamp_id &
-              mods$module == "Meeting_prodAdv" &
-              mods$reason == "meeting_decision",
-            ,
-            drop = FALSE
-          ]
-          if (nrow(meeting_mods) == 0) return(data.frame())
-          decisions_df <- data.frame(
-            designation = meeting_mods$designation,
-            decision = meeting_mods$value,
-            stringsAsFactors = FALSE
-          )
-          if (nrow(cm) > 0 && "controversy_score" %in% colnames(cm)) {
-            decisions_df$controversy_score <- cm$controversy_score[
-              match(decisions_df$designation, cm$designation)
-            ]
-          } else {
-            decisions_df$controversy_score <- NA_real_
-          }
-          decisions_df
-        }, error = function(e) data.frame())
-
-        # mta_stamp
-        mta_stamp <- tryCatch({
-          selected_stamps <- input$stamp_select
-          if (is.null(selected_stamps) || length(selected_stamps) == 0) {
+          # meeting_decisions_df
+          meeting_decisions_df <- tryCatch({
             meeting_status <- dt_obj$status[dt_obj$status$module == "Meeting_prodAdv", , drop = FALSE]
-            if (nrow(meeting_status) == 0) return(NA_character_)
+            if (nrow(meeting_status) == 0) stop("no meeting")
             meeting_stamp_id <- meeting_status$analysisId[nrow(meeting_status)]
-            input_rows <- dt_obj$modeling[
+            mods <- dt_obj$modifications$selection
+            meeting_mods <- mods[
+              mods$analysisId == meeting_stamp_id &
+                mods$module == "Meeting_prodAdv" &
+                mods$reason == "meeting_decision",
+              , drop = FALSE
+            ]
+            if (nrow(meeting_mods) == 0) stop("no mods")
+            df <- data.frame(
+              designation = meeting_mods$designation,
+              decision = meeting_mods$value,
+              stringsAsFactors = FALSE
+            )
+            if (nrow(cm) > 0 && "controversy_score" %in% colnames(cm)) {
+              df$controversy_score <- cm$controversy_score[match(df$designation, cm$designation)]
+            } else {
+              df$controversy_score <- NA_real_
+            }
+            df
+          }, error = function(e) data.frame())
+
+          # mta_stamp
+          mta_stamp <- tryCatch({
+            selected_stamps <- input$stamp_select
+            if (!is.null(selected_stamps) && length(selected_stamps) > 0) {
+              mta_res <- validate_mta_compatibility(dt_obj, selected_stamps)
+              if (mta_res$compatible) mta_res$mta_stamp else NA_character_
+            } else {
+              meeting_status <- dt_obj$status[dt_obj$status$module == "Meeting_prodAdv", , drop = FALSE]
+              if (nrow(meeting_status) == 0) stop("no meeting")
+              meeting_stamp_id <- meeting_status$analysisId[nrow(meeting_status)]
+              input_rows <- dt_obj$modeling[
+                dt_obj$modeling$module == "Meeting_prodAdv" &
+                  dt_obj$modeling$analysisId == meeting_stamp_id &
+                  dt_obj$modeling$parameter == "inputObject",
+                , drop = FALSE
+              ]
+              if (nrow(input_rows) == 0) stop("no inputs")
+              found_stamp <- NA_character_
+              for (val in input_rows$value) {
+                is_mta <- any(dt_obj$status$analysisId == val &
+                                dt_obj$status$module %in% c("mta", "mtaLmms", "mtaAsr", "mtaFlex", "mas"))
+                if (is_mta) { found_stamp <- val; break }
+              }
+              if (is.na(found_stamp)) {
+                for (sid in input_rows$value) {
+                  mta_res <- validate_mta_compatibility(dt_obj, sid)
+                  if (mta_res$compatible) { found_stamp <- mta_res$mta_stamp; break }
+                }
+              }
+              found_stamp
+            }
+          }, error = function(e) NA_character_)
+
+          # participants
+          participants <- tryCatch({
+            meeting_status <- dt_obj$status[dt_obj$status$module == "Meeting_prodAdv", , drop = FALSE]
+            if (nrow(meeting_status) == 0) stop("no meeting")
+            meeting_stamp_id <- meeting_status$analysisId[nrow(meeting_status)]
+            part_rows <- dt_obj$modeling[
               dt_obj$modeling$module == "Meeting_prodAdv" &
                 dt_obj$modeling$analysisId == meeting_stamp_id &
-                dt_obj$modeling$parameter == "inputObject",
-              ,
-              drop = FALSE
+                dt_obj$modeling$parameter == "participants",
+              , drop = FALSE
             ]
-            if (nrow(input_rows) == 0) return(NA_character_)
-            for (val in input_rows$value) {
-              is_mta <- any(dt_obj$status$analysisId == val & dt_obj$status$module == "mta")
-              if (is_mta) return(val)
-            }
-            stakeholder_ids <- input_rows$value
-            for (sid in stakeholder_ids) {
-              mta_res <- validate_mta_compatibility(dt_obj, sid)
-              if (mta_res$compatible) return(mta_res$mta_stamp)
-            }
-            NA_character_
-          } else {
-            mta_res <- validate_mta_compatibility(dt_obj, selected_stamps)
-            if (mta_res$compatible) mta_res$mta_stamp else NA_character_
-          }
-        }, error = function(e) NA_character_)
+            if (nrow(part_rows) == 0) character(0)
+            else unlist(strsplit(part_rows$value[1], ","))
+          }, error = function(e) character(0))
 
-        # participants
-        participants <- tryCatch({
-          meeting_status <- dt_obj$status[dt_obj$status$module == "Meeting_prodAdv", , drop = FALSE]
-          if (nrow(meeting_status) == 0) return(character(0))
-          meeting_stamp_id <- meeting_status$analysisId[nrow(meeting_status)]
-          part_rows <- dt_obj$modeling[
-            dt_obj$modeling$module == "Meeting_prodAdv" &
-              dt_obj$modeling$analysisId == meeting_stamp_id &
-              dt_obj$modeling$parameter == "participants",
-            ,
-            drop = FALSE
-          ]
-          if (nrow(part_rows) == 0) return(character(0))
-          unlist(strsplit(part_rows$value[1], ","))
-        }, error = function(e) character(0))
+          # meeting_name
+          meeting_name <- tryCatch({
+            meeting_status <- dt_obj$status[dt_obj$status$module == "Meeting_prodAdv", , drop = FALSE]
+            if (nrow(meeting_status) == 0) "Unnamed meeting"
+            else meeting_status$analysisIdName[nrow(meeting_status)]
+          }, error = function(e) "Unnamed meeting")
 
-        # meeting_name
-        meeting_name <- tryCatch({
-          meeting_status <- dt_obj$status[dt_obj$status$module == "Meeting_prodAdv", , drop = FALSE]
-          if (nrow(meeting_status) == 0) return("Unnamed meeting")
-          meeting_status$analysisIdName[nrow(meeting_status)]
-        }, error = function(e) "Unnamed meeting")
+          # trait_directions
+          td <- trait_directions()
+          if (is.null(td)) td <- list()
+          trait_directions <- as.list(td)
 
-        # trait_directions
-        td <- trait_directions()
-        if (is.null(td)) td <- list()
-        trait_directions <- as.list(td)
+          # predictions_data
+          predictions_data <- tryCatch({
+            if (is.na(mta_stamp) || is.null(dt_obj$predictions)) stop("no data")
+            preds <- dt_obj$predictions
+            cols_to_keep <- intersect(c("designation", "trait", "predictedValue", "reliability"), colnames(preds))
+            preds[preds$analysisId == mta_stamp & preds$effectType == "designation", cols_to_keep, drop = FALSE]
+          }, error = function(e) data.frame())
 
-        # predictions_data (include reliability)
-        predictions_data <- tryCatch({
-          if (is.na(mta_stamp) || is.null(dt_obj$predictions)) return(data.frame())
-          preds <- dt_obj$predictions
-          cols_to_keep <- intersect(c("designation", "trait", "predictedValue", "reliability"), colnames(preds))
-          mta_preds <- preds[
-            preds$analysisId == mta_stamp & preds$effectType == "designation",
-            cols_to_keep,
-            drop = FALSE
-          ]
-          mta_preds
-        }, error = function(e) data.frame())
-
-        # index_weights and selected_traits: averaged across ALL stakeholders
-        index_weights <- NULL
-        selected_traits <- NULL
-        tryCatch({
-          selected_stamps_val <- input$stamp_select
-          if (!is.null(selected_stamps_val) && length(selected_stamps_val) > 0) {
+          # index_weights and selected_traits
+          wt_result <- tryCatch({
+            selected_stamps_val <- input$stamp_select
+            if (is.null(selected_stamps_val) || length(selected_stamps_val) == 0) stop("no stamps")
             modeling <- dt_obj$modeling
             all_weight_lists <- list()
             all_trait_sets <- list()
@@ -2943,62 +2978,59 @@ mod_advMeetingApp_server <- function(id, data){
               all_trait_sets[[stamp_id]] <- setdiff(all_tr, excluded_tr)
             }
 
-            # Majority rule: only include traits used by more than half the stakeholders (ties excluded)
             all_traits_union <- unique(unlist(all_trait_sets))
             n_stk <- length(all_trait_sets)
-            selected_traits <- all_traits_union[vapply(all_traits_union, function(tr) {
+            sel_traits <- all_traits_union[vapply(all_traits_union, function(tr) {
               n_using <- sum(vapply(all_trait_sets, function(ts) tr %in% ts, logical(1)))
               n_using > n_stk / 2
             }, logical(1))]
 
-            if (length(selected_traits) > 0 && length(all_weight_lists) > 0) {
-              n_stakeholders <- length(all_weight_lists)
-              index_weights <- vapply(selected_traits, function(tr) {
+            idx_weights <- NULL
+            if (length(sel_traits) > 0 && length(all_weight_lists) > 0) {
+              idx_weights <- vapply(sel_traits, function(tr) {
                 trait_weights <- vapply(all_weight_lists, function(wl) {
                   if (tr %in% names(wl)) wl[[tr]] else 0
                 }, numeric(1))
                 median(trait_weights)
               }, numeric(1))
-              names(index_weights) <- selected_traits
+              names(idx_weights) <- sel_traits
+            }
+
+            list(index_weights = idx_weights, selected_traits = sel_traits)
+          }, error = function(e) list(index_weights = NULL, selected_traits = NULL))
+
+          index_weights <- wt_result$index_weights
+          selected_traits <- wt_result$selected_traits
+
+          # Use cm for comparison_matrix variable in RData
+          comparison_matrix <- cm
+
+          # Save .RData
+          tmp_rdata <- file.path(tempdir(), "resultAdvMeeting.RData")
+          save(
+            comparison_matrix, meeting_decisions_df, mta_stamp, participants,
+            meeting_name, trait_directions, predictions_data,
+            index_weights, selected_traits,
+            file = tmp_rdata
+          )
+
+          # Copy Rmd template
+          src <- system.file("rmd", "reportAdvMeeting.Rmd", package = "bioflow")
+          if (!nzchar(src) || !file.exists(src)) {
+            src <- file.path(system.file(package = "bioflow"), "..", "inst", "rmd", "reportAdvMeeting.Rmd")
+            if (!file.exists(src)) {
+              src <- file.path(getwd(), "inst", "rmd", "reportAdvMeeting.Rmd")
             }
           }
-        }, error = function(e) NULL)
-
-        # Use cm for comparison_matrix variable in RData
-        comparison_matrix <- cm
-
-        # Save .RData
-        tmp_rdata <- file.path(tempdir(), "resultAdvMeeting.RData")
-        save(
-          comparison_matrix, meeting_decisions_df, mta_stamp, participants,
-          meeting_name, trait_directions, predictions_data,
-          index_weights, selected_traits,
-          file = tmp_rdata,
-          envir = environment()
-        )
-
-        # Copy Rmd template
-        src <- system.file("rmd", "reportAdvMeeting.Rmd", package = "bioflow")
-        if (!nzchar(src) || !file.exists(src)) {
-          src <- file.path(system.file(package = "bioflow"), "..", "inst", "rmd", "reportAdvMeeting.Rmd")
           if (!file.exists(src)) {
-            src <- file.path(getwd(), "inst", "rmd", "reportAdvMeeting.Rmd")
+            writeLines("<html><body><h1>Error</h1><p>Report template not found.</p></body></html>", file)
+            return()
           }
-        }
-        if (!file.exists(src)) {
-          # Write error HTML if template not found
-          writeLines(
-            "<html><body><h1>Error</h1><p>Report template not found.</p></body></html>",
-            file
-          )
-          return()
-        }
 
-        tmp_report <- file.path(tempdir(), "reportAdvMeeting_download.Rmd")
-        file.copy(src, tmp_report, overwrite = TRUE)
+          tmp_report <- file.path(tempdir(), "reportAdvMeeting_download.Rmd")
+          file.copy(src, tmp_report, overwrite = TRUE)
 
-        # Render
-        tryCatch({
+          # Render
           old <- setwd(tempdir())
           on.exit(setwd(old), add = TRUE)
 
@@ -3014,11 +3046,11 @@ mod_advMeetingApp_server <- function(id, data){
 
           file.copy(outReport, file, overwrite = TRUE)
         }, error = function(e) {
-          # On rendering failure, write an error HTML
+          # On any failure, write an error HTML so downloadHandler doesn't get "No file"
           writeLines(
             paste0(
               "<html><body><h1>Report Rendering Error</h1>",
-              "<p>An error occurred while rendering the meeting dashboard:</p>",
+              "<p>An error occurred while generating the meeting dashboard:</p>",
               "<pre>", htmltools::htmlEscape(conditionMessage(e)), "</pre>",
               "</body></html>"
             ),

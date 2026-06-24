@@ -137,16 +137,17 @@ cluster_environments <- function(weather_summary, k = NULL) {
       # Not enough environments to try k=2 meaningfully with silhouette
       k <- if (n_finite >= 2) 2L else 1L
     } else {
-      # Try k=2 and k=3, pick by silhouette score
+      # Try k from 2 to min(10, sqrt(n)) and pick by silhouette score
       has_cluster_pkg <- requireNamespace("cluster", quietly = TRUE)
       if (!has_cluster_pkg) {
         k <- 2L
       } else {
-        candidates <- c(2L, 3L)
-        # Only try k=3 if enough environments
-        if (n_finite < 6) candidates <- 2L
+        max_k <- min(10L, as.integer(ceiling(sqrt(n_finite))), n_finite - 1L)
+        max_k <- max(2L, max_k)
+        candidates <- seq(2L, max_k)
         best_k <- 2L
         best_sil <- -1
+        no_improve_count <- 0L
 
         set.seed(42)
         for (ck in candidates) {
@@ -157,6 +158,11 @@ cluster_environments <- function(weather_summary, k = NULL) {
           if (mean_sil > best_sil) {
             best_sil <- mean_sil
             best_k <- ck
+            no_improve_count <- 0L
+          } else {
+            no_improve_count <- no_improve_count + 1L
+            # Stop after 2 consecutive non-improvements
+            if (no_improve_count >= 2L) break
           }
         }
         # If best silhouette is very low, fall back to single cluster
@@ -178,8 +184,27 @@ cluster_environments <- function(weather_summary, k = NULL) {
     return(result)
   }
 
+  # Minimum 3 environments per cluster constraint
+  min_cluster_size <- 3L
   set.seed(42)
   km <- stats::kmeans(cov_scaled, centers = effective_k, nstart = 25)
+
+  # If any cluster has fewer than min_cluster_size members, reduce k and retry
+
+  while (min(table(km$cluster)) < min_cluster_size && effective_k > 2L) {
+    effective_k <- effective_k - 1L
+    set.seed(42)
+    km <- stats::kmeans(cov_scaled, centers = effective_k, nstart = 25)
+  }
+
+  # Final fallback: if even k=2 produces a cluster too small, use single group
+  if (effective_k < 2 || min(table(km$cluster)) < min_cluster_size) {
+    if (effective_k >= 2 && min(table(km$cluster)) < min_cluster_size) {
+      result <- rep("All environments", length(envs))
+      names(result) <- envs
+      return(result)
+    }
+  }
 
   # Generate descriptive labels per centroid
   # For each cluster center, find the covariate that deviates most from
@@ -201,7 +226,10 @@ cluster_environments <- function(weather_summary, k = NULL) {
     } else {
       primary_cov
     }
-    primary_dir <- if (center_row[primary_idx] >= 0) "High" else "Low"
+    primary_dir <- if (center_row[primary_idx] >= 0) "Warmer" else "Cooler"
+    if (primary_cov != "mean_temperature") {
+      primary_dir <- if (center_row[primary_idx] >= 0) "Higher" else "Lower"
+    }
 
     # Check if second covariate is also strongly distinguishing (> 0.5 in absolute terms)
     if (length(sorted_idx) >= 2 && abs_devs[sorted_idx[2]] > 0.5) {
@@ -212,10 +240,13 @@ cluster_environments <- function(weather_summary, k = NULL) {
       } else {
         secondary_cov
       }
-      secondary_dir <- if (center_row[secondary_idx] >= 0) "high" else "low"
-      labels_vec[i] <- paste0(primary_dir, " ", primary_label, " + ", secondary_dir, " ", secondary_label)
+      secondary_dir <- if (center_row[secondary_idx] >= 0) "higher" else "lower"
+      if (secondary_cov == "mean_temperature") {
+        secondary_dir <- if (center_row[secondary_idx] >= 0) "warmer" else "cooler"
+      }
+      labels_vec[i] <- paste0(primary_dir, " ", primary_label, ", ", secondary_dir, " ", secondary_label)
     } else {
-      labels_vec[i] <- paste0(primary_dir, " ", primary_label, " environments")
+      labels_vec[i] <- paste0(primary_dir, " ", primary_label)
     }
   }
 
@@ -770,6 +801,14 @@ build_faceted_lollipop_plotly <- function(prepared_data, thresholds,
   }
 
   # ---- Apply layout-level shapes and annotations ----
+  # Compute dynamic height: minimum 350px per cluster panel, scaled by max designations
+  max_desigs_in_cluster <- max(vapply(clusters, function(cl) {
+    nrow(prepared_data[prepared_data$cluster == cl, , drop = FALSE])
+  }, integer(1)))
+  panel_height_px <- max(200, min(500, max_desigs_in_cluster * 25))
+  total_height <- n_clusters * panel_height_px + 100  # 100px for margins/title
+  total_height <- max(500, total_height)
+
   fig <- plotly::layout(
     fig,
     shapes = shapes_list,
@@ -777,7 +816,8 @@ build_faceted_lollipop_plotly <- function(prepared_data, thresholds,
     xaxis = list(range = x_range, title = "Mean Performance"),
     showlegend = TRUE,
     legend = list(orientation = "v", x = 1.02, xanchor = "left", y = 0.5, yanchor = "middle"),
-    margin = list(t = 60, b = 40, r = 120)
+    margin = list(t = 60, b = 40, r = 120),
+    height = total_height
   )
 
   fig
@@ -890,7 +930,24 @@ build_cluster_map_plotly <- function(weather_summary, cluster_assignments, tpe_p
   lat_center <- mean(loc_df$LAT, na.rm = TRUE)
   lon_range <- diff(range(loc_df$LON, na.rm = TRUE))
   lat_range <- diff(range(loc_df$LAT, na.rm = TRUE))
-  buffer <- max(lon_range, lat_range) * 0.3 + 2
+
+  # Ensure all points are visible: use the actual data extent plus a fixed margin
+  lon_min <- min(loc_df$LON, na.rm = TRUE)
+  lon_max <- max(loc_df$LON, na.rm = TRUE)
+  lat_min <- min(loc_df$LAT, na.rm = TRUE)
+  lat_max <- max(loc_df$LAT, na.rm = TRUE)
+
+  # Add 15% padding on each side, minimum 2 degrees
+  lon_pad <- max(2, lon_range * 0.15)
+  lat_pad <- max(2, lat_range * 0.15)
+
+  # Force square extent: use the larger span for both axes
+  lon_span <- (lon_max - lon_min) + 2 * lon_pad
+  lat_span <- (lat_max - lat_min) + 2 * lat_pad
+  max_span <- max(lon_span, lat_span)
+
+  lon_center <- (lon_min + lon_max) / 2
+  lat_center <- (lat_min + lat_max) / 2
 
   p <- plotly::layout(
     p,
@@ -907,10 +964,10 @@ build_cluster_map_plotly <- function(weather_summary, cluster_assignments, tpe_p
       lakecolor = "rgb(204, 229, 255)",
       projection = list(type = "natural earth"),
       lonaxis = list(
-        range = c(lon_center - buffer, lon_center + buffer)
+        range = c(lon_center - max_span / 2, lon_center + max_span / 2)
       ),
       lataxis = list(
-        range = c(lat_center - buffer, lat_center + buffer)
+        range = c(lat_center - max_span / 2, lat_center + max_span / 2)
       )
     ),
     showlegend = TRUE,
@@ -1050,13 +1107,15 @@ build_relatedness_plotly <- function(plot_data, highlighted = NULL,
 
         # Build rich tooltip: name, family, trait value, reliability (for non-index)
         indiv_subset <- individuals[tr_match[st_mask], , drop = FALSE]
+        # Use per-trait reliability from trait_values data when available
+        trait_rel <- tr_data$reliability[st_mask]
         tooltip_texts <- paste0(
           "<b>", indiv_subset$designation, "</b><br>",
           "Family: ", indiv_subset$group_label, "<br>",
           tr, ": ", sprintf("%.2f", tr_data$value[st_mask]),
           ifelse(
-            tr != "Selection_Index" & !is.na(indiv_subset$reliability),
-            paste0("<br>Reliability: ", sprintf("%.2f", indiv_subset$reliability)),
+            tr != "Selection_Index" & !is.na(trait_rel),
+            paste0("<br>Reliability: ", sprintf("%.2f", trait_rel)),
             ""
           )
         )
@@ -1064,6 +1123,11 @@ build_relatedness_plotly <- function(plot_data, highlighted = NULL,
         # Show legend on first trace per status
         show_leg <- !(st %in% legend_shown_statuses)
         if (show_leg) legend_shown_statuses <<- c(legend_shown_statuses, st)
+
+        # Get marker border properties for diversity candidate highlighting
+        matched_indices <- tr_match[st_mask]
+        st_line_width <- marker_line_width[matched_indices]
+        st_line_color <- marker_line_color[matched_indices]
 
         fig <- plotly::add_trace(
           fig,
@@ -1075,7 +1139,11 @@ build_relatedness_plotly <- function(plot_data, highlighted = NULL,
             color = st_color,
             size = 8,
             opacity = st_opacity,
-            symbol = STATUS_SHAPES[st]
+            symbol = STATUS_SHAPES[st],
+            line = list(
+              width = st_line_width,
+              color = st_line_color
+            )
           ),
           error_x = error_x_config,
           hoverinfo = "text",
@@ -3588,13 +3656,6 @@ mod_preProdAdvApp_server <- function(id, data){
           new_direction <- derive_direction_from_weight(weight_val)
 
           if (is.null(new_direction)) {
-            # weight == 0, NA, or non-finite: warn and exclude
-            if (!is.null(weight_val) && is.finite(weight_val) && weight_val == 0) {
-              showNotification(
-                paste0("Trait '", trait_name, "' excluded from index: weight is 0."),
-                type = "warning", duration = 5
-              )
-            }
             return()
           }
 
@@ -6477,7 +6538,7 @@ mod_preProdAdvApp_server <- function(id, data){
                   fluidRow(
                     column(12, uiOutput(ns("lollipopTraitUI")))
                   ),
-                  plotly::plotlyOutput(ns("lollipopPlot"), height = "700px")
+                  plotly::plotlyOutput(ns("lollipopPlot"), height = "auto")
                 )
               )
             ),
@@ -6534,7 +6595,9 @@ mod_preProdAdvApp_server <- function(id, data){
               uiOutput(ns("relatednessMessages")),
               tags$p(style = "color: #666; font-size: 12px; font-style: italic; margin: 4px 0;",
                      icon("info-circle"),
-                     " Individuals are ordered by genetic similarity within family groups. Dotted lines separate families."),
+                     " Individuals and families are ordered by genetic similarity. Dotted lines separate families.",
+                     tags$span(style = "margin-left: 12px; color: #B8860B;", "\u2B24"),
+                     tags$span(style = "color: #666; margin-left: 4px;", "= diversity candidate")),
               plotly::plotlyOutput(ns("relatednessPlot"), height = "auto")
             )
           )
@@ -6565,19 +6628,17 @@ mod_preProdAdvApp_server <- function(id, data){
       available_stamps <- names(dt_obj$data$geno_imp)
       if (length(available_stamps) == 0) return(NULL)
 
-      # Use user selection or default to most recent (last key)
+      # Use user selection — only use genomic data if explicitly selected
       user_selection <- input$relatednessGenoStamp
-      if (is.null(user_selection) || !nzchar(user_selection)) {
-        # Default to most recent (last entry)
-        selected_stamp <- available_stamps[length(available_stamps)]
-      } else {
-        selected_stamp <- user_selection
+      if (is.null(user_selection) || !nzchar(user_selection) || user_selection == "__none__") {
+        return(NULL)
       }
+
+      selected_stamp <- user_selection
 
       # Validate the stamp exists in geno_imp
       if (!(selected_stamp %in% available_stamps)) {
-        # Fallback to most recent
-        selected_stamp <- available_stamps[length(available_stamps)]
+        return(NULL)
       }
 
       selected_stamp
@@ -6604,8 +6665,8 @@ mod_preProdAdvApp_server <- function(id, data){
       selectInput(
         ns("relatednessGenoStamp"),
         label = "Genomic QA stamp",
-        choices = c("(most recent)" = "", choices),
-        selected = ""
+        choices = c("None (pedigree only)" = "__none__", choices),
+        selected = "__none__"
       )
     })
 
@@ -6652,7 +6713,7 @@ mod_preProdAdvApp_server <- function(id, data){
         )
       }
 
-      # Compute GRM if genomic data available
+      # Compute GRM only if user explicitly selected a genomic QA stamp
       if (mode_info$has_genomic) {
         stamp <- relatedness_geno_stamp()
         if (!is.null(stamp)) {
@@ -6671,13 +6732,24 @@ mod_preProdAdvApp_server <- function(id, data){
         }
       }
 
-      # Choose the similarity matrix based on mode (with fallback)
-      sim_matrix <- if (mode_info$mode == "pedigree-only") {
+      # Determine effective mode based on what was actually computed
+      effective_mode <- if (!is.null(a_mat) && !is.null(grm)) {
+        "pedigree-genomic"
+      } else if (!is.null(a_mat) && is.null(grm)) {
+        "pedigree-only"
+      } else if (is.null(a_mat) && !is.null(grm)) {
+        "genomic-only"
+      } else {
+        "none"
+      }
+
+      # Choose the similarity matrix based on effective mode
+      sim_matrix <- if (effective_mode == "pedigree-only") {
         a_mat
-      } else if (mode_info$mode == "pedigree-genomic") {
+      } else if (effective_mode == "pedigree-genomic") {
         # Prefer GRM, fall back to A-matrix if GRM failed
         if (!is.null(grm)) grm else a_mat
-      } else if (mode_info$mode == "genomic-only") {
+      } else if (effective_mode == "genomic-only") {
         grm
       } else {
         NULL
@@ -6692,6 +6764,7 @@ mod_preProdAdvApp_server <- function(id, data){
 
       if (na_pct > 50) {
         return(list(matrix = NULL, a_mat = a_mat, grm = grm, warnings = warnings,
+                    effective_mode = effective_mode,
                     error = sprintf("Relatedness matrix contains too many missing values (%.0f%% of pairs). Cannot compute reliable clustering.", na_pct)))
       }
 
@@ -6700,7 +6773,7 @@ mod_preProdAdvApp_server <- function(id, data){
         warnings <- c(warnings, sprintf("%d pairs excluded from relatedness metrics (replaced with 0.0).", na_count))
       }
 
-      list(matrix = sim_matrix, a_mat = a_mat, grm = grm, warnings = warnings, error = NULL)
+      list(matrix = sim_matrix, a_mat = a_mat, grm = grm, warnings = warnings, effective_mode = effective_mode, error = NULL)
     })
 
     relatedness_plot_data <- reactive({
@@ -6763,7 +6836,10 @@ mod_preProdAdvApp_server <- function(id, data){
       individuals_df <- NULL
       hclust_obj <- NULL
 
-      if (mode_info$mode %in% c("pedigree-only", "pedigree-genomic")) {
+      # Use effective_mode (accounts for user's genomic stamp selection)
+      effective_mode <- mat_result$effective_mode
+
+      if (effective_mode %in% c("pedigree-only", "pedigree-genomic")) {
         # Assign families
         paramsPed <- dt_obj$metadata$pedigree
         desig_col <- paramsPed[paramsPed$parameter == "designation", "value"]
@@ -6811,8 +6887,21 @@ mod_preProdAdvApp_server <- function(id, data){
         display_df <- review_df[review_df$designation %in% display_desigs, , drop = FALSE]
         display_df$family <- candidates_df$family[match(display_df$designation, candidates_df$designation)]
 
-        # Assign group IDs
-        unique_families <- unique(display_df$family)
+        # Order families by genetic similarity (GRM > pedigree fallback)
+        unique_families <- tryCatch(
+          cgiarPipeline::order_families_by_similarity(
+            family_labels = families,
+            display_designations = display_df$designation,
+            similarity_matrix = sim_matrix,
+            pedigree_df = dt_obj$data$pedigree,
+            designation_col = desig_col,
+            mother_col = mother_col,
+            father_col = father_col
+          ),
+          error = function(e) unique(display_df$family)
+        )
+
+        # Assign group IDs based on similarity order
         family_to_id <- stats::setNames(seq_along(unique_families), unique_families)
         display_df$group_id <- family_to_id[display_df$family]
         display_df$group_label <- display_df$family
@@ -6920,13 +7009,17 @@ mod_preProdAdvApp_server <- function(id, data){
 
       individuals_df$has_genomic <- individuals_df$designation %in% rownames(sim_matrix)
 
-      # Trait values
+      # Trait values — use MTA predictions from plot_obj for consistency with other plots
       selected_traits <- input$relatednessTraits
       trait_values_df <- data.frame(designation = character(0), trait = character(0),
                                      value = numeric(0), std_error = numeric(0),
+                                     reliability = numeric(0),
                                      direction = character(0),
                                      stringsAsFactors = FALSE)
       if (!is.null(selected_traits) && length(selected_traits) > 0) {
+        # Use MTA predictions from the review_plot_data (same source as scatterplot)
+        mta_preds <- plot_obj$mta_long
+
         for (tr in selected_traits) {
           if (tr == "Selection_Index") {
             tr_vals <- data.frame(
@@ -6934,13 +7027,13 @@ mod_preProdAdvApp_server <- function(id, data){
               trait = "Selection_Index",
               value = individuals_df$index_value,
               std_error = NA_real_,
+              reliability = NA_real_,
               direction = "increase",
               stringsAsFactors = FALSE
             )
           } else {
-            # Get from predictions
-            preds <- dt_obj$predictions
-            tr_preds <- preds[preds$trait == tr & preds$designation %in% individuals_df$designation, , drop = FALSE]
+            # Get from MTA predictions (same analysisId as scatterplot)
+            tr_preds <- mta_preds[mta_preds$trait == tr & mta_preds$designation %in% individuals_df$designation, , drop = FALSE]
             if (nrow(tr_preds) == 0) next
             tr_preds <- tr_preds[!duplicated(tr_preds$designation), , drop = FALSE]
 
@@ -6955,11 +7048,15 @@ mod_preProdAdvApp_server <- function(id, data){
             # Get stdError if available
             se_values <- if ("stdError" %in% colnames(tr_preds)) tr_preds$stdError else NA_real_
 
+            # Get per-trait reliability
+            rel_values <- if ("reliability" %in% colnames(tr_preds)) tr_preds$reliability else NA_real_
+
             tr_vals <- data.frame(
               designation = tr_preds$designation,
               trait = tr,
               value = cgiarPipeline::normalize_trait_direction(tr_preds$predictedValue, direction),
               std_error = se_values,
+              reliability = rel_values,
               direction = direction,
               stringsAsFactors = FALSE
             )
@@ -6978,7 +7075,7 @@ mod_preProdAdvApp_server <- function(id, data){
         selected_family_count = selected_family_count,
         group_count = nrow(groups_df),
         diversity_count = sum(individuals_df$is_diversity),
-        mode_string = mode_info$mode
+        mode_string = effective_mode
       )
 
       list(
@@ -6986,12 +7083,12 @@ mod_preProdAdvApp_server <- function(id, data){
         trait_values = trait_values_df,
         groups = groups_df,
         dendrogram = hclust_obj,
-        mode = mode_info$mode,
+        mode = effective_mode,
         summary = list(
           selected_count = sum(individuals_df$is_selected),
           group_count = nrow(groups_df),
           diversity_count = sum(individuals_df$is_diversity),
-          mode_label = mode_info$mode,
+          mode_label = effective_mode,
           text = summary_text
         ),
         warnings = mat_result$warnings
