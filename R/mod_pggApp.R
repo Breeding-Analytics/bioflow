@@ -75,15 +75,19 @@ mod_pggApp_ui <- function(id){
                                                         column(width=3,
                                                                selectInput(ns("trait2Pgg"), "Trait(s) to use", choices = NULL, multiple = TRUE),
                                                         ),
-                                                        column(width=3,
-                                                               selectInput(ns("environmentToUse"), "Do analysis by:", choices = NULL, multiple = FALSE),
-                                                        ),
+                                                        #column(width=3,
+                                                        #       selectInput(ns("environmentToUse"), "Do analysis by:", choices = NULL, multiple = FALSE),
+                                                        #),
                                                         column(width=3,
                                                                numericInput(ns("proportion"), label = "Assumed percentage selected (%)", value = 10, step = 10, max = 100, min = 1),
+                                                               numericInput(ns("Nproportion"), label = "Assumed Number of individuals selected ", value=10,step = 10, max = 1000, min = 1)
                                                         ),
+                                                        column(width=3,
+                                                               numericInput(ns("cycle"), label = "Cycles", value = 1, step = 1, max = 50, min = 1),
+                                                               ),
                                                  ),
                                                  column(width=12),
-                                                 shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                 shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = FALSE, title = "Visual aid (click on the '+' symbol on the right to open)",
                                                                      column(width=12,
                                                                             hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                             h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
@@ -216,7 +220,7 @@ mod_pggApp_server <- function(id, data){
       req(data())
       dtPgg <- data()
       dtPgg <- dtPgg$status
-      dtPgg <- dtPgg[which(dtPgg$module %in% c("sta","mtaLmms","mta","mtaFlex","mtaAsr")),]
+      dtPgg <- dtPgg[which(dtPgg$module %in% c("mtaLmms","mta","mtaFlex","mtaAsr")),]
       traitsPgg <- unique(dtPgg$analysisId)
       if(length(traitsPgg) > 0){
         if("analysisIdName" %in% colnames(dtPgg)){
@@ -240,18 +244,15 @@ mod_pggApp_server <- function(id, data){
     })
     ##############
     ## entry type
-    observeEvent(c(data(), input$version2Pgg, input$trait2Pgg), {
-      req(data())
-      req(input$version2Pgg)
-      req(input$trait2Pgg)
-      dtPgg <- data()
-      metaPheno <- dtPgg$metadata$pheno
-      traitsPgg <- setdiff(metaPheno$parameter[metaPheno$parameter != "trait"], c("rep","iBlock","row","col","designation","gid","entryType","stage","pipeline") )
-      # dtPgg <- data()$predictions
-      # dtPgg <- dtPgg[which(dtPgg$analysisId == input$version2Pgg),]
-      # traitsPgg <- unique(dtPgg$environment)
-      updateSelectInput(session, "environmentToUse", choices = traitsPgg, selected ="environment" )
-    })
+    #observeEvent(c(data(), input$version2Pgg, input$trait2Pgg), {
+    #  req(data())
+    #  req(input$version2Pgg)
+    #  req(input$trait2Pgg)
+    #  dtPgg <- data()
+    #  metaPheno <- dtPgg$metadata$pheno
+    #  traitsPgg <- setdiff(metaPheno$parameter[metaPheno$parameter != "trait"], c("rep","iBlock","row","col","designation","gid","entryType","stage","pipeline") )
+    #  updateSelectInput(session, "environmentToUse", choices = traitsPgg, selected ="environment" )
+    #})
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
@@ -285,12 +286,47 @@ mod_pggApp_server <- function(id, data){
       res <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge()) +  ggplot2::ggtitle("Metrics associated to this stamp selected")
       plotly::ggplotly(res)
-      # res = plotly::plot_ly(data = mydata, x = mydata[,"environment"], y = mydata[,"value"],
-      #                       color=mydata[,"trait"]
-      #                       # size=mydata[,input$sizeMetrics2D], text=mydata[,"environment"]
-      # )   # , type="scatter", mode   = "markers")
-      # res = res %>% plotly::add_bars()
-      # res
+    })
+    
+    
+    observeEvent(c(data(),input$version2Pgg), {
+      req(data())
+      req(input$version2Pgg)
+      dtPgg <- data()
+      mydata <- dtPgg$metrics
+      mydata <- mydata[mydata$analysisId %in% input$version2Pgg, ]
+      Ntotal <- round(mean(unique(mydata$value[mydata$parameter == "nEntries"])))
+      req(length(Ntotal) == 1)
+      updating(TRUE)
+      updateNumericInput(session,"Nproportion",value = round(Ntotal * input$proportion / 100))
+      updating(FALSE)
+    }, ignoreInit = FALSE)
+    
+    updating <- reactiveVal(FALSE)
+    observeEvent(input$proportion, {
+      req(data())
+      req(input$version2Pgg)
+      dtPgg <- data()
+      mydata <- dtPgg$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Pgg),]
+      Ntotal=round(mean(unique(mydata[which(mydata$parameter=="nEntries"),"value"])))
+      if (updating()) return()
+      updating(TRUE)
+      updateNumericInput(session,"Nproportion",value = round(Ntotal * input$proportion / 100))
+      updating(FALSE)
+    })
+    
+    observeEvent(input$Nproportion, {
+      req(data())
+      req(input$version2Pgg)
+      dtPgg <- data()
+      mydata <- dtPgg$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Pgg),]
+      Ntotal=round(mean(unique(mydata[which(mydata$parameter=="nEntries"),"value"])))
+      if (updating()) return()
+      updating(TRUE)
+      updateNumericInput(session,"proportion",value = round(100 * input$Nproportion / Ntotal, 1))
+      updating(FALSE)
     })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
@@ -410,11 +446,11 @@ mod_pggApp_server <- function(id, data){
       req(data())
       req(input$version2Pgg)
       req(input$trait2Pgg)
-      req(input$environmentToUse)
+      #req(input$environmentToUse)
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtPgg <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtPgg$status$module %in% c("sta","mtaLmms","mta","mtaFlex","mtaAsr")) == 0) {
+      if(sum(dtPgg$status$module %in% c("mtaLmms","mta","mtaFlex","mtaAsr")) == 0) {
         output$qaQcPggInfo <- renderUI({
           if (hideAll$clearAll){
             return()
@@ -426,14 +462,17 @@ mod_pggApp_server <- function(id, data){
           }
         })
       }else{
+        #source("C:\\Users\\RAPACHECO\\Downloads\\pgg.R")
         output$qaQcPggInfo <- renderUI({return(NULL)})
-        result <- try(cgiarPipeline::pgg(
-          phenoDTfile= dtPgg,
-          analysisId=input$version2Pgg,
-          trait=input$trait2Pgg, # per trait
-          by=input$environmentToUse,
-          percentage=input$proportion,
-          verbose=FALSE
+        result <- try(
+          cgiarPipeline::pgg(
+            phenoDTfile= dtPgg,
+            analysisId=input$version2Pgg,
+            trait=input$trait2Pgg, # per trait
+            by="environment",
+            percentage=input$proportion,
+            cycle=input$cycle,
+            verbose=FALSE
         ),
         silent=TRUE
         )
