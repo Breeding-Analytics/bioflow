@@ -58,7 +58,7 @@ app_ui <- function(request) {
 
       navbarMenu("Home", icon = icon("house"),
                  tabPanel(div( icon("battery"), "Bioflow" ), mod_homeApp_ui("homeApp_1"), tags$script(HTML("var header = $('.navbar> .container-fluid');
-                               header.append('<div id=\"my-title\">Bioflow 2.0.3 - 2025.12.15</div>');
+                               header.append('<div id=\"my-title\">Bioflow 3.0.0 - 2026.06.04</div>');
                                ")),
                           tags$style(HTML('.navbar-collapse.collapse {display: inline-block !important;}
                                    #my-title {

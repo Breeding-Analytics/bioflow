@@ -2,208 +2,212 @@ mod_qaGenoApp_ui <- function(id) {
   ns <- NS(id)
   tagList(
     shiny::mainPanel(width = 12,
-    tabsetPanel(id = ns("tabsMain"), type = "tabs",
-      tabPanel(div(icon("book"), "Information") ,
-               br(),
-               tags$body(
-                 column(width = 6,
-                        h1(strong(span("Genetic Markers Curation Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
-                        h2(strong("Data Status (wait to be displayed):")),
-                        uiOutput(ns("warningMessage")),
-                        tags$br(),
-                        shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
-                        tags$br(),
-                        img(src = "www/qaGeno.png", height = 100, width = 435), # add an image
-                 ),
+                     tabsetPanel(id = ns("tabsMain"), type = "tabs",
+                                 tabPanel(div(icon("book"), "Information") ,
+                                          br(),
+                                          tags$body(
+                                            column(width = 6,
+                                                   h1(strong(span("Genetic Markers Curation Module", tags$a(href="https://www.youtube.com/watch?v=6Ooq9I3LEp8&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=5", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                                   h2(strong("Data Status (wait to be displayed):")),
+                                                   uiOutput(ns("warningMessage")),
+                                                   tags$br(),
+                                                   shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                                   tags$br(),
+                                                   img(src = "www/qaGeno.png", height = 100, width = 435), # add an image
+                                            ),
 
-                 column(width = 6,
-                        h2(strong("Details")),
-                        p("When genetic evaluation is carried using genomic data, we need to ensure the quality of genetic markers.
+                                            column(width = 6,
+                                                   h2(strong("Details")),
+                                                   p("When genetic evaluation is carried using genomic data, we need to ensure the quality of genetic markers.
                         This option aims to allow users to identify bad markers or individuals given certain QA parameters.
                         The way arguments are used is the following:"),
-                        p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. Any marker which does not meet the threshold will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                        p(strong("Threshold for missing data in individuals.-"),"  this sets a threshold for how much missing data in an individual is allowed. Any individual which does not meet the threshold will be marked as a row to be removed in posterior analyses. Value between 0 and 1."),
-                        p(strong("Minor allele frequency.-")," this sets a threshold for what is the minimum allele frequency allowed in the dataset. If value does not meet the threshold it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                        p(strong("Threshold for heterozygosity in markers.-")," this sets a threshold for what is the level of heterozygosity allowed in the markers. If value does not meet the threshold it will be marked as a column to be removed in posterior analyses. Value between 0 and 1. For example, a line dataset should not have markers with high heterozigosity."),
-                        p(strong("Threshold for inbreeding in markers.-")," this sets a threshold for what is the level of inbreeding allowed in the markers. If value does not meet the threshold it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
-                        p(strong("Additional settings:")),
-                        p(strong("Imputation method.-")," method to impute missing cells. Median is the only method currently available."),
-                        p(strong("Ploidy.-")," number of chromosome copies. This value is important to compute some of the paramters. Default is 2 or diploid."),
-                        h2(strong("References")),
-                        p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                        p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
-                        # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
-                 ),
-               )
-      ),
-      tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
-               tabsetPanel(
-                 tabPanel(div( icon("dice-one"), "Set thresholds", icon("arrow-right") ), # icon = icon("dice-one"),
-                          br(),
-                          # Parameter table and histogram tabset
-                          column(width = 12, style = "background-color:grey; color: #FFFFFF",
-                                 br(),
-                                 column(width = 6, style = "color: #000000",
-                                        tags$div(tags$h5(strong("To add a filter, click the 'Add' button. To remove a filter,
+                                                   p(strong("Threshold for missing data in markers.-")," this sets a threshold for how much missing data in a marker is allowed. Any marker which does not meet the threshold will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                   p(strong("Threshold for missing data in individuals.-"),"  this sets a threshold for how much missing data in an individual is allowed. Any individual which does not meet the threshold will be marked as a row to be removed in posterior analyses. Value between 0 and 1."),
+                                                   p(strong("Minor allele frequency.-")," this sets a threshold for what is the minimum allele frequency allowed in the dataset. If value does not meet the threshold it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                   p(strong("Threshold for heterozygosity in markers.-")," this sets a threshold for what is the level of heterozygosity allowed in the markers. If value does not meet the threshold it will be marked as a column to be removed in posterior analyses. Value between 0 and 1. For example, a line dataset should not have markers with high heterozigosity."),
+                                                   p(strong("Threshold for inbreeding in markers.-")," this sets a threshold for what is the level of inbreeding allowed in the markers. If value does not meet the threshold it will be marked as a column to be removed in posterior analyses. Value between 0 and 1."),
+                                                   p(strong("Additional settings:")),
+                                                   p(strong("Imputation method.-")," method to impute missing cells. Median is the only method currently available."),
+                                                   p(strong("Ploidy.-")," number of chromosome copies. This value is important to compute some of the paramters. Default is 2 or diploid."),
+                                                   h2(strong("References")),
+                                                   p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
+                                                   p("Velleman, P. F. and Hoaglin, D. C. (1981). Applications, Basics and Computing of Exploratory Data Analysis. Duxbury Press."),
+                                                   # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                            ),
+                                          )
+                                 ),
+                                 tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
+                                          tabsetPanel(
+                                            tabPanel(div( icon("dice-one"), "Set thresholds", icon("arrow-right") ), # icon = icon("dice-one"),
+                                                     br(),
+                                                     # Parameter table and histogram tabset
+                                                     column(width = 12, style = "background-color:grey; color: #FFFFFF",
+                                                            br(),
+                                                            column(width = 6, style = "color: #000000",
+                                                                   tags$div(tags$h5(strong("To add a filter, click the 'Add' button. To remove a filter,
                                                            select the filter from the table then click the 'Delete' button."), style = "color: #FFFFFF;")),
-                                        inputPanel(selectInput(ns('filt_param'), 'Parameter:', choices = NULL),
-                                                   selectInput(ns('filt_op'), 'Filter:', choices = c(">", ">=", "<", "<=")),
-                                                   numericInput(ns('filt_tresh'),
-                                                                'Threshold:',
-                                                                value = NULL,
-                                                                min = 0,
-                                                                max = 1,
-                                                                step = 0.01)
-                                                   ),
-                                        actionButton(ns('add_filt'), 'Add'),
-                                        actionButton(ns('del_filt'), 'Delete'),
-                                        actionButton(ns('preview_filt'), 'Preview Filters'),
-                                        actionButton(ns('reset_filt'), 'Reset'),
-                                        verbatimTextOutput(ns("filt_seq_error")),
-                                        br()
-                                        ),
-                                 column(width = 6, style = "background-color:#FFFFFF; color: #000000",
-                                        uiOutput(ns('filt_seq_params')),
-                                        br()
-                                        ),
-                                 br(),
-                          ),
-                          column(width = 12),
-                          # Histogram tabset
-                          shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = FALSE, title = "Visual aid (click on the '+' symbol on the right to open)",
-                                              column(width = 12,
-                                                     tabsetPanel(type = "tabs",
-                                                                 tabPanel("Histogram",
-                                                                          tabsetPanel(type = "tabs",
-                                                                                      tabPanel("Loci",
-                                                                                               tabsetPanel(id = ns('loc_metric_panel'), type = 'pills',
-                                                                                                           tabPanel(title = "MAF", plotly::plotlyOutput(ns("hist_maf"))),
-                                                                                                           tabPanel(title = "Missingness", plotly::plotlyOutput(ns("hist_loc_miss"))),
-                                                                                                           tabPanel(title = "Heterozygosity", plotly::plotlyOutput(ns("hist_loc_het"))),
-                                                                                                           tabPanel(title = "Inbreeding", plotly::plotlyOutput(ns("hist_loc_Fis")))
-                                                                                               )
-                                                                                      ),
-                                                                                      tabPanel("Ind",
-                                                                                               tabsetPanel(
-                                                                                                 id = ns('ind_metric_panel'), type = 'pills',
-                                                                                                 tabPanel(title = "Missingness", plotly::plotlyOutput(ns("hist_ind_miss"))),
-                                                                                                 tabPanel(title = "Heterozygosity", plotly::plotlyOutput(ns("hist_ind_het")))
-                                                                                               )
-                                                                                      )
-                                                                          )),
-                                                                 # Summary table
-                                                                 tabPanel("Summary",
-                                                                          br(),
-                                                                          column(width = 12,
-                                                                                 DT::DTOutput(ns('ov_summary_tab'))
-                                                                                 )
-                                                                          ),
-                                                                 tabPanel("Logs",
-                                                                          br(),
-                                                                          column(width = 12,
-                                                                                 DT::DTOutput(ns('filter_log_tab'))
-                                                                                 )
-                                                                          ),
-                                                                 )
+                                                                   inputPanel(selectInput(ns('filt_param'), 'Parameter:', choices = NULL),
+                                                                              selectInput(ns('filt_op'), 'Filter:', choices = c(">", ">=", "<", "<=")),
+                                                                              numericInput(ns('filt_tresh'),
+                                                                                           'Threshold:',
+                                                                                           value = NULL,
+                                                                                           min = 0,
+                                                                                           max = 1,
+                                                                                           step = 0.01)
+                                                                   ),
+                                                                   actionButton(ns('add_filt'), 'Add'),
+                                                                   actionButton(ns('del_filt'), 'Delete'),
+                                                                   actionButton(ns('preview_filt'), 'Preview Filters'),
+                                                                   actionButton(ns('reset_filt'), 'Reset'),
+                                                                   verbatimTextOutput(ns("filt_seq_error")),
+                                                                   br()
+                                                            ),
+                                                            column(width = 6, style = "background-color:#FFFFFF; color: #000000",
+                                                                   uiOutput(ns('filt_seq_params')),
+                                                                   br()
+                                                            ),
+                                                            br(),
+                                                     ),
+                                                     column(width = 12),
+                                                     # Histogram tabset
+                                                     shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = FALSE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                         column(width = 12,
+                                                                                tabsetPanel(type = "tabs",
+                                                                                            tabPanel("Histogram",
+                                                                                                     tabsetPanel(type = "tabs",
+                                                                                                                 tabPanel("Loci",
+                                                                                                                          tabsetPanel(id = ns('loc_metric_panel'), type = 'pills',
+                                                                                                                                      tabPanel(title = "MAF", plotly::plotlyOutput(ns("hist_maf"))),
+                                                                                                                                      tabPanel(title = "Missingness", plotly::plotlyOutput(ns("hist_loc_miss"))),
+                                                                                                                                      tabPanel(title = "Heterozygosity", plotly::plotlyOutput(ns("hist_loc_het"))),
+                                                                                                                                      tabPanel(title = "Inbreeding", plotly::plotlyOutput(ns("hist_loc_Fis")))
+                                                                                                                          )
+                                                                                                                 ),
+                                                                                                                 tabPanel("Ind",
+                                                                                                                          tabsetPanel(
+                                                                                                                            id = ns('ind_metric_panel'), type = 'pills',
+                                                                                                                            tabPanel(title = "Missingness", plotly::plotlyOutput(ns("hist_ind_miss"))),
+                                                                                                                            tabPanel(title = "Heterozygosity", plotly::plotlyOutput(ns("hist_ind_het")))
+                                                                                                                          )
+                                                                                                                 )
+                                                                                                     )),
+                                                                                            # Summary table
+                                                                                            tabPanel("Summary",
+                                                                                                     br(),
+                                                                                                     column(width = 12,
+                                                                                                            DT::DTOutput(ns('ov_summary_tab'))
+                                                                                                     )
+                                                                                            ),
+                                                                                            tabPanel("Logs",
+                                                                                                     br(),
+                                                                                                     column(width = 12,
+                                                                                                            DT::DTOutput(ns('filter_log_tab'))
+                                                                                                     )
+                                                                                            ),
+                                                                                )
 
-                                              ))
-      ),
-      tabPanel(
-        div(icon("dice-two"), "Imputation", icon("arrow-right")),
-        br(),
-        fluidRow(
-          column(
-            width = 12,
-            style = "background-color:grey; color: #FFFFFF",
-            br(),
-            column(
-              width  = 12,
-              tags$div(
-                  style = "background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:12px;border-radius:6px;margin-bottom:12px;",
-                  tags$b("Warning:"),
-                  tags$p(style = "margin-bottom:0;", "The only module that currently supports missing data in the genotype matrix is the F1 qa/qc module."),
-                  tags$p(style = "margin-top:0;margin-bottom:0;", "If you have missing data and plan to use other Bioflow modules, do not skip imputation."),
-                )
-            ),
-            column(
-              width = 3,
-              selectInput(
-                ns("imputationMethod"),
-                "Imputation method",
-                choices = c("frequency"),
-                multiple = FALSE
-              )
-            ),
-            column(
-              width = 4,
-              br(),
-              div(
-                style = "display: inline-block; margin-right: 10px;",
-                actionButton(
-                  ns("run_imputation"),
-                  "Apply imputation"
-                )
-              ),
-              div(
-                style = "display: inline-block;",
-                actionButton(
-                  ns("skip_imputation"),
-                  "Skip imputation"
-                )
-              )
-            )
-          )
-        ),
-        column(width = 12),
-        shinydashboard::box(
-          width = 12,
-          status = "success",
-          solidHeader = TRUE,
-          collapsible = TRUE,
-          collapsed = FALSE,
-          title = "Visual aid (click on the '+' symbol on the right to open)",
-          column(
-            width = 6,
-            verbatimTextOutput(ns("pre_imp_metrics"))
-          ),
-          # column(
-          #   width = 6,
-          #   tags$div(
-          #     style = "color: #b30000; font-weight: bold; margin-top: 10px;",
-          #     "Warning: The only module that currently supports missing data in the genotype matrix is the F1 qa/qc module. ",
-          #     "If you have missing data and plan to use other Bioflow modules, do not skip imputation."
-          #   )
-          # )
-        )
-      ),
-      tabPanel(div( icon("dice-three"), "Run analysis" ),
-               br(),
-               column(width=12,style = "background-color:grey; color: #FFFFFF",
-                      column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
-                        "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
-                                                            title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
-                        placeholder = "(optional name)") ) ),
-                      column(width = 2,
-                             br(),
-                             actionButton(ns("runQaMb"),"Identify & store modifications",icon = icon("play-circle"))
-                             ),
-                      ),
-               textOutput(ns("outQaMb")),
-               )
-      )),
-      tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
-               tabsetPanel(
-                 tabPanel("Dashboard", icon = icon("file-image"),
-                          br(),
-                          textOutput(ns("outQaMb2")),
-                          br(),
-                          actionButton(ns("renderReportQaGeno"), "Download dashboard", icon = icon("download")),
-                          downloadButton(ns("downloadReportQaGeno"), "Download dashboard", style = "visibility:hidden;"),
-                          br(),
-                          uiOutput(ns('reportQaGeno'))
-                 ),
-               ),
-      ))))
+                                                                         ))
+                                            ),
+                                            tabPanel(
+                                              div(icon("dice-two"), "Imputation", icon("arrow-right")),
+                                              br(),
+                                              fluidRow(
+                                                column(
+                                                  width = 12,
+                                                  style = "background-color:grey; color: #FFFFFF",
+                                                  br(),
+                                                  column(
+                                                    width  = 12,
+                                                    tags$div(
+                                                      style = "background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:12px;border-radius:6px;margin-bottom:12px;",
+                                                      tags$b("Warning:"),
+                                                      tags$p(style = "margin-bottom:0;", "The only module that currently supports missing data in the genotype matrix is the F1 qa/qc module."),
+                                                      tags$p(style = "margin-top:0;margin-bottom:0;", "If you have missing data and plan to use other Bioflow modules, do not skip imputation."),
+                                                    )
+                                                  ),
+                                                  column(
+                                                    width = 3,
+                                                    selectInput(
+                                                      ns("imputationMethod"),
+                                                      "Imputation method",
+                                                      choices = c("frequency"),
+                                                      multiple = FALSE
+                                                    )
+                                                  ),
+                                                  column(
+                                                    width = 4,
+                                                    br(),
+                                                    div(
+                                                      style = "display: inline-block; margin-right: 10px;",
+                                                      actionButton(
+                                                        ns("run_imputation"),
+                                                        "Apply imputation"
+                                                      )
+                                                    ),
+                                                    div(
+                                                      style = "display: inline-block;",
+                                                      actionButton(
+                                                        ns("skip_imputation"),
+                                                        "Skip imputation"
+                                                      )
+                                                    )
+                                                  ),
+                                                  column(
+                                                    width = 12,
+                                                    uiOutput(ns("imputationParams"))
+                                                  )
+                                                )
+                                              ),
+                                              column(width = 12),
+                                              shinydashboard::box(
+                                                width = 12,
+                                                status = "success",
+                                                solidHeader = TRUE,
+                                                collapsible = TRUE,
+                                                collapsed = FALSE,
+                                                title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                column(
+                                                  width = 6,
+                                                  verbatimTextOutput(ns("pre_imp_metrics"))
+                                                ),
+                                                # column(
+                                                #   width = 6,
+                                                #   tags$div(
+                                                #     style = "color: #b30000; font-weight: bold; margin-top: 10px;",
+                                                #     "Warning: The only module that currently supports missing data in the genotype matrix is the F1 qa/qc module. ",
+                                                #     "If you have missing data and plan to use other Bioflow modules, do not skip imputation."
+                                                #   )
+                                                # )
+                                              )
+                                            ),
+                                            tabPanel(div( icon("dice-three"), "Run analysis" ),
+                                                     br(),
+                                                     column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                            column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                              "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                                  title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                              placeholder = "(optional name)") ) ),
+                                                            column(width = 2,
+                                                                   br(),
+                                                                   actionButton(ns("runQaMb"),"Identify & store modifications",icon = icon("play-circle"))
+                                                            ),
+                                                     ),
+                                                     textOutput(ns("outQaMb")),
+                                            )
+                                          )),
+                                 tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
+                                          tabsetPanel(
+                                            tabPanel("Dashboard", icon = icon("file-image"),
+                                                     br(),
+                                                     textOutput(ns("outQaMb2")),
+                                                     br(),
+                                                     actionButton(ns("renderReportQaGeno"), "Download dashboard", icon = icon("download")),
+                                                     downloadButton(ns("downloadReportQaGeno"), "Download dashboard", style = "visibility:hidden;"),
+                                                     br(),
+                                                     uiOutput(ns('reportQaGeno'))
+                                            ),
+                                          ),
+                                 ))))
 }
 
 mod_qaGenoApp_server <- function(id, data) {
@@ -374,6 +378,20 @@ mod_qaGenoApp_server <- function(id, data) {
       updateSelectInput(
         inputId = 'filt_param',
         choices = geno_qa_data$metric_mappings
+      )
+
+      # Update imputationMethod choices depending on ploidy level
+      ploidity <- as.numeric(data()$metadata$geno[2, ]$value)
+      imp_choices <- if (!is.na(ploidity) && ploidity == 2) {
+        c("frequency", "random_forest", "beagle")
+      } else {
+        c("frequency", "random_forest")
+      }
+
+      updateSelectInput(
+        session = session,
+        inputId = 'imputationMethod',
+        choices = imp_choices
       )
 
       plot_metrics()
@@ -563,39 +581,39 @@ mod_qaGenoApp_server <- function(id, data) {
       filter_mods$analysisId <- as.numeric(Sys.time())
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
-      up_analysis_id <- as.character(filter_mods$analysisId)
+      up_analysis_id <- as.character(round(filter_mods$analysisId))
       up_analysis_id <- unique(up_analysis_id)
       print(glue::glue("Analysis_ID: {up_analysis_id}"))
       result <- data()
 
       # Filter modifications
       if(!is.null(result[["modifications"]][["geno"]]) && is.data.frame(result[["modifications"]][["geno"]]) && nrow(result[["modifications"]][["geno"]]) > 0){
-         # Ensure column compatibility before rbind
-         shared_cols <- intersect(colnames(result[["modifications"]][["geno"]]), colnames(filter_mods))
-         if (length(shared_cols) == ncol(filter_mods)) {
-           result[["modifications"]][["geno"]] <- rbind(result[["modifications"]][["geno"]], filter_mods)
-         } else {
-           # Reset incompatible modifications and start fresh
-           result[["modifications"]][["geno"]] <- filter_mods
-         }
+        # Ensure column compatibility before rbind
+        shared_cols <- intersect(colnames(result[["modifications"]][["geno"]]), colnames(filter_mods))
+        if (length(shared_cols) == ncol(filter_mods)) {
+          result[["modifications"]][["geno"]] <- rbind(result[["modifications"]][["geno"]], filter_mods)
+        } else {
+          # Reset incompatible modifications and start fresh
+          result[["modifications"]][["geno"]] <- filter_mods
+        }
       } else {
-         result[["modifications"]][["geno"]] <- filter_mods
+        result[["modifications"]][["geno"]] <- filter_mods
       }
 
       # Imputation modifications
       if(!is.null(result$modifications$geno_imp)){
-         result$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
+        result$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
       } else {
-         result$modifications$geno_imp <- list()
-         result$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
+        result$modifications$geno_imp <- list()
+        result$modifications$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$log
       }
 
       # Output gl object
       if(!is.null(result$data$geno_imp)){
-         result$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
+        result$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
       } else {
-         result$data$geno_imp <- list()
-         result$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
+        result$data$geno_imp <- list()
+        result$data$geno_imp[[up_analysis_id]] <- geno_qa_data$imputation_log$gl
       }
 
       # Preserve consensus_info from the main data object into geno_imp
@@ -660,6 +678,50 @@ mod_qaGenoApp_server <- function(id, data) {
     )
 
 
+    # Imputation parameters UI based on selected method
+    output$imputationParams <- renderUI({
+      req(input$imputationMethod)
+      method <- input$imputationMethod
+
+      if (method == "random_forest") {
+        tagList(
+          fluidRow(
+            column(width = 4, numericInput(ns("rf_nflank"), "nflank", value = 100, min = 1)),
+            column(width = 4, numericInput(ns("rf_ntree"), "ntree", value = 100, min = 1)),
+            column(width = 4, numericInput(ns("rf_seed"), "seed (optional)", value = NA))
+          )
+        )
+      } else if (method == "beagle") {
+        default_beagle <- if (file.exists("D:/OneDrive - CGIAR/Documents/Software/beagle.27Feb25.75f.jar")) {
+          "D:/OneDrive - CGIAR/Documents/Software/beagle.27Feb25.75f.jar"
+        } else {
+          ""
+        }
+        default_jre <- if (dir.exists("D:/OneDrive - CGIAR/Documents/Software/ugene-53.0/tools/java")) {
+          "D:/OneDrive - CGIAR/Documents/Software/ugene-53.0/tools/java"
+        } else {
+          ""
+        }
+        tagList(
+          fluidRow(
+            column(width = 6, textInput(ns("beagle_jre_path"), "JRE Path", value = default_jre)),
+            column(width = 6, textInput(ns("beagle_path"), "Beagle JAR Path", value = default_beagle))
+          ),
+          fluidRow(
+            column(width = 3, textInput(ns("beagle_memory"), "Memory", value = "Xmx1g")),
+            column(width = 3, numericInput(ns("beagle_burnin"), "Burn-in iterations", value = 3, min = 1)),
+            column(width = 3, numericInput(ns("beagle_iterations"), "Iterations", value = 12, min = 1)),
+            column(width = 3, numericInput(ns("beagle_seed"), "Seed", value = -99999))
+          ),
+          fluidRow(
+            column(width = 3, numericInput(ns("beagle_nthreads"), "Threads", value = 16, min = 1))
+          )
+        )
+      } else {
+        NULL
+      }
+    })
+
     observeEvent(input$run_imputation, {
       req(geno_qa_data$preview_geno$gl)
       ploidity <- as.numeric(data()$metadata$geno[2,]$value)
@@ -674,9 +736,34 @@ mod_qaGenoApp_server <- function(id, data) {
       } else{
         # Imputation
         shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotype matrix...')
-        geno_qa_data$imputation_log <- cgiarGenomics::impute_gl(gl = geno_qa_data$preview_geno$gl,
-                                                                ploidity = ploidity,
-                                                                method = input$imputationMethod)
+
+        # Build additional arguments for the selected imputation method
+        method <- input$imputationMethod
+        imp_args <- list(
+          gl = geno_qa_data$preview_geno$gl,
+          ploidity = ploidity,
+          method = method
+        )
+
+        if (method == "random_forest") {
+          req(input$rf_nflank, input$rf_ntree)
+          imp_args$nflank <- input$rf_nflank
+          imp_args$ntree <- input$rf_ntree
+          if (!is.null(input$rf_seed) && !is.na(input$rf_seed)) {
+            imp_args$seed <- as.integer(input$rf_seed)
+          }
+        } else if (method == "beagle") {
+          req(input$beagle_jre_path, input$beagle_path)
+          imp_args$jre_path <- input$beagle_jre_path
+          imp_args$beagle_path <- input$beagle_path
+          imp_args$memory <- input$beagle_memory
+          imp_args$burnin <- input$beagle_burnin
+          imp_args$iterations <- input$beagle_iterations
+          imp_args$seed <- input$beagle_seed
+          imp_args$nthreads <- input$beagle_nthreads
+        }
+
+        geno_qa_data$imputation_log <- do.call(cgiarGenomics::impute_gl, imp_args)
 
         shinybusy::remove_modal_spinner()
       }
@@ -733,12 +820,12 @@ mod_qaGenoApp_server <- function(id, data) {
                           sep = '_')
 
           if(filter_step$filter_margin == 'loc'){
-            loc_idx <- which(filter_step$filter_out %in% base_loc_names)
+            loc_idx <- which(base_loc_names %in% filter_step$filter_out)
             col_data <- loc_idx
             row_data <- rep(NA, length(loc_idx))
 
           } else {
-            ind_idx <- which(filter_step$filter_out %in% base_ind_names)
+            ind_idx <- which(base_ind_names %in% filter_step$filter_out)
             col_data <- rep(NA, length(ind_idx))
             row_data <- ind_idx
           }
@@ -747,12 +834,12 @@ mod_qaGenoApp_server <- function(id, data) {
             reason = rep(reason, length(filter_step$filter_out)),
             row = row_data,
             col = col_data,
-            value = rep(NA, length(filter_step$filter_out))
+            value = filter_step$filter_out
           )
           return(filt_step_log)
         }
       })
-     return(out)
+      return(out)
     }
   })
 }

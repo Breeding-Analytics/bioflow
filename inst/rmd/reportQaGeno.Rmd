@@ -98,7 +98,7 @@ if(is.null(result)){
   # invisible(NULL)
 } else {
   gl <- result$data$geno
-  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- sort(result$status[which(result$status$module == "qaGeno"),"analysisId"])
   idMarkers <- idMarkers[length(idMarkers)]
   # Regenerate the final filtered gl
   modifications <- result$modifications$geno %>% 
@@ -108,10 +108,10 @@ if(is.null(result)){
   t_loc <- which(!seq(adegenet::nLoc(gl)) %in% r_loc[!is.na(r_loc)])
   r_ind <- modifications$row
   t_ind <- which(!seq(adegenet::nInd(gl)) %in% r_ind[!is.na(r_ind)])
-  fgl <- gl[t_ind, t_loc]
-  fgl <- cgiarGenomics::recalc_metrics(fgl)
+  fgl <- cgiarGenomics::recalc_metrics(gl[t_ind, t_loc])
   
-  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[as.character(round(idMarkers))]])
+  
   # Get Summaries of original and filtered dataset
   original <-as.data.frame(cgiarGenomics::get_overall_summary(gl))
   filtered <- as.data.frame(cgiarGenomics::get_overall_summary(fgl))
@@ -146,9 +146,9 @@ if(is.null(result)){
   # pass
 } else {
   gl <- result$data$geno
-  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- sort(result$status[which(result$status$module == "qaGeno"),"analysisId"])
   idMarkers <- idMarkers[length(idMarkers)]
-  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[as.character(round(idMarkers))]])
   dist_chr_df <- purrr:::map2_df(c(gl, imp_gl), c("Original", "Imputed"),
                   function(x,y){
                     geno_map <- data.frame(CHROM = x@chromosome, POS = x@position)
