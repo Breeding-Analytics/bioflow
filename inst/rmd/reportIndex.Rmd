@@ -101,6 +101,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   mydata <- result$predictions
+  #save(result,file="vver.RData")
   idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
   idIndex <- idIndex[length(idIndex)]
   idMta <-result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
@@ -111,8 +112,7 @@ if (is.null(result)){
   mTrait <- gsub("_scaled","",mTrait)
   uTrait <- c(mTrait[which(mTrait %in% unique(mydata$trait))],"desireIndex")
   mydata <- mydata[which(mydata$trait %in% uTrait),]
-  wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue", "entryType"))], direction = "wide", idvar = c("designation"),
-                         timevar = "trait", v.names = c("predictedValue"), sep= "_")
+  wide <- stats::reshape(mydata[,c(c("designation"),"trait",c("predictedValue", "entryType"))], direction = "wide", idvar = c("designation"),timevar = "trait", v.names = c("predictedValue"), sep= "_")
   colnames(wide) <- gsub("predictedValue_","",colnames(wide))
   numeric.output <- colnames(wide)[-c(1:2)]
   
@@ -192,150 +192,12 @@ if (is.null(result)){
 }
 ```
 
+### Standardized response to selection. 
 
-### Radar Plot
-
-This spider plot allows you to visualize the distance between the population means and the target values (hopefully coming from your product profile).
+The chart displays the standardized genetic gain for each trait after selecting the indicated proportion of individuals. Gains are expressed in units of the population standard deviation, allowing direct comparison among traits with different measurement scales. Green bars represent the desired improvement specified by the breeding objective, whereas blue and red bars show the achieved gain (positive or negative, respectively). Black dots indicate the estimated standardized response for each trait. This visualization facilitates the evaluation of whether the selected population approaches, exceeds, or falls short of the desired breeding targets.
 
 <p>&nbsp;</p>
-
 ```{r, results='asis'}
-library(dplyr)
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  
-  dtIdxD <- result$predictions
-  idIndex <- result$status[which(result$status$module == "indexD"),"analysisId"];
-  idIndex <- idIndex[length(idIndex)]
-  idMta <- result$modeling[which(result$modeling$parameter %in% "analysisId" & result$modeling$analysisId == idIndex),"value"]
-  mydata <- dtIdxD[which(dtIdxD$analysisId %in% idMta),setdiff(colnames(dtIdxD),c("module","analysisId"))]
-  envsUsed <- unique(result$modeling[which(result$modeling$analysisId %in% idIndex),"environment"])
-  mydata <- mydata[which(mydata$environment %in% envsUsed),]
-  # subset to only traits being part of the index
-  desirev <-result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"value"]
-  entryTypes <-result$modeling[which(result$modeling$parameter %in% "entryTypeToUse" & result$modeling$analysisId == idIndex),"value"]
-  uTraits <- result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),"trait"]
-  uTraits <- gsub("_scaled","",uTraits)
-  dtIdxD <- dtIdxD[which(dtIdxD$trait %in% uTraits),]
-  ##
-  environmentPredictionsRadar2=envsUsed
-  traitFilterPredictionsRadar2=unique(dtIdxD[which(dtIdxD$analysisId %in% idMta),"trait"])
-  ## ensure product profile means come sorted
-  meanGroupPredictionsRadar= result$modeling[which(result$modeling$parameter %in% "desire" & result$modeling$analysisId == idIndex),c("trait","value")]
-  meanGroupPredictionsRadar <- meanGroupPredictionsRadar[with(meanGroupPredictionsRadar, order(as.numeric(as.factor(trait)))), ]
-  meanGroupPredictionsRadar <- meanGroupPredictionsRadar[,"value"]
-  
-  fontSizeRadar=12; r0Radar=NULL; neRadar=NULL; plotSdRadar=FALSE
-  
-  mydata = mydata[which( (mydata$environment %in% environmentPredictionsRadar2) &
-                         (mydata$trait %in% traitFilterPredictionsRadar2) &
-                         (mydata$entryType %in% entryTypes)
-),]
-  
-  if(!is.null(environmentPredictionsRadar2) & !is.null(traitFilterPredictionsRadar2)){
-    mm <- stats::aggregate(predictedValue~trait, data=mydata, FUN=mean, na.rm=TRUE)
-    mmsd <- stats::aggregate(predictedValue~trait, data=mydata, FUN=stats::sd, na.rm=TRUE)
-    mm2 <- stats::aggregate(predictedValue~trait, data=mydata, FUN=min, na.rm=TRUE)
-    mm3 <- stats::aggregate(predictedValue~trait, data=mydata, FUN=max, na.rm=TRUE)
-    namesA <- mm[,1]
-    meanA <- mm[,2]/(mm3[,2])
-    
-    # meanA <- rep(0.75,nrow(mm))
-    fig <-  plotly::plot_ly(
-      type = 'scatterpolar',
-      fill = 'toself'
-    )
-    fig <- fig %>%
-      plotly::add_trace(
-        r = meanA, #c(39, 28, 8, 7, 28, 39),
-        theta =paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
-        name = 'Breeding population means',
-        text=round(mm[,2],3)
-      )
-    ## add product profile means
-    if(!is.null(meanGroupPredictionsRadar)){
-      meanB <- as.numeric(unlist(strsplit(meanGroupPredictionsRadar,",")))
-      if(length(meanB) == length(mm[,2])){
-        meanB <- meanB + mm[,2]
-        # r2 = (meanB*0.75)/mm[,2]
-        r2 = meanB/(mm3[,2])
-        dToSearch <- meanB #- mm[,2]
-        fig <- fig %>%
-          plotly::add_trace(
-            r = r2, # c(1.5, 10, 39, 31, 15, 1.5),
-            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
-            name = "Desired population", #'Group B'
-            # mode="text",
-            text=round(dToSearch,2)
-            # textfont = list(color = '#000000', size = fontSizeRadar)
-          )
-      }
-    }
-    # add SD polygon
-    if(plotSdRadar){
-      meanC <- (mm[,2]+mmsd[,2])/(mm3[,2])
-      fig <- fig %>%
-        plotly::add_trace(
-          r = meanC, # c(1.5, 10, 39, 31, 15, 1.5),
-          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
-          name = "Mean + Standard Deviation from pop", #'Group B'
-          text=round(mm[,2]+mmsd[,2],3)
-        )
-      meanD <- (mm[,2]-mmsd[,2])/(mm3[,2])
-      fig <- fig %>%
-        plotly::add_trace(
-          r = meanD, # c(1.5, 10, 39, 31, 15, 1.5),
-          theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
-          name = "Mean - Standard Deviation from pop", #'Group B'
-          text=round(mm[,2]-mmsd[,2],3)
-        )
-    }
-    # add selection limits polygon
-    ## add product profile means'
-    if(!is.null(r0Radar)){
-      meanR <- as.numeric(unlist(strsplit(r0Radar,",")))/100
-      if(length(meanR) == length(mm[,2])){
-        meanR <- mm[,2] + ((meanR*mm[,2])*neRadar*2) # selection limits 2*Ne*R0
-        r3 = (meanR*0.75)/mm[,2]
-        dToSearchR <- meanR #- mm[,2]
-        fig <- fig %>%
-          plotly::add_trace(
-            r = r3, # c(1.5, 10, 39, 31, 15, 1.5),
-            theta = paste(1:length(namesA),namesA,sep="."),# c('A','B','C', 'D', 'E', 'A'),
-            name = "Selection limits", #'Group B'
-            # mode="text",
-            text=round(dToSearchR,2)
-            # textfont = list(color = '#000000', size = fontSizeRadar)
-          )
-      }
-    }
-  }
-  
-  if("params" %in% ls()){ # we will download the document
-    
-    
-    print(htmltools::tagList(plotly::ggplotly(fig)))
-    
-  }else{
-    
-    plotly::renderPlotly({
-      fig
-    }) # enf of render plotly
-    
-  }
-  
-}
-
-```
-
-### Expected Response Plot
-
-The following plot allows the user to visualize the expected response in the new generation given the individuals selected (different proportions can be investigated) using the selection index.
-
-<p>&nbsp;</p>
-
-```{r}
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -358,6 +220,91 @@ if (is.null(result)){
   mydata <- mydata[which(mydata$entryType %in% entryTypes),]
   
   if("params" %in% ls()){ # we will download the document
+    proportionTrait2 <- c(0.05,0.10,0.15,0.20)
+  }else{
+    inputPanel(
+      shiny::numericInput(ns("proportionTrait2"), label = "Selected proportion", value = 0.1, min=0.001,max=1, step=0.05),
+    )
+    
+  }
+  
+}
+```
+
+
+<div style = "width:auto; height:auto; overflow:auto">
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  wide0=wide[-which(wide$designation=="(Intercept)"),names(wide) != "entryType"]
+  rownames(wide0)=wide0[,1]
+  wide0=wide0[,-1]
+  set1<-apply(wide0[,names(wide0) != "desireIndex"],2,mean,na.rm=T)    
+  sdd<-apply(wide0[,names(wide0) != "desireIndex"],2,sd,na.rm=T)
+  wide0<-wide0[order(wide0$desireIndex,decreasing=T),]
+  if("params" %in% ls()){ # we will download the document
+    # cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    cat(paste0("### Proportion selected  {.tabset .tabset-pills}    \n\n  "))
+    for(iProportionTrait2 in proportionTrait2){
+      cat("\n\n####", iProportionTrait2, "{.tabset .tabset-pills}       \n\n")
+      cat("\n")
+        set2<-apply(wide0[1:round(nrow(wide0)*iProportionTrait2),names(wide0) != "desireIndex"],2,mean,na.rm=T)
+	      usefull=set2-set1
+	      usefull=usefull/sdd
+	      desired<-modelingTable[which(modelingTable$parameter=="desire") ,]
+	      desired<-as.numeric(desired[,c("value")])
+	      scd<-modelingTable[which(modelingTable$parameter=="scaled") ,]
+	      if(scd$value=="TRUE"){desired=desired}else{desired=desired/sdd}
+        df <- data.frame(trait = names(usefull),value = as.numeric(usefull), meanS = set2, meanAc= set1,desired=desired)
+
+  p2<-plotly::plot_ly() %>% plotly::add_bars(data = df,x = ~trait,y = 10,base = -5, marker = list(color = "rgba(180,180,180,0.25)"), width = 0.80,hoverinfo = "skip",showlegend = FALSE) %>%
+	      plotly::add_bars(data = df, x = ~trait, y = ~desired, name="Desired values",width = 0.65, marker = list(color = "rgba(46,204,113,0.40)"),hoverinfo = "skip", showlegend = TRUE) %>%
+				plotly::add_bars(data = subset(df, value >= 0),x = ~trait,y = ~value,name = "Trait improves",width = 0.45,marker = list(color = "steelblue"),hovertext = ~paste0("<b>", trait, "</b><br>","StdGain: ", sprintf("%.3f", value), "<br>",
+							"Actual population (mean): ", sprintf("%.3f", meanAc), "<br>","Selected population (mean): ", sprintf("%.3f", meanS)),hoverinfo = "text",showlegend = TRUE) %>%
+				plotly::add_bars(data = subset(df, value < 0),x = ~trait, y = ~value,name = "Trait decreases",width = 0.45,marker = list(color = "tomato"),hovertext = ~paste0("<b>", trait, "</b><br>","StdGain: ", sprintf("%.3f", value), "<br>",
+							"Actual population (mean): ", sprintf("%.3f", meanAc), "<br>","Selected population (mean): ", sprintf("%.3f", meanS)),hoverinfo = "text",showlegend = TRUE)%>%
+				plotly::add_markers( data = df, x = ~trait, y = ~value, marker = list(size = 6, color = "black"), hoverinfo = "skip",showlegend = FALSE)%>%
+				plotly::layout(barmode = "overlay",yaxis = list(range = c(-5, 5), title = "Standard deviation", zeroline = TRUE),xaxis = list(title = "Trait"),legend = list(orientation = "h",x = 0.5, xanchor = "center",y = -0.15, yanchor = "top"),showlegend=TRUE)
+      print(htmltools::tagList(p2))
+    }
+  }else{
+    plotly::renderPlotly({
+        set2<-apply(wide0[1:round(nrow(wide0)*input$proportionTrait2),names(wide0) != "desireIndex"],2,mean,na.rm=T)
+	      usefull=set2-set1
+	      usefull=usefull/sdd
+	      desired<-modelingTable[which(modelingTable$parameter=="desire") ,]
+	      desired<-as.numeric(desired[,c("value")])
+	      scd<-modelingTable[which(modelingTable$parameter=="scaled") ,]
+	      if(scd$value=="TRUE"){desired=desired}else{desired=desired/sdd}
+        df <- data.frame(trait = names(usefull),value = as.numeric(usefull), meanS = set2, meanAc= set1,desired=desired)
+  p2<-plotly::plot_ly() %>% plotly::add_bars(data = df,x = ~trait,y = 10,base = -5, marker = list(color = "rgba(180,180,180,0.25)"), width = 0.80,hoverinfo = "skip",showlegend = FALSE) %>%
+	      plotly::add_bars(data = df, x = ~trait, y = ~desired, name="Desired values",width = 0.65, marker = list(color = "rgba(46,204,113,0.40)"),hoverinfo = "skip", showlegend = TRUE) %>%
+				plotly::add_bars(data = subset(df, value >= 0),x = ~trait,y = ~value,name = "Trait improves",width = 0.45,marker = list(color = "steelblue"),hovertext = ~paste0("<b>", trait, "</b><br>","StdGain: ", sprintf("%.3f", value), "<br>",
+							"Actual population (mean): ", sprintf("%.3f", meanAc), "<br>","Selected population (mean): ", sprintf("%.3f", meanS)),hoverinfo = "text",showlegend = TRUE) %>%
+				plotly::add_bars(data = subset(df, value < 0),x = ~trait, y = ~value,name = "Trait decreases",width = 0.45,marker = list(color = "tomato"),hovertext = ~paste0("<b>", trait, "</b><br>","StdGain: ", sprintf("%.3f", value), "<br>",
+							"Actual population (mean): ", sprintf("%.3f", meanAc), "<br>","Selected population (mean): ", sprintf("%.3f", meanS)),hoverinfo = "text",showlegend = TRUE)%>%
+				plotly::add_markers( data = df, x = ~trait, y = ~value, marker = list(size = 6, color = "black"), hoverinfo = "skip",showlegend = FALSE)%>%
+				plotly::layout(barmode = "overlay",yaxis = list(range = c(-5, 5), title = "Standard deviation", zeroline = TRUE),xaxis = list(title = "Trait"),legend = list(orientation = "h",x = 0.5, xanchor = "center",y = -0.15, yanchor = "top"),showlegend=TRUE)
+        
+        print(p2) 
+    })
+  }
+}
+
+```
+
+
+### Expected Response Plot
+
+The following plot allows the user to visualize the expected response in the new generation given the individuals selected (different proportions can be investigated) using the selection index.
+
+<p>&nbsp;</p>
+```{r}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  if("params" %in% ls()){ # we will download the document
     proportionTrait <- c(0.05,0.10,0.15,0.20)
   }else{
     inputPanel(
@@ -371,10 +318,8 @@ if (is.null(result)){
     )
     
   }
-  
 }
 ```
-
 <div style = "width:auto; height:auto; overflow:auto">
 
 ```{r, results='asis'}
