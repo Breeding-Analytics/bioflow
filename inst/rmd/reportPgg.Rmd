@@ -137,85 +137,59 @@ if (is.null(result)){
   idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
   idPgg <- idPgg[length(idPgg)]
   modeling <- setdiff( unique(modeling[which(modeling$analysisId == idPgg),"trait"]), "inputObject")
-  if("params" %in% ls()){ # input <- list(traitFilterPredictions2D2=modeling)
-    shinyjs::hide()
-  }else{
-    shiny::selectInput(ns("traitFilterPredictions2D2"),
-                       label = "Trait:",
-                       choices = modeling,
-    )
-  }
-}
-
-```
-
-```{r, results='asis'}
-if (is.null(result)){
-  
-} else {
   
   metrics <- result$metrics
   idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
   idPgg <- idPgg[length(idPgg)]
   current.metrics <- metrics[which(metrics$analysisId %in% c(idPgg)),]
-  
-  if("params" %in% ls()){
-    cat(paste0("### Selection differentials and expected response  {.tabset .tabset-pills}    \n\n  "))
-    # l <- htmltools::tagList()
-    # counter <- 1
-    for(iTrait in unique(modeling)){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
+  all.vals <- list()
+
+for(iTrait in unique(modeling)){
+
+  mu0 <- current.metrics[current.metrics$parameter == "meanG" &  current.metrics$trait == iTrait, "value"]
+  sd0 <- current.metrics[current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait, "value"]
+  R <- current.metrics[current.metrics$parameter == "PGG" &  current.metrics$trait == iTrait, "value"]
+  m1 <- mu0 + R
+  envs <- unique(current.metrics$environment[current.metrics$trait == iTrait])
+  vals0 <- as.data.frame(apply(data.frame(mu0, sd0), 1,function(x) rnorm(1000, mean = x[1], sd = x[2])))
+  vals1 <- as.data.frame(apply(data.frame(m1, sd0), 1,function(x) rnorm(1000, mean = x[1], sd = x[2])))
+  vals0$Subject <- vals1$Subject <- paste0("a", 1:nrow(vals0))
+  vals0l <- reshape(vals0, idvar = "Subject",
+                    varying = list(1:length(mu0)),
+                    v.names = "conc",
+                    direction = "long",
+                    times = envs)
+
+  vals0l$treat <- "original"
+
+  vals1l <- reshape(vals1, idvar = "Subject",
+                    varying = list(1:length(mu0)),
+                    v.names = "conc",
+                    direction = "long",
+                    times = envs)
+
+  vals1l$treat <- "selected"
+
+  vals <- rbind(vals0l, vals1l)
+  vals$trait <- iTrait
+
+  all.vals[[iTrait]] <- vals
+}
+
+vals <- do.call(rbind, all.vals)
+
+    if("params" %in% ls()){
       
-      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == iTrait ),"value"];
-      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == iTrait ),"value"];
-      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == iTrait ),"value"];
-      m1 <- mu0 + R
-      envs <- unique(current.metrics$environment[which(current.metrics$trait == iTrait)])
-      
-      vals0 <- as.data.frame(apply(data.frame(mu0,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
-      vals1 <- as.data.frame(apply(data.frame(m1,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
-      vals0$Subject <- vals1$Subject <- paste0("a",1:nrow(vals0))
-      
-      vals0l <- reshape(vals0, idvar = "Subject", varying = list(1:(length(mu0))),
-                        v.names = "conc", direction = "long", times = envs)
-      vals0l$treat <- "original"
-      vals1l <- reshape(vals1, idvar = "Subject", varying = list(1:(length(mu0))),
-                        v.names = "conc", direction = "long", times = envs)
-      vals1l$treat <- "selected"
-      vals <- rbind(vals0l,vals1l)
-      
-      p<-ggplot2::ggplot(vals, ggplot2::aes(x=conc, fill=treat)) +
-        ggplot2::geom_density(alpha=0.4) +  ggplot2::facet_wrap(~time) +
-        ggplot2::xlab("Trait value")
-      
+    cat(paste0("### Selection differentials and expected response  {.tabset .tabset-pills}    \n\n  "))  
+      p<-ggplot(vals, aes(x = conc, fill = treat)) +  geom_density(alpha = 0.4) +
+         facet_wrap(~trait, scales = "free") +  xlab("Trait value")
       print(p)
       
-    }
   }else{
     plotly::renderPlotly({
       
-      mu0 <-current.metrics[which(current.metrics$parameter == "meanG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      sd0 <-current.metrics[which(current.metrics$parameter == "sigmaG" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      R <-current.metrics[which(current.metrics$parameter == "R" & current.metrics$trait == input$traitFilterPredictions2D2 ),"value"];
-      m1 <- mu0 + R
-      envs <- unique(current.metrics$environment[which(current.metrics$trait == input$traitFilterPredictions2D2)])
-      
-      vals0 <- as.data.frame(apply(data.frame(mu0,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
-      vals1 <- as.data.frame(apply(data.frame(m1,sd0),1,function(x){rnorm(1000, mean=x[1], sd = x[2] )}))
-      vals0$Subject <- vals1$Subject <- paste0("a",1:nrow(vals0))
-      
-      vals0l <- reshape(vals0, idvar = "Subject", varying = list(1:(length(mu0))),
-                        v.names = "conc", direction = "long", times = envs)
-      vals0l$treat <- "original"
-      vals1l <- reshape(vals1, idvar = "Subject", varying = list(1:(length(mu0))),
-                        v.names = "conc", direction = "long", times = envs)
-      vals1l$treat <- "selected"
-      vals <- rbind(vals0l,vals1l)
-      
-      p<-ggplot2::ggplot(vals, ggplot2::aes(x=conc, fill=treat)) +
-        ggplot2::geom_density(alpha=0.4) +  ggplot2::facet_wrap(~time) + 
-        ggplot2::xlab("Trait value")
-      
+      p<-ggplot(vals, aes(x = conc, fill = treat)) +  geom_density(alpha = 0.4) +
+         facet_wrap(~trait, scales = "free") +  xlab("Trait value")
       plotly::ggplotly(p)
       
     })
@@ -223,101 +197,6 @@ if (is.null(result)){
 }
 ```
 
-### Barplot for metrics 
-
-The following barplot allows you to compare the parameters with respect to the classification variables.
-
-```{r}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  # analysis id
-  idPgg <- result$status[which(result$status$module == "pgg"),"analysisId"];
-  idPgg <- idPgg[length(idPgg)]
-  # tables
-  modelingPgg <- result$modeling[which(result$modeling$analysisId == idPgg),]
-  metricsPgg <- result$metrics[which(result$metrics$analysisId == idPgg),]
-  # choices
-  traitsPgg <- setdiff(unique(metricsPgg$trait),c("inputObject"))
-  paramPgg <- setdiff( unique(metricsPgg$parameter), "min.G" )
-  classPgg <- unique(modelingPgg[which(modelingPgg$parameter == "classifier"),"value"])
-  if("params" %in% ls()){  # if user will download the report
-    shinyjs::hide()
-  }else{
-    
-    inputPanel(
-      selectInput(ns("paramMetricsBy"),
-                  label = "Trait:",
-                  # selected = "environment",
-                  choices = traitsPgg
-      ),
-      shiny::selectInput(ns("paramMetrics"), 
-                         label = "Parameter to filter:", 
-                         multiple = FALSE,
-                         # selected = unique(parameters),
-                         choices = paramPgg
-      ),
-      
-    )
-    
-    
-  }
-}
-```
-<p>&nbsp;</p>
-
-```{r, results='asis'}
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  
-  if("params" %in% ls()){  # if user will download the report
-    
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    counter <- 1
-    
-    for(iView in traitsPgg ){
-      cat("\n\n####", iView, "{.tabset .tabset-pills}       \n\n")
-      # for(iTrait in staTraits){
-      for(iParam in paramPgg ){
-        cat("\n\n#####", iParam, "{.tabset .tabset-pills}       \n\n")
-        
-        metricsPgg2 <- metricsPgg[which(metricsPgg$trait == iView ),]
-        metricsPgg3 <- metricsPgg2[which(metricsPgg2$parameter == iParam ),]
-        
-        if(nrow(metricsPgg3) > 0){
-          
-          p<-ggplot(metricsPgg3, aes(x=environment, y=value)) +
-            geom_bar(stat="identity")+theme_minimal()
-          
-          print(htmltools::tagList(plotly::ggplotly(p)))
-        }
-        
-      }
-      cat("\n")
-      
-    }
-    
-    cat("\n")
-    
-  }else{ # display in website
-    
-    plotly::renderPlotly({
-      
-      metricsPgg2 <- metricsPgg[which(metricsPgg$trait == input$paramMetricsBy ),]
-      metricsPgg3 <- metricsPgg2[which(metricsPgg2$parameter == input$paramMetrics ),]
-      
-      p<-ggplot(metricsPgg3, aes(x=environment, y=value)) +
-        geom_bar(stat="identity")+theme_minimal()
-      p
-      
-      plotly::ggplotly(p)
-    })
-    
-  }
-  
-}
-```
 
 ### References of methods used
 

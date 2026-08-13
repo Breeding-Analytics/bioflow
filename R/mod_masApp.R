@@ -619,6 +619,10 @@ mod_masApp_server <- function(id, data){
       ## store the new modifications table
       alleles <- desireAlleleValues() # alleles <- result$metadata$geno[input$markers2MAS,"refAllele"]
       dtMta <- data()
+		qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+      Markers <- as.data.frame(dtMta$data$geno_imp[qas])
+	  colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
+      Markers <- Markers[,input$markers2MAS]
       X<- dtMta[["data"]][["geno"]]@loc.all
 	    names(X)<-dtMta[["data"]][["geno"]]@loc.names
 	    X<-X[names(X)%in%input$markers2MAS]
@@ -647,6 +651,24 @@ mod_masApp_server <- function(id, data){
           cat(paste("Marker Assisted Selection analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
         })
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+		  q <- vector(mode="numeric",length = length(input$markers2MAS))
+        for(k in 1:ncol(Markers)){
+			ttb <- table(0:input$ploidy)-1 # table of zeros for dosages
+			tto <- table(Markers[,k])
+			ttb[names(tto)] <- ttb[names(tto)] + tto
+			n <- sum(ttb)
+			q[k] <- ( ttb[length(ttb)] + (ttb[2:(length(ttb)-1)] / factorial(2:(length(ttb)-1)) ) ) / n
+        }
+        p <- 1 - q
+        df3 <- data.frame(module="mas", analysisId=result$status$analysisId[nrow(result$status)], 
+						trait=c(input$markers2MAS,input$markers2MAS),
+						environment = c(X$refAllele, X$altAllele),
+                        parameter=c(rep("reference",length(X$refAllele)), rep("alternate",length(X$altAllele)) ),
+						method="frequency",
+                        value=c( p, q),
+                        stdError=NA
+      )	  
+		result$metrics<-rbind(result$metrics,df3)
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         # predictions

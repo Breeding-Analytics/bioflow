@@ -120,6 +120,16 @@ This dashboard also helps users to identify problems in the input data with flag
 
 Additionally, ungenotyped F1 indviduals are also flagged (HasGeno / NO GENO DATA).
 
+#### Parental uncertainty
+
+The **parental_uncertainty** column indicates the confidence level in the parental genotypes used for F1 verification. During genotype loading, when multiple samples map to the same parental designation, the Individual Management module resolves them by computing pairwise IBS (Identity By State). Parents where all samples were identical (IBS = 1) are auto-resolved with high confidence. However, when samples disagree and the user manually selects a consensus, that parent is flagged as "uncertain" because the true parental genotype could not be unambiguously determined from the available data. The categories are:
+
+- **No uncertainty**: Both parents were either auto-resolved (all samples identical) or had a single unambiguous genotype.
+- **1 uncertain parent**: One parent of the cross was resolved by manual consensus from disagreeing samples.
+- **2 uncertain parents**: Both parents were resolved by manual consensus.
+
+F1 QA/QC results involving uncertain parents should be interpreted with caution, as Mendelian consistency checks depend on the correctness of the parental genotypes.
+
 ### Verification results
 <p>&nbsp;</p>
 
@@ -135,14 +145,24 @@ if (is.null(result)){
   idQa <- idQa[length(idQa)]
   predictions <- predictions[which( predictions$analysisId == idQa),]
   traitsTable <- unique(predictions$trait)
+  traitsTable <- traitsTable[traitsTable != "parentalUncertainty"]
   
   
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
-    shiny::selectInput(ns("traitQa"), 
-                       label = "Verification measure:", 
-                       choices = traitsTable, 
+    tagList(
+      shiny::selectInput(ns("traitQa"), 
+                         label = "Verification measure:", 
+                         choices = traitsTable,
+                         selected = if ("probMatch" %in% traitsTable) "probMatch" else traitsTable[1]
+      ),
+      shiny::checkboxGroupInput(ns("filterUncertaintyPlot"),
+                                label = "Filter by parental uncertainty:",
+                                choices = c("No uncertainty", "1 uncertain parent", "2 uncertain parents"),
+                                selected = c("No uncertainty", "1 uncertain parent", "2 uncertain parents"),
+                                inline = TRUE
+      )
     )
   }
   
@@ -198,6 +218,9 @@ if (is.null(result)){
   
   prob_status[is.na(prob_status$.status),".status"] = other_status
   
+  # Final catch-all: any remaining NA status gets NO GENO DATA
+  prob_status$.status[is.na(prob_status$.status)] <- "NO GENO DATA"
+  
   if("params" %in% ls()){ # we will download the document
     
        panels <- lapply(traitsTable, function(tr) {
@@ -240,6 +263,24 @@ if (is.null(result)){
       do.call(bslib::navset_pill, panels)
 
     }else{ # regular rendering
+
+      # Build parental uncertainty map for filtering
+      unc_rows_plot <- predictionsX[predictionsX$trait == "parentalUncertainty", , drop = FALSE]
+      if (nrow(unc_rows_plot) > 0) {
+        unc_labels_plot <- c("No uncertainty", "1 uncertain parent", "2 uncertain parents")
+        unc_map_plot <- data.frame(
+          designation = unc_rows_plot$designation,
+          parental_uncertainty = unc_labels_plot[as.integer(unc_rows_plot$predictedValue) + 1],
+          stringsAsFactors = FALSE
+        )
+      } else {
+        unc_map_plot <- data.frame(
+          designation = unique(predictionsX$designation),
+          parental_uncertainty = "No uncertainty",
+          stringsAsFactors = FALSE
+        )
+      }
+
       plotly::renderPlotly({
         predictions2 <- predictionsX[which(predictionsX$trait == input$traitQa),]
         predictions2$..ord <- seq_len(nrow(predictions2))
@@ -247,6 +288,18 @@ if (is.null(result)){
                       all.x = TRUE, sort = FALSE)
         predictions2 <- predictions2[order(predictions2$..ord), ]
         predictions2$..ord <- NULL
+
+        # Apply parental uncertainty filter to plot
+        sel_unc <- input$filterUncertaintyPlot
+        if (!is.null(sel_unc) && length(sel_unc) > 0 && length(sel_unc) < 3) {
+          allowed_desig <- unc_map_plot$designation[unc_map_plot$parental_uncertainty %in% sel_unc]
+          predictions2 <- predictions2[predictions2$designation %in% allowed_desig, , drop = FALSE]
+        }
+        # If nothing selected, show empty plot
+        if (is.null(sel_unc) || length(sel_unc) == 0) {
+          predictions2 <- predictions2[0, , drop = FALSE]
+        }
+
         p <- ggplot2::ggplot(predictions2,
                            ggplot2::aes(x = designation, y = predictedValue, fill = .status,
                                         text = paste0("Genotype: ", designation,
@@ -283,7 +336,7 @@ if (is.null(result)){
                               timevar  = "trait",
                               v.names  = "predictedValue")
   
-  OutputCols <- c("designation","mother","father","status","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
+  OutputCols <- c("designation","mother","father","status","parental_uncertainty","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
   numericalColumns <- c("probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers")
   
   predictions_wide <- predictions_wide[,c(which(colnames(predictions_wide)%in%c("designation","mother","father") ), grep("predictedValue",colnames(predictions_wide)))]
@@ -294,7 +347,23 @@ if (is.null(result)){
                       all.x = TRUE, sort = FALSE)
   
   colnames(predictions_wide)[colnames(predictions_wide)==".status"]="status"
-  predictions_wide = predictions_wide[,OutputCols]
+
+  # Add parental uncertainty column from predictions
+  unc_rows <- predictionsX[predictionsX$trait == "parentalUncertainty", , drop = FALSE]
+  if (nrow(unc_rows) > 0) {
+    unc_labels <- c("No uncertainty", "1 uncertain parent", "2 uncertain parents")
+    unc_map <- data.frame(
+      designation = unc_rows$designation,
+      parental_uncertainty = unc_labels[as.integer(unc_rows$predictedValue) + 1],
+      stringsAsFactors = FALSE
+    )
+    predictions_wide <- merge(predictions_wide, unc_map, by = "designation", all.x = TRUE)
+    predictions_wide$parental_uncertainty[is.na(predictions_wide$parental_uncertainty)] <- "No uncertainty"
+  } else {
+    predictions_wide$parental_uncertainty <- "No uncertainty"
+  }
+
+  predictions_wide = predictions_wide[,intersect(OutputCols, colnames(predictions_wide))]
   
   ped <- result$data$pedigree
   metaPed <- result$metadata$pedigree
@@ -330,7 +399,7 @@ if (has_sample || has_other) {
     if (has_sample) "sample_id" else NULL,
     if (has_other) "other" else NULL,
     "designation",
-    "mother","father","status","probMatch",
+    "mother","father","status","parental_uncertainty","probMatch",
     "heteroMexp","heteroMp","heteroDeviation",
     "avgScore","nScore2","nMarkers",
     "HasGeno","HasPed","parHetFilter","ParentHasGeno"
@@ -366,14 +435,20 @@ if (has_sample || has_other) {
     DT::renderDT({
   base_cols <- OutputCols[
     OutputCols %in% c("sample_id", "other", "designation",
-                    "mother", "father", "status")
+                    "mother", "father", "status", "parental_uncertainty")
     ]
   
   cols <- c(base_cols, input$traitQa) 
-  
+
+  # Apply parental uncertainty filter
+  display_data <- predictions_wide
+  if (!is.null(input$filterUncertaintyPlot) && length(input$filterUncertaintyPlot) > 0 &&
+      "parental_uncertainty" %in% colnames(display_data)) {
+    display_data <- display_data[display_data$parental_uncertainty %in% input$filterUncertaintyPlot, , drop = FALSE]
+  }
 
   tbl <- printTable(
-    predictions_wide[, cols, drop = FALSE],
+    display_data[, cols, drop = FALSE],
     autoWidthOpt = FALSE,
     scrollXOpt   = TRUE,
     colNames     = cols,
