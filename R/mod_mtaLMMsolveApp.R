@@ -9,7 +9,9 @@
 #' @importFrom shiny NS tagList
 mod_mtaLMMsolveApp_ui <- function(id) {
   ns <- NS(id)
+
   tagList(
+    shinyjs::useShinyjs(),
 
 
     # color guide for backgrounds: https://www.w3schools.com/colors/colors_names.asp
@@ -101,6 +103,20 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Pick trait(s)", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      shinyjs::hidden(
+                                                        div(id = ns("tpp_id_menu_container"),
+                                                            selectInput(ns("tpp_id_mta"),
+                                                                        label = tags$span(
+                                                                          "TPP ID (Target Product Profile)",
+                                                                          tags$i(
+                                                                            class = "glyphicon glyphicon-info-sign",
+                                                                            style = "color:#FFFFFF",
+                                                                            title = "Select a TPP ID to include environment-filtered TPP traits in the trait menu. Select 'None' for standard traits only."
+                                                                          )
+                                                                        ),
+                                                                        choices = c("None" = ""), multiple = FALSE)
+                                                        )
+                                                      ),
                                                       selectInput(ns("trait2Mta"),
                                                                   label = tags$span(
                                                                     "Trait(s) to analyze",
@@ -1198,6 +1214,50 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       updateSelectInput(session, "evaluationUnitsTrait", choices = traitsMta)
       updateSelectInput(session, "traitMetrics", choices = traitsMta, selected = traitsMta)
     })
+    #################
+    ## TPP ID menu visibility and population
+    observeEvent(c(data(), input$version2Mta), {
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      if (length(tpp_ids) > 0) {
+        tpp_choices <- c("None" = "", stats::setNames(tpp_ids, tpp_ids))
+        updateSelectInput(session, "tpp_id_mta", choices = tpp_choices)
+        shinyjs::show("tpp_id_menu_container")
+      } else {
+        updateSelectInput(session, "tpp_id_mta", choices = c("None" = ""), selected = "")
+        shinyjs::hide("tpp_id_menu_container")
+      }
+    })
+    #################
+    ## TPP ID selection change: update trait menu with TPP traits
+    observeEvent(input$tpp_id_mta, {
+      req(data())
+      req(input$version2Mta)
+      # Get the standard phenotypic traits
+      dtMta <- data()
+      dtPred <- dtMta$predictions
+      dtPred <- dtPred[which(dtPred$analysisId %in% input$version2Mta), ]
+      phenoTraits <- unique(dtPred$trait)
+
+      selected_tpp_id <- input$tpp_id_mta
+
+      if (is.null(selected_tpp_id) || selected_tpp_id == "") {
+        # "None" selected: restore standard traits only
+        updateSelectInput(session, "trait2Mta", choices = phenoTraits)
+      } else {
+        # Validate TPP metadata
+        validation <- tpp_validate_metadata(dtMta, selected_tpp_id)
+        if (!validation$valid) {
+          warning(paste("mod_mtaLMMsolveApp: TPP validation failed for", selected_tpp_id, "-", validation$message))
+          updateSelectInput(session, "trait2Mta", choices = phenoTraits)
+          return()
+        }
+        # Get filtered TPP traits and build combined choices
+        tpp_traits_df <- tpp_get_filtered_traits(dtMta, selected_tpp_id)
+        combined_choices <- tpp_build_trait_choices(phenoTraits, tpp_traits_df, selected_tpp_id)
+        updateSelectInput(session, "trait2Mta", choices = combined_choices)
+      }
+    }, ignoreNULL = FALSE)
     observeEvent(c(data(),input$version2Mta), { # update parameter
       req(data())
       req(input$version2Mta)
@@ -1547,10 +1607,17 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           })
         }else if(input$radio == "fw_model"){
           lapply(1:input$nTermsRandom, function(i) {
+            # For FW term 2, reorder choices so genoA appears before none
+            # to visually align with designation (1st) and envIndex (2nd) on the left side
+            fw_choices <- if(i==2){
+              non_none <- setdiff(choices, c("none","none.","none..","none..."))
+              none_vals <- intersect(choices, c("none","none.","none..","none..."))
+              c(non_none, none_vals)
+            } else { choices }
             selectInput(
               session$ns(paste0('rightSidesRandom',i)),
               label = ifelse(i==1, "Covariance of random effect based on:",""),
-              choices = choices, multiple = TRUE,
+              choices = fw_choices, multiple = TRUE,
               selected = if(i==1){useMod2}else if(i==2){c(useMod2, useMod1)}else{useMod1}
             )
           })
@@ -2094,6 +2161,21 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "quasi(link = 'identity',variance='constant')"}
 
         if(nrow(x$df) > 1){myEnvsTI = apply(x$df,2,function(z){z})}else{myEnvsTI <- x$df}
+
+        ## --- TPP Analysis Config Assembly (Req 3.2, 7.3, 8.3) ---
+        tpp_id_selected <- input$tpp_id_mta
+        if (!is.null(tpp_id_selected) && nzchar(tpp_id_selected)) {
+          tpp_traits_df <- tpp_get_filtered_traits(dtMta, tpp_id_selected)
+          tpp_mapping <- tpp_resolve_trait_mapping(input$trait2Mta, tpp_traits_df, tpp_id_selected)
+          dtMta$metadata$tpp_analysis_config <- list(
+            tpp_id = tpp_id_selected,
+            trait_map = tpp_mapping$pheno_map,
+            env_map = tpp_mapping$env_map
+          )
+        } else {
+          dtMta$metadata$tpp_analysis_config <- NULL
+        }
+        ## --- End TPP Analysis Config Assembly ---
 
         result1 <- try(
           cgiarPipeline::premetLMMsolver(

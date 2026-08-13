@@ -118,6 +118,19 @@ mod_mtaASREMLApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Pick trait(s)", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      conditionalPanel(
+                                                        condition = paste0("output['", ns("tppDataAvailableAsr"), "']"),
+                                                        selectInput(ns("tppIdMenuAsr"),
+                                                                    label = tags$span(
+                                                                      "TPP ID (Target Product Profile)",
+                                                                      tags$i(
+                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                        style = "color:#FFFFFF",
+                                                                        title = "Select a TPP ID to add environment-filtered TPP traits to the trait menu. Select 'None' to use only standard phenotypic traits."
+                                                                      )
+                                                                    ),
+                                                                    choices = c("None" = ""), multiple = FALSE)
+                                                      ),
                                                       selectInput(ns("trait2MtaAsr"),
                                                                   label = tags$span(
                                                                     "Trait(s) to analyze",
@@ -1139,6 +1152,70 @@ mod_mtaASREMLApp_server <- function(id, data){
       updateSelectInput(session, "parameterMetrics", choices = metricsMtaAsrInput)
     })
     #################
+    ## TPP ID Menu - conditionalPanel output and observers
+    ## Controls visibility of TPP_ID_Menu and updates Trait_Menu with TPP traits
+
+    # Output flag for conditionalPanel: TRUE when TPP data exists
+    output$tppDataAvailableAsr <- reactive({
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      return(length(tpp_ids) > 0)
+    })
+    outputOptions(output, "tppDataAvailableAsr", suspendWhenHidden = FALSE)
+
+    # Update TPP_ID_Menu choices when data changes
+    observeEvent(data(), {
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      tpp_choices <- c("None" = "")
+      if (length(tpp_ids) > 0) {
+        named_tpp <- stats::setNames(tpp_ids, tpp_ids)
+        tpp_choices <- c(tpp_choices, named_tpp)
+      }
+      updateSelectInput(session, "tppIdMenuAsr", choices = tpp_choices)
+    })
+
+    # Store standard pheno traits for restoration when TPP_ID is set to "None"
+    tppStandardTraitsAsr <- reactiveVal(character(0))
+
+    # Update stored standard traits when version changes (trait list refreshed)
+    observeEvent(c(data(), input$version2MtaAsr), {
+      req(data())
+      req(input$version2MtaAsr)
+      dtMtaAsr <- data()
+      dtMtaAsr <- dtMtaAsr$predictions
+      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$analysisId %in% input$version2MtaAsr),]
+      traitsMtaAsr <- unique(dtMtaAsr$trait)
+      tppStandardTraitsAsr(traitsMtaAsr)
+    }, priority = 10)
+
+    # Observer for TPP_ID_Menu changes
+    observeEvent(input$tppIdMenuAsr, {
+      req(data())
+      req(input$version2MtaAsr)
+
+      tpp_id <- input$tppIdMenuAsr
+      pheno_traits <- tppStandardTraitsAsr()
+
+      if (is.null(tpp_id) || tpp_id == "") {
+        # "None" selected: restore standard phenotypic traits only
+        updateSelectInput(session, "trait2MtaAsr", choices = pheno_traits)
+      } else {
+        # Valid TPP_ID selected: validate, get filtered traits, build choices
+        validation <- tpp_validate_metadata(data(), tpp_id)
+        if (!validation$valid) {
+          warning(paste("TPP metadata validation failed for", tpp_id, ":", validation$message))
+          updateSelectInput(session, "trait2MtaAsr", choices = pheno_traits)
+          return()
+        }
+
+        tpp_traits_df <- tpp_get_filtered_traits(data(), tpp_id)
+        new_choices <- tpp_build_trait_choices(pheno_traits, tpp_traits_df, tpp_id)
+        updateSelectInput(session, "trait2MtaAsr", choices = new_choices)
+      }
+    }, ignoreInit = TRUE)
+
+    #################
     # plots
     output$barplotPredictionsMetrics <- plotly::renderPlotly({
       req(data())
@@ -2154,6 +2231,22 @@ mod_mtaASREMLApp_server <- function(id, data){
         #save(dtMtaAsr,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
         #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METasr.RData")
         #source("C:/Users/RAPACHECO/Downloads/metASREML.R")
+
+        ## --- TPP Analysis Config Assembly (Req 3.2, 7.3, 8.3) ---
+        tpp_id_selected <- input$tppIdMenuAsr
+        if (!is.null(tpp_id_selected) && nzchar(tpp_id_selected)) {
+          tpp_traits_df <- tpp_get_filtered_traits(dtMtaAsr, tpp_id_selected)
+          tpp_mapping <- tpp_resolve_trait_mapping(input$trait2MtaAsr, tpp_traits_df, tpp_id_selected)
+          dtMtaAsr$metadata$tpp_analysis_config <- list(
+            tpp_id = tpp_id_selected,
+            trait_map = tpp_mapping$pheno_map,
+            env_map = tpp_mapping$env_map
+          )
+        } else {
+          dtMtaAsr$metadata$tpp_analysis_config <- NULL
+        }
+        ## --- End TPP Analysis Config Assembly ---
+
         result <- try(
           cgiarPipeline::metASREML(
           #metASREML(

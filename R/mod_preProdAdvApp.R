@@ -44,6 +44,195 @@ STATUS_COLORS <- c(
 )
 
 # --------------------------------------------------------------------------
+# Environment cluster palette (shared by the cluster map and the per-cluster
+# "Performance across locations" tables so their colours always agree)
+# --------------------------------------------------------------------------
+
+CLUSTER_PALETTE <- c("#4CAF50", "#2196F3", "#FF9800", "#9C27B0", "#F44336")
+
+#' Map environment cluster labels to palette colours
+#'
+#' Colours are assigned in the order clusters first appear in the location
+#' rows of \code{weather_summary}, which is how the cluster map assigns them.
+#' When no usable weather summary is supplied, the order of appearance in
+#' \code{cluster_assignments} is used instead.
+#'
+#' @param cluster_assignments Named character vector mapping environment name
+#'   to cluster label.
+#' @param weather_summary Optional data.frame with environment, LON, LAT.
+#' @return Named character vector of hex colours keyed by cluster label.
+#' @noRd
+cluster_palette_map <- function(cluster_assignments, weather_summary = NULL) {
+  labels <- NULL
+
+  if (!is.null(weather_summary) && is.data.frame(weather_summary) &&
+      all(c("environment", "LON", "LAT") %in% colnames(weather_summary))) {
+    loc <- unique(weather_summary[, c("environment", "LON", "LAT"), drop = FALSE])
+    loc <- loc[is.finite(loc$LON) & is.finite(loc$LAT), , drop = FALSE]
+    if (nrow(loc) > 0) {
+      cl <- cluster_assignments[as.character(loc$environment)]
+      cl[is.na(cl)] <- "Unknown"
+      labels <- unique(as.character(cl))
+    }
+  }
+
+  if (is.null(labels)) {
+    labels <- unique(as.character(cluster_assignments))
+  }
+  labels <- labels[!is.na(labels)]
+  if (length(labels) == 0) return(stats::setNames(character(0), character(0)))
+
+  # Recycle the palette so a 6th+ cluster still gets a colour rather than NA
+  idx <- (seq_along(labels) - 1L) %% length(CLUSTER_PALETTE) + 1L
+  stats::setNames(CLUSTER_PALETTE[idx], labels)
+}
+
+# --------------------------------------------------------------------------
+# Decision-table gradient cell styling (shared by the Decision table and the
+# "Performance across locations" table so both render identically)
+# --------------------------------------------------------------------------
+
+GRADIENT_CELL_COLORS <- c(
+  "SELECTED"     = "#85C1E9",
+  "NOT SELECTED" = "#E8A87C",
+  "REVISE"       = "#F7DC6F",
+  "CHECK"        = "#C39BD3"
+)
+
+#' Base gradient colour for a decision status
+#'
+#' @param status Character vector of decision statuses.
+#' @return Character vector of hex colours; unknown statuses fall back to the
+#'   NOT SELECTED colour.
+#' @noRd
+gradient_status_color <- function(status) {
+  out <- unname(GRADIENT_CELL_COLORS[as.character(status)])
+  out[is.na(out)] <- GRADIENT_CELL_COLORS[["NOT SELECTED"]]
+  out
+}
+
+#' Compute gradient intensity from quintile bins
+#'
+#' Returns an opacity multiplier in [0.15, 1.0] so that stronger performers get
+#' more saturated cells. For SELECTED rows the best values are most saturated;
+#' for NOT SELECTED rows the worst values are most saturated (highlighting the
+#' reason they were dropped). CHECK and REVISE rows keep the mid default \u2014
+#' REVISE is a deferred decision, so shading it like a rejection would imply it
+#' was dropped for poor performance. REVISE values still contribute to the
+#' quintile breaks, since they are part of the candidate population.
+#'
+#' @param values Numeric vector of trait values.
+#' @param status Character vector of decision status per row.
+#' @param higher_is_better Logical. If TRUE, higher values are better.
+#' @return Numeric vector of opacity values in [0.15, 1.0].
+#' @noRd
+get_quintile_opacity <- function(values, status, higher_is_better = TRUE) {
+  n <- length(values)
+  opacity <- rep(0.5, n)  # default mid
+  numeric_vals <- as.numeric(values)
+  valid <- !is.na(numeric_vals) & status != "CHECK"
+  if (sum(valid) < 5) return(opacity)
+  quants <- stats::quantile(numeric_vals[valid], probs = c(0.2, 0.4, 0.6, 0.8), na.rm = TRUE)
+  for (i in which(valid)) {
+    # REVISE keeps the neutral mid default set above
+    if (identical(status[i], "REVISE")) next
+    v <- numeric_vals[i]
+    if (status[i] == "SELECTED") {
+      if (higher_is_better) {
+        if (v >= quants[4]) opacity[i] <- 1.0
+        else if (v >= quants[3]) opacity[i] <- 0.75
+        else if (v >= quants[2]) opacity[i] <- 0.5
+        else if (v >= quants[1]) opacity[i] <- 0.3
+        else opacity[i] <- 0.15
+      } else {
+        if (v <= quants[1]) opacity[i] <- 1.0
+        else if (v <= quants[2]) opacity[i] <- 0.75
+        else if (v <= quants[3]) opacity[i] <- 0.5
+        else if (v <= quants[4]) opacity[i] <- 0.3
+        else opacity[i] <- 0.15
+      }
+    } else {
+      if (higher_is_better) {
+        if (v <= quants[1]) opacity[i] <- 1.0
+        else if (v <= quants[2]) opacity[i] <- 0.75
+        else if (v <= quants[3]) opacity[i] <- 0.5
+        else if (v <= quants[4]) opacity[i] <- 0.3
+        else opacity[i] <- 0.15
+      } else {
+        if (v >= quants[4]) opacity[i] <- 1.0
+        else if (v >= quants[3]) opacity[i] <- 0.75
+        else if (v >= quants[2]) opacity[i] <- 0.5
+        else if (v >= quants[1]) opacity[i] <- 0.3
+        else opacity[i] <- 0.15
+      }
+    }
+  }
+  opacity
+}
+
+#' Blend a hex colour toward white by an opacity factor
+#'
+#' @param hex_color Hex colour string, e.g. "#85C1E9".
+#' @param opacity Numeric in [0, 1]; 1 keeps the colour, 0 returns white.
+#' @return Hex colour string.
+#' @noRd
+blend_color <- function(hex_color, opacity) {
+  r <- strtoi(substr(hex_color, 2, 3), 16)
+  g <- strtoi(substr(hex_color, 4, 5), 16)
+  b <- strtoi(substr(hex_color, 6, 7), 16)
+  r2 <- as.integer(r * opacity + 255 * (1 - opacity))
+  g2 <- as.integer(g * opacity + 255 * (1 - opacity))
+  b2 <- as.integer(b * opacity + 255 * (1 - opacity))
+  sprintf("#%02X%02X%02X", r2, g2, b2)
+}
+
+#' Decision-group colours for the Final Review statistics and plots
+#'
+#' Reuses the decision-table palette so the groups read consistently:
+#' Selected = blue, All candidates = orange, Checks = pink/purple.
+#' @noRd
+REVIEW_GROUP_COLORS <- c(
+  "Selected"       = "#85C1E9",
+  "All candidates" = "#E8A87C",
+  "Checks"         = "#C39BD3"
+)
+
+#' Faded variant of the decision-group colours, for table row backgrounds
+#'
+#' @param opacity Numeric in [0, 1]; lower is more washed out.
+#' @return Named character vector of hex colours.
+#' @noRd
+review_group_colors_faded <- function(opacity = 0.35) {
+  stats::setNames(
+    vapply(REVIEW_GROUP_COLORS, blend_color, character(1), opacity),
+    names(REVIEW_GROUP_COLORS)
+  )
+}
+
+#' Build gradient-filled HTML cells for a numeric column
+#'
+#' @param values Numeric vector of cell values.
+#' @param status Character vector of decision status per row.
+#' @param higher_is_better Logical, passed to \code{get_quintile_opacity()}.
+#' @param bold Logical, whether to bold the cell text.
+#' @param digits Number of decimals to display.
+#' @return Character vector of HTML div strings.
+#' @noRd
+gradient_cells <- function(values, status, higher_is_better = TRUE,
+                           bold = FALSE, digits = 3) {
+  op <- get_quintile_opacity(values, status, higher_is_better = higher_is_better)
+  weight <- if (isTRUE(bold)) "font-weight:600;" else ""
+  mapply(function(val, st, o) {
+    bg <- blend_color(gradient_status_color(st), o)
+    txt <- if (is.na(val)) "" else format(round(as.numeric(val), digits), nsmall = digits)
+    sprintf(
+      "<div style='background:%s; padding:6px; border-radius:4px; text-align:right; %s'>%s</div>",
+      bg, weight, txt
+    )
+  }, values, status, op, SIMPLIFY = TRUE, USE.NAMES = FALSE)
+}
+
+# --------------------------------------------------------------------------
 # Relatedness plot visual constants
 # --------------------------------------------------------------------------
 MARKER_SIZE_DEFAULT     <- 8
@@ -837,9 +1026,6 @@ build_faceted_lollipop_plotly <- function(prepared_data, thresholds,
 #' @noRd
 build_cluster_map_plotly <- function(weather_summary, cluster_assignments, tpe_period_data = NULL) {
 
-  # Cluster palette
-  cluster_palette <- c("#4CAF50", "#2196F3", "#FF9800", "#9C27B0", "#F44336")
-
   # Get unique (environment, LON, LAT) from weather_summary
   loc_df <- unique(weather_summary[, c("environment", "LON", "LAT"), drop = FALSE])
   loc_df <- loc_df[is.finite(loc_df$LON) & is.finite(loc_df$LAT), , drop = FALSE]
@@ -880,12 +1066,17 @@ build_cluster_map_plotly <- function(weather_summary, cluster_assignments, tpe_p
     }
   }
 
-  # Assign color by cluster
+  # Assign color by cluster (shared helper keeps the per-cluster tables in sync)
   unique_clusters <- unique(loc_df$cluster)
-  cluster_color_map <- stats::setNames(
-    cluster_palette[seq_along(unique_clusters)],
-    unique_clusters
-  )
+  cluster_color_map <- cluster_palette_map(cluster_assignments, weather_summary)
+  # Cover any cluster present in loc_df but absent from the map (e.g. "Unknown")
+  missing_cl <- setdiff(unique_clusters, names(cluster_color_map))
+  if (length(missing_cl) > 0) {
+    extra_idx <- (length(cluster_color_map) + seq_along(missing_cl) - 1L) %%
+      length(CLUSTER_PALETTE) + 1L
+    cluster_color_map <- c(cluster_color_map,
+                           stats::setNames(CLUSTER_PALETTE[extra_idx], missing_cl))
+  }
   loc_df$color <- cluster_color_map[loc_df$cluster]
 
   # Tooltip
@@ -1242,6 +1433,7 @@ prepare_beeswarm_data <- function(sta_long, review_df, trait, overrides = NULL) 
   status_colors <- c(
     "SELECTED"     = "#0072B2",
     "NOT SELECTED" = "#D55E00",
+    "REVISE"       = "#F9A825",
     "CHECK"        = "#C2185B"
   )
 
@@ -1320,6 +1512,7 @@ build_beeswarm_plotly <- function(df, trait_name, highlighted = NULL,
   status_colors <- c(
     "SELECTED"     = "#0072B2",
     "NOT SELECTED" = "#D55E00",
+    "REVISE"       = "#F9A825",
     "CHECK"        = "#C2185B"
   )
 
@@ -1828,6 +2021,35 @@ mod_preProdAdvApp_ui <- function(id){
                                                ),
 
                                                br(),
+
+                                               column(
+                                                 width = 12,
+                                                 style = "background-color:grey; color: #FFFFFF",
+
+                                                 column(
+                                                   width = 6,
+                                                   selectInput(
+                                                     ns("tppIdInput"),
+                                                     label = tags$span(
+                                                       "TPP ID (optional)",
+                                                       tags$i(
+                                                         class = "glyphicon glyphicon-info-sign",
+                                                         style = "color:#FFFFFF",
+                                                         title = "Optionally select a Target Product Profile to drive automated trait selection, weight assignment, and threshold configuration."
+                                                       )
+                                                     ),
+                                                     choices = NULL,
+                                                     multiple = FALSE
+                                                   )
+                                                 ),
+
+                                                 column(
+                                                   width = 6,
+                                                   uiOutput(ns("tppValidationMessage"))
+                                                 )
+                                               ),
+
+                                               br(),
                                              ),
 
                                              tabPanel(
@@ -1865,13 +2087,8 @@ mod_preProdAdvApp_ui <- function(id){
 
                                                  column(
                                                    width = 12,
-                                                   tags$p(style = "color:#FFFFFF; font-weight:bold;",
-                                                          "Trait weights for selection index"),
-                                                   tags$p(style = "color:#FFFFFF;",
-                                                          "Assign a weight to each trait to compute a custom selection index. ",
-                                                          "Higher absolute values indicate greater importance. ",
-                                                          "Use negative weights for traits where lower values are preferred. ",
-                                                          "Default weight is 1 for all traits."),
+                                                   uiOutput(ns("tppWeightError")),
+                                                   uiOutput(ns("weightExplanation")),
                                                    uiOutput(ns("customWeightsUI"))
                                                  )
                                                ),
@@ -2066,7 +2283,7 @@ mod_preProdAdvApp_ui <- function(id){
                                                      condition = "input.candidateSelectionMode == 'manual'",
                                                      ns = ns,
 
-                                                     selectInput(
+                                                     selectizeInput(
                                                        ns("candidateDesignations"),
                                                        label = tags$span(
                                                          "Candidate designations",
@@ -2077,7 +2294,8 @@ mod_preProdAdvApp_ui <- function(id){
                                                          )
                                                        ),
                                                        choices = NULL,
-                                                       multiple = TRUE
+                                                       multiple = TRUE,
+                                                       options = list(placeholder = "Search designations...")
                                                      )
                                                    )
                                                  )
@@ -2214,6 +2432,12 @@ mod_preProdAdvApp_ui <- function(id){
                                         ),
 
                                         br(),
+
+                                        # TPP controls: maintain traits checkbox and compliance count
+                                        column(
+                                          width = 12,
+                                          uiOutput(ns("tppDecisionTableControls"))
+                                        ),
 
                                         shinydashboard::box(
                                           width = 12,
@@ -2595,8 +2819,73 @@ mod_preProdAdvApp_ui <- function(id){
                                           status = "primary",
                                           solidHeader = TRUE,
                                           collapsible = TRUE,
+
+                                          fluidRow(
+                                            column(
+                                              width = 4,
+                                              selectInput(
+                                                ns("finalTablePortion"),
+                                                label = tags$span(
+                                                  "Rows to display (ranked by index)",
+                                                  tags$i(
+                                                    class = "glyphicon glyphicon-info-sign",
+                                                    title = "Limits how many rows the table shows. Saving the final selection always uses every evaluated individual, not just the displayed rows."
+                                                  )
+                                                ),
+                                                choices = c(
+                                                  "Top 50" = 50,
+                                                  "Top 100" = 100,
+                                                  "Top 200" = 200,
+                                                  "All" = -1
+                                                ),
+                                                selected = 100
+                                              )
+                                            ),
+                                            column(
+                                              width = 8,
+                                              uiOutput(ns("finalTablePortionNote"))
+                                            )
+                                          ),
+
                                           DT::DTOutput(ns("finalDecisionDT"))
                                         ),
+
+                                        hr(),
+
+                                        # --- Final Review: Population Statistics Section (Req 9) ---
+                                        shinydashboard::box(
+                                          width = 12,
+                                          title = "Final Review: Selection Statistics",
+                                          status = "info",
+                                          solidHeader = TRUE,
+                                          collapsible = TRUE,
+
+                                          fluidRow(
+                                            column(
+                                              width = 12,
+                                              uiOutput(ns("finalReviewSelPct"))
+                                            )
+                                          ),
+
+                                          hr(),
+
+                                          # One statistics table per trait
+                                          # (Selected / All candidates / Checks)
+                                          uiOutput(ns("finalReviewStatsUI")),
+
+                                          hr(),
+
+                                          # Distribution of selected candidates vs all candidates, per trait
+                                          plotly::plotlyOutput(ns("finalReviewHistogram"), height = "auto"),
+
+                                          hr(),
+
+                                          # TPP compliance percentages (only shown when TPP active)
+                                          DT::DTOutput(ns("finalReviewTppPctsDT"))
+                                        ),
+
+                                        # --- TPP Breakdown (collapsed box, only shown when TPP active) ---
+                                        uiOutput(ns("finalReviewTppBreakdownBox")),
 
                                         hr(),
 
@@ -2639,7 +2928,24 @@ mod_preProdAdvApp_ui <- function(id){
                                                       actionButton(ns("renderReportProdAdv"), "Download dashboard", icon = icon("download")),
                                                       downloadButton(ns("downloadReportProdAdv"), "Download dashboard", style = "visibility:hidden;"),
                                                       br(),
-                                                      uiOutput(ns('reportProdAdv'))
+                                                      uiOutput(ns('reportProdAdv')),
+                                                      tags$hr(),
+                                                      h3(strong("Population Statistics")),
+                                                      # Same per-trait tables and distribution
+                                                      # plot as the Final Review tab
+                                                      uiOutput(ns("dashStatsUI")),
+                                                      plotly::plotlyOutput(ns("dashStatsHistogram"), height = "auto"),
+                                                      tags$hr(),
+                                                      h3(strong("TPP Breakdown")),
+                                                      uiOutput(ns("tppBreakdownIntro")),
+                                                      DT::DTOutput(ns("tppDashboardBreakdown")),
+                                                      uiOutput(ns("tppBreakdownEnvNotes")),
+                                                      tags$hr(),
+                                                      h3(strong("Global Options Summary")),
+                                                      uiOutput(ns("tppOptionsIntro")),
+                                                      DT::DTOutput(ns("tppDashboardOptionsTable")),
+                                                      # Buffer so the dashboard doesn't end abruptly
+                                                      tags$div(style = "height:120px;")
                                              ),
                                            ),
                                   ),
@@ -2654,6 +2960,35 @@ mod_preProdAdvApp_ui <- function(id){
 mod_preProdAdvApp_server <- function(id, data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
+    # ------------------------------------------------------------------
+    # Pre-register the plotly event sources this module listens on.
+    #
+    # plotly::event_data() checks its registry from inside a
+    # session$onFlushed() callback, i.e. after the calling frame has already
+    # returned, so the "event ... is not registered" warning cannot be caught
+    # with suppressWarnings() at the call site. event_register() on the plot
+    # only populates the registry once that plot has actually rendered, which
+    # is too late for the first flush: the listeners are created at session
+    # start, long before the user opens the Visualisations tab.
+    #
+    # Seeding the registry here makes the deferred check pass from the outset.
+    # eventID format mirrors plotly: paste(event, source, sep = "-").
+    local({
+      ids <- c(
+        paste("plotly_click",   ns("pairwiseScatter"),   sep = "-"),
+        paste("plotly_hover",   ns("tpePerformanceMap"), sep = "-"),
+        paste("plotly_unhover", ns("tpePerformanceMap"), sep = "-"),
+        paste("plotly_click",   "relatedness_plot",      sep = "-")
+      )
+      # Written on the root scope: a module's session is a session_proxy whose
+      # `$` delegates unknown names to its parent, so plotly's
+      # session$userData resolves to this same environment.
+      root <- session$rootScope()
+      root$userData$plotlyShinyEventIDs <- unique(
+        c(root$userData$plotlyShinyEventIDs, ids)
+      )
+    })
 
     #############################################################################
     #Helper functions
@@ -2800,7 +3135,7 @@ mod_preProdAdvApp_server <- function(id, data){
         arrow_text <- if (hib) "\u2192 better" else "\u2190 better"
 
         p <- plotly::layout(p,
-          xaxis = list(title = tr),
+          xaxis = list(title = tpp_display_name(tr)),
           yaxis = list(visible = FALSE, range = c(-0.6, 0.6)),
           shapes = shapes,
           annotations = list(list(
@@ -3016,6 +3351,52 @@ mod_preProdAdvApp_server <- function(id, data){
 
     # Track which trait directions were auto-set by weight observer (trait_id -> TRUE/FALSE)
     direction_auto_set <- reactiveVal(list())
+
+    # TPP Helper: Build tpp_criteria list from the tpp_filtered_traits data.frame
+    # TPP Integration: Track selected TPP ID and filtered traits (Task 10.1)
+    tpp_id_prepam <- reactiveVal(NULL)
+    tpp_filtered_traits <- reactiveVal(NULL)
+
+    # Helper: look up the TPP ID stored in the modeling table for a given
+    # initial selection stamp. Returns NULL when none is recorded.
+    # which() is used so NA values in the modeling table cannot produce
+    # phantom all-NA rows from logical subsetting.
+    tpp_stored_id_for_stamp <- function(dt, stamp) {
+      if (is.null(dt) || is.null(dt$modeling)) return(NULL)
+      if (is.null(stamp) || length(stamp) != 1 || is.na(stamp) || !nzchar(stamp)) return(NULL)
+      m <- dt$modeling
+      if (!all(c("analysisId", "module", "parameter", "value") %in% colnames(m))) return(NULL)
+      idx <- which(
+        as.character(m$analysisId) == as.character(stamp) &
+          m$module == "Init_prodAdv" &
+          m$parameter == "tpp_id"
+      )
+      if (length(idx) == 0) return(NULL)
+      v <- m$value[idx[1]]
+      if (is.na(v) || !nzchar(v)) return(NULL)
+      v
+    }
+
+    # Helper: Get TPP display name for a trait.
+    # If the trait matches a pheno_trait or tpp_trait in the filtered TPP data,
+    # return the tpp_trait name (human-readable). Otherwise return the trait as-is.
+    tpp_display_name <- function(trait) {
+      filtered <- tpp_filtered_traits()
+      if (is.null(filtered) || !is.data.frame(filtered) || nrow(filtered) == 0) {
+        return(trait)
+      }
+      if (!"tpp_trait" %in% colnames(filtered) || !"pheno_trait" %in% colnames(filtered)) {
+        return(trait)
+      }
+      # First check if trait IS already a tpp_trait name (e.g., "Virus resistance")
+      idx <- which(filtered$tpp_trait == trait)
+      if (length(idx) > 0) return(filtered$tpp_trait[idx[1]])
+      # Otherwise look up by pheno_trait
+      idx <- which(filtered$pheno_trait == trait)
+      if (length(idx) > 0) return(filtered$tpp_trait[idx[1]])
+      return(trait)
+    }
+
     ############################################################################
     # show shinyWidgets until the user can use the module
     observeEvent(c(data(), input$staStamp, input$mtaStamp, input$traitsToEvaluate), {
@@ -3131,8 +3512,226 @@ mod_preProdAdvApp_server <- function(id, data){
     })
 
     ########################################
+    # TPP ID selection and validation (Task 10.1)
+    ########################################
+
+    # Populate TPP ID dropdown when data is loaded
+    observeEvent(c(data()), {
+      req(data())
+      dt <- data()
+      tpp_ids <- tpp_get_tpp_ids(dt)
+      # Add empty option at beginning so it's optional
+      tpp_choices <- c("(none)" = "", stats::setNames(tpp_ids, tpp_ids))
+      updateSelectInput(session, "tppIdInput", choices = tpp_choices, selected = "")
+    })
+
+    # Validate TPP ID and filter traits when TPP ID or stamps change
+    observeEvent(c(input$tppIdInput, input$mtaStamp, input$staStamp), {
+      req(data())
+      dt <- data()
+      selected_tpp <- input$tppIdInput
+
+      # If TPP ID is empty, clear TPP state and allow progression.
+      # Exception: when the selected initial selection stamp has a TPP recorded
+      # in the modeling table, the Review-output recovery observer owns the TPP
+      # state — don't wipe it just because this dropdown hasn't been touched.
+      if (is.null(selected_tpp) || selected_tpp == "") {
+        if (!is.null(tpp_stored_id_for_stamp(dt, isolate(input$initialSelectionStamp)))) {
+          return()
+        }
+        tpp_id_prepam(NULL)
+        tpp_filtered_traits(NULL)
+        return()
+      }
+
+      # Validate TPP ID exists in metadata
+      tpp_ids <- tpp_get_tpp_ids(dt)
+      if (!selected_tpp %in% tpp_ids) {
+        tpp_id_prepam(NULL)
+        tpp_filtered_traits(NULL)
+        return()
+      }
+
+      # Get TPP traits data
+      validation <- tpp_validate_metadata(dt, selected_tpp)
+      if (!validation$valid) {
+        tpp_id_prepam(NULL)
+        tpp_filtered_traits(NULL)
+        return()
+      }
+
+      tpp_entry <- dt$metadata$TPP[[selected_tpp]]
+      tpp_traits_df <- tpp_entry$traits
+
+      # Get available phenotypic columns from the selected MTA stamp
+      available_traits <- character(0)
+      if (!is.null(input$mtaStamp) && nchar(input$mtaStamp) > 0) {
+        dtPred <- dt$predictions
+        dtPred <- dtPred[which(dtPred$analysisId %in% input$mtaStamp), ]
+        available_traits <- unique(dtPred$trait)
+      }
+
+      # Filter TPP traits to those whose pheno_trait is in available columns
+      if (nrow(tpp_traits_df) > 0 && "pheno_trait" %in% colnames(tpp_traits_df)) {
+        mapped_mask <- !is.na(tpp_traits_df$pheno_trait) &
+          tpp_traits_df$pheno_trait %in% available_traits
+        filtered_df <- tpp_traits_df[mapped_mask, , drop = FALSE]
+      } else {
+        filtered_df <- tpp_traits_df[0, , drop = FALSE]
+      }
+
+      # Enrich filtered_df with category and desired_direction from raw TPP data
+      # (data()$data$TPP[[tpp_id]]) since metadata$TPP$traits only stores
+      # tpp_trait and pheno_trait columns.
+      if (nrow(filtered_df) > 0 && !"category" %in% colnames(filtered_df)) {
+        raw_tpp <- dt$data$TPP[[selected_tpp]]
+        if (!is.null(raw_tpp) && is.data.frame(raw_tpp)) {
+          # Map "Trait Requirement" to category
+          if ("Trait Requirement" %in% colnames(raw_tpp) && "Trait Name" %in% colnames(raw_tpp)) {
+            # Match by tpp_trait name to raw TPP "Trait Name"
+            match_idx <- match(filtered_df$tpp_trait, raw_tpp[["Trait Name"]])
+
+            # Convert requirement text to standardized category
+            raw_req <- raw_tpp[["Trait Requirement"]][match_idx]
+            filtered_df$category <- ifelse(
+              grepl("Improve", raw_req, ignore.case = TRUE), "Essential_Improve",
+              ifelse(grepl("Maintain", raw_req, ignore.case = TRUE), "Essential_Maintain",
+                     ifelse(grepl("Nice", raw_req, ignore.case = TRUE), "Nice_To_Have", NA_character_))
+            )
+
+            # Parse "Desired Score" text into structured threshold data
+            if ("Desired Score" %in% colnames(raw_tpp)) {
+              raw_score <- raw_tpp[["Desired Score"]][match_idx]
+
+              # Parse each desired score text
+              parsed_scores <- lapply(raw_score, tpp_parse_desired_score)
+
+              filtered_df$desired_direction <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$direction)) p$direction else NA_character_
+              }, character(1))
+
+              filtered_df$score_type <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$score_type)) p$score_type else NA_character_
+              }, character(1))
+
+              filtered_df$desired_lower <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$lower_bound)) p$lower_bound else NA_real_
+              }, numeric(1))
+
+              filtered_df$desired_upper <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$upper_bound)) p$upper_bound else NA_real_
+              }, numeric(1))
+
+              filtered_df$pct_above_check <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$pct_above_check)) p$pct_above_check else NA_real_
+              }, numeric(1))
+
+              filtered_df$pct_of_check <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$pct_of_check)) p$pct_of_check else NA_real_
+              }, numeric(1))
+
+              filtered_df$desired_score_text <- raw_score
+            } else {
+              filtered_df$desired_direction <- NA_character_
+              filtered_df$score_type <- NA_character_
+              filtered_df$desired_lower <- NA_real_
+              filtered_df$desired_upper <- NA_real_
+              filtered_df$pct_above_check <- NA_real_
+              filtered_df$pct_of_check <- NA_real_
+              filtered_df$desired_score_text <- NA_character_
+            }
+
+            # Also parse and store scale bounds for out-of-range validation
+            if ("Scale Option" %in% colnames(raw_tpp)) {
+              raw_scales <- raw_tpp[["Scale Option"]][match_idx]
+              parsed_scales <- lapply(raw_scales, tpp_parse_scale_option)
+              filtered_df$scale_min <- vapply(parsed_scales, function(p) {
+                if (!is.null(p) && !is.null(p$min)) p$min else NA_real_
+              }, numeric(1))
+              filtered_df$scale_max <- vapply(parsed_scales, function(p) {
+                if (!is.null(p) && !is.null(p$max)) p$max else NA_real_
+              }, numeric(1))
+            } else {
+              filtered_df$scale_min <- NA_real_
+              filtered_df$scale_max <- NA_real_
+            }
+          }
+        }
+      }
+
+      # Store validated TPP ID and filtered traits
+      if (nrow(filtered_df) > 0) {
+        tpp_id_prepam(selected_tpp)
+        tpp_filtered_traits(filtered_df)
+      } else {
+        # TPP ID is valid but no traits map to available columns
+        tpp_id_prepam(selected_tpp)
+        tpp_filtered_traits(NULL)
+      }
+    })
+
+    # Render TPP validation message
+    output$tppValidationMessage <- renderUI({
+      selected_tpp <- input$tppIdInput
+
+      # No message needed when field is empty
+      if (is.null(selected_tpp) || selected_tpp == "") {
+        return(NULL)
+      }
+
+      req(data())
+      dt <- data()
+
+      # Check if TPP ID is recognized
+      tpp_ids <- tpp_get_tpp_ids(dt)
+      if (!selected_tpp %in% tpp_ids) {
+        return(
+          tags$div(
+            style = "color: #FF6B6B; font-weight: bold; margin-top: 25px;",
+            icon("exclamation-triangle"),
+            "TPP ID not recognized"
+          )
+        )
+      }
+
+      # Check if TPP has mapped traits
+      filtered <- tpp_filtered_traits()
+      if (is.null(filtered) || (is.data.frame(filtered) && nrow(filtered) == 0)) {
+        return(
+          tags$div(
+            style = "color: #FF6B6B; font-weight: bold; margin-top: 25px;",
+            icon("exclamation-triangle"),
+            "No mapped traits found"
+          )
+        )
+      }
+
+      # Valid TPP with mapped traits - show success message
+      n_traits <- nrow(filtered)
+      tags$div(
+        style = "color: #90EE90; font-weight: bold; margin-top: 25px;",
+        icon("check-circle"),
+        paste0("TPP loaded: ", n_traits, " mapped trait(s) available")
+      )
+    })
+
+    ########################################
     #Global options (idx2)
     ########################################
+
+    # Track whether TPP auto-assignment has been applied to avoid re-applying on every change
+    tpp_auto_applied <- reactiveVal(FALSE)
+    # Track the TPP ID that was used for the last auto-assignment
+    tpp_auto_applied_id <- reactiveVal(NULL)
+
+    # Helper: Build named choices vector for traitsToEvaluate selectInput.
+    # Names = TPP display names, Values = internal trait identifiers.
+    # When no TPP is active, names == values.
+    tpp_build_named_choices <- function(traitsProdAdv) {
+      filtered <- tpp_filtered_traits()
+      display_names <- vapply(traitsProdAdv, function(t) tpp_display_name(t), character(1))
+      stats::setNames(traitsProdAdv, display_names)
+    }
 
     observeEvent(c(data(), input$mtaStamp), {
       req(data())
@@ -3141,29 +3740,218 @@ mod_preProdAdvApp_server <- function(id, data){
       dtPred <- dt$predictions
       dtPred <- dtPred[which(dtPred$analysisId %in% input$mtaStamp),]
       traitsProdAdv <- unique(dtPred$trait)
-      updateSelectInput(session, "traitsToEvaluate", choices = traitsProdAdv)
+      named_choices <- tpp_build_named_choices(traitsProdAdv)
+
+      # If TPP auto-selection has already been applied, preserve the current selection
+      # to avoid a race condition where this observer wipes out the TPP-driven selection.
+      if (isTRUE(tpp_auto_applied())) {
+        current_selected <- input$traitsToEvaluate
+        # Keep only traits that are still valid choices
+        valid_selected <- intersect(current_selected, traitsProdAdv)
+        updateSelectInput(session, "traitsToEvaluate",
+                          choices = named_choices,
+                          selected = valid_selected)
+      } else {
+        updateSelectInput(session, "traitsToEvaluate", choices = named_choices)
+      }
     })
 
+    # TPP auto-select traits observer (Req 4.1): Triggered when the user navigates to the
+    # Global Options tab OR when tpp_filtered_traits changes while already on that tab.
+    # The core issue is that updateSelectInput is silently ignored if the target input
+    # hasn't been rendered yet (i.e., the tab hasn't been visited). So we must wait until
+    # the inputStepsTabs value is "global_options" before applying the auto-selection.
+    observeEvent(c(tpp_filtered_traits(), input$inputStepsTabs), {
+      # Only proceed when we're on the global_options tab (input exists at that point)
+      req(input$inputStepsTabs == "global_options")
+
+      filtered <- tpp_filtered_traits()
+      current_tpp <- tpp_id_prepam()
+
+      # If TPP is cleared or has no mapped traits, reset auto-applied flag
+      if (is.null(current_tpp) || is.null(filtered) ||
+          !is.data.frame(filtered) || nrow(filtered) == 0) {
+        tpp_auto_applied(FALSE)
+        tpp_auto_applied_id(NULL)
+        return()
+      }
+
+      # Only auto-select if we haven't already applied for this TPP ID
+      if (isTRUE(tpp_auto_applied()) && identical(tpp_auto_applied_id(), current_tpp)) {
+        return()
+      }
+
+      # Use tpp_select_traits to determine which traits to auto-select
+      if (!"category" %in% colnames(filtered)) {
+        return()
+      }
+
+      # Rebuild the full choices list from the MTA predictions so we can pass
+      # choices + selected atomically in a single updateSelectInput call.
+      req(data())
+      req(input$mtaStamp)
+      dt <- data()
+      dtPred <- dt$predictions
+      dtPred <- dtPred[which(dtPred$analysisId %in% input$mtaStamp), ]
+      traitsProdAdv <- unique(dtPred$trait)
+
+      selection_mask <- tpp_select_traits(filtered)
+      selected_pheno_traits <- filtered$pheno_trait[selection_mask]
+      selected_pheno_traits <- selected_pheno_traits[!is.na(selected_pheno_traits)]
+
+      # Also include MTA traits that match TPP trait names directly
+      # (e.g., MTA has a trait "Virus resistance" and TPP also has "Virus resistance")
+      selected_tpp_names <- filtered$tpp_trait[selection_mask]
+      selected_tpp_names <- selected_tpp_names[!is.na(selected_tpp_names)]
+      # Combine pheno_trait values and any tpp_trait names that are actual MTA traits
+      all_selected <- unique(c(selected_pheno_traits, selected_tpp_names))
+
+      # Ensure selected traits are actually in the available choices
+      selected_pheno_traits <- intersect(all_selected, traitsProdAdv)
+      named_choices <- tpp_build_named_choices(traitsProdAdv)
+
+      if (length(selected_pheno_traits) > 0) {
+        updateSelectInput(session, "traitsToEvaluate",
+                          choices = named_choices,
+                          selected = selected_pheno_traits)
+      }
+
+      # Mark that auto-assignment has been applied for this TPP ID
+      tpp_auto_applied(TRUE)
+      tpp_auto_applied_id(current_tpp)
+    }, ignoreNULL = FALSE)
+
+    # Reset auto-applied state when TPP ID input is cleared
+    observeEvent(input$tppIdInput, {
+      selected_tpp <- input$tppIdInput
+      if (is.null(selected_tpp) || selected_tpp == "") {
+        tpp_auto_applied(FALSE)
+        tpp_auto_applied_id(NULL)
+      }
+    }, ignoreInit = TRUE)
+
+    # Helper: get the TPP-assigned weight for a given trait (pheno_trait or tpp_trait name)
+    # Returns NULL if no TPP or trait not found in filtered traits
+    tpp_get_weight_for_trait <- function(pheno_trait) {
+      filtered <- tpp_filtered_traits()
+      if (is.null(filtered) || !is.data.frame(filtered) || nrow(filtered) == 0) {
+        return(NULL)
+      }
+      if (!all(c("pheno_trait", "category", "desired_direction") %in% colnames(filtered))) {
+        return(NULL)
+      }
+      # Try matching by pheno_trait first
+      match_idx <- which(filtered$pheno_trait == pheno_trait)
+
+      # If not found by pheno_trait, try matching by tpp_trait name
+      # (handles cases like MTA trait "Virus resistance" matching TPP trait name directly)
+      if (length(match_idx) == 0 && "tpp_trait" %in% colnames(filtered)) {
+        match_idx <- which(filtered$tpp_trait == pheno_trait)
+      }
+
+      if (length(match_idx) == 0) return(NULL)
+
+      row <- filtered[match_idx[1], , drop = FALSE]
+      # Use tpp_assign_weights on the single-row data.frame
+      row_with_weight <- tpp_assign_weights(row)
+      return(row_with_weight$weight)
+    }
 
     output$customWeightsUI <- renderUI({
       req(input$traitsToEvaluate)
       req(length(input$traitsToEvaluate) > 0)
 
       trait_list <- input$traitsToEvaluate
+      current_tpp <- tpp_id_prepam()
+      filtered <- tpp_filtered_traits()
+      has_tpp <- !is.null(current_tpp) && !is.null(filtered) &&
+        is.data.frame(filtered) && nrow(filtered) > 0
 
       tagList(
         tags$div(
           style = "margin-top: 5px;",
           lapply(trait_list, function(trait) {
             safe_trait <- gsub("[^A-Za-z0-9_]", "_", trait)
+            display_label <- tpp_display_name(trait)
+
+            # Determine initial weight value: use TPP weight if available, else default to 1
+            initial_weight <- 1
+            if (has_tpp) {
+              tpp_weight <- tpp_get_weight_for_trait(trait)
+              if (!is.null(tpp_weight)) {
+                initial_weight <- tpp_weight
+              }
+            }
 
             numericInput(
               inputId = ns(paste0("weight_", safe_trait)),
-              label = trait,
-              value = 1,
+              label = display_label,
+              value = initial_weight,
               step = 0.1
             )
           })
+        )
+      )
+    })
+
+    # TPP auto-weight error display: show error when TPP ID is set but no traits mapped (Req 4.5)
+    output$weightExplanation <- renderUI({
+      current_tpp <- tpp_id_prepam()
+      filtered <- tpp_filtered_traits()
+      has_tpp <- !is.null(current_tpp) && !is.null(filtered) &&
+        is.data.frame(filtered) && nrow(filtered) > 0
+
+      if (has_tpp) {
+        tags$div(
+          style = "background-color: #1a5276; border-left: 4px solid #3498db; padding: 10px 14px; margin-bottom: 10px; border-radius: 4px;",
+          tags$span(
+            style = "color: #85c1e9; font-weight:600;",
+            icon("magic"),
+            " Weights auto-assigned from TPP"
+          ),
+          tags$p(
+            style = "color: #D6EAF8; margin-top: 6px; margin-bottom: 0; font-size: 0.92em; line-height: 1.5;",
+            "Essential: Improve traits receive +1 (higher is better) or \u22121 (lower is better) ",
+            "depending on the desired direction defined in the TPP. ",
+            "Essential: Maintain and Nice-to-Have traits receive 0 (they are evaluated via thresholds, not the index). ",
+            "You can manually override any weight."
+          )
+        )
+      } else {
+        tagList(
+          tags$p(style = "color:#FFFFFF; font-weight:bold;",
+                 "Trait weights for selection index"),
+          tags$p(style = "color:#FFFFFF;",
+                 "Assign a weight to each trait to compute a custom selection index. ",
+                 "Higher absolute values indicate greater importance. ",
+                 "Use negative weights for traits where lower values are preferred. ",
+                 "Default weight is 1 for all traits.")
+        )
+      }
+    })
+
+    # TPP auto-weight error display: show error when TPP ID is set but no traits mapped (Req 4.5)
+    output$tppWeightError <- renderUI({
+      current_tpp <- tpp_id_prepam()
+      selected_tpp_input <- input$tppIdInput
+
+      # Only show error when a TPP ID is selected but has no mapped traits
+      if (is.null(selected_tpp_input) || selected_tpp_input == "") {
+        return(NULL)
+      }
+
+      filtered <- tpp_filtered_traits()
+      if (!is.null(filtered) && is.data.frame(filtered) && nrow(filtered) > 0) {
+        return(NULL)
+      }
+
+      # TPP ID is set but no mapped traits - display error
+      tags$div(
+        style = "background-color: #641E16; border-left: 4px solid #E74C3C; padding: 8px 12px; margin-bottom: 10px; border-radius: 4px;",
+        tags$span(
+          style = "color: #F5B7B1;",
+          icon("exclamation-triangle"),
+          " TPP has no mapped traits available. Auto-assignment cannot proceed. Please clear the TPP ID or map traits in the TPP module."
         )
       )
     })
@@ -3219,23 +4007,182 @@ mod_preProdAdvApp_server <- function(id, data){
       )
     })
 
+    # TPP Integration: Track auto-fill state for Essential_Maintain traits (Task 10.3)
+    tpp_autofill_state <- reactiveVal(list())
+
     output$traitRuleCards <- renderUI({
       req(input$traitsToEvaluate)
       req(length(input$traitsToEvaluate) > 0)
 
       trait_list <- input$traitsToEvaluate
 
+      # Get TPP data if available
+      tpp_data <- tpp_filtered_traits()
+      has_tpp <- !is.null(tpp_data) && is.data.frame(tpp_data) && nrow(tpp_data) > 0
+
       tagList(
         lapply(trait_list, function(trait_name) {
           safe_trait <- gsub("[^A-Za-z0-9_]", "_", trait_name)
 
+          # --- TPP category lookup ---
+          tpp_category <- NULL
+          tpp_score_type <- NULL
+          if (has_tpp && "pheno_trait" %in% colnames(tpp_data)) {
+            trait_row <- tpp_data[tpp_data$pheno_trait == trait_name, , drop = FALSE]
+            # Also try matching by tpp_trait name if pheno_trait doesn't match
+            if (nrow(trait_row) == 0 && "tpp_trait" %in% colnames(tpp_data)) {
+              trait_row <- tpp_data[tpp_data$tpp_trait == trait_name, , drop = FALSE]
+            }
+            if (nrow(trait_row) > 0) {
+              if ("category" %in% colnames(tpp_data)) {
+                tpp_category <- trait_row$category[1]
+              }
+              if ("score_type" %in% colnames(tpp_data)) {
+                tpp_score_type <- trait_row$score_type[1]
+              }
+            }
+          }
+
+          # --- Build TPP category badge ---
+          tpp_badge_ui <- NULL
+          if (!is.null(tpp_category) && !is.na(tpp_category)) {
+            badge_color <- switch(
+              tpp_category,
+              "Essential_Improve" = "background-color:#337ab7; color:white;",
+              "Essential_Maintain" = "background-color:#5cb85c; color:white;",
+              "Nice_To_Have" = "background-color:#999999; color:white;",
+              "background-color:#999999; color:white;"
+            )
+            badge_label <- gsub("_", " ", tpp_category)
+            tpp_badge_ui <- tags$span(
+              style = paste0(
+                badge_color,
+                " padding: 3px 8px; border-radius: 4px; font-size: 11px;",
+                " font-weight: bold; margin-left: 10px; display: inline-block;"
+              ),
+              badge_label
+            )
+          }
+
+          # --- "Use TPP desired scores" checkbox (Essential_Maintain only) ---
+          tpp_checkbox_ui <- NULL
+          tpp_scale_warning_ui <- NULL
+
+          # Check if desired score is out of scale range (applies to all categories)
+          out_of_scale <- FALSE
+          if (has_tpp && exists("trait_row") && nrow(trait_row) > 0) {
+            s_min <- if ("scale_min" %in% colnames(trait_row)) trait_row$scale_min[1] else NA_real_
+            s_max <- if ("scale_max" %in% colnames(trait_row)) trait_row$scale_max[1] else NA_real_
+            s_type <- if ("score_type" %in% colnames(trait_row)) trait_row$score_type[1] else NA_character_
+            d_lower <- if ("desired_lower" %in% colnames(trait_row)) trait_row$desired_lower[1] else NA_real_
+            d_upper <- if ("desired_upper" %in% colnames(trait_row)) trait_row$desired_upper[1] else NA_real_
+            d_text <- if ("desired_score_text" %in% colnames(trait_row)) trait_row$desired_score_text[1] else ""
+
+            if (!is.na(s_min) && !is.na(s_max) && !is.na(s_type) && s_type == "absolute") {
+              if ((!is.na(d_lower) && is.finite(d_lower) && d_lower > s_max) ||
+                  (!is.na(d_upper) && is.finite(d_upper) && d_upper < s_min)) {
+                out_of_scale <- TRUE
+                tpp_scale_warning_ui <- tags$div(
+                  style = "color:#721c24; background-color:#f8d7da; border-left:5px solid #f5c6cb; padding:10px; margin-bottom:10px; border-radius:4px;",
+                  tags$strong(icon("exclamation-triangle"), " Out of scale: "),
+                  sprintf(
+                    "The TPP desired score (\"%s\") is outside the trait's scale (%s to %s) and cannot be used as a threshold.",
+                    d_text, s_min, s_max
+                  )
+                )
+              }
+            }
+          }
+
+          if (!is.null(tpp_category) && !is.na(tpp_category) &&
+              tpp_category == "Essential_Maintain" && !out_of_scale) {
+
+            # For relative desired scores, don't show checkbox if no checks are mapped
+            can_autofill <- TRUE
+            if (has_tpp && exists("trait_row") && nrow(trait_row) > 0) {
+              tr_score_type <- if ("score_type" %in% colnames(trait_row)) trait_row$score_type[1] else NA_character_
+              if (!is.na(tr_score_type) && tr_score_type == "relative") {
+                checks_available <- NULL
+                current_tpp_id <- tpp_id_prepam()
+                if (!is.null(current_tpp_id)) {
+                  dt_meta <- data()$metadata$TPP[[current_tpp_id]]
+                  if (!is.null(dt_meta) && !is.null(dt_meta$checks_per_trait)) {
+                    tpp_trait_name <- trait_row$tpp_trait[1]
+                    checks_available <- dt_meta$checks_per_trait[[tpp_trait_name]]
+                  }
+                }
+                if (is.null(checks_available) || length(checks_available) == 0) {
+                  can_autofill <- FALSE
+                  d_text_rel <- if ("desired_score_text" %in% colnames(trait_row)) trait_row$desired_score_text[1] else ""
+                  tpp_scale_warning_ui <- tags$div(
+                    style = "color:#856404; background-color:#fff3cd; border-left:5px solid #ffeeba; padding:10px; margin-bottom:10px; border-radius:4px;",
+                    tags$strong(icon("exclamation-triangle"), " No checks mapped: "),
+                    sprintf(
+                      "The TPP desired score (\"%s\") is relative to a check, but no checks are mapped for this trait. Map checks in the TPP module to enable auto-fill.",
+                      d_text_rel
+                    )
+                  )
+                }
+              }
+            }
+
+            if (can_autofill) {
+              tpp_checkbox_ui <- checkboxInput(
+                ns(paste0("tppAutoFill_", safe_trait)),
+                label = "Use TPP desired scores to set trait thresholds",
+                value = FALSE
+              )
+            }
+          }
+
+          # --- Multi-select check dropdown for relative score_type traits ---
+          tpp_checks_ui <- NULL
+          if (!is.null(tpp_score_type) && !is.na(tpp_score_type) &&
+              tpp_score_type == "relative" && has_tpp) {
+            trait_row <- tpp_data[tpp_data$pheno_trait == trait_name, , drop = FALSE]
+            check_designations <- NULL
+            if (nrow(trait_row) > 0 && "checks" %in% colnames(tpp_data)) {
+              check_designations <- trait_row$checks[[1]]
+            }
+            if (!is.null(check_designations) && length(check_designations) > 0) {
+              tpp_checks_ui <- tagList(
+                selectInput(
+                  ns(paste0("tppChecks_", safe_trait)),
+                  label = "Reference checks (TPP)",
+                  choices = check_designations,
+                  selected = NULL,
+                  multiple = TRUE
+                ),
+                uiOutput(ns(paste0("tppRefValue_", safe_trait)))
+              )
+            }
+          }
+
+          # --- Warning placeholder for auto-fill issues ---
+          tpp_warning_ui <- uiOutput(ns(paste0("tppAutoFillWarning_", safe_trait)))
+
           shinydashboard::box(
             width = 12,
-            title = trait_name,
+            title = tagList(
+              tags$span(tpp_display_name(trait_name)),
+              tpp_badge_ui
+            ),
             status = "primary",
             solidHeader = TRUE,
             collapsible = TRUE,
             collapsed = TRUE,
+
+            # TPP checkbox (only for Essential_Maintain)
+            tpp_checkbox_ui,
+
+            # TPP out-of-scale warning (shown when desired score is outside scale range)
+            tpp_scale_warning_ui,
+
+            # TPP auto-fill warning
+            tpp_warning_ui,
+
+            # TPP multi-select checks (only for relative score_type traits)
+            tpp_checks_ui,
 
             selectInput(
               ns(paste0("ruleType_", safe_trait)),
@@ -3299,6 +4246,291 @@ mod_preProdAdvApp_server <- function(id, data){
         0.001
       )
     }
+
+    ########################################
+    # TPP Auto-fill observers (Task 10.3)
+    ########################################
+
+    # Observer: "Use TPP desired scores" checkbox toggle for Essential_Maintain traits
+    observe({
+      req(input$traitsToEvaluate)
+
+      tpp_data <- tpp_filtered_traits()
+      has_tpp <- !is.null(tpp_data) && is.data.frame(tpp_data) && nrow(tpp_data) > 0
+      if (!has_tpp) return()
+
+      trait_list <- input$traitsToEvaluate
+
+      lapply(trait_list, function(trait_name) {
+        safe_trait <- sanitize_trait_id(trait_name)
+        checkbox_id <- paste0("tppAutoFill_", safe_trait)
+
+        # Only observe for Essential_Maintain traits
+        trait_row <- tpp_data[tpp_data$pheno_trait == trait_name, , drop = FALSE]
+        # Also try matching by tpp_trait name
+        if (nrow(trait_row) == 0 && "tpp_trait" %in% colnames(tpp_data)) {
+          trait_row <- tpp_data[tpp_data$tpp_trait == trait_name, , drop = FALSE]
+        }
+        if (nrow(trait_row) == 0) return()
+        if (!"category" %in% colnames(tpp_data)) return()
+        if (is.na(trait_row$category[1]) || trait_row$category[1] != "Essential_Maintain") return()
+
+        observeEvent(input[[checkbox_id]], {
+          checked <- isTRUE(input[[checkbox_id]])
+          autofill_state <- tpp_autofill_state()
+
+          if (checked) {
+            # --- Auto-fill threshold from TPP Desired_Score ---
+            # Check if the required columns exist in tpp_data
+            score_type <- if ("score_type" %in% colnames(trait_row)) trait_row$score_type[1] else NA_character_
+            desired_lower <- if ("desired_lower" %in% colnames(trait_row)) trait_row$desired_lower[1] else NA_real_
+            desired_upper <- if ("desired_upper" %in% colnames(trait_row)) trait_row$desired_upper[1] else NA_real_
+            desired_direction <- if ("desired_direction" %in% colnames(trait_row)) trait_row$desired_direction[1] else NA_character_
+
+            # If score_type is not available, try to infer from desired_direction
+            if (is.na(score_type) && (!is.na(desired_lower) || !is.na(desired_upper))) {
+              score_type <- "absolute"
+            }
+
+            # If no structured threshold data is available, show info message and return
+            if (is.na(score_type) && is.na(desired_lower) && is.na(desired_upper)) {
+              output[[paste0("tppAutoFillWarning_", safe_trait)]] <- renderUI({
+                tags$div(
+                  style = "color:#856404; background-color:#fff3cd; border-left:5px solid #ffeeba; padding:10px; margin-bottom:10px;",
+                  tags$strong("Info: "),
+                  "No structured desired score data is available for this trait. ",
+                  "Please configure the threshold manually."
+                )
+              })
+              return()
+            }
+
+            if (!is.na(score_type) && score_type == "relative") {
+              # Check if checks are mapped — look in metadata$TPP checks_per_trait
+              checks_mapped <- NULL
+              current_tpp_id <- tpp_id_prepam()
+              if (!is.null(current_tpp_id)) {
+                dt <- data()
+                dt_meta <- dt$metadata$TPP[[current_tpp_id]]
+                if (!is.null(dt_meta) && !is.null(dt_meta$checks_per_trait)) {
+                  tpp_trait_name <- trait_row$tpp_trait[1]
+                  checks_mapped <- dt_meta$checks_per_trait[[tpp_trait_name]]
+                }
+              }
+              if (is.null(checks_mapped) || length(checks_mapped) == 0) {
+                # Show warning: no checks mapped for relative trait
+                output[[paste0("tppAutoFillWarning_", safe_trait)]] <- renderUI({
+                  tags$div(
+                    style = "color:#856404; background-color:#fff3cd; border-left:5px solid #ffeeba; padding:10px; margin-bottom:10px;",
+                    tags$strong("Warning: "),
+                    "No checks are mapped for this trait in the TPP metadata. ",
+                    "The check must be mapped before auto-fill can proceed for relative desired scores."
+                  )
+                })
+                return()
+              }
+            }
+
+            # Clear any previous warning
+            output[[paste0("tppAutoFillWarning_", safe_trait)]] <- renderUI({ NULL })
+
+            # --- Validate: check if desired score is within the trait's scale ---
+            scale_min_val <- if ("scale_min" %in% colnames(trait_row)) trait_row$scale_min[1] else NA_real_
+            scale_max_val <- if ("scale_max" %in% colnames(trait_row)) trait_row$scale_max[1] else NA_real_
+
+            if (!is.na(scale_min_val) && !is.na(scale_max_val) && score_type == "absolute") {
+              # Check if any absolute threshold is outside scale bounds
+              out_of_scale <- FALSE
+              if (!is.na(desired_lower) && is.finite(desired_lower) && desired_lower > scale_max_val) {
+                out_of_scale <- TRUE
+              }
+              if (!is.na(desired_upper) && is.finite(desired_upper) && desired_upper < scale_min_val) {
+                out_of_scale <- TRUE
+              }
+              if (out_of_scale) {
+                score_text <- if ("desired_score_text" %in% colnames(trait_row)) trait_row$desired_score_text[1] else ""
+                output[[paste0("tppAutoFillWarning_", safe_trait)]] <- renderUI({
+                  tags$div(
+                    style = "color:#721c24; background-color:#f8d7da; border-left:5px solid #f5c6cb; padding:10px; margin-bottom:10px;",
+                    tags$strong("Warning: "),
+                    sprintf(
+                      "The TPP desired score (\"%s\") is outside the trait's scale range (%s to %s). This threshold cannot be used.",
+                      score_text, scale_min_val, scale_max_val
+                    )
+                  )
+                })
+                return()
+              }
+            }
+
+            # Determine threshold value and direction based on score_type
+            if (!is.na(score_type) && score_type == "absolute") {
+
+              # Check if both lower and upper are defined → use "Acceptable range"
+              has_lower <- !is.na(desired_lower) && is.finite(desired_lower)
+              has_upper <- !is.na(desired_upper) && is.finite(desired_upper)
+
+              if (has_lower && has_upper) {
+                # Range: use "Acceptable range" rule type
+                updateSelectInput(session, paste0("ruleType_", safe_trait), selected = "Acceptable range")
+
+              } else if (has_lower) {
+                # Single lower bound: "Higher is better" threshold
+                updateSelectInput(session, paste0("ruleType_", safe_trait), selected = "Threshold")
+                updateSelectInput(session, paste0("direction_", safe_trait), selected = "Higher is better")
+
+              } else if (has_upper) {
+                # Single upper bound: "Lower is better" threshold
+                updateSelectInput(session, paste0("ruleType_", safe_trait), selected = "Threshold")
+                updateSelectInput(session, paste0("direction_", safe_trait), selected = "Lower is better")
+
+              } else {
+                return()
+              }
+
+            } else if (!is.na(score_type) && score_type == "relative") {
+              # For relative: use "% over check" rule type with percentage from TPP
+              pct_above <- if ("pct_above_check" %in% colnames(trait_row)) trait_row$pct_above_check[1] else NA_real_
+              pct_of <- if ("pct_of_check" %in% colnames(trait_row)) trait_row$pct_of_check[1] else NA_real_
+
+              # Determine the percentage threshold and direction
+              if (!is.na(pct_above) && is.finite(pct_above)) {
+                if (pct_above < 0) {
+                  # Negative pct means "allowed up to X% below check" → Lower is better
+                  threshold_val <- abs(pct_above)
+                  direction_val <- "Lower is better"
+                } else {
+                  # Positive pct means "must be X% above check" → Higher is better
+                  threshold_val <- pct_above
+                  direction_val <- "Higher is better"
+                }
+              } else if (!is.na(pct_of) && is.finite(pct_of)) {
+                # "Equal to at least X% of check" → must be at least X% of check
+                # Convert: being at X% of check means (100 - X)% below → threshold = 100 - X, Lower is better
+                if (pct_of < 100) {
+                  threshold_val <- 100 - pct_of
+                  direction_val <- "Lower is better"
+                } else {
+                  threshold_val <- pct_of - 100
+                  direction_val <- "Higher is better"
+                }
+              } else {
+                threshold_val <- 0
+                direction_val <- "Higher is better"
+              }
+
+              updateSelectInput(session, paste0("ruleType_", safe_trait), selected = "% over check")
+              updateSelectInput(session, paste0("direction_", safe_trait), selected = direction_val)
+
+              # Auto-select checks from metadata$TPP$checks_per_trait
+              if (!is.null(checks_mapped) && length(checks_mapped) > 0) {
+                session$onFlushed(function() {
+                  updateSelectInput(session, paste0("checkVar_", safe_trait), selected = checks_mapped)
+                }, once = TRUE)
+              }
+            }
+
+            # Track that this trait was auto-filled
+            autofill_state[[safe_trait]] <- TRUE
+            tpp_autofill_state(autofill_state)
+
+          } else {
+            # --- Uncheck: Clear auto-filled fields, restore defaults ---
+            output[[paste0("tppAutoFillWarning_", safe_trait)]] <- renderUI({ NULL })
+
+            # Reset to defaults
+            req(data())
+            req(input$mtaStamp)
+            dt <- data()
+            dtPred <- dt$predictions
+            dtPred <- dtPred[which(dtPred$analysisId %in% input$mtaStamp), ]
+            dtPred_trait <- dtPred[dtPred$trait == trait_name & dtPred$effectType == "designation", ]
+            predictedValue <- dtPred_trait$predictedValue[!is.na(dtPred_trait$predictedValue)]
+
+            if (length(predictedValue) > 0) {
+              rng <- range(predictedValue, na.rm = TRUE)
+              if (all(is.finite(rng))) {
+                # Reset to min (default for "Higher is better")
+                updateSliderInput(session, paste0("minThresholdSlider_", safe_trait), value = rng[1])
+                updateNumericInput(session, paste0("minThreshold_", safe_trait), value = rng[1])
+              }
+            }
+            updateSelectInput(session, paste0("direction_", safe_trait), selected = "Higher is better")
+
+            # Clear auto-fill tracking
+            autofill_state[[safe_trait]] <- FALSE
+            tpp_autofill_state(autofill_state)
+          }
+        }, ignoreInit = TRUE)
+      })
+    })
+
+    # Observer: Multi-select check dropdown for relative traits - compute reference value
+    observe({
+      req(input$traitsToEvaluate)
+
+      tpp_data <- tpp_filtered_traits()
+      has_tpp <- !is.null(tpp_data) && is.data.frame(tpp_data) && nrow(tpp_data) > 0
+      if (!has_tpp) return()
+
+      trait_list <- input$traitsToEvaluate
+
+      lapply(trait_list, function(trait_name) {
+        safe_trait <- sanitize_trait_id(trait_name)
+        checks_input_id <- paste0("tppChecks_", safe_trait)
+
+        # Only for relative score_type traits
+        trait_row <- tpp_data[tpp_data$pheno_trait == trait_name, , drop = FALSE]
+        if (nrow(trait_row) == 0) return()
+        if (!"score_type" %in% colnames(tpp_data)) return()
+        if (is.na(trait_row$score_type[1]) || trait_row$score_type[1] != "relative") return()
+
+        # Render reference value based on selected checks
+        output[[paste0("tppRefValue_", safe_trait)]] <- renderUI({
+          selected_checks <- input[[checks_input_id]]
+          if (is.null(selected_checks) || length(selected_checks) == 0) {
+            return(NULL)
+          }
+
+          # Compute mean of selected checks' predicted values for this trait
+          req(data())
+          req(input$mtaStamp)
+          dt <- data()
+          dtPred <- dt$predictions
+          dtPred <- dtPred[which(dtPred$analysisId %in% input$mtaStamp), ]
+          dtPred_trait <- dtPred[
+            dtPred$trait == trait_name &
+              dtPred$effectType == "designation" &
+              dtPred$designation %in% selected_checks,
+            , drop = FALSE
+          ]
+
+          pred_values <- dtPred_trait$predictedValue[!is.na(dtPred_trait$predictedValue)]
+
+          if (length(pred_values) == 0) {
+            return(
+              tags$div(
+                style = "color:#856404; background-color:#fff3cd; border-left:5px solid #ffeeba; padding:8px; margin-top:5px;",
+                tags$strong("Warning: "),
+                "Cannot compute reference value - no predicted values available for selected checks."
+              )
+            )
+          }
+
+          ref_value <- mean(pred_values, na.rm = TRUE)
+          tags$div(
+            style = "background-color:#d4edda; border-left:5px solid #28a745; padding:8px; margin-top:5px; border-radius:3px;",
+            tags$strong("Reference value: "),
+            tags$span(sprintf("%.3f", ref_value)),
+            tags$br(),
+            tags$small(
+              style = "color:#666;",
+              paste0("(Mean of ", length(pred_values), " check prediction(s))")
+            )
+          )
+        })
+      })
+    })
 
     observe({
       req(input$traitsToEvaluate)
@@ -3373,6 +4605,26 @@ mod_preProdAdvApp_server <- function(id, data){
             }
             threshold_default <- if (!is.null(direction_val) && identical(direction_val, "Lower is better")) rng_max else rng_min
 
+            # If TPP auto-fill is active, use TPP value (isolate to avoid reactive dependency)
+            if (isTRUE(isolate(tpp_autofill_state())[[safe_trait]])) {
+              tpp_data <- isolate(tpp_filtered_traits())
+              if (!is.null(tpp_data) && is.data.frame(tpp_data) && nrow(tpp_data) > 0) {
+                t_row <- tpp_data[tpp_data$pheno_trait == trait_name, , drop = FALSE]
+                if (nrow(t_row) == 0 && "tpp_trait" %in% colnames(tpp_data)) {
+                  t_row <- tpp_data[tpp_data$tpp_trait == trait_name, , drop = FALSE]
+                }
+                if (nrow(t_row) > 0) {
+                  d_lower <- if ("desired_lower" %in% colnames(t_row)) t_row$desired_lower[1] else NA_real_
+                  d_upper <- if ("desired_upper" %in% colnames(t_row)) t_row$desired_upper[1] else NA_real_
+                  if (!is.na(d_lower) && is.finite(d_lower)) {
+                    threshold_default <- d_lower
+                  } else if (!is.na(d_upper) && is.finite(d_upper)) {
+                    threshold_default <- d_upper
+                  }
+                }
+              }
+            }
+
             tagList(
               sliderInput(
                 ns(paste0("minThresholdSlider_", safe_trait)),
@@ -3393,13 +4645,34 @@ mod_preProdAdvApp_server <- function(id, data){
             )
 
           } else if (rule_type == "Acceptable range") {
+
+            range_min_default <- rng_min
+            range_max_default <- rng_max
+
+            # If TPP auto-fill is active, use TPP values (isolate to avoid reactive dependency)
+            if (isTRUE(isolate(tpp_autofill_state())[[safe_trait]])) {
+              tpp_data_local <- isolate(tpp_filtered_traits())
+              if (!is.null(tpp_data_local) && is.data.frame(tpp_data_local) && nrow(tpp_data_local) > 0) {
+                t_row <- tpp_data_local[tpp_data_local$pheno_trait == trait_name, , drop = FALSE]
+                if (nrow(t_row) == 0 && "tpp_trait" %in% colnames(tpp_data_local)) {
+                  t_row <- tpp_data_local[tpp_data_local$tpp_trait == trait_name, , drop = FALSE]
+                }
+                if (nrow(t_row) > 0) {
+                  d_lower <- if ("desired_lower" %in% colnames(t_row)) t_row$desired_lower[1] else NA_real_
+                  d_upper <- if ("desired_upper" %in% colnames(t_row)) t_row$desired_upper[1] else NA_real_
+                  if (!is.na(d_lower) && is.finite(d_lower)) range_min_default <- d_lower
+                  if (!is.na(d_upper) && is.finite(d_upper)) range_max_default <- d_upper
+                }
+              }
+            }
+
             tagList(
               sliderInput(
                 ns(paste0("rangeSlider_", safe_trait)),
                 "Acceptable range",
                 min = rng_min,
                 max = rng_max,
-                value = c(rng_min, rng_max),
+                value = c(range_min_default, range_max_default),
                 step = slider_step
               ),
               fluidRow(
@@ -3408,7 +4681,7 @@ mod_preProdAdvApp_server <- function(id, data){
                   numericInput(
                     ns(paste0("rangeMin_", safe_trait)),
                     "Minimum value",
-                    value = rng_min,
+                    value = range_min_default,
                     min = rng_min,
                     max = rng_max,
                     step = slider_step
@@ -3419,7 +4692,7 @@ mod_preProdAdvApp_server <- function(id, data){
                   numericInput(
                     ns(paste0("rangeMax_", safe_trait)),
                     "Maximum value",
-                    value = rng_max,
+                    value = range_max_default,
                     min = rng_min,
                     max = rng_max,
                     step = slider_step
@@ -3451,25 +4724,48 @@ mod_preProdAdvApp_server <- function(id, data){
             ]
             check_designations <- unique(check_designations[!is.na(check_designations)])
 
+            # Default % value
+            pct_default <- 0
+
+            # If TPP auto-fill is active, use TPP value (isolate to avoid reactive dependency)
+            if (isTRUE(isolate(tpp_autofill_state())[[safe_trait]])) {
+              tpp_data_local <- isolate(tpp_filtered_traits())
+              if (!is.null(tpp_data_local) && is.data.frame(tpp_data_local) && nrow(tpp_data_local) > 0) {
+                t_row <- tpp_data_local[tpp_data_local$pheno_trait == trait_name, , drop = FALSE]
+                if (nrow(t_row) == 0 && "tpp_trait" %in% colnames(tpp_data_local)) {
+                  t_row <- tpp_data_local[tpp_data_local$tpp_trait == trait_name, , drop = FALSE]
+                }
+                if (nrow(t_row) > 0) {
+                  p_above <- if ("pct_above_check" %in% colnames(t_row)) t_row$pct_above_check[1] else NA_real_
+                  p_of <- if ("pct_of_check" %in% colnames(t_row)) t_row$pct_of_check[1] else NA_real_
+                  if (!is.na(p_above) && is.finite(p_above)) {
+                    pct_default <- abs(p_above)
+                  } else if (!is.na(p_of) && is.finite(p_of)) {
+                    pct_default <- if (p_of < 100) (100 - p_of) else (p_of - 100)
+                  }
+                }
+              }
+            }
+
             tagList(
               selectInput(
                 ns(paste0("checkVar_", safe_trait)),
-                "Reference check",
+                "Reference check(s)",
                 choices = check_designations,
-                multiple = FALSE
+                multiple = TRUE
               ),
               sliderInput(
                 ns(paste0("pctOverCheckSlider_", safe_trait)),
                 "% over check",
                 min = 0,
                 max = 100,
-                value = 0,
+                value = pct_default,
                 step = 1
               ),
               numericInput(
                 ns(paste0("pctOverCheck_", safe_trait)),
                 "% over check",
-                value = 0,
+                value = pct_default,
                 min = 0,
                 max = 100,
                 step = 1
@@ -3595,6 +4891,11 @@ mod_preProdAdvApp_server <- function(id, data){
         observeEvent(input[[paste0("direction_", safe_trait)]], ignoreInit = TRUE, {
           req(input[[paste0("ruleType_", safe_trait)]] == "Threshold")
 
+          # Skip reset if TPP auto-fill is active — the onFlushed callback
+          # will set the correct value after this observer fires.
+          autofill_state <- tpp_autofill_state()
+          if (isTRUE(autofill_state[[safe_trait]])) return()
+
           direction <- input[[paste0("direction_", safe_trait)]]
           req(direction)
 
@@ -3689,6 +4990,7 @@ mod_preProdAdvApp_server <- function(id, data){
 
     observe({
       req(data())
+      req(input$mtaStamp)
 
       dt <- data()
 
@@ -3729,10 +5031,11 @@ mod_preProdAdvApp_server <- function(id, data){
         choices = stages
       )
 
-      updateSelectInput(
+      updateSelectizeInput(
         session = session,
         inputId = "candidateDesignations",
-        choices = mta_candidates
+        choices = mta_candidates,
+        server = TRUE
       )
     })
 
@@ -3809,12 +5112,6 @@ mod_preProdAdvApp_server <- function(id, data){
       out <- lapply(input$traitsToEvaluate, function(trait_name) {
         safe_trait <- sanitize_trait_id(trait_name)
 
-        # Exclude trait if weight == 0
-        weight_val <- input[[paste0("weight_", safe_trait)]]
-        if (!is.null(weight_val) && is.finite(weight_val) && weight_val == 0) {
-          return(NULL)
-        }
-
         dtPred_trait <- dtPred[
           dtPred$trait == trait_name &
             dtPred$effectType == "designation",
@@ -3887,7 +5184,8 @@ mod_preProdAdvApp_server <- function(id, data){
             check_entry_type_value <- NULL
           }
 
-          if (is.null(reference_check) || !nzchar(reference_check)) {
+          if (is.null(reference_check) || length(reference_check) == 0 ||
+              (length(reference_check) == 1 && !nzchar(reference_check))) {
             if (!is.null(check_entry_type_value)) {
               check_designations <- unique(
                 dtPred_trait$designation[
@@ -3897,7 +5195,7 @@ mod_preProdAdvApp_server <- function(id, data){
               )
 
               reference_check <- if (length(check_designations) > 0) {
-                check_designations[1]
+                check_designations
               } else {
                 NULL
               }
@@ -3929,8 +5227,6 @@ mod_preProdAdvApp_server <- function(id, data){
       })
 
       names(out) <- input$traitsToEvaluate
-      # Remove NULL entries (traits excluded due to weight == 0)
-      out <- out[!vapply(out, is.null, logical(1))]
       out
     })
 
@@ -3996,7 +5292,8 @@ mod_preProdAdvApp_server <- function(id, data){
         candidateSelectionMode = input$candidateSelectionMode,
         selectionStage = if (identical(input$candidateSelectionMode, "stage")) input$selectionStage else NULL,
         candidateDesignations = if (identical(input$candidateSelectionMode, "manual")) input$candidateDesignations else NULL,
-        selectedCandidates = selected_candidates()
+        selectedCandidates = selected_candidates(),
+        tppId = tpp_id_prepam()
       )
     })
 
@@ -4379,6 +5676,154 @@ mod_preProdAdvApp_server <- function(id, data){
       # (finalInitialStamp/finalTableStamp/finalPlotStamp removed - now using report stamp inputs)
     })
 
+    ########################################
+    # TPP ID recovery from initial selection stamp (Review Output tab)
+    # When a user selects an initial selection stamp, auto-recover the TPP ID
+    # that was used during that run (stored as parameter "tpp_id" in modeling).
+    ########################################
+    observeEvent(input$initialSelectionStamp, {
+      req(data())
+      req(input$initialSelectionStamp)
+
+      dt <- data()
+      init_stamp <- input$initialSelectionStamp
+
+      # Look up tpp_id from modeling table for this stamp
+      stored_tpp_id <- tpp_stored_id_for_stamp(dt, init_stamp)
+
+      if (is.null(stored_tpp_id)) {
+        # No TPP was stored for this stamp.
+        # Only clear TPP state if it wasn't already set via the TPP dropdown
+        # (i.e., don't override a live UI selection during the Input steps workflow).
+        if (is.null(tpp_id_prepam())) {
+          tpp_filtered_traits(NULL)
+        }
+        return()
+      }
+
+      # Validate the stored TPP ID still exists in the data
+      tpp_ids <- tpp_get_tpp_ids(dt)
+      if (!stored_tpp_id %in% tpp_ids) {
+        tpp_id_prepam(NULL)
+        tpp_filtered_traits(NULL)
+        return()
+      }
+
+      validation <- tpp_validate_metadata(dt, stored_tpp_id)
+      if (!validation$valid) {
+        tpp_id_prepam(NULL)
+        tpp_filtered_traits(NULL)
+        return()
+      }
+
+      # Reflect the recovered TPP in the Input-steps dropdown so the UI is
+      # consistent and the input-driven observer agrees with the recovered state.
+      if (!identical(isolate(input$tppIdInput), stored_tpp_id)) {
+        updateSelectInput(session, "tppIdInput", selected = stored_tpp_id)
+      }
+
+      # Get the MTA stamp used for this initial selection (which() = NA-safe)
+      mta_idx <- which(
+        as.character(dt$modeling$analysisId) == as.character(init_stamp) &
+          dt$modeling$module == "Init_prodAdv" &
+          dt$modeling$parameter == "mta_stamp"
+      )
+      mta_stamp <- if (length(mta_idx) > 0) dt$modeling$value[mta_idx[1]] else NULL
+
+      # Build filtered traits using the same enrichment logic
+      tpp_entry <- dt$metadata$TPP[[stored_tpp_id]]
+      tpp_traits_df <- tpp_entry$traits
+
+      # Get available traits from MTA predictions
+      available_traits <- character(0)
+      if (!is.null(mta_stamp) && nzchar(mta_stamp)) {
+        dtPred <- dt$predictions
+        dtPred <- dtPred[which(dtPred$analysisId %in% mta_stamp), ]
+        available_traits <- unique(dtPred$trait)
+      }
+
+      # Filter TPP traits to those whose pheno_trait is in available columns
+      if (nrow(tpp_traits_df) > 0 && "pheno_trait" %in% colnames(tpp_traits_df)) {
+        mapped_mask <- !is.na(tpp_traits_df$pheno_trait) &
+          tpp_traits_df$pheno_trait %in% available_traits
+        filtered_df <- tpp_traits_df[mapped_mask, , drop = FALSE]
+      } else {
+        filtered_df <- tpp_traits_df[0, , drop = FALSE]
+      }
+
+      # Enrich with category and desired scores from raw TPP data
+      if (nrow(filtered_df) > 0 && !"category" %in% colnames(filtered_df)) {
+        raw_tpp <- dt$data$TPP[[stored_tpp_id]]
+        if (!is.null(raw_tpp) && is.data.frame(raw_tpp)) {
+          if ("Trait Requirement" %in% colnames(raw_tpp) && "Trait Name" %in% colnames(raw_tpp)) {
+            match_idx <- match(filtered_df$tpp_trait, raw_tpp[["Trait Name"]])
+            raw_req <- raw_tpp[["Trait Requirement"]][match_idx]
+            filtered_df$category <- ifelse(
+              grepl("Improve", raw_req, ignore.case = TRUE), "Essential_Improve",
+              ifelse(grepl("Maintain", raw_req, ignore.case = TRUE), "Essential_Maintain",
+                     ifelse(grepl("Nice", raw_req, ignore.case = TRUE), "Nice_To_Have", NA_character_))
+            )
+
+            if ("Desired Score" %in% colnames(raw_tpp)) {
+              raw_score <- raw_tpp[["Desired Score"]][match_idx]
+              parsed_scores <- lapply(raw_score, tpp_parse_desired_score)
+
+              filtered_df$desired_direction <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$direction)) p$direction else NA_character_
+              }, character(1))
+              filtered_df$score_type <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$score_type)) p$score_type else NA_character_
+              }, character(1))
+              filtered_df$desired_lower <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$lower_bound)) p$lower_bound else NA_real_
+              }, numeric(1))
+              filtered_df$desired_upper <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$upper_bound)) p$upper_bound else NA_real_
+              }, numeric(1))
+              filtered_df$pct_above_check <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$pct_above_check)) p$pct_above_check else NA_real_
+              }, numeric(1))
+              filtered_df$pct_of_check <- vapply(parsed_scores, function(p) {
+                if (!is.na(p$pct_of_check)) p$pct_of_check else NA_real_
+              }, numeric(1))
+              filtered_df$desired_score_text <- raw_score
+            } else {
+              filtered_df$desired_direction <- NA_character_
+              filtered_df$score_type <- NA_character_
+              filtered_df$desired_lower <- NA_real_
+              filtered_df$desired_upper <- NA_real_
+              filtered_df$pct_above_check <- NA_real_
+              filtered_df$pct_of_check <- NA_real_
+              filtered_df$desired_score_text <- NA_character_
+            }
+
+            if ("Scale Option" %in% colnames(raw_tpp)) {
+              raw_scales <- raw_tpp[["Scale Option"]][match_idx]
+              parsed_scales <- lapply(raw_scales, tpp_parse_scale_option)
+              filtered_df$scale_min <- vapply(parsed_scales, function(p) {
+                if (!is.null(p) && !is.null(p$min)) p$min else NA_real_
+              }, numeric(1))
+              filtered_df$scale_max <- vapply(parsed_scales, function(p) {
+                if (!is.null(p) && !is.null(p$max)) p$max else NA_real_
+              }, numeric(1))
+            } else {
+              filtered_df$scale_min <- NA_real_
+              filtered_df$scale_max <- NA_real_
+            }
+          }
+        }
+      }
+
+      # Set TPP state
+      if (nrow(filtered_df) > 0) {
+        tpp_id_prepam(stored_tpp_id)
+        tpp_filtered_traits(filtered_df)
+      } else {
+        tpp_id_prepam(stored_tpp_id)
+        tpp_filtered_traits(NULL)
+      }
+    })
+
     output$selectionModelingTable <- DT::renderDT({
       req(data())
       req(input$initialSelectionStamp)
@@ -4498,6 +5943,56 @@ mod_preProdAdvApp_server <- function(id, data){
       )
     })
 
+    # TPP Decision Table controls: checkbox for maintain traits + compliance count (Task 11.1)
+    output$tppDecisionTableControls <- renderUI({
+      # Only show TPP controls when a TPP ID is active
+      current_tpp <- tpp_id_prepam()
+      filtered <- tpp_filtered_traits()
+      has_tpp <- !is.null(current_tpp) && !is.null(filtered) &&
+        is.data.frame(filtered) && nrow(filtered) > 0
+
+      if (!has_tpp) return(NULL)
+
+      # Compute compliance count
+      tbl <- table_decision_data()
+      if (is.null(tbl) || nrow(tbl) == 0) return(NULL)
+
+      # Build tpp_criteria list from filtered TPP traits
+      checks_info <- NULL
+      if (!is.null(current_tpp)) {
+        dt_local <- data()
+        if (!is.null(dt_local$metadata$TPP[[current_tpp]]$checks_per_trait)) {
+          checks_info <- dt_local$metadata$TPP[[current_tpp]]$checks_per_trait
+        }
+      }
+      tpp_criteria <- tpp_build_criteria_list_from_filtered(filtered, tbl, checks_per_trait = checks_info)
+
+      # Evaluate Essential_Improve criteria
+      ei_matrix <- tpp_evaluate_all_criteria(tbl, tpp_criteria, category_filter = "Essential_Improve")
+      compliance <- tpp_count_fully_compliant(ei_matrix)
+
+      tagList(
+        fluidRow(
+          column(
+            width = 6,
+            checkboxInput(
+              ns("showMaintainTraits"),
+              "Show essential: maintain traits",
+              value = FALSE
+            )
+          ),
+          column(
+            width = 6,
+            tags$div(
+              style = "padding-top: 8px; font-size: 1.1em; font-weight: 600; color: #2C3E50;",
+              sprintf("%d out of %d individuals meet all Essential Improve TPP criteria",
+                      compliance$n_meeting, compliance$n_total)
+            )
+          )
+        )
+      )
+    })
+
     # Render decision table with gradient coloring
     output$tableDecisionDT <- DT::renderDT({
       tbl <- table_decision_data()
@@ -4516,80 +6011,79 @@ mod_preProdAdvApp_server <- function(id, data){
         modeling_init$trait[modeling_init$parameter == "user_excluded_trait"]]
       selected_traits <- intersect(selected_traits, colnames(tbl))
 
+      # --- TPP Integration (Task 11.1) ---
+      # Determine if TPP is active and build criteria for border formatting
+      current_tpp <- tpp_id_prepam()
+      filtered_tpp <- tpp_filtered_traits()
+      has_tpp <- !is.null(current_tpp) && !is.null(filtered_tpp) &&
+        is.data.frame(filtered_tpp) && nrow(filtered_tpp) > 0
+
+      tpp_criteria_list <- NULL
+      ei_traits <- character(0)
+      em_traits <- character(0)
+      show_maintain <- FALSE
+
+      if (has_tpp) {
+        # Build criteria list for evaluation
+        checks_info <- NULL
+        if (!is.null(current_tpp)) {
+          if (!is.null(dt$metadata$TPP[[current_tpp]]$checks_per_trait)) {
+            checks_info <- dt$metadata$TPP[[current_tpp]]$checks_per_trait
+          }
+        }
+        tpp_criteria_list <- tpp_build_criteria_list_from_filtered(filtered_tpp, tbl, checks_per_trait = checks_info)
+
+        # Identify Essential_Improve and Essential_Maintain traits (by pheno_trait name)
+        # For env-filtered traits, the column in tbl is the tpp_trait name (not pheno_trait),
+        # so we also check tpp_trait names when building the trait lists.
+        if ("category" %in% colnames(filtered_tpp) && "pheno_trait" %in% colnames(filtered_tpp)) {
+          ei_mask <- !is.na(filtered_tpp$category) & filtered_tpp$category == "Essential_Improve"
+          ei_pheno <- filtered_tpp$pheno_trait[ei_mask]
+          ei_traits <- intersect(ei_pheno, colnames(tbl))
+          # Also include tpp_trait names that exist as columns (env-filtered traits)
+          if ("tpp_trait" %in% colnames(filtered_tpp)) {
+            ei_tpp_names <- filtered_tpp$tpp_trait[ei_mask]
+            ei_tpp_names <- ei_tpp_names[!is.na(ei_tpp_names)]
+            ei_traits <- unique(c(ei_traits, intersect(ei_tpp_names, colnames(tbl))))
+          }
+
+          em_mask <- !is.na(filtered_tpp$category) & filtered_tpp$category == "Essential_Maintain"
+          em_pheno <- filtered_tpp$pheno_trait[em_mask]
+          em_traits <- intersect(em_pheno, colnames(tbl))
+          # Also include tpp_trait names that exist as columns (env-filtered traits)
+          if ("tpp_trait" %in% colnames(filtered_tpp)) {
+            em_tpp_names <- filtered_tpp$tpp_trait[em_mask]
+            em_tpp_names <- em_tpp_names[!is.na(em_tpp_names)]
+            em_traits <- unique(c(em_traits, intersect(em_tpp_names, colnames(tbl))))
+          }
+        }
+
+        # Filter selected_traits to show only EI (+ optionally EM) by default
+        show_maintain <- isTRUE(input$showMaintainTraits)
+        if (length(ei_traits) > 0 || length(em_traits) > 0) {
+          tpp_display_traits <- ei_traits
+          if (show_maintain) {
+            tpp_display_traits <- c(tpp_display_traits, em_traits)
+          }
+          # Only filter if we have TPP traits to show; keep non-TPP traits too
+          selected_traits <- intersect(tpp_display_traits, selected_traits)
+        }
+      }
+
       # Sort by index_value descending (checks participate in ordering)
       if ("index_value" %in% colnames(tbl)) {
         tbl <- tbl[order(-as.numeric(tbl$index_value)), , drop = FALSE]
       }
 
       # Original color scheme (colorblind-friendly), more saturated for gradient visibility:
-      # SELECTED = blue, NOT SELECTED = orange, CHECK = pink
+      # SELECTED = blue, NOT SELECTED = orange, REVISE = yellow, CHECK = pink
       col_selected <- "#85C1E9"
       col_not_selected <- "#E8A87C"
       col_check <- "#C39BD3"
+      col_revise <- "#F7DC6F"
 
-      # Helper: compute gradient intensity (5 levels based on 20th percentile bins)
-      # Returns opacity multiplier 0.15-1.0 for pronounced gradient
-      # @param values Numeric vector of trait values.
-      # @param status Character vector of decision status per row.
-      # @param higher_is_better Logical. If TRUE, higher values get higher opacity
-      #   for SELECTED; if FALSE, lower values get higher opacity for SELECTED.
-      # @return Numeric vector of opacity values in [0.15, 1.0].
-      get_quintile_opacity <- function(values, status, higher_is_better = TRUE) {
-        n <- length(values)
-        opacity <- rep(0.5, n)  # default mid
-        numeric_vals <- as.numeric(values)
-        valid <- !is.na(numeric_vals) & status != "CHECK"
-        if (sum(valid) < 5) return(opacity)
-        quants <- quantile(numeric_vals[valid], probs = c(0.2, 0.4, 0.6, 0.8), na.rm = TRUE)
-        for (i in which(valid)) {
-          v <- numeric_vals[i]
-          if (status[i] == "SELECTED") {
-            if (higher_is_better) {
-              # Higher values -> higher opacity for SELECTED
-              if (v >= quants[4]) opacity[i] <- 1.0
-              else if (v >= quants[3]) opacity[i] <- 0.75
-              else if (v >= quants[2]) opacity[i] <- 0.5
-              else if (v >= quants[1]) opacity[i] <- 0.3
-              else opacity[i] <- 0.15
-            } else {
-              # Lower values -> higher opacity for SELECTED (inverted)
-              if (v <= quants[1]) opacity[i] <- 1.0
-              else if (v <= quants[2]) opacity[i] <- 0.75
-              else if (v <= quants[3]) opacity[i] <- 0.5
-              else if (v <= quants[4]) opacity[i] <- 0.3
-              else opacity[i] <- 0.15
-            }
-          } else {
-            if (higher_is_better) {
-              # NOT SELECTED: lower values -> higher opacity
-              if (v <= quants[1]) opacity[i] <- 1.0
-              else if (v <= quants[2]) opacity[i] <- 0.75
-              else if (v <= quants[3]) opacity[i] <- 0.5
-              else if (v <= quants[4]) opacity[i] <- 0.3
-              else opacity[i] <- 0.15
-            } else {
-              # NOT SELECTED + Lower is better: higher values -> higher opacity
-              if (v >= quants[4]) opacity[i] <- 1.0
-              else if (v >= quants[3]) opacity[i] <- 0.75
-              else if (v >= quants[2]) opacity[i] <- 0.5
-              else if (v >= quants[1]) opacity[i] <- 0.3
-              else opacity[i] <- 0.15
-            }
-          }
-        }
-        opacity
-      }
-
-      # Helper: blend color with white based on opacity
-      blend_color <- function(hex_color, opacity) {
-        r <- strtoi(substr(hex_color, 2, 3), 16)
-        g <- strtoi(substr(hex_color, 4, 5), 16)
-        b <- strtoi(substr(hex_color, 6, 7), 16)
-        r2 <- as.integer(r * opacity + 255 * (1 - opacity))
-        g2 <- as.integer(g * opacity + 255 * (1 - opacity))
-        b2 <- as.integer(b * opacity + 255 * (1 - opacity))
-        sprintf("#%02X%02X%02X", r2, g2, b2)
-      }
+      # Gradient helpers (get_quintile_opacity / blend_color) are defined at
+      # file scope and shared with the "Performance across locations" table.
 
       # Build HTML display table
       display_df <- data.frame(designation = tbl$designation, stringsAsFactors = FALSE)
@@ -4617,7 +6111,10 @@ mod_preProdAdvApp_server <- function(id, data){
         idx_status <- tbl$initial_decision
         idx_opacity <- get_quintile_opacity(tbl$index_value, idx_status, higher_is_better = TRUE)
         display_df$index_value <- mapply(function(val, st, op) {
-          base_col <- if (st == "SELECTED") col_selected else if (st == "CHECK") col_check else col_not_selected
+          base_col <- if (st == "SELECTED") col_selected
+                      else if (st == "CHECK") col_check
+                      else if (st == "REVISE") col_revise
+                      else col_not_selected
           bg <- blend_color(base_col, op)
           sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:right; font-weight:600;'>%s</div>",
                   bg, format(round(as.numeric(val), 3), nsmall = 3))
@@ -4642,7 +6139,10 @@ mod_preProdAdvApp_server <- function(id, data){
         hib <- is.null(trait_direction) || identical(trait_direction, "Higher is better")
         tr_opacity <- get_quintile_opacity(trait_vals, trait_status, higher_is_better = hib)
         display_df[[tr]] <- mapply(function(val, st, op) {
-          base_col <- if (st == "SELECTED") col_selected else if (st == "CHECK") col_check else col_not_selected
+          base_col <- if (st == "SELECTED") col_selected
+                      else if (st == "CHECK") col_check
+                      else if (st == "REVISE") col_revise
+                      else col_not_selected
           bg <- blend_color(base_col, op)
           txt <- if (is.na(val)) "" else format(round(as.numeric(val), 3), nsmall = 3)
           sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:right;'>%s</div>", bg, txt)
@@ -4651,7 +6151,10 @@ mod_preProdAdvApp_server <- function(id, data){
 
       # Index selection column (badge)
       display_df$index_selection <- sapply(tbl$initial_decision, function(st) {
-        bg <- if (st == "SELECTED") col_selected else if (st == "CHECK") col_check else col_not_selected
+        bg <- if (st == "SELECTED") col_selected
+              else if (st == "CHECK") col_check
+              else if (st == "REVISE") col_revise
+              else col_not_selected
         sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:center; font-weight:600;'>%s</div>", bg, st)
       })
 
@@ -4675,31 +6178,177 @@ mod_preProdAdvApp_server <- function(id, data){
          SIMPLIFY = TRUE)
 
 
+      # --- TPP: Build criteria matrix for border formatting ---
+      tpp_row_callback_js <- ""
+      tpp_caption <- NULL
+
+      if (has_tpp && !is.null(tpp_criteria_list) && length(tpp_criteria_list) > 0) {
+        # Evaluate criteria for all individuals
+        ei_em_filter <- c("Essential_Improve", "Essential_Maintain")
+        criteria_matrix <- tpp_evaluate_all_criteria(tbl, tpp_criteria_list, category_filter = ei_em_filter)
+
+        # Determine which displayed trait columns have criteria
+        trait_cols_in_display <- intersect(selected_traits, names(tpp_criteria_list))
+
+        if (length(trait_cols_in_display) > 0 && nrow(criteria_matrix) > 0) {
+          # Build boolean matrix aligned with display_df rows
+          # Column order in display_df: designation, index_value, traits..., index_selection, table_selection
+          # We need the column indices (0-based) for the trait columns in display_df
+          display_col_names <- colnames(display_df)
+
+          # Build criteria JSON for each row
+          n_rows <- nrow(display_df)
+          n_trait_cols <- length(trait_cols_in_display)
+          criteria_js_rows <- vector("list", n_rows)
+          all_ei_met <- rep(0L, n_rows)
+
+          # Build lookup by designation
+          criteria_lookup <- list()
+          if ("designation" %in% colnames(criteria_matrix)) {
+            for (ci in seq_len(nrow(criteria_matrix))) {
+              criteria_lookup[[as.character(criteria_matrix$designation[ci])]] <- criteria_matrix[ci, , drop = FALSE]
+            }
+          }
+
+          for (i in seq_len(n_rows)) {
+            desig <- as.character(display_df$designation[i])
+            row_crit <- criteria_lookup[[desig]]
+            trait_met <- rep(0L, n_trait_cols)
+
+            ei_met_all <- TRUE
+            for (j in seq_along(trait_cols_in_display)) {
+              tr_name <- trait_cols_in_display[j]
+              if (!is.null(row_crit) && tr_name %in% colnames(row_crit)) {
+                val <- row_crit[[tr_name]]
+                if (!is.null(val) && length(val) == 1 && !is.na(val) && isTRUE(val)) {
+                  trait_met[j] <- 1L
+                }
+              }
+            }
+
+            # Check if ALL Essential_Improve traits are met (for Index border)
+            for (ei_tr in ei_traits) {
+              if (!is.null(row_crit) && ei_tr %in% colnames(row_crit)) {
+                val <- row_crit[[ei_tr]]
+                if (is.null(val) || length(val) != 1 || is.na(val) || !isTRUE(val)) {
+                  ei_met_all <- FALSE
+                }
+              } else {
+                ei_met_all <- FALSE
+              }
+            }
+            if (length(ei_traits) == 0) ei_met_all <- FALSE
+            all_ei_met[i] <- as.integer(ei_met_all)
+            criteria_js_rows[[i]] <- trait_met
+          }
+
+          # Build JSON arrays
+          criteria_json <- paste0(
+            "[",
+            paste(vapply(criteria_js_rows, function(row) {
+              paste0("[", paste(row, collapse = ","), "]")
+            }, character(1)), collapse = ","),
+            "]"
+          )
+          index_border_json <- paste0("[", paste(all_ei_met, collapse = ","), "]")
+
+          # Compute column indices (0-based) for trait columns in display_df
+          trait_col_indices <- vapply(trait_cols_in_display, function(tc) {
+            which(display_col_names == tc) - 1L
+          }, integer(1))
+          trait_col_indices_json <- paste0("[", paste(trait_col_indices, collapse = ","), "]")
+
+          # Index column position (0-based)
+          index_col_idx <- which(display_col_names == "index_value") - 1L
+          if (length(index_col_idx) == 0) index_col_idx <- 1L
+
+          tpp_row_callback_js <- sprintf(
+            "
+            var critMatrix = %s;
+            var indexBorder = %s;
+            var traitColIndices = %s;
+            var indexColIdx = %d;
+
+            if (dataIndex < critMatrix.length) {
+              var rowCrit = critMatrix[dataIndex];
+              for (var j = 0; j < traitColIndices.length; j++) {
+                if (rowCrit[j] === 1) {
+                  $('td:eq(' + traitColIndices[j] + ') div', row).css({'box-shadow': 'inset 0 0 0 1.5px #333333', 'border-radius': '4px', 'font-weight': '700'});
+                }
+              }
+              if (indexBorder[dataIndex] === 1) {
+                $('td:eq(' + indexColIdx + ') div', row).css({'box-shadow': 'inset 0 0 0 1.5px #333333', 'border-radius': '4px'});
+              }
+            }
+            ",
+            criteria_json, index_border_json, trait_col_indices_json, index_col_idx
+          )
+        }
+
+        # Legend caption
+        tpp_caption <- htmltools::tags$caption(
+          style = "caption-side: bottom; text-align: left; font-size: 0.9em; padding-top: 8px;",
+          htmltools::tags$span(
+            style = "box-shadow: inset 0 0 0 1.5px #333333; border-radius: 4px; padding: 2px 6px; margin-right: 6px; display: inline-block;",
+            "Cell"
+          ),
+          " = TPP criteria met (dark border indicates the individual meets the TPP desired score for that trait)"
+        )
+      }
+
+      # Build the combined JS callback
+      dropdown_js <- sprintf("
+        table.on('change', 'select.table-decision-select', function() {
+          var designation = $(this).data('designation');
+          var value = $(this).val();
+          Shiny.setInputValue('%s', {
+            designation: designation,
+            value: value,
+            nonce: Math.random()
+          }, {priority: 'event'});
+        });
+      ", ns("tableDecisionChange"))
+
+      # Combine rowCallback if TPP is active
+      row_callback_option <- NULL
+      if (nzchar(tpp_row_callback_js)) {
+        row_callback_option <- DT::JS(paste0(
+          "function(row, data, displayNum, displayIndex, dataIndex) {",
+          tpp_row_callback_js,
+          "}"
+        ))
+      }
+
+      dt_options <- list(
+        scrollX = TRUE,
+        scrollY = "500px",
+        paging = FALSE,
+        searching = TRUE,
+        ordering = TRUE,
+        order = list(),
+        autoWidth = FALSE
+      )
+
+      if (!is.null(row_callback_option)) {
+        dt_options$rowCallback <- row_callback_option
+      }
+
+      # Rename trait columns to TPP display names for the table headers
+      col_names <- colnames(display_df)
+      display_col_names <- vapply(col_names, function(cn) {
+        if (cn %in% selected_traits) tpp_display_name(cn) else cn
+      }, character(1))
+      colnames(display_df) <- display_col_names
+
       DT::datatable(
         display_df,
         escape = FALSE,
         rownames = FALSE,
         selection = "none",
         class = "compact stripe hover nowrap decision-table",
-        options = list(
-          scrollX = TRUE,
-          scrollY = "500px",
-          paging = FALSE,
-          searching = TRUE,
-          ordering = FALSE,
-          autoWidth = FALSE
-        ),
-        callback = htmlwidgets::JS(sprintf("
-          table.on('change', 'select.table-decision-select', function() {
-            var designation = $(this).data('designation');
-            var value = $(this).val();
-            Shiny.setInputValue('%s', {
-              designation: designation,
-              value: value,
-              nonce: Math.random()
-            }, {priority: 'event'});
-          });
-        ", ns("tableDecisionChange")))
+        caption = tpp_caption,
+        options = dt_options,
+        callback = htmlwidgets::JS(dropdown_js)
       )
       }, error = function(e) {
         DT::datatable(data.frame(error = e$message))
@@ -4824,28 +6473,33 @@ mod_preProdAdvApp_server <- function(id, data){
       out
     }, ignoreInit = TRUE)
 
-    # --- Lollipop trait selector ---
-    output$lollipopTraitUI <- renderUI({
+    # --- Performance across locations: rank-by trait selector (trait Y) ---
+    output$perfTableTraitUI <- renderUI({
       plot_obj <- review_plot_data()
       req(plot_obj)
 
       trait_choices <- plot_obj$traits
-      # Always add index_value as an option â€” it's computed during initial selection
+      # Always add index_value as an option — it's computed during initial selection
       # and will be fetched from decision table data when selected
       trait_choices <- c("index_value", trait_choices)
       req(length(trait_choices) >= 1)
 
+      # Use TPP display names as labels (index_value stays as "Index Value")
+      display_names <- vapply(trait_choices, function(t) {
+        if (t == "index_value") "Index Value" else tpp_display_name(t)
+      }, character(1))
+      named_choices <- stats::setNames(trait_choices, display_names)
+
       selectInput(
-        ns("lollipopTrait"),
+        ns("perfTableTrait"),
         label = tags$span(
-          "Trait to rank by",
+          "Rank individuals by trait",
           tags$i(
             class = "glyphicon glyphicon-info-sign",
-            style = "color:#FFFFFF",
-            title = "Select which trait to use for ranking designations across environment types."
+            title = "The top X% of individuals is determined by ranking on this trait."
           )
         ),
-        choices = trait_choices,
+        choices = named_choices,
         selected = trait_choices[1]
       )
     })
@@ -4875,86 +6529,351 @@ mod_preProdAdvApp_server <- function(id, data){
       cluster_environments(env_summary)
     })
 
-    # --- Lollipop plot data reactive ---
-    lollipop_plot_data <- reactive({
-      plot_obj <- review_plot_data()
-      req(plot_obj)
-      req(input$lollipopTrait)
-
-      clusters <- lollipop_cluster_assignments()
-      req(length(clusters) > 0)
-
-      # If trait is index_value, compute it and inject into review_df
-      review_df_enriched <- plot_obj$review_df
-      if (input$lollipopTrait == "index_value" && !"index_value" %in% colnames(review_df_enriched)) {
-        # Fetch index_value from decision table data
-        tbl <- tryCatch(
-          cgiarPipeline::build_prodadv_decision_table_data(
-            dt = data(),
-            initial_stamp = input$initialSelectionStamp,
-            plot_stamp = "__none__",
-            final_stamp = "__none__"
-          ),
-          error = function(e) NULL
+    # --- Trait directions (higher/lower is better) for gradient + ranking ---
+    # Prefers the live trait rule cards; falls back to the stored directions in
+    # the modeling table so the table also works when only a stamp is loaded.
+    perf_trait_directions <- reactive({
+      out <- tryCatch(trait_rules_input(), error = function(e) list())
+      dirs <- list()
+      for (nm in names(out)) {
+        d <- out[[nm]]$direction
+        if (!is.null(d) && !is.na(d)) dirs[[nm]] <- d
+      }
+      if (length(dirs) == 0) {
+        req(data())
+        req(input$initialSelectionStamp)
+        m <- data()$modeling
+        idx <- which(
+          as.character(m$analysisId) == as.character(input$initialSelectionStamp) &
+            m$module == "Init_prodAdv" &
+            m$parameter == "direction"
         )
-        if (!is.null(tbl) && "index_value" %in% colnames(tbl)) {
-          idx_df <- tbl[, c("designation", "index_value"), drop = FALSE]
-          review_df_enriched <- merge(review_df_enriched, idx_df, by = "designation", all.x = TRUE)
+        for (i in idx) {
+          tr <- m$trait[i]
+          if (!is.na(tr) && nzchar(tr)) dirs[[tr]] <- m$value[i]
         }
       }
-
-      df <- prepare_lollipop_data(
-        sta_long = plot_obj$sta_long,
-        review_df = review_df_enriched,
-        trait = input$lollipopTrait,
-        cluster_assignments = clusters,
-        overrides = plot_selection_overrides()
-      )
-
-      validate(
-        need(nrow(df) > 0, "No environment-level data available for the selected trait.")
-      )
-
-      df
+      dirs
     })
 
-    # --- Lollipop plot output ---
-    output$lollipopPlot <- plotly::renderPlotly({
-      data <- lollipop_plot_data()
-      req(nrow(data) > 0)
+    # --- Performance across locations: per-cluster table data ---
+    # Mirrors the old lollipop facets: one table per environment cluster, each
+    # showing the top X% individuals (ranked on trait Y) with traits as columns.
+    # Values are means across the environments belonging to that cluster.
+    performance_table_data <- reactive({
+      plot_obj <- review_plot_data()
+      req(plot_obj)
+      req(input$perfTableTrait)
 
-      thresholds <- compute_zone_thresholds(data)
+      rank_trait <- input$perfTableTrait
+      top_pct <- input$perfTablePct
+      if (is.null(top_pct) || !is.finite(top_pct)) top_pct <- 20
 
-      build_faceted_lollipop_plotly(
-        prepared_data = data,
-        thresholds = thresholds,
-        highlighted = highlighted_lollipop_designation(),
-        user_recommend_threshold = NULL,
-        source_id = ns("lollipopPlot")
-      )
-    })
+      sta_long <- plot_obj$sta_long
+      validate(need(!is.null(sta_long) && nrow(sta_long) > 0,
+                    "No environment-level (STA) data available."))
 
-    # --- Click-to-highlight event handler ---
-    highlighted_lollipop_designation <- reactiveVal(NULL)
+      review_df <- plot_obj$review_df
 
-    observeEvent(
-      plotly::event_data("plotly_click", source = ns("lollipopPlot")),
-      {
-        click <- plotly::event_data("plotly_click", source = ns("lollipopPlot"))
-        req(click)
+      # Apply any manual plot overrides so status colouring stays in sync
+      overrides <- plot_selection_overrides()
+      if (!is.null(overrides) && nrow(overrides) > 0) {
+        omap <- stats::setNames(overrides$plot_decision, overrides$designation)
+        hit <- review_df$designation %in% names(omap)
+        review_df$plot_status[hit] <- omap[review_df$designation[hit]]
+      }
 
-        clicked_designation <- click$key
-        req(clicked_designation)
-
-        current <- highlighted_lollipop_designation()
-        if (!is.null(current) && current == clicked_designation) {
-          highlighted_lollipop_designation(NULL)
-        } else {
-          highlighted_lollipop_designation(clicked_designation)
+      # --- Resolve the ranking metric per designation ---
+      if (identical(rank_trait, "index_value")) {
+        if (!"index_value" %in% colnames(review_df)) {
+          tbl <- tryCatch(
+            cgiarPipeline::build_prodadv_decision_table_data(
+              dt = data(),
+              initial_stamp = input$initialSelectionStamp,
+              plot_stamp = "__none__",
+              final_stamp = "__none__"
+            ),
+            error = function(e) NULL
+          )
+          if (!is.null(tbl) && "index_value" %in% colnames(tbl)) {
+            review_df <- merge(review_df, tbl[, c("designation", "index_value"), drop = FALSE],
+                               by = "designation", all.x = TRUE)
+          }
         }
-      },
-      ignoreInit = TRUE
-    )
+        validate(need("index_value" %in% colnames(review_df),
+                      "Index value is not available for this selection stamp."))
+        rank_values <- stats::setNames(as.numeric(review_df$index_value), review_df$designation)
+        rank_higher_is_better <- TRUE
+      } else {
+        validate(need(rank_trait %in% colnames(review_df),
+                      paste("Trait not available:", rank_trait)))
+        rank_values <- stats::setNames(as.numeric(review_df[[rank_trait]]), review_df$designation)
+        d <- perf_trait_directions()[[rank_trait]]
+        rank_higher_is_better <- is.null(d) || identical(d, "Higher is better")
+      }
+      rank_values <- rank_values[is.finite(rank_values)]
+      validate(need(length(rank_values) > 0,
+                    "No finite values available for the selected ranking trait."))
+
+      # --- Pick the top X% of candidates; checks are always kept for reference ---
+      status_map <- stats::setNames(as.character(review_df$plot_status), review_df$designation)
+      is_check <- function(d) identical(unname(status_map[d]), "CHECK")
+      check_desigs <- names(rank_values)[vapply(names(rank_values), is_check, logical(1))]
+      cand_values <- rank_values[setdiff(names(rank_values), check_desigs)]
+
+      n_top <- max(1L, ceiling(length(cand_values) * (top_pct / 100)))
+      ordered_cands <- names(sort(cand_values, decreasing = rank_higher_is_better))
+      top_desigs <- utils::head(ordered_cands, n_top)
+      keep_desigs <- unique(c(top_desigs, check_desigs))
+
+      # --- Restrict to the kept individuals ---
+      sl <- sta_long[
+        sta_long$designation %in% keep_desigs & is.finite(sta_long$predictedValue),
+        , drop = FALSE
+      ]
+      validate(need(nrow(sl) > 0,
+                    "No environment-level data available for the selected individuals."))
+
+      # --- Assign each environment to its cluster (same source as the lollipop) ---
+      clusters <- tryCatch(lollipop_cluster_assignments(), error = function(e) NULL)
+      if (!is.null(clusters) && length(clusters) > 0) {
+        lbl <- unname(clusters[as.character(sl$environment)])
+        lbl[is.na(lbl)] <- "Unassigned"
+        sl$cluster <- lbl
+      } else {
+        sl$cluster <- "All environments"
+      }
+
+      # Number of environments contributing to each cluster
+      envs_per_cluster <- tapply(
+        as.character(sl$environment), sl$cluster,
+        function(x) length(unique(x))
+      )
+
+      # --- Mean per designation x cluster x trait, then traits as columns ---
+      agg <- stats::aggregate(
+        predictedValue ~ designation + cluster + trait,
+        data = sl, FUN = mean, na.rm = TRUE
+      )
+
+      trait_levels <- unique(as.character(agg$trait))
+      cluster_levels <- unique(as.character(agg$cluster))
+
+      per_cluster <- list()
+      for (cl in cluster_levels) {
+        sub <- agg[agg$cluster == cl, , drop = FALSE]
+        wide <- stats::reshape(
+          sub[, c("designation", "trait", "predictedValue"), drop = FALSE],
+          idvar = "designation", timevar = "trait", direction = "wide"
+        )
+        names(wide) <- sub("^predictedValue\\.", "", names(wide))
+
+        wide$plot_status <- unname(status_map[wide$designation])
+        wide$plot_status[is.na(wide$plot_status)] <- "NOT SELECTED"
+        wide$rank_value <- unname(rank_values[wide$designation])
+
+        # Best individuals first by default
+        ord_key <- if (rank_higher_is_better) -wide$rank_value else wide$rank_value
+        wide <- wide[order(ord_key, wide$designation), , drop = FALSE]
+
+        per_cluster[[cl]] <- wide
+      }
+
+      list(
+        clusters = cluster_levels,
+        per_cluster = per_cluster,
+        envs_per_cluster = envs_per_cluster,
+        traits = trait_levels,
+        rank_trait = rank_trait,
+        rank_higher_is_better = rank_higher_is_better,
+        n_top = length(top_desigs),
+        n_candidates = length(cand_values),
+        n_checks = length(check_desigs)
+      )
+    })
+
+    # --- Performance across locations: summary line ---
+    output$perfTableSummary <- renderUI({
+      obj <- performance_table_data()
+      req(obj)
+      label <- if (identical(obj$rank_trait, "index_value")) "Index Value" else tpp_display_name(obj$rank_trait)
+      div(
+        style = "background-color:#2C3E50; color:white; padding:12px; border-radius:8px; margin-bottom:12px;",
+        sprintf(
+          "Top %d of %d candidates by %s%s — shown across %d environment cluster%s",
+          obj$n_top, obj$n_candidates, label,
+          if (obj$n_checks > 0) sprintf(" (plus %d checks)", obj$n_checks) else "",
+          length(obj$clusters), if (length(obj$clusters) == 1) "" else "s"
+        )
+      )
+    })
+
+    # Stable output id / CSS class per cluster label
+    perf_cluster_output_id <- function(cluster_label) {
+      paste0("perfClusterDT_", gsub("[^A-Za-z0-9]", "_", cluster_label))
+    }
+    perf_cluster_css_class <- function(cluster_label) {
+      paste0("perfclus-", gsub("[^A-Za-z0-9]", "-", cluster_label))
+    }
+
+    # Cluster -> colour, matching the "Trial locations by environment cluster" map
+    perf_cluster_colors <- reactive({
+      clusters <- tryCatch(lollipop_cluster_assignments(), error = function(e) NULL)
+      if (is.null(clusters) || length(clusters) == 0) {
+        return(stats::setNames(character(0), character(0)))
+      }
+      weather_df <- tryCatch(tpe_weather_summary(), error = function(e) NULL)
+      cluster_palette_map(clusters, weather_df)
+    })
+
+    # --- One table per environment cluster (mirrors the old lollipop facets) ---
+    output$perfClusterTablesUI <- renderUI({
+      obj <- performance_table_data()
+      req(obj)
+
+      colmap <- tryCatch(perf_cluster_colors(), error = function(e) NULL)
+
+      tagList(lapply(obj$clusters, function(cl) {
+        n_env <- obj$envs_per_cluster[[cl]]
+
+        # Cluster colour from the map; fall back to the default box blue
+        col <- if (!is.null(colmap) && cl %in% names(colmap)) unname(colmap[[cl]]) else "#3C8DBC"
+        tint <- blend_color(col, 0.08)   # very light wash of the cluster colour
+        cls <- perf_cluster_css_class(cl)
+        table_id <- ns(perf_cluster_output_id(cl))
+
+        # Scope every rule to this cluster's wrapper so tables don't affect
+        # each other or the decision table elsewhere in the app.
+        # NOTE: descendant selectors (not "> .box") are required because
+        # shinydashboard::box(width = ) nests .box inside a col-sm-* div.
+        # !important is required on the header because the app-level
+        # "table.decision-table thead th" rule uses !important, which beats
+        # plain declarations regardless of selector specificity.
+        css <- sprintf(paste0(
+          # Card body: light wash of the cluster colour, clearly separated from
+          # the table above so the coloured header reads as this table's title.
+          ".%1$s { display: block; margin-top: 26px; }",
+          ".%1$s .box { background-color: %3$s; border: 1px solid %2$s;",
+          " border-top: none; box-shadow: 0 1px 2px rgba(0,0,0,0.08);",
+          " margin-bottom: 6px; }",
+          # Cluster name styled as a solid title bar
+          ".%1$s .box-header { background-color: %2$s !important;",
+          " padding: 12px 14px !important; border-radius: 2px 2px 0 0; }",
+          ".%1$s .box-header .box-title { color: #ffffff !important;",
+          " font-weight: 700 !important; font-size: 15px !important;",
+          " letter-spacing: 0.2px; }",
+          ".%1$s .box-header .btn-box-tool,",
+          ".%1$s .box-header .btn-box-tool:hover { color: #ffffff !important;",
+          " opacity: 0.95; }",
+          ".%1$s .box-body { padding-top: 8px; }",
+          # Table header row in the same cluster colour
+          "#%4$s table.decision-table thead th,",
+          "#%4$s table.dataTable thead th {",
+          " background-color: %2$s !important;",
+          " color: #ffffff !important;",
+          " border-bottom: 2px solid %2$s !important; }",
+          "#%4$s table.dataTable thead th.sorting:after,",
+          "#%4$s table.dataTable thead th.sorting_asc:after,",
+          "#%4$s table.dataTable thead th.sorting_desc:after { color: #ffffff !important; }",
+          "#%4$s .dataTables_wrapper { background-color: transparent; }"
+        ), cls, col, tint, table_id)
+
+        div(
+          class = cls,
+          tags$style(HTML(css)),
+          shinydashboard::box(
+            width = 12,
+            title = sprintf("%s (%d environment%s)", cl, n_env,
+                            if (identical(as.integer(n_env), 1L)) "" else "s"),
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = FALSE,
+            DT::DTOutput(ns(perf_cluster_output_id(cl)))
+          )
+        )
+      }))
+    })
+
+    # Register a DT renderer for each cluster table
+    observe({
+      obj <- performance_table_data()
+      req(obj)
+
+      dirs <- tryCatch(perf_trait_directions(), error = function(e) list())
+      rank_label <- if (identical(obj$rank_trait, "index_value")) {
+        "Index Value"
+      } else {
+        tpp_display_name(obj$rank_trait)
+      }
+
+      lapply(obj$clusters, function(cl) {
+        local({
+          cluster_label <- cl
+          out_id <- perf_cluster_output_id(cluster_label)
+          tbl <- obj$per_cluster[[cluster_label]]
+
+          output[[out_id]] <- DT::renderDT({
+            tryCatch({
+              traits <- intersect(obj$traits, colnames(tbl))
+
+              display_df <- data.frame(
+                designation = tbl$designation,
+                stringsAsFactors = FALSE
+              )
+
+              # Status badge (no manual decision control on this table)
+              display_df$status <- vapply(tbl$plot_status, function(st) {
+                sprintf(
+                  "<div style='background:%s; padding:6px; border-radius:4px; text-align:center; font-weight:600;'>%s</div>",
+                  gradient_status_color(st), st
+                )
+              }, character(1), USE.NAMES = FALSE)
+
+              # Ranking metric column, gradient-filled
+              display_df$rank_value <- gradient_cells(
+                tbl$rank_value, tbl$plot_status,
+                higher_is_better = obj$rank_higher_is_better, bold = TRUE
+              )
+
+              # One gradient column per trait, direction-aware
+              for (tr in traits) {
+                d <- dirs[[tr]]
+                hib <- is.null(d) || identical(d, "Higher is better")
+                display_df[[tr]] <- gradient_cells(tbl[[tr]], tbl$plot_status,
+                                                   higher_is_better = hib)
+              }
+
+              # unname() is required: a named colnames vector makes DT treat it
+              # as a new = old rename map and then fail resolving 'escape'.
+              col_labels <- unname(c(
+                "Designation", "Status", rank_label,
+                vapply(traits, tpp_display_name, character(1))
+              ))
+
+              DT::datatable(
+                display_df,
+                escape = FALSE,
+                rownames = FALSE,
+                selection = "none",
+                colnames = col_labels,
+                class = "compact stripe hover nowrap decision-table",
+                options = list(
+                  scrollX = TRUE,
+                  paging = FALSE,
+                  searching = TRUE,
+                  ordering = TRUE,
+                  order = list(),
+                  autoWidth = FALSE,
+                  dom = "ft"
+                )
+              )
+            }, error = function(e) {
+              DT::datatable(data.frame(error = conditionMessage(e)))
+            })
+          })
+        })
+      })
+    })
 
     # --- Cluster map output ---
     output$clusterMapPlot <- plotly::renderPlotly({
@@ -4983,6 +6902,7 @@ mod_preProdAdvApp_server <- function(id, data){
       )
     })
 
+
     output$scatterXTraitUI <- renderUI({
       plot_obj <- review_plot_data()
       req(plot_obj)
@@ -4990,10 +6910,13 @@ mod_preProdAdvApp_server <- function(id, data){
       trait_choices <- plot_obj$traits
       req(length(trait_choices) >= 2)
 
+      # Use TPP display names as labels
+      named_choices <- stats::setNames(trait_choices, vapply(trait_choices, tpp_display_name, character(1)))
+
       selectInput(
         ns("scatterXTrait"),
         "X-axis trait",
-        choices = trait_choices,
+        choices = named_choices,
         selected = trait_choices[1]
       )
     })
@@ -5007,10 +6930,13 @@ mod_preProdAdvApp_server <- function(id, data){
 
       default_y <- if (length(trait_choices) >= 2) trait_choices[2] else trait_choices[1]
 
+      # Use TPP display names as labels
+      named_choices <- stats::setNames(trait_choices, vapply(trait_choices, tpp_display_name, character(1)))
+
       selectInput(
         ns("scatterYTrait"),
         "Y-axis trait",
-        choices = trait_choices,
+        choices = named_choices,
         selected = default_y
       )
     })
@@ -5025,11 +6951,12 @@ mod_preProdAdvApp_server <- function(id, data){
         req(length(trait_choices) >= 2)
 
         y_choices <- trait_choices[trait_choices != input$scatterXTrait]
+        named_y_choices <- stats::setNames(y_choices, vapply(y_choices, tpp_display_name, character(1)))
 
         updateSelectInput(
           session,
           "scatterYTrait",
-          choices = y_choices,
+          choices = named_y_choices,
           selected = y_choices[1]
         )
       },
@@ -5180,11 +7107,85 @@ mod_preProdAdvApp_server <- function(id, data){
       p <- p +
         ggplot2::scale_fill_manual(values = status_colors) +
         ggplot2::scale_alpha_identity() +
-        ggplot2::labs(x = x_trait, y = y_trait, fill = "Status") +
+        ggplot2::labs(x = tpp_display_name(x_trait), y = tpp_display_name(y_trait), fill = "Status") +
         ggplot2::theme_minimal(base_size = 13) +
         ggplot2::theme(legend.position = "bottom")
 
-      plotly::ggplotly(p, tooltip = "text", source = ns("pairwiseScatter"))
+      fig <- plotly::ggplotly(p, tooltip = "text", source = ns("pairwiseScatter"))
+
+      # TPP desired score reference lines (Task 11.2, Requirements 7.1-7.5)
+      if (isTRUE(input$scatterShowTppLines) && !is.null(tpp_id_prepam()) && !is.null(tpp_filtered_traits())) {
+        tpp_df <- tpp_filtered_traits()
+
+        # Helper: resolve desired score bounds for a trait, handling relative types
+        resolve_tpp_bounds <- function(trait_name) {
+          tryCatch({
+            if (!("pheno_trait" %in% colnames(tpp_df))) return(NULL)
+
+            # Match by pheno_trait or tpp_trait
+            t_match <- tpp_df[tpp_df$pheno_trait == trait_name, , drop = FALSE]
+            if (nrow(t_match) == 0 && "tpp_trait" %in% colnames(tpp_df)) {
+              t_match <- tpp_df[tpp_df$tpp_trait == trait_name, , drop = FALSE]
+            }
+            if (nrow(t_match) == 0) return(NULL)
+
+            score_type <- if ("score_type" %in% colnames(t_match)) t_match$score_type[1] else NA_character_
+            d_lower <- if ("desired_lower" %in% colnames(t_match)) t_match$desired_lower[1] else NA_real_
+            d_upper <- if ("desired_upper" %in% colnames(t_match)) t_match$desired_upper[1] else NA_real_
+
+            if (!is.na(score_type) && score_type == "relative") {
+              # For relative: compute absolute threshold from check mean
+              pct_above <- if ("pct_above_check" %in% colnames(t_match)) t_match$pct_above_check[1] else NA_real_
+              pct_of <- if ("pct_of_check" %in% colnames(t_match)) t_match$pct_of_check[1] else NA_real_
+
+              # Get check designations from metadata
+              check_desigs <- NULL
+              current_tpp <- isolate(tpp_id_prepam())
+              if (!is.null(current_tpp)) {
+                dt_local <- isolate(data())
+                checks_info <- dt_local$metadata$TPP[[current_tpp]]$checks_per_trait
+                tpp_trait_nm <- if ("tpp_trait" %in% colnames(t_match)) t_match$tpp_trait[1] else trait_name
+                check_desigs <- checks_info[[tpp_trait_nm]]
+              }
+
+              if (!is.null(check_desigs) && length(check_desigs) > 0 &&
+                  trait_name %in% colnames(df) && "designation" %in% colnames(df)) {
+                check_vals <- as.numeric(df[[trait_name]][df$designation %in% check_desigs])
+                check_vals <- check_vals[!is.na(check_vals)]
+                if (length(check_vals) > 0) {
+                  check_mean <- mean(check_vals)
+                  if (!is.na(pct_above) && is.finite(pct_above)) {
+                    target <- check_mean * (1 + pct_above / 100)
+                    return(list(lower = target, upper = NULL))
+                  } else if (!is.na(pct_of) && is.finite(pct_of)) {
+                    target <- check_mean * (pct_of / 100)
+                    return(list(lower = target, upper = NULL))
+                  }
+                }
+              }
+              return(NULL)
+            }
+
+            # Absolute type
+            has_lower <- !is.na(d_lower) && is.finite(d_lower)
+            has_upper <- !is.na(d_upper) && is.finite(d_upper)
+            if (!has_lower && !has_upper) return(NULL)
+            list(
+              lower = if (has_lower) d_lower else NULL,
+              upper = if (has_upper) d_upper else NULL
+            )
+          }, error = function(e) NULL)
+        }
+
+        x_trait_desired <- resolve_tpp_bounds(x_trait)
+        y_trait_desired <- resolve_tpp_bounds(y_trait)
+
+        # Apply TPP reference lines (omits lines when both are NULL)
+        fig <- tpp_add_scatterplot_lines(fig, x_trait_desired, y_trait_desired)
+      }
+
+      fig <- plotly::event_register(fig, "plotly_click")
+      fig
     })
 
     observeEvent(plotly::event_data("plotly_click", source = ns("pairwiseScatter")), {
@@ -6127,7 +8128,7 @@ mod_preProdAdvApp_server <- function(id, data){
           source = ns("tpePerformanceMap")
         )
 
-      p %>%
+      p <- p %>%
         plotly::layout(
           title = paste("Performance across TPE -", input$tpeDesignation, "-", input$tpeTrait),
           xaxis = list(
@@ -6146,6 +8147,10 @@ mod_preProdAdvApp_server <- function(id, data){
           plot_bgcolor = "white",
           paper_bgcolor = "white"
         )
+
+      p <- plotly::event_register(p, "plotly_hover")
+      p <- plotly::event_register(p, "plotly_unhover")
+      p
     })
 
     observeEvent(
@@ -6442,6 +8447,7 @@ mod_preProdAdvApp_server <- function(id, data){
           values = c(
             "SELECTED" = "#0072B2",
             "NOT SELECTED" = "#D55E00",
+            "REVISE" = "#F9A825",
             "CHECK" = "#C2185B"
           ),
           drop = FALSE
@@ -6450,6 +8456,7 @@ mod_preProdAdvApp_server <- function(id, data){
           values = c(
             "SELECTED" = 0.6,
             "NOT SELECTED" = 0.6,
+            "REVISE" = 0.8,
             "CHECK" = 1.0
           )
         )+
@@ -6477,6 +8484,19 @@ mod_preProdAdvApp_server <- function(id, data){
       ui_list <- list()
 
       if ("Pair-wise trait scatterplot" %in% selected_plots) {
+        # Determine if TPP checkbox should be shown
+        show_tpp_checkbox <- !is.null(tpp_id_prepam()) && !is.null(tpp_filtered_traits())
+
+        tpp_checkbox_ui <- if (show_tpp_checkbox) {
+          checkboxInput(
+            ns("scatterShowTppLines"),
+            label = "Show TPP desired scores",
+            value = FALSE
+          )
+        } else {
+          NULL
+        }
+
         ui_list <- c(
           ui_list,
           list(
@@ -6495,7 +8515,8 @@ mod_preProdAdvApp_server <- function(id, data){
                     ns("scatterShowRegression"),
                     label = "Show regression lines & means",
                     value = TRUE
-                  )
+                  ),
+                  tpp_checkbox_ui
                 )
               ),
               plotly::plotlyOutput(ns("pairwiseScatterPlot"), height = "650px")
@@ -6525,23 +8546,7 @@ mod_preProdAdvApp_server <- function(id, data){
         ui_list <- c(
           ui_list,
           list(
-            fluidRow(
-              column(
-                width = 12,
-                shinydashboard::box(
-                  width = 12,
-                  title = "Performance across locations (lollipop)",
-                  status = "primary",
-                  solidHeader = TRUE,
-                  collapsible = TRUE,
-                  collapsed = FALSE,
-                  fluidRow(
-                    column(12, uiOutput(ns("lollipopTraitUI")))
-                  ),
-                  plotly::plotlyOutput(ns("lollipopPlot"), height = "auto")
-                )
-              )
-            ),
+            # Map first: it defines the cluster colours the tables below reuse
             fluidRow(
               column(
                 width = 12,
@@ -6553,6 +8558,41 @@ mod_preProdAdvApp_server <- function(id, data){
                   collapsible = TRUE,
                   collapsed = FALSE,
                   plotly::plotlyOutput(ns("clusterMapPlot"), height = "400px")
+                )
+              )
+            ),
+            fluidRow(
+              column(
+                width = 12,
+                shinydashboard::box(
+                  width = 12,
+                  title = "Performance across locations",
+                  status = "primary",
+                  solidHeader = TRUE,
+                  collapsible = TRUE,
+                  collapsed = FALSE,
+                  fluidRow(
+                    column(6, uiOutput(ns("perfTableTraitUI"))),
+                    column(
+                      6,
+                      numericInput(
+                        ns("perfTablePct"),
+                        label = tags$span(
+                          "Top % of individuals",
+                          tags$i(
+                            class = "glyphicon glyphicon-info-sign",
+                            title = "Show only the best-performing X% of candidates for the selected trait. Checks are always shown for reference."
+                          )
+                        ),
+                        value = 20,
+                        min = 1,
+                        max = 100,
+                        step = 1
+                      )
+                    )
+                  ),
+                  uiOutput(ns("perfTableSummary")),
+                  uiOutput(ns("perfClusterTablesUI"))
                 )
               )
             )
@@ -7180,7 +9220,7 @@ mod_preProdAdvApp_server <- function(id, data){
         error = function(e) { NULL }
       )
       validate(need(!is.null(result), "Error building relatedness plot."))
-      result
+      plotly::event_register(result, "plotly_click")
     })
 
     # Click-to-highlight handler for relatedness plot
@@ -7420,6 +9460,7 @@ mod_preProdAdvApp_server <- function(id, data){
       bg <- dplyr::case_when(
         decision == "SELECTED" ~ "#D6EAF8",
         decision == "NOT SELECTED" ~ "#F5C4A5",
+        decision == "REVISE" ~ "#FFF3CD",
         decision == "CHECK" ~ "#E3A9C4",
         TRUE ~ "#FFFFFF"
       )
@@ -7758,10 +9799,49 @@ mod_preProdAdvApp_server <- function(id, data){
       )
     })
 
+    # Resolve the requested display portion for the Final Decision Table.
+    # Returns -1 for "All". Display-only: saving uses the full table.
+    final_table_portion <- reactive({
+      p <- suppressWarnings(as.integer(input$finalTablePortion))
+      if (length(p) != 1 || is.na(p)) return(-1L)
+      p
+    })
+
+    # Note beside the selector: how many of the total rows are on screen
+    output$finalTablePortionNote <- renderUI({
+      tbl <- final_decision_data()
+      req(tbl)
+      n_total <- nrow(tbl)
+      portion <- final_table_portion()
+      n_shown <- if (portion > 0) min(portion, n_total) else n_total
+
+      msg <- if (n_shown < n_total) {
+        sprintf("Showing top %d of %d evaluated individuals (ranked by index).", n_shown, n_total)
+      } else {
+        sprintf("Showing all %d evaluated individuals.", n_total)
+      }
+
+      tags$div(
+        style = "padding-top: 32px; color:#2C3E50;",
+        msg,
+        tags$span(
+          style = "color:#777; font-style:italic;",
+          " Saving the final selection always includes every individual."
+        )
+      )
+    })
+
     # Render finalDecisionDT with gradient coloring (same pattern as tableDecisionDT)
     output$finalDecisionDT <- DT::renderDT({
       tbl <- final_decision_data()
       req(tbl)
+
+      # Subset to the requested portion. final_decision_data() is already sorted
+      # by index_value descending, so this yields the top N.
+      portion <- final_table_portion()
+      if (portion > 0 && portion < nrow(tbl)) {
+        tbl <- tbl[seq_len(portion), , drop = FALSE]
+      }
 
       # Get trait columns from modeling
       dt <- data()
@@ -7929,6 +10009,461 @@ mod_preProdAdvApp_server <- function(id, data){
           ordering = TRUE,
           autoWidth = FALSE,
           dom = "ft"
+        )
+      )
+    })
+
+    ###########################################
+    # Final Review: Selection Statistics (Req 9)
+    ###########################################
+
+    # Metrics shown in the Final Review statistics/plots: the selection index
+    # plus every trait used in the initial selection.
+    final_review_metrics <- reactive({
+      tbl <- tryCatch(final_decision_data(), error = function(e) NULL)
+      if (is.null(tbl) || !is.data.frame(tbl) || nrow(tbl) == 0) return(character(0))
+
+      dt <- data()
+      init_stamp <- input$reportInitialSelectionStamp
+      modeling_init <- dt$modeling[
+        dt$modeling$analysisId %in% init_stamp &
+          dt$modeling$module == "Init_prodAdv", , drop = FALSE
+      ]
+      traits <- unique(modeling_init$trait[!is.na(modeling_init$trait) & nzchar(modeling_init$trait)])
+      traits <- traits[!traits %in%
+        modeling_init$trait[modeling_init$parameter == "user_excluded_trait"]]
+      traits <- intersect(traits, colnames(tbl))
+
+      metrics <- character(0)
+      if ("index_value" %in% colnames(tbl)) metrics <- "index_value"
+      metrics <- c(metrics, traits)
+
+      # Keep only metrics that actually have finite values to summarise
+      metrics <- metrics[vapply(metrics, function(m) {
+        any(is.finite(suppressWarnings(as.numeric(tbl[[m]]))))
+      }, logical(1))]
+
+      metrics
+    })
+
+    # Human-readable label for a metric column
+    final_review_metric_label <- function(m) {
+      if (identical(m, "index_value")) "Index Value" else tpp_display_name(m)
+    }
+
+    # Long-format values per metric and group (Selected / All candidates / Checks).
+    # Groups come from the final decision, not from a display portion.
+    # Returns NULL (rather than req()/validate()) when there is nothing to
+    # summarise, so the observers that register the per-trait tables can bail
+    # out cleanly instead of raising errors.
+    final_review_long <- reactive({
+      tbl <- tryCatch(final_decision_data(), error = function(e) NULL)
+      if (is.null(tbl) || !is.data.frame(tbl) || nrow(tbl) == 0) return(NULL)
+      if (!("final_decision" %in% colnames(tbl))) return(NULL)
+
+      metrics <- tryCatch(final_review_metrics(), error = function(e) character(0))
+      if (length(metrics) == 0) return(NULL)
+
+      decisions <- toupper(trimws(as.character(tbl$final_decision)))
+      is_check <- decisions == "CHECK"
+      is_selected <- decisions == "SELECTED" & !is_check
+
+      # A group can legitimately be empty — e.g. no individual met a trait
+      # threshold, so nothing is SELECTED. data.frame() cannot recycle a
+      # length-1 column against a length-0 one ("arguments imply differing
+      # number of rows: 1, 0"), so skip empty groups instead of constructing
+      # them.
+      make_piece <- function(metric, group, values) {
+        values <- values[is.finite(values)]
+        if (length(values) == 0) return(NULL)
+        data.frame(
+          metric = rep(metric, length(values)),
+          group  = rep(group, length(values)),
+          value  = values,
+          stringsAsFactors = FALSE
+        )
+      }
+
+      out <- do.call(rbind, lapply(metrics, function(m) {
+        vals <- suppressWarnings(as.numeric(tbl[[m]]))
+        pieces <- list(
+          make_piece(m, "All candidates", vals[!is_check]),
+          make_piece(m, "Selected",       vals[is_selected]),
+          make_piece(m, "Checks",         vals[is_check])
+        )
+        pieces <- pieces[!vapply(pieces, is.null, logical(1))]
+        if (length(pieces) == 0) return(NULL)
+        do.call(rbind, pieces)
+      }))
+
+      if (is.null(out) || nrow(out) == 0) return(NULL)
+      out$label <- vapply(out$metric, final_review_metric_label, character(1))
+      out
+    })
+
+    # Render: Selection percentage (SELECTED / total candidates excl checks)
+    output$finalReviewSelPct <- renderUI({
+      tbl <- final_decision_data()
+      req(tbl)
+      req("final_decision" %in% colnames(tbl))
+
+      decisions <- toupper(trimws(as.character(tbl$final_decision)))
+      # Exclude checks from denominator
+      candidates <- decisions[decisions != "CHECK"]
+      n_candidates <- length(candidates)
+      n_selected <- sum(candidates == "SELECTED", na.rm = TRUE)
+
+      if (n_candidates > 0) {
+        pct <- round((n_selected / n_candidates) * 100, 1)
+      } else {
+        pct <- 0
+      }
+
+      tags$div(
+        style = "padding-top: 30px;",
+        tags$h4(
+          style = "color: #2C3E50; font-weight: 600;",
+          paste0("Final Selection: ", n_selected, " / ", n_candidates,
+                 " candidates SELECTED (", pct, "%)")
+        )
+      )
+    })
+
+    # Stable output id per metric for the per-trait statistics tables.
+    # `prefix` lets the Output-tab dashboard render its own copies of the same
+    # tables without clashing with the Final Review tab's output ids.
+    final_review_stats_output_id <- function(metric, prefix = "finalStatsDT_") {
+      paste0(prefix, gsub("[^A-Za-z0-9]", "_", metric))
+    }
+
+    # Per-metric statistics data.frame (Selected / All candidates / Checks)
+    final_review_stats_for <- function(long, metric) {
+      sub <- long[long$metric == metric, , drop = FALSE]
+      s <- tpp_compute_dashboard_stats(list(
+        selected = sub$value[sub$group == "Selected"],
+        overall  = sub$value[sub$group == "All candidates"],
+        checks   = sub$value[sub$group == "Checks"]
+      ))
+      if (!all(c("Group", "Min") %in% colnames(s))) return(NULL)
+      # Match the plot legend wording
+      s$Group[s$Group == "Overall"] <- "All candidates"
+      s$Group <- factor(s$Group, levels = names(REVIEW_GROUP_COLORS))
+      s <- s[order(s$Group), , drop = FALSE]
+      s$Group <- as.character(s$Group)
+      for (col in intersect(c("Min", "Max", "Mean", "Median", "SD"), colnames(s))) {
+        s[[col]] <- round(as.numeric(s[[col]]), 3)
+      }
+      s
+    }
+
+    # Build the "one table per trait" UI for a given output-id prefix
+    final_review_stats_ui <- function(metrics, prefix) {
+      tagList(lapply(metrics, function(m) {
+        tags$div(
+          style = "margin-bottom: 18px;",
+          tags$div(
+            style = paste0(
+              "font-weight:700; font-size:14px; color:#2C3E50;",
+              " padding:6px 0 4px 2px; border-bottom:2px solid #2C3E50;",
+              " margin-bottom:6px;"
+            ),
+            final_review_metric_label(m)
+          ),
+          DT::DTOutput(ns(final_review_stats_output_id(m, prefix)))
+        )
+      }))
+    }
+
+    # Register one DT renderer per metric for a given output-id prefix
+    final_review_register_stats <- function(long, metrics, prefix) {
+      faded <- review_group_colors_faded(0.35)
+
+      lapply(metrics, function(m) {
+        local({
+          metric_name <- m
+          out_id <- final_review_stats_output_id(metric_name, prefix)
+
+          output[[out_id]] <- DT::renderDT({
+            stats_df <- final_review_stats_for(long, metric_name)
+            validate(need(!is.null(stats_df) && nrow(stats_df) > 0,
+                          "No trait distribution data available."))
+
+            dt_obj <- DT::datatable(
+              stats_df,
+              rownames = FALSE,
+              selection = "none",
+              options = list(
+                dom = "t",
+                paging = FALSE,
+                searching = FALSE,
+                ordering = FALSE,
+                scrollX = TRUE
+              )
+            )
+
+            # Faded decision-table colours per group row
+            DT::formatStyle(
+              dt_obj,
+              "Group",
+              target = "row",
+              backgroundColor = DT::styleEqual(names(faded), unname(faded))
+            )
+          })
+        })
+      })
+      invisible(NULL)
+    }
+
+    # Faceted distribution plot: SELECTED vs ALL candidates, one panel per metric
+    final_review_build_plot <- function(long) {
+      plot_df <- long[long$group %in% c("All candidates", "Selected"), , drop = FALSE]
+      if (nrow(plot_df) == 0) return(NULL)
+
+      metric_order <- unique(long$metric)
+      label_order <- vapply(metric_order, final_review_metric_label, character(1))
+      plot_df$label <- factor(plot_df$label, levels = unname(label_order))
+      plot_df$group <- factor(plot_df$group, levels = c("All candidates", "Selected"))
+
+      check_df <- long[long$group == "Checks", , drop = FALSE]
+      check_means <- NULL
+      if (nrow(check_df) > 0) {
+        check_means <- stats::aggregate(value ~ label, data = check_df, FUN = mean, na.rm = TRUE)
+        check_means$label <- factor(check_means$label, levels = unname(label_order))
+      }
+
+      p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = value, fill = group)) +
+        ggplot2::geom_histogram(position = "identity", alpha = 0.55,
+                                bins = 30, colour = NA) +
+        ggplot2::facet_wrap(~ label, scales = "free", ncol = 2) +
+        ggplot2::scale_fill_manual(
+          values = c(
+            "All candidates" = unname(REVIEW_GROUP_COLORS[["All candidates"]]),
+            "Selected"       = unname(REVIEW_GROUP_COLORS[["Selected"]])
+          ),
+          name = NULL
+        ) +
+        ggplot2::labs(x = "Predicted value", y = "Count") +
+        ggplot2::theme_minimal(base_size = 12) +
+        ggplot2::theme(
+          legend.position = "top",
+          panel.spacing = grid::unit(1.1, "lines"),
+          strip.text = ggplot2::element_text(face = "bold")
+        )
+
+      if (!is.null(check_means) && nrow(check_means) > 0) {
+        p <- p + ggplot2::geom_vline(
+          data = check_means,
+          ggplot2::aes(xintercept = value),
+          colour = unname(REVIEW_GROUP_COLORS[["Checks"]]),
+          linetype = "dashed", linewidth = 0.9
+        )
+      }
+
+      # Mean lines for Selected and All candidates
+      sel_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "Selected", , drop = FALSE], FUN = mean, na.rm = TRUE)
+      all_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "All candidates", , drop = FALSE], FUN = mean, na.rm = TRUE)
+      if (nrow(sel_means) > 0) {
+        sel_means$label <- factor(sel_means$label, levels = levels(plot_df$label))
+        p <- p + ggplot2::geom_vline(
+          data = sel_means,
+          ggplot2::aes(xintercept = value),
+          colour = unname(REVIEW_GROUP_COLORS[["Selected"]]),
+          linetype = "dashed", linewidth = 0.7
+        )
+      }
+      if (nrow(all_means) > 0) {
+        all_means$label <- factor(all_means$label, levels = levels(plot_df$label))
+        p <- p + ggplot2::geom_vline(
+          data = all_means,
+          ggplot2::aes(xintercept = value),
+          colour = unname(REVIEW_GROUP_COLORS[["All candidates"]]),
+          linetype = "dashed", linewidth = 0.7
+        )
+      }
+
+      n_panels <- length(unique(plot_df$label))
+      n_rows <- ceiling(n_panels / 2)
+
+      fig <- plotly::ggplotly(p, height = max(320, 240 * n_rows))
+
+      # Legend above the panels so it cannot overlap the x-axis title
+      plotly::layout(
+        fig,
+        legend = list(
+          orientation = "h",
+          x = 0.5, xanchor = "center",
+          y = 1.06, yanchor = "bottom"
+        ),
+        margin = list(t = 70, b = 70)
+      )
+    }
+
+    # Shown when there is nothing to summarise (e.g. no individual met a trait
+    # threshold, so no trait values fall into any group)
+    final_review_empty_note <- function() {
+      tags$div(
+        style = paste0(
+          "padding:12px 14px; background-color:#FCF3CF; border-left:4px solid #B7950B;",
+          " border-radius:3px; color:#7D6608;"
+        ),
+        tags$b("No statistics to display."),
+        " No trait values are available to summarise for this selection \u2014 this",
+        " happens when no individual met the configured thresholds, so the selected",
+        " set is empty. Revisit the trait thresholds in the Input steps if this is",
+        " unexpected."
+      )
+    }
+
+    # --- Final Review tab: one statistics table per trait ---
+    output$finalReviewStatsUI <- renderUI({
+      long <- final_review_long()
+      if (is.null(long)) return(final_review_empty_note())
+      final_review_stats_ui(unique(long$metric), "finalStatsDT_")
+    })
+
+    observe({
+      long <- final_review_long()
+      if (is.null(long)) return()
+      final_review_register_stats(long, unique(long$metric), "finalStatsDT_")
+    })
+
+    # --- Output dashboard: the same tables, separate output ids ---
+    output$dashStatsUI <- renderUI({
+      long <- final_review_long()
+      if (is.null(long)) return(final_review_empty_note())
+      final_review_stats_ui(unique(long$metric), "dashStatsDT_")
+    })
+
+    observe({
+      long <- final_review_long()
+      if (is.null(long)) return()
+      final_review_register_stats(long, unique(long$metric), "dashStatsDT_")
+    })
+
+    output$dashStatsHistogram <- plotly::renderPlotly({
+      long <- final_review_long()
+      validate(need(!is.null(long), "No trait distribution data available."))
+      fig <- final_review_build_plot(long)
+      validate(need(!is.null(fig), "No trait distribution data available."))
+      fig
+    })
+
+    # Render: distribution of SELECTED candidates against ALL candidates, one
+    # panel per metric (selection index + every trait). Checks are drawn as a
+    # dashed reference line rather than bars so they don't distort the counts.
+    output$finalReviewHistogram <- plotly::renderPlotly({
+      long <- final_review_long()
+      validate(need(!is.null(long), "No trait distribution data available."))
+      fig <- final_review_build_plot(long)
+      validate(need(!is.null(fig), "No trait distribution data available."))
+      fig
+    })
+
+    # Render: TPP compliance percentages (only when TPP is active)
+    output$finalReviewTppPctsDT <- DT::renderDT({
+      tbl <- final_decision_data()
+      req(tbl)
+      req("final_decision" %in% colnames(tbl))
+
+      # Check TPP is active
+      current_tpp <- tpp_id_prepam()
+      filtered <- tpp_filtered_traits()
+      has_tpp <- !is.null(current_tpp) && !is.null(filtered) &&
+        is.data.frame(filtered) && nrow(filtered) > 0
+
+      req(has_tpp)
+
+      # Build criteria list
+      checks_info <- if (!is.null(current_tpp) && !is.null(data()$metadata$TPP[[current_tpp]]$checks_per_trait)) {
+        data()$metadata$TPP[[current_tpp]]$checks_per_trait
+      } else { NULL }
+      tpp_criteria <- tpp_build_criteria_list_from_filtered(filtered, tbl, checks_per_trait = checks_info)
+      req(length(tpp_criteria) > 0)
+
+      # Evaluate criteria matrices for both category filters
+      criteria_matrix_all <- tpp_evaluate_all_criteria(
+        tbl, tpp_criteria,
+        category_filter = c("Essential_Improve", "Essential_Maintain")
+      )
+      criteria_matrix_improve <- tpp_evaluate_all_criteria(
+        tbl, tpp_criteria,
+        category_filter = "Essential_Improve"
+      )
+
+      # Get selected designations (SELECTED status)
+      decisions <- toupper(trimws(as.character(tbl$final_decision)))
+      selected_designations <- tbl$designation[decisions == "SELECTED"]
+
+      # Compute compliance percentages
+      compliance_df <- tpp_compute_compliance_pcts(
+        criteria_matrix_all,
+        criteria_matrix_improve,
+        subset_designations = selected_designations
+      )
+
+      # If it returned a message (no data), return NULL
+      if ("Message" %in% colnames(compliance_df)) {
+        return(NULL)
+      }
+
+      # Format percentages
+      compliance_df$Selected_Pct <- paste0(round(compliance_df$Selected_Pct, 1), "%")
+      compliance_df$Overall_Pct <- paste0(round(compliance_df$Overall_Pct, 1), "%")
+
+      colnames(compliance_df) <- c("TPP Criteria", "Selected (%)", "Overall (%)")
+
+      DT::datatable(
+        compliance_df,
+        rownames = FALSE,
+        selection = "none",
+        options = list(
+          dom = "t",
+          paging = FALSE,
+          searching = FALSE,
+          ordering = FALSE
+        ),
+        caption = "TPP Compliance: % of individuals meeting all criteria"
+      )
+    })
+
+    # --- TPP Breakdown box on the Final Review tab (collapsed, only when TPP is active) ---
+    output$finalReviewTppBreakdownBox <- renderUI({
+      current_tpp <- tpp_id_prepam()
+      if (is.null(current_tpp)) return(NULL)
+
+      dt <- tryCatch(data(), error = function(e) NULL)
+      if (is.null(dt)) return(NULL)
+      tpp_meta_all <- dt$metadata$TPP
+      if (is.null(tpp_meta_all) || !(current_tpp %in% names(tpp_meta_all))) return(NULL)
+
+      ns <- session$ns
+      shinydashboard::box(
+        width = 12,
+        title = paste0("TPP Breakdown (", current_tpp, ")"),
+        status = "info",
+        solidHeader = TRUE,
+        collapsible = TRUE,
+        collapsed = TRUE,
+        DT::DTOutput(ns("finalReviewTppBreakdownDT"))
+      )
+    })
+
+    output$finalReviewTppBreakdownDT <- DT::renderDT({
+      res <- tpp_breakdown_detail()
+
+      if (is.null(res)) {
+        msg_df <- data.frame(Message = "No TPP information available",
+                             stringsAsFactors = FALSE)
+        return(DT::datatable(msg_df, options = list(dom = "t", paging = FALSE),
+                             rownames = FALSE))
+      }
+
+      tpp_style_breakdown_proximity(
+        DT::datatable(
+          res$table,
+          rownames = FALSE,
+          selection = "none",
+          options = list(dom = "tp", pageLength = 20, scrollX = TRUE, ordering = TRUE)
         )
       )
     })
@@ -8107,8 +10642,14 @@ mod_preProdAdvApp_server <- function(id, data){
       tmp_report <- file.path(tempdir(), "reportProdAdv_tmp.Rmd")
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
+      .rx <- report_extra_payload()
+      review_long      <- .rx$review_long
+      breakdown_detail <- .rx$breakdown_detail
+      options_table    <- .rx$options_table
+
       save(result, final_table_export, trait_directions, trait_thresholds,
-           STATUS_COLORS, STATUS_SHAPES, analysis_name, file = tmp_rdata)
+           STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
+           review_long, breakdown_detail, options_table, file = tmp_rdata)
       file.copy(src, tmp_report, overwrite = TRUE)
 
       updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -8151,25 +10692,53 @@ mod_preProdAdvApp_server <- function(id, data){
       stampsTableSel <- make_stamp_choices(dtTableSel)
       stampsPlotSel  <- make_stamp_choices(dtPlotSel)
 
+      # This observer re-fires on every data() change, which includes saving a
+      # final decision. Keep whatever the user already picked so the selection
+      # isn't silently moved off their stamp; only fall back to a default when
+      # the current value is unset or no longer a valid choice. The default is
+      # the MOST RECENT stamp, matching the two dropdowns below.
+      keep_or_default <- function(current, choices, default_none = NULL) {
+        vals <- unname(choices)
+        if (!is.null(current) && length(current) == 1 && !is.na(current) &&
+            nzchar(current) && current %in% vals) {
+          return(current)
+        }
+        if (length(vals) > 0) vals[length(vals)] else default_none
+      }
+
+      cur_init  <- isolate(input$reportInitialSelectionStamp)
+      cur_table <- isolate(input$reportPlotSelectionStamp)
+      cur_plot  <- isolate(input$reportFinalSelectionStamp)
+
       updateSelectInput(
         session,
         "reportInitialSelectionStamp",
         choices = stampsInitSel,
-        selected = if (length(stampsInitSel) > 0) unname(stampsInitSel)[1] else NULL
+        selected = keep_or_default(cur_init, stampsInitSel, NULL)
       )
 
       updateSelectInput(
         session,
         "reportPlotSelectionStamp",
         choices = c("No table selection" = "__none__", stampsTableSel),
-        selected = if (length(stampsTableSel) > 0) unname(stampsTableSel)[length(stampsTableSel)] else "__none__"
+        selected = if (!is.null(cur_table) && length(cur_table) == 1 &&
+                       identical(cur_table, "__none__")) {
+          "__none__"
+        } else {
+          keep_or_default(cur_table, stampsTableSel, "__none__")
+        }
       )
 
       updateSelectInput(
         session,
         "reportFinalSelectionStamp",
         choices = c("No plot selection" = "__none__", stampsPlotSel),
-        selected = if (length(stampsPlotSel) > 0) unname(stampsPlotSel)[length(stampsPlotSel)] else "__none__"
+        selected = if (!is.null(cur_plot) && length(cur_plot) == 1 &&
+                       identical(cur_plot, "__none__")) {
+          "__none__"
+        } else {
+          keep_or_default(cur_plot, stampsPlotSel, "__none__")
+        }
       )
     })
 
@@ -8253,8 +10822,14 @@ mod_preProdAdvApp_server <- function(id, data){
       tmp_report <- file.path(tempdir(), "reportProdAdv_download.Rmd")
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
+      .rx <- report_extra_payload()
+      review_long      <- .rx$review_long
+      breakdown_detail <- .rx$breakdown_detail
+      options_table    <- .rx$options_table
+
       save(result, final_table_export, trait_directions, trait_thresholds,
-           STATUS_COLORS, STATUS_SHAPES, analysis_name, file = tmp_rdata)
+           STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
+           review_long, breakdown_detail, options_table, file = tmp_rdata)
       file.copy(src, tmp_report, overwrite = TRUE)
 
       old <- setwd(tempdir())
@@ -8271,6 +10846,24 @@ mod_preProdAdvApp_server <- function(id, data){
       shinybusy::remove_modal_spinner()
       shinyjs::click("downloadReportProdAdv")
     })
+
+    # Serves the standalone HTML rendered by the observer above. Without this
+    # handler the hidden downloadButton has no server binding, so the browser
+    # follows the download URL and saves the Bioflow app page itself.
+    output$downloadReportProdAdv <- downloadHandler(
+      filename = function() {
+        paste(paste0('preadvancement_dashboard_', gsub("-", "", as.integer(Sys.time()))),
+              sep = '.', switch("HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'))
+      },
+      content = function(file) {
+        out <- report()
+        req(out)
+        # file.rename fails across devices; fall back to it only if copy fails
+        if (!file.copy(out, file, overwrite = TRUE)) {
+          file.rename(out, file)
+        }
+      }
+    )
 
     observeEvent(input$runFinalProdAdv, {
 
@@ -8320,8 +10913,14 @@ mod_preProdAdvApp_server <- function(id, data){
       tmp_report <- file.path(tempdir(), "reportProdAdv_tmp.Rmd")
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
+      .rx <- report_extra_payload()
+      review_long      <- .rx$review_long
+      breakdown_detail <- .rx$breakdown_detail
+      options_table    <- .rx$options_table
+
       save(result, final_table_export, trait_directions, trait_thresholds,
-           STATUS_COLORS, STATUS_SHAPES, analysis_name, file = tmp_rdata)
+           STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
+           review_long, breakdown_detail, options_table, file = tmp_rdata)
       file.copy(src, tmp_report, overwrite = TRUE)
 
       updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
@@ -8341,8 +10940,430 @@ mod_preProdAdvApp_server <- function(id, data){
       shinybusy::remove_modal_spinner()
     })
 
+    ###########################################
+    # TPP Dashboard Tables (Task 13.1)
+    # Requirements: 10.1-10.10, 14.1-14.4
+    ###########################################
+
+    # Population Statistics on the Output tab is rendered by dashStatsUI /
+    # dashStatsHistogram, which reuse the Final Review tab's per-trait tables
+    # and distribution plot so both views stay identical.
+
+    # --- TPP Breakdown: explanation, detailed table, environment notes ---
+    # Contrasts what the TPP asks for (verbatim) against what was actually
+    # used on the phenotypic data, including the percentage of the SELECTED
+    # individuals meeting each criterion.
+
+    tpp_breakdown_detail <- reactive({
+      current_tpp <- tpp_id_prepam()
+      if (is.null(current_tpp)) return(NULL)
+
+      dt <- tryCatch(data(), error = function(e) NULL)
+      if (is.null(dt)) return(NULL)
+
+      tpp_meta <- dt$metadata$TPP[[current_tpp]]
+      raw_tpp <- tryCatch(dt$data$TPP[[current_tpp]], error = function(e) NULL)
+      if (is.null(tpp_meta) || is.null(raw_tpp)) return(NULL)
+
+      # Use final_decision_data() — the same authoritative table behind the
+      # Final Decision Table and the statistics panels. final_report_table_data()
+      # was yielding no SELECTED rows here, which made every percentage read
+      # "no selection".
+      predictions_df <- tryCatch(final_decision_data(), error = function(e) NULL)
+      if (is.null(predictions_df) || !is.data.frame(predictions_df) ||
+          nrow(predictions_df) == 0) {
+        predictions_df <- tryCatch({
+          tb <- final_report_table_data()$raw
+          if (!is.null(tb) && is.data.frame(tb) && nrow(tb) > 0) tb else NULL
+        }, error = function(e) NULL)
+      }
+      if (is.null(predictions_df)) return(NULL)
+
+      status_col <- if ("final_decision" %in% colnames(predictions_df)) "final_decision"
+                    else if ("plot_status" %in% colnames(predictions_df)) "plot_status"
+                    else NULL
+
+      selected_designations <- character(0)
+      candidate_designations <- unique(as.character(predictions_df$designation))
+      if (!is.null(status_col)) {
+        st <- toupper(trimws(as.character(predictions_df[[status_col]])))
+        selected_designations <- predictions_df$designation[st == "SELECTED"]
+        # Candidate set excludes checks, matching the statistics panel wording
+        candidate_designations <- predictions_df$designation[st != "CHECK"]
+      }
+
+      # Total environments, for phrasing the environment-subset notes, plus the
+      # traits actually carried into the selection (excluding any the user
+      # dropped, e.g. after a low-reliability flag).
+      n_env <- NA_integer_
+      used_traits <- NULL
+      init_stamp <- tryCatch(input$reportInitialSelectionStamp, error = function(e) NULL)
+      if (!is.null(init_stamp) && length(init_stamp) == 1 && nzchar(init_stamp)) {
+        srow <- which(
+          as.character(dt$modeling$analysisId) == as.character(init_stamp) &
+            dt$modeling$module == "Init_prodAdv" &
+            dt$modeling$parameter == "sta_stamp"
+        )
+        if (length(srow) > 0) {
+          sta_stamp <- dt$modeling$value[srow[1]]
+          envs <- dt$predictions$environment[
+            dt$predictions$analysisId %in% sta_stamp]
+          envs <- unique(envs[!is.na(envs) & nzchar(envs) & envs != "across"])
+          if (length(envs) > 0) n_env <- length(envs)
+        }
+
+        mrows <- which(
+          as.character(dt$modeling$analysisId) == as.character(init_stamp) &
+            dt$modeling$module == "Init_prodAdv"
+        )
+        if (length(mrows) > 0) {
+          mi <- dt$modeling[mrows, , drop = FALSE]
+          all_tr <- unique(mi$trait[!is.na(mi$trait) & nzchar(mi$trait)])
+          dropped <- unique(mi$trait[mi$parameter == "user_excluded_trait"])
+          dropped <- dropped[!is.na(dropped) & nzchar(dropped)]
+          used_traits <- setdiff(all_tr, dropped)
+        }
+      }
+
+      tpp_build_breakdown_detail(
+        tpp_id = current_tpp,
+        raw_tpp = raw_tpp,
+        traits_df = tpp_meta$traits,
+        env_filters = tpp_meta$env_filters,
+        checks_per_trait = tpp_meta$checks_per_trait,
+        predictions_df = predictions_df,
+        selected_designations = selected_designations,
+        candidate_designations = candidate_designations,
+        n_total_environments = n_env,
+        used_traits = used_traits
+      )
+    })
+
+    output$tppBreakdownIntro <- renderUI({
+      tags$p(
+        style = "color:#2C3E50; line-height:1.55; margin-bottom:12px;",
+        "This table compares what the Target Product Profile asks for against",
+        "what was actually evaluated on your phenotypic data. For each TPP trait it",
+        "shows whether the trait was mapped to a column in the phenotypic data",
+        tags$b("(Mapped, Trait_Name_data)"), ", whether that mapped trait was actually",
+        "carried into the selection", tags$b("(Used_for_selection)"), "\u2014 a trait",
+        "you dropped, for instance after a low-reliability flag, is mapped but not",
+        "used, and its percentage reads \"trait not used\" \u2014 the requirement",
+        "category, and two",
+        "versions of both the desired score and the checks: the",
+        tags$b("_tpp"), " columns are reproduced verbatim from the TPP, while the",
+        tags$b("_data"), " columns show what was resolved against your data \u2014",
+        "relative specifications such as \"Percentage above check 5\" are converted",
+        "into the equivalent absolute threshold (for example \"Higher than 6.72\")",
+        "using the mean of the checks you mapped, and the mapped check",
+        "designations replace the TPP check labels. The",
+        tags$b("mean_score_sel_data"), "and", tags$b("mean_score_all_data"),
+        "columns give the observed mean of the trait in the selected set and",
+        "across the whole candidate set (checks excluded), so you can see the shift",
+        "selection produced. The two compliance columns pair with them:",
+        tags$b("Sel_pct_meeting_criteria"), "is the share of the",
+        tags$b("selected"), "individuals meeting the resolved threshold, while",
+        tags$b("All_pct_meeting_criteria"), "is the share across all candidates \u2014",
+        "comparing the two shows how much the criterion was enriched by selection.",
+        "Traits with no phenotypic mapping are reported as \"not evaluated\", traits",
+        "you dropped read \"trait not used\", and traits whose desired score is",
+        "relative but have no mapped checks cannot be resolved to an absolute value."
+      )
+    })
+
+    output$tppDashboardBreakdown <- DT::renderDT({
+      res <- tpp_breakdown_detail()
+
+      if (is.null(res)) {
+        msg_df <- data.frame(Message = "No TPP information available",
+                             stringsAsFactors = FALSE)
+        return(DT::datatable(msg_df, options = list(dom = "t", paging = FALSE),
+                             rownames = FALSE))
+      }
+
+      tpp_style_breakdown_proximity(
+        DT::datatable(
+          res$table,
+          rownames = FALSE,
+          selection = "none",
+          options = list(dom = "tp", pageLength = 20, scrollX = TRUE, ordering = TRUE)
+        )
+      )
+    })
+
+    output$tppBreakdownEnvNotes <- renderUI({
+      res <- tpp_breakdown_detail()
+       if (is.null(res) || length(res$env_notes) == 0) return(NULL)
+
+      tags$div(
+        style = paste0(
+          "margin-top:12px; padding:12px 14px; background-color:#F4F6F7;",
+          " border-left:4px solid #2C3E50; border-radius:3px;"
+        ),
+        tags$div(
+          style = "font-weight:700; color:#2C3E50; margin-bottom:6px;",
+          "Traits evaluated on a subset of environments"
+        ),
+        tags$ul(
+          style = "margin-bottom:0; padding-left:18px; color:#2C3E50;",
+          lapply(res$env_notes, function(n) tags$li(style = "margin-bottom:4px;", n))
+        )
+      )
+    })
 
 
+    # --- Global Options Summary Table ---
+    output$tppOptionsIntro <- renderUI({
+      tags$p(
+        style = "color:#2C3E50; line-height:1.55; margin-bottom:12px;",
+        "This table records the", tags$b("actual selection criteria you chose"),
+        "for Bioflow\u0027s initial selection \u2014 not what the TPP asks for, but the",
+        "configuration that was applied when the selection was run. For each trait it",
+        "shows the index weight it carried, the threshold value and direction taken",
+        "from its trait rule card, and the reference check(s) used where the rule was",
+        "defined relative to a check. Traits with a weight of 0 did not contribute to",
+        "the selection index, and traits showing \"no threshold\" were not filtered on",
+        "a cut-off. Use this table to document, or reproduce, the decisions behind the",
+        "initial selection."
+      )
+    })
+
+    # Builds the Global Options Summary data.frame. Kept as a reactive so the
+    # Output-tab table and the downloadable report render exactly the same data.
+    global_options_df <- reactive({
+      # The Global Options table on the Output tab shows the configuration that
+      # was ACTUALLY USED when the selection ran, so it always reads from the
+      # stored modeling table rather than from live UI controls which may have
+      # changed since. The live path (trait_rules_input) is only used as a
+      # fallback when no modeling-table data exists yet (e.g. before a run).
+      trait_rules <- list()
+      weights <- numeric(0)
+
+      dt_fb <- tryCatch(data(), error = function(e) NULL)
+      init_stamp <- tryCatch(input$reportInitialSelectionStamp, error = function(e) NULL)
+
+      if (!is.null(dt_fb) && !is.null(dt_fb$modeling) &&
+          !is.null(init_stamp) && length(init_stamp) == 1 && nzchar(init_stamp)) {
+        m <- dt_fb$modeling
+        idx <- which(
+          as.character(m$analysisId) == as.character(init_stamp) &
+            m$module == "Init_prodAdv"
+        )
+          mi <- m[idx, , drop = FALSE]
+
+          if (nrow(mi) > 0) {
+            excluded <- mi$trait[mi$parameter == "user_excluded_trait"]
+            traits_fb <- unique(mi$trait[!is.na(mi$trait) & nzchar(mi$trait)])
+            traits_fb <- setdiff(traits_fb, excluded)
+
+            get_param <- function(tr, param) {
+              v <- mi$value[!is.na(mi$trait) & mi$trait == tr &
+                            !is.na(mi$parameter) & mi$parameter == param]
+              v <- v[!is.na(v)]
+              if (length(v) == 0) NULL else v[1]
+            }
+            as_num <- function(x) {
+              if (is.null(x)) return(NULL)
+              n <- suppressWarnings(as.numeric(x))
+              if (is.na(n)) NULL else n
+            }
+
+            trait_rules <- stats::setNames(lapply(traits_fb, function(tr) {
+              rt <- get_param(tr, "trait_rule_type")
+              list(
+                trait = tr,
+                ruleType = if (is.null(rt)) "None" else rt,
+                direction = get_param(tr, "direction"),
+                threshold = as_num(get_param(tr, "threshold")),
+                minValue = as_num(get_param(tr, "min_value")),
+                maxValue = as_num(get_param(tr, "max_value")),
+                referenceCheck = {
+                  rc <- get_param(tr, "reference_check")
+                  if (is.null(rc)) NULL else trimws(strsplit(rc, ",", fixed = TRUE)[[1]])
+                }
+              )
+            }), traits_fb)
+
+            if (length(weights) == 0) {
+              weights <- vapply(traits_fb, function(tr) {
+                w <- as_num(get_param(tr, "index_weight"))
+                if (is.null(w)) 0 else w
+              }, numeric(1))
+              names(weights) <- traits_fb
+            }
+          }
+      }
+
+      if (length(trait_rules) == 0) {
+        return(NULL)
+      }
+
+      # Get predictions for computing reference values.
+      # input$mtaStamp is empty when the Input steps were never visited, so fall
+      # back to the mta_stamp recorded for the selected initial stamp.
+      dt <- tryCatch(data(), error = function(e) NULL)
+      mta_stamp_used <- input$mtaStamp
+      if ((is.null(mta_stamp_used) || !nzchar(paste0(mta_stamp_used))) && !is.null(dt)) {
+        init_stamp <- tryCatch(input$reportInitialSelectionStamp, error = function(e) NULL)
+        if (!is.null(init_stamp) && length(init_stamp) == 1 && nzchar(init_stamp)) {
+          mrow <- which(
+            as.character(dt$modeling$analysisId) == as.character(init_stamp) &
+              dt$modeling$module == "Init_prodAdv" &
+              dt$modeling$parameter == "mta_stamp"
+          )
+          if (length(mrow) > 0) mta_stamp_used <- dt$modeling$value[mrow[1]]
+        }
+      }
+
+      dtPred <- NULL
+      if (!is.null(dt) && !is.null(mta_stamp_used) && nzchar(paste0(mta_stamp_used))) {
+        dtPred <- dt$predictions
+        dtPred <- dtPred[dtPred$analysisId %in% mta_stamp_used &
+                         dtPred$effectType == "designation", , drop = FALSE]
+      }
+
+      # Build trait_configs list for tpp_build_global_options_table
+      trait_configs <- lapply(names(trait_rules), function(trait_name) {
+        rule <- trait_rules[[trait_name]]
+        if (is.null(rule)) return(NULL)
+
+        weight_val <- if (trait_name %in% names(weights)) weights[[trait_name]] else 0
+
+        # Determine threshold value and direction
+        threshold_value <- NA_real_
+        threshold_direction <- NA_character_
+        reference_checks <- NULL
+        reference_value <- NA_real_
+
+        if (!is.null(rule$ruleType)) {
+          if (identical(rule$ruleType, "Threshold") && !is.null(rule$threshold)) {
+            threshold_value <- rule$threshold
+            if (!is.null(rule$direction)) {
+              threshold_direction <- if (identical(rule$direction, "Higher is better")) "greater" else "less"
+            }
+          } else if (identical(rule$ruleType, "% over check") && !is.null(rule$referenceCheck)) {
+            threshold_value <- if (!is.null(rule$threshold)) rule$threshold else NA_real_
+            threshold_direction <- "greater"
+            reference_checks <- rule$referenceCheck
+
+            # Compute reference value from predictions
+            if (!is.null(dtPred) && nrow(dtPred) > 0 && !is.null(reference_checks)) {
+              ref_vals <- dtPred$predictedValue[
+                dtPred$trait == trait_name &
+                  dtPred$designation %in% reference_checks &
+                  !is.na(dtPred$predictedValue)
+              ]
+              if (length(ref_vals) > 0) {
+                reference_value <- mean(ref_vals)
+              }
+            }
+          } else if (identical(rule$ruleType, "Acceptable range")) {
+            threshold_value <- NA_real_
+            threshold_direction <- NA_character_
+          }
+        }
+
+        # Also check for TPP-based check references
+        filtered <- tpp_filtered_traits()
+        if (!is.null(filtered) && is.data.frame(filtered) && nrow(filtered) > 0 &&
+            "pheno_trait" %in% colnames(filtered) && "checks" %in% colnames(filtered)) {
+          trait_row <- filtered[filtered$pheno_trait == trait_name, , drop = FALSE]
+          if (nrow(trait_row) > 0 && !is.null(trait_row$checks[[1]])) {
+            safe_trait <- sanitize_trait_id(trait_name)
+            tpp_checks_selected <- tryCatch(
+              input[[paste0("tppChecks_", safe_trait)]],
+              error = function(e) NULL
+            )
+            if (!is.null(tpp_checks_selected) && length(tpp_checks_selected) > 0) {
+              reference_checks <- tpp_checks_selected
+              # Compute reference value for TPP checks
+              if (!is.null(dtPred) && nrow(dtPred) > 0) {
+                ref_vals <- dtPred$predictedValue[
+                  dtPred$trait == trait_name &
+                    dtPred$designation %in% reference_checks &
+                    !is.na(dtPred$predictedValue)
+                ]
+                if (length(ref_vals) > 0) {
+                  reference_value <- mean(ref_vals)
+                }
+              }
+            }
+          }
+        }
+
+        list(
+          trait_name = tpp_display_name(trait_name),
+          weight = weight_val,
+          threshold_value = threshold_value,
+          threshold_direction = threshold_direction,
+          reference_checks = reference_checks,
+          reference_value = reference_value
+        )
+      })
+
+      # Remove NULLs
+      trait_configs <- trait_configs[!vapply(trait_configs, is.null, logical(1))]
+
+      options_df <- tpp_build_global_options_table(trait_configs)
+
+      if (nrow(options_df) == 0) {
+        return(NULL)
+      }
+
+      # Make an absent reference check explicit rather than leaving a blank cell
+      if ("Reference_Check" %in% colnames(options_df)) {
+        rc <- as.character(options_df$Reference_Check)
+        rc[is.na(rc) | !nzchar(trimws(rc)) | trimws(rc) %in% c("-", "NA", "none")] <-
+          "none used for initial selection"
+        options_df$Reference_Check <- rc
+      }
+
+      # Round numeric columns to 3 decimal places
+      for (col in colnames(options_df)) {
+        vals <- options_df[[col]]
+        if (is.numeric(vals)) {
+          options_df[[col]] <- round(vals, 3)
+        } else {
+          # Try to detect numeric-looking character columns (e.g. Threshold_Value)
+          num_vals <- suppressWarnings(as.numeric(vals))
+          if (!all(is.na(num_vals)) && sum(!is.na(num_vals)) > 0) {
+            options_df[[col]] <- ifelse(
+              is.na(num_vals),
+              vals,
+              format(round(num_vals, 3), nsmall = 3)
+            )
+          }
+        }
+      }
+
+      options_df
+    })
+
+    output$tppDashboardOptionsTable <- DT::renderDT({
+      options_df <- global_options_df()
+
+      if (is.null(options_df) || nrow(options_df) == 0) {
+        empty_df <- data.frame(Message = "No options configured yet",
+                               stringsAsFactors = FALSE)
+        return(DT::datatable(empty_df, options = list(dom = "t", paging = FALSE),
+                             rownames = FALSE))
+      }
+
+      DT::datatable(options_df, options = list(dom = "t", paging = FALSE,
+                                               scrollX = TRUE, ordering = FALSE),
+                    rownames = FALSE, caption = "Global Options Summary")
+    })
+
+    # Everything the Rmd needs beyond the decision table, so the downloaded
+    # dashboard matches the Output tab section for section. Computed here rather
+    # than in the template because the reactives live in this module.
+    report_extra_payload <- function() {
+      list(
+        review_long      = tryCatch(final_review_long(),   error = function(e) NULL),
+        breakdown_detail = tryCatch(tpp_breakdown_detail(), error = function(e) NULL),
+        options_table    = tryCatch(global_options_df(),   error = function(e) NULL)
+      )
+    }
 
 
   })
