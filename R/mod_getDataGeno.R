@@ -14,7 +14,8 @@ dartseq_formats <- c("dartseqsnp")
 #' @importFrom shiny NS tagList
 mod_getDataGeno_ui <- function(id) {
   ns <- NS(id)
-  tagList(tags$br(),
+  tagList(shinyjs::useShinyjs(),
+          tags$br(),
           navlistPanel("Steps:", id = ns("geno_load_navpanel"), widths = c(2, 10),
             tabPanel("1. Load data",
               column(width = 8,
@@ -127,6 +128,8 @@ mod_getDataGeno_ui <- function(id) {
                      uiOutput(ns("indManagementUI"))),
             tabPanel("4. Check status",
                      uiOutput(ns("warningMessage")),
+                     br(),
+                     uiOutput(ns("geno_raw_summary_ui"))
             )))}
 
 
@@ -151,7 +154,7 @@ mod_getDataGeno_server <-
         }
       }
 
-      rv <- reactiveValues(is_merging = FALSE)
+      rv <- reactiveValues(is_merging = FALSE, auto_resolved_count = 0)
 
       output$warningMessage <- renderUI(
         if(is.null(data())){
@@ -162,6 +165,47 @@ mod_getDataGeno_server <-
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.). ")) )}
         }
       )
+
+      # Individual Management summary table (modifications$geno_raw)
+      output$geno_raw_summary_ui <- renderUI({
+        tmp <- data()
+        geno_raw <- tmp[["modifications"]][["geno_raw"]]
+        if (is.null(geno_raw) || length(geno_raw) == 0) return(NULL)
+
+        # Convert the named list to a data.frame
+        summary_df <- do.call(rbind, lapply(names(geno_raw), function(desig) {
+          entry <- geno_raw[[desig]]
+          data.frame(
+            designation  = desig,
+            n_used       = as.integer(entry$n_used %||% NA_integer_),
+            n_total      = as.integer(entry$n_total %||% NA_integer_),
+            min_ibs      = as.numeric(entry$min_ibs %||% NA_real_),
+            max_ibs      = as.numeric(entry$max_ibs %||% NA_real_),
+            samples_used = as.character(entry$samples_used %||% NA_character_),
+            reason       = as.character(entry$reason %||% "consensus"),
+            stringsAsFactors = FALSE
+          )
+        }))
+
+        tagList(
+          tags$h4("Individual Management Summary"),
+          tags$p("The following designations were manually resolved during Individual Management:"),
+          DT::renderDT(
+            DT::datatable(
+              summary_df,
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Blfrtip',
+                scrollX = TRUE,
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, 'All'))
+              ),
+              rownames = FALSE
+            ) |> DT::formatRound(columns = c("min_ibs", "max_ibs"), digits = 3),
+            server = FALSE
+          )
+        )
+      })
 
       observeEvent(c(input$custom_geno_input, input$geno_input),{
         if(input$custom_geno_input != "dartag"){
@@ -430,12 +474,14 @@ mod_getDataGeno_server <-
               sid_col <- if ("sample_id" %in% md$parameter) md$value[md$parameter == "sample_id"] else NA_character_
 
               # 1) prefer sample_id if present and valid
-              # 2) otherwise fall back to 'designation' if it exists in pedigree
+              # 2) otherwise fall back to mapped designation column
               key_col <- NULL
               if (!is.na(sid_col) && nzchar(sid_col) && sid_col %in% names(ped)) {
                 key_col <- sid_col
-              } else if ("designation" %in% names(ped)) {
-                key_col <- "designation"
+              } else {
+                desig_col <- if ("designation" %in% md$parameter) md$value[md$parameter == "designation"] else NA_character_
+                if (length(desig_col) != 1 || is.na(desig_col) || identical(desig_col, "")) desig_col <- "designation"
+                if (desig_col %in% names(ped)) key_col <- desig_col
               }
 
               if (!is.null(key_col) &&
@@ -568,10 +614,20 @@ mod_getDataGeno_server <-
                 !identical(col_name, "") &&
                 (col_name %in% colnames(ped))) {
 
-              # Build mapping: sample_id -> designation (pedigree must have 'designation' column)
-              if ("designation" %in% colnames(ped)) {
+              # Look up the actual designation column name from metadata mapping
+              desig_col <- if ("designation" %in% md_ped$parameter) {
+                md_ped$value[md_ped$parameter == "designation"]
+              } else {
+                NA_character_
+              }
+              if (length(desig_col) != 1 || is.na(desig_col) || identical(desig_col, "")) {
+                desig_col <- "designation"
+              }
+
+              # Build mapping: sample_id -> designation
+              if (desig_col %in% colnames(ped)) {
                 idx <- match(inds, ped[[col_name]])
-                mapped_designation <- ped$designation[idx]
+                mapped_designation <- ped[[desig_col]][idx]
 
                 df_out <- data.frame(
                   sample_id   = inds,
@@ -682,12 +738,23 @@ mod_getDataGeno_server <-
           ped      <- temp$data$pedigree
           col_name <- md_ped$value[md_ped$parameter == "sample_id"]
 
+          # Look up the actual designation column name from metadata mapping
+          desig_col <- if ("designation" %in% md_ped$parameter) {
+            md_ped$value[md_ped$parameter == "designation"]
+          } else {
+            NA_character_
+          }
+          # Fallback: if metadata value is empty or not set, try literal "designation"
+          if (length(desig_col) != 1 || is.na(desig_col) || identical(desig_col, "")) {
+            desig_col <- "designation"
+          }
+
           if (length(col_name) != 1 || is.na(col_name) || identical(col_name, "") ||
-              !(col_name %in% colnames(ped)) || !("designation" %in% colnames(ped))) {
+              !(col_name %in% colnames(ped)) || !(desig_col %in% colnames(ped))) {
             return(NULL)
           }
 
-          out <- ped[, c(col_name, "designation"), drop = FALSE]
+          out <- ped[, c(col_name, desig_col), drop = FALSE]
           colnames(out) <- c("sample_id", "designation_id")
           # keep only non-empty sample_ids
           out <- out[!is.na(out$sample_id) & out$sample_id != "", , drop = FALSE]
@@ -719,6 +786,13 @@ mod_getDataGeno_server <-
             mp    <- mp[!is_f1, , drop = FALSE]
           }
 
+          # Only consider sample_ids that still exist in the genlight object
+          gl <- temp$data$geno
+          if (!is.null(gl) && inherits(gl, "genlight")) {
+            existing <- as.character(adegenet::indNames(gl))
+            mp <- mp[mp$sample_id %in% existing, , drop = FALSE]
+          }
+
           if (!nrow(mp)) return(NULL)
 
           dplyr::count(mp, designation_id, name = "count") |>
@@ -746,9 +820,122 @@ mod_getDataGeno_server <-
             }
 
             dup_values$dup_df <- dplyr::mutate(df, selected = FALSE)
-            updateNavlistPanel(session = session,
-                               inputId = "geno_load_navpanel",
-                               selected = "3. Individual Management")
+
+            # --- Auto-resolve groups with perfect IBS upfront ---
+            shinybusy::show_modal_spinner('fading-circle', text = 'Checking duplicate groups for identical genotypes...')
+
+            tmp <- data()
+            gl  <- tmp$data$geno
+            gl_src <- gl
+            ploidity <- as.numeric(input$ploidlvl_input)
+
+            # Get the filtered random genlight for IBS
+            nloc <- adegenet::nLoc(gl)
+            size_use <- max(1, min(100, nloc))  # default 100 markers for auto-resolve check
+            rand_gl <- tryCatch(
+              cgiarGenomics::random_select_loci(
+                gl, ind_miss = 0.2, loc_miss = 0, maf = 0,
+                size = size_use, seed = 7
+              ),
+              error = function(e) gl
+            )
+
+            # Find all unique designation groups
+            all_groups <- unique(df$designation_id)
+            auto_resolved <- character(0)
+
+            for (grp in all_groups) {
+              grp_samples <- df$sample_id[df$designation_id == grp]
+              # Need at least 2 samples to check IBS
+              if (length(grp_samples) < 2) next
+
+              # Subset the random gl for this group's samples
+              grp_idx <- match(grp_samples, adegenet::indNames(rand_gl))
+              grp_idx <- grp_idx[!is.na(grp_idx)]
+              if (length(grp_idx) < 2) next
+
+              grp_gl <- rand_gl[grp_idx, ]
+
+              # Compute IBS for this group
+              ibs_result <- tryCatch(
+                cgiarGenomics::ibs_matrix_purrr(grp_gl, ploidity),
+                error = function(e) NULL
+              )
+              if (is.null(ibs_result) || is.null(ibs_result$ibs)) next
+
+              m <- tryCatch(as.matrix(ibs_result$ibs), error = function(e) NULL)
+              if (is.null(m) || any(dim(m) < 2)) next
+
+              # Check if all off-diagonal IBS >= 0.999
+              off_diag <- m[row(m) != col(m)]
+              if (all(off_diag >= 0.999, na.rm = TRUE)) {
+                # Perfect IBS — auto-resolve by merging all into designation
+                all_samples   <- as.character(adegenet::indNames(gl))
+                sample_id_vec <- all_samples
+                target_vec    <- all_samples
+                merge_idx <- match(grp_samples, sample_id_vec)
+                merge_idx <- merge_idx[!is.na(merge_idx)]
+                if (length(merge_idx)) target_vec[merge_idx] <- grp
+
+                full_map <- data.frame(
+                  sample_id      = sample_id_vec,
+                  designation_id = target_vec,
+                  check.names    = FALSE, stringsAsFactors = FALSE
+                )
+
+                gl <- tryCatch(
+                  cgiarGenomics::merge_duplicate_inds(gl, full_map),
+                  error = function(e) gl
+                )
+
+                auto_resolved <- c(auto_resolved, grp)
+              }
+            }
+
+            # If we auto-resolved any groups, postprocess and save
+            if (length(auto_resolved) > 0) {
+              # Postprocess
+              if (!is.null(gl_src@position)   && length(gl_src@position)   == adegenet::nLoc(gl)) gl@position   <- gl_src@position
+              if (!is.null(gl_src@chromosome) && length(gl_src@chromosome) == adegenet::nLoc(gl)) gl@chromosome <- gl_src@chromosome
+              if (!is.null(gl_src@loc.all)    && length(gl_src@loc.all)    == adegenet::nLoc(gl)) gl@loc.all    <- gl_src@loc.all
+              if (adegenet::nInd(gl) > 0) {
+                gl <- tryCatch(cgiarGenomics::recalc_metrics(gl), error = function(e) gl)
+              }
+
+              tmp$data$geno <- gl
+              data(tmp)
+
+              # Refresh dup_df: remove auto-resolved samples
+              existing <- tryCatch(as.character(adegenet::indNames(gl)), error = function(e) character(0))
+              dup_values$dup_df <- dup_values$dup_df[dup_values$dup_df$sample_id %in% existing, , drop = FALSE]
+              if (nrow(dup_values$dup_df)) dup_values$dup_df$selected <- FALSE
+            }
+
+            # Store the count for the UI notice
+            rv$auto_resolved_count <- length(auto_resolved)
+
+            shinybusy::remove_modal_spinner()
+
+            # Check if there are remaining groups that need manual intervention
+            dgs <- dup_groups()
+            if (is.null(dgs) || !nrow(dgs)) {
+              # All groups were auto-resolved
+              updateNavlistPanel(session = session,
+                                 inputId = "geno_load_navpanel",
+                                 selected = "4. Check status")
+              shinyWidgets::show_alert(
+                title = "All duplicates resolved",
+                text = sprintf(
+                  "%d designation(s) had identical genotypes across all samples and were automatically resolved. No manual intervention needed.",
+                  length(auto_resolved)
+                ),
+                type = "success"
+              )
+            } else {
+              updateNavlistPanel(session = session,
+                                 inputId = "geno_load_navpanel",
+                                 selected = "3. Individual Management")
+            }
           } else {
             shinyWidgets::show_alert(
               title = "Individual management will be skipped",
@@ -806,6 +993,8 @@ mod_getDataGeno_server <-
           default_val <- if (!is.null(prev) && is.finite(prev) && prev >= 1 && prev <= nloc) prev else min(100,nloc)
 
           tags$div(
+            # Auto-resolved notice
+            uiOutput(ns("auto_resolved_notice")),
             shinydashboard::box(width = 12, title = "Subset genotype matrix",
                                 fluidRow(
                                   column(
@@ -824,9 +1013,9 @@ mod_getDataGeno_server <-
                                       )
                                       ,
                                       sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:",
-                                                  min = 0, max = 1, value = 0.2, step = 0.01),
+                                                  min = 0, max = 1, value = 0, step = 0.01),
                                       sliderInput(ns("maf_dup_slider"), "Set min MAF:",
-                                                  min = 0, max = 1, value = 0.05, step = 0.01),
+                                                  min = 0, max = 1, value = 0, step = 0.01),
                                       numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1)
                                     )
                                   )
@@ -854,7 +1043,10 @@ mod_getDataGeno_server <-
                                     #),
                                     div(
                                       style = "display:flex; gap:8px; flex-wrap:wrap;",
-                                      actionButton(ns("btn_apply_actions"), "Run consensus")
+                                      actionButton(ns("btn_apply_actions"), "Run consensus"),
+                                      actionButton(ns("btn_remove_designation"), "Remove designation",
+                                                   class = "btn-danger",
+                                                   title = "Remove all samples for this designation from the genotype matrix")
                                     )
                                   )
                                 )
@@ -1087,6 +1279,21 @@ mod_getDataGeno_server <-
           group_ids <- dup_values$dup_df$sample_id[dup_values$dup_df$designation_id == cur_grp]
           remove_ids <- setdiff(group_ids, merge_ids)
 
+          # Compute IBS directly for this group before merge
+          pre_merge_ibs <- tryCatch({
+            gl_current <- data()$data$geno
+            all_ind_names <- adegenet::indNames(gl_current)
+            # Match group sample_ids and also the designation itself if present
+            candidates <- unique(c(group_ids, cur_grp))
+            grp_idx <- which(all_ind_names %in% candidates)
+            if (length(grp_idx) >= 2) {
+              grp_gl <- gl_current[grp_idx, ]
+              cgiarGenomics::ibs_matrix_purrr(grp_gl, as.numeric(input$ploidlvl_input))
+            } else {
+              NULL
+            }
+          }, error = function(e) NULL)
+
           tmp <- data()
           if (is.null(tmp) || is.null(tmp$data) || is.null(tmp$data$geno)) {
             shinyWidgets::show_alert(title="Aborted", text="Genotype object not found.", type="error")
@@ -1101,10 +1308,9 @@ mod_getDataGeno_server <-
             if (!is.null(gl_ref@chromosome) && length(gl_ref@chromosome) == adegenet::nLoc(gl_new)) gl_new@chromosome <- gl_ref@chromosome
             if (!is.null(gl_ref@loc.all)    && length(gl_ref@loc.all)    == adegenet::nLoc(gl_new)) gl_new@loc.all    <- gl_ref@loc.all
             if (adegenet::nInd(gl_new) > 0) {
-              tryCatch(cgiarGenomics::recalc_metrics(gl_new), error=function(e) gl_new)
-            } else {
-              gl_new
+              gl_new <- tryCatch(cgiarGenomics::recalc_metrics(gl_new), error=function(e) gl_new)
             }
+            gl_new
           }
 
           # exactly one kept sample, no consensus needed
@@ -1137,6 +1343,25 @@ mod_getDataGeno_server <-
             }
 
             gl <- apply_postprocess(gl, gl_src)
+
+            # Store consensus uncertainty metadata for single-sample selection
+            if (!is.null(pre_merge_ibs) && !is.null(pre_merge_ibs$ibs)) {
+              m <- tryCatch(as.matrix(pre_merge_ibs$ibs), error = function(e) NULL)
+              if (!is.null(m) && all(dim(m) >= 2)) {
+                off_diag <- m[row(m) != col(m)]
+                consensus_entry <- list(
+                  n_used  = 1L,
+                  n_total = length(group_ids),
+                  min_ibs = min(off_diag, na.rm = TRUE),
+                  max_ibs = max(off_diag, na.rm = TRUE),
+                  samples_used = paste(merge_ids, collapse = ";")
+                )
+                if (is.null(tmp$modifications$geno_raw)) {
+                  tmp$modifications$geno_raw <- list()
+                }
+                tmp$modifications$geno_raw[[cur_grp]] <- consensus_entry
+              }
+            }
 
             # save back
             tmp$data$geno <- gl
@@ -1207,6 +1432,27 @@ mod_getDataGeno_server <-
             did_remove <- TRUE
           }
 
+          # 2.5) Store consensus uncertainty metadata
+          # Use IBS stats captured before the merge
+          if (!is.null(pre_merge_ibs) && !is.null(pre_merge_ibs$ibs)) {
+            m <- tryCatch(as.matrix(pre_merge_ibs$ibs), error = function(e) NULL)
+            if (!is.null(m) && all(dim(m) >= 2)) {
+              off_diag <- m[row(m) != col(m)]
+              consensus_entry <- list(
+                n_used  = length(merge_ids),
+                n_total = length(group_ids),
+                min_ibs = min(off_diag, na.rm = TRUE),
+                max_ibs = max(off_diag, na.rm = TRUE),
+                samples_used = paste(merge_ids, collapse = ";")
+              )
+              # Store in the main data object (survives genlight rebuilds)
+              if (is.null(tmp$modifications$geno_raw)) {
+                tmp$modifications$geno_raw <- list()
+              }
+              tmp$modifications$geno_raw[[cur_grp]] <- consensus_entry
+            }
+          }
+
           # 3) Postprocess (copy marker slots & recalc metrics if non-empty), save back
           gl <- apply_postprocess(gl, gl_src)
           tmp$data$geno <- gl
@@ -1245,6 +1491,136 @@ mod_getDataGeno_server <-
           } else {
             shinyWidgets::show_alert(title="Nothing to do",
                                      text="Select at least one sample to keep", type="info")
+          }
+        })
+
+
+        # --- Auto-resolved notice: shows how many groups were auto-resolved ---
+        output$auto_resolved_notice <- renderUI({
+          n <- rv$auto_resolved_count
+          if (is.null(n) || n == 0) return(NULL)
+          div(
+            style = "background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px;border-radius:6px;margin-bottom:12px;",
+            shiny::icon("check-circle"),
+            sprintf(
+              " %d designation(s) had identical genotypes across all samples and were automatically resolved without further inspection.",
+              n
+            )
+          )
+        })
+
+
+        # --- Remove designation: remove all samples for this group ---
+        observeEvent(input$btn_remove_designation, {
+          cur_grp <- isolate(input$dup_group_pick)
+          if (is.null(cur_grp) || !nzchar(cur_grp)) return(invisible(NULL))
+
+          # Confirm removal
+          shinyWidgets::ask_confirmation(
+            inputId = ns("confirm_remove_designation"),
+            title = "Remove designation?",
+            text = paste0(
+              "This will remove ALL samples for designation '", cur_grp,
+              "' from the genotype matrix. This action cannot be undone."
+            ),
+            type = "warning",
+            btn_labels = c("Cancel", "Remove"),
+            btn_colors = c("#6c757d", "#dc3545")
+          )
+        })
+
+        observeEvent(input$confirm_remove_designation, {
+          if (!isTRUE(input$confirm_remove_designation)) return(invisible(NULL))
+
+          rv$is_merging <- TRUE
+          shinybusy::show_modal_spinner('fading-circle', text = 'Removing designation...')
+          on.exit({ rv$is_merging <- FALSE; shinybusy::remove_modal_spinner() }, add = TRUE)
+
+          cur_grp <- isolate(input$dup_group_pick)
+
+          tmp <- data()
+          if (is.null(tmp) || is.null(tmp$data) || is.null(tmp$data$geno)) {
+            shinyWidgets::show_alert(title = "Aborted", text = "Genotype object not found.", type = "error")
+            return(invisible(NULL))
+          }
+
+          gl <- tmp$data$geno
+
+          # Identify all sample_ids for this designation group
+          group_ids <- dup_values$dup_df$sample_id[dup_values$dup_df$designation_id == cur_grp]
+
+          # Also remove the designation itself if it exists as a named individual
+          remove_ids <- unique(c(group_ids, cur_grp))
+          remove_ids <- intersect(remove_ids, adegenet::indNames(gl))
+
+          if (!length(remove_ids)) {
+            shinyWidgets::show_alert(title = "Nothing to remove", text = "No matching samples found.", type = "info")
+            return(invisible(NULL))
+          }
+
+          keep_idx <- which(!adegenet::indNames(gl) %in% remove_ids)
+          if (!length(keep_idx)) {
+            gl <- gl[0, ]
+          } else {
+            gl <- gl[keep_idx, ]
+          }
+
+          # Postprocess
+          gl_src <- tmp$data$geno
+          if (!is.null(gl_src@position)   && length(gl_src@position)   == adegenet::nLoc(gl)) gl@position   <- gl_src@position
+          if (!is.null(gl_src@chromosome) && length(gl_src@chromosome) == adegenet::nLoc(gl)) gl@chromosome <- gl_src@chromosome
+          if (!is.null(gl_src@loc.all)    && length(gl_src@loc.all)    == adegenet::nLoc(gl)) gl@loc.all    <- gl_src@loc.all
+          if (adegenet::nInd(gl) > 0) {
+            gl <- tryCatch(cgiarGenomics::recalc_metrics(gl), error = function(e) gl)
+          }
+
+          tmp$data$geno <- gl
+
+          # Store removal reason in modifications$geno_raw
+          if (is.null(tmp$modifications$geno_raw)) {
+            tmp$modifications$geno_raw <- list()
+          }
+          tmp$modifications$geno_raw[[cur_grp]] <- list(
+            n_used  = 0L,
+            n_total = length(group_ids),
+            min_ibs = NA_real_,
+            max_ibs = NA_real_,
+            samples_used = NA_character_,
+            reason  = "no_consensus"
+          )
+
+          data(tmp)
+
+          # Refresh dup_df
+          existing <- tryCatch(as.character(adegenet::indNames(gl)), error = function(e) character(0))
+          if (is.data.frame(dup_values$dup_df) && nrow(dup_values$dup_df)) {
+            dup_values$dup_df <- dup_values$dup_df[dup_values$dup_df$sample_id %in% existing, , drop = FALSE]
+            if (nrow(dup_values$dup_df)) dup_values$dup_df$selected <- FALSE
+          }
+          updateCheckboxGroupInput(session, "dup_merge_samples", selected = character(0))
+
+          # Advance to next group or finish
+          dgs <- dup_groups()
+          if (is.null(dgs) || !nrow(dgs)) {
+            updateNavlistPanel(session, "geno_load_navpanel", selected = "4. Check status")
+          } else {
+            new_choices <- dgs$designation_id
+            new_sel <- new_choices[[1]]
+            updateSelectInput(session, "dup_group_pick", choices = new_choices, selected = new_sel)
+          }
+
+          if (adegenet::nInd(gl) == 0) {
+            shinyWidgets::show_alert(
+              title = "All samples excluded",
+              text = "The genotype matrix is now empty. Load new data or go back.",
+              type = "warning"
+            )
+          } else {
+            shinyWidgets::show_alert(
+              title = "Done",
+              text = sprintf("Removed all samples for designation '%s'.", cur_grp),
+              type = "success"
+            )
           }
         })
 
