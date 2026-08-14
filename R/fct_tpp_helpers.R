@@ -1434,3 +1434,634 @@ tpp_compute_context_limit <- function(rankings, currently_discussed = NULL) {
 
   return(as.integer(truncation_limit))
 }
+
+
+# =============================================================================
+# SECTION 9: Dashboard Panel Rendering Utilities
+# =============================================================================
+
+#' Compute population statistics for dashboard display
+#'
+#' Computes summary statistics (min, max, mean, median, sd) for index values
+#' across three groups: selected portion, overall population, and check entries.
+#'
+#' @param index_values Named list with three numeric vectors:
+#'   \code{selected}, \code{overall}, \code{checks}.
+#' @return Data.frame with columns: Group, Min, Max, Mean, Median, SD.
+#' @noRd
+tpp_compute_dashboard_stats <- function(index_values) {
+  tryCatch(
+    {
+      if (is.null(index_values) || !is.list(index_values)) {
+        return(data.frame(
+          Message = "No trait distribution data available",
+          stringsAsFactors = FALSE
+        ))
+      }
+
+      selected <- index_values$selected
+      overall <- index_values$overall
+      checks <- index_values$checks
+
+      if (is.null(selected)) selected <- numeric(0)
+      if (is.null(overall)) overall <- numeric(0)
+      if (is.null(checks)) checks <- numeric(0)
+
+      if (length(selected) == 0 && length(overall) == 0 && length(checks) == 0) {
+        return(data.frame(
+          Message = "No trait distribution data available",
+          stringsAsFactors = FALSE
+        ))
+      }
+
+      stats_selected <- .tpp_compute_group_stats(selected)
+      stats_overall <- .tpp_compute_group_stats(overall)
+      stats_checks <- .tpp_compute_group_stats(checks)
+
+      result <- data.frame(
+        Group  = c("Selected", "Overall", "Checks"),
+        Min    = c(stats_selected$min, stats_overall$min, stats_checks$min),
+        Max    = c(stats_selected$max, stats_overall$max, stats_checks$max),
+        Mean   = c(stats_selected$mean, stats_overall$mean, stats_checks$mean),
+        Median = c(stats_selected$median, stats_overall$median, stats_checks$median),
+        SD     = c(stats_selected$sd, stats_overall$sd, stats_checks$sd),
+        stringsAsFactors = FALSE
+      )
+
+      return(result)
+    },
+    error = function(e) {
+      warning(paste("tpp_compute_dashboard_stats: error computing stats -", e$message))
+      return(data.frame(
+        Message = "No trait distribution data available",
+        stringsAsFactors = FALSE
+      ))
+    }
+  )
+}
+
+#' Render TPP breakdown table for dashboard display
+#'
+#' Passes through a valid breakdown data.frame or returns a message data.frame.
+#'
+#' @param breakdown_df Output from \code{tpp_build_breakdown_table}, or NULL.
+#' @return The \code{breakdown_df} as-is if valid, otherwise a message data.frame.
+#' @noRd
+tpp_render_breakdown_panel <- function(breakdown_df) {
+  tryCatch(
+    {
+      if (is.null(breakdown_df) || !is.data.frame(breakdown_df) || nrow(breakdown_df) == 0) {
+        return(data.frame(
+          Message = "No TPP information available",
+          stringsAsFactors = FALSE
+        ))
+      }
+
+      return(breakdown_df)
+    },
+    error = function(e) {
+      warning(paste("tpp_render_breakdown_panel: error rendering breakdown -", e$message))
+      return(data.frame(
+        Message = "No TPP information available",
+        stringsAsFactors = FALSE
+      ))
+    }
+  )
+}
+
+#' Compute TPP compliance percentages for dashboard
+#'
+#' @param criteria_matrix_all Logical data.frame from tpp_evaluate_all_criteria
+#'   with category_filter = c("Essential_Improve", "Essential_Maintain").
+#' @param criteria_matrix_improve Logical data.frame from tpp_evaluate_all_criteria
+#'   with category_filter = "Essential_Improve".
+#' @param subset_designations Character vector of designations for "Selected" pct.
+#' @return Data.frame with columns: Metric, Selected_Pct, Overall_Pct.
+#' @noRd
+tpp_compute_compliance_pcts <- function(criteria_matrix_all, criteria_matrix_improve,
+                                         subset_designations = NULL) {
+  tryCatch(
+    {
+      if (is.null(criteria_matrix_all) || !is.data.frame(criteria_matrix_all) ||
+          nrow(criteria_matrix_all) == 0) {
+        return(data.frame(
+          Message = "No TPP information available",
+          stringsAsFactors = FALSE
+        ))
+      }
+
+      if (is.null(criteria_matrix_improve) || !is.data.frame(criteria_matrix_improve) ||
+          nrow(criteria_matrix_improve) == 0) {
+        return(data.frame(
+          Message = "No TPP information available",
+          stringsAsFactors = FALSE
+        ))
+      }
+
+      overall_all <- .tpp_compute_pct_fully_compliant(criteria_matrix_all)
+      overall_improve <- .tpp_compute_pct_fully_compliant(criteria_matrix_improve)
+
+      if (is.null(subset_designations) || length(subset_designations) == 0) {
+        selected_all <- overall_all
+        selected_improve <- overall_improve
+      } else {
+        subset_all <- .tpp_filter_criteria_matrix(criteria_matrix_all, subset_designations)
+        subset_improve <- .tpp_filter_criteria_matrix(criteria_matrix_improve, subset_designations)
+
+        selected_all <- .tpp_compute_pct_fully_compliant(subset_all)
+        selected_improve <- .tpp_compute_pct_fully_compliant(subset_improve)
+      }
+
+      result <- data.frame(
+        Metric       = c("All Essential", "Essential Improve Only"),
+        Selected_Pct = c(selected_all, selected_improve),
+        Overall_Pct  = c(overall_all, overall_improve),
+        stringsAsFactors = FALSE
+      )
+
+      return(result)
+    },
+    error = function(e) {
+      warning(paste("tpp_compute_compliance_pcts: error computing percentages -", e$message))
+      return(data.frame(
+        Message = "No TPP information available",
+        stringsAsFactors = FALSE
+      ))
+    }
+  )
+}
+
+#' Compute summary statistics for a single group's index values
+#' @noRd
+.tpp_compute_group_stats <- function(values) {
+  values <- suppressWarnings(as.numeric(values))
+  values <- values[!is.na(values)]
+
+  if (length(values) == 0) {
+    return(list(min = NA_real_, max = NA_real_, mean = NA_real_,
+                median = NA_real_, sd = NA_real_))
+  }
+
+  list(
+    min    = min(values),
+    max    = max(values),
+    mean   = mean(values),
+    median = median(values),
+    sd     = sd(values)
+  )
+}
+
+#' Compute percentage of individuals meeting all criteria in a criteria matrix
+#' @noRd
+.tpp_compute_pct_fully_compliant <- function(criteria_matrix) {
+  if (is.null(criteria_matrix) || !is.data.frame(criteria_matrix) ||
+      nrow(criteria_matrix) == 0) {
+    return(0)
+  }
+
+  n_total <- nrow(criteria_matrix)
+  trait_cols <- setdiff(colnames(criteria_matrix), "designation")
+
+  if (length(trait_cols) == 0) {
+    return(100)
+  }
+
+  all_met <- vapply(seq_len(n_total), function(i) {
+    row_vals <- criteria_matrix[i, trait_cols, drop = FALSE]
+    all(unlist(row_vals) == TRUE)
+  }, logical(1))
+
+  n_meeting <- sum(all_met)
+  pct <- (n_meeting / n_total) * 100
+
+  return(pct)
+}
+
+#' Filter a criteria matrix to a subset of designations
+#' @noRd
+.tpp_filter_criteria_matrix <- function(criteria_matrix, subset_designations) {
+  if (is.null(criteria_matrix) || !is.data.frame(criteria_matrix) ||
+      nrow(criteria_matrix) == 0 || !"designation" %in% colnames(criteria_matrix)) {
+    return(data.frame(designation = character(0), stringsAsFactors = FALSE))
+  }
+
+  filtered <- criteria_matrix[criteria_matrix$designation %in% subset_designations, , drop = FALSE]
+  rownames(filtered) <- NULL
+  return(filtered)
+}
+
+
+# =============================================================================
+# SECTION 10: Scatterplot TPP Overlay
+# =============================================================================
+
+#' Add TPP desired score reference lines to a plotly scatterplot
+#'
+#' Modifies an existing plotly plot object by overlaying bold black reference
+#' lines at the Desired_Score boundary values for the x-axis and y-axis traits.
+#'
+#' @param plot_obj A plotly plot object to modify.
+#' @param x_trait_desired List with \code{lower} and/or \code{upper} numeric bounds.
+#' @param y_trait_desired List with \code{lower} and/or \code{upper} numeric bounds.
+#' @return Modified plotly plot object with reference lines added.
+#' @noRd
+tpp_add_scatterplot_lines <- function(plot_obj, x_trait_desired, y_trait_desired) {
+  shapes <- list()
+
+  line_style <- list(
+    color = "black",
+    width = 3,
+    dash = "solid"
+  )
+
+  # Vertical lines for x-axis trait boundaries
+  if (!is.null(x_trait_desired) && length(x_trait_desired) > 0) {
+    if (!is.null(x_trait_desired$lower) && !is.na(x_trait_desired$lower)) {
+      shapes <- append(shapes, list(list(
+        type = "line",
+        x0 = x_trait_desired$lower,
+        x1 = x_trait_desired$lower,
+        y0 = 0,
+        y1 = 1,
+        xref = "x",
+        yref = "paper",
+        line = line_style
+      )))
+    }
+
+    if (!is.null(x_trait_desired$upper) && !is.na(x_trait_desired$upper)) {
+      shapes <- append(shapes, list(list(
+        type = "line",
+        x0 = x_trait_desired$upper,
+        x1 = x_trait_desired$upper,
+        y0 = 0,
+        y1 = 1,
+        xref = "x",
+        yref = "paper",
+        line = line_style
+      )))
+    }
+  }
+
+  # Horizontal lines for y-axis trait boundaries
+  if (!is.null(y_trait_desired) && length(y_trait_desired) > 0) {
+    if (!is.null(y_trait_desired$lower) && !is.na(y_trait_desired$lower)) {
+      shapes <- append(shapes, list(list(
+        type = "line",
+        x0 = 0,
+        x1 = 1,
+        y0 = y_trait_desired$lower,
+        y1 = y_trait_desired$lower,
+        xref = "paper",
+        yref = "y",
+        line = line_style
+      )))
+    }
+
+    if (!is.null(y_trait_desired$upper) && !is.na(y_trait_desired$upper)) {
+      shapes <- append(shapes, list(list(
+        type = "line",
+        x0 = 0,
+        x1 = 1,
+        y0 = y_trait_desired$upper,
+        y1 = y_trait_desired$upper,
+        xref = "paper",
+        yref = "y",
+        line = line_style
+      )))
+    }
+  }
+
+  if (length(shapes) == 0) {
+    return(plot_obj)
+  }
+
+  # For ggplotly() objects, append to existing shapes list
+  if (!is.null(plot_obj$x) && is.list(plot_obj$x) && !is.null(plot_obj$x$layout)) {
+    existing <- plot_obj$x$layout$shapes
+    if (!is.null(existing) && !is.null(existing$type)) {
+      existing <- list(existing)
+    }
+    plot_obj$x$layout$shapes <- c(existing, shapes)
+    return(plot_obj)
+  }
+
+  # Fallback for plain plot_ly objects
+  plot_obj <- plotly::layout(plot_obj, shapes = shapes)
+
+  return(plot_obj)
+}
+
+
+# =============================================================================
+# SECTION 11: TPP Overview Table Builder
+# =============================================================================
+
+#' Build TPP Overview Summary Table
+#'
+#' Constructs a data.frame summarizing TPP trait performance metrics from MTA results.
+#'
+#' @param tpp_data A data.frame containing TPP trait definitions.
+#' @param tpp_id A character string identifying the TPP.
+#' @param trait_map A named character vector mapping TPP to pheno trait names.
+#' @param tpp_traits_metadata A data.frame with tpp_trait and pheno_trait columns.
+#' @param metrics A data.frame with trait, parameter, value, environment, analysisId.
+#' @param modeling A data.frame with trait, parameter, value, environment, analysisId.
+#' @param analysisId A character string identifying the current MTA analysis.
+#' @return A data.frame with overview columns.
+#' @noRd
+build_tpp_overview_table <- function(tpp_data, tpp_id, trait_map = NULL,
+                                     tpp_traits_metadata = NULL, metrics = NULL,
+                                     modeling = NULL, analysisId = NULL) {
+
+  n_rows <- nrow(tpp_data)
+
+  if ("Trait ID" %in% colnames(tpp_data)) {
+    trait_ids <- as.character(tpp_data[["Trait ID"]])
+  } else {
+    trait_ids <- as.character(seq_len(n_rows))
+  }
+
+  if ("Trait Name" %in% colnames(tpp_data)) {
+    trait_names <- as.character(tpp_data[["Trait Name"]])
+  } else {
+    trait_names <- rep("NA", n_rows)
+  }
+
+  if ("Trait Requirement" %in% colnames(tpp_data)) {
+    trait_requirements <- as.character(tpp_data[["Trait Requirement"]])
+  } else {
+    trait_requirements <- rep("NA", n_rows)
+  }
+
+  gs_col <- character(n_rows)
+  mean_col <- vector("list", n_rows)
+  r2_col <- vector("list", n_rows)
+  var_col <- vector("list", n_rows)
+  err_var_col <- vector("list", n_rows)
+  n_env_col <- vector("list", n_rows)
+
+  for (i in seq_len(n_rows)) {
+    tpp_trait <- trait_names[i]
+
+    resolved_trait <- resolve_trait_name(tpp_trait, trait_map, tpp_traits_metadata)
+
+    has_metrics <- FALSE
+    if (!is.na(resolved_trait) && !is.null(metrics) && nrow(metrics) > 0 &&
+        !is.null(analysisId)) {
+      matching_rows <- metrics[
+        metrics$trait == resolved_trait &
+          metrics$environment %in% c("across", "(Intercept)") &
+          metrics$analysisId == analysisId, , drop = FALSE
+      ]
+      has_metrics <- nrow(matching_rows) > 0
+    }
+
+    if (!has_metrics) {
+      gs_col[i] <- "not evaluated"
+      mean_col[[i]] <- "not evaluated"
+      r2_col[[i]] <- "not evaluated"
+      var_col[[i]] <- "not evaluated"
+      err_var_col[[i]] <- "not evaluated"
+      n_env_col[[i]] <- "not evaluated"
+    } else {
+      gs_col[i] <- determine_gs_flag(resolved_trait, modeling, analysisId)
+
+      mean_col[[i]] <- lookup_metric(resolved_trait, "mean_designation", metrics, analysisId)
+      r2_col[[i]] <- lookup_metric(resolved_trait, "r2_designation", metrics, analysisId)
+      var_col[[i]] <- lookup_metric(resolved_trait, "Var_designation", metrics, analysisId)
+      err_var_col[[i]] <- lookup_metric(resolved_trait, "Var_residual", metrics, analysisId)
+      n_env_col[[i]] <- lookup_metric(resolved_trait, "nEnv", metrics, analysisId)
+    }
+  }
+
+  result <- data.frame(
+    "TPP ID" = rep(tpp_id, n_rows),
+    "Trait ID" = trait_ids,
+    "Trait Name" = trait_names,
+    "Trait Requirement" = trait_requirements,
+    "Genomic Selection" = gs_col,
+    "Mean" = I(mean_col),
+    "r2" = I(r2_col),
+    "Variance" = I(var_col),
+    "Error Variance" = I(err_var_col),
+    "Number of Environments" = I(n_env_col),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  result[["Mean"]] <- unlist(mean_col)
+  result[["r2"]] <- unlist(r2_col)
+  result[["Variance"]] <- unlist(var_col)
+  result[["Error Variance"]] <- unlist(err_var_col)
+  result[["Number of Environments"]] <- unlist(n_env_col)
+
+  return(result)
+}
+
+#' Resolve TPP Trait Name to MTA Metric Trait Name
+#' @noRd
+resolve_trait_name <- function(tpp_trait, trait_map, tpp_traits_metadata) {
+  if (!is.null(trait_map) && tpp_trait %in% names(trait_map)) {
+    return(tpp_trait)
+  }
+
+  if (!is.null(tpp_traits_metadata) && is.data.frame(tpp_traits_metadata) &&
+      "tpp_trait" %in% colnames(tpp_traits_metadata) &&
+      "pheno_trait" %in% colnames(tpp_traits_metadata)) {
+    match_idx <- which(tpp_traits_metadata$tpp_trait == tpp_trait)
+    if (length(match_idx) > 0) {
+      pheno_val <- tpp_traits_metadata$pheno_trait[match_idx[1]]
+      if (!is.null(pheno_val) && !is.na(pheno_val) && nchar(pheno_val) > 0) {
+        return(pheno_val)
+      }
+    }
+  }
+
+  return(NA_character_)
+}
+
+#' Determine Genomic Selection Flag
+#' @noRd
+determine_gs_flag <- function(resolved_trait, modeling, analysisId) {
+  if (is.null(modeling) || !is.data.frame(modeling) || nrow(modeling) == 0) {
+    return("No")
+  }
+
+  if (is.null(analysisId) || is.na(resolved_trait)) {
+    return("No")
+  }
+
+  matching <- modeling[
+    modeling$analysisId == analysisId &
+      modeling$trait == resolved_trait &
+      modeling$parameter == "kernels", , drop = FALSE
+  ]
+
+  if (nrow(matching) == 0) {
+    return("No")
+  }
+
+  if (any(matching$value %in% c("genoA", "genoAD"))) {
+    return("Yes")
+  }
+
+  return("No")
+}
+
+#' Look Up a Single Metric Value
+#' @noRd
+lookup_metric <- function(resolved_trait, param_name, metrics, analysisId) {
+  if (is.null(metrics) || !is.data.frame(metrics) || nrow(metrics) == 0) {
+    return("not evaluated")
+  }
+
+  if (is.null(analysisId) || is.na(resolved_trait)) {
+    return("not evaluated")
+  }
+
+  matching <- metrics[
+    metrics$trait == resolved_trait &
+      metrics$parameter == param_name &
+      metrics$environment == "across" &
+      metrics$analysisId == analysisId, , drop = FALSE
+  ]
+
+  if (nrow(matching) == 0) {
+    matching <- metrics[
+      metrics$trait == resolved_trait &
+        metrics$parameter == param_name &
+        metrics$environment == "(Intercept)" &
+        metrics$analysisId == analysisId, , drop = FALSE
+    ]
+  }
+
+  if (nrow(matching) == 0) {
+    return("not evaluated")
+  }
+
+  val <- matching$value[1]
+
+  if (is.null(val) || is.na(val)) {
+    return(NA)
+  }
+
+  return(val)
+}
+
+
+# =============================================================================
+# SECTION 12: TPP Trait Enrichment
+# =============================================================================
+
+#' Enrich TPP trait metadata with category and desired-score columns
+#'
+#' Joins the trait mapping from metadata$TPP[[tpp_id]]$traits with the raw TPP
+#' sheet data to produce the enriched columns needed by downstream helpers.
+#'
+#' @param dt_object The data object list with $metadata$TPP and $data$TPP.
+#' @param tpp_id Character scalar; the TPP identifier to enrich.
+#' @return An enriched data.frame, or NULL when the TPP is unavailable.
+#' @noRd
+tpp_enrich_traits_from_raw <- function(dt_object, tpp_id) {
+  if (is.null(dt_object) || is.null(tpp_id) || length(tpp_id) != 1) return(NULL)
+  if (is.na(tpp_id) || !nzchar(tpp_id)) return(NULL)
+
+  tpp_meta_all <- dt_object$metadata$TPP
+  if (is.null(tpp_meta_all) || !(tpp_id %in% names(tpp_meta_all))) return(NULL)
+
+  tpp_meta <- tpp_meta_all[[tpp_id]]
+  if (is.null(tpp_meta) || is.null(tpp_meta$traits)) return(NULL)
+
+  out <- tpp_meta$traits
+  if (!is.data.frame(out) || nrow(out) == 0) return(NULL)
+
+  # Nothing to do when the table is already enriched
+  if ("category" %in% colnames(out)) return(out)
+
+  if (!"tpp_id" %in% colnames(out)) {
+    out$tpp_id <- rep(tpp_id, nrow(out))
+  }
+
+  raw_tpp <- dt_object$data$TPP[[tpp_id]]
+
+  n <- nrow(out)
+  out$category           <- NA_character_
+  out$desired_direction  <- NA_character_
+  out$score_type         <- NA_character_
+  out$desired_lower      <- NA_real_
+  out$desired_upper      <- NA_real_
+  out$pct_above_check    <- NA_real_
+  out$pct_of_check       <- NA_real_
+  out$desired_score_text <- NA_character_
+  out$scale_min          <- NA_real_
+  out$scale_max          <- NA_real_
+
+  if (is.null(raw_tpp) || !is.data.frame(raw_tpp) ||
+      !all(c("Trait Name", "Trait Requirement") %in% colnames(raw_tpp))) {
+    return(out)
+  }
+
+  if (!"tpp_trait" %in% colnames(out)) return(out)
+
+  match_idx <- match(out$tpp_trait, raw_tpp[["Trait Name"]])
+
+  # Requirement category
+  raw_req <- raw_tpp[["Trait Requirement"]][match_idx]
+  out$category <- ifelse(
+    grepl("Improve", raw_req, ignore.case = TRUE), "Essential_Improve",
+    ifelse(grepl("Maintain", raw_req, ignore.case = TRUE), "Essential_Maintain",
+           ifelse(grepl("Nice", raw_req, ignore.case = TRUE), "Nice_To_Have",
+                  NA_character_))
+  )
+
+  # Trait ID
+  if ("Trait ID" %in% colnames(raw_tpp) && !"trait_id" %in% colnames(out)) {
+    out$trait_id <- raw_tpp[["Trait ID"]][match_idx]
+  }
+
+  # Desired score parsing
+  if ("Desired Score" %in% colnames(raw_tpp)) {
+    raw_score <- raw_tpp[["Desired Score"]][match_idx]
+    parsed <- lapply(raw_score, tpp_parse_desired_score)
+
+    pick_chr <- function(field) {
+      vapply(parsed, function(p) {
+        v <- p[[field]]
+        if (is.null(v) || length(v) != 1 || is.na(v)) NA_character_ else as.character(v)
+      }, character(1))
+    }
+    pick_num <- function(field) {
+      vapply(parsed, function(p) {
+        v <- p[[field]]
+        if (is.null(v) || length(v) != 1 || is.na(v)) NA_real_ else as.numeric(v)
+      }, numeric(1))
+    }
+
+    out$desired_direction  <- pick_chr("direction")
+    out$score_type         <- pick_chr("score_type")
+    out$desired_lower      <- pick_num("lower_bound")
+    out$desired_upper      <- pick_num("upper_bound")
+    out$pct_above_check    <- pick_num("pct_above_check")
+    out$pct_of_check       <- pick_num("pct_of_check")
+    out$desired_score_text <- as.character(raw_score)
+  }
+
+  # Scale bounds
+  if ("Scale Option" %in% colnames(raw_tpp)) {
+    raw_scales <- raw_tpp[["Scale Option"]][match_idx]
+    parsed_scales <- lapply(raw_scales, tpp_parse_scale_option)
+    out$scale_min <- vapply(parsed_scales, function(p) {
+      if (!is.null(p) && !is.null(p$min) && length(p$min) == 1 && !is.na(p$min)) {
+        as.numeric(p$min)
+      } else NA_real_
+    }, numeric(1))
+    out$scale_max <- vapply(parsed_scales, function(p) {
+      if (!is.null(p) && !is.null(p$max) && length(p$max) == 1 && !is.na(p$max)) {
+        as.numeric(p$max)
+      } else NA_real_
+    }, numeric(1))
+  }
+
+  out
+}
