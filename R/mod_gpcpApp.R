@@ -64,8 +64,19 @@ mod_gpcpApp_ui <- function(id){
                                       tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right") ), #icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Gpcp"), "Index version to analyze", choices = NULL, multiple = FALSE)),
-
+                                                      column(width=8, selectInput(ns("version2Gpcp"), "Index version to analyze", choices = NULL, multiple = TRUE)),
+                                                      column(width=8,
+                                                             selectInput(ns("markerEffectsStamp"),
+                                                                         label = tags$span(
+                                                                           "Marker effects MTA stamp (optional)",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Optionally select an MTA stamp containing additive (marker_a) and dominance (marker_d) marker effects. When provided, these effects are used directly instead of back-solving from BLUPs. If left empty, existing back-solve behavior is used."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE)
+                                                      ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -401,13 +412,50 @@ mod_gpcpApp_server <- function(id, data){
       updateSelectInput(session, "version2Gpcp", choices = traitsGpcp)
     })
     #################
+    ## marker effects stamp dropdown (optional)
+    ## Lists only MTA stamps that have both marker_a and marker_d effectType predictions
+    observeEvent(c(data()), {
+      req(data())
+      preds <- data()$predictions
+      statusDf <- data()$status
+
+      # Find analysisIds that have marker_a predictions
+      idsWithMarkerA <- unique(preds$analysisId[which(preds$effectType == "marker_a")])
+      # Find analysisIds that have marker_d predictions
+      idsWithMarkerD <- unique(preds$analysisId[which(preds$effectType == "marker_d")])
+      # Stamps must have BOTH marker_a and marker_d
+      validIds <- intersect(idsWithMarkerA, idsWithMarkerD)
+
+      # Build choices with empty option for "none selected"
+      markerChoices <- stats::setNames("", "(none - use back-solve)")
+      if (length(validIds) > 0) {
+        # Match with status table to get labels
+        matchedStatus <- statusDf[which(statusDf$analysisId %in% validIds), , drop = FALSE]
+        validStamps <- unique(matchedStatus$analysisId)
+        if (length(validStamps) > 0) {
+          if ("analysisIdName" %in% colnames(matchedStatus)) {
+            stampLabels <- paste(
+              matchedStatus$analysisIdName[match(validStamps, matchedStatus$analysisId)],
+              as.POSIXct(as.numeric(validStamps), origin = "1970-01-01", tz = "GMT"),
+              sep = "_"
+            )
+          } else {
+            stampLabels <- as.character(as.POSIXct(as.numeric(validStamps), origin = "1970-01-01", tz = "GMT"))
+          }
+          names(validStamps) <- stampLabels
+          markerChoices <- c("(none - use back-solve)" = "", validStamps)
+        }
+      }
+      updateSelectInput(session, "markerEffectsStamp", choices = markerChoices, selected = "")
+    })
+    #################
     ## traits
     observeEvent(c(data(), input$version2Gpcp), {
       req(data())
       req(input$version2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       traitsGpcp <- unique(dtGpcp$trait)
       updateSelectInput(session, "trait2Gpcp", choices = traitsGpcp)
     })
@@ -416,7 +464,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$version2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       traitsGpcp <- unique(dtGpcp$trait)
       updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsGpcp)
     })
@@ -443,7 +491,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$trait2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$trait == input$trait2Gpcp),]
       traitsGpcp <- unique(dtGpcp$effectType)
       updateSelectInput(session, "effectType2Gpcp", choices = traitsGpcp, selected = traitsGpcp)
@@ -458,7 +506,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$effectType2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$trait == input$trait2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$effectType == input$effectType2Gpcp),]
       traitsGpcp <- unique(dtGpcp$entryType)
@@ -541,7 +589,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$trait2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$trait == input$trait2Gpcp),]
       traitsGpcp <- unique(dtGpcp$environment)
       updateSelectInput(session, "env2Gpcp", choices = traitsGpcp)
@@ -627,7 +675,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$version2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),setdiff(colnames(dtGpcp),c("module","analysisId"))]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),setdiff(colnames(dtGpcp),c("module","analysisId"))]
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtGpcp, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
@@ -791,7 +839,8 @@ mod_gpcpApp_server <- function(id, data){
           verbose=input$verboseGpcp, maxRun = input$maxRun,
           effectType=input$effectType2Gpcp,
           entryType=input$entryType2Gpcp,
-          numberBest = input$numberBest
+          numberBest = input$numberBest,
+          markerEffectsId = if (!is.null(input$markerEffectsStamp) && nchar(input$markerEffectsStamp) > 0) input$markerEffectsStamp else NULL
         ),
         silent=TRUE
         )

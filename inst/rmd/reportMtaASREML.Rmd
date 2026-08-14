@@ -1917,6 +1917,69 @@ if (is.null(result)){
 ```
 
 
+### TPP Overview
+
+This section links TPP (Target Product Profile) trait definitions with key MTA performance metrics.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  # Get TPP analysis config
+  tpp_analysis_config <- result$metadata$tpp_analysis_config
+  
+  if (is.null(tpp_analysis_config) || is.null(tpp_analysis_config$tpp_id) || 
+      tpp_analysis_config$tpp_id == "") {
+    cat("No TPP information available\n")
+  } else {
+    tpp_id <- tpp_analysis_config$tpp_id
+    
+    # Check if TPP data exists
+    if (is.null(result$data$TPP) || is.null(result$data$TPP[[tpp_id]])) {
+      cat("No TPP information available\n")
+    } else {
+      tpp_data <- result$data$TPP[[tpp_id]]
+      
+      if (nrow(tpp_data) == 0) {
+        cat("No TPP traits defined\n")
+      } else {
+        # Get TPP traits metadata if available
+        tpp_traits_metadata <- NULL
+        if (!is.null(result$metadata$TPP) && !is.null(result$metadata$TPP[[tpp_id]])) {
+          tpp_traits_metadata <- result$metadata$TPP[[tpp_id]]$traits
+        }
+        
+        # Build the summary table
+        summaryTable <- build_tpp_overview_table(
+          tpp_data = tpp_data,
+          tpp_id = tpp_id,
+          trait_map = tpp_analysis_config$trait_map,
+          tpp_traits_metadata = tpp_traits_metadata,
+          metrics = result$metrics,
+          modeling = result$modeling,
+          analysisId = idMta
+        )
+        
+        numericColNames <- c("Mean", "r2", "Variance", "Error Variance", "Number of Environments")
+        
+        if("params" %in% ls()){
+          printTable(summaryTable, scrollXOpt = FALSE, autoWidthOpt = TRUE,
+                     colNames = colnames(summaryTable),
+                     numericColNames = numericColNames, numRound = 4)
+        } else {
+          DT::renderDT(printTable(summaryTable, scrollXOpt = TRUE, autoWidthOpt = FALSE,
+                                  colNames = colnames(summaryTable),
+                                  numericColNames = numericColNames, numRound = 4),
+                       server = FALSE)
+        }
+      }
+    }
+  }
+}
+```
+
+
 ### References of methods used
 
 R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.

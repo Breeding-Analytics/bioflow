@@ -2065,3 +2065,396 @@ tpp_enrich_traits_from_raw <- function(dt_object, tpp_id) {
 
   out
 }
+
+
+# =============================================================================
+# SECTION 13: TPP Metadata Access & Validation
+# =============================================================================
+
+#' Map a TPP trait identifier to a row index of the TPP traits table
+#'
+#' The \code{env_filters} list is keyed by trait identifiers such as
+#' \code{"TRAIT_001"} or \code{"TR-00003"}, where the trailing digits are the
+#' 1-based row position in the TPP \code{traits} data.frame. Only traits that
+#' actually carry an environment filter appear in \code{env_filters}, so the
+#' keys cannot be assumed to be contiguous.
+#'
+#' @param trait_id Character scalar key from \code{env_filters}
+#' @param n_rows Number of rows in the TPP traits data.frame
+#' @return Integer row index, or \code{NA_integer_} if unresolvable
+#' @noRd
+.tpp_trait_id_to_row <- function(trait_id, n_rows) {
+  if (is.null(trait_id) || length(trait_id) != 1 || is.na(trait_id)) {
+    return(NA_integer_)
+  }
+  trait_id <- as.character(trait_id)
+  digits <- regmatches(trait_id, regexpr("[0-9]+$", trait_id))
+  if (length(digits) == 0 || !nzchar(digits)) {
+    return(NA_integer_)
+  }
+  idx <- suppressWarnings(as.integer(digits))
+  if (is.na(idx) || idx < 1L || idx > n_rows) {
+    return(NA_integer_)
+  }
+  idx
+}
+
+#' Extract the available TPP IDs from a data object
+#'
+#' Reads \code{data_obj$metadata$TPP} and returns its names. Designed to be
+#' safe to call from reactive contexts: any malformed input yields
+#' \code{character(0)} rather than an error.
+#'
+#' @param data_obj The bioflow data object
+#' @return Character vector of TPP IDs, possibly \code{character(0)}
+#' @noRd
+tpp_get_tpp_ids <- function(data_obj) {
+  tryCatch({
+    tpp_list <- data_obj$metadata$TPP
+
+    if (is.null(tpp_list) || !is.list(tpp_list) || length(tpp_list) == 0) {
+      character(0)
+    } else {
+      nms <- names(tpp_list)
+      if (is.null(nms)) {
+        character(0)
+      } else {
+        nms <- nms[!is.na(nms) & nzchar(nms)]
+        as.character(nms)
+      }
+    }
+  }, error = function(e) {
+    warning(
+      paste0("tpp_get_tpp_ids: could not read TPP metadata (",
+             conditionMessage(e), "); returning no TPP IDs."),
+      call. = FALSE
+    )
+    character(0)
+  })
+}
+
+#' Validate the structure of a single TPP metadata entry
+#'
+#' Checks that the entry exists and that its \code{traits} (data.frame with
+#' \code{tpp_trait} and \code{pheno_trait} columns) and \code{env_filters}
+#' (list) elements are well formed.
+#'
+#' @param data_obj The bioflow data object
+#' @param tpp_id Character scalar TPP ID to validate
+#' @return A list with \code{valid} (logical) and \code{message} (character)
+#' @noRd
+tpp_validate_metadata <- function(data_obj, tpp_id) {
+  bad <- function(msg) list(valid = FALSE, message = msg)
+
+  tryCatch({
+    tpp_list <- data_obj$metadata$TPP
+
+    if (is.null(tpp_list)) {
+      bad("TPP metadata is NULL or missing from the data object")
+    } else if (!is.list(tpp_list)) {
+      bad("TPP metadata is not a list")
+    } else if (is.null(tpp_id) || length(tpp_id) != 1 || is.na(tpp_id) ||
+               !nzchar(as.character(tpp_id))) {
+      bad("TPP ID is NULL or empty")
+    } else if (!as.character(tpp_id) %in% names(tpp_list)) {
+      bad(paste0("TPP ID '", tpp_id, "' not found in TPP metadata"))
+    } else {
+      entry <- tpp_list[[as.character(tpp_id)]]
+
+      if (!is.list(entry) || is.data.frame(entry)) {
+        bad(paste0("TPP entry for '", tpp_id, "' is not a list"))
+      } else {
+        traits <- entry$traits
+        env_filters <- entry$env_filters
+
+        if (is.null(traits) || !is.data.frame(traits)) {
+          bad(paste0("TPP entry '", tpp_id,
+                     "' has a missing or non-data.frame 'traits' element"))
+        } else {
+          missing_cols <- setdiff(c("tpp_trait", "pheno_trait"), colnames(traits))
+
+          if (length(missing_cols) > 0) {
+            bad(paste0("TPP 'traits' for '", tpp_id,
+                       "' is missing required column(s): ",
+                       paste(missing_cols, collapse = ", ")))
+          } else if (is.null(env_filters) || !is.list(env_filters) ||
+                     is.data.frame(env_filters)) {
+            bad(paste0("TPP entry '", tpp_id,
+                       "' has a missing or non-list 'env_filters' element"))
+          } else {
+            list(valid = TRUE, message = "TPP metadata is valid")
+          }
+        }
+      }
+    }
+  }, error = function(e) {
+    bad(paste0("tpp_validate_metadata: validation failed (",
+               conditionMessage(e), ")"))
+  })
+}
+
+#' Get the environment-filtered traits for a TPP
+#'
+#' Returns one row per TPP trait that carries a non-empty environment filter.
+#' Traits without a filter are intentionally excluded, since only filtered
+#' traits need special handling downstream.
+#'
+#' @param data_obj The bioflow data object
+#' @param tpp_id Character scalar TPP ID
+#' @return A data.frame with columns \code{tpp_trait}, \code{pheno_trait},
+#'   \code{trait_id} and the list-column \code{env_filter}. Zero rows when
+#'   nothing is filtered or the input is unusable.
+#' @noRd
+tpp_get_filtered_traits <- function(data_obj, tpp_id) {
+  empty_result <- function() {
+    out <- data.frame(
+      tpp_trait = character(0),
+      pheno_trait = character(0),
+      trait_id = character(0),
+      stringsAsFactors = FALSE
+    )
+    out$env_filter <- list()
+    out
+  }
+
+  tryCatch({
+    tpp_list <- data_obj$metadata$TPP
+
+    id_ok <- !is.null(tpp_list) && is.list(tpp_list) &&
+      !is.null(tpp_id) && length(tpp_id) == 1 && !is.na(tpp_id) &&
+      nzchar(as.character(tpp_id)) &&
+      as.character(tpp_id) %in% names(tpp_list)
+
+    if (!id_ok) {
+      warning(
+        paste0("tpp_get_filtered_traits: TPP ID '",
+               if (is.null(tpp_id)) "NULL" else paste(tpp_id, collapse = ", "),
+               "' not found in TPP metadata; returning no filtered traits."),
+        call. = FALSE
+      )
+      return(empty_result())
+    }
+
+    entry <- tpp_list[[as.character(tpp_id)]]
+    if (!is.list(entry) || is.data.frame(entry)) {
+      stop("TPP entry for '", tpp_id, "' is not a list")
+    }
+
+    traits <- entry$traits
+    env_filters <- entry$env_filters
+
+    if (is.null(traits) || !is.data.frame(traits) ||
+        !all(c("tpp_trait", "pheno_trait") %in% colnames(traits))) {
+      stop("TPP entry for '", tpp_id, "' has an invalid 'traits' table")
+    }
+
+    if (is.null(env_filters) || !is.list(env_filters) ||
+        length(env_filters) == 0) {
+      return(empty_result())
+    }
+
+    keys <- names(env_filters)
+    if (is.null(keys)) keys <- rep(NA_character_, length(env_filters))
+
+    rows <- list()
+    for (i in seq_along(env_filters)) {
+      key <- keys[i]
+      filt <- env_filters[[i]]
+
+      # Traits without a filter are simply not filtered.
+      if (is.null(filt) || length(filt) == 0) next
+
+      if (!is.character(filt)) {
+        warning(
+          paste0("tpp_get_filtered_traits: env_filter for '", key,
+                 "' is not a character vector; skipping this trait."),
+          call. = FALSE
+        )
+        next
+      }
+
+      row_idx <- .tpp_trait_id_to_row(key, nrow(traits))
+      if (is.na(row_idx)) {
+        warning(
+          paste0("tpp_get_filtered_traits: could not resolve env_filter key '",
+                 key, "' to a row of the TPP traits table; skipping."),
+          call. = FALSE
+        )
+        next
+      }
+
+      rows[[length(rows) + 1L]] <- list(
+        tpp_trait = as.character(traits$tpp_trait[row_idx]),
+        pheno_trait = as.character(traits$pheno_trait[row_idx]),
+        trait_id = as.character(key),
+        env_filter = as.character(filt)
+      )
+    }
+
+    if (length(rows) == 0) {
+      return(empty_result())
+    }
+
+    out <- data.frame(
+      tpp_trait = vapply(rows, function(r) r$tpp_trait, character(1)),
+      pheno_trait = vapply(rows, function(r) r$pheno_trait, character(1)),
+      trait_id = vapply(rows, function(r) r$trait_id, character(1)),
+      stringsAsFactors = FALSE
+    )
+    out$env_filter <- lapply(rows, function(r) r$env_filter)
+    out
+  }, error = function(e) {
+    warning(
+      paste0("tpp_get_filtered_traits: ", conditionMessage(e)),
+      call. = FALSE
+    )
+    empty_result()
+  })
+}
+
+
+# =============================================================================
+# SECTION 14: Trait Menu Choices & Analysis Mapping
+# =============================================================================
+
+#' Build the combined trait choices for a trait selectInput
+#'
+#' Standard phenotypic traits keep their own name as label and value. TPP
+#' traits are appended with a \code{"<trait> (TPP: <id>)"} label while the
+#' value stays the bare TPP trait name, so the module can detect them later.
+#'
+#' @param pheno_traits Character vector of standard phenotypic trait names
+#' @param tpp_traits_df Filtered traits data.frame from
+#'   \code{tpp_get_filtered_traits}, or \code{NULL}
+#' @param tpp_id Character scalar TPP ID used in the display label
+#' @return A named character vector suitable for \code{updateSelectInput}
+#' @noRd
+tpp_build_trait_choices <- function(pheno_traits, tpp_traits_df, tpp_id) {
+  base_choices <- character(0)
+  if (!is.null(pheno_traits) && length(pheno_traits) > 0) {
+    base_choices <- as.character(pheno_traits)
+    names(base_choices) <- base_choices
+  }
+
+  if (is.null(tpp_traits_df) || !is.data.frame(tpp_traits_df) ||
+      nrow(tpp_traits_df) == 0 ||
+      !"tpp_trait" %in% colnames(tpp_traits_df)) {
+    return(base_choices)
+  }
+
+  tpp_vals <- as.character(tpp_traits_df$tpp_trait)
+  tpp_vals <- tpp_vals[!is.na(tpp_vals) & nzchar(tpp_vals)]
+  if (length(tpp_vals) == 0) {
+    return(base_choices)
+  }
+
+  id_label <- if (is.null(tpp_id) || length(tpp_id) != 1 || is.na(tpp_id)) {
+    ""
+  } else {
+    as.character(tpp_id)
+  }
+  names(tpp_vals) <- paste0(tpp_vals, " (TPP: ", id_label, ")")
+
+  c(base_choices, tpp_vals)
+}
+
+#' Resolve selected traits into phenotypic and environment maps
+#'
+#' Splits the user's trait selection into the underlying phenotypic trait to
+#' analyse (\code{pheno_map}) and, for TPP traits only, the environments to
+#' restrict the analysis to (\code{env_map}). Standard traits map to
+#' themselves and never appear in \code{env_map}, so
+#' \code{names(env_map)} identifies exactly the selected TPP traits.
+#'
+#' @param selected_traits Character vector of trait values chosen by the user
+#' @param tpp_traits_df Filtered traits data.frame from
+#'   \code{tpp_get_filtered_traits}, or \code{NULL}
+#' @param tpp_id Character scalar TPP ID (kept for signature symmetry and
+#'   diagnostics)
+#' @return A list with \code{pheno_map} and \code{env_map}, both named lists
+#' @noRd
+tpp_resolve_trait_mapping <- function(selected_traits, tpp_traits_df, tpp_id) {
+  pheno_map <- list()
+  env_map <- list()
+
+  if (is.null(selected_traits) || length(selected_traits) == 0) {
+    return(list(pheno_map = pheno_map, env_map = env_map))
+  }
+
+  selected <- as.character(selected_traits)
+  selected <- selected[!is.na(selected) & nzchar(selected)]
+
+  has_tpp <- !is.null(tpp_traits_df) && is.data.frame(tpp_traits_df) &&
+    nrow(tpp_traits_df) > 0 &&
+    all(c("tpp_trait", "pheno_trait") %in% colnames(tpp_traits_df))
+
+  tpp_names <- if (has_tpp) as.character(tpp_traits_df$tpp_trait) else character(0)
+  has_env_col <- has_tpp && "env_filter" %in% colnames(tpp_traits_df)
+
+  for (trait in selected) {
+    idx <- if (length(tpp_names) > 0) match(trait, tpp_names) else NA_integer_
+
+    if (is.na(idx)) {
+      # Standard phenotypic trait: identity mapping, no environment filter.
+      pheno_map[[trait]] <- trait
+    } else {
+      pheno_map[[trait]] <- as.character(tpp_traits_df$pheno_trait[idx])
+
+      if (has_env_col) {
+        raw <- tpp_traits_df$env_filter[[idx]]
+        if (!is.null(raw) && length(raw) > 0) {
+          env_map[[trait]] <- as.character(raw)
+        }
+      }
+    }
+  }
+
+  list(pheno_map = pheno_map, env_map = env_map)
+}
+
+#' Restrict an envsToInclude matrix to a set of environments for one trait
+#'
+#' Zeroes out every environment that is not in \code{env_filter} for the given
+#' trait column, leaving all other columns untouched. Environments already
+#' excluded stay excluded, and the input matrix is never modified in place, so
+#' each trait can be processed from a clean copy.
+#'
+#' @param envsToInclude Numeric matrix, rows named by environment and columns
+#'   named by phenotypic trait
+#' @param trait Character scalar naming the column to filter
+#' @param env_filter Character vector of environments to keep
+#' @return A copy of \code{envsToInclude} with the filter applied
+#' @noRd
+tpp_apply_env_filter <- function(envsToInclude, trait, env_filter) {
+  if (is.null(envsToInclude) || is.null(env_filter) || length(env_filter) == 0) {
+    return(envsToInclude)
+  }
+  if (is.null(trait) || length(trait) != 1 || is.na(trait)) {
+    return(envsToInclude)
+  }
+
+  out <- envsToInclude
+  trait <- as.character(trait)
+
+  if (!trait %in% colnames(out)) {
+    warning(
+      paste0("tpp_apply_env_filter: trait '", trait,
+             "' not found in envsToInclude columns; no filter applied."),
+      call. = FALSE
+    )
+    return(out)
+  }
+
+  env_names <- rownames(out)
+  if (is.null(env_names)) {
+    warning(
+      "tpp_apply_env_filter: envsToInclude has no rownames; no filter applied.",
+      call. = FALSE
+    )
+    return(out)
+  }
+
+  keep <- env_names %in% as.character(env_filter)
+  out[!keep, trait] <- 0
+  out
+}
