@@ -4381,6 +4381,24 @@ mod_advMeetingApp_server <- function(id, data){
         sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:center; font-weight:600;'>%s</div>", bg, st)
       })
 
+      # --- Numeric sorting fix: hidden sort columns ---
+      numeric_adv_cols <- c("index_value", traits)
+      numeric_adv_cols <- intersect(numeric_adv_cols, colnames(display_df))
+      sort_col_defs_adv <- list()
+      if (length(numeric_adv_cols) > 0) {
+        for (k in seq_along(numeric_adv_cols)) {
+          col_nm <- numeric_adv_cols[k]
+          sort_col_name <- paste0(".sort_", col_nm)
+          display_df[[sort_col_name]] <- as.numeric(tbl[[col_nm]])
+          vis_idx <- which(colnames(display_df) == col_nm) - 1L
+          sort_idx <- ncol(display_df) - 1L
+          sort_col_defs_adv <- c(sort_col_defs_adv, list(
+            list(targets = vis_idx, orderData = sort_idx),
+            list(targets = sort_idx, visible = FALSE)
+          ))
+        }
+      }
+
       DT::datatable(
         display_df,
         escape = FALSE,
@@ -4394,7 +4412,8 @@ mod_advMeetingApp_server <- function(id, data){
           searching = TRUE,
           ordering = TRUE,
           autoWidth = FALSE,
-          dom = "ft"
+          dom = "ft",
+          columnDefs = sort_col_defs_adv
         )
       )
     })

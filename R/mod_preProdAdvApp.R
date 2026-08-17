@@ -6329,13 +6329,41 @@ mod_preProdAdvApp_server <- function(id, data){
         autoWidth = FALSE
       )
 
+      # --- Numeric sorting fix: HTML-rendered cells sort lexicographically by
+      # default. We append hidden columns with the raw numeric values and use
+      # columnDefs.orderData so the visible columns sort numerically. ---
+      numeric_cols <- c("index_value", selected_traits)
+      numeric_cols <- intersect(numeric_cols, colnames(display_df))
+      sort_col_defs <- list()
+
+      if (length(numeric_cols) > 0) {
+        n_visible <- ncol(display_df)
+        for (k in seq_along(numeric_cols)) {
+          col_nm <- numeric_cols[k]
+          # Append a hidden column with the raw numeric values
+          sort_col_name <- paste0(".sort_", col_nm)
+          display_df[[sort_col_name]] <- as.numeric(tbl[[col_nm]])
+          # visible column index (0-based)
+          vis_idx <- which(colnames(display_df) == col_nm) - 1L
+          # hidden sort column index (0-based)
+          sort_idx <- ncol(display_df) - 1L
+          sort_col_defs <- c(sort_col_defs, list(
+            list(targets = vis_idx, orderData = sort_idx),
+            list(targets = sort_idx, visible = FALSE)
+          ))
+        }
+        dt_options$columnDefs <- sort_col_defs
+      }
+
       if (!is.null(row_callback_option)) {
         dt_options$rowCallback <- row_callback_option
       }
 
       # Rename trait columns to TPP display names for the table headers
+      # (skip hidden sort columns that start with ".sort_")
       col_names <- colnames(display_df)
       display_col_names <- vapply(col_names, function(cn) {
+        if (startsWith(cn, ".sort_")) return(cn)
         if (cn %in% selected_traits) tpp_display_name(cn) else cn
       }, character(1))
       colnames(display_df) <- display_col_names
@@ -6843,12 +6871,33 @@ mod_preProdAdvApp_server <- function(id, data){
                                                    higher_is_better = hib)
               }
 
+              # --- Numeric sorting fix: hidden sort columns ---
+              numeric_perf_cols <- c("rank_value", traits)
+              numeric_perf_cols <- intersect(numeric_perf_cols, colnames(display_df))
+              sort_col_defs_perf <- list()
+              if (length(numeric_perf_cols) > 0) {
+                for (k in seq_along(numeric_perf_cols)) {
+                  col_nm <- numeric_perf_cols[k]
+                  sort_col_name <- paste0(".sort_", col_nm)
+                  display_df[[sort_col_name]] <- as.numeric(tbl[[col_nm]])
+                  vis_idx <- which(colnames(display_df) == col_nm) - 1L
+                  sort_idx <- ncol(display_df) - 1L
+                  sort_col_defs_perf <- c(sort_col_defs_perf, list(
+                    list(targets = vis_idx, orderData = sort_idx),
+                    list(targets = sort_idx, visible = FALSE)
+                  ))
+                }
+              }
+
               # unname() is required: a named colnames vector makes DT treat it
               # as a new = old rename map and then fail resolving 'escape'.
               col_labels <- unname(c(
                 "Designation", "Status", rank_label,
-                vapply(traits, tpp_display_name, character(1))
+                vapply(traits, tpp_display_name, character(1)),
+                rep("", length(numeric_perf_cols))  # hidden cols get empty labels
               ))
+              # trim col_labels to match display_df width
+              col_labels <- col_labels[seq_len(ncol(display_df))]
 
               DT::datatable(
                 display_df,
@@ -6864,7 +6913,8 @@ mod_preProdAdvApp_server <- function(id, data){
                   ordering = TRUE,
                   order = list(),
                   autoWidth = FALSE,
-                  dom = "ft"
+                  dom = "ft",
+                  columnDefs = sort_col_defs_perf
                 )
               )
             }, error = function(e) {
@@ -9995,6 +10045,24 @@ mod_preProdAdvApp_server <- function(id, data){
         sprintf("<div style='background:%s; padding:6px; border-radius:4px; text-align:center; font-weight:600;'>%s</div>", bg, st)
       })
 
+      # --- Numeric sorting fix: hidden sort columns ---
+      numeric_final_cols <- c("index_value", selected_traits)
+      numeric_final_cols <- intersect(numeric_final_cols, colnames(display_df))
+      sort_col_defs_final <- list()
+      if (length(numeric_final_cols) > 0) {
+        for (k in seq_along(numeric_final_cols)) {
+          col_nm <- numeric_final_cols[k]
+          sort_col_name <- paste0(".sort_", col_nm)
+          display_df[[sort_col_name]] <- as.numeric(tbl[[col_nm]])
+          vis_idx <- which(colnames(display_df) == col_nm) - 1L
+          sort_idx <- ncol(display_df) - 1L
+          sort_col_defs_final <- c(sort_col_defs_final, list(
+            list(targets = vis_idx, orderData = sort_idx),
+            list(targets = sort_idx, visible = FALSE)
+          ))
+        }
+      }
+
       DT::datatable(
         display_df,
         escape = FALSE,
@@ -10008,7 +10076,8 @@ mod_preProdAdvApp_server <- function(id, data){
           searching = TRUE,
           ordering = TRUE,
           autoWidth = FALSE,
-          dom = "ft"
+          dom = "ft",
+          columnDefs = sort_col_defs_final
         )
       )
     })

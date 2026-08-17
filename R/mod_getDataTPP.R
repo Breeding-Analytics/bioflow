@@ -668,7 +668,9 @@ mod_getDataTPP_server <- function(id, data) {
 
       # Get environment factor columns — these are the columns that compose the environment
       # Exclude: trait, designation, entryType, environment (the combined one), and non-factor cols
-      factor_params <- c("year", "location", "stage")
+      env_forming_params <- c("pipeline", "stage", "year", "season", "timepoint",
+                              "country", "location", "trial", "study", "management")
+      factor_params <- intersect(env_forming_params, pheno_meta$parameter)
       env_factor_rows <- pheno_meta[pheno_meta$parameter %in% factor_params, , drop = FALSE]
       # If none of those exist, fall back to any column that's not trait/designation/entryType/environment
       if (nrow(env_factor_rows) == 0) {
@@ -807,7 +809,9 @@ mod_getDataTPP_server <- function(id, data) {
       }
 
       # Get environment factor rows
-      factor_params <- c("year", "location", "stage")
+      env_forming_params <- c("pipeline", "stage", "year", "season", "timepoint",
+                              "country", "location", "trial", "study", "management")
+      factor_params <- intersect(env_forming_params, pheno_meta$parameter)
       env_factor_rows <- if (!is.null(pheno_meta)) {
         rows <- pheno_meta[pheno_meta$parameter %in% factor_params, , drop = FALSE]
         if (nrow(rows) == 0) {
@@ -947,7 +951,9 @@ mod_getDataTPP_server <- function(id, data) {
 
       # Get environment factors info (isolate)
       pheno_meta <- isolate(data()$metadata$pheno)
-      factor_params <- c("year", "location", "stage")
+      env_forming_params <- c("pipeline", "stage", "year", "season", "timepoint",
+                              "country", "location", "trial", "study", "management")
+      factor_params <- intersect(env_forming_params, pheno_meta$parameter)
       env_factor_rows <- if (!is.null(pheno_meta)) {
         rows <- pheno_meta[pheno_meta$parameter %in% factor_params, , drop = FALSE]
         if (nrow(rows) == 0) {
