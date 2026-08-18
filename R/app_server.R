@@ -350,6 +350,7 @@ app_server <- function(input, output, session) {
   mod_getDataPed_server("getDataPed_1", data = data, res_auth = res_auth)
   mod_getDataWeather_server("getDataWeather_1", map = required_mapping_weather, data = data, res_auth = res_auth)
   mod_getDataQTL_server("getDataQTL_1", data = data, res_auth = res_auth)
+  tryCatch(mod_getDataTPP_server("getDataTPP_1", data = data), error = function(e) message("TPP module failed to load: ", e$message))
 
   mod_bindObjectApp_server("bindObjectApp_1", data = data, res_auth=res_auth)
 
@@ -375,11 +376,15 @@ app_server <- function(input, output, session) {
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
   mod_mtaASREMLApp_server("mtaASREMLApp_1", data = data)
+  # mod_mtaRRBLUPApp_server("mtaRRBLUPApp_1", data = data)
+  # mod_retrieveMarkerEffectsApp_server("retrieveMarkerEffectsApp_1", data = data)
   # mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
   # mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
   # mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
+  mod_preProdAdvApp_server("preProdAdvApp_1", data = data)
+  mod_advMeetingApp_server("advMeetingApp_1", data = data)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
   mod_gpcpApp_server("gpcpApp_1", data = data) #genomic prediction of cross performance
 
@@ -394,7 +399,7 @@ app_server <- function(input, output, session) {
   #mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
   # GENE FLOW AND DRIFT - frequency-based selection
-  mod_masApp_server("masApp_1", data = data) # MAS  
+  mod_masApp_server("masApp_1", data = data) # MAS
   # mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure

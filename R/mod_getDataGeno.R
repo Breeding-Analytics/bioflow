@@ -3,6 +3,193 @@ geno_example  <- 'www/example/geno.hmp.txt'
 # Currently polyploid supported formats
 polyploid_support <- c("vcf", 'dartag', 'hapmap')
 dartseq_formats <- c("dartseqsnp")
+
+# Genotype loading: error handling helpers ----------------------------------
+# Loading genotypes is the most error-prone step for users: picking the wrong
+# format or ploidy is easy and used to take the whole session down. These
+# helpers turn reader failures into readable, actionable dialogs.
+
+geno_format_labels <- c(
+  hapmap     = "HapMap",
+  vcf        = "VCF",
+  dartseqsnp = "DArTSeq SNP",
+  dartag     = "DArTag"
+)
+
+#' Human-readable label for a genotype format key
+#' @noRd
+geno_format_label <- function(fmt) {
+  if (is.null(fmt) || !nzchar(fmt)) return("genotype")
+  lbl <- unname(geno_format_labels[fmt])
+  if (is.na(lbl)) fmt else lbl
+}
+
+#' Show a non-fatal error dialog with optional technical details
+#'
+#' @param title Short dialog title.
+#' @param hints Character vector of guidance lines. Simple HTML is allowed.
+#' @param detail Optional raw error text, shown in a collapsed section.
+#' @noRd
+geno_show_error <- function(title, hints, detail = NULL, type = "error") {
+  body <- lapply(hints, function(h) shiny::tags$p(shiny::HTML(h)))
+
+  if (!is.null(detail) && length(detail) == 1L && nzchar(detail)) {
+    body <- c(body, list(
+      shiny::tags$details(
+        shiny::tags$summary(
+          style = "cursor:pointer;color:#6c757d;",
+          "Technical details"
+        ),
+        shiny::tags$pre(
+          style = "white-space:pre-wrap;text-align:left;font-size:11px;margin-top:6px;",
+          detail
+        )
+      )
+    ))
+  }
+
+  shinyWidgets::show_alert(
+    title = title,
+    text  = shiny::tags$div(style = "text-align:left;", body),
+    html  = TRUE,
+    type  = type
+  )
+}
+
+#' Translate a reader error into actionable guidance
+#'
+#' Maps known cgiarGenomics abort messages onto the mistake that usually
+#' causes them, so the user is told what to change rather than what broke.
+#'
+#' @param e A condition object.
+#' @param fmt The selected format key.
+#' @return A list with `title`, `hints` and `detail`.
+#' @noRd
+geno_error_help <- function(e, fmt) {
+  msg   <- paste(conditionMessage(e), collapse = "\n")
+  label <- geno_format_label(fmt)
+
+  # Ploidy too low for the observed dosages
+  if (grepl("higher than ploid", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "Ploidy level too low",
+      hints = c(
+        sprintf("The file contains genotype calls with more allele copies than the <b>%s</b> ploidy you selected.", label),
+        "Raise the <b>Ploidity level</b> to match your organism, then load again."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Column/structure mismatch: almost always the wrong format selected
+  if (grepl("standard column names|expected column names|column doesn't exist|doesn't have", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "File does not match the selected format",
+      hints = c(
+        sprintf("This file does not look like a valid <b>%s</b> file.", label),
+        "Check that the <b>Biallelic SNP format</b> selector matches the file you uploaded.",
+        "Also confirm the file is not compressed or truncated."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Duplicated identifiers
+  if (grepl("not unique|duplicated", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "Duplicated identifiers",
+      hints = c(
+        "The file contains duplicated sample or marker identifiers.",
+        "Make them unique and upload the file again."
+      ),
+      detail = msg
+    ))
+  }
+
+  # A missing optional package surfaced through the reader
+  if (grepl("is required for|is required but not installed", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "Missing R package",
+      hints = c(
+        "Reading this format needs an R package that is not installed.",
+        "The details below contain the exact install command."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Unreadable / unparseable file
+  if (grepl("cannot open|no such file|does not exist|don't exist|length zero|missing value where|subscript out of bounds",
+            msg, ignore.case = TRUE)) {
+    return(list(
+      title = sprintf("Could not read the %s file", label),
+      hints = c(
+        sprintf("The file could not be parsed as <b>%s</b>.", label),
+        "Verify the <b>format</b> selector, and that the file uploaded completely."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Fallback: still name the two usual culprits
+  list(
+    title = sprintf("Could not load the %s file", label),
+    hints = c(
+      sprintf("Something went wrong while reading the file as <b>%s</b>.", label),
+      "The two most common causes are a mismatched <b>format</b> selector and an incorrect <b>ploidity level</b>.",
+      "Your existing data has not been modified."
+    ),
+    detail = msg
+  )
+}
+
+#' Download a file, reporting failures instead of crashing
+#' @return Local temp path, or NULL if the download failed.
+#' @noRd
+geno_download <- function(url, what = "file") {
+  url <- trimws(url)
+  target <- tempfile(
+    tmpdir  = tempdir(),
+    fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", url)
+  )
+
+  ok <- tryCatch({
+    utils::download.file(url, target, quiet = TRUE)
+    TRUE
+  }, error = function(e) {
+    geno_show_error(
+      title  = "Download failed",
+      hints  = c(
+        sprintf("The %s could not be downloaded from the URL provided.", what),
+        "Check that the link is a <b>direct download</b> link and reachable from this machine."
+      ),
+      detail = conditionMessage(e)
+    )
+    FALSE
+  }, warning = function(w) {
+    # download.file signals non-200 responses as warnings
+    geno_show_error(
+      title  = "Download failed",
+      hints  = c(
+        sprintf("The %s could not be downloaded from the URL provided.", what),
+        "Check that the link is a <b>direct download</b> link and reachable from this machine."
+      ),
+      detail = conditionMessage(w)
+    )
+    FALSE
+  })
+
+  if (!ok) return(NULL)
+  if (!file.exists(target) || file.info(target)$size == 0) {
+    geno_show_error(
+      title = "Downloaded file is empty",
+      hints = c(sprintf("The %s downloaded with no content.", what),
+                "Check the URL points directly at the file.")
+    )
+    return(NULL)
+  }
+  target
+}
 #' getDataGenoCustom UI Function
 #'
 #' @description A shiny Module.
@@ -265,7 +452,26 @@ mod_getDataGeno_server <-
 
           if (input$custom_geno_input %in% dartseq_formats) {
             print('dartseq format')
-            dart_cols <- dart_getCols(input$adegeno_file$datapath)
+
+            # Reading the header can fail if the file is not a DArT CSV.
+            # Report it inline instead of breaking the panel.
+            dart_cols <- tryCatch(
+              dart_getCols(input$adegeno_file$datapath),
+              error = function(e) {
+                print(e)
+                NULL
+              }
+            )
+
+            if (is.null(dart_cols) || length(dart_cols) == 0) {
+              return(tags$div(
+                style = "background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:10px;border-radius:6px;",
+                tags$b("Could not read column names from this file."),
+                tags$p(style = "margin-bottom:0;",
+                       "It does not look like a DArTSeq CSV. Check the format selector above.")
+              ))
+            }
+
             tags$span(
               selectInput(inputId = ns("dartseq_markerid"),
                           label = "Marker id:",
@@ -318,129 +524,257 @@ mod_getDataGeno_server <-
         }, ignoreNULL = TRUE)
 
         # Reactive function where input functions are called
+        #
+        # Contract: this reactive NEVER throws. On any problem it shows an
+        # explanatory dialog and returns NULL, leaving existing data untouched.
         get_geno_data <- reactive({
           print("Geno load btn clicked")
-          if(input$custom_geno_input != "dartag"){
-            if (input$geno_input == 'file') {
-              genotype_file <- input$adegeno_file$datapath
-            } else if (input$geno_input == 'url') {
-              temp_genofile <- tempfile(
-                tmpdir = tempdir(),
-                fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$adegeno_url))
-              # Download file
-              utils::download.file(input$adegeno_url, temp_genofile)
-              genotype_file <- temp_genofile
-              }
-            } else {
-              if (input$geno_input == 'file') {
-                dosage_file <- input$darttag_dosage_file$datapath
-                counts_file <- input$darttag_counts_file$datapath
-              } else if (input$geno_input == 'url') {
-                # Dosage file download
-                temp_dosagefile <- tempfile(
-                  tmpdir = tempdir(),
-                  fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$darttag_dosage_url))
-                utils::download.file(input$darttag_dosage_url, temp_dosagefile)
-                dosage_file <- temp_dosagefile
-                # Counts file download
-                temp_countsfile <- tempfile(
-                  tmpdir = tempdir(),
-                  fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$darttag_counts_url))
-                utils::download.file(input$darttag_counts_url, temp_countsfile)
-                counts_file <- temp_countsfile
-              }
-            }
 
-            print(as.numeric(input$ploidlvl_input))
-            print(typeof(as.numeric(input$ploidlvl_input)))
-            switch(input$custom_geno_input,
-                   hapmap = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_hapmap(path = genotype_file,
-                                                              ploidity = as.numeric(input$ploidlvl_input))
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid hapmap file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   vcf = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_vcf(path = genotype_file,
-                                                           ploidity = as.numeric(input$ploidlvl_input))
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid VCF file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   dartseqsnp = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_DArTSeq_SNP(path = genotype_file,
-                                                                   snp_id = input$dartseq_markerid,
-                                                                   chr_name = input$dartseq_chrom,
-                                                                   pos_name = input$dartseq_position)
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid DArTSeq file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   dartag = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_DArTag_count_dosage(dosage_path = dosage_file,
-                                                                           counts_path = counts_file,
-                                                                           ploidity = as.numeric(input$ploidlvl_input))
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid DArTag file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   {
-                     print("This should not execute D;")
-                     }
-                   )
-            dup_values$load_geno_data <- TRUE
-            return(geno_data)
-            })
+          fmt <- input$custom_geno_input
+          if (is.null(fmt) || !nzchar(fmt)) return(NULL)
+          fmt_label <- geno_format_label(fmt)
+
+          # Safety net: never leave a spinner running if we bail out early.
+          on.exit(shinybusy::remove_modal_spinner(), add = TRUE)
+
+          # ---- Validate ploidy ------------------------------------------
+          ploidity <- suppressWarnings(as.numeric(input$ploidlvl_input))
+          if (length(ploidity) != 1L || is.na(ploidity) ||
+              ploidity < 1 || ploidity != round(ploidity)) {
+            geno_show_error(
+              title = "Invalid ploidy level",
+              hints = "Select a valid <b>Ploidity level</b> before loading the file."
+            )
+            return(NULL)
+          }
+
+          # ---- Resolve input files --------------------------------------
+          genotype_file <- NULL
+          dosage_file   <- NULL
+          counts_file   <- NULL
+
+          if (fmt != "dartag") {
+            if (identical(input$geno_input, 'file')) {
+              if (is.null(input$adegeno_file) || is.null(input$adegeno_file$datapath)) {
+                geno_show_error(
+                  title = "No file selected",
+                  hints = "Choose a file to upload before clicking <b>Load</b>."
+                )
+                return(NULL)
+              }
+              genotype_file <- input$adegeno_file$datapath
+            } else if (identical(input$geno_input, 'url')) {
+              if (is.null(input$adegeno_url) || !nzchar(trimws(input$adegeno_url))) {
+                geno_show_error(
+                  title = "No URL provided",
+                  hints = "Paste a direct download link before clicking <b>Load</b>."
+                )
+                return(NULL)
+              }
+              shinybusy::show_modal_spinner('fading-circle', text = 'Downloading...')
+              genotype_file <- geno_download(input$adegeno_url, "genotype file")
+              shinybusy::remove_modal_spinner()
+              if (is.null(genotype_file)) return(NULL)
+            } else {
+              geno_show_error(
+                title = "No input source selected",
+                hints = "Choose whether to upload a file or provide a URL."
+              )
+              return(NULL)
+            }
+          } else {
+            if (identical(input$geno_input, 'file')) {
+              if (is.null(input$darttag_dosage_file$datapath) ||
+                  is.null(input$darttag_counts_file$datapath)) {
+                geno_show_error(
+                  title = "Missing DArTag files",
+                  hints = "DArTag requires <b>both</b> a dosage file and a counts file."
+                )
+                return(NULL)
+              }
+              dosage_file <- input$darttag_dosage_file$datapath
+              counts_file <- input$darttag_counts_file$datapath
+            } else if (identical(input$geno_input, 'url')) {
+              if (is.null(input$darttag_dosage_url) || !nzchar(trimws(input$darttag_dosage_url)) ||
+                  is.null(input$darttag_counts_url) || !nzchar(trimws(input$darttag_counts_url))) {
+                geno_show_error(
+                  title = "Missing DArTag URLs",
+                  hints = "DArTag requires a link for <b>both</b> the dosage file and the counts file."
+                )
+                return(NULL)
+              }
+              shinybusy::show_modal_spinner('fading-circle', text = 'Downloading...')
+              dosage_file <- geno_download(input$darttag_dosage_url, "dosage file")
+              counts_file <- if (!is.null(dosage_file)) {
+                geno_download(input$darttag_counts_url, "counts file")
+              } else NULL
+              shinybusy::remove_modal_spinner()
+              if (is.null(dosage_file) || is.null(counts_file)) return(NULL)
+            } else {
+              geno_show_error(
+                title = "No input source selected",
+                hints = "Choose whether to upload files or provide URLs."
+              )
+              return(NULL)
+            }
+          }
+
+          # ---- Format-specific prerequisites ----------------------------
+          if (fmt %in% dartseq_formats) {
+            # DArTSeq reading needs dartR.base, an optional dependency.
+            if (!requireNamespace("dartR.base", quietly = TRUE)) {
+              geno_show_error(
+                title = "Missing package: dartR.base",
+                hints = c(
+                  "Reading DArTSeq SNP files requires the R package <b>dartR.base</b>, which is not installed.",
+                  "It also needs two Bioconductor packages. Run this in the R console:",
+                  "<pre>install.packages(\"BiocManager\")\nBiocManager::install(c(\"SNPRelate\", \"snpStats\"))\ninstall.packages(\"dartR.base\")</pre>",
+                  "Then restart bioflow. The HapMap, VCF and DArTag formats work without it."
+                )
+              )
+              return(NULL)
+            }
+            if (is.null(input$dartseq_markerid) || is.null(input$dartseq_chrom) ||
+                is.null(input$dartseq_position)) {
+              geno_show_error(
+                title = "DArTSeq columns not selected",
+                hints = c(
+                  "Choose the <b>Marker id</b>, <b>Chromosome</b> and <b>Variant position</b> columns first.",
+                  "If those menus are empty the file could not be read as a DArTSeq CSV - check the format selector."
+                )
+              )
+              return(NULL)
+            }
+          }
+
+          # ---- Read ------------------------------------------------------
+          # Only `error` is trapped: reader warnings (e.g. "max dosage lower
+          # than ploidy") are informative and must not abort the load.
+          shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+
+          geno_data <- tryCatch(
+            switch(
+              fmt,
+              hapmap = cgiarGenomics::read_hapmap(
+                path     = genotype_file,
+                ploidity = ploidity
+              ),
+              vcf = cgiarGenomics::read_vcf(
+                path     = genotype_file,
+                ploidity = ploidity
+              ),
+              dartseqsnp = cgiarGenomics::read_DArTSeq_SNP(
+                path     = genotype_file,
+                snp_id   = input$dartseq_markerid,
+                chr_name = input$dartseq_chrom,
+                pos_name = input$dartseq_position
+              ),
+              dartag = cgiarGenomics::read_DArTag_count_dosage(
+                dosage_path = dosage_file,
+                counts_path = counts_file,
+                ploidity    = ploidity
+              ),
+              NULL
+            ),
+            error = function(e) {
+              print(e)
+              help <- geno_error_help(e, fmt)
+              geno_show_error(
+                title  = help$title,
+                hints  = help$hints,
+                detail = help$detail
+              )
+              NULL
+            }
+          )
+
+          shinybusy::remove_modal_spinner()
+
+          # ---- Validate the result ---------------------------------------
+          if (is.null(geno_data)) {
+            # An explanatory dialog has already been shown.
+            return(NULL)
+          }
+
+          if (!inherits(geno_data, "genlight")) {
+            geno_show_error(
+              title = sprintf("Unexpected result from the %s reader", fmt_label),
+              hints = c(
+                "The file was read but did not produce a valid genotype object.",
+                "Check the <b>format</b> selector matches the uploaded file."
+              )
+            )
+            return(NULL)
+          }
+
+          n_ind <- tryCatch(adegenet::nInd(geno_data), error = function(e) 0L)
+          n_loc <- tryCatch(adegenet::nLoc(geno_data), error = function(e) 0L)
+
+          if (isTRUE(n_ind == 0L) || isTRUE(n_loc == 0L)) {
+            geno_show_error(
+              title = "No usable genotype data",
+              hints = c(
+                sprintf("The file was parsed as <b>%s</b> but produced %s individuals and %s markers.",
+                        fmt_label, n_ind, n_loc),
+                "Check that the file contains genotype calls and that the format selector is correct."
+              )
+            )
+            return(NULL)
+          }
+
+          # Only now is the load genuinely successful.
+          dup_values$load_geno_data <- TRUE
+          return(geno_data)
+        })
 
         # just to make button reactive
         observeEvent(input$load_geno_btn,{
           geno_data <- get_geno_data()
-          add_data()
+
+          # Loading failed: the reactive already explained why. Stay on this
+          # step so the user can fix the format/ploidy and retry.
+          if (is.null(geno_data)) return(invisible(NULL))
+
+          # Registering the data touches the whole data object; a failure here
+          # must not take the session down either.
+          added <- tryCatch({
+            add_data()
+            TRUE
+          }, error = function(e) {
+            print(e)
+            geno_show_error(
+              title  = "Could not register the genotype data",
+              hints  = c(
+                "The file was read successfully but could not be stored in the analysis environment.",
+                "If you already had genotype data loaded, try reloading the page and importing again."
+              ),
+              detail = conditionMessage(e)
+            )
+            FALSE
+          })
+          if (!isTRUE(added)) return(invisible(NULL))
+
           updateNavlistPanel(session = session,
                              inputId = "geno_load_navpanel",
                              selected = "2. Genotype data Summary")
 
           # Summary of genotypic data
           output$summary_by_chrom <- renderTable({
-            # geno_data <- get_geno_data()
             print("Processsing...")
-            geno_metadata <- data.frame(CHROM = geno_data@chromosome,
-                                        POS = geno_data@position)
-            data.frame(
-              chrom = unique(geno_metadata$CHROM),
-              min_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = min)[, 2],
-              max_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = max)[, 2],
-              snps_count = aggregate(POS ~ CHROM, data = geno_metadata, FUN = length)[, 2]
-            )
+            req(geno_data)
+            tryCatch({
+              geno_metadata <- data.frame(CHROM = geno_data@chromosome,
+                                          POS = geno_data@position)
+              data.frame(
+                chrom = unique(geno_metadata$CHROM),
+                min_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = min)[, 2],
+                max_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = max)[, 2],
+                snps_count = aggregate(POS ~ CHROM, data = geno_metadata, FUN = length)[, 2]
+              )
+            }, error = function(e) {
+              print(e)
+              data.frame(message = "Chromosome summary unavailable for this dataset.")
+            })
           })
 
           output$geno_summary <- renderUI({

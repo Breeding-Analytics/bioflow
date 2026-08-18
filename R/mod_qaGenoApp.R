@@ -684,37 +684,125 @@ mod_qaGenoApp_server <- function(id, data) {
       method <- input$imputationMethod
 
       if (method == "random_forest") {
+        default_threads <- cgiarGenomics::get_default_beagle_threads()
         tagList(
-          fluidRow(
-            column(width = 4, numericInput(ns("rf_nflank"), "nflank", value = 100, min = 1)),
-            column(width = 4, numericInput(ns("rf_ntree"), "ntree", value = 100, min = 1)),
-            column(width = 4, numericInput(ns("rf_seed"), "seed (optional)", value = NA))
+          shinydashboard::box(
+            width = 12,
+            title = span(icon("sliders"), "Advanced Random Forest settings"),
+            status = "success",
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            tags$div(
+              style = "color: #333333;",
+              tags$p(
+                style = "font-size: 13px; color: #555; margin-bottom: 14px;",
+                "The defaults work well for most breeding panels (500\u20132000 individuals, 5k\u201350k markers).",
+                "Adjust only if imputation is too slow or you know your organism\u2019s LD structure."
+              ),
+              fluidRow(
+                column(width = 3,
+                  numericInput(ns("rf_nflank"), "Flanking markers (nflank)", value = 100, min = 1),
+                  tags$small(style = "color:#6c757d;",
+                    "Number of markers on each side used as predictors. ",
+                    "Increase (150\u2013200) for crops with long LD blocks (wheat, rice). ",
+                    "Decrease (50\u201375) for short-LD crops (maize) or very sparse arrays."
+                  )
+                ),
+                column(width = 3,
+                  numericInput(ns("rf_ntree"), "Number of trees (ntree)", value = 50, min = 1),
+                  tags$small(style = "color:#6c757d;",
+                    "More trees = more stable predictions but slower. ",
+                    "Decrease to 50 for large panels (>2000 individuals). ",
+                    "Increasing beyond 200 rarely improves accuracy for biallelic markers."
+                  )
+                ),
+                column(width = 3,
+                  numericInput(ns("rf_nthreads"), "Threads", value = default_threads, min = 1),
+                  tags$small(style = "color:#6c757d;",
+                    "CPU cores for parallel processing. ",
+                    "Default is half your cores (max 4). Increase for faster imputation on multi-core machines."
+                  )
+                ),
+                column(width = 3,
+                  numericInput(ns("rf_seed"), "Seed (optional)", value = NA),
+                  tags$small(style = "color:#6c757d;",
+                    "Set a fixed integer for reproducible results. ",
+                    "Leave empty for a random seed each run."
+                  )
+                )
+              )
+            )
           )
         )
       } else if (method == "beagle") {
-        default_beagle <- if (file.exists("D:/OneDrive - CGIAR/Documents/Software/beagle.27Feb25.75f.jar")) {
-          "D:/OneDrive - CGIAR/Documents/Software/beagle.27Feb25.75f.jar"
+        # Check Beagle requirements automatically
+        beagle_status <- cgiarGenomics::check_beagle_requirements()
+        default_threads <- cgiarGenomics::get_default_beagle_threads()
+        
+        status_style <- if (beagle_status$ready) {
+          "background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:10px;border-radius:6px;margin-bottom:12px;"
         } else {
-          ""
+          "background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:10px;border-radius:6px;margin-bottom:12px;"
         }
-        default_jre <- if (dir.exists("D:/OneDrive - CGIAR/Documents/Software/ugene-53.0/tools/java")) {
-          "D:/OneDrive - CGIAR/Documents/Software/ugene-53.0/tools/java"
-        } else {
-          ""
-        }
+        
         tagList(
-          fluidRow(
-            column(width = 6, textInput(ns("beagle_jre_path"), "JRE Path", value = default_jre)),
-            column(width = 6, textInput(ns("beagle_path"), "Beagle JAR Path", value = default_beagle))
+          # Status indicator
+          tags$div(
+            style = status_style,
+            tags$b(if (beagle_status$ready) "\u2714 " else "\u2718 "),
+            beagle_status$message
           ),
-          fluidRow(
-            column(width = 3, textInput(ns("beagle_memory"), "Memory", value = "Xmx1g")),
-            column(width = 3, numericInput(ns("beagle_burnin"), "Burn-in iterations", value = 3, min = 1)),
-            column(width = 3, numericInput(ns("beagle_iterations"), "Iterations", value = 12, min = 1)),
-            column(width = 3, numericInput(ns("beagle_seed"), "Seed", value = -99999))
-          ),
-          fluidRow(
-            column(width = 3, numericInput(ns("beagle_nthreads"), "Threads", value = 16, min = 1))
+          # Advanced settings - collapsible box matching app style
+          shinydashboard::box(
+            width = 12,
+            title = span(icon("sliders"), "Advanced Beagle settings"),
+            status = "success",
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            tags$div(
+              style = "color: #333333;",
+              tags$p(
+                style = "font-size: 13px; color: #555; margin-bottom: 14px;",
+                "The defaults are suitable for most diploid breeding panels.",
+                "Adjust only if Beagle runs out of memory or you need more phasing accuracy."
+              ),
+              fluidRow(
+                column(width = 3,
+                  textInput(ns("beagle_memory"), "JVM memory", value = "Xmx4g"),
+                  tags$small(style = "color:#6c757d;",
+                    "Max memory for Java. Increase (e.g. Xmx8g) for very large panels (>5000 individuals)."
+                  )
+                ),
+                column(width = 3,
+                  numericInput(ns("beagle_nthreads"), "Threads", value = default_threads, min = 1),
+                  tags$small(style = "color:#6c757d;",
+                    "CPU cores to use. Default is half your cores (max 4) to keep the machine responsive."
+                  )
+                ),
+                column(width = 3,
+                  numericInput(ns("beagle_burnin"), "Burn-in", value = 3, min = 1),
+                  tags$small(style = "color:#6c757d;",
+                    "Iterations before phasing begins. Rarely needs changing."
+                  )
+                ),
+                column(width = 3,
+                  numericInput(ns("beagle_iterations"), "Iterations", value = 12, min = 1),
+                  tags$small(style = "color:#6c757d;",
+                    "Phasing iterations. Increase (20\u201330) for higher accuracy at the cost of runtime."
+                  )
+                )
+              ),
+              fluidRow(
+                column(width = 3,
+                  numericInput(ns("beagle_seed"), "Seed", value = -99999),
+                  tags$small(style = "color:#6c757d;",
+                    "Random seed for reproducibility."
+                  )
+                )
+              )
+            )
           )
         )
       } else {
@@ -733,6 +821,11 @@ mod_qaGenoApp_server <- function(id, data) {
         geno_qa_data$imputation_log <- list(gl = geno_qa_data$preview_geno$gl, log = imp_dict)
         Sys.sleep(1)
         shinybusy::remove_modal_spinner()
+        shinyWidgets::show_alert(
+          title = "No imputation needed",
+          text = "The filtered genotype matrix has no missing data. Proceeding with the current matrix.\n\nClick 'Run analysis' to store the results.",
+          type = "success"
+        )
       } else{
         # Imputation
         shinybusy::show_modal_spinner('fading-circle', text = 'Imputing filtered genotype matrix...')
@@ -749,13 +842,11 @@ mod_qaGenoApp_server <- function(id, data) {
           req(input$rf_nflank, input$rf_ntree)
           imp_args$nflank <- input$rf_nflank
           imp_args$ntree <- input$rf_ntree
+          imp_args$nthreads <- input$rf_nthreads
           if (!is.null(input$rf_seed) && !is.na(input$rf_seed)) {
             imp_args$seed <- as.integer(input$rf_seed)
           }
         } else if (method == "beagle") {
-          req(input$beagle_jre_path, input$beagle_path)
-          imp_args$jre_path <- input$beagle_jre_path
-          imp_args$beagle_path <- input$beagle_path
           imp_args$memory <- input$beagle_memory
           imp_args$burnin <- input$beagle_burnin
           imp_args$iterations <- input$beagle_iterations
@@ -766,6 +857,18 @@ mod_qaGenoApp_server <- function(id, data) {
         geno_qa_data$imputation_log <- do.call(cgiarGenomics::impute_gl, imp_args)
 
         shinybusy::remove_modal_spinner()
+
+        # Report imputation results to the user
+        imp_log <- geno_qa_data$imputation_log$log
+        n_imputed <- sum(vapply(imp_log, function(x) sum(!is.na(x)), integer(1)))
+        shinyWidgets::show_alert(
+          title = "Imputation complete",
+          text = sprintf(
+            "Method: %s\nGenotype calls imputed: %s\n\nClick 'Run analysis' to store the imputation results.",
+            method, format(n_imputed, big.mark = ",")
+          ),
+          type = "success"
+        )
       }
     })
 
@@ -788,6 +891,20 @@ mod_qaGenoApp_server <- function(id, data) {
 
       Sys.sleep(1)
       shinybusy::remove_modal_spinner()
+
+      nas_number <- sum(adegenet::glNA(geno_qa_data$preview_geno$gl) / ploidity)
+      shinyWidgets::show_alert(
+        title = "Imputation skipped",
+        text = if (nas_number > 0) {
+          sprintf(
+            "The genotype matrix still has %s missing calls.\nNote: only the F1 qa/qc module supports missing data. Other modules may fail.\n\nClick 'Run analysis' to store the results.",
+            format(nas_number, big.mark = ",")
+          )
+        } else {
+          "No missing data in the filtered matrix.\n\nClick 'Run analysis' to store the results."
+        },
+        type = if (nas_number > 0) "warning" else "success"
+      )
     })
 
     get_filtering_sequence <- function(filt_seq_df) {

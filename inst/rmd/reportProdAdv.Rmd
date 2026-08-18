@@ -1,0 +1,503 @@
+---
+title: "Product Advancement Final Report"
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  error = TRUE
+)
+
+library(DT)
+library(magrittr)
+library(shiny)
+library(ggplot2)
+
+load("resultProdAdv.RData")
+final_table <- final_table_export
+```
+
+```{r, include=FALSE}
+printTable <- function(DT, pageLength = 25,
+                       numericColNames = NULL, numRound = 3,
+                       scrollXOpt = TRUE, filt = "top", ...) {
+
+  oldnames <- colnames(DT)
+
+  DT <- data.frame(lapply(DT, function(x) {
+    if (is.numeric(x)) round(x, numRound) else x
+  }))
+
+  colnames(DT) <- oldnames
+
+  table <- DT::datatable(
+    data = DT,
+    filter = filt,
+    options = list(
+      dom = "l<<t>pB>",
+      buttons = c("copy", "csv", "excel", "print"),
+      pageLength = pageLength,
+      searchHighlight = TRUE,
+      lengthMenu = c(10, 25, 50, 100),
+      scrollX = scrollXOpt
+    ),
+    extensions = "Buttons",
+    rownames = FALSE,
+    ...
+  )
+
+  if (length(numericColNames) > 0) {
+    table <- table %>%
+      DT::formatRound(columns = numericColNames, digits = numRound)
+  }
+
+  table
+}
+
+```
+
+### About this analysis
+
+
+**Inputs used by the Pre-Advancement Module:**
+
+- **MTA predictions (BLUPs):** Multi-trial analysis best linear unbiased predictions across environments, providing the overall genetic merit estimates for each candidate.
+- **STA predictions:** Single-trial analysis per-environment estimates used for spatial performance visualisation and lollipop plots.
+- **Pedigree or genomic relatedness data (optional):** Used to compute family groupings and relatedness plots for diversity monitoring.
+- **Environmental covariates (optional):** Climate variables (temperature, rainfall, humidity indices) used for environment clustering and TPE (Target Population of Environments) visualisations.
+
+**Outputs produced:**
+
+- A **named final selection stamp** containing each designation with its selection status (**SELECTED**, **NOT SELECTED**, **REVISE**, or **CHECK**), index values, and individual trait values.
+- The final decision table consolidates initial selection (index-based), table-level overrides, and plot-level manual overrides using the hierarchy: plot > table > initial.
+
+**Sharing with stakeholders:** The output RData file from this analysis can be shared with other stakeholders for use in the **Advancement Meeting Dashboard** module, enabling collaborative review and decision-making across teams.
+
+---
+
+```{r summary-section, results='asis'}
+# Compute summary statistics
+if (!is.null(final_table) && nrow(final_table) > 0 && "final_decision" %in% colnames(final_table)) {
+  n_evaluated <- nrow(final_table)
+  n_selected <- sum(final_table$final_decision == "SELECTED", na.rm = TRUE)
+  n_not_selected <- sum(final_table$final_decision == "NOT SELECTED", na.rm = TRUE)
+  n_revise <- sum(final_table$final_decision == "REVISE", na.rm = TRUE)
+  n_checks <- sum(final_table$final_decision == "CHECK", na.rm = TRUE)
+  
+  analysis_label <- if (exists("analysis_name") && !is.null(analysis_name) && nzchar(analysis_name)) {
+    analysis_name
+  } else {
+    "Unnamed analysis"
+  }
+  
+  cat(paste0(
+    "### Summary\n\n",
+    "**Analysis name:** ", analysis_label, "\n\n",
+    "- **Candidates evaluated:** ", n_evaluated, "\n",
+    "- **Selected:** ", n_selected, "\n",
+    "- **Not selected:** ", n_not_selected, "\n",
+    "- **Revise:** ", n_revise, "\n",
+    "- **Checks:** ", n_checks, "\n\n"
+  ))
+} else {
+  cat("**No final selection stamp exists.** Complete the Final Review workflow to see results here.\n\n")
+}
+```
+
+---
+
+###  Final decision table
+
+The table below shows all candidates with their trait values, index score, and final selection status. The `final_decision` column reflects the consolidated decision after applying the hierarchy: plot-level overrides take precedence over table-level overrides, which take precedence over the initial index-based selection. Rows are color-coded by decision status (blue = selected, orange = not selected, pink = check, yellow = revise).
+
+```{r, include=FALSE}
+htmltools::tagList(printTable(mtcars))
+
+# Remove trait_decision columns (keep trait values only)
+trait_decision_cols <- grep("_trait_decision$", colnames(final_table), value = TRUE)
+final_table <- final_table[, setdiff(colnames(final_table), trait_decision_cols), drop = FALSE]
+
+# Define decision columns in desired order: initial, table, plot, final
+main_decision_cols <- intersect(
+  c("initial_decision", "table_decision", "plot_decision", "final_decision"),
+  colnames(final_table)
+)
+
+# Everything else (e.g. designation, numeric traits, index_value)
+other_cols <- setdiff(colnames(final_table), main_decision_cols)
+
+# Reorder: trait values first, then decision columns
+final_table <- final_table[, c(
+  other_cols,
+  main_decision_cols
+), drop = FALSE]
+
+```
+
+
+```{r}
+dt <- printTable(
+  final_table,
+  pageLength = 25,
+  scrollXOpt = TRUE,
+  numericColNames = names(final_table)[vapply(final_table, is.numeric, logical(1))]
+)
+
+decision_cols <- grep(
+  "_decision$",
+  colnames(final_table),
+  value = TRUE
+)
+
+decision_cols <- intersect(
+  decision_cols,
+  colnames(final_table)
+)
+
+for (col in decision_cols) {
+  dt <- DT::formatStyle(
+    dt,
+    columns = col,
+    backgroundColor = DT::styleEqual(
+      c("SELECTED", "NOT SELECTED", "CHECK","REVISE"),
+      c("#D6EAF8", "#F5C4A5", "#F5DCE9","#FFF3CD")
+    ),
+    fontWeight = "bold"
+  )
+}
+
+# Colour the trait/index cells by each row's final decision, matching the
+# gradient-filled Decision Table on the Output tab.
+if ("final_decision" %in% colnames(final_table)) {
+  value_cols <- setdiff(
+    names(final_table)[vapply(final_table, is.numeric, logical(1))],
+    decision_cols
+  )
+  if (length(value_cols) > 0) {
+    dt <- DT::formatStyle(
+      dt,
+      columns = value_cols,
+      valueColumns = "final_decision",
+      backgroundColor = DT::styleEqual(
+        c("SELECTED", "NOT SELECTED", "CHECK", "REVISE"),
+        c("#EAF4FB", "#FBEEE4", "#F7E9F1", "#FDF6E0")
+      )
+    )
+  }
+}
+
+htmltools::tagList(dt)
+
+```
+
+---
+
+```{r set-download-eval, include=FALSE}
+# The remaining sections (Population Statistics, TPP Breakdown, Global Options
+# Summary) are rendered by Shiny outputs on the live dashboard. They are only
+# included in the standalone downloaded HTML (params$toDownload == TRUE).
+is_download <- tryCatch(isTRUE(params$toDownload), error = function(e) FALSE)
+```
+
+```{r population-statistics-header, results='asis', eval=is_download}
+cat("\n\n### Population Statistics\n\n")
+cat("For every metric - the selection index and each trait used in the selection - the table below contrasts the **selected** set against **all candidates** (checks excluded) and against the **checks** on their own. Rows are colour-coded to match the distribution plot: blue = selected, orange = all candidates, purple = checks.\n\n")
+```
+
+```{r population-statistics, results='asis', eval=is_download}
+have_stats <- exists("review_long") && !is.null(review_long) &&
+  is.data.frame(review_long) && nrow(review_long) > 0
+
+if (!have_stats) {
+  cat("_No trait distribution data available for this selection._\n\n")
+}
+```
+
+```{r population-statistics-tables, results='asis', eval=is_download}
+# Rendered as plain styled HTML rather than DT: these are small fixed 3-row
+# summaries, and DT's JavaScript width calculation detaches the header from the
+# body when several tables are emitted into a static document.
+if (have_stats) {
+  group_colors <- if (exists("REVIEW_GROUP_COLORS")) {
+    REVIEW_GROUP_COLORS
+  } else {
+    c("Selected" = "#85C1E9", "All candidates" = "#E8A87C", "Checks" = "#C39BD3")
+  }
+
+  # Wash the group colours toward white so the text stays readable
+  fade <- function(hex, opacity = 0.35) {
+    r <- strtoi(substr(hex, 2, 3), 16L)
+    g <- strtoi(substr(hex, 4, 5), 16L)
+    b <- strtoi(substr(hex, 6, 7), 16L)
+    sprintf("#%02X%02X%02X",
+            as.integer(r * opacity + 255 * (1 - opacity)),
+            as.integer(g * opacity + 255 * (1 - opacity)),
+            as.integer(b * opacity + 255 * (1 - opacity)))
+  }
+  faded <- vapply(group_colors, fade, character(1))
+  group_levels <- names(group_colors)
+  stat_cols <- c("Min", "Max", "Mean", "Median", "SD")
+
+  fmt <- function(x) if (is.na(x)) "&ndash;" else formatC(round(x, 3), format = "f", digits = 3)
+
+  stats_for <- function(sub) {
+    do.call(rbind, lapply(group_levels, function(g) {
+      v <- sub$value[sub$group == g]
+      v <- v[is.finite(v)]
+      if (length(v) == 0) {
+        data.frame(Group = g, Min = NA_real_, Max = NA_real_, Mean = NA_real_,
+                   Median = NA_real_, SD = NA_real_, stringsAsFactors = FALSE)
+      } else {
+        data.frame(Group = g, Min = min(v), Max = max(v), Mean = mean(v),
+                   Median = stats::median(v), SD = stats::sd(v),
+                   stringsAsFactors = FALSE)
+      }
+    }))
+  }
+
+  for (m in unique(review_long$metric)) {
+    sub <- review_long[review_long$metric == m, , drop = FALSE]
+    label <- if (identical(m, "index_value")) "Index Value" else m
+    sdf <- stats_for(sub)
+
+    header <- paste0(
+      "<tr>",
+      "<th style='text-align:left; padding:7px 10px; border-bottom:2px solid #2C3E50;'>Group</th>",
+      paste0("<th style='text-align:right; padding:7px 10px; border-bottom:2px solid #2C3E50;'>",
+             stat_cols, "</th>", collapse = ""),
+      "</tr>"
+    )
+
+    body <- paste0(vapply(seq_len(nrow(sdf)), function(i) {
+      bg <- faded[[sdf$Group[i]]]
+      paste0(
+        "<tr style='background-color:", bg, ";'>",
+        "<td style='text-align:left; padding:6px 10px; border-bottom:1px solid #fff;'>",
+        sdf$Group[i], "</td>",
+        paste0("<td style='text-align:right; padding:6px 10px; border-bottom:1px solid #fff;'>",
+               vapply(stat_cols, function(cl) fmt(sdf[[cl]][i]), character(1)),
+               "</td>", collapse = ""),
+        "</tr>"
+      )
+    }, character(1)), collapse = "")
+
+    cat(paste0(
+      "<div style='margin: 0 0 22px 0;'>",
+      "<div style='font-weight:700; font-size:14px; color:#2C3E50;",
+      " padding:0 0 5px 2px; border-bottom:2px solid #2C3E50; margin-bottom:0;'>",
+      label, "</div>",
+      "<table style='width:100%; border-collapse:collapse; font-size:13px;",
+      " table-layout:fixed; margin-top:0;'>",
+      "<thead>", header, "</thead><tbody>", body, "</tbody></table>",
+      "</div>\n"
+    ))
+  }
+}
+```
+
+```{r plot-intro-text, results="asis", eval=is_download}
+cat("The plot below shows, for each metric, how the selected set is distributed against the full candidate set. The dashed vertical line marks the mean of the checks.\n\n")
+```
+
+```{r population-statistics-height, include=FALSE, eval=is_download}
+# Scale the figure with the number of facet rows (2 panels per row)
+stats_fig_height <- 4
+if (have_stats) {
+  n_panels <- length(unique(review_long$metric))
+  stats_fig_height <- max(3.5, ceiling(n_panels / 2) * 2.6)
+}
+```
+
+```{r population-statistics-plot, fig.width=11, fig.height=if(exists("stats_fig_height")) stats_fig_height else 4, eval=is_download}
+if (have_stats) {
+  plot_df <- review_long[review_long$group %in% c("All candidates", "Selected"), , drop = FALSE]
+
+  if (nrow(plot_df) > 0) {
+    metric_order <- unique(review_long$metric)
+    label_order <- vapply(metric_order, function(m) {
+      if (identical(m, "index_value")) "Index Value" else m
+    }, character(1))
+
+    plot_df$label <- factor(plot_df$label, levels = unname(label_order))
+    plot_df$group <- factor(plot_df$group, levels = c("All candidates", "Selected"))
+
+    check_df <- review_long[review_long$group == "Checks", , drop = FALSE]
+    check_means <- NULL
+    if (nrow(check_df) > 0) {
+      check_means <- stats::aggregate(value ~ label, data = check_df,
+                                      FUN = mean, na.rm = TRUE)
+      check_means$label <- factor(check_means$label, levels = unname(label_order))
+    }
+
+    group_colors <- if (exists("REVIEW_GROUP_COLORS")) {
+      REVIEW_GROUP_COLORS
+    } else {
+      c("Selected" = "#85C1E9", "All candidates" = "#E8A87C", "Checks" = "#C39BD3")
+    }
+
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = value, fill = group)) +
+      ggplot2::geom_histogram(position = "identity", alpha = 0.55,
+                              bins = 30, colour = NA) +
+      ggplot2::facet_wrap(~ label, scales = "free", ncol = 2) +
+      ggplot2::scale_fill_manual(
+        values = c(
+          "All candidates" = unname(group_colors[["All candidates"]]),
+          "Selected"       = unname(group_colors[["Selected"]])
+        ),
+        name = NULL
+      ) +
+      ggplot2::labs(x = "Predicted value", y = "Count") +
+      ggplot2::theme_minimal(base_size = 12) +
+      ggplot2::theme(legend.position = "top",
+                     strip.text = ggplot2::element_text(face = "bold"))
+
+    if (!is.null(check_means) && nrow(check_means) > 0) {
+      p <- p + ggplot2::geom_vline(
+        data = check_means,
+        ggplot2::aes(xintercept = value),
+        colour = unname(group_colors[["Checks"]]),
+        linetype = "dashed", linewidth = 0.9
+      )
+    }
+
+    # Mean lines for Selected and All candidates
+    sel_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "Selected", , drop = FALSE], FUN = mean, na.rm = TRUE)
+    all_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "All candidates", , drop = FALSE], FUN = mean, na.rm = TRUE)
+    if (nrow(sel_means) > 0) {
+      sel_means$label <- factor(sel_means$label, levels = levels(plot_df$label))
+      p <- p + ggplot2::geom_vline(
+        data = sel_means,
+        ggplot2::aes(xintercept = value),
+        colour = unname(group_colors[["Selected"]]),
+        linetype = "dashed", linewidth = 0.7
+      )
+    }
+    if (nrow(all_means) > 0) {
+      all_means$label <- factor(all_means$label, levels = levels(plot_df$label))
+      p <- p + ggplot2::geom_vline(
+        data = all_means,
+        ggplot2::aes(xintercept = value),
+        colour = unname(group_colors[["All candidates"]]),
+        linetype = "dashed", linewidth = 0.7
+      )
+    }
+
+    print(p)
+  }
+}
+```
+
+```{r hr1, results="asis", eval=is_download}
+cat("\n\n---\n\n")
+```
+
+```{r tpp-header, results="asis", eval=is_download}
+cat("### TPP Breakdown\n\n")
+```
+
+```{r tpp-breakdown, results='asis', eval=is_download}
+have_bd <- exists("breakdown_detail") && !is.null(breakdown_detail) &&
+  !is.null(breakdown_detail$table) && is.data.frame(breakdown_detail$table) &&
+  nrow(breakdown_detail$table) > 0
+
+if (!have_bd) {
+  cat("_No TPP information available for this selection._\n\n")
+} else {
+  cat(paste0(
+    "This table compares what the Target Product Profile asks for against what was ",
+    "actually evaluated on your phenotypic data. The `_tpp` columns reproduce the TPP ",
+    "verbatim; the `_data` columns show what was resolved against your data - relative ",
+    "specifications are converted to the equivalent absolute threshold using the mean of ",
+    "the checks you mapped. `Sel_pct_meeting_criteria` is the share of the **selected** ",
+    "individuals meeting the resolved threshold and `All_pct_meeting_criteria` the share ",
+    "across all candidates, so comparing the two shows how much selection enriched each ",
+    "criterion. Traits with no phenotypic mapping read \"not evaluated\" and traits you ",
+    "dropped read \"trait not used\".\n\n"
+  ))
+}
+```
+
+```{r tpp-breakdown-table, eval=is_download}
+if (have_bd) {
+  # Colour-code the two Target_proximity columns. Defined inline because the
+  # knit environment has no access to the package's internal helpers.
+  .prox_bg <- c(
+    "Comfortably meeting"   = "#D5F5E3",
+    "Moderately meeting"    = "#E8F8F5",
+    "Barely meeting"        = "#FCF3CF",
+    "Barely failing"        = "#FDEBD0",
+    "Moderately failing"    = "#FADBD8",
+    "Substantially failing" = "#F5B7B1"
+  )
+  .prox_fg <- c(
+    "Comfortably meeting"   = "#186A3B",
+    "Moderately meeting"    = "#148F77",
+    "Barely meeting"        = "#7D6608",
+    "Barely failing"        = "#935116",
+    "Moderately failing"    = "#943126",
+    "Substantially failing" = "#78281F"
+  )
+
+  .bd <- printTable(breakdown_detail$table, pageLength = 20,
+                    scrollXOpt = TRUE, filt = "none")
+  for (.cl in intersect(c("Target_proximity_sel", "Target_proximity_all"),
+                        colnames(breakdown_detail$table))) {
+    .bd <- DT::formatStyle(
+      .bd,
+      columns = .cl,
+      backgroundColor = DT::styleEqual(names(.prox_bg), unname(.prox_bg)),
+      color = DT::styleEqual(names(.prox_fg), unname(.prox_fg)),
+      fontWeight = DT::styleEqual(names(.prox_bg), rep("600", length(.prox_bg)))
+    )
+  }
+
+  htmltools::tagList(.bd)
+}
+```
+
+```{r tpp-breakdown-notes, results='asis', eval=is_download}
+if (have_bd && length(breakdown_detail$env_notes) > 0) {
+  cat("**Traits evaluated on a subset of environments**\n\n")
+  for (n in breakdown_detail$env_notes) cat(paste0("- ", n, "\n"))
+  cat("\n")
+}
+```
+
+```{r hr2, results="asis", eval=is_download}
+cat("\n\n---\n\n")
+```
+
+```{r opts-header, results="asis", eval=is_download}
+cat("### Global Options Summary\n\n")
+```
+
+```{r global-options, results='asis', eval=is_download}
+have_opts <- exists("options_table") && !is.null(options_table) &&
+  is.data.frame(options_table) && nrow(options_table) > 0
+
+if (!have_opts) {
+  cat("_No options configured for this selection._\n\n")
+} else {
+  cat(paste0(
+    "This table records the **actual selection criteria applied** when the selection ran ",
+    "- not what the TPP asks for. For each trait it shows the index weight it carried, ",
+    "the threshold value and direction taken from its trait rule card, and the reference ",
+    "check(s) used where the rule was defined relative to a check. Traits with a weight of ",
+    "0 did not contribute to the index, and traits showing \"no threshold\" were not ",
+    "filtered on a cut-off.\n\n"
+  ))
+}
+```
+
+```{r global-options-table, eval=is_download}
+if (have_opts) {
+  htmltools::tagList(
+    printTable(options_table, pageLength = 25, scrollXOpt = TRUE, filt = "none")
+  )
+}
+```

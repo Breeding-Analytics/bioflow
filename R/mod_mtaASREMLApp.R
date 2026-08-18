@@ -118,6 +118,19 @@ mod_mtaASREMLApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Pick trait(s)", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      conditionalPanel(
+                                                        condition = paste0("output['", ns("tppDataAvailableAsr"), "']"),
+                                                        selectInput(ns("tppIdMenuAsr"),
+                                                                    label = tags$span(
+                                                                      "TPP ID (Target Product Profile)",
+                                                                      tags$i(
+                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                        style = "color:#FFFFFF",
+                                                                        title = "Select a TPP ID to add environment-filtered TPP traits to the trait menu. Select 'None' to use only standard phenotypic traits."
+                                                                      )
+                                                                    ),
+                                                                    choices = c("None" = ""), multiple = FALSE)
+                                                      ),
                                                       selectInput(ns("trait2MtaAsr"),
                                                                   label = tags$span(
                                                                     "Trait(s) to analyze",
@@ -1139,6 +1152,70 @@ mod_mtaASREMLApp_server <- function(id, data){
       updateSelectInput(session, "parameterMetrics", choices = metricsMtaAsrInput)
     })
     #################
+    ## TPP ID Menu - conditionalPanel output and observers
+    ## Controls visibility of TPP_ID_Menu and updates Trait_Menu with TPP traits
+
+    # Output flag for conditionalPanel: TRUE when TPP data exists
+    output$tppDataAvailableAsr <- reactive({
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      return(length(tpp_ids) > 0)
+    })
+    outputOptions(output, "tppDataAvailableAsr", suspendWhenHidden = FALSE)
+
+    # Update TPP_ID_Menu choices when data changes
+    observeEvent(data(), {
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      tpp_choices <- c("None" = "")
+      if (length(tpp_ids) > 0) {
+        named_tpp <- stats::setNames(tpp_ids, tpp_ids)
+        tpp_choices <- c(tpp_choices, named_tpp)
+      }
+      updateSelectInput(session, "tppIdMenuAsr", choices = tpp_choices)
+    })
+
+    # Store standard pheno traits for restoration when TPP_ID is set to "None"
+    tppStandardTraitsAsr <- reactiveVal(character(0))
+
+    # Update stored standard traits when version changes (trait list refreshed)
+    observeEvent(c(data(), input$version2MtaAsr), {
+      req(data())
+      req(input$version2MtaAsr)
+      dtMtaAsr <- data()
+      dtMtaAsr <- dtMtaAsr$predictions
+      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$analysisId %in% input$version2MtaAsr),]
+      traitsMtaAsr <- unique(dtMtaAsr$trait)
+      tppStandardTraitsAsr(traitsMtaAsr)
+    }, priority = 10)
+
+    # Observer for TPP_ID_Menu changes
+    observeEvent(input$tppIdMenuAsr, {
+      req(data())
+      req(input$version2MtaAsr)
+
+      tpp_id <- input$tppIdMenuAsr
+      pheno_traits <- tppStandardTraitsAsr()
+
+      if (is.null(tpp_id) || tpp_id == "") {
+        # "None" selected: restore standard phenotypic traits only
+        updateSelectInput(session, "trait2MtaAsr", choices = pheno_traits)
+      } else {
+        # Valid TPP_ID selected: validate, get filtered traits, build choices
+        validation <- tpp_validate_metadata(data(), tpp_id)
+        if (!validation$valid) {
+          warning(paste("TPP metadata validation failed for", tpp_id, ":", validation$message))
+          updateSelectInput(session, "trait2MtaAsr", choices = pheno_traits)
+          return()
+        }
+
+        tpp_traits_df <- tpp_get_filtered_traits(data(), tpp_id)
+        new_choices <- tpp_build_trait_choices(pheno_traits, tpp_traits_df, tpp_id)
+        updateSelectInput(session, "trait2MtaAsr", choices = new_choices)
+      }
+    }, ignoreInit = TRUE)
+
+    #################
     # plots
     output$barplotPredictionsMetrics <- plotly::renderPlotly({
       req(data())
@@ -1826,65 +1903,8 @@ mod_mtaASREMLApp_server <- function(id, data){
     #################
     ## render timestamps flow plot
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- as.character(zz$outputId)
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     #################
     ## render table of evaluation units
@@ -2154,6 +2174,22 @@ mod_mtaASREMLApp_server <- function(id, data){
         #save(dtMtaAsr,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
         #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METasr.RData")
         #source("C:/Users/RAPACHECO/Downloads/metASREML.R")
+
+        ## --- TPP Analysis Config Assembly (Req 3.2, 7.3, 8.3) ---
+        tpp_id_selected <- input$tppIdMenuAsr
+        if (!is.null(tpp_id_selected) && nzchar(tpp_id_selected)) {
+          tpp_traits_df <- tpp_get_filtered_traits(dtMtaAsr, tpp_id_selected)
+          tpp_mapping <- tpp_resolve_trait_mapping(input$trait2MtaAsr, tpp_traits_df, tpp_id_selected)
+          dtMtaAsr$metadata$tpp_analysis_config <- list(
+            tpp_id = tpp_id_selected,
+            trait_map = tpp_mapping$pheno_map,
+            env_map = tpp_mapping$env_map
+          )
+        } else {
+          dtMtaAsr$metadata$tpp_analysis_config <- NULL
+        }
+        ## --- End TPP Analysis Config Assembly ---
+
         result <- try(
           cgiarPipeline::metASREML(
           #metASREML(

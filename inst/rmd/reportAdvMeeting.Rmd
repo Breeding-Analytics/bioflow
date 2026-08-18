@@ -1,0 +1,594 @@
+---
+title: "Advancement Meeting Report"
+output: html_document
+params:
+  toDownload: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  error = TRUE
+)
+
+library(DT)
+library(magrittr)
+library(shiny)
+library(ggplot2)
+
+load("resultAdvMeeting.RData")
+```
+
+```{r, include=FALSE}
+printTable <- function(DT, pageLength = 25,
+                       numericColNames = NULL, numRound = 3,
+                       scrollXOpt = TRUE, filt = "top", ...) {
+
+  oldnames <- colnames(DT)
+
+  DT <- data.frame(lapply(DT, function(x) {
+    if (is.numeric(x)) round(x, numRound) else x
+  }))
+
+  colnames(DT) <- oldnames
+
+  table <- DT::datatable(
+    data = DT,
+    filter = filt,
+    options = list(
+      dom = "l<<t>pB>",
+      buttons = c("copy", "csv", "excel", "print"),
+      pageLength = pageLength,
+      searchHighlight = TRUE,
+      lengthMenu = c(10, 25, 50, 100),
+      scrollX = scrollXOpt
+    ),
+    extensions = "Buttons",
+    rownames = FALSE,
+    ...
+  )
+
+  if (length(numericColNames) > 0) {
+    table <- table %>%
+      DT::formatRound(columns = numericColNames, digits = numRound)
+  }
+
+  table
+}
+```
+
+### About this analysis
+
+**Advancement Meeting Dashboard** enables multi-stakeholder consensus on product advancement decisions. Each breeder independently completes the Pre-advancement workflow and saves their output. A meeting facilitator merges all stakeholder files and uses this module to compare decisions, discuss disagreements, and record consensus outcomes.
+
+**Inputs used:**
+
+- **Multiple Final Selection Stamps:** One per stakeholder, each containing per-designation selection decisions (SELECTED, NOT SELECTED, REVISE, CHECK).
+- **Shared MTA predictions (BLUPs):** The underlying multi-trial analysis providing trait performance data for all candidates.
+
+**Outputs produced:**
+
+- A **Meeting Stamp** recording the consensus decision for every designation, combining auto-assigned unanimous decisions with manually resolved controversial candidates.
+
+---
+
+```{r summary-section, results='asis'}
+# Expected variables from .RData:
+# comparison_matrix, meeting_decisions_df, mta_stamp, participants, meeting_name,
+# trait_directions, predictions_data
+
+if (!exists("meeting_name") || is.null(meeting_name)) meeting_name <- "Unnamed meeting"
+if (!exists("participants") || is.null(participants)) participants <- character(0)
+if (!exists("comparison_matrix") || is.null(comparison_matrix)) comparison_matrix <- data.frame()
+if (!exists("meeting_decisions_df") || is.null(meeting_decisions_df)) meeting_decisions_df <- data.frame()
+
+n_participants <- length(participants)
+participant_names <- paste(participants, collapse = ", ")
+n_total <- nrow(meeting_decisions_df)
+
+n_selected <- if (n_total > 0 && "decision" %in% colnames(meeting_decisions_df)) {
+  sum(meeting_decisions_df$decision == "SELECTED", na.rm = TRUE)
+} else { 0 }
+
+n_not_selected <- if (n_total > 0 && "decision" %in% colnames(meeting_decisions_df)) {
+  sum(meeting_decisions_df$decision == "NOT SELECTED", na.rm = TRUE)
+} else { 0 }
+
+# Discussed and resolved = controversial candidates that received a joint decision
+# These are candidates whose controversy_score is strictly between 0 and 1
+# (or all REVISE) that were manually resolved
+if (n_total > 0 && "controversy_score" %in% colnames(meeting_decisions_df)) {
+  n_discussed <- sum(
+    meeting_decisions_df$controversy_score > 0 &
+    meeting_decisions_df$controversy_score < 1,
+    na.rm = TRUE
+  )
+} else {
+  n_discussed <- 0
+}
+
+cat(paste0(
+  "### Summary\n\n",
+  "**Meeting name:** ", meeting_name, "\n\n",
+  "- **Number of participants:** ", n_participants, "\n",
+  "- **Participants:** ", participant_names, "\n",
+  "- **Total candidates evaluated:** ", n_total, "\n",
+  "- **Consensus SELECTED:** ", n_selected, "\n",
+  "- **Consensus NOT SELECTED:** ", n_not_selected, "\n",
+  "- **Discussed and resolved:** ", n_discussed, "\n\n"
+))
+```
+
+---
+
+### Final Meeting Decisions Table
+
+The table below shows all candidates with their meeting consensus decision, controversy score, and each stakeholder's individual decision. Cells are color-coded by decision status: blue = SELECTED, orange = NOT SELECTED, yellow = REVISE, pink = CHECK.
+
+```{r, include=FALSE}
+htmltools::tagList(printTable(mtcars))
+```
+
+```{r decisions-table}
+# STATUS_COLORS: SELECTED = "#0072B2", NOT SELECTED = "#D55E00",
+#                REVISE = "#F9A825", CHECK = "#C2185B"
+STATUS_COLORS <- c(
+  "SELECTED"     = "#0072B2",
+  "NOT SELECTED" = "#D55E00",
+  "REVISE"       = "#F9A825",
+  "CHECK"        = "#C2185B"
+)
+
+# Light background versions for table cells
+STATUS_BG_COLORS <- c(
+  "SELECTED"     = "#D6EAF8",
+  "NOT SELECTED" = "#F5C4A5",
+  "REVISE"       = "#FFF3CD",
+  "CHECK"        = "#F5DCE9"
+)
+
+if (nrow(comparison_matrix) > 0 && nrow(meeting_decisions_df) > 0) {
+
+  # Build display table: designation, meeting_decision, controversy_score, stakeholder columns
+  stakeholder_cols <- setdiff(
+    colnames(comparison_matrix),
+    c("designation", "controversy_score")
+  )
+
+  display_df <- data.frame(
+    designation = comparison_matrix$designation,
+    stringsAsFactors = FALSE
+  )
+
+  # Add meeting decision
+  display_df$meeting_decision <- meeting_decisions_df$decision[
+    match(display_df$designation, meeting_decisions_df$designation)
+  ]
+
+  # Add controversy score
+  if ("controversy_score" %in% colnames(comparison_matrix)) {
+    display_df$controversy_score <- comparison_matrix$controversy_score
+  }
+
+  # Add stakeholder columns
+  for (sc in stakeholder_cols) {
+    display_df[[sc]] <- comparison_matrix[[sc]]
+  }
+
+  # Sort by controversy (most controversial first: closest to 0.5)
+  if ("controversy_score" %in% colnames(display_df)) {
+    display_df <- display_df[
+      order(abs(display_df$controversy_score - 0.5)), , drop = FALSE
+    ]
+  }
+
+  # Render DT with color coding
+  dt <- printTable(
+    display_df,
+    pageLength = 25,
+    scrollXOpt = TRUE,
+    numericColNames = "controversy_score"
+  )
+
+  # Apply color coding to decision columns
+  decision_cols <- c("meeting_decision", stakeholder_cols)
+  decision_cols <- intersect(decision_cols, colnames(display_df))
+
+  for (col in decision_cols) {
+    dt <- DT::formatStyle(
+      dt,
+      columns = col,
+      backgroundColor = DT::styleEqual(
+        c("SELECTED", "NOT SELECTED", "CHECK", "REVISE"),
+        c(STATUS_BG_COLORS[["SELECTED"]], STATUS_BG_COLORS[["NOT SELECTED"]],
+          STATUS_BG_COLORS[["CHECK"]], STATUS_BG_COLORS[["REVISE"]])
+      ),
+      fontWeight = "bold"
+    )
+  }
+
+  htmltools::tagList(dt)
+} else {
+  cat("No meeting decisions data available.\n")
+}
+```
+
+---
+
+### Agreement Heatmap
+
+This heatmap shows the comparison matrix of stakeholder decisions. Rows represent designations sorted by controversy level (most disagreement at top), columns represent stakeholders. Cell colors indicate each stakeholder's decision.
+
+```{r agreement-heatmap, fig.height=10, fig.width=10}
+if (nrow(comparison_matrix) > 0) {
+
+  stakeholder_cols_hm <- setdiff(
+    colnames(comparison_matrix),
+    c("designation", "controversy_score")
+  )
+
+  if (length(stakeholder_cols_hm) > 0) {
+
+    # Sort by controversy (most controversial at top = closest to 0.5)
+    hm_df <- comparison_matrix
+    if ("controversy_score" %in% colnames(hm_df)) {
+      hm_df <- hm_df[order(abs(hm_df$controversy_score - 0.5)), , drop = FALSE]
+    }
+
+    # Convert to long format for ggplot
+    hm_long <- do.call(rbind, lapply(stakeholder_cols_hm, function(st) {
+      data.frame(
+        designation = hm_df$designation,
+        stakeholder = st,
+        decision = hm_df[[st]],
+        stringsAsFactors = FALSE
+      )
+    }))
+
+    # Create ordered factor for designation (preserve controversy sort order)
+    hm_long$designation <- factor(
+      hm_long$designation,
+      levels = rev(hm_df$designation)
+    )
+
+    # Ensure decision is a factor with known levels
+    hm_long$decision <- factor(
+      hm_long$decision,
+      levels = c("SELECTED", "NOT SELECTED", "REVISE", "CHECK")
+    )
+
+    p_hm <- ggplot(hm_long, aes(x = stakeholder, y = designation, fill = decision)) +
+      geom_tile(color = "white", linewidth = 0.5) +
+      scale_fill_manual(
+        values = STATUS_COLORS,
+        name = "Decision",
+        drop = FALSE
+      ) +
+      theme_minimal(base_size = 12) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 11),
+        axis.text.y = element_text(size = 8),
+        axis.title = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 11),
+        legend.title = element_text(size = 12, face = "bold"),
+        panel.grid = element_blank()
+      ) +
+      labs(
+        title = "Agreement Heatmap (sorted by controversy)",
+        subtitle = "Most controversial candidates at top"
+      )
+
+    print(p_hm)
+  } else {
+    cat("No stakeholder columns found in comparison matrix.\n")
+  }
+} else {
+  cat("No comparison matrix data available for heatmap.\n")
+}
+```
+
+---
+
+### Population Statistics
+
+For every metric - the consensus selection index and each trait used in the meeting - the table below contrasts the **selected** set against **all candidates** (checks excluded) and against the **checks** on their own. Rows are colour-coded to match the distribution plot: blue = selected, orange = all candidates, purple = checks.
+
+```{r meeting-population-statistics, results='asis'}
+have_stats <- exists("review_long") && !is.null(review_long) &&
+  is.data.frame(review_long) && nrow(review_long) > 0
+
+if (!have_stats) {
+  cat("_No trait distribution data available for this meeting._\n\n")
+}
+```
+
+```{r meeting-population-statistics-tables, results='asis'}
+# Rendered as plain styled HTML rather than DT: these are small fixed 3-row
+# summaries, and DT's JavaScript width calculation detaches the header from the
+# body when several tables are emitted into a static document.
+if (have_stats) {
+  group_colors <- if (exists("REVIEW_GROUP_COLORS")) {
+    REVIEW_GROUP_COLORS
+  } else {
+    c("Selected" = "#85C1E9", "All candidates" = "#E8A87C", "Checks" = "#C39BD3")
+  }
+
+  # Wash the group colours toward white so the text stays readable
+  fade <- function(hex, opacity = 0.35) {
+    r <- strtoi(substr(hex, 2, 3), 16L)
+    g <- strtoi(substr(hex, 4, 5), 16L)
+    b <- strtoi(substr(hex, 6, 7), 16L)
+    sprintf("#%02X%02X%02X",
+            as.integer(r * opacity + 255 * (1 - opacity)),
+            as.integer(g * opacity + 255 * (1 - opacity)),
+            as.integer(b * opacity + 255 * (1 - opacity)))
+  }
+  faded <- vapply(group_colors, fade, character(1))
+  group_levels <- names(group_colors)
+  stat_cols <- c("Min", "Max", "Mean", "Median", "SD")
+
+  fmt <- function(x) if (is.na(x)) "&ndash;" else formatC(round(x, 3), format = "f", digits = 3)
+
+  stats_for <- function(sub) {
+    do.call(rbind, lapply(group_levels, function(g) {
+      v <- sub$value[sub$group == g]
+      v <- v[is.finite(v)]
+      if (length(v) == 0) {
+        data.frame(Group = g, Min = NA_real_, Max = NA_real_, Mean = NA_real_,
+                   Median = NA_real_, SD = NA_real_, stringsAsFactors = FALSE)
+      } else {
+        data.frame(Group = g, Min = min(v), Max = max(v), Mean = mean(v),
+                   Median = stats::median(v), SD = stats::sd(v),
+                   stringsAsFactors = FALSE)
+      }
+    }))
+  }
+
+  for (m in unique(review_long$metric)) {
+    sub <- review_long[review_long$metric == m, , drop = FALSE]
+    label <- if (identical(m, "index_value")) "Index Value" else m
+    sdf <- stats_for(sub)
+
+    header <- paste0(
+      "<tr>",
+      "<th style='text-align:left; padding:7px 10px; border-bottom:2px solid #2C3E50;'>Group</th>",
+      paste0("<th style='text-align:right; padding:7px 10px; border-bottom:2px solid #2C3E50;'>",
+             stat_cols, "</th>", collapse = ""),
+      "</tr>"
+    )
+
+    body <- paste0(vapply(seq_len(nrow(sdf)), function(i) {
+      bg <- faded[[sdf$Group[i]]]
+      paste0(
+        "<tr style='background-color:", bg, ";'>",
+        "<td style='text-align:left; padding:6px 10px; border-bottom:1px solid #fff;'>",
+        sdf$Group[i], "</td>",
+        paste0("<td style='text-align:right; padding:6px 10px; border-bottom:1px solid #fff;'>",
+               vapply(stat_cols, function(cl) fmt(sdf[[cl]][i]), character(1)),
+               "</td>", collapse = ""),
+        "</tr>"
+      )
+    }, character(1)), collapse = "")
+
+    cat(paste0(
+      "<div style='margin: 0 0 22px 0;'>",
+      "<div style='font-weight:700; font-size:14px; color:#2C3E50;",
+      " padding:0 0 5px 2px; border-bottom:2px solid #2C3E50; margin-bottom:0;'>",
+      label, "</div>",
+      "<table style='width:100%; border-collapse:collapse; font-size:13px;",
+      " table-layout:fixed; margin-top:0;'>",
+      "<thead>", header, "</thead><tbody>", body, "</tbody></table>",
+      "</div>\n"
+    ))
+  }
+}
+```
+
+The plot below shows, for each metric, how the consensus-selected set is distributed against the full candidate set. The dashed vertical line marks the mean of the checks.
+
+```{r meeting-population-statistics-height, include=FALSE}
+# Scale the figure with the number of facet rows (2 panels per row)
+stats_fig_height <- 4
+if (have_stats) {
+  n_panels <- length(unique(review_long$metric))
+  stats_fig_height <- max(3.5, ceiling(n_panels / 2) * 2.6)
+}
+```
+
+```{r meeting-population-statistics-plot, fig.width=11, fig.height=stats_fig_height}
+if (have_stats) {
+  plot_df <- review_long[review_long$group %in% c("All candidates", "Selected"), , drop = FALSE]
+
+  if (nrow(plot_df) > 0) {
+    metric_order <- unique(review_long$metric)
+    label_order <- vapply(metric_order, function(m) {
+      if (identical(m, "index_value")) "Index Value" else m
+    }, character(1))
+
+    plot_df$label <- factor(plot_df$label, levels = unname(label_order))
+    plot_df$group <- factor(plot_df$group, levels = c("All candidates", "Selected"))
+
+    check_df <- review_long[review_long$group == "Checks", , drop = FALSE]
+    check_means <- NULL
+    if (nrow(check_df) > 0) {
+      check_means <- stats::aggregate(value ~ label, data = check_df,
+                                      FUN = mean, na.rm = TRUE)
+      check_means$label <- factor(check_means$label, levels = unname(label_order))
+    }
+
+    group_colors <- if (exists("REVIEW_GROUP_COLORS")) {
+      REVIEW_GROUP_COLORS
+    } else {
+      c("Selected" = "#85C1E9", "All candidates" = "#E8A87C", "Checks" = "#C39BD3")
+    }
+
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = value, fill = group)) +
+      ggplot2::geom_histogram(position = "identity", alpha = 0.55,
+                              bins = 30, colour = NA) +
+      ggplot2::facet_wrap(~ label, scales = "free", ncol = 2) +
+      ggplot2::scale_fill_manual(
+        values = c(
+          "All candidates" = unname(group_colors[["All candidates"]]),
+          "Selected"       = unname(group_colors[["Selected"]])
+        ),
+        name = NULL
+      ) +
+      ggplot2::labs(x = "Predicted value", y = "Count") +
+      ggplot2::theme_minimal(base_size = 12) +
+      ggplot2::theme(legend.position = "top",
+                     strip.text = ggplot2::element_text(face = "bold"))
+
+    if (!is.null(check_means) && nrow(check_means) > 0) {
+      p <- p + ggplot2::geom_vline(
+        data = check_means,
+        ggplot2::aes(xintercept = value),
+        colour = unname(group_colors[["Checks"]]),
+        linetype = "dashed", linewidth = 0.9
+      )
+    }
+
+    # Mean lines for Selected and All candidates
+    sel_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "Selected", , drop = FALSE], FUN = mean, na.rm = TRUE)
+    all_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "All candidates", , drop = FALSE], FUN = mean, na.rm = TRUE)
+    if (nrow(sel_means) > 0) {
+      sel_means$label <- factor(sel_means$label, levels = levels(plot_df$label))
+      p <- p + ggplot2::geom_vline(
+        data = sel_means,
+        ggplot2::aes(xintercept = value),
+        colour = unname(group_colors[["Selected"]]),
+        linetype = "dashed", linewidth = 0.7
+      )
+    }
+    if (nrow(all_means) > 0) {
+      all_means$label <- factor(all_means$label, levels = levels(plot_df$label))
+      p <- p + ggplot2::geom_vline(
+        data = all_means,
+        ggplot2::aes(xintercept = value),
+        colour = unname(group_colors[["All candidates"]]),
+        linetype = "dashed", linewidth = 0.7
+      )
+    }
+
+    print(p)
+  }
+}
+```
+
+---
+
+### TPP Breakdown
+
+```{r meeting-tpp-breakdown, results='asis'}
+have_bd <- exists("breakdown_detail") && !is.null(breakdown_detail) &&
+  !is.null(breakdown_detail$table) && is.data.frame(breakdown_detail$table) &&
+  nrow(breakdown_detail$table) > 0
+
+if (!have_bd) {
+  cat("_No TPP information available for this meeting._\n\n")
+} else {
+  cat(paste0(
+    "This table compares what the Target Product Profile asks for against what was ",
+    "actually evaluated on the phenotypic data. The `_tpp` columns reproduce the TPP ",
+    "verbatim; the `_data` columns show what was resolved against the data - relative ",
+    "specifications are converted to the equivalent absolute threshold using the mean of ",
+    "the mapped checks. `Sel_pct_meeting_criteria` is the share of the **consensus-selected** ",
+    "individuals meeting the resolved threshold and `All_pct_meeting_criteria` the share ",
+    "across all candidates, so comparing the two shows how much the meeting decisions ",
+    "enriched each criterion. Traits with no phenotypic mapping read \"not evaluated\" and ",
+    "traits the stakeholders dropped read \"trait not used\".\n\n"
+  ))
+}
+```
+
+```{r meeting-tpp-breakdown-table}
+if (have_bd) {
+  # Colour-code the two Target_proximity columns. Defined inline because the
+  # knit environment has no access to the package's internal helpers.
+  .prox_bg <- c(
+    "Comfortably meeting"   = "#D5F5E3",
+    "Moderately meeting"    = "#E8F8F5",
+    "Barely meeting"        = "#FCF3CF",
+    "Barely failing"        = "#FDEBD0",
+    "Moderately failing"    = "#FADBD8",
+    "Substantially failing" = "#F5B7B1"
+  )
+  .prox_fg <- c(
+    "Comfortably meeting"   = "#186A3B",
+    "Moderately meeting"    = "#148F77",
+    "Barely meeting"        = "#7D6608",
+    "Barely failing"        = "#935116",
+    "Moderately failing"    = "#943126",
+    "Substantially failing" = "#78281F"
+  )
+
+  .bd <- printTable(breakdown_detail$table, pageLength = 20,
+                    scrollXOpt = TRUE, filt = "none")
+  for (.cl in intersect(c("Target_proximity_sel", "Target_proximity_all"),
+                        colnames(breakdown_detail$table))) {
+    .bd <- DT::formatStyle(
+      .bd,
+      columns = .cl,
+      backgroundColor = DT::styleEqual(names(.prox_bg), unname(.prox_bg)),
+      color = DT::styleEqual(names(.prox_fg), unname(.prox_fg)),
+      fontWeight = DT::styleEqual(names(.prox_bg), rep("600", length(.prox_bg)))
+    )
+  }
+
+  htmltools::tagList(.bd)
+}
+```
+
+```{r meeting-tpp-breakdown-notes, results='asis'}
+if (have_bd && length(breakdown_detail$env_notes) > 0) {
+  cat("**Traits evaluated on a subset of environments**\n\n")
+  for (n in breakdown_detail$env_notes) cat(paste0("- ", n, "\n"))
+  cat("\n")
+}
+```
+
+---
+
+### Global Options Summary
+
+```{r meeting-global-options, results='asis'}
+have_opts <- exists("stakeholder_tables") && !is.null(stakeholder_tables) &&
+  length(stakeholder_tables) > 0 &&
+  !(length(stakeholder_tables) == 1 && "No Data" %in% names(stakeholder_tables))
+
+if (!have_opts) {
+  cat("_No stakeholder configuration data available for this meeting._\n\n")
+} else {
+  cat(paste0(
+    "This section records the **actual selection criteria each stakeholder chose** for ",
+    "their own initial selection - not what the TPP asks for. For each trait it shows the ",
+    "index weight it carried, the threshold value and direction from that stakeholder's ",
+    "trait rule card, and the reference check(s) used where the rule was defined relative ",
+    "to a check. Comparing the tables shows where the stakeholders' criteria diverged, ",
+    "which is often the source of the disagreements resolved in the meeting.\n\n"
+  ))
+}
+```
+
+```{r meeting-global-options-tables}
+if (have_opts) {
+  opt_tables <- lapply(names(stakeholder_tables), function(sname) {
+    tbl_df <- stakeholder_tables[[sname]]
+    if (is.null(tbl_df) || nrow(tbl_df) == 0) return(NULL)
+    DT::datatable(
+      tbl_df,
+      rownames = FALSE,
+      options = list(dom = "t", paging = FALSE, searching = FALSE,
+                     ordering = FALSE, scrollX = TRUE),
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; font-weight: 700; color: darkcyan;",
+        sname
+      )
+    )
+  })
+  opt_tables <- opt_tables[!vapply(opt_tables, is.null, logical(1))]
+  htmltools::tagList(opt_tables)
+}
+```
