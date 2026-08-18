@@ -692,29 +692,42 @@ mod_qaGenoApp_server <- function(id, data) {
           )
         )
       } else if (method == "beagle") {
-        default_beagle <- if (file.exists("D:/OneDrive - CGIAR/Documents/Software/beagle.27Feb25.75f.jar")) {
-          "D:/OneDrive - CGIAR/Documents/Software/beagle.27Feb25.75f.jar"
+        # Check Beagle requirements automatically
+        beagle_status <- cgiarGenomics::check_beagle_requirements()
+        default_threads <- cgiarGenomics::get_default_beagle_threads()
+        
+        status_style <- if (beagle_status$ready) {
+          "background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:10px;border-radius:6px;margin-bottom:12px;"
         } else {
-          ""
+          "background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:10px;border-radius:6px;margin-bottom:12px;"
         }
-        default_jre <- if (dir.exists("D:/OneDrive - CGIAR/Documents/Software/ugene-53.0/tools/java")) {
-          "D:/OneDrive - CGIAR/Documents/Software/ugene-53.0/tools/java"
-        } else {
-          ""
-        }
+        
         tagList(
-          fluidRow(
-            column(width = 6, textInput(ns("beagle_jre_path"), "JRE Path", value = default_jre)),
-            column(width = 6, textInput(ns("beagle_path"), "Beagle JAR Path", value = default_beagle))
+          # Status indicator
+          tags$div(
+            style = status_style,
+            tags$b(if (beagle_status$ready) "\u2714 " else "\u2718 "),
+            beagle_status$message
           ),
-          fluidRow(
-            column(width = 3, textInput(ns("beagle_memory"), "Memory", value = "Xmx1g")),
-            column(width = 3, numericInput(ns("beagle_burnin"), "Burn-in iterations", value = 3, min = 1)),
-            column(width = 3, numericInput(ns("beagle_iterations"), "Iterations", value = 12, min = 1)),
-            column(width = 3, numericInput(ns("beagle_seed"), "Seed", value = -99999))
-          ),
-          fluidRow(
-            column(width = 3, numericInput(ns("beagle_nthreads"), "Threads", value = 16, min = 1))
+          # Advanced settings collapsible
+          tags$details(
+            style = "margin-top: 10px;",
+            tags$summary(
+              style = "cursor:pointer; font-weight:bold; color:#495057;",
+              "Advanced Beagle settings"
+            ),
+            tags$div(
+              style = "padding: 12px; margin-top: 8px; background: #f8f9fa; border-radius: 4px;",
+              fluidRow(
+                column(width = 3, textInput(ns("beagle_memory"), "JVM memory", value = "Xmx4g")),
+                column(width = 3, numericInput(ns("beagle_nthreads"), "Threads", value = default_threads, min = 1)),
+                column(width = 3, numericInput(ns("beagle_burnin"), "Burn-in", value = 3, min = 1)),
+                column(width = 3, numericInput(ns("beagle_iterations"), "Iterations", value = 12, min = 1))
+              ),
+              fluidRow(
+                column(width = 3, numericInput(ns("beagle_seed"), "Seed", value = -99999))
+              )
+            )
           )
         )
       } else {
@@ -753,9 +766,6 @@ mod_qaGenoApp_server <- function(id, data) {
             imp_args$seed <- as.integer(input$rf_seed)
           }
         } else if (method == "beagle") {
-          req(input$beagle_jre_path, input$beagle_path)
-          imp_args$jre_path <- input$beagle_jre_path
-          imp_args$beagle_path <- input$beagle_path
           imp_args$memory <- input$beagle_memory
           imp_args$burnin <- input$beagle_burnin
           imp_args$iterations <- input$beagle_iterations
