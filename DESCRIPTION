@@ -117,7 +117,7 @@ Remotes:
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
     Breeding-Analytics/cgiarOcs,
-    serbier/cgiarGenomics,
+    Breeding-Analytics/cgiarGenomics,
     reyzaguirre/st4gi,
     covaruber/lme4breeding,
     icarda/QBMS
