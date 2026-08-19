@@ -1457,7 +1457,7 @@ mod_staApp_server <- function(id,data){
           grepl("^[a-f0-9]{32}$", query$task) &&
           grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
 
-        s3 <- paws::s3()
+        s3 <- paws.storage::s3()
 
         bucket_name <- "ebs-bioflow"
         s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
@@ -1489,7 +1489,7 @@ mod_staApp_server <- function(id,data){
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
         result <- data()
-        s3 <- paws::s3()
+        s3 <- paws.storage::s3()
 
         # set S3 bucket parameters
         bucket_name <- "ebs-bioflow"

@@ -468,7 +468,7 @@ app_server <- function(input, output, session) {
       task_id        <- query$task
       s3_object_path <- paste0(query$domain, "/", task_id, ".RData")
 
-      s3 <- paws::s3()
+      s3 <- paws.storage::s3()
 
       tryCatch({
         s3_download <- s3$get_object(
