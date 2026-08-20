@@ -57,18 +57,21 @@ A demo of the application can be accessed at:
 ## Local installation
 
 If you wish to install bioflow locally in your computer in case you have
-internet problems you can run the following three lines in your R or R
-studio console (make sure you uncomment the lines):
+internet problems you can run the following lines in your R or R
+studio console (make sure you uncomment the lines by removing the # symbol):
 
 ``` r
-# devtools::install_github("Breeding-Analytics/bioflow")
-# library(bioflow)
-# bioflow::run_app()
+#install.packages("pak")
+#pak::pkg_install(
+#  "Breeding-Analytics/bioflow",
+#  upgrade = FALSE
+#)
+#bioflow::run_app()
 ```
 
-The first line will install bioflow as an r package in your computer.
-The second line will call the library/application to the environment.
-And the third line will start the application.
+This code will install an R package named "pak" which is meant to optimize the installation of other packages (especially on Windows and MacOS machines)
+Then bioflow will be installed as an r package in your computer.
+And the last line in the code will start the application.
 
 ## Cloning the repositories to contribute
 
