@@ -3952,8 +3952,10 @@ mod_advMeetingApp_server <- function(id, data){
       }
 
       # Mean lines for Selected and All candidates
-      sel_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "Selected", , drop = FALSE], FUN = mean, na.rm = TRUE)
-      all_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "All candidates", , drop = FALSE], FUN = mean, na.rm = TRUE)
+      sel_df <- plot_df[plot_df$group == "Selected", , drop = FALSE]
+      sel_means <- if (nrow(sel_df) > 0) stats::aggregate(value ~ label, data = sel_df, FUN = mean, na.rm = TRUE) else data.frame(label = character(0), value = numeric(0))
+      all_df <- plot_df[plot_df$group == "All candidates", , drop = FALSE]
+      all_means <- if (nrow(all_df) > 0) stats::aggregate(value ~ label, data = all_df, FUN = mean, na.rm = TRUE) else data.frame(label = character(0), value = numeric(0))
       if (nrow(sel_means) > 0) {
         sel_means$label <- factor(sel_means$label, levels = levels(plot_df$label))
         p <- p + ggplot2::geom_vline(
@@ -4676,8 +4678,10 @@ mod_advMeetingApp_server <- function(id, data){
       }
 
       # Mean lines for Selected and All candidates
-      sel_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "Selected", , drop = FALSE], FUN = mean, na.rm = TRUE)
-      all_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "All candidates", , drop = FALSE], FUN = mean, na.rm = TRUE)
+      sel_df <- plot_df[plot_df$group == "Selected", , drop = FALSE]
+      sel_means <- if (nrow(sel_df) > 0) stats::aggregate(value ~ label, data = sel_df, FUN = mean, na.rm = TRUE) else data.frame(label = character(0), value = numeric(0))
+      all_df <- plot_df[plot_df$group == "All candidates", , drop = FALSE]
+      all_means <- if (nrow(all_df) > 0) stats::aggregate(value ~ label, data = all_df, FUN = mean, na.rm = TRUE) else data.frame(label = character(0), value = numeric(0))
       if (nrow(sel_means) > 0) {
         sel_means$label <- factor(sel_means$label, levels = levels(plot_df$label))
         p <- p + ggplot2::geom_vline(
