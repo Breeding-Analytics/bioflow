@@ -4373,16 +4373,33 @@ mod_preProdAdvApp_server <- function(id, data){
               if (has_lower && has_upper) {
                 # Range: use "Acceptable range" rule type
                 updateSelectInput(session, paste0("ruleType_", safe_trait), selected = "Acceptable range")
+                # Defer range slider update to after UI re-renders
+                session$onFlushed(function() {
+                  updateSliderInput(session, paste0("rangeSlider_", safe_trait),
+                                    value = c(desired_lower, desired_upper))
+                  updateNumericInput(session, paste0("rangeMin_", safe_trait), value = desired_lower)
+                  updateNumericInput(session, paste0("rangeMax_", safe_trait), value = desired_upper)
+                }, once = TRUE)
 
               } else if (has_lower) {
                 # Single lower bound: "Higher is better" threshold
                 updateSelectInput(session, paste0("ruleType_", safe_trait), selected = "Threshold")
                 updateSelectInput(session, paste0("direction_", safe_trait), selected = "Higher is better")
+                # Defer threshold update to after UI re-renders
+                session$onFlushed(function() {
+                  updateSliderInput(session, paste0("minThresholdSlider_", safe_trait), value = desired_lower)
+                  updateNumericInput(session, paste0("minThreshold_", safe_trait), value = desired_lower)
+                }, once = TRUE)
 
               } else if (has_upper) {
                 # Single upper bound: "Lower is better" threshold
                 updateSelectInput(session, paste0("ruleType_", safe_trait), selected = "Threshold")
                 updateSelectInput(session, paste0("direction_", safe_trait), selected = "Lower is better")
+                # Defer threshold update to after UI re-renders
+                session$onFlushed(function() {
+                  updateSliderInput(session, paste0("minThresholdSlider_", safe_trait), value = desired_upper)
+                  updateNumericInput(session, paste0("minThreshold_", safe_trait), value = desired_upper)
+                }, once = TRUE)
 
               } else {
                 return()
@@ -4428,6 +4445,13 @@ mod_preProdAdvApp_server <- function(id, data){
                   updateSelectInput(session, paste0("checkVar_", safe_trait), selected = checks_mapped)
                 }, once = TRUE)
               }
+
+              # Defer % slider update to after UI re-renders
+              local_threshold_val <- threshold_val
+              session$onFlushed(function() {
+                updateSliderInput(session, paste0("pctOverCheckSlider_", safe_trait), value = max(0, min(100, local_threshold_val)))
+                updateNumericInput(session, paste0("pctOverCheck_", safe_trait), value = local_threshold_val)
+              }, once = TRUE)
             }
 
             # Track that this trait was auto-filled
@@ -4631,7 +4655,7 @@ mod_preProdAdvApp_server <- function(id, data){
                 "Threshold value",
                 min = rng_min,
                 max = rng_max,
-                value = threshold_default,
+                value = max(rng_min, min(rng_max, threshold_default)),
                 step = slider_step
               ),
               numericInput(
@@ -4672,7 +4696,8 @@ mod_preProdAdvApp_server <- function(id, data){
                 "Acceptable range",
                 min = rng_min,
                 max = rng_max,
-                value = c(range_min_default, range_max_default),
+                value = c(max(rng_min, min(rng_max, range_min_default)),
+                          max(rng_min, min(rng_max, range_max_default))),
                 step = slider_step
               ),
               fluidRow(
@@ -4759,7 +4784,7 @@ mod_preProdAdvApp_server <- function(id, data){
                 "% over check",
                 min = 0,
                 max = 100,
-                value = pct_default,
+                value = max(0, min(100, pct_default)),
                 step = 1
               ),
               numericInput(
@@ -6109,6 +6134,7 @@ mod_preProdAdvApp_server <- function(id, data){
       # Index value column with gradient (always higher_is_better = TRUE for index)
       if ("index_value" %in% colnames(tbl)) {
         idx_status <- tbl$initial_decision
+        idx_status[is.na(idx_status)] <- "NOT SELECTED"
         idx_opacity <- get_quintile_opacity(tbl$index_value, idx_status, higher_is_better = TRUE)
         display_df$index_value <- mapply(function(val, st, op) {
           base_col <- if (st == "SELECTED") col_selected
@@ -6129,6 +6155,9 @@ mod_preProdAdvApp_server <- function(id, data){
         trait_decision_col <- paste0(tr, "_trait_decision")
         if (trait_decision_col %in% avail_trait_decisions) {
           trait_status <- tbl[[trait_decision_col]]
+          # Replace NA decisions with "NOT SELECTED" to avoid
+          # "missing value where TRUE/FALSE needed" when traits have NA predictions
+          trait_status[is.na(trait_status)] <- "NOT SELECTED"
         } else {
           # Trait decision not available â€” default all to SELECTED (no threshold applied)
           trait_status <- rep("SELECTED", nrow(tbl))
@@ -6151,6 +6180,7 @@ mod_preProdAdvApp_server <- function(id, data){
 
       # Index selection column (badge)
       display_df$index_selection <- sapply(tbl$initial_decision, function(st) {
+        if (is.na(st)) st <- "NOT SELECTED"
         bg <- if (st == "SELECTED") col_selected
               else if (st == "CHECK") col_check
               else if (st == "REVISE") col_revise
@@ -7063,6 +7093,46 @@ mod_preProdAdvApp_server <- function(id, data){
 
       validate(need(nrow(df_plot) > 0, "No complete observations available for the selected trait pair."))
 
+      # --- Determine trait directions for axis inversion ---
+      # "Lower is better" traits get a reversed axis so upper-right is always ideal.
+      # "Acceptable range" traits (both lower and upper bounds) are NOT inverted;
+      # their two TPP lines visually mark the desired band instead.
+      get_trait_direction <- function(trait_name) {
+        # Try from TPP data first
+        tpp_df_local <- tryCatch(tpp_filtered_traits(), error = function(e) NULL)
+        if (!is.null(tpp_df_local) && is.data.frame(tpp_df_local) && nrow(tpp_df_local) > 0) {
+          if ("pheno_trait" %in% colnames(tpp_df_local) && "desired_direction" %in% colnames(tpp_df_local)) {
+            t_row <- tpp_df_local[tpp_df_local$pheno_trait == trait_name, , drop = FALSE]
+            if (nrow(t_row) == 0 && "tpp_trait" %in% colnames(tpp_df_local)) {
+              t_row <- tpp_df_local[tpp_df_local$tpp_trait == trait_name, , drop = FALSE]
+            }
+            if (nrow(t_row) > 0) {
+              dir_val <- t_row$desired_direction[1]
+              # Check if this is a range trait (both bounds present) — do not invert
+              has_both <- FALSE
+              if ("desired_lower" %in% colnames(t_row) && "desired_upper" %in% colnames(t_row)) {
+                has_both <- !is.na(t_row$desired_lower[1]) && !is.na(t_row$desired_upper[1])
+              }
+              if (has_both) return("range")
+              if (!is.na(dir_val) && dir_val == "lower") return("lower")
+              return("higher")
+            }
+          }
+        }
+        # Fallback to trait_rules_input()
+        rules <- tryCatch(trait_rules_input(), error = function(e) list())
+        if (trait_name %in% names(rules)) {
+          rule_dir <- rules[[trait_name]]$direction
+          if (!is.null(rule_dir) && identical(rule_dir, "Lower is better")) return("lower")
+        }
+        "higher"
+      }
+
+      x_direction <- get_trait_direction(x_trait)
+      y_direction <- get_trait_direction(y_trait)
+      x_invert <- identical(x_direction, "lower")
+      y_invert <- identical(y_direction, "lower")
+
       # Compute absolute opacity based on reliability (NOT relative to population)
       # reliability >= 0.7 â†’ opacity 1.0; reliability = 0 â†’ opacity 0.15
       reliability_to_opacity <- function(rel) {
@@ -7157,9 +7227,17 @@ mod_preProdAdvApp_server <- function(id, data){
       p <- p +
         ggplot2::scale_fill_manual(values = status_colors) +
         ggplot2::scale_alpha_identity() +
-        ggplot2::labs(x = tpp_display_name(x_trait), y = tpp_display_name(y_trait), fill = "Status") +
+        ggplot2::labs(
+          x = paste0(tpp_display_name(x_trait), if (x_invert) " (inverted: lower is better)" else ""),
+          y = paste0(tpp_display_name(y_trait), if (y_invert) " (inverted: lower is better)" else ""),
+          fill = "Status"
+        ) +
         ggplot2::theme_minimal(base_size = 13) +
         ggplot2::theme(legend.position = "bottom")
+
+      # Invert axes for "lower is better" traits so upper-right is always ideal
+      if (x_invert) p <- p + ggplot2::scale_x_reverse()
+      if (y_invert) p <- p + ggplot2::scale_y_reverse()
 
       fig <- plotly::ggplotly(p, tooltip = "text", source = ns("pairwiseScatter"))
 
@@ -8569,6 +8647,12 @@ mod_preProdAdvApp_server <- function(id, data){
                   tpp_checkbox_ui
                 )
               ),
+              tags$p(
+                style = "color: #555; font-size: 0.9em; margin: 8px 0 4px 0; padding: 0 5px;",
+                "Axes for traits where lower values are desirable are inverted so that the",
+                tags$b("upper-right quadrant always represents the ideal."),
+                "For traits with an acceptable range, two TPP reference lines mark the desired band."
+              ),
               plotly::plotlyOutput(ns("pairwiseScatterPlot"), height = "650px")
             )
           )
@@ -9787,6 +9871,12 @@ mod_preProdAdvApp_server <- function(id, data){
             scaled_matrix <- scale(trait_matrix)
             scaled_matrix[is.nan(scaled_matrix)] <- 0
             w <- index_weights[avail_traits]
+
+            # Replace NAs in zero-weight columns to prevent NA*0=NA propagation in index
+            zero_weight_cols <- which(w == 0)
+            if (length(zero_weight_cols) > 0) {
+              scaled_matrix[, zero_weight_cols][is.na(scaled_matrix[, zero_weight_cols])] <- 0
+            }
 
             # Apply reliability weighting (same as build_prodadv_decision_table_data)
             if ("reliability" %in% colnames(preds)) {
