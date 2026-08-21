@@ -10819,62 +10819,9 @@ mod_preProdAdvApp_server <- function(id, data){
       breakdown_detail <- .rx$breakdown_detail
       options_table    <- .rx$options_table
 
-      # Build review_long directly from the decision table to ensure all traits
-      # are included (avoids reactive timing issues with final_review_long())
-      review_long <- tryCatch({
-        tbl <- final_decision_data()
-        if (is.null(tbl) || !is.data.frame(tbl) || nrow(tbl) == 0) return(NULL)
-        if (!("final_decision" %in% colnames(tbl))) return(NULL)
-
-        init_stamp <- input$reportInitialSelectionStamp
-        modeling_init_local <- result$modeling[
-          result$modeling$analysisId %in% init_stamp &
-            result$modeling$module == "Init_prodAdv", , drop = FALSE
-        ]
-        traits <- unique(modeling_init_local$trait[!is.na(modeling_init_local$trait) & nzchar(modeling_init_local$trait)])
-        traits <- traits[!traits %in%
-          modeling_init_local$trait[modeling_init_local$parameter == "user_excluded_trait"]]
-        traits <- intersect(traits, colnames(tbl))
-
-        metrics <- character(0)
-        if ("index_value" %in% colnames(tbl)) metrics <- "index_value"
-        metrics <- c(metrics, traits)
-        metrics <- metrics[vapply(metrics, function(m) {
-          any(is.finite(suppressWarnings(as.numeric(tbl[[m]]))))
-        }, logical(1))]
-
-        if (length(metrics) == 0) return(NULL)
-
-        decisions <- toupper(trimws(as.character(tbl$final_decision)))
-        is_check <- decisions == "CHECK"
-        is_selected <- decisions == "SELECTED" & !is_check
-
-        make_piece <- function(metric, group, values) {
-          values <- values[is.finite(values)]
-          if (length(values) == 0) return(NULL)
-          data.frame(metric = rep(metric, length(values)),
-                     group = rep(group, length(values)),
-                     value = values, stringsAsFactors = FALSE)
-        }
-
-        out <- do.call(rbind, lapply(metrics, function(m) {
-          vals <- suppressWarnings(as.numeric(tbl[[m]]))
-          pieces <- list(
-            make_piece(m, "All candidates", vals[!is_check]),
-            make_piece(m, "Selected", vals[is_selected]),
-            make_piece(m, "Checks", vals[is_check])
-          )
-          pieces <- pieces[!vapply(pieces, is.null, logical(1))]
-          if (length(pieces) == 0) return(NULL)
-          do.call(rbind, pieces)
-        }))
-
-        if (is.null(out) || nrow(out) == 0) return(NULL)
-        out$label <- vapply(out$metric, function(m) {
-          if (identical(m, "index_value")) "Index Value" else tpp_display_name(m)
-        }, character(1))
-        out
-      }, error = function(e) .rx$review_long)
+      # Same object the Shiny dashboard plots, so the downloaded report and the
+      # in-app view can never disagree on which metrics are shown.
+      review_long      <- .rx$review_long
 
       save(result, final_table_export, trait_directions, trait_thresholds,
            STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
@@ -11055,63 +11002,9 @@ mod_preProdAdvApp_server <- function(id, data){
       breakdown_detail <- .rx$breakdown_detail
       options_table    <- .rx$options_table
 
-      # Build review_long directly from the decision table to ensure all traits
-      # are included (avoids reactive timing issues with final_review_long())
-      review_long <- tryCatch({
-        tbl <- final_decision_data()
-        if (is.null(tbl) || !is.data.frame(tbl) || nrow(tbl) == 0) return(NULL)
-        if (!("final_decision" %in% colnames(tbl))) return(NULL)
-
-        # Determine metrics: index_value + all trait columns from modeling
-        init_stamp <- input$reportInitialSelectionStamp
-        modeling_init <- result$modeling[
-          result$modeling$analysisId %in% init_stamp &
-            result$modeling$module == "Init_prodAdv", , drop = FALSE
-        ]
-        traits <- unique(modeling_init$trait[!is.na(modeling_init$trait) & nzchar(modeling_init$trait)])
-        traits <- traits[!traits %in%
-          modeling_init$trait[modeling_init$parameter == "user_excluded_trait"]]
-        traits <- intersect(traits, colnames(tbl))
-
-        metrics <- character(0)
-        if ("index_value" %in% colnames(tbl)) metrics <- "index_value"
-        metrics <- c(metrics, traits)
-        metrics <- metrics[vapply(metrics, function(m) {
-          any(is.finite(suppressWarnings(as.numeric(tbl[[m]]))))
-        }, logical(1))]
-
-        if (length(metrics) == 0) return(NULL)
-
-        decisions <- toupper(trimws(as.character(tbl$final_decision)))
-        is_check <- decisions == "CHECK"
-        is_selected <- decisions == "SELECTED" & !is_check
-
-        make_piece <- function(metric, group, values) {
-          values <- values[is.finite(values)]
-          if (length(values) == 0) return(NULL)
-          data.frame(metric = rep(metric, length(values)),
-                     group = rep(group, length(values)),
-                     value = values, stringsAsFactors = FALSE)
-        }
-
-        out <- do.call(rbind, lapply(metrics, function(m) {
-          vals <- suppressWarnings(as.numeric(tbl[[m]]))
-          pieces <- list(
-            make_piece(m, "All candidates", vals[!is_check]),
-            make_piece(m, "Selected", vals[is_selected]),
-            make_piece(m, "Checks", vals[is_check])
-          )
-          pieces <- pieces[!vapply(pieces, is.null, logical(1))]
-          if (length(pieces) == 0) return(NULL)
-          do.call(rbind, pieces)
-        }))
-
-        if (is.null(out) || nrow(out) == 0) return(NULL)
-        out$label <- vapply(out$metric, function(m) {
-          if (identical(m, "index_value")) "Index Value" else tpp_display_name(m)
-        }, character(1))
-        out
-      }, error = function(e) .rx$review_long)
+      # Same object the Shiny dashboard plots, so the downloaded report and the
+      # in-app view can never disagree on which metrics are shown.
+      review_long      <- .rx$review_long
 
       save(result, final_table_export, trait_directions, trait_thresholds,
            STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
@@ -11203,62 +11096,9 @@ mod_preProdAdvApp_server <- function(id, data){
       breakdown_detail <- .rx$breakdown_detail
       options_table    <- .rx$options_table
 
-      # Build review_long directly from the decision table to ensure all traits
-      # are included (avoids reactive timing issues with final_review_long())
-      review_long <- tryCatch({
-        tbl <- final_decision_data()
-        if (is.null(tbl) || !is.data.frame(tbl) || nrow(tbl) == 0) return(NULL)
-        if (!("final_decision" %in% colnames(tbl))) return(NULL)
-
-        init_stamp <- input$reportInitialSelectionStamp
-        modeling_init_local <- result$modeling[
-          result$modeling$analysisId %in% init_stamp &
-            result$modeling$module == "Init_prodAdv", , drop = FALSE
-        ]
-        traits <- unique(modeling_init_local$trait[!is.na(modeling_init_local$trait) & nzchar(modeling_init_local$trait)])
-        traits <- traits[!traits %in%
-          modeling_init_local$trait[modeling_init_local$parameter == "user_excluded_trait"]]
-        traits <- intersect(traits, colnames(tbl))
-
-        metrics <- character(0)
-        if ("index_value" %in% colnames(tbl)) metrics <- "index_value"
-        metrics <- c(metrics, traits)
-        metrics <- metrics[vapply(metrics, function(m) {
-          any(is.finite(suppressWarnings(as.numeric(tbl[[m]]))))
-        }, logical(1))]
-
-        if (length(metrics) == 0) return(NULL)
-
-        decisions <- toupper(trimws(as.character(tbl$final_decision)))
-        is_check <- decisions == "CHECK"
-        is_selected <- decisions == "SELECTED" & !is_check
-
-        make_piece <- function(metric, group, values) {
-          values <- values[is.finite(values)]
-          if (length(values) == 0) return(NULL)
-          data.frame(metric = rep(metric, length(values)),
-                     group = rep(group, length(values)),
-                     value = values, stringsAsFactors = FALSE)
-        }
-
-        out <- do.call(rbind, lapply(metrics, function(m) {
-          vals <- suppressWarnings(as.numeric(tbl[[m]]))
-          pieces <- list(
-            make_piece(m, "All candidates", vals[!is_check]),
-            make_piece(m, "Selected", vals[is_selected]),
-            make_piece(m, "Checks", vals[is_check])
-          )
-          pieces <- pieces[!vapply(pieces, is.null, logical(1))]
-          if (length(pieces) == 0) return(NULL)
-          do.call(rbind, pieces)
-        }))
-
-        if (is.null(out) || nrow(out) == 0) return(NULL)
-        out$label <- vapply(out$metric, function(m) {
-          if (identical(m, "index_value")) "Index Value" else tpp_display_name(m)
-        }, character(1))
-        out
-      }, error = function(e) .rx$review_long)
+      # Same object the Shiny dashboard plots, so the downloaded report and the
+      # in-app view can never disagree on which metrics are shown.
+      review_long      <- .rx$review_long
 
       save(result, final_table_export, trait_directions, trait_thresholds,
            STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
