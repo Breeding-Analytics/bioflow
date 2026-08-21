@@ -77,7 +77,18 @@ build_network_plot <- function(statusDf, modelingDf) {
   network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
   network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
 
-  ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
+  # Convert the network to a data.frame explicitly instead of letting
+  # ggplot2::ggplot() dispatch on it. ggnetwork supplies the fortify.network S3
+  # method, but that method only exists once ggnetwork's namespace has been
+  # loaded, and bioflow's NAMESPACE imports nothing from ggnetwork. In an
+  # installed app the left operand of `+` (this ggplot() call) is evaluated
+  # before the ggnetwork::geom_edges() call that would trigger the load, so
+  # dispatch fell through to fortify.default and errored with "`data` must be a
+  # <data.frame>". pkgload::load_all() (golem::run_dev) loads the whole Imports
+  # list up front, which is why the bug only showed up in the installed package.
+  netDf <- ggnetwork::ggnetwork(n)
+
+  ggplot2::ggplot(netDf, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
     ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed")) +
     ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size = 5) +
     ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names),
