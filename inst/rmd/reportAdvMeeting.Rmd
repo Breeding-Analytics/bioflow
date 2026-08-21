@@ -290,22 +290,67 @@ if (nrow(comparison_matrix) > 0) {
 }
 ```
 
----
+```{r download-flag, include=FALSE}
+# The Population Statistics section below is rendered by Shiny outputs
+# (dashStatsUI / dashStatsHistogram) on the live dashboard, which embeds this
+# same Rmd above them. Emitting it here as well duplicates the section in the
+# app, so it is restricted to the standalone downloaded HTML
+# (params$toDownload == TRUE, set by rmarkdown::render in the download handler;
+# the in-app path calls knitr::knit(), where `params` does not exist).
+is_download <- tryCatch(isTRUE(params$toDownload), error = function(e) FALSE)
+```
 
-### Population Statistics
+```{r population-statistics-header, results='asis', eval=is_download}
+cat("\n\n---\n\n### Population Statistics\n\n")
+cat("For every metric - the consensus selection index and each trait used in the meeting - the table below contrasts the **selected** set against **all candidates** (checks excluded) and against the **checks** on their own. Rows are colour-coded to match the distribution plot: blue = selected, orange = all candidates, purple = checks.\n\n")
+```
 
-For every metric - the consensus selection index and each trait used in the meeting - the table below contrasts the **selected** set against **all candidates** (checks excluded) and against the **checks** on their own. Rows are colour-coded to match the distribution plot: blue = selected, orange = all candidates, purple = checks.
-
-```{r meeting-population-statistics, results='asis'}
+```{r meeting-population-statistics, results='asis', eval=is_download}
 have_stats <- exists("review_long") && !is.null(review_long) &&
   is.data.frame(review_long) && nrow(review_long) > 0
+
+# `review_long` carries a `label` column with the human-readable name for each
+# metric. It is NOT always equal to the metric column name (display names may be
+# resolved upstream), so labels must be taken from this column rather than
+# recomputed from `metric`. Backfill it if an older payload is missing it.
+if (have_stats) {
+  if (!("label" %in% colnames(review_long))) review_long$label <- NA_character_
+  review_long$label <- as.character(review_long$label)
+
+  # Empty / NA display names fall back to the metric column name.
+  bad <- is.na(review_long$label) | !nzchar(trimws(review_long$label))
+  if (any(bad)) {
+    review_long$label[bad] <- ifelse(review_long$metric[bad] == "index_value",
+                                     "Index Value", review_long$metric[bad])
+  }
+
+  # Two metrics sharing one display name (several phenotypic traits can map to
+  # the same TPP trait) would merge into a single facet and make factor levels
+  # non-unique, so disambiguate with the metric name.
+  lab_map <- unique(review_long[, c("metric", "label")])
+  dup_labels <- unique(lab_map$label[duplicated(lab_map$label)])
+  if (length(dup_labels) > 0) {
+    fix <- review_long$label %in% dup_labels
+    review_long$label[fix] <- paste0(review_long$label[fix],
+                                     " (", review_long$metric[fix], ")")
+  }
+}
+
+# metric -> label lookup, used by both the tables and the faceted plot below.
+metric_label <- function(m) {
+  if (!have_stats) return(m)
+  lab <- unique(as.character(review_long$label[review_long$metric == m]))
+  lab <- lab[!is.na(lab) & nzchar(lab)]
+  if (length(lab) > 0) return(lab[1])
+  if (identical(m, "index_value")) "Index Value" else m
+}
 
 if (!have_stats) {
   cat("_No trait distribution data available for this meeting._\n\n")
 }
 ```
 
-```{r meeting-population-statistics-tables, results='asis'}
+```{r meeting-population-statistics-tables, results='asis', eval=is_download}
 # Rendered as plain styled HTML rather than DT: these are small fixed 3-row
 # summaries, and DT's JavaScript width calculation detaches the header from the
 # body when several tables are emitted into a static document.
@@ -349,7 +394,7 @@ if (have_stats) {
 
   for (m in unique(review_long$metric)) {
     sub <- review_long[review_long$metric == m, , drop = FALSE]
-    label <- if (identical(m, "index_value")) "Index Value" else m
+    label <- metric_label(m)
     sdf <- stats_for(sub)
 
     header <- paste0(
@@ -387,9 +432,11 @@ if (have_stats) {
 }
 ```
 
-The plot below shows, for each metric, how the consensus-selected set is distributed against the full candidate set. The dashed vertical line marks the mean of the checks.
+```{r meeting-plot-intro-text, results='asis', eval=is_download}
+cat("The plot below shows, for each metric, how the consensus-selected set is distributed against the full candidate set. The dashed vertical line marks the mean of the checks.\n\n")
+```
 
-```{r meeting-population-statistics-height, include=FALSE}
+```{r meeting-population-statistics-height, include=FALSE, eval=is_download}
 # Scale the figure with the number of facet rows (2 panels per row)
 stats_fig_height <- 4
 if (have_stats) {
@@ -398,15 +445,16 @@ if (have_stats) {
 }
 ```
 
-```{r meeting-population-statistics-plot, fig.width=11, fig.height=stats_fig_height}
+```{r meeting-population-statistics-plot, fig.width=11, fig.height=if (exists("stats_fig_height")) stats_fig_height else 4, eval=is_download}
 if (have_stats) {
   plot_df <- review_long[review_long$group %in% c("All candidates", "Selected"), , drop = FALSE]
 
   if (nrow(plot_df) > 0) {
     metric_order <- unique(review_long$metric)
-    label_order <- vapply(metric_order, function(m) {
-      if (identical(m, "index_value")) "Index Value" else m
-    }, character(1))
+    # Levels must come from review_long$label. Recomputing them from `metric`
+    # silently drops every panel whose display name differs from the column
+    # name (factor() maps unmatched values to NA).
+    label_order <- vapply(metric_order, metric_label, character(1))
 
     plot_df$label <- factor(plot_df$label, levels = unname(label_order))
     plot_df$group <- factor(plot_df$group, levels = c("All candidates", "Selected"))
@@ -477,11 +525,11 @@ if (have_stats) {
 }
 ```
 
----
+```{r meeting-tpp-breakdown-header, results='asis', eval=is_download}
+cat("\n\n---\n\n### TPP Breakdown\n\n")
+```
 
-### TPP Breakdown
-
-```{r meeting-tpp-breakdown, results='asis'}
+```{r meeting-tpp-breakdown, results='asis', eval=is_download}
 have_bd <- exists("breakdown_detail") && !is.null(breakdown_detail) &&
   !is.null(breakdown_detail$table) && is.data.frame(breakdown_detail$table) &&
   nrow(breakdown_detail$table) > 0
@@ -503,7 +551,7 @@ if (!have_bd) {
 }
 ```
 
-```{r meeting-tpp-breakdown-table}
+```{r meeting-tpp-breakdown-table, eval=is_download}
 if (have_bd) {
   # Colour-code the two Target_proximity columns. Defined inline because the
   # knit environment has no access to the package's internal helpers.
@@ -523,7 +571,6 @@ if (have_bd) {
     "Moderately failing"    = "#943126",
     "Substantially failing" = "#78281F"
   )
-
   .bd <- printTable(breakdown_detail$table, pageLength = 20,
                     scrollXOpt = TRUE, filt = "none")
   for (.cl in intersect(c("Target_proximity_sel", "Target_proximity_all"),
@@ -536,12 +583,11 @@ if (have_bd) {
       fontWeight = DT::styleEqual(names(.prox_bg), rep("600", length(.prox_bg)))
     )
   }
-
   htmltools::tagList(.bd)
 }
 ```
 
-```{r meeting-tpp-breakdown-notes, results='asis'}
+```{r meeting-tpp-breakdown-notes, results='asis', eval=is_download}
 if (have_bd && length(breakdown_detail$env_notes) > 0) {
   cat("**Traits evaluated on a subset of environments**\n\n")
   for (n in breakdown_detail$env_notes) cat(paste0("- ", n, "\n"))
@@ -549,11 +595,11 @@ if (have_bd && length(breakdown_detail$env_notes) > 0) {
 }
 ```
 
----
+```{r meeting-global-options-header, results='asis', eval=is_download}
+cat("\n\n---\n\n### Global Options Summary\n\n")
+```
 
-### Global Options Summary
-
-```{r meeting-global-options, results='asis'}
+```{r meeting-global-options, results='asis', eval=is_download}
 have_opts <- exists("stakeholder_tables") && !is.null(stakeholder_tables) &&
   length(stakeholder_tables) > 0 &&
   !(length(stakeholder_tables) == 1 && "No Data" %in% names(stakeholder_tables))
@@ -572,7 +618,7 @@ if (!have_opts) {
 }
 ```
 
-```{r meeting-global-options-tables}
+```{r meeting-global-options-tables, eval=is_download}
 if (have_opts) {
   opt_tables <- lapply(names(stakeholder_tables), function(sname) {
     tbl_df <- stakeholder_tables[[sname]]

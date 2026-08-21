@@ -9838,11 +9838,23 @@ mod_preProdAdvApp_server <- function(id, data){
         preds <- dt$predictions[
           dt$predictions$analysisId %in% mta_stamp &
             dt$predictions$trait %in% selected_traits &
+            dt$predictions$effectType == "designation" &
             dt$predictions$designation %in% merged$designation,
           , drop = FALSE
         ]
 
         if (nrow(preds) > 0) {
+          # Deduplicate: keep one row per designation × trait (average if duplicated)
+          dup_key <- paste(preds$designation, preds$trait, sep = "|||")
+          if (any(duplicated(dup_key))) {
+            preds <- do.call(rbind, lapply(split(preds, dup_key), function(x) {
+              row1 <- x[1, , drop = FALSE]
+              row1$predictedValue <- mean(x$predictedValue, na.rm = TRUE)
+              row1
+            }))
+            rownames(preds) <- NULL
+          }
+
           pred_wide <- reshape(
             preds[, c("designation", "trait", "predictedValue"), drop = FALSE],
             idvar = "designation",
@@ -10419,8 +10431,10 @@ mod_preProdAdvApp_server <- function(id, data){
       }
 
       # Mean lines for Selected and All candidates
-      sel_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "Selected", , drop = FALSE], FUN = mean, na.rm = TRUE)
-      all_means <- stats::aggregate(value ~ label, data = plot_df[plot_df$group == "All candidates", , drop = FALSE], FUN = mean, na.rm = TRUE)
+      sel_df <- plot_df[plot_df$group == "Selected", , drop = FALSE]
+      sel_means <- if (nrow(sel_df) > 0) stats::aggregate(value ~ label, data = sel_df, FUN = mean, na.rm = TRUE) else data.frame(label = character(0), value = numeric(0))
+      all_df <- plot_df[plot_df$group == "All candidates", , drop = FALSE]
+      all_means <- if (nrow(all_df) > 0) stats::aggregate(value ~ label, data = all_df, FUN = mean, na.rm = TRUE) else data.frame(label = character(0), value = numeric(0))
       if (nrow(sel_means) > 0) {
         sel_means$label <- factor(sel_means$label, levels = levels(plot_df$label))
         p <- p + ggplot2::geom_vline(
@@ -10802,9 +10816,12 @@ mod_preProdAdvApp_server <- function(id, data){
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
       .rx <- report_extra_payload()
-      review_long      <- .rx$review_long
       breakdown_detail <- .rx$breakdown_detail
       options_table    <- .rx$options_table
+
+      # Same object the Shiny dashboard plots, so the downloaded report and the
+      # in-app view can never disagree on which metrics are shown.
+      review_long      <- .rx$review_long
 
       save(result, final_table_export, trait_directions, trait_thresholds,
            STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
@@ -10982,9 +10999,12 @@ mod_preProdAdvApp_server <- function(id, data){
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
       .rx <- report_extra_payload()
-      review_long      <- .rx$review_long
       breakdown_detail <- .rx$breakdown_detail
       options_table    <- .rx$options_table
+
+      # Same object the Shiny dashboard plots, so the downloaded report and the
+      # in-app view can never disagree on which metrics are shown.
+      review_long      <- .rx$review_long
 
       save(result, final_table_export, trait_directions, trait_thresholds,
            STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,
@@ -11073,9 +11093,12 @@ mod_preProdAdvApp_server <- function(id, data){
       tmp_rdata  <- file.path(tempdir(), "resultProdAdv.RData")
 
       .rx <- report_extra_payload()
-      review_long      <- .rx$review_long
       breakdown_detail <- .rx$breakdown_detail
       options_table    <- .rx$options_table
+
+      # Same object the Shiny dashboard plots, so the downloaded report and the
+      # in-app view can never disagree on which metrics are shown.
+      review_long      <- .rx$review_long
 
       save(result, final_table_export, trait_directions, trait_thresholds,
            STATUS_COLORS, STATUS_SHAPES, REVIEW_GROUP_COLORS, analysis_name,

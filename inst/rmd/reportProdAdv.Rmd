@@ -213,6 +213,43 @@ cat("For every metric - the selection index and each trait used in the selection
 have_stats <- exists("review_long") && !is.null(review_long) &&
   is.data.frame(review_long) && nrow(review_long) > 0
 
+# `review_long` carries a `label` column with the human-readable name for each
+# metric. It is NOT always equal to the metric column name (the pre-advancement
+# module passes display names through tpp_display_name()), so labels must be
+# taken from this column rather than recomputed from `metric`. Backfill it if an
+# older payload is missing it.
+if (have_stats) {
+  if (!("label" %in% colnames(review_long))) review_long$label <- NA_character_
+  review_long$label <- as.character(review_long$label)
+
+  # Empty / NA display names fall back to the metric column name.
+  bad <- is.na(review_long$label) | !nzchar(trimws(review_long$label))
+  if (any(bad)) {
+    review_long$label[bad] <- ifelse(review_long$metric[bad] == "index_value",
+                                     "Index Value", review_long$metric[bad])
+  }
+
+  # Two metrics sharing one display name (several phenotypic traits can map to
+  # the same TPP trait) would merge into a single facet and make factor levels
+  # non-unique, so disambiguate with the metric name.
+  lab_map <- unique(review_long[, c("metric", "label")])
+  dup_labels <- unique(lab_map$label[duplicated(lab_map$label)])
+  if (length(dup_labels) > 0) {
+    fix <- review_long$label %in% dup_labels
+    review_long$label[fix] <- paste0(review_long$label[fix],
+                                     " (", review_long$metric[fix], ")")
+  }
+}
+
+# metric -> label lookup, used by both the tables and the faceted plot below.
+metric_label <- function(m) {
+  if (!have_stats) return(m)
+  lab <- unique(as.character(review_long$label[review_long$metric == m]))
+  lab <- lab[!is.na(lab) & nzchar(lab)]
+  if (length(lab) > 0) return(lab[1])
+  if (identical(m, "index_value")) "Index Value" else m
+}
+
 if (!have_stats) {
   cat("_No trait distribution data available for this selection._\n\n")
 }
@@ -262,7 +299,7 @@ if (have_stats) {
 
   for (m in unique(review_long$metric)) {
     sub <- review_long[review_long$metric == m, , drop = FALSE]
-    label <- if (identical(m, "index_value")) "Index Value" else m
+    label <- metric_label(m)
     sdf <- stats_for(sub)
 
     header <- paste0(
@@ -319,9 +356,11 @@ if (have_stats) {
 
   if (nrow(plot_df) > 0) {
     metric_order <- unique(review_long$metric)
-    label_order <- vapply(metric_order, function(m) {
-      if (identical(m, "index_value")) "Index Value" else m
-    }, character(1))
+    # Levels must come from review_long$label. Recomputing them from `metric`
+    # silently drops every panel whose display name differs from the column
+    # name (factor() maps unmatched values to NA), which left the report showing
+    # the index only.
+    label_order <- vapply(metric_order, metric_label, character(1))
 
     plot_df$label <- factor(plot_df$label, levels = unname(label_order))
     plot_df$group <- factor(plot_df$group, levels = c("All candidates", "Selected"))
