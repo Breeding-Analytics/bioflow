@@ -2493,6 +2493,12 @@ mod_advMeetingApp_server <- function(id, data){
           scaled_mat[is.nan(scaled_mat)] <- 0
           w <- idx_weights[avail_traits]
 
+          # Replace NAs in zero-weight columns to prevent NA*0=NA propagation in index
+          zero_weight_cols <- which(w == 0)
+          if (length(zero_weight_cols) > 0) {
+            scaled_mat[, zero_weight_cols][is.na(scaled_mat[, zero_weight_cols])] <- 0
+          }
+
           # Apply reliability weighting
           if ("reliability" %in% colnames(mta_preds)) {
             rel_data <- reshape(
@@ -3410,6 +3416,11 @@ mod_advMeetingApp_server <- function(id, data){
           scaled_mat <- scale(trait_mat)
           scaled_mat[is.nan(scaled_mat)] <- 0
           w <- idx_weights[avail_traits]
+          # Replace NAs in zero-weight columns to prevent NA*0=NA propagation in index
+          zero_weight_cols <- which(w == 0)
+          if (length(zero_weight_cols) > 0) {
+            scaled_mat[, zero_weight_cols][is.na(scaled_mat[, zero_weight_cols])] <- 0
+          }
           pred_wide$index_value <- as.numeric(scaled_mat %*% w)
         } else {
           pred_wide$index_value <- NA_real_
@@ -4236,6 +4247,12 @@ mod_advMeetingApp_server <- function(id, data){
           scaled_mat <- scale(trait_mat)
           scaled_mat[is.nan(scaled_mat)] <- 0
           w <- idx_weights[avail_traits]
+
+          # Replace NAs in zero-weight columns to prevent NA*0=NA propagation in index
+          zero_weight_cols <- which(w == 0)
+          if (length(zero_weight_cols) > 0) {
+            scaled_mat[, zero_weight_cols][is.na(scaled_mat[, zero_weight_cols])] <- 0
+          }
 
           # Apply reliability weighting if available
           if ("reliability" %in% colnames(mta_preds)) {
