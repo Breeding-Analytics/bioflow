@@ -2136,8 +2136,9 @@ tpp_get_tpp_ids <- function(data_obj) {
 #' Validate the structure of a single TPP metadata entry
 #'
 #' Checks that the entry exists and that its \code{traits} (data.frame with
-#' \code{tpp_trait} and \code{pheno_trait} columns) and \code{env_filters}
-#' (list) elements are well formed.
+#' \code{tpp_trait} and \code{pheno_trait} columns) element is well formed.
+#' The \code{env_filters} element is optional (NULL is valid) but when present
+#' must be a non-data.frame list.
 #'
 #' @param data_obj The bioflow data object
 #' @param tpp_id Character scalar TPP ID to validate
@@ -2177,10 +2178,10 @@ tpp_validate_metadata <- function(data_obj, tpp_id) {
             bad(paste0("TPP 'traits' for '", tpp_id,
                        "' is missing required column(s): ",
                        paste(missing_cols, collapse = ", ")))
-          } else if (is.null(env_filters) || !is.list(env_filters) ||
-                     is.data.frame(env_filters)) {
+          } else if (!is.null(env_filters) &&
+                     (!is.list(env_filters) || is.data.frame(env_filters))) {
             bad(paste0("TPP entry '", tpp_id,
-                       "' has a missing or non-list 'env_filters' element"))
+                       "' has an invalid 'env_filters' element (must be a list or NULL)"))
           } else {
             list(valid = TRUE, message = "TPP metadata is valid")
           }

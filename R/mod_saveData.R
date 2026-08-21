@@ -120,7 +120,7 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
 
             s3_object_path <- paste0(data_domain, "/", input$fileNameUpload, ".RData")
 
-            s3 <- paws::s3()
+            s3 <- paws.storage::s3()
 
             shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 

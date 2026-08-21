@@ -173,7 +173,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       }
       ##########################################################################
 
-      s3 <- paws::s3()
+      s3 <- paws.storage::s3()
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Retrieving...')
 
@@ -240,7 +240,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
         req(input$aws_selected_file)
 
-        s3 <- paws::s3()
+        s3 <- paws.storage::s3()
 
         tryCatch({
           s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[1])

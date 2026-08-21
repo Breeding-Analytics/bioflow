@@ -96,7 +96,7 @@ Imports:
     vcfR,
     randomForest,
     digest,
-    paws,
+    paws.storage,
     callr,
     ggcorrplot,
     enhancer
