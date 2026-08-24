@@ -1852,11 +1852,8 @@ mod_mtaASREMLApp_server <- function(id, data){
                                        editable = TRUE,
                                        server = FALSE,
                                        options = list(
-                                         scrollX = TRUE
-                                         # autoWidthOpt = TRUE, scrollXOpt = TRUE
-                                         # paging=FALSE,
-                                         #              searching=FALSE,
-                                         #              initComplete = I("function(settings, json) {alert('Done.');}")
+                                         scrollX = TRUE,
+										 autoWidth = TRUE                                         
                                        )
     )
     proxy = DT::dataTableProxy('traitDistMet')
@@ -1890,7 +1887,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       df <- dtFieldMet()
       x$df <- df
     })
-    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE, options = list(scrollX = TRUE))
+    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE, options = list(scrollX = TRUE,autoWidth = TRUE))
     proxy = DT::dataTableProxy('fieldsMet')
     observeEvent(input$fieldsMet_cell_edit, {
       info = input$fieldsMet_cell_edit
