@@ -179,6 +179,9 @@ if(is.null(result)){
 
 
 This plot shows the genomic positions of SNPs before (blue) and after (red) imputation, highlighting how the filtering process modify the distribution relative to the original dataset.
+
+
+
 ```{r}
 if(is.null(result)){
   # invisible(NULL)
