@@ -619,47 +619,59 @@ detect_threshold_failure <- function(value, threshold, direction) {
 extract_trait_directions <- function(dt_object, init_stamp) {
   modeling <- dt_object$modeling
 
-  # Extract direction rows
-  dir_rows <- modeling[
+  init_rows <- modeling[
     modeling$analysisId == init_stamp &
-      modeling$parameter == "direction",
+      modeling$module == "Init_prodAdv",
     ,
     drop = FALSE
   ]
 
-  # Extract threshold rows
-  thresh_rows <- modeling[
-    modeling$analysisId == init_stamp &
-      modeling$parameter == "threshold",
-    ,
-    drop = FALSE
-  ]
+  # Traits selected in Global Options that survived the reliability check:
+  # every trait configured for this stamp, minus any the user excluded.
+  configured <- unique(init_rows$trait[
+    !is.na(init_rows$trait) & nzchar(init_rows$trait) &
+      init_rows$parameter != "user_excluded_trait"
+  ])
+  excluded <- unique(init_rows$trait[
+    init_rows$parameter == "user_excluded_trait" &
+      !is.na(init_rows$trait) & nzchar(init_rows$trait)
+  ])
+  traits <- setdiff(configured, excluded)
 
-  # Extract trait_rule_type rows
-  rule_rows <- modeling[
-    modeling$analysisId == init_stamp &
-      modeling$parameter == "trait_rule_type",
-    ,
-    drop = FALSE
-  ]
+  if (length(traits) == 0) {
+    return(data.frame(
+      trait = character(0), direction = character(0),
+      threshold = numeric(0), stringsAsFactors = FALSE
+    ))
+  }
 
-  # Build result from direction rows (one row per trait)
-  traits <- dir_rows$trait
-  directions <- dir_rows$value
+  dir_rows    <- init_rows[init_rows$parameter == "direction", , drop = FALSE]
+  thresh_rows <- init_rows[init_rows$parameter == "threshold", , drop = FALSE]
+  rule_rows   <- init_rows[init_rows$parameter == "trait_rule_type", , drop = FALSE]
 
-  # Match thresholds and rule types by trait
+  # Direction defaults to "Higher is better" when a trait carries no direction
+  # row (e.g. Essential: Maintain traits with index_weight 0). This keeps the
+  # trait visible in the detail/population tables with a sensible gradient.
+  directions <- vapply(traits, function(tr) {
+    idx <- which(dir_rows$trait == tr)
+    if (length(idx) > 0 && !is.na(dir_rows$value[idx[1]]) &&
+        nzchar(dir_rows$value[idx[1]])) {
+      dir_rows$value[idx[1]]
+    } else {
+      "Higher is better"
+    }
+  }, character(1))
+
+  # Threshold is NA when the rule type is "None"/"Acceptable range" or no single
+  # threshold is defined, in which case no failure marker is shown.
   thresholds <- vapply(traits, function(tr) {
-    # Check if trait_rule_type is "None"
     rule_idx <- which(rule_rows$trait == tr)
-    if (length(rule_idx) > 0 && rule_rows$value[rule_idx[1]] == "None") {
+    if (length(rule_idx) > 0 &&
+        rule_rows$value[rule_idx[1]] %in% c("None", "Acceptable range")) {
       return(NA_real_)
     }
-
-    # Get threshold value
     thresh_idx <- which(thresh_rows$trait == tr)
-    if (length(thresh_idx) == 0) {
-      return(NA_real_)
-    }
+    if (length(thresh_idx) == 0) return(NA_real_)
     as.numeric(thresh_rows$value[thresh_idx[1]])
   }, numeric(1))
 
@@ -1305,10 +1317,27 @@ mod_advMeetingApp_server <- function(id, data){
         # --- SECTION: Agreement Heatmap ---
         h3(strong("Agreement Heatmap")),
         p("Visual comparison of stakeholder decisions sorted by controversy level."),
+        # When the candidate set is large (> 50), the full heatmap becomes
+        # unreadable and dominates the layout, so default to showing only
+        # controversial candidates. The user can still opt back into the full view.
         checkboxInput(ns("filter_controversial"),
                       label = "Show only controversial candidates",
-                      value = FALSE),
-        plotly::plotlyOutput(ns("heatmap"), height = "600px"),
+                      value = nrow(cm) > 50),
+        if (nrow(cm) > 50) {
+          tags$p(style = "font-size: 12px; color: #777; margin-top: -6px;",
+                 sprintf("%d candidates detected. Showing controversial candidates only by default; untick to view all.", nrow(cm)))
+        },
+        # Constrain the (dynamically tall) plot to a fixed-height,
+        # scrollable box so it never overflows onto the candidate cards
+        # below it. The plot itself is rendered at its natural height and
+        # scrolls within this container.
+        tags$div(
+          style = paste0(
+            "height: 600px; overflow-y: auto; overflow-x: hidden;",
+            " border: 1px solid #eee; border-radius: 4px;"
+          ),
+          plotly::plotlyOutput(ns("heatmap"), height = "auto")
+        ),
         tags$hr(),
 
         # --- SECTION: Controversy Summary ---

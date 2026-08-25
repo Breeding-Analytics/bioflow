@@ -233,6 +233,20 @@ if (nrow(comparison_matrix) > 0) {
 
     # Sort by controversy (most controversial at top = closest to 0.5)
     hm_df <- comparison_matrix
+
+    # For large candidate sets (> 50) the full heatmap is unreadable, so show
+    # only controversial candidates (controversy strictly between 0 and 1).
+    hm_subtitle <- "Most controversial candidates at top"
+    if ("controversy_score" %in% colnames(hm_df) && nrow(hm_df) > 50) {
+      controversial <- hm_df[hm_df$controversy_score > 0 &
+                               hm_df$controversy_score < 1, , drop = FALSE]
+      if (nrow(controversial) > 0) {
+        hm_subtitle <- sprintf(
+          "%d candidates in total; showing %d controversial candidates only",
+          nrow(hm_df), nrow(controversial))
+        hm_df <- controversial
+      }
+    }
     if ("controversy_score" %in% colnames(hm_df)) {
       hm_df <- hm_df[order(abs(hm_df$controversy_score - 0.5)), , drop = FALSE]
     }
@@ -278,7 +292,7 @@ if (nrow(comparison_matrix) > 0) {
       ) +
       labs(
         title = "Agreement Heatmap (sorted by controversy)",
-        subtitle = "Most controversial candidates at top"
+        subtitle = hm_subtitle
       )
 
     print(p_hm)
