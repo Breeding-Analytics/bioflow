@@ -162,7 +162,7 @@ if(is.null(result)){
     pivot_wider(names_from = dataset,
       values_from = snps_count
     )
-  colnames <- c("Chromosome", "No. Loci Original", "No. Loci Imputed")
+  colnames <- c("Chromosome", "No. Loci Original", "No. Loci Retained")
   if("params" %in% ls()){
     printTable(wide_dist_chr, colNames = colnames)    
   } else {
