@@ -1309,7 +1309,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2MtaAsr),]
       envs <- unique(dtMta[,"environment"])
       envsDg <- paste0("env",envs)
-      if ( input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "mndg_model" | input$radio == "gca_model" | input$radio == "fa_model") {
+      if (input$radio == "ad_model" | input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "mndg_model" | input$radio == "gca_model" | input$radio == "fa_model") {
         n <- 2
       }else if( input$radio == "both_model" ){
         n <- 3
@@ -1397,6 +1397,15 @@ mod_mtaASREMLApp_server <- function(id, data){
             label = ifelse(i==1, "Random Effects",""),
             choices = choices, multiple = TRUE,
             selected = if(i==1){"designation"}else if(i==2){sort(c("designation","environment"))}  else{"designation"}
+          )
+        })
+      }else if ( input$radio == "ad_model" ) {
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"designation"} else{"designation"}
           )
         })
       }else if( input$radio == "dg_model" ){ # DIAG model
@@ -1694,6 +1703,13 @@ mod_mtaASREMLApp_server <- function(id, data){
               label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
               choices = choices, multiple = TRUE,
               selected = c("Relationship structure_GenoD"))
+          }else if(i==2){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoA"))
           }else{
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -1852,7 +1868,8 @@ mod_mtaASREMLApp_server <- function(id, data){
                                        editable = TRUE,
                                        server = FALSE,
                                        options = list(
-                                         scrollX = TRUE
+                                         scrollX = TRUE,
+                                         autoWidth = TRUE
                                          # autoWidthOpt = TRUE, scrollXOpt = TRUE
                                          # paging=FALSE,
                                          #              searching=FALSE,
@@ -1890,7 +1907,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       df <- dtFieldMet()
       x$df <- df
     })
-    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE, options = list(scrollX = TRUE))
+    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE, options = list(scrollX = TRUE,autoWidth = TRUE))
     proxy = DT::dataTableProxy('fieldsMet')
     observeEvent(input$fieldsMet_cell_edit, {
       info = input$fieldsMet_cell_edit
@@ -2173,7 +2190,7 @@ mod_mtaASREMLApp_server <- function(id, data){
 		#
         #save(dtMtaAsr,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
         #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METasr.RData")
-        #source("C:/Users/RAPACHECO/Downloads/metASREML.R")
+        #source("C:/Users/RAPACHECO/Downloads/metASREMLai.R")
 
         ## --- TPP Analysis Config Assembly (Req 3.2, 7.3, 8.3) ---
         tpp_id_selected <- input$tppIdMenuAsr
