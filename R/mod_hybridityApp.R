@@ -660,7 +660,8 @@ mod_hybridityApp_server <- function(id, data){
       dtVerif <- data()
       #dtVerif <- dtVerif$data$geno
       if (class(dtVerif$data$geno)[1] == "genlight") {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        req(length(qas) == 1)
         #dtVerif <- as.data.frame(dtVerif$data$geno_imp[qas])
         traitsVerif <- adegenet::locNames(dtVerif$data$geno_imp[[qas]])
       }
@@ -699,7 +700,8 @@ mod_hybridityApp_server <- function(id, data){
       #genotypic data
       dtVerif <- data()
       if (class(dtVerif$data$geno)[1] == "genlight") {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        req(length(qas) == 1)
         Markers <- as.data.frame(dtVerif$data$geno_imp[[qas]])
       }
 
@@ -825,8 +827,8 @@ mod_hybridityApp_server <- function(id, data){
       # --- Get genotype matrix with individuals as rows, markers as columns ---
       Markers <- NULL
       if (inherits(dtVerif$data$geno, "genlight")) {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
-        if (length(qas) > 0) {
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        if (length(qas) == 1) {
           gl_obj <- dtVerif$data$geno_imp[[qas]]
           Markers <- as.data.frame(gl_obj)
           rownames(Markers) <- adegenet::indNames(gl_obj)
@@ -973,8 +975,8 @@ mod_hybridityApp_server <- function(id, data){
       dtVerif <- data()
 
       if (inherits(dtVerif$data$geno, "genlight")) {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
-        if (length(qas) > 0) {
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        if (length(qas) == 1) {
           gl_obj <- dtVerif$data$geno_imp[[qas]]
           selMarkers<- adegenet::locNames(gl_obj)
         }
@@ -1070,8 +1072,8 @@ mod_hybridityApp_server <- function(id, data){
         consensus_info <- dtVerif$modifications$geno_raw
       } else if (inherits(dtVerif$data$geno, "genlight")) {
         # Fallback: check geno_imp @other$consensus_info
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
-        if (length(qas) > 0) {
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        if (length(qas) == 1) {
           consensus_info <- dtVerif$data$geno_imp[[qas]]@other$consensus_info
         }
       }

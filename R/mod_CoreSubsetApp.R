@@ -324,7 +324,8 @@ mod_CoreSubsetApp_server <- function(id, data){
       if(input$version2CoreSet==0){
         mydata<-as.data.frame(result$data$geno)
       }else{
-        qas<-which( names(result$data$geno_imp)==input$version2CoreSet )
+        qas <- cgiarBase::resolveGenoStamp(result$data$geno_imp, input$version2CoreSet)
+        req(length(qas) == 1)
         mydata<-as.data.frame(result$data$geno_imp[qas])
       }
 

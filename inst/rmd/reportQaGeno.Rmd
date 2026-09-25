@@ -110,7 +110,7 @@ if(is.null(result)){
   t_ind <- which(!seq(adegenet::nInd(gl)) %in% r_ind[!is.na(r_ind)])
   fgl <- cgiarGenomics::recalc_metrics(gl[t_ind, t_loc])
   
-  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[as.character(round(idMarkers))]])
+  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[cgiarBase::resolveGenoStamp(result$data$geno_imp, idMarkers)]])
   
   # Get Summaries of original and filtered dataset
   original <-as.data.frame(cgiarGenomics::get_overall_summary(gl))
@@ -148,7 +148,7 @@ if(is.null(result)){
   gl <- result$data$geno
   idMarkers <- sort(result$status[which(result$status$module == "qaGeno"),"analysisId"])
   idMarkers <- idMarkers[length(idMarkers)]
-  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[as.character(round(idMarkers))]])
+  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[cgiarBase::resolveGenoStamp(result$data$geno_imp, idMarkers)]])
   dist_chr_df <- purrr:::map2_df(c(gl, imp_gl), c("Original", "Imputed"),
                   function(x,y){
                     geno_map <- data.frame(CHROM = x@chromosome, POS = x@position)
@@ -206,7 +206,7 @@ if(is.null(result)){
   gl <- result$data$geno
   idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
   idMarkers <- idMarkers[length(idMarkers)]
-  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  imp_gl <- result$data$geno_imp[[cgiarBase::resolveGenoStamp(result$data$geno_imp, idMarkers)]]
   
   
   df_dens <- purrr::map2_df(

@@ -314,7 +314,8 @@ mod_masApp_server <- function(id, data){
       dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
-		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		    req(length(qas) == 1)
 		    traitsMAS <- dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
         updateCheckboxInput(session, "checkbox", value = FALSE)
         updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
@@ -329,7 +330,8 @@ mod_masApp_server <- function(id, data){
       dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
-		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		    req(length(qas) == 1)
 		    traitsMAS <- dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
         if(input$checkbox == FALSE){
           updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
@@ -367,7 +369,8 @@ mod_masApp_server <- function(id, data){
       dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
-		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		    req(length(qas) == 1)
 		    namesput=dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
 		    dtMta <- as.data.frame(dtMta$data$geno_imp[qas])
 		    colnames(dtMta)<-namesput
@@ -482,7 +485,8 @@ mod_masApp_server <- function(id, data){
       req(input$markers2MAS)
       req(input$ploidy)
       dtMta <- data()
-      qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+      qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+      req(length(qas) == 1)
       Markers <- as.data.frame(dtMta$data$geno_imp[qas])
 	    colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
       Markers <- Markers[,input$markers2MAS]
@@ -560,7 +564,8 @@ mod_masApp_server <- function(id, data){
       ## store the new modifications table
       alleles <- desireAlleleValues() # alleles <- result$metadata$geno[input$markers2MAS,"refAllele"]
       dtMta <- data()
-		qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		req(length(qas) == 1)
       Markers <- as.data.frame(dtMta$data$geno_imp[qas])
 	  colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
       Markers <- Markers[,input$markers2MAS]
