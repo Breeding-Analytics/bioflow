@@ -1829,7 +1829,13 @@ build_tpp_overview_table <- function(tpp_data, tpp_id, trait_map = NULL,
 
       mean_col[[i]] <- lookup_metric(resolved_trait, "mean_designation", metrics, analysisId)
       r2_col[[i]] <- lookup_metric(resolved_trait, "r2_designation", metrics, analysisId)
-      var_col[[i]] <- lookup_metric(resolved_trait, "Var_designation", metrics, analysisId)
+      # Report the PEV-corrected genetic variance (var(BLUPs) + tr(PEV)/n), which
+      # approaches the true variance of genetic values better than the REML
+      # component. Fall back to the REML Var if PEVcorr is absent (older runs).
+      var_col[[i]] <- lookup_metric(resolved_trait, "Var_PEVcorr_designation", metrics, analysisId)
+      if (is.character(var_col[[i]]) && var_col[[i]] == "not evaluated") {
+        var_col[[i]] <- lookup_metric(resolved_trait, "Var_designation", metrics, analysisId)
+      }
       err_var_col[[i]] <- lookup_metric(resolved_trait, "Var_residual", metrics, analysisId)
       n_env_col[[i]] <- lookup_metric(resolved_trait, "nEnv", metrics, analysisId)
     }
@@ -1902,7 +1908,7 @@ determine_gs_flag <- function(resolved_trait, modeling, analysisId) {
     return("No")
   }
 
-  if (any(matching$value %in% c("genoA", "genoAD"))) {
+  if (any(grepl("genoA|genoAD|GenoA|GenoAD", matching$value, ignore.case = TRUE))) {
     return("Yes")
   }
 
@@ -1932,6 +1938,17 @@ lookup_metric <- function(resolved_trait, param_name, metrics, analysisId) {
       metrics$trait == resolved_trait &
         metrics$parameter == param_name &
         metrics$environment == "(Intercept)" &
+        metrics$analysisId == analysisId, , drop = FALSE
+    ]
+  }
+
+  # If still no match, try designation variants (e.g., mean_designationA, mean_designationD, etc.)
+  if (nrow(matching) == 0 && grepl("_designation$", param_name)) {
+    param_pattern <- sub("_designation$", "_designation", param_name)
+    matching <- metrics[
+      metrics$trait == resolved_trait &
+        grepl(paste0("^", param_pattern), metrics$parameter) &
+        metrics$environment %in% c("across", "(Intercept)") &
         metrics$analysisId == analysisId, , drop = FALSE
     ]
   }

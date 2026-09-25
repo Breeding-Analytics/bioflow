@@ -455,7 +455,8 @@ mod_qaPedApp_server <- function(id, data){
 		req(data())
       req(input$version2qaPed)
       geno <- data()$data$geno
-      qas <- which(names(data()$data$geno_imp) == input$version2qaPed)
+      qas <- cgiarBase::resolveGenoStamp(data()$data$geno_imp, input$version2qaPed)
+      req(length(qas) == 1)
       geno_imp<-data()$data$geno_imp[[qas]]
       geno<-modifyGeno(geno,geno_imp)
 	  Markers <- as.data.frame(data()$data$geno_imp[[qas]])
@@ -490,7 +491,8 @@ mod_qaPedApp_server <- function(id, data){
       req(data())
 	  req(input$version2qaPed)
       geno <- data()$data$geno
-      qas <- which(names(data()$data$geno_imp) == input$version2qaPed)
+      qas <- cgiarBase::resolveGenoStamp(data()$data$geno_imp, input$version2qaPed)
+      req(length(qas) == 1)
       geno_imp<-data()$data$geno_imp[[qas]]
       geno<-modifyGeno(geno,geno_imp)
       peddata<-data()$data$pedigree
@@ -546,7 +548,8 @@ mod_qaPedApp_server <- function(id, data){
 	  req(ped_qa_data$thr)
 	  req(data())
       req(input$version2qaPed)
-      qas <- which(names(data()$data$geno_imp) == input$version2qaPed)
+      qas <- cgiarBase::resolveGenoStamp(data()$data$geno_imp, input$version2qaPed)
+      req(length(qas) == 1)
       Markers <- as.data.frame(data()$data$geno_imp[[qas]])
       peddata<-data()$data$pedigree
       metaped<-data()$metadata$pedigree

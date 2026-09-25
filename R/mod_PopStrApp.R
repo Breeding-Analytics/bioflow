@@ -429,7 +429,8 @@ mod_PopStrApp_server <- function(id, data){
         mydata<-as.data.frame(result$data$geno)
         #genodir<-result$data$genodir
       }else{
-        qas<-which( names(result$data$geno_imp)==input$version2PopStr )
+        qas <- cgiarBase::resolveGenoStamp(result$data$geno_imp, input$version2PopStr)
+        req(length(qas) == 1)
         mydata<-as.data.frame(result$data$geno_imp[qas])
       }
       distk <- as.character(input$distk)

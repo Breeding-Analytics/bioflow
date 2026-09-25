@@ -54,7 +54,7 @@ mod_pggApp_ui <- function(id){
                                        tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right")  ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2Pgg"), "STA or MTA version to analyze", choices = NULL, multiple = FALSE)),
+                                                       column(width=8, selectInput(ns("version2Pgg"), "MTA version to analyze", choices = NULL, multiple = FALSE)),
 
                                                 ),
                                                 column(width=12),
@@ -83,7 +83,9 @@ mod_pggApp_ui <- function(id){
                                                                numericInput(ns("Nproportion"), label = "Assumed Number of individuals selected ", value=10,step = 10, max = 1000, min = 1)
                                                         ),
                                                         column(width=3,
-                                                               numericInput(ns("cycle"), label = "Cycles", value = 1, step = 1, max = 50, min = 1),
+                                                               numericInput(ns("cycle"), label = "Cycle time (years)", value = 1, step = 0.5, max = 50, min = 0.01),
+                                                               tags$p(style = "color:#FFFFFF; font-size: 12px;",
+                                                                      "Time in years to complete one breeding cycle (from crossing until the selection of the new parents). Can be several years (e.g. 5) or less than a year (e.g. 0.5). Used to express the predicted genetic gain as a per-year rate (PGG/year = PGG / cycle time)."),
                                                                ),
                                                  ),
                                                  column(width=12),
@@ -412,7 +414,7 @@ mod_pggApp_server <- function(id, data){
             trait=input$trait2Pgg, # per trait
             by="environment",
             percentage=input$proportion,
-            cycle=input$cycle,
+            cycleTime=input$cycle,
             verbose=FALSE
         ),
         silent=TRUE

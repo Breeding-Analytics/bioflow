@@ -583,8 +583,8 @@ if (is.null(result)){
   analysisIdForGeno <- modeling[modeling$parameter == "analysisId", "value"]
 
   if (inherits(dtVerif$data$geno, "genlight")) {
-    qas <- which(names(dtVerif$data$geno_imp) == analysisIdForGeno)
-    if (length(qas) > 0) {
+    qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, analysisIdForGeno)
+    if (length(qas) == 1) {
       gl_obj <- dtVerif$data$geno_imp[[qas]]
       Markers_all <- as.data.frame(gl_obj)
       rownames(Markers_all) <- adegenet::indNames(gl_obj)

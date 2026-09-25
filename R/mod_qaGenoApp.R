@@ -581,7 +581,11 @@ mod_qaGenoApp_server <- function(id, data) {
       filter_mods$analysisId <- as.numeric(Sys.time())
       filter_mods$analysisIdName <- input$analysisIdName
       filter_mods$module <- "qaGeno"
-      up_analysis_id <- as.character(round(filter_mods$analysisId))
+      # No round() here: newStatus below records the full-precision analysisId, and every
+      # consumer builds its version dropdown from status$analysisId. Rounding only the
+      # geno_imp key stored the same stamp in two forms, so the string the dropdown
+      # produced could never match the key. Keep both derived from the same double.
+      up_analysis_id <- as.character(filter_mods$analysisId)
       up_analysis_id <- unique(up_analysis_id)
       print(glue::glue("Analysis_ID: {up_analysis_id}"))
       result <- data()

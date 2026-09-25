@@ -340,7 +340,12 @@ get_status_color <- function(decision) {
 
 #' Filter comparison matrix to controversial candidates only
 #'
-#' Returns only rows where controversy_score is strictly between 0 and 1.
+#' A candidate is considered controversial when either:
+#'   - its controversy_score is strictly between 0 and 1 (stakeholders split on
+#'     SELECTED vs. not), or
+#'   - at least one stakeholder assigned "REVISE". Any REVISE decision flags the
+#'     candidate for discussion, even when no stakeholder selected it (which
+#'     would otherwise leave controversy_score at 0).
 #'
 #' @param comparison_matrix Wide-format data.frame with a `controversy_score` column.
 #'
@@ -348,9 +353,21 @@ get_status_color <- function(decision) {
 #'
 #' @noRd
 filter_controversial_only <- function(comparison_matrix) {
+  stakeholder_cols <- setdiff(
+    colnames(comparison_matrix),
+    c("designation", "controversy_score")
+  )
+
+  has_revise <- vapply(seq_len(nrow(comparison_matrix)), function(i) {
+    decisions <- as.character(unlist(comparison_matrix[i, stakeholder_cols]))
+    any(decisions == "REVISE", na.rm = TRUE)
+  }, logical(1))
+
+  split_selected <- comparison_matrix$controversy_score > 0 &
+    comparison_matrix$controversy_score < 1
+
   comparison_matrix[
-    comparison_matrix$controversy_score > 0 &
-      comparison_matrix$controversy_score < 1,
+    split_selected | has_revise,
     ,
     drop = FALSE
   ]
