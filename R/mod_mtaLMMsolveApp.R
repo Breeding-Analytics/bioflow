@@ -2047,9 +2047,13 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       file.copy(src2, 'resultMtaLMMsolver.RData', overwrite = TRUE)
 
       outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4, embed_fonts = FALSE)
                                             # HTML = rmarkdown::html_document()
                                      ))
+
+      html <- rawToChar(readBin(outReport, "raw", n = file.info(outReport)$size))
+      font_css <- paste0("(?s)<style type=\"text/css\">\\s*@font-face\\s*\\{", "\\s*font-family:\\s*'Fira Code'.*?</style>")
+      if (grepl(font_css, html, perl = TRUE)) {html <- sub(font_css, "", html, perl = TRUE); writeBin(charToRaw(html), outReport)}
 
       report(outReport)
 
