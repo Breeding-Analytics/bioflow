@@ -110,7 +110,7 @@ if (is.null(result)){
 ```{r, include=FALSE}
 # Init Step to make sure that the dependencies are loaded
 htmltools::tagList(printTable(mtcars))
-htmltools::tagList(ggplotly(ggplot()))
+htmltools::tagList(ggplotly(ggplot()) %>% plotly::partial_bundle(type = "cartesian"))
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -244,7 +244,7 @@ if (is.null(result)){
         geom_jitter(alpha = 0.6, width = 0.3) +
         labs(title=myLabel,x="Year of origin", y = "Trait performance") +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-      print(htmltools::tagList(plotly::ggplotly(p)))
+      print(htmltools::tagList(plotly::ggplotly(p) %>% plotly::partial_bundle(type = "cartesian")))
       
       # cat("\n")
     }
@@ -263,7 +263,7 @@ if (is.null(result)){
         geom_jitter(alpha = 0.6, width = 0.3) +
         labs(title=myLabel,x="Year of origin", y = "Trait performance") +
         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-      fig <-  plotly::ggplotly(p)#, height = get_h()*2);
+      fig <-  plotly::ggplotly(p) #, height = get_h()*2);
       fig
     })
   }
