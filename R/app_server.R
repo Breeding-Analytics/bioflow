@@ -479,6 +479,7 @@ app_server <- function(input, output, session) {
         raw_con <- rawConnection(s3_download$Body)
         load(raw_con)
         close(raw_con)
+        result <- update_module_ids(result)
 
         ## replace tables
         tmp <- data()

@@ -299,6 +299,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
           result <- result1
         }else{ iFile=1 }
       }
+      result <- update_module_ids(result)
       ## replace tables
 
       tmp <- cgiarBase::create_getData_object() #data()
