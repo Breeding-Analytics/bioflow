@@ -62,6 +62,93 @@ future::plan(future::multisession)
 users <- readRDS("users.rds")
 app_server <- function(input, output, session) {
 
+  ### START Macro Recording ####################################################
+
+  steps <- reactiveVal(list())
+  trace <- reactiveVal(list())
+  recording <- reactiveVal(FALSE)
+  namespaces <- vapply(workflow_config, `[[`, character(1), "namespace")
+
+  observeEvent(input$start_recording, {
+    shinyalert::shinyalert(title = "Recording Started!", text = 'Your analysis settings and steps are being recorded. Click "Stop & Save" when finished.', type = "info")
+    steps(list())
+    trace(list())
+    recording(TRUE)
+    session$sendCustomMessage("workflow_recording_state", list(active = TRUE, namespaces = unname(namespaces)))
+  })
+
+  observeEvent(input$workflow_event, {
+    if (!recording()) return()
+    event <- input$workflow_event
+    event$sequence <- length(trace()) + 1L
+    trace(c(trace(), list(event)))
+  })
+
+  # app_server can see the fully namespaced IDs. Each configured action button
+  # receives an observer that saves ALL current inputs from its own namespace,
+  # including default values that the user did not change while recording.
+  for (workspace in names(workflow_config)) {
+    config <- workflow_config[[workspace]]
+    for (button_id in names(config$actions)) {
+      local({
+        this_workspace <- workspace
+        this_config <- config
+        this_button <- button_id
+        button_full_id <- NS(this_config$namespace, this_button)
+
+        observeEvent(input[[button_full_id]], {
+          if (!recording()) return()
+
+          all_inputs <- reactiveValuesToList(input)
+          prefix <- paste0(this_config$namespace, ns.sep)
+          matching <- names(all_inputs)[startsWith(names(all_inputs), prefix)]
+          excluded <- NS(this_config$namespace, c(names(this_config$actions), this_config$exclude))
+          keys <- sort(setdiff(matching, excluded))
+          settings <- all_inputs[keys]
+          names(settings) <- substring(keys, nchar(prefix) + 1L)
+
+          steps(c(steps(), list(list(
+            workspace = this_workspace,
+            namespace = this_config$namespace,
+            action = unname(this_config$actions[[this_button]]),
+            settings = settings,
+            time = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+          ))))
+        }, ignoreInit = TRUE)
+      })
+    }
+  }
+
+  output$save_workflow <- downloadHandler(
+    filename = function() "workflow_recording.json",
+    content = function(file) {
+      jsonlite::write_json(
+        list(schema_version = 1L,
+             steps = isolate(steps()),
+             trace = isolate(trace())),
+        path = file, pretty = TRUE, auto_unbox = TRUE
+      )
+
+      # stop recording after saving the workflow
+      recording(FALSE)
+      session$sendCustomMessage("workflow_recording_state", list(active = FALSE, namespaces = unname(namespaces)))
+    }
+  )
+
+  output$recording_indicator <- renderUI({
+    if (!recording()) return(NULL)
+    #tags$span(class = "recording-indicator", icon("circle", class = "recording-dot"), " Recording")
+    tags$span(class = "recording-indicator",
+      tags$span(HTML("&#9679;"), style = "color: red; font-size: 14px; vertical-align: middle; animation: blink 1.2s steps(1, start) infinite;"),
+      " Recording",
+
+      # Tiny inline definition for the custom keyframe 'blink'
+      tags$style("@keyframes blink { 0%, 100% { visibility: visible; } 50% { visibility: hidden; } }")
+    )
+  })
+
+  ### END Macro Recording ######################################################
+
   options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
 
   res_auth <- shinymanager::secure_server(

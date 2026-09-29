@@ -33,6 +33,61 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
   htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
 }
 
+### START Macro Recording ######################################################
+
+# The browser sends a trace of changed inputs from configured namespaces.
+# The R server separately takes a full input snapshot when an action is clicked.
+recorder_js <- tags$script(HTML('
+  window.workflowRecording = false;
+  window.workflowNamespaces = [];
+
+  $(function() {
+    function updateRecordingControls(active) {
+      window.workflowRecording = Boolean(active);
+      $("#start_recording").toggle(!window.workflowRecording);
+      $("#save_workflow").toggle(window.workflowRecording);
+    }
+
+    $(document).on("shiny:inputchanged", function(e) {
+      if (!window.workflowRecording || !e.name || !e.el) return;
+      const namespace = window.workflowNamespaces.find(
+        ns => e.name.startsWith(ns + "-")
+      );
+      if (!namespace) return;
+
+      const element = $(e.el);
+
+      Shiny.setInputValue("workflow_event", {
+        namespace: namespace,
+        id: e.name,
+        value: e.value,
+        input_type: e.inputType,
+        time: new Date().toISOString()
+      }, {priority: "event"});
+    });
+
+    Shiny.addCustomMessageHandler("workflow_recording_state", function(state) {
+      updateRecordingControls(state.active);
+      window.workflowNamespaces = Array.isArray(state.namespaces)
+        ? state.namespaces : [state.namespaces].filter(Boolean);
+    });
+
+    updateRecordingControls(false);
+  });
+'))
+
+
+# The action names on the left are local button IDs, their values are names for the saved steps
+# "Run analysis" tabPanel, then actionButton ns name
+workflow_config <- list(
+  qa = list(namespace = "qaPhenoApp_1", actions = c(runQaRaw = "runQaRaw"), exclude = character()),
+  sta = list(namespace = "staApp_1", actions = c(runSta = "runSta"), exclude = character()),
+  mta = list(namespace = "mtaLMMsolveApp_1", actions = c(runMta = "runMta"), exclude = character()),
+  rgg = list(namespace = "rggApp_1", actions = c(runRgg = "runRgg"), exclude = character())
+)
+
+### END Macro Recording ########################################################
+
 #' The application User-Interface
 #'
 #' @param request Internal parameter for `{shiny}`.
@@ -47,6 +102,15 @@ app_ui <- function(request) {
       tags$style(type="text/css", "#inline label{ display: table-cell; text-align: center; vertical-align: middle; }
                 #inline .form-group { display: table-row;}")
     ),
+
+    ### START Macro Recording ##################################################
+
+    # recorder_js,
+    # actionButton("start_recording", "Start recording"),
+    # downloadButton("save_workflow", "Stop & Save"),
+    # uiOutput("recording_indicator", inline = TRUE),
+
+    ### END Macro Recording ####################################################
 
     navbarPage(
 
@@ -202,8 +266,6 @@ app_ui <- function(request) {
                  # tabPanel("Neural Networks", mod_tensorMLApp_ui("tensorMLApp_1"), icon = icon("puzzle-piece") ),
                  tabPanel("On-Farm Trial Decision", mod_oftStaApp_ui("oftStaApp_1"), icon = icon("file") ),
       ),
-
-
 
     )
   )
