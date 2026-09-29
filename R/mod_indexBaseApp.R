@@ -177,7 +177,7 @@ mod_indexBaseApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if(any(c("mta","mtaFlex","mtaLmms","mtaAsr") %in% data()$status$module)){
+          if(any(c("mta","mtaFlex","moaLmms","moaAsr") %in% data()$status$module)){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -229,7 +229,7 @@ mod_indexBaseApp_server <- function(id, data){
       req(data())
       dtIdxB <- data()
       dtIdxB <- dtIdxB$status
-      dtIdxB <- dtIdxB[which(dtIdxB$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")),]
+      dtIdxB <- dtIdxB[which(dtIdxB$module %in% c("mta","mtaFlex","moaLmms","moaAsr")),]
       traitsIdxB <- unique(dtIdxB$analysisId)
       if(length(traitsIdxB) > 0){
         if("analysisIdName" %in% colnames(dtIdxB)){
@@ -326,7 +326,7 @@ mod_indexBaseApp_server <- function(id, data){
       values <- as.numeric(values)
 
       # run the modeling, but before test if mta was done
-      if(sum(dtBaseIndex$status$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")) == 0) {
+      if(sum(dtBaseIndex$status$module %in% c("mta","mtaFlex","moaLmms","moaAsr")) == 0) {
         output$qaQcIdxBInfo <- renderUI({
           if (hideAll$clearAll)
             return()
@@ -416,7 +416,7 @@ mod_indexBaseApp_server <- function(id, data){
           }
         )
 
-        # analysisIdBaseIndex <- result$status[ result$status$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr","indexB"),"analysisId"]
+        # analysisIdBaseIndex <- result$status[ result$status$module %in% c("mta","mtaFlex","moaLmms","moaAsr","indexB"),"analysisId"]
         # predBaseIndex <- result$predictions[result$predictions$analysisId %in% analysisIdBaseIndex,]
         #
         # predBaseIndexWide <- reshape(

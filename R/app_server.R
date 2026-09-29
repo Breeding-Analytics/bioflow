@@ -19,7 +19,7 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
-modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","mtaLmms","qaFilter","qaDesign","qaConsist"),
+modules <- data.frame(module = c("qaRaw","soa","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","moaLmms","qaFilter","qaDesign","qaConsist"),
                       moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
 
 # NOTE: set cookie function

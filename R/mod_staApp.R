@@ -738,7 +738,7 @@ mod_staApp_ui <- function(id){
 #               #   return()
 #               # }else{
 #               predictions <- result$predictions
-#               predictions <- predictions[predictions$module=="sta",]
+#               predictions <- predictions[predictions$module=="soa",]
 #               predictions$analysisId <- as.numeric(predictions$analysisId)
 #               predictions <- predictions[!is.na(predictions$analysisId),]
 #               current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -759,7 +759,7 @@ mod_staApp_ui <- function(id){
 #               #   return()
 #               # }else{
 #               metrics <- result$metrics
-#               metrics <- metrics[metrics$module=="sta",]
+#               metrics <- metrics[metrics$module=="soa",]
 #               metrics$analysisId <- as.numeric(metrics$analysisId)
 #               metrics <- metrics[!is.na(metrics$analysisId),]
 #               current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
@@ -780,7 +780,7 @@ mod_staApp_ui <- function(id){
 #               #   return()
 #               # }else{
 #               modeling <- result$modeling
-#               modeling <- modeling[modeling$module=="sta",]
+#               modeling <- modeling[modeling$module=="soa",]
 #               modeling$analysisId <- as.numeric(modeling$analysisId)
 #               modeling <- modeling[!is.na(modeling$analysisId),]
 #               current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
@@ -1366,7 +1366,7 @@ mod_staApp_server <- function(id,data){
             #   return()
             # }else{
             predictions <- result$predictions
-            predictions <- predictions[predictions$module=="sta",]
+            predictions <- predictions[predictions$module=="soa",]
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
             current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -1386,7 +1386,7 @@ mod_staApp_server <- function(id,data){
             #   return()
             # }else{
             metrics <- result$metrics
-            metrics <- metrics[metrics$module=="sta",]
+            metrics <- metrics[metrics$module=="soa",]
             metrics$analysisId <- as.numeric(metrics$analysisId)
             metrics <- metrics[!is.na(metrics$analysisId),]
             current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
@@ -1406,7 +1406,7 @@ mod_staApp_server <- function(id,data){
             #   return()
             # }else{
             modeling <- result$modeling
-            modeling <- modeling[modeling$module=="sta",]
+            modeling <- modeling[modeling$module=="soa",]
             modeling$analysisId <- as.numeric(modeling$analysisId)
             modeling <- modeling[!is.na(modeling$analysisId),]
             current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]

@@ -102,7 +102,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   # result$status <- result$status[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaAsr"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred$predictedValue<-as.numeric(pred$predictedValue)
@@ -1662,7 +1662,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   result$status <- result$status#[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaAsr"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]

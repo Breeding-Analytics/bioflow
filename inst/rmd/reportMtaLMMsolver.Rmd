@@ -108,7 +108,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   # result$status <- result$status[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaLmms"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
@@ -1964,7 +1964,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   result$status <- result$status#[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaLmms"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]

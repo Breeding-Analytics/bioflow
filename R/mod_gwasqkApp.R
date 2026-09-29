@@ -230,7 +230,7 @@ mod_gwasqkApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("mtaLmms" %in% data()$status$module){
+          if("moaLmms" %in% data()$status$module){
             if("qaGeno" %in% data()$status$module){ # user has markers
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the genome wide association study (GWAS) analysis specifying your input parameters under the Input tabs.")) )
             }else{
@@ -279,7 +279,7 @@ mod_gwasqkApp_server <- function(id, data){
       if(!is.null(data())) {
         dtGwas <- data()
         dtGwas <- dtGwas$status
-        dtGwas <- dtGwas[which(dtGwas$module %in% c("mtaLmms")),]
+        dtGwas <- dtGwas[which(dtGwas$module %in% c("moaLmms")),]
         dtGwas <- dtGwas[length(dtGwas)]
         if (input$version2Gwas %in% dtGwas) {
           golem::invoke_js('hideid', ns('isSta'))
@@ -308,7 +308,7 @@ mod_gwasqkApp_server <- function(id, data){
       req(data())
       dtGwas <- data()
       dtGwas <- dtGwas$status
-      dtGwas <- dtGwas[which(dtGwas$module %in% c("sta","mtaLmms")),]
+      dtGwas <- dtGwas[which(dtGwas$module %in% c("soa","moaLmms")),]
       traitsGwas <- unique(dtGwas$analysisId)
       if(length(traitsGwas) > 0){
         if("analysisIdName" %in% colnames(dtGwas)){
@@ -381,10 +381,10 @@ mod_gwasqkApp_server <- function(id, data){
 
       envGwasSel <- data()
       envGwasSel <- envGwasSel$status
-      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("sta")),]
+      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("soa")),]
       envGwasSel <- envGwasSel[length(envGwasSel)]
 
-      idGwas <- data()$status[which(data()$status$module %in% "mtaLmms"),"analysisId"]
+      idGwas <- data()$status[which(data()$status$module %in% "moaLmms"),"analysisId"]
       idGwas <- idGwas[length(idGwas)]
 
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Gwas),]
@@ -497,7 +497,7 @@ mod_gwasqkApp_server <- function(id, data){
 
       envGwasSel <- data()
       envGwasSel <- envGwasSel$status
-      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("mtaLmms")),]
+      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("moaLmms")),]
       envGwasSel <- envGwasSel[length(envGwasSel)]
       if(input$version2Gwas %in% envGwasSel){
         dtGwas <- dtGwas
@@ -601,7 +601,7 @@ mod_gwasqkApp_server <- function(id, data){
       # dt2Gwas <- dtGwas$predictions
       # dt2Gwas <- dt2Gwas[which(dt2Gwas$module %in% "mta"),]
       # run the modeling, but before test if mta was done
-      if(sum(dtGwas$status$module %in% c("mtaLmms")) == 0) {
+      if(sum(dtGwas$status$module %in% c("moaLmms")) == 0) {
         output$qaQcGwasInfo <- renderUI({
           if (hideAll$clearAll){
             return()
@@ -636,7 +636,7 @@ mod_gwasqkApp_server <- function(id, data){
 
         # envGwasSel <- data()
         # envGwasSel <- envGwasSel$status
-        # envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("sta")),]
+        # envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("soa")),]
         # envGwasSel <- envGwasSel[length(envGwasSel)]
         #
         # if(input$version2Gwas %in% envGwasSel) {
@@ -644,7 +644,7 @@ mod_gwasqkApp_server <- function(id, data){
         # }else{field <- "across"}
 
         mod <- data()$status[which(data()$status$analysisId == input$version2Gwas),"module"]
-        #if("sta" %in% mod){field <- input$env2Gwas}else{field <- "(Intercept)"}
+        #if("soa" %in% mod){field <- input$env2Gwas}else{field <- "(Intercept)"}
 
         result <- try(cgiarPipeline::gwas(
           phenoDTfile = dtGwas, # analysis to be picked from predictions database

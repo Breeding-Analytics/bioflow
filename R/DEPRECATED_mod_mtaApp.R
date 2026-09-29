@@ -336,7 +336,7 @@ mod_mtaApp_ui <- function(id){
 #       }else{ # data is there
 #         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
 #         if(mappedColumns == 3){
-#           if("sta" %in% data()$status$module){
+#           if("soa" %in% data()$status$module){
 #             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
 #           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
 #         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -348,7 +348,7 @@ mod_mtaApp_ui <- function(id){
 #       req(data())
 #       dtMta <- data()
 #       dtMta <- dtMta$status
-#       dtMta <- dtMta[which(dtMta$module == "sta"),]
+#       dtMta <- dtMta[which(dtMta$module == "soa"),]
 #       traitsMta <- unique(dtMta$analysisId)
 #       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
 #       updateSelectInput(session, "version2Mta", choices = traitsMta)
@@ -942,7 +942,7 @@ mod_mtaApp_ui <- function(id){
 #     output$outMta <- output$outMta2 <- renderPrint({
 #
 #       # run the modeling, but before test if sta was done
-#       if(sum(data()$status$module %in% "sta") == 0) {
+#       if(sum(data()$status$module %in% "soa") == 0) {
 #         output$qaQcMtaInfo <- renderUI({
 #           if (hideAll$clearAll)
 #             return()
@@ -1127,7 +1127,7 @@ mod_mtaApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("sta" %in% data()$status$module){
+          if("soa" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -1139,7 +1139,7 @@ mod_mtaApp_server <- function(id, data){
       req(data())
       dtMta <- data()
       dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module == "sta"),]
+      dtMta <- dtMta[which(dtMta$module == "soa"),]
       traitsMta <- unique(dtMta$analysisId)
       if(length(traitsMta) > 0){names(traitsMta) <- as.POSIXct(traitsMta, origin="1970-01-01", tz="GMT")}
       updateSelectInput(session, "version2Mta", choices = traitsMta)
@@ -1672,7 +1672,7 @@ mod_mtaApp_server <- function(id, data){
       if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "quasi(link = 'identity', variance = 'constant')"}
 
       # run the modeling, but before test if sta was done
-      if(sum(dtMta$status$module %in% "sta") == 0) {
+      if(sum(dtMta$status$module %in% "soa") == 0) {
         output$qaQcMtaInfo <- renderUI({
           if (hideAll$clearAll)
             return()
