@@ -11,7 +11,7 @@
 #' @noRd
 update_module_ids <- function(object) {
   if (!is.list(object)) return(object)
-  old_new <- c(sta = "soa", mtaLmms = "moaLmms", mtaAsr = "moaAsr")
+  old_new <- c(sta = "soa", mtaLmms = "moaLmms", mtaAsr = "moaAsr", MtaAsr = "moaAsr")
   fix <- function(x) {
     if (is.data.frame(x) && "module" %in% colnames(x)) {
       x$module <- as.character(x$module)
