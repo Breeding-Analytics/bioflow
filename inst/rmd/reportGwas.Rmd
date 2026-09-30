@@ -121,7 +121,7 @@ if (is.null(result)){
   field <- unique(pred.gwas$environment)
   modeling <- result$modeling
   modeling <- modeling[which(modeling$analysisId == idGwas  & modeling$environment != "general"),]
-  if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
+  if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "soa"}
   pred.gwas <- result$predictions
   pred <- pred.gwas[grep(mod,pred.gwas$module),]
   tableOfType <- with(pred, table(trait, environment))
@@ -191,7 +191,7 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
+if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "soa"}
 idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
 idMarkers <- idMarkers[length(idMarkers)]
 
@@ -419,7 +419,7 @@ pred.gwas <- result$predictions
 pred.gwas <- pred.gwas[pred.gwas$analysisId == idGwas,]
 traitsManP <- unique(pred.gwas$trait)
 fieldManP <- unique(pred.gwas$environment)
-if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "sta"}
+if("(Intercept)" %in% modeling$environment){mod <- "mta"}else{mod <- "soa"}
 
   if("params" %in% ls()){ # we will download the document
     cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))

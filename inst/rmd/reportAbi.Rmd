@@ -367,7 +367,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "soa", "value"]
   staTraits <- setdiff( unique(result$modeling[result$modeling$analysisId == idSta,"trait"]), "inputObject")
   
   if("params" %in% ls()){ # we will download the document
@@ -464,7 +464,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   metrics <- result$metrics
-  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "soa", "value"]
   parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
   if("params" %in% ls()){  # if user will download the report
     shinyjs::hide()
@@ -533,7 +533,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "soa", "value"]
   # idMta <- modelingAbi[modelingAbi$parameter == "mta", "value"]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
@@ -703,7 +703,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  # idSta <- modelingAbi[modelingAbi$parameter == "sta", "value"]
+  # idSta <- modelingAbi[modelingAbi$parameter == "soa", "value"]
   modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
   modeling <- setdiff(modeling, "inputObject")
   

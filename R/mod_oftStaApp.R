@@ -213,7 +213,7 @@ mod_oftStaApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait","entryType","iBlock") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 5){
-          if("sta" %in% data()$status$module){
+          if("soa" %in% data()$status$module){
             mappedColName <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
             mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),NA))
@@ -276,7 +276,7 @@ mod_oftStaApp_server <- function(id, data){
       req(data())
       dtOft <- data()
       dtOft <- dtOft$status
-      dtOft <- dtOft[which(dtOft$module == "sta"),]
+      dtOft <- dtOft[which(dtOft$module == "soa"),]
       traitsOft <- unique(dtOft$analysisId)
       if(length(traitsOft) > 0){
         if("analysisIdName" %in% colnames(dtOft)){
@@ -604,7 +604,7 @@ mod_oftStaApp_server <- function(id, data){
       req(input$env2Oft)
       result <- data()
 
-      if(sum(result$status$module %in% "sta") != 0) {
+      if(sum(result$status$module %in% "soa") != 0) {
         ## report OFT
         shinybusy::show_modal_spinner(spin = "fading-circle",
                                       text = "Generating Dashboard...")

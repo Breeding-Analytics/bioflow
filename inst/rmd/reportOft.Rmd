@@ -164,7 +164,7 @@ colnames(dt_orig) <- cgiarBase::replaceValues(colnames(dt_orig),
 ### remove the outliers
 dt_clean <- dt_orig
 
-qaID <- result$modeling[which(result$modeling$module == "sta" & result$modeling$analysisId == paramsOFT$version & result$modeling$parameter == "analysisId"), "value"]
+qaID <- result$modeling[which(result$modeling$module == "soa" & result$modeling$analysisId == paramsOFT$version & result$modeling$parameter == "analysisId"), "value"]
 
 rowPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == qaID),"row"]
 traitPheno <- result$modifications$pheno[which(result$modifications$pheno$analysisId == qaID),"trait"]
@@ -193,11 +193,11 @@ if(is.null(paramsOFT$fieldinst)){
 dt_orig <- dt_orig[which(dt_orig$environment %in% fieldinst),]
 dt_clean <- dt_clean[which(dt_clean$environment %in% fieldinst),]
 
-dt_sta_pred <- result$predictions[which(result$predictions$module == "sta"),]
+dt_sta_pred <- result$predictions[which(result$predictions$module == "soa"),]
 dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$environment %in% fieldinst),]
 dt_sta_pred <- dt_sta_pred[which(dt_sta_pred$analysisId == paramsOFT$version),]
 
-dt_sta_met <- result$metrics[which(result$metrics$module == "sta"),]
+dt_sta_met <- result$metrics[which(result$metrics$module == "soa"),]
 dt_sta_met <- dt_sta_met[which(dt_sta_met$environment %in% fieldinst),]
 dt_sta_met <- dt_sta_met[which(dt_sta_met$analysisId == paramsOFT$version),]
 

@@ -19,7 +19,7 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
-modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","mtaLmms","qaFilter","qaDesign","qaConsist"),
+modules <- data.frame(module = c("qaRaw","soa","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","moaLmms","qaFilter","qaDesign","qaConsist"),
                       moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
 
 # NOTE: set cookie function
@@ -566,6 +566,7 @@ app_server <- function(input, output, session) {
         raw_con <- rawConnection(s3_download$Body)
         load(raw_con)
         close(raw_con)
+        result <- update_module_ids(result)
 
         ## replace tables
         tmp <- data()
@@ -586,14 +587,14 @@ app_server <- function(input, output, session) {
       })
     }
 
-    if (!is.null(query$module) && query$module == "STA") {
+    if (!is.null(query$module) && query$module %in% c("STA", "SOA")) {
       # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
       # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
 
       updateNavbarPage(session, "tabso", selected = "staApp_tab")
     }
 
-    if (!is.null(query$module) && query$module == "MTA") {
+    if (!is.null(query$module) && query$module %in% c("MTA", "MOA")) {
       # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
       # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
 

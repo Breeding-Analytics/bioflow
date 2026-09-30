@@ -1123,7 +1123,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(data())
       dtMta <- data() # dtMta <- result
       dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module == "sta"),]
+      dtMta <- dtMta[which(dtMta$module == "soa"),]
       traitsMta <- unique(dtMta$analysisId)
       if(length(traitsMta) > 0){
         if("analysisIdName" %in% colnames(dtMta)){
@@ -1193,7 +1193,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("sta" %in% data()$status$module){
+          if("soa" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -2076,7 +2076,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       # inputFormulationFixed <- inputFormulaRandom()
       # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
       # run the modeling, but before test if sta was done
-      if(sum(dtMta$status$module %in% "sta") == 0) {
+      if(sum(dtMta$status$module %in% "soa") == 0) {
         output$qaQcMtaInfo <- renderUI({
           if (hideAll$clearAll)
             return()
@@ -2182,7 +2182,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         ## predictions table
         output$predictionsMta <-  DT::renderDT({
           predictions <- result$predictions
-          predictions <- predictions[predictions$module=="mtaLmms",]
+          predictions <- predictions[predictions$module=="moaLmms",]
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -2206,7 +2206,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         output$metricsMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             metrics <- result$metrics
-            mtas <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            mtas <- result$status[which(result$status$module == "moaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
             metrics <- metrics[which(metrics$analysisId == mtaId),]
             metrics <- subset(metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
@@ -2220,7 +2220,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         output$modelingMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             modeling <- result$modeling
-            mtas <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            mtas <- result$status[which(result$status$module == "moaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',

@@ -89,6 +89,7 @@ mod_getOldAnalysis_server <- function(id, data, res_auth){
             req(input$previous_object_file)
             load(input$previous_object_file$datapath)
           }
+          result <- update_module_ids(result)
           shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
           ## replace tables
           tmp <- data() # current or empty dataset

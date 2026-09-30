@@ -3112,7 +3112,7 @@ mod_advMeetingApp_server <- function(id, data){
             if (nrow(input_rows) == 0) return(NA_character_)
             # The MTA stamp is the inputObject that matches an MTA module
             for (val in input_rows$value) {
-              is_mta <- any(dt_obj$status$analysisId == val & dt_obj$status$module %in% c("mta", "mtaLmms", "mtaAsr", "mtaFlex", "mas"))
+              is_mta <- any(dt_obj$status$analysisId == val & dt_obj$status$module %in% c("mta", "moaLmms", "moaAsr", "mtaFlex", "mas"))
               if (is_mta) return(val)
             }
             # Fallback: trace through one of the stakeholder stamps
@@ -4950,7 +4950,7 @@ mod_advMeetingApp_server <- function(id, data){
               found_stamp <- NA_character_
               for (val in input_rows$value) {
                 is_mta <- any(dt_obj$status$analysisId == val &
-                                dt_obj$status$module %in% c("mta", "mtaLmms", "mtaAsr", "mtaFlex", "mas"))
+                                dt_obj$status$module %in% c("mta", "moaLmms", "moaAsr", "mtaFlex", "mas"))
                 if (is_mta) { found_stamp <- val; break }
               }
               if (is.na(found_stamp)) {
