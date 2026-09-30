@@ -595,9 +595,25 @@ app_server <- function(input, output, session) {
 
     if (!is.null(query$module) && query$module == "MTA") {
       # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
-      # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
+      # "mtaApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
 
       updateNavbarPage(session, "tabso", selected = "mtaApp_tab")
+    }
+
+    if (!is.null(query$module) && query$module == "HYBRIDITY") {
+      # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
+      # "hybridityApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
+
+      updateNavbarPage(session, "tabso", selected = "qaPed_tab")
+      updateNavbarPage(session, "qaPed", selected = "hybridityApp_subtab")
+    }
+
+    if (!is.null(query$module) && query$module == "QAPED") {
+      # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
+      # "qaPedApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
+
+      updateNavbarPage(session, "tabso", selected = "qaPed_tab")
+      updateNavbarPage(session, "qaPed", selected = "qaPedApp_subtab")
     }
   })
 
