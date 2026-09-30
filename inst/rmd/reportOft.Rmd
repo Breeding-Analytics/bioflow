@@ -907,7 +907,7 @@ if("params" %in% ls()){
                                                           "Module",
                                                           "Method"),
                                              autoWidthOpt = TRUE, scrollXOpt = FALSE,
-                                             caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & trial/field instance")))))
+                                             caption = paste0("Single Occurrence Analysis Metrics (H2/reliability) - per trait & trial/field instance")))))
 
     # BLUPs Comparison best test vs. best local vs. best benchmark
     RG_All <- rbind(BestTest_Local,BestLocal_Benchmark) %>%   
@@ -1211,7 +1211,7 @@ if("params" %in% ls()){
                                                           "Module",
                                                           "Method"),
                                              autoWidthOpt = FALSE, scrollXOpt = TRUE,
-                                             caption = paste0("Single-Trial Analysis Metrics (H2/reliability) - per trait & trial/field instance")),server = FALSE)
+                                             caption = paste0("Single Occurrence Analysis Metrics (H2/reliability) - per trait & trial/field instance")),server = FALSE)
     } else if (input$graphOft2 == "BLUPs Comparison"){
 RG_All <- rbind(BestTest_Local,BestLocal_Benchmark) %>%   
               arrange(environment) %>% filter(trait==input$traitOft2 & environment==as.factor(input$envOft2))

@@ -142,7 +142,7 @@ classify_controversy <- function(scores) {
   }, character(1))
 }
 
-#' Validate MTA compatibility across selected Final_Selection_Stamps
+#' Validate MOA compatibility across selected Final_Selection_Stamps
 #'
 #' Traces each selected stamp through the modeling table to extract the
 #' underlying MTA_Stamp and verifies all stamps share the same one.
@@ -151,10 +151,10 @@ classify_controversy <- function(scores) {
 #' @param selected_stamps Character vector of Final_Selection_Stamp analysisId values.
 #'
 #' @return A list with:
-#'   \item{compatible}{Logical; TRUE if all stamps share the same MTA stamp.}
-#'   \item{mta_stamp}{Character; the shared MTA stamp ID, or NULL if incompatible.}
+#'   \item{compatible}{Logical; TRUE if all stamps share the same MOA stamp.}
+#'   \item{mta_stamp}{Character; the shared MOA stamp ID, or NULL if incompatible.}
 #'   \item{incompatible_stamps}{Character vector of stamp IDs that don't match
-#'     the most common MTA stamp (empty character vector if compatible).}
+#'     the most common MOA stamp (empty character vector if compatible).}
 #'
 #' @noRd
 validate_mta_compatibility <- function(dt_object, selected_stamps) {
@@ -187,7 +187,7 @@ validate_mta_compatibility <- function(dt_object, selected_stamps) {
     mta_rows$value[1]
   }, character(1))
 
-  # Check if all MTA stamps are the same
+  # Check if all MOA stamps are the same
   unique_mta <- unique(mta_stamps[!is.na(mta_stamps)])
 
   if (length(unique_mta) == 1 && !any(is.na(mta_stamps))) {
@@ -199,9 +199,9 @@ validate_mta_compatibility <- function(dt_object, selected_stamps) {
     )
   } else {
     # Incompatible: identify which stamps don't match
-    # Use the most common MTA stamp as the reference
+    # Use the most common MOA stamp as the reference
     if (length(unique_mta) == 0) {
-      # No MTA stamps could be resolved
+      # No MOA stamps could be resolved
       incompatible <- selected_stamps
     } else {
       mta_counts <- table(mta_stamps[!is.na(mta_stamps)])
@@ -779,7 +779,7 @@ mod_advMeetingApp_ui <- function(id){
                                                     tags$hr(),
                                                     h3(strong("Prerequisites")),
                                                     tags$ul(
-                                                      tags$li("All stakeholders must have completed the Pre-advancement workflow on the ", strong("same MTA analysis"), "."),
+                                                      tags$li("All stakeholders must have completed the Pre-advancement workflow on the ", strong("same MOA analysis"), "."),
                                                       tags$li("All stakeholder RData files must be merged using the ", strong("Data Management module"), " (mod_bindObjectApp) before opening this tab."),
                                                       tags$li("At least two Final Selection Stamps must be present in the merged dataset.")
                                                     ),
@@ -924,7 +924,7 @@ mod_advMeetingApp_server <- function(id, data){
     })
 
     # =========================================================================
-    # meeting_context() â€” resolve the stamps/MTA/TPP driving the dashboard.
+    # meeting_context() â€” resolve the stamps/MOA/TPP driving the dashboard.
     #
     # Prefers the live session state (stamps picked in "Input steps"), and falls
     # back to the most recent saved Meeting_prodAdv stamp. The fallback is what
@@ -958,7 +958,7 @@ mod_advMeetingApp_server <- function(id, data){
         ]
         if (nrow(input_rows) == 0) return(NULL)
 
-        # The inputObject rows mix stakeholder stamps and the MTA stamp; keep
+        # The inputObject rows mix stakeholder stamps and the MOA stamp; keep
         # only those that resolve to Final_prodAdv in the status table.
         candidates <- input_rows$value
         is_final <- vapply(candidates, function(v) {
@@ -983,7 +983,7 @@ mod_advMeetingApp_server <- function(id, data){
       init_stamps <- init_stamps[!is.na(init_stamps)]
       if (length(init_stamps) == 0) return(NULL)
 
-      # --- MTA stamp (shared across stakeholders) ---
+      # --- MOA stamp (shared across stakeholders) ---
       mta_stamp <- NA_character_
       for (istamp in init_stamps) {
         rows <- modeling[
@@ -1197,13 +1197,13 @@ mod_advMeetingApp_server <- function(id, data){
 
       dt_obj <- data()
 
-      # Validate MTA compatibility (Requirement 3.1, 3.2, 3.3)
+      # Validate MOA compatibility (Requirement 3.1, 3.2, 3.3)
       mta_result <- validate_mta_compatibility(dt_obj, selected_stamps)
       if (!mta_result$compatible) {
         shiny::showNotification(
-          paste0("Incompatible MTA stamps detected. The following stamps do not share the same MTA analysis: ",
+          paste0("Incompatible MOA stamps detected. The following stamps do not share the same MOA analysis: ",
                  paste(mta_result$incompatible_stamps, collapse = ", "),
-                 ". Please select stamps from the same MTA."),
+                 ". Please select stamps from the same MOA."),
           type = "error",
           duration = 10
         )
@@ -1826,7 +1826,7 @@ mod_advMeetingApp_server <- function(id, data){
       # Use STATUS_COLORS for CHECK designations, distinct palette for others
       candidate_palette <- c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")
 
-      # Determine the MTA stamp for predictions
+      # Determine the MOA stamp for predictions
       selected_stamps <- input$stamp_select
       modeling <- dt_obj$modeling
       init_rows <- modeling[
@@ -1849,7 +1849,7 @@ mod_advMeetingApp_server <- function(id, data){
       if (nrow(mta_rows) == 0) return(plotly::plot_ly())
       mta_stamp <- mta_rows$value[1]
 
-      # Get predictions for the MTA stamp
+      # Get predictions for the MOA stamp
       preds <- dt_obj$predictions
       mta_preds <- preds[
         preds$analysisId == mta_stamp &
@@ -1987,7 +1987,7 @@ mod_advMeetingApp_server <- function(id, data){
 
       req(dt_obj, dirs)
 
-      # Determine the MTA stamp for predictions
+      # Determine the MOA stamp for predictions
       selected_stamps <- input$stamp_select
       modeling <- dt_obj$modeling
       init_rows <- modeling[
@@ -2242,7 +2242,7 @@ mod_advMeetingApp_server <- function(id, data){
       trait_dirs <- trait_directions()
       mta_stamp <- NULL
 
-      # Try to get MTA stamp for predictions lookup
+      # Try to get MOA stamp for predictions lookup
       dt_obj <- data()
       selected_stamps <- input$stamp_select
       if (!is.null(dt_obj) && !is.null(selected_stamps) && length(selected_stamps) > 0) {
@@ -2438,7 +2438,7 @@ mod_advMeetingApp_server <- function(id, data){
 
       current_designation <- candidates[idx]
 
-      # Resolve MTA stamp
+      # Resolve MOA stamp
       selected_stamps <- input$stamp_select
       req(selected_stamps)
       modeling <- dt_obj$modeling
@@ -2978,13 +2978,13 @@ mod_advMeetingApp_server <- function(id, data){
 
       # Call saveMeetingProdAdvSelection wrapped in tryCatch (Requirement 8.4, 8.5, 8.6, 8.7)
       tryCatch({
-        # Resolve MTA stamp from selected stakeholder stamps
+        # Resolve MOA stamp from selected stakeholder stamps
         mta_result <- validate_mta_compatibility(dt_obj, selected_stamps)
         mta_stamp_value <- if (mta_result$compatible) mta_result$mta_stamp else NA_character_
 
         if (is.na(mta_stamp_value) || !nzchar(mta_stamp_value)) {
           shiny::showNotification(
-            "Could not determine the shared MTA stamp from selected stakeholder stamps.",
+            "Could not determine the shared MOA stamp from selected stakeholder stamps.",
             type = "error",
             duration = 8
           )
@@ -3092,7 +3092,7 @@ mod_advMeetingApp_server <- function(id, data){
         resolve_decisions()
       }, error = function(e) data.frame())
 
-      # 3. mta_stamp (shared MTA analysis ID)
+      # 3. mta_stamp (shared MOA analysis ID)
       mta_stamp <- tryCatch({
         resolve_mta <- function() {
           selected_stamps <- input$stamp_select
@@ -3110,7 +3110,7 @@ mod_advMeetingApp_server <- function(id, data){
               drop = FALSE
             ]
             if (nrow(input_rows) == 0) return(NA_character_)
-            # The MTA stamp is the inputObject that matches an MTA module
+            # The MOA stamp is the inputObject that matches an MOA module
             for (val in input_rows$value) {
               is_mta <- any(dt_obj$status$analysisId == val & dt_obj$status$module %in% c("mta", "moaLmms", "moaAsr", "mtaFlex", "mas"))
               if (is_mta) return(val)
@@ -3331,7 +3331,7 @@ mod_advMeetingApp_server <- function(id, data){
                              rownames = FALSE))
       }
 
-      # Resolve MTA stamp for predictions
+      # Resolve MOA stamp for predictions
       selected_stamps <- input$stamp_select
       if (is.null(selected_stamps) || length(selected_stamps) == 0) {
         msg_df <- data.frame(Message = "No trait distribution data available",

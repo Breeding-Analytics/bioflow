@@ -55,16 +55,16 @@ mod_indexDesireApp_ui <- function(id){
                             ),
                             tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                      tabsetPanel(
-                                       tabPanel(div( icon("dice-one"), "Pick MTA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
+                                       tabPanel(div( icon("dice-one"), "Pick MOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                        column(width=8, selectInput(ns("version2IdxD"),
                                                                                    label = tags$span(
-                                                                                     "MTA or MAS version(s) to find traits",
+                                                                                     "MOA or MAS version(s) to find traits",
                                                                                      tags$i(
                                                                                        class = "glyphicon glyphicon-info-sign",
                                                                                        style = "color:#FFFFFF",
-                                                                                       title = "Analysis ID(s) from MTA runs or MAS runs that contain the trait predictions that should be used to fit a desired selection index."
+                                                                                       title = "Analysis ID(s) from MOA runs or MAS runs that contain the trait predictions that should be used to fit a desired selection index."
                                                                                      )
                                                                                    ),
                                                                                    choices = NULL, multiple = TRUE)),
@@ -157,7 +157,7 @@ mod_indexDesireApp_ui <- function(id){
                                                                                             shiny::plotOutput(ns("plotPotentialResponse")),
                                                                                      ),
                                                                                      column(width = 12,
-                                                                                            p(span("Metrics associated to the MTA stamp selected.", style="color:black")),
+                                                                                            p(span("Metrics associated to the MOA stamp selected.", style="color:black")),
                                                                                             selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE),
                                                                                             plotly::plotlyOutput(ns("barplotPredictionsMetrics")),
                                                                                      ),
@@ -253,7 +253,7 @@ mod_indexDesireApp_server <- function(id, data){
         if(mappedColumns == 3){
           if( any( c("mta","moaAsr","mtaFlex","moaLmms","mas") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing a selection index")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -481,7 +481,7 @@ observe({
                                    lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Traits available in the STA-IDs selected.')
+                      htmltools::em('Traits available in the SOA-IDs selected.')
                     )
       )
     }, server = FALSE)
@@ -504,7 +504,7 @@ observe({
                                    lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Past modeling parameters from MTA stamp(s) selected.')
+                      htmltools::em('Past modeling parameters from MOA stamp(s) selected.')
                     )
       )
     }, server = FALSE)
@@ -544,7 +544,7 @@ observe({
                                                    lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))),
                                     caption = htmltools::tags$caption(
                                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                                      htmltools::em('MTA predictions to be used as input.')
+                                      htmltools::em('MOA predictions to be used as input.')
                                     )
       ), numeric.output)
     }, server = FALSE)
@@ -711,7 +711,7 @@ observe({
           else
             req(dtIdxD)
           HTML(as.character(div(style="color: brown;",
-                                "Please perform Multi-Trial-Analysis before conducting a Selection index."))
+                                "Please perform Multi Occurrence Analysis before conducting a Selection index."))
           )
         })
       }else{

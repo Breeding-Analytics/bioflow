@@ -41,7 +41,7 @@ mod_sectionInfoGEApp_ui <- function(id){
                                                 p(strong("Additional notes:")),
                                                 p("For a trait where you only have single replicate data (no replication within environment per genotype) and want to
                                                 use pedigree or markers to separate the error from the genetic signal,
-                                                you need to perform the single trial analysis first to move your single-replicate records per environment to the second stage
+                                                you need to perform the single occurrence analysis first to move your single-replicate records per environment to the second stage
                                                 where you can use your pedigree or marker information. Make sure you accept environments with H2=0 coming from the first stage
                                                 since unreplicated environments or trial will be assumed to have H2=0.
                                                   "),

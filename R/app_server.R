@@ -20,7 +20,7 @@ if (production_server) {
 oauth2_scope <- "openid profile"
 
 modules <- data.frame(module = c("qaRaw","soa","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","moaLmms","qaFilter","qaDesign","qaConsist"),
-                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
+                      moduleName = c("Quality Assurance Phenotypes","Single Occurrence Analysis","Multi Occurrence Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MOA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
 
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
@@ -458,14 +458,14 @@ app_server <- function(input, output, session) {
   #mod_dataConsistApp_server("dataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
-  mod_staApp_server("staApp_1", data = data) # single trial analysis
+  mod_staApp_server("staApp_1", data = data) # single occurrence analysis
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
   mod_mtaASREMLApp_server("mtaASREMLApp_1", data = data)
   # mod_mtaRRBLUPApp_server("mtaRRBLUPApp_1", data = data)
   # mod_retrieveMarkerEffectsApp_server("retrieveMarkerEffectsApp_1", data = data)
-  # mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
+  # mod_mtaApp_server("mtaApp_1",data = data) # multi occurrence analysis
   # mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
   # mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)

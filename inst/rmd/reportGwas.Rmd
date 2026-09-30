@@ -89,7 +89,7 @@ if (is.null(result)){
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. Overall number of entries and entry types and environments included in the single or multi trial analysis (input)
+1. Overall number of entries and entry types and environments included in the single or multi occurrence analysis (input)
 
 2. Overall number of markers considered after filtering genetic markers (input)
 
@@ -407,7 +407,7 @@ Man <- list()
 }
 ```
 
-The following boxplots allow you to inspect for each of the top 5 significant markers, the distribution of adjusted means (y-axis) by genotype levels (x-axis). The adjusted means are from the single or multi trial analysis for each trait that were used as input for the analysis.
+The following boxplots allow you to inspect for each of the top 5 significant markers, the distribution of adjusted means (y-axis) by genotype levels (x-axis). The adjusted means are from the single or multi occurrence analysis for each trait that were used as input for the analysis.
 
 ```{r, results='asis'}
 if (is.null(result)){

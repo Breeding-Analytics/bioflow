@@ -20,7 +20,7 @@ mod_staApp_ui <- function(id){
                            tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Single Trial Analysis Module", tags$a(href="https://www.youtube.com/watch?v=fqUTdvbzNSE&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=6", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                           h1(strong(span("Single Occurrence Analysis Module", tags$a(href="https://www.youtube.com/watch?v=fqUTdvbzNSE&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=6", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
@@ -40,7 +40,7 @@ mod_staApp_ui <- function(id){
                               Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
                               By default genotype (designation column) predictions and their standard errors are returned.
                                 The way the options are used is the following:"),
-                                           p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
+                                           p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single occurrence analysis step."),
                                            p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
                                            p(strong("Covariates.-"),"Columns to be fitted as as additional fixed effect covariates in each trial."),
                                            p(strong("Additional settings.-")),
@@ -77,7 +77,7 @@ mod_staApp_ui <- function(id){
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#FFFFFF",
-                                                                                        title = "Analysis ID(s) from QA modifications that should be applied in the STA."
+                                                                                        title = "Analysis ID(s) from QA modifications that should be applied in the SOA."
                                                                                       )
                                                                                     ),
                                                                                     choices = NULL, multiple = TRUE),
@@ -314,8 +314,8 @@ mod_staApp_ui <- function(id){
 #         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
 #         if(mappedColumns == 3){
 #           if( any(c("qaRaw","qaFilter","qaDesign","qaConsist") %in% data()$status$module ) ){
-#             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis specifying your input parameters under the 'Input' tabs.")) )
-#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
+#             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single occurrence analysis specifying your input parameters under the 'Input' tabs.")) )
+#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single occurrence analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
 #         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
 #       }
 #     )
@@ -716,7 +716,7 @@ mod_staApp_ui <- function(id){
 #           }else{
 #             req(data())
 #             HTML(as.character(div(style="color: brown;",
-#                                   "Please perform QA/QC before conducting a Single-Trial Analysis."))
+#                                   "Please perform QA/QC before conducting a Single Occurrence Analysis."))
 #             )
 #           }
 #
@@ -728,7 +728,7 @@ mod_staApp_ui <- function(id){
 #         shinybusy::remove_modal_spinner()
 #         if(!inherits(result,"try-error")) {
 #           data(result) # update data with results
-#           cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
+#           cat(paste("Single occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi occurrence analysis using this time stamp."))
 #           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 #
 #           # predictions table
@@ -794,7 +794,7 @@ mod_staApp_ui <- function(id){
 #             }
 #           }, server = FALSE)
 #
-#           ## dashboard STA
+#           ## dashboard SOA
 #           output$reportSta <- renderUI({
 #             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
 #           })
@@ -886,8 +886,8 @@ mod_staApp_server <- function(id,data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
           if(any(c("qaRaw", "qaMb") %in% data()$status$module)){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis specifying your input parameters under the 'Input' tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single occurrence analysis specifying your input parameters under the 'Input' tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single occurrence analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -1323,7 +1323,7 @@ mod_staApp_server <- function(id,data){
           else
             req(dtSta)
           HTML(as.character(div(style="color: brown;",
-                                "Please perform QA/QC before conducting a Single-Trial Analysis."))
+                                "Please perform QA/QC before conducting a Single Occurrence Analysis."))
           )
         })
       } else {
@@ -1355,9 +1355,9 @@ mod_staApp_server <- function(id,data){
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultSta.RData")
-          cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
+          cat(paste("Single occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi occurrence analysis using this time stamp."))
           output$outSta2 <- renderPrint({
-            cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
+            cat(paste("Single occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi occurrence analysis using this time stamp."))
           })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
@@ -1430,7 +1430,7 @@ mod_staApp_server <- function(id,data){
             # }
           }
         }, server = FALSE)
-        ## report STA
+        ## report SOA
         output$reportSta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })

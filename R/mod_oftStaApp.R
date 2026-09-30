@@ -47,10 +47,10 @@ that perform well under farmers’ conditions before these are announced to the 
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel(div(icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div(icon("dice-one"), "Pick SOA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Oft"), "STA version to use", choices = NULL, multiple = FALSE) ),
+                                                      column(width=8, selectInput(ns("version2Oft"), "SOA version to use", choices = NULL, multiple = FALSE) ),
 
                                                ),
                                                column(width=12),
@@ -64,9 +64,9 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
                                                                    p(span("Network plot of current analyses available.", style="color:black")),
                                                                    shiny::plotOutput(ns("plotTimeStamps")),
-                                                                   p(span("Past modeling parameters from STA stamp selected.", style="color:black")),
+                                                                   p(span("Past modeling parameters from SOA stamp selected.", style="color:black")),
                                                                    DT::DTOutput(ns("statusOft")), # modeling table
-                                                                   p(span("STA predictions table to be used as input.", style="color:black")),
+                                                                   p(span("SOA predictions table to be used as input.", style="color:black")),
                                                                    DT::DTOutput(ns("phenoOft")), # predictions data table
                                                                    #                     )
                                                                    # )
@@ -84,11 +84,11 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                    ),
                                                                    # shinydashboard::box(status="success",width = 12,solidHeader = TRUE,
                                                                    #                     column(width=12, style = "height:450px; overflow-y: scroll;overflow-x: scroll;",
-                                                                   p(span("Metrics associated to the STA stamp selected.", style="color:black")),
+                                                                   p(span("Metrics associated to the SOA stamp selected.", style="color:black")),
                                                                    column(width=6, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
                                                                    column(width=6, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
                                                                    column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
-                                                                   p(span("Dispersal of predictions associated to the STA stamp selected.", style="color:black")),
+                                                                   p(span("Dispersal of predictions associated to the SOA stamp selected.", style="color:black")),
                                                                    column(width=6, selectInput(ns("trait3Oft"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                    column(width=6, selectInput(ns("groupOftInputPlot"), "Group by", choices = c("environment","designation","entryType"), multiple = FALSE, selected = "environment") ),
                                                                    column(width=12, shiny::plotOutput(ns("plotPredictionsCleanOut"))  ), # plotly::plotlyOutput(ns("plotPredictionsCleanOut"))
@@ -108,9 +108,9 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                           h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                                           hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                    ),
-                                                                   p(span("Preview of Pedigree data associated to the STA stamp selected.", style="color:black")),
+                                                                   p(span("Preview of Pedigree data associated to the SOA stamp selected.", style="color:black")),
                                                                    column(width=12, DT::DTOutput(ns('preview_ped'))  ),
-                                                                   p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
+                                                                   p(span("Preview of Phenotype data associated to the SOA stamp selected.", style="color:black")),
                                                                    column(width=12, DT::DTOutput(ns('preview_pheno')) )
                                                ),
                                       ),
@@ -128,7 +128,7 @@ that perform well under farmers’ conditions before these are announced to the 
                                                                            h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
                                                                            hr(style = "border-top: 3px solid #4c4c4c;"),
                                                                     ),
-                                                                    p(span("Preview of Phenotype data associated to the STA stamp selected.", style="color:black")),
+                                                                    p(span("Preview of Phenotype data associated to the SOA stamp selected.", style="color:black")),
                                                                     column(width=12, DT::DTOutput(ns('preview_pheno2')) ),
                                                 ),
                                       ),
@@ -222,7 +222,7 @@ mod_oftStaApp_server <- function(id, data){
             } else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "To generate OFT Dashboard, please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )
             }
-          }else{ HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single trial analysis before generating OFT dashboard.")) ) }
+          }else{ HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single occurrence analysis before generating OFT dashboard.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation', 'entryType', 'iBlock' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -374,7 +374,7 @@ mod_oftStaApp_server <- function(id, data){
                    })
 
 
-    ## -------- Select STA Version to use --------- ##
+    ## -------- Select SOA Version to use --------- ##
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data())
@@ -527,7 +527,7 @@ mod_oftStaApp_server <- function(id, data){
       req(input$heatmapFontSize)
       dtOft <- data()
       mydata <- dtOft$predictions # extract predictions
-      mydata <- mydata[which(mydata$analysisId %in% input$version2Oft),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Oft),] # only PREDICTIONS FROM THE SOA
       mydata <- mydata[which(mydata$trait %in% input$traitConnect),] # only PREDICTIONS FROM Trait selected
       if(input$entryTypeOft != "Generic"){ # use an specific type of entries
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeOft),]

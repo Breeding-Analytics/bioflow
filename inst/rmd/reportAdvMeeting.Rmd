@@ -66,7 +66,7 @@ printTable <- function(DT, pageLength = 25,
 **Inputs used:**
 
 - **Multiple Final Selection Stamps:** One per stakeholder, each containing per-designation selection decisions (SELECTED, NOT SELECTED, REVISE, CHECK).
-- **Shared MTA predictions (BLUPs):** The underlying multi-trial analysis providing trait performance data for all candidates.
+- **Shared MOA predictions (BLUPs):** The underlying multi occurrence analysis providing trait performance data for all candidates.
 
 **Outputs produced:**
 
@@ -143,7 +143,7 @@ cat(paste0(
 
 ### Final Meeting Decisions Table
 
-The table below shows all candidates with their trait values (BLUPs from the shared MTA), selection index score, meeting consensus decision, controversy score, and each stakeholder's individual decision. Trait/index cells are tinted by the meeting decision; decision cells are color-coded by status: blue = SELECTED, orange = NOT SELECTED, yellow = REVISE, pink = CHECK.
+The table below shows all candidates with their trait values (BLUPs from the shared MOA), selection index score, meeting consensus decision, controversy score, and each stakeholder's individual decision. Trait/index cells are tinted by the meeting decision; decision cells are color-coded by status: blue = SELECTED, orange = NOT SELECTED, yellow = REVISE, pink = CHECK.
 
 ```{r, include=FALSE}
 htmltools::tagList(printTable(mtcars))

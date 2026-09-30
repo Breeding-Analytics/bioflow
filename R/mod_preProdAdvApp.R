@@ -453,7 +453,7 @@ cluster_environments <- function(weather_summary, k = NULL) {
 
 #' Prepare lollipop chart data
 #'
-#' Transforms STA predictions into per-designation-per-cluster mean performance
+#' Transforms SOA predictions into per-designation-per-cluster mean performance
 #' data with status encoding, marker mapping, and ranking information.
 #'
 #' @param sta_long A data.frame with columns: designation, environment, trait,
@@ -495,7 +495,7 @@ prepare_lollipop_data <- function(sta_long, review_df, trait, cluster_assignment
     }
 
     # Build one row per designation per cluster
-    # index_value is the same across all clusters (it's an MTA-level metric)
+    # index_value is the same across all clusters (it's an MOA-level metric)
     unique_clusters <- unique(cluster_assignments)
     designations_with_index <- review_df[is.finite(review_df$index_value),
                                           c("designation", "plot_status", "index_value"),
@@ -1413,7 +1413,7 @@ build_relatedness_plotly <- function(plot_data, highlighted = NULL,
 
 #' Prepare beeswarm plot data
 #'
-#' Transforms raw STA predictions into a plot-ready data frame with status
+#' Transforms raw SOA predictions into a plot-ready data frame with status
 #' colors and opacity values for the beeswarm (strip) plot.
 #'
 #' @param sta_long A data.frame with columns: designation, environment, trait,
@@ -1899,7 +1899,7 @@ mod_preProdAdvApp_ui <- function(id){
 
                                                     p(strong("Index Standard Error:"), " For each designation, the approximate index SE is computed as: ",
                                                       "SE(I", tags$sub("i"), ") = \u221A\u2211(w", tags$sub("k"), "\u00B2 \u00D7 SE", tags$sub("ik"), "\u00B2), ",
-                                                      "assuming independence between traits. This is a conservative approximation since the full prediction error variance (PEV) matrix is not available from MTA."),
+                                                      "assuming independence between traits. This is a conservative approximation since the full prediction error variance (PEV) matrix is not available from MOA."),
 
                                                     p(strong("Boundary Window:"), " The up to 5 selected entries immediately above the selection cutoff and ",
                                                       "up to 5 rejected entries immediately below form the boundary window. ",
@@ -1953,15 +1953,15 @@ mod_preProdAdvApp_ui <- function(id){
 
                                                     p(style = "font-style:italic; color:#666;",
                                                       "Note: This assessment uses approximate standard error propagation (assuming trait independence). ",
-                                                      "The full PEV matrix is not available from MTA. The breeder always makes the final decision \u2014 ",
+                                                      "The full PEV matrix is not available from MOA. The breeder always makes the final decision \u2014 ",
                                                       "the assessment provides guidance, not binding constraints."),
 
                                                     tags$hr(),
 
                                                     h4(strong("Mandatory Inputs:")),
                                                     tags$ul(
-                                                      tags$li(strong("MTA analysis stamp"), " \u2014 BLUPs (Best Linear Unbiased Predictions) and reliabilities from Multi-Trial Analysis"),
-                                                      tags$li(strong("STA analysis stamp"), " \u2014 Per-environment predictions from Single-Trial Analysis")
+                                                      tags$li(strong("MOA analysis stamp"), " \u2014 BLUPs (Best Linear Unbiased Predictions) and reliabilities from Multi Occurrence Analysis"),
+                                                      tags$li(strong("SOA analysis stamp"), " \u2014 Per-environment predictions from Single Occurrence Analysis")
                                                     ),
 
                                                     h4(strong("Optional Inputs:")),
@@ -1990,11 +1990,11 @@ mod_preProdAdvApp_ui <- function(id){
                                                    selectInput(
                                                      ns("staStamp"),
                                                      label = tags$span(
-                                                       "STA version to use",
+                                                       "SOA version to use",
                                                        tags$i(
                                                          class = "glyphicon glyphicon-info-sign",
                                                          style = "color:#FFFFFF",
-                                                         title = "Select the Single Trial Analysis result stamp to use as input for this product advancement workflow."
+                                                         title = "Select the Single Occurrence Analysis result stamp to use as input for this product advancement workflow."
                                                        )
                                                      ),
                                                      choices = NULL,
@@ -2007,11 +2007,11 @@ mod_preProdAdvApp_ui <- function(id){
                                                    selectInput(
                                                      ns("mtaStamp"),
                                                      label = tags$span(
-                                                       "MTA version to use",
+                                                       "MOA version to use",
                                                        tags$i(
                                                          class = "glyphicon glyphicon-info-sign",
                                                          style = "color:#FFFFFF",
-                                                         title = "Select the Multi Trial Analysis result stamp to use as input for this product advancement workflow."
+                                                         title = "Select the Multi Occurrence Analysis result stamp to use as input for this product advancement workflow."
                                                        )
                                                      ),
                                                      choices = NULL,
@@ -3454,7 +3454,7 @@ mod_preProdAdvApp_server <- function(id, data){
         if(mappedColumns == 3){
           if( any( c("mta","moaAsr","mtaFlex","moaLmms","mas") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to the Input tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before Product Advancement")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before Product Advancement")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -3563,7 +3563,7 @@ mod_preProdAdvApp_server <- function(id, data){
       tpp_entry <- dt$metadata$TPP[[selected_tpp]]
       tpp_traits_df <- tpp_entry$traits
 
-      # Get available phenotypic columns from the selected MTA stamp
+      # Get available phenotypic columns from the selected MOA stamp
       available_traits <- character(0)
       if (!is.null(input$mtaStamp) && nchar(input$mtaStamp) > 0) {
         dtPred <- dt$predictions
@@ -3786,7 +3786,7 @@ mod_preProdAdvApp_server <- function(id, data){
         return()
       }
 
-      # Rebuild the full choices list from the MTA predictions so we can pass
+      # Rebuild the full choices list from the MOA predictions so we can pass
       # choices + selected atomically in a single updateSelectInput call.
       req(data())
       req(input$mtaStamp)
@@ -3799,11 +3799,11 @@ mod_preProdAdvApp_server <- function(id, data){
       selected_pheno_traits <- filtered$pheno_trait[selection_mask]
       selected_pheno_traits <- selected_pheno_traits[!is.na(selected_pheno_traits)]
 
-      # Also include MTA traits that match TPP trait names directly
-      # (e.g., MTA has a trait "Virus resistance" and TPP also has "Virus resistance")
+      # Also include MOA traits that match TPP trait names directly
+      # (e.g., MOA has a trait "Virus resistance" and TPP also has "Virus resistance")
       selected_tpp_names <- filtered$tpp_trait[selection_mask]
       selected_tpp_names <- selected_tpp_names[!is.na(selected_tpp_names)]
-      # Combine pheno_trait values and any tpp_trait names that are actual MTA traits
+      # Combine pheno_trait values and any tpp_trait names that are actual MOA traits
       all_selected <- unique(c(selected_pheno_traits, selected_tpp_names))
 
       # Ensure selected traits are actually in the available choices
@@ -3844,7 +3844,7 @@ mod_preProdAdvApp_server <- function(id, data){
       match_idx <- which(filtered$pheno_trait == pheno_trait)
 
       # If not found by pheno_trait, try matching by tpp_trait name
-      # (handles cases like MTA trait "Virus resistance" matching TPP trait name directly)
+      # (handles cases like MOA trait "Virus resistance" matching TPP trait name directly)
       if (length(match_idx) == 0 && "tpp_trait" %in% colnames(filtered)) {
         match_idx <- which(filtered$tpp_trait == pheno_trait)
       }
@@ -5747,7 +5747,7 @@ mod_preProdAdvApp_server <- function(id, data){
         updateSelectInput(session, "tppIdInput", selected = stored_tpp_id)
       }
 
-      # Get the MTA stamp used for this initial selection (which() = NA-safe)
+      # Get the MOA stamp used for this initial selection (which() = NA-safe)
       mta_idx <- which(
         as.character(dt$modeling$analysisId) == as.character(init_stamp) &
           dt$modeling$module == "Init_prodAdv" &
@@ -5759,7 +5759,7 @@ mod_preProdAdvApp_server <- function(id, data){
       tpp_entry <- dt$metadata$TPP[[stored_tpp_id]]
       tpp_traits_df <- tpp_entry$traits
 
-      # Get available traits from MTA predictions
+      # Get available traits from MOA predictions
       available_traits <- character(0)
       if (!is.null(mta_stamp) && nzchar(mta_stamp)) {
         dtPred <- dt$predictions
@@ -6567,7 +6567,7 @@ mod_preProdAdvApp_server <- function(id, data){
       weather_df <- tryCatch(tpe_weather_summary(), error = function(e) NULL)
 
       if (is.null(weather_df) || nrow(weather_df) == 0) {
-        # Fallback: single cluster with all environments from STA data
+        # Fallback: single cluster with all environments from SOA data
         plot_obj <- review_plot_data()
         req(plot_obj)
         all_envs <- unique(as.character(plot_obj$sta_long$environment))
@@ -6629,7 +6629,7 @@ mod_preProdAdvApp_server <- function(id, data){
 
       sta_long <- plot_obj$sta_long
       validate(need(!is.null(sta_long) && nrow(sta_long) > 0,
-                    "No environment-level (STA) data available."))
+                    "No environment-level (SOA) data available."))
 
       review_df <- plot_obj$review_df
 
@@ -7971,7 +7971,7 @@ mod_preProdAdvApp_server <- function(id, data){
       req(nrow(df) > 0)
 
       validate(
-        need("designation" %in% colnames(df), "STA predictions must contain a 'designation' column.")
+        need("designation" %in% colnames(df), "SOA predictions must contain a 'designation' column.")
       )
 
       designation_choices <- sort(unique(as.character(df$designation)))
@@ -7988,7 +7988,7 @@ mod_preProdAdvApp_server <- function(id, data){
           tags$i(
             class = "glyphicon glyphicon-info-sign",
             style = "color:#FFFFFF",
-            title = "Choose the designation whose environment-specific STA predictions will be shown across the TPE."
+            title = "Choose the designation whose environment-specific SOA predictions will be shown across the TPE."
           )
         ),
         choices = designation_choices,
@@ -8005,7 +8005,7 @@ mod_preProdAdvApp_server <- function(id, data){
       req(nrow(df) > 0)
 
       validate(
-        need("trait" %in% colnames(df), "STA predictions must contain a 'trait' column.")
+        need("trait" %in% colnames(df), "SOA predictions must contain a 'trait' column.")
       )
 
       trait_choices <- sort(unique(as.character(df$trait)))
@@ -8044,7 +8044,7 @@ mod_preProdAdvApp_server <- function(id, data){
       validate(
         need(
           all(c("designation", "environment", "trait", "predictedValue") %in% colnames(df)),
-          "STA predictions must contain designation, environment, trait, and predictedValue."
+          "SOA predictions must contain designation, environment, trait, and predictedValue."
         )
       )
 
@@ -8079,16 +8079,16 @@ mod_preProdAdvApp_server <- function(id, data){
 
         validate(
           need(nrow(df_sel) > 0,
-               paste("No STA predictions found for the selected designation, trait, and year/season:", input$tpePeriod))
+               paste("No SOA predictions found for the selected designation, trait, and year/season:", input$tpePeriod))
         )
       }
 
       validate(
         need(nrow(df_sel) > 0,
-             paste("No STA predictions found for designation", input$tpeDesignation,
+             paste("No SOA predictions found for designation", input$tpeDesignation,
                    "and trait", input$tpeTrait, ".")),
         need("environment" %in% colnames(df_sel),
-             "STA predictions must contain an environment column.")
+             "SOA predictions must contain an environment column.")
       )
 
       # Join coordinates from summarized weather data
@@ -8130,7 +8130,7 @@ mod_preProdAdvApp_server <- function(id, data){
       validate(
         need(
           all(c("trait", "predictedValue") %in% colnames(df)),
-          "STA predictions must contain trait and predictedValue."
+          "SOA predictions must contain trait and predictedValue."
         )
       )
 
@@ -8143,7 +8143,7 @@ mod_preProdAdvApp_server <- function(id, data){
 
       validate(
         need(nrow(df_trait) > 0,
-             paste("No finite STA predicted values found for trait", input$tpeTrait, "."))
+             paste("No finite SOA predicted values found for trait", input$tpeTrait, "."))
       )
 
       range(df_trait$predictedValue, na.rm = TRUE)
@@ -8849,11 +8849,11 @@ mod_preProdAdvApp_server <- function(id, data){
       dt_obj <- data()
       if (is.null(dt_obj)) return()
 
-      # Get traits from MTA predictions (same traits used in the analysis)
+      # Get traits from MOA predictions (same traits used in the analysis)
       preds <- dt_obj$predictions
       if (is.null(preds) || nrow(preds) == 0) return()
 
-      # Use traits from the MTA predictions only (unique trait values)
+      # Use traits from the MOA predictions only (unique trait values)
       mta_traits <- unique(preds$trait[preds$trait != "" & !is.na(preds$trait)])
 
       choices <- c("Selection_Index" = "Selection_Index", stats::setNames(mta_traits, mta_traits))
@@ -9183,7 +9183,7 @@ mod_preProdAdvApp_server <- function(id, data){
 
       individuals_df$has_genomic <- individuals_df$designation %in% rownames(sim_matrix)
 
-      # Trait values — use MTA predictions from plot_obj for consistency with other plots
+      # Trait values — use MOA predictions from plot_obj for consistency with other plots
       selected_traits <- input$relatednessTraits
       trait_values_df <- data.frame(designation = character(0), trait = character(0),
                                      value = numeric(0), std_error = numeric(0),
@@ -9191,7 +9191,7 @@ mod_preProdAdvApp_server <- function(id, data){
                                      direction = character(0),
                                      stringsAsFactors = FALSE)
       if (!is.null(selected_traits) && length(selected_traits) > 0) {
-        # Use MTA predictions from the review_plot_data (same source as scatterplot)
+        # Use MOA predictions from the review_plot_data (same source as scatterplot)
         mta_preds <- plot_obj$mta_long
 
         for (tr in selected_traits) {
@@ -9206,7 +9206,7 @@ mod_preProdAdvApp_server <- function(id, data){
               stringsAsFactors = FALSE
             )
           } else {
-            # Get from MTA predictions (same analysisId as scatterplot)
+            # Get from MOA predictions (same analysisId as scatterplot)
             tr_preds <- mta_preds[mta_preds$trait == tr & mta_preds$designation %in% individuals_df$designation, , drop = FALSE]
             if (nrow(tr_preds) == 0) next
             tr_preds <- tr_preds[!duplicated(tr_preds$designation), , drop = FALSE]

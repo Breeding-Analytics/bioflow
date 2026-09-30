@@ -358,7 +358,7 @@ if (is.null(result)){
 
 ### Base metrics
 
-The following barplot shows the value of the different parameters calculated per trial during the single trial analysis run. The view can be modified by trait and by parameter.
+The following barplot shows the value of the different parameters calculated per trial during the single occurrence analysis run. The view can be modified by trait and by parameter.
 
 Variance component proportions
 
