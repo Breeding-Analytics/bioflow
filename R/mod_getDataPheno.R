@@ -173,8 +173,10 @@ mod_getDataPheno_ui <- function(id){
                                                       p(strong("management-"),"The name of the column containing the labels listing the unique occurrences of a management (e.g., drought, irrigated, etc.) nested in a trial, nested in a year, country, location."),
                                                       p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
                                                       p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an study."),
-                                                      p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study."),
-                                                      p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study."),
+                                                      p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study for use in spatial analysis."),
+                                                      p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study for use in spatial analysis."),
+                                                      p(strong("row Design.-"),"The name of the column containing the labels of the row coordinates for each record within an study for use as a design-specific factor."),
+                                                      p(strong("column Design.-"),"The name of the column containing the labels of the column coordinates for each record within an study for use as a design-specific factor."),
                                                       p(strong("designation.-"),"The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."),
                                                       p(strong("gid.-"),"The name of the column containing the labels with the unique numerical identifier used within the database management system."),
                                                       p(strong("entryType.-"),"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
@@ -901,6 +903,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 iBlock = 'block',
                 row = 'positionCoordinateY', # 'designY',#
                 col =  'positionCoordinateX', # 'designX',
+                rowDes = 'rowBlock', #Design factor row
+                colDes = 'colBlock', #Design factor col
                 designation = 'germplasmName',
                 gid = 'germplasmDbId',
                 location = 'locationName',
@@ -914,6 +918,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 iBlock = 'block',
                 row = 'positionCoordinateY',
                 col = 'positionCoordinateX',
+                rowDes = 'rowBlock', #Design factor row
+                colDes = 'colBlock', #Design factor col
                 designation = 'germplasmName',
                 gid = 'germplasmDbId',
                 location = 'studyName',
@@ -935,7 +941,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               )
             )
 
-            for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
+            for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'rowDes', 'colDes','designation', 'gid', 'location', 'trial', 'entryType')) {
               if (mapping[[input$pheno_db_type]][[field]] %in% colnames(temp$data$pheno)) {
                 if (field %in% temp$metadata$pheno$parameter) {
                   temp$metadata$pheno[temp$metadata$pheno$parameter == field, 'value'] <- mapping[[input$pheno_db_type]][[field]]
@@ -1039,7 +1045,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         return(NULL)
       } else{
         temp <- data()
-        mapp2 <- c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')
+        mapp2 <- c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'rowDes', 'colDes','designation', 'gid', 'location', 'trial', 'entryType')
         header2 <- colnames(pheno_data())
         pheno_map2 <- lapply(mapp2, function(x) {
           column(3,
@@ -1140,7 +1146,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       req(data())
       dtMta <- data()$metadata$pheno
       if(!is.null(dtMta)){
-        traitMtaInput <- intersect( c('pipeline','stage','year', 'season','timepoint', 'country', 'location', 'trial', 'study','management'), dtMta$parameter )
+        if (input$pheno_input == 'brapi') {
+          traitMtaInput <- intersect( c('trial'), dtMta$parameter )
+        }else{
+          traitMtaInput <- intersect( c('pipeline','stage','year', 'season','timepoint', 'country', 'location', 'trial', 'study','management'), dtMta$parameter )
+        }
         updateSelectInput(session, "featuresEnvironment", choices = traitMtaInput, selected = traitMtaInput)
       }
     })
