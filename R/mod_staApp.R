@@ -175,22 +175,22 @@ mod_staApp_ui <- function(id){
                                                                                                            )
                                                                                                          ),
                                                                                                          choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
-                                                                                             selectInput(
-                                                                                               ns("rowColRoleSta"),
-                                                                                               label = tags$span(
-                                                                                                 "Row/Column effect",
-                                                                                                 tags$i(
-                                                                                                   class = "glyphicon glyphicon-info-sign",
-                                                                                                   style = "color:#FFFFFF",
-                                                                                                   title = "Choose whether row and column should be used only as spatial coordinates (residual/spline) or also as blocking/design random effects."
-                                                                                                 )
-                                                                                               ),
-                                                                                               choices = c(
-                                                                                                 "Spatial coordinates only" = "spatial",
-                                                                                                 "Blocking/design factors" = "design"
-                                                                                               ),
-                                                                                               selected = "spatial"
-                                                                                             ),
+                                                                                             #selectInput(
+                                                                                               #ns("rowColRoleSta"),
+                                                                                               #label = tags$span(
+                                                                                                 #"Row/Column effect",
+                                                                                                 #tags$i(
+                                                                                                   #class = "glyphicon glyphicon-info-sign",
+                                                                                                   #style = "color:#FFFFFF",
+                                                                                                   #title = "Choose whether row and column should be used only as spatial coordinates (residual/spline) or also as blocking/design random effects."
+                                                                                                 #)
+                                                                                               #),
+                                                                                               #choices = c(
+                                                                                                 #"Spatial coordinates only" = "spatial",
+                                                                                                 #"Blocking/design factors" = "design"
+                                                                                               #),
+                                                                                               #selected = "spatial"
+                                                                                             #),
                                                                                              numericInput(ns("maxitSta"),
                                                                                                           label = tags$span(
                                                                                                             "Number of iterations",
@@ -1329,13 +1329,24 @@ mod_staApp_server <- function(id,data){
       } else {
         output$qaQcStaInfo <- renderUI({return(NULL)})
         # save(dtSta, file = "./R/outputs/resultSta.RData")
+        paramsPheno <- data()$metadata$pheno
+        params <- unique(paramsPheno$parameter)
+        has_design <- all(c("rowDes", "colDes") %in% params)
+        has_spatial <- all(c("row", "col") %in% params)
+        if (has_design) {
+          rowColRoleSta <- "design"
+        } else if (has_spatial) {
+          rowColRoleSta <- "spatial"
+        } else {
+          rowColRoleSta <- "spatial"
+        }
         result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta, analysisId=input$version2Sta,
                                             trait=input$trait2Sta,
                                             traitFamily = myFamily,
                                             fixedTerm = input$fixedTermSta2,
                                             returnFixedGeno=input$genoAsFixedSta,
                                             genoUnit = input$genoUnitSta,
-                                            rowColRole = input$rowColRoleSta,
+                                            rowColRole = rowColRoleSta,
                                             verbose = input$verboseSta,
                                             maxit = input$maxitSta),
                       silent=TRUE

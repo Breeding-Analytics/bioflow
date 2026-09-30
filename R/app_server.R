@@ -159,7 +159,7 @@ app_server <- function(input, output, session) {
   # Your application server logic
   required_mapping <- c("pipeline", "stage", "year", "season", "timepoint",
                         "country", "location", "trial","study", "management","rep", "iBlock",
-                        "row", "col", "designation", "gid", "entryType", "trait")
+                        "row", "col", "rowDes", "colDes","designation", "gid", "entryType", "trait")
 
   required_mapping_weather <- c("environment", "latitude","longitude",
                                "year", "month","day","date", "trait")
