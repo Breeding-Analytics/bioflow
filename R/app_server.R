@@ -19,8 +19,8 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
-modules <- data.frame(module = c("qaRaw","sta","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","mtaLmms","qaFilter","qaDesign","qaConsist"),
-                      moduleName = c("Quality Assurance Phenotypes","Single Trial Analysis","Multi Trial Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MTA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
+modules <- data.frame(module = c("qaRaw","soa","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","moaLmms","qaFilter","qaDesign","qaConsist"),
+                      moduleName = c("Quality Assurance Phenotypes","Single Occurrence Analysis","Multi Occurrence Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MOA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
 
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
@@ -62,6 +62,93 @@ future::plan(future::multisession)
 users <- readRDS("users.rds")
 app_server <- function(input, output, session) {
 
+  ### START Macro Recording ####################################################
+
+  steps <- reactiveVal(list())
+  trace <- reactiveVal(list())
+  recording <- reactiveVal(FALSE)
+  namespaces <- vapply(workflow_config, `[[`, character(1), "namespace")
+
+  observeEvent(input$start_recording, {
+    shinyalert::shinyalert(title = "Recording Started!", text = 'Your analysis settings and steps are being recorded. Click "Stop & Save" when finished.', type = "info")
+    steps(list())
+    trace(list())
+    recording(TRUE)
+    session$sendCustomMessage("workflow_recording_state", list(active = TRUE, namespaces = unname(namespaces)))
+  })
+
+  observeEvent(input$workflow_event, {
+    if (!recording()) return()
+    event <- input$workflow_event
+    event$sequence <- length(trace()) + 1L
+    trace(c(trace(), list(event)))
+  })
+
+  # app_server can see the fully namespaced IDs. Each configured action button
+  # receives an observer that saves ALL current inputs from its own namespace,
+  # including default values that the user did not change while recording.
+  for (workspace in names(workflow_config)) {
+    config <- workflow_config[[workspace]]
+    for (button_id in names(config$actions)) {
+      local({
+        this_workspace <- workspace
+        this_config <- config
+        this_button <- button_id
+        button_full_id <- NS(this_config$namespace, this_button)
+
+        observeEvent(input[[button_full_id]], {
+          if (!recording()) return()
+
+          all_inputs <- reactiveValuesToList(input)
+          prefix <- paste0(this_config$namespace, ns.sep)
+          matching <- names(all_inputs)[startsWith(names(all_inputs), prefix)]
+          excluded <- NS(this_config$namespace, c(names(this_config$actions), this_config$exclude))
+          keys <- sort(setdiff(matching, excluded))
+          settings <- all_inputs[keys]
+          names(settings) <- substring(keys, nchar(prefix) + 1L)
+
+          steps(c(steps(), list(list(
+            workspace = this_workspace,
+            namespace = this_config$namespace,
+            action = unname(this_config$actions[[this_button]]),
+            settings = settings,
+            time = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+          ))))
+        }, ignoreInit = TRUE)
+      })
+    }
+  }
+
+  output$save_workflow <- downloadHandler(
+    filename = function() "workflow_recording.json",
+    content = function(file) {
+      jsonlite::write_json(
+        list(schema_version = 1L,
+             steps = isolate(steps()),
+             trace = isolate(trace())),
+        path = file, pretty = TRUE, auto_unbox = TRUE
+      )
+
+      # stop recording after saving the workflow
+      recording(FALSE)
+      session$sendCustomMessage("workflow_recording_state", list(active = FALSE, namespaces = unname(namespaces)))
+    }
+  )
+
+  output$recording_indicator <- renderUI({
+    if (!recording()) return(NULL)
+    #tags$span(class = "recording-indicator", icon("circle", class = "recording-dot"), " Recording")
+    tags$span(class = "recording-indicator",
+      tags$span(HTML("&#9679;"), style = "color: red; font-size: 14px; vertical-align: middle; animation: blink 1.2s steps(1, start) infinite;"),
+      " Recording",
+
+      # Tiny inline definition for the custom keyframe 'blink'
+      tags$style("@keyframes blink { 0%, 100% { visibility: visible; } 50% { visibility: hidden; } }")
+    )
+  })
+
+  ### END Macro Recording ######################################################
+
   options(shiny.maxRequestSize=8000*1024^2) # 8GB or 8,000Mb
 
   res_auth <- shinymanager::secure_server(
@@ -72,7 +159,7 @@ app_server <- function(input, output, session) {
   # Your application server logic
   required_mapping <- c("pipeline", "stage", "year", "season", "timepoint",
                         "country", "location", "trial","study", "management","rep", "iBlock",
-                        "row", "col", "designation", "gid", "entryType", "trait")
+                        "row", "col", "rowDes", "colDes","designation", "gid", "entryType", "trait")
 
   required_mapping_weather <- c("environment", "latitude","longitude",
                                "year", "month","day","date", "trait")
@@ -350,6 +437,7 @@ app_server <- function(input, output, session) {
   mod_getDataPed_server("getDataPed_1", data = data, res_auth = res_auth)
   mod_getDataWeather_server("getDataWeather_1", map = required_mapping_weather, data = data, res_auth = res_auth)
   mod_getDataQTL_server("getDataQTL_1", data = data, res_auth = res_auth)
+  tryCatch(mod_getDataTPP_server("getDataTPP_1", data = data), error = function(e) message("TPP module failed to load: ", e$message))
 
   mod_bindObjectApp_server("bindObjectApp_1", data = data, res_auth=res_auth)
 
@@ -370,22 +458,26 @@ app_server <- function(input, output, session) {
   #mod_dataConsistApp_server("dataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
-  mod_staApp_server("staApp_1", data = data) # single trial analysis
+  mod_staApp_server("staApp_1", data = data) # single occurrence analysis
   mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
   mod_mtaASREMLApp_server("mtaASREMLApp_1", data = data)
-  # mod_mtaApp_server("mtaApp_1",data = data) # multi-trial analysis
+  # mod_mtaRRBLUPApp_server("mtaRRBLUPApp_1", data = data)
+  # mod_retrieveMarkerEffectsApp_server("retrieveMarkerEffectsApp_1", data = data)
+  # mod_mtaApp_server("mtaApp_1",data = data) # multi occurrence analysis
   # mod_mtaExpApp_server("mtaExpApp_1", data = data) # mta flexible approach
   # mod_mtaCrossValApp_server("mtaCrossValApp_1") # cross validation for mta module
   mod_indexDesireApp_server("indexDesireApp_1", data = data) # selection indices (Desire)
   mod_indexBaseApp_server("indexBaseApp_1", data = data) # selection indices (Base)
+  mod_preProdAdvApp_server("preProdAdvApp_1", data = data)
+  mod_advMeetingApp_server("advMeetingApp_1", data = data)
   mod_ocsApp_server("ocsApp_1", data = data) # optimal cross selection
   mod_gpcpApp_server("gpcpApp_1", data = data) #genomic prediction of cross performance
 
   # SELECTION - selection history
   mod_rggApp_server("rggApp_1", data = data) # realized genetic gain
-  # mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
+  mod_pggApp_server("pggApp_1", data = data) # predicted genetic gain
   mod_selSignApp_server("selSignApp_1")
 
   # MUTATION - mutation discovery
@@ -394,7 +486,7 @@ app_server <- function(input, output, session) {
   #mod_mutatioRateApp_server("mutatioRateApp_1") # mutation rate
 
   # GENE FLOW AND DRIFT - frequency-based selection
-  mod_masApp_server("masApp_1", data = data) # MAS  
+  mod_masApp_server("masApp_1", data = data) # MAS
   # mod_neApp_server("neApp_1", data = data) # effective size
   # GENE FLOW AND DRIFT - gene flow history
   mod_PopStrApp_server("PopStrApp_1", data = data) # populationn structure
@@ -463,7 +555,7 @@ app_server <- function(input, output, session) {
       task_id        <- query$task
       s3_object_path <- paste0(query$domain, "/", task_id, ".RData")
 
-      s3 <- paws::s3()
+      s3 <- paws.storage::s3()
 
       tryCatch({
         s3_download <- s3$get_object(
@@ -474,6 +566,7 @@ app_server <- function(input, output, session) {
         raw_con <- rawConnection(s3_download$Body)
         load(raw_con)
         close(raw_con)
+        result <- update_module_ids(result)
 
         ## replace tables
         tmp <- data()
@@ -494,14 +587,14 @@ app_server <- function(input, output, session) {
       })
     }
 
-    if (!is.null(query$module) && query$module == "STA") {
+    if (!is.null(query$module) && query$module %in% c("STA", "SOA")) {
       # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
       # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
 
       updateNavbarPage(session, "tabso", selected = "staApp_tab")
     }
 
-    if (!is.null(query$module) && query$module == "MTA") {
+    if (!is.null(query$module) && query$module %in% c("MTA", "MOA")) {
       # "tabso" is the `id` of the `navbarPage` in the app_ui.R script
       # "staApp_tab" is the `value` of the `tabPanel` in the app_ui.R script
 

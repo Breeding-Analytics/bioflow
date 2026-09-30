@@ -98,7 +98,7 @@ if(is.null(result)){
   # invisible(NULL)
 } else {
   gl <- result$data$geno
-  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- sort(result$status[which(result$status$module == "qaGeno"),"analysisId"])
   idMarkers <- idMarkers[length(idMarkers)]
   # Regenerate the final filtered gl
   modifications <- result$modifications$geno %>% 
@@ -108,10 +108,10 @@ if(is.null(result)){
   t_loc <- which(!seq(adegenet::nLoc(gl)) %in% r_loc[!is.na(r_loc)])
   r_ind <- modifications$row
   t_ind <- which(!seq(adegenet::nInd(gl)) %in% r_ind[!is.na(r_ind)])
-  fgl <- gl[t_ind, t_loc]
-  fgl <- cgiarGenomics::recalc_metrics(fgl)
+  fgl <- cgiarGenomics::recalc_metrics(gl[t_ind, t_loc])
   
-  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[cgiarBase::resolveGenoStamp(result$data$geno_imp, idMarkers)]])
+  
   # Get Summaries of original and filtered dataset
   original <-as.data.frame(cgiarGenomics::get_overall_summary(gl))
   filtered <- as.data.frame(cgiarGenomics::get_overall_summary(fgl))
@@ -146,9 +146,9 @@ if(is.null(result)){
   # pass
 } else {
   gl <- result$data$geno
-  idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
+  idMarkers <- sort(result$status[which(result$status$module == "qaGeno"),"analysisId"])
   idMarkers <- idMarkers[length(idMarkers)]
-  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  imp_gl <- cgiarGenomics::recalc_metrics(result$data$geno_imp[[cgiarBase::resolveGenoStamp(result$data$geno_imp, idMarkers)]])
   dist_chr_df <- purrr:::map2_df(c(gl, imp_gl), c("Original", "Imputed"),
                   function(x,y){
                     geno_map <- data.frame(CHROM = x@chromosome, POS = x@position)
@@ -162,7 +162,7 @@ if(is.null(result)){
     pivot_wider(names_from = dataset,
       values_from = snps_count
     )
-  colnames <- c("Chromosome", "No. Loci Original", "No. Loci Imputed")
+  colnames <- c("Chromosome", "No. Loci Original", "No. Loci Retained")
   if("params" %in% ls()){
     printTable(wide_dist_chr, colNames = colnames)    
   } else {
@@ -179,6 +179,9 @@ if(is.null(result)){
 
 
 This plot shows the genomic positions of SNPs before (blue) and after (red) imputation, highlighting how the filtering process modify the distribution relative to the original dataset.
+
+
+
 ```{r}
 if(is.null(result)){
   # invisible(NULL)
@@ -206,7 +209,7 @@ if(is.null(result)){
   gl <- result$data$geno
   idMarkers <- result$status[which(result$status$module == "qaGeno"),"analysisId"]
   idMarkers <- idMarkers[length(idMarkers)]
-  imp_gl <- result$data$geno_imp[[as.character(idMarkers)]]
+  imp_gl <- result$data$geno_imp[[cgiarBase::resolveGenoStamp(result$data$geno_imp, idMarkers)]]
   
   
   df_dens <- purrr::map2_df(
@@ -242,7 +245,7 @@ if(is.null(result)){
 ### Table of modifications
 <p>&nbsp;</p>
 
-The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw genotype data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., multi trial analysis module).
+The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw genotype data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., multi occurrence analysis module).
 
 ```{r}
 if(is.null(result)){

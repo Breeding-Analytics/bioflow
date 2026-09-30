@@ -513,9 +513,13 @@ mod_qaPhenoApp_server <- function(id, data){
       file.copy(src2, 'resultQaPheno.RData', overwrite = TRUE)
 
       outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4, embed_fonts = FALSE)
                                             # HTML = rmarkdown::html_document()
                                      ))
+
+      html <- rawToChar(readBin(outReport, "raw", n = file.info(outReport)$size))
+      font_css <- paste0("(?s)<style type=\"text/css\">\\s*@font-face\\s*\\{", "\\s*font-family:\\s*'Fira Code'.*?</style>")
+      if (grepl(font_css, html, perl = TRUE)) {html <- sub(font_css, "", html, perl = TRUE); writeBin(charToRaw(html), outReport)}
 
       report(outReport)
 
@@ -592,8 +596,8 @@ mod_qaPhenoApp_server <- function(id, data){
           result$modeling <- rbind(result$modeling, provMet[,colnames(result$modeling)])
         }
         data(result)
-        # cat(crayon::green(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis.")))
-        cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis."))
+        # cat(crayon::green(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Occurrence Analysis.")))
+        cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Occurrence Analysis."))
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         shinybusy::remove_modal_spinner()
 
@@ -618,7 +622,7 @@ mod_qaPhenoApp_server <- function(id, data){
           )
 
           output$outQaRaw2 <- renderPrint({
-            cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis."))
+            cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Occurrence Analysis."))
           })
 
         }else{ hideAll$clearAll <- TRUE}

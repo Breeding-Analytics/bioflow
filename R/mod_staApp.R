@@ -20,7 +20,7 @@ mod_staApp_ui <- function(id){
                            tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Single Trial Analysis Module", tags$a(href="https://www.youtube.com/watch?v=fqUTdvbzNSE&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=6", icon("youtube") , target="_blank"), style="color:darkcyan"))),
+                                           h1(strong(span("Single Occurrence Analysis Module", tags$a(href="https://www.youtube.com/watch?v=fqUTdvbzNSE&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=6", icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),
                                            uiOutput(ns("warningMessage")),
                                            tags$br(),
@@ -40,7 +40,7 @@ mod_staApp_ui <- function(id){
                               Genotype is fitted as both, fixed and random. The user defines which should be returned in the predictions table.
                               By default genotype (designation column) predictions and their standard errors are returned.
                                 The way the options are used is the following:"),
-                                           p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
+                                           p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single occurrence analysis step."),
                                            p(strong("Traits to analyze.-")," Traits to be analyzed. If no design factors can be fitted simple means are taken."),
                                            p(strong("Covariates.-"),"Columns to be fitted as as additional fixed effect covariates in each trial."),
                                            p(strong("Additional settings.-")),
@@ -77,7 +77,7 @@ mod_staApp_ui <- function(id){
                                                                                       tags$i(
                                                                                         class = "glyphicon glyphicon-info-sign",
                                                                                         style = "color:#FFFFFF",
-                                                                                        title = "Analysis ID(s) from QA modifications that should be applied in the STA."
+                                                                                        title = "Analysis ID(s) from QA modifications that should be applied in the SOA."
                                                                                       )
                                                                                     ),
                                                                                     choices = NULL, multiple = TRUE),
@@ -175,22 +175,22 @@ mod_staApp_ui <- function(id){
                                                                                                            )
                                                                                                          ),
                                                                                                          choices=list("BLUEs"=TRUE,"BLUPs"=FALSE),selected=TRUE),
-                                                                                             selectInput(
-                                                                                               ns("rowColRoleSta"),
-                                                                                               label = tags$span(
-                                                                                                 "Row/Column effect",
-                                                                                                 tags$i(
-                                                                                                   class = "glyphicon glyphicon-info-sign",
-                                                                                                   style = "color:#FFFFFF",
-                                                                                                   title = "Choose whether row and column should be used only as spatial coordinates (residual/spline) or also as blocking/design random effects."
-                                                                                                 )
-                                                                                               ),
-                                                                                               choices = c(
-                                                                                                 "Spatial coordinates only" = "spatial",
-                                                                                                 "Blocking/design factors" = "design"
-                                                                                               ),
-                                                                                               selected = "spatial"
-                                                                                             ),
+                                                                                             #selectInput(
+                                                                                               #ns("rowColRoleSta"),
+                                                                                               #label = tags$span(
+                                                                                                 #"Row/Column effect",
+                                                                                                 #tags$i(
+                                                                                                   #class = "glyphicon glyphicon-info-sign",
+                                                                                                   #style = "color:#FFFFFF",
+                                                                                                   #title = "Choose whether row and column should be used only as spatial coordinates (residual/spline) or also as blocking/design random effects."
+                                                                                                 #)
+                                                                                               #),
+                                                                                               #choices = c(
+                                                                                                 #"Spatial coordinates only" = "spatial",
+                                                                                                 #"Blocking/design factors" = "design"
+                                                                                               #),
+                                                                                               #selected = "spatial"
+                                                                                             #),
                                                                                              numericInput(ns("maxitSta"),
                                                                                                           label = tags$span(
                                                                                                             "Number of iterations",
@@ -314,8 +314,8 @@ mod_staApp_ui <- function(id){
 #         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
 #         if(mappedColumns == 3){
 #           if( any(c("qaRaw","qaFilter","qaDesign","qaConsist") %in% data()$status$module ) ){
-#             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis specifying your input parameters under the 'Input' tabs.")) )
-#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
+#             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single occurrence analysis specifying your input parameters under the 'Input' tabs.")) )
+#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single occurrence analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
 #         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
 #       }
 #     )
@@ -716,7 +716,7 @@ mod_staApp_ui <- function(id){
 #           }else{
 #             req(data())
 #             HTML(as.character(div(style="color: brown;",
-#                                   "Please perform QA/QC before conducting a Single-Trial Analysis."))
+#                                   "Please perform QA/QC before conducting a Single Occurrence Analysis."))
 #             )
 #           }
 #
@@ -728,7 +728,7 @@ mod_staApp_ui <- function(id){
 #         shinybusy::remove_modal_spinner()
 #         if(!inherits(result,"try-error")) {
 #           data(result) # update data with results
-#           cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
+#           cat(paste("Single occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi occurrence analysis using this time stamp."))
 #           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
 #
 #           # predictions table
@@ -738,7 +738,7 @@ mod_staApp_ui <- function(id){
 #               #   return()
 #               # }else{
 #               predictions <- result$predictions
-#               predictions <- predictions[predictions$module=="sta",]
+#               predictions <- predictions[predictions$module=="soa",]
 #               predictions$analysisId <- as.numeric(predictions$analysisId)
 #               predictions <- predictions[!is.na(predictions$analysisId),]
 #               current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -759,7 +759,7 @@ mod_staApp_ui <- function(id){
 #               #   return()
 #               # }else{
 #               metrics <- result$metrics
-#               metrics <- metrics[metrics$module=="sta",]
+#               metrics <- metrics[metrics$module=="soa",]
 #               metrics$analysisId <- as.numeric(metrics$analysisId)
 #               metrics <- metrics[!is.na(metrics$analysisId),]
 #               current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
@@ -780,7 +780,7 @@ mod_staApp_ui <- function(id){
 #               #   return()
 #               # }else{
 #               modeling <- result$modeling
-#               modeling <- modeling[modeling$module=="sta",]
+#               modeling <- modeling[modeling$module=="soa",]
 #               modeling$analysisId <- as.numeric(modeling$analysisId)
 #               modeling <- modeling[!is.na(modeling$analysisId),]
 #               current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
@@ -794,7 +794,7 @@ mod_staApp_ui <- function(id){
 #             }
 #           }, server = FALSE)
 #
-#           ## dashboard STA
+#           ## dashboard SOA
 #           output$reportSta <- renderUI({
 #             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
 #           })
@@ -886,8 +886,8 @@ mod_staApp_server <- function(id,data){
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
           if(any(c("qaRaw", "qaMb") %in% data()$status$module)){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single-trial analysis specifying your input parameters under the 'Input' tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single-trial analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the single occurrence analysis specifying your input parameters under the 'Input' tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please identify trait-outliers in the phenotypic dataset before performing a single occurrence analysis. Go to the 'QC & Transform' tab to do so. ")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -1039,67 +1039,8 @@ mod_staApp_server <- function(id,data){
     })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- networkNames
-        colnames(X) <- networkNames
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     ## render the data to be analyzed
     observeEvent(data(),{
@@ -1342,9 +1283,13 @@ mod_staApp_server <- function(id,data){
       file.copy(src2, 'resultSta.RData', overwrite = TRUE)
 
       outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4, embed_fonts = FALSE)
                                             # HTML = rmarkdown::html_document()
                                      ))
+
+      html <- rawToChar(readBin(outReport, "raw", n = file.info(outReport)$size))
+      font_css <- paste0("(?s)<style type=\"text/css\">\\s*@font-face\\s*\\{", "\\s*font-family:\\s*'Fira Code'.*?</style>")
+      if (grepl(font_css, html, perl = TRUE)) {html <- sub(font_css, "", html, perl = TRUE); writeBin(charToRaw(html), outReport)}
 
       report(outReport)
 
@@ -1362,7 +1307,7 @@ mod_staApp_server <- function(id,data){
       req(input$genoAsFixedSta)
       req(input$verboseSta)
       req(input$maxitSta)
-      req(input$rowColRoleSta)
+
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtSta <- data()
       myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
@@ -1377,19 +1322,30 @@ mod_staApp_server <- function(id,data){
           else
             req(dtSta)
           HTML(as.character(div(style="color: brown;",
-                                "Please perform QA/QC before conducting a Single-Trial Analysis."))
+                                "Please perform QA/QC before conducting a Single Occurrence Analysis."))
           )
         })
       } else {
         output$qaQcStaInfo <- renderUI({return(NULL)})
         # save(dtSta, file = "./R/outputs/resultSta.RData")
+        paramsPheno <- data()$metadata$pheno
+        params <- unique(paramsPheno$parameter)
+        has_design <- all(c("rowDes", "colDes") %in% params)
+        has_spatial <- all(c("row", "col") %in% params)
+        if (has_design) {
+          rowColRoleSta <- "design"
+        } else if (has_spatial) {
+          rowColRoleSta <- "spatial"
+        } else {
+          rowColRoleSta <- "spatial"
+        }
         result <- try(cgiarPipeline::staLMM(phenoDTfile = dtSta, analysisId=input$version2Sta,
                                             trait=input$trait2Sta,
                                             traitFamily = myFamily,
                                             fixedTerm = input$fixedTermSta2,
                                             returnFixedGeno=input$genoAsFixedSta,
                                             genoUnit = input$genoUnitSta,
-                                            rowColRole = input$rowColRoleSta,
+                                            rowColRole = rowColRoleSta,
                                             verbose = input$verboseSta,
                                             maxit = input$maxitSta),
                       silent=TRUE
@@ -1398,9 +1354,9 @@ mod_staApp_server <- function(id,data){
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
           # save(result, file = "./R/outputs/resultSta.RData")
-          cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
+          cat(paste("Single occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi occurrence analysis using this time stamp."))
           output$outSta2 <- renderPrint({
-            cat(paste("Single-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi-trial analysis using this time stamp."))
+            cat(paste("Single occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your multi occurrence analysis using this time stamp."))
           })
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
@@ -1420,7 +1376,7 @@ mod_staApp_server <- function(id,data){
             #   return()
             # }else{
             predictions <- result$predictions
-            predictions <- predictions[predictions$module=="sta",]
+            predictions <- predictions[predictions$module=="soa",]
             predictions$analysisId <- as.numeric(predictions$analysisId)
             predictions <- predictions[!is.na(predictions$analysisId),]
             current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -1440,7 +1396,7 @@ mod_staApp_server <- function(id,data){
             #   return()
             # }else{
             metrics <- result$metrics
-            metrics <- metrics[metrics$module=="sta",]
+            metrics <- metrics[metrics$module=="soa",]
             metrics$analysisId <- as.numeric(metrics$analysisId)
             metrics <- metrics[!is.na(metrics$analysisId),]
             current.metrics <- metrics[metrics$analysisId==max(metrics$analysisId),]
@@ -1460,7 +1416,7 @@ mod_staApp_server <- function(id,data){
             #   return()
             # }else{
             modeling <- result$modeling
-            modeling <- modeling[modeling$module=="sta",]
+            modeling <- modeling[modeling$module=="soa",]
             modeling$analysisId <- as.numeric(modeling$analysisId)
             modeling <- modeling[!is.na(modeling$analysisId),]
             current.modeling <- modeling[modeling$analysisId==max(modeling$analysisId),]
@@ -1473,7 +1429,7 @@ mod_staApp_server <- function(id,data){
             # }
           }
         }, server = FALSE)
-        ## report STA
+        ## report SOA
         output$reportSta <- renderUI({
           HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportSta.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
         })
@@ -1515,7 +1471,7 @@ mod_staApp_server <- function(id,data){
           grepl("^[a-f0-9]{32}$", query$task) &&
           grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
 
-        s3 <- paws::s3()
+        s3 <- paws.storage::s3()
 
         bucket_name <- "ebs-bioflow"
         s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
@@ -1547,7 +1503,7 @@ mod_staApp_server <- function(id,data){
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
         result <- data()
-        s3 <- paws::s3()
+        s3 <- paws.storage::s3()
 
         # set S3 bucket parameters
         bucket_name <- "ebs-bioflow"

@@ -276,13 +276,13 @@ mod_ocsApp_ui <- function(id){
 #       }else{ # data is there
 #         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
 #         if(mappedColumns == 3){
-#           if(  any(c("mta","mtaFlex","mtaLmms") %in% data()$status$module) ){
+#           if(  any(c("mta","mtaFlex","moaLmms") %in% data()$status$module) ){
 #             if( ("qaGeno" %in% data()$status$module) | (!is.null(data()$metadata$pedigree) ) ){ # user has markers or pedigree
 #               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) specifying your input parameters under the Input tabs.")) )
 #             }else{
 #               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers or pedigree information (and QA the data) to run this module.")) )
 #             }
-#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
+#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
 #         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
 #       }
 #     )
@@ -623,14 +623,14 @@ mod_ocsApp_ui <- function(id){
 #     output$outOcs <- output$outOcs2 <- renderPrint({
 #
 #       # run the modeling, but before test if mta was done
-#       if(sum(data()$status$module %in% c("mta","mtaFlex","mtaLmms","indexD")) == 0) {
+#       if(sum(data()$status$module %in% c("mta","mtaFlex","moaLmms","indexD")) == 0) {
 #         output$qaQcOcsInfo <- renderUI({
 #           if (hideAll$clearAll){
 #             return()
 #           }else{
 #             req(data())
 #             HTML(as.character(div(style="color: brown;",
-#                                   "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+#                                   "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
 #             )
 #           }
 #         })
@@ -770,13 +770,13 @@ mod_ocsApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if(  any(c("mta","mtaAsr","mtaFlex","mtaLmms") %in% data()$status$module) ){
+          if(  any(c("mta","moaAsr","mtaFlex","moaLmms") %in% data()$status$module) ){
             if( ("qaGeno" %in% data()$status$module) | (!is.null(data()$metadata$pedigree) ) ){ # user has markers or pedigree
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) specifying your input parameters under the Input tabs.")) )
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers or pedigree information (and QA the data) to run this module.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -1086,67 +1086,8 @@ mod_ocsApp_server <- function(id, data){
     }, server = FALSE)
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- networkNames
-        colnames(X) <- networkNames
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     ## render modeling
     output$statusOcs <-  DT::renderDT({
@@ -1213,14 +1154,14 @@ mod_ocsApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtOcs <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtOcs$status$module %in% c("mta","mtaAsr","mtaFlex","mtaLmms","indexD")) == 0) {
+      if(sum(dtOcs$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","indexD")) == 0) {
         output$qaQcOcsInfo <- renderUI({
           if (hideAll$clearAll){
             return()
           }else{
             req(dtOcs)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+                                  "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
             )
           }
         })

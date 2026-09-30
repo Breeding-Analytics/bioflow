@@ -64,8 +64,19 @@ mod_gpcpApp_ui <- function(id){
                                       tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right") ), #icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=8, selectInput(ns("version2Gpcp"), "Index version to analyze", choices = NULL, multiple = FALSE)),
-
+                                                      column(width=8, selectInput(ns("version2Gpcp"), "Index version to analyze", choices = NULL, multiple = TRUE)),
+                                                      column(width=8,
+                                                             selectInput(ns("markerEffectsStamp"),
+                                                                         label = tags$span(
+                                                                           "Marker effects MOA stamp (optional)",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Optionally select an MOA stamp containing additive (marker_a) and dominance (marker_d) marker effects. When provided, these effects are used directly instead of back-solving from BLUPs. If left empty, existing back-solve behavior is used."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE)
+                                                      ),
                                                ),
                                                column(width=12),
                                                shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -277,13 +288,13 @@ mod_gpcpApp_server <- function(id, data){
     #  }else{ # data is there
     #    mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
     #    if(mappedColumns == 3){
-    #      if(  any(c("mta","mtaFlex","mtaLmms") %in% data()$status$module) ){
+    #      if(  any(c("mta","mtaFlex","moaLmms") %in% data()$status$module) ){
     #        if( ("qaGeno" %in% data()$status$module)){ # user has markers
     #          HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform genomic prediction of cross performance (GPCP) specifying your input parameters under the Input tabs.")) )
     #        }else{
     #          HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers (and QA the data) to run this module.")) )
     #        }
-    #      }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing genomic prediction of cross performance (GPCP).")) ) }
+    #      }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing genomic prediction of cross performance (GPCP).")) ) }
     #    }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
     #  }
     #)
@@ -312,7 +323,7 @@ mod_gpcpApp_server <- function(id, data){
             ))
           )
         }else{
-          hasMTA       <- any(data()$status$module %in% c("mta", "mtaAsr","mtaFlex", "mtaLmms"))
+          hasMTA       <- any(data()$status$module %in% c("mta", "moaAsr","mtaFlex", "moaLmms"))
           hasMarkers   <- "qaGeno" %in% data()$status$module
           #hasGPCPslot  <- ("GPCP" %in% names(data())) && !is.null(data()$GPCP)
 		  hasGPCPslot   <- !is.null(which(data()$predictions$effectType=="designationA")) && !is.null(which(data()$predictions$effectType=="designationD")) && !is.null(which(data()$predictions$effectType=="inbreeding"))
@@ -327,12 +338,12 @@ mod_gpcpApp_server <- function(id, data){
             )
           }
 
-          ## 4. MTA (A+D) or GPCP slot missing --------------------------------------
+          ## 4. MOA (A+D) or GPCP slot missing --------------------------------------
           if (!hasMTA || !hasGPCPslot) {
             return(
               HTML(as.character(
                 div(style = "color:red; font-size:20px;",
-                    "You need to run the 'Main (A + D)' model in the MTA module before using this module.")
+                    "You need to run the 'Main (A + D)' model in the MOA module before using this module.")
               ))
             )
           }
@@ -401,13 +412,50 @@ mod_gpcpApp_server <- function(id, data){
       updateSelectInput(session, "version2Gpcp", choices = traitsGpcp)
     })
     #################
+    ## marker effects stamp dropdown (optional)
+    ## Lists only MOA stamps that have both marker_a and marker_d effectType predictions
+    observeEvent(c(data()), {
+      req(data())
+      preds <- data()$predictions
+      statusDf <- data()$status
+
+      # Find analysisIds that have marker_a predictions
+      idsWithMarkerA <- unique(preds$analysisId[which(preds$effectType == "marker_a")])
+      # Find analysisIds that have marker_d predictions
+      idsWithMarkerD <- unique(preds$analysisId[which(preds$effectType == "marker_d")])
+      # Stamps must have BOTH marker_a and marker_d
+      validIds <- intersect(idsWithMarkerA, idsWithMarkerD)
+
+      # Build choices with empty option for "none selected"
+      markerChoices <- stats::setNames("", "(none - use back-solve)")
+      if (length(validIds) > 0) {
+        # Match with status table to get labels
+        matchedStatus <- statusDf[which(statusDf$analysisId %in% validIds), , drop = FALSE]
+        validStamps <- unique(matchedStatus$analysisId)
+        if (length(validStamps) > 0) {
+          if ("analysisIdName" %in% colnames(matchedStatus)) {
+            stampLabels <- paste(
+              matchedStatus$analysisIdName[match(validStamps, matchedStatus$analysisId)],
+              as.POSIXct(as.numeric(validStamps), origin = "1970-01-01", tz = "GMT"),
+              sep = "_"
+            )
+          } else {
+            stampLabels <- as.character(as.POSIXct(as.numeric(validStamps), origin = "1970-01-01", tz = "GMT"))
+          }
+          names(validStamps) <- stampLabels
+          markerChoices <- c("(none - use back-solve)" = "", validStamps)
+        }
+      }
+      updateSelectInput(session, "markerEffectsStamp", choices = markerChoices, selected = "")
+    })
+    #################
     ## traits
     observeEvent(c(data(), input$version2Gpcp), {
       req(data())
       req(input$version2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       traitsGpcp <- unique(dtGpcp$trait)
       updateSelectInput(session, "trait2Gpcp", choices = traitsGpcp)
     })
@@ -416,7 +464,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$version2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       traitsGpcp <- unique(dtGpcp$trait)
       updateSelectInput(session, "traitFilterPredictions2D2", choices = traitsGpcp)
     })
@@ -443,7 +491,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$trait2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$trait == input$trait2Gpcp),]
       traitsGpcp <- unique(dtGpcp$effectType)
       updateSelectInput(session, "effectType2Gpcp", choices = traitsGpcp, selected = traitsGpcp)
@@ -458,7 +506,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$effectType2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$trait == input$trait2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$effectType == input$effectType2Gpcp),]
       traitsGpcp <- unique(dtGpcp$entryType)
@@ -485,7 +533,7 @@ mod_gpcpApp_server <- function(id, data){
     # Genotype-QA/QC stamp selector (shown only when relType == "grm")
     # ──────────────────────────────────────────────────────────────────────────
 
-    ## 2.1  Build the choice vector the same way the MTA module does ------------
+    ## 2.1  Build the choice vector the same way the MOA module does ------------
     qaGenoChoices <- reactive({
       req(data())
       st <- data()$status
@@ -541,7 +589,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$trait2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),]
       dtGpcp <- dtGpcp[which(dtGpcp$trait == input$trait2Gpcp),]
       traitsGpcp <- unique(dtGpcp$environment)
       updateSelectInput(session, "env2Gpcp", choices = traitsGpcp)
@@ -627,7 +675,7 @@ mod_gpcpApp_server <- function(id, data){
       req(input$version2Gpcp)
       dtGpcp <- data()
       dtGpcp <- dtGpcp$predictions
-      dtGpcp <- dtGpcp[which(dtGpcp$analysisId == input$version2Gpcp),setdiff(colnames(dtGpcp),c("module","analysisId"))]
+      dtGpcp <- dtGpcp[which(dtGpcp$analysisId %in% input$version2Gpcp),setdiff(colnames(dtGpcp),c("module","analysisId"))]
       numeric.output <- c("predictedValue", "stdError", "reliability")
       DT::formatRound(DT::datatable(dtGpcp, extensions = 'Buttons',
                                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
@@ -640,65 +688,8 @@ mod_gpcpApp_server <- function(id, data){
     }, server = FALSE)
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- as.character(zz$outputId)
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     ## render modeling
     output$statusGpcp <-  DT::renderDT({
@@ -765,14 +756,14 @@ mod_gpcpApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtGpcp <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtGpcp$status$module %in% c("mta","mtaAsr","mtaFlex","mtaLmms","indexD")) == 0) {
+      if(sum(dtGpcp$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","indexD")) == 0) {
         output$qaQcGpcpInfo <- renderUI({
           if (hideAll$clearAll){
             return()
           }else{
             req(dtGpcp)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+                                  "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
             )
           }
         })
@@ -791,7 +782,8 @@ mod_gpcpApp_server <- function(id, data){
           verbose=input$verboseGpcp, maxRun = input$maxRun,
           effectType=input$effectType2Gpcp,
           entryType=input$entryType2Gpcp,
-          numberBest = input$numberBest
+          numberBest = input$numberBest,
+          markerEffectsId = if (!is.null(input$markerEffectsStamp) && nchar(input$markerEffectsStamp) > 0) input$markerEffectsStamp else NULL
         ),
         silent=TRUE
         )

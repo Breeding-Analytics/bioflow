@@ -3,6 +3,193 @@ geno_example  <- 'www/example/geno.hmp.txt'
 # Currently polyploid supported formats
 polyploid_support <- c("vcf", 'dartag', 'hapmap')
 dartseq_formats <- c("dartseqsnp")
+
+# Genotype loading: error handling helpers ----------------------------------
+# Loading genotypes is the most error-prone step for users: picking the wrong
+# format or ploidy is easy and used to take the whole session down. These
+# helpers turn reader failures into readable, actionable dialogs.
+
+geno_format_labels <- c(
+  hapmap     = "HapMap",
+  vcf        = "VCF",
+  dartseqsnp = "DArTSeq SNP",
+  dartag     = "DArTag"
+)
+
+#' Human-readable label for a genotype format key
+#' @noRd
+geno_format_label <- function(fmt) {
+  if (is.null(fmt) || !nzchar(fmt)) return("genotype")
+  lbl <- unname(geno_format_labels[fmt])
+  if (is.na(lbl)) fmt else lbl
+}
+
+#' Show a non-fatal error dialog with optional technical details
+#'
+#' @param title Short dialog title.
+#' @param hints Character vector of guidance lines. Simple HTML is allowed.
+#' @param detail Optional raw error text, shown in a collapsed section.
+#' @noRd
+geno_show_error <- function(title, hints, detail = NULL, type = "error") {
+  body <- lapply(hints, function(h) shiny::tags$p(shiny::HTML(h)))
+
+  if (!is.null(detail) && length(detail) == 1L && nzchar(detail)) {
+    body <- c(body, list(
+      shiny::tags$details(
+        shiny::tags$summary(
+          style = "cursor:pointer;color:#6c757d;",
+          "Technical details"
+        ),
+        shiny::tags$pre(
+          style = "white-space:pre-wrap;text-align:left;font-size:11px;margin-top:6px;",
+          detail
+        )
+      )
+    ))
+  }
+
+  shinyWidgets::show_alert(
+    title = title,
+    text  = shiny::tags$div(style = "text-align:left;", body),
+    html  = TRUE,
+    type  = type
+  )
+}
+
+#' Translate a reader error into actionable guidance
+#'
+#' Maps known cgiarGenomics abort messages onto the mistake that usually
+#' causes them, so the user is told what to change rather than what broke.
+#'
+#' @param e A condition object.
+#' @param fmt The selected format key.
+#' @return A list with `title`, `hints` and `detail`.
+#' @noRd
+geno_error_help <- function(e, fmt) {
+  msg   <- paste(conditionMessage(e), collapse = "\n")
+  label <- geno_format_label(fmt)
+
+  # Ploidy too low for the observed dosages
+  if (grepl("higher than ploid", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "Ploidy level too low",
+      hints = c(
+        sprintf("The file contains genotype calls with more allele copies than the <b>%s</b> ploidy you selected.", label),
+        "Raise the <b>Ploidity level</b> to match your organism, then load again."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Column/structure mismatch: almost always the wrong format selected
+  if (grepl("standard column names|expected column names|column doesn't exist|doesn't have", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "File does not match the selected format",
+      hints = c(
+        sprintf("This file does not look like a valid <b>%s</b> file.", label),
+        "Check that the <b>Biallelic SNP format</b> selector matches the file you uploaded.",
+        "Also confirm the file is not compressed or truncated."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Duplicated identifiers
+  if (grepl("not unique|duplicated", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "Duplicated identifiers",
+      hints = c(
+        "The file contains duplicated sample or marker identifiers.",
+        "Make them unique and upload the file again."
+      ),
+      detail = msg
+    ))
+  }
+
+  # A missing optional package surfaced through the reader
+  if (grepl("is required for|is required but not installed", msg, ignore.case = TRUE)) {
+    return(list(
+      title = "Missing R package",
+      hints = c(
+        "Reading this format needs an R package that is not installed.",
+        "The details below contain the exact install command."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Unreadable / unparseable file
+  if (grepl("cannot open|no such file|does not exist|don't exist|length zero|missing value where|subscript out of bounds",
+            msg, ignore.case = TRUE)) {
+    return(list(
+      title = sprintf("Could not read the %s file", label),
+      hints = c(
+        sprintf("The file could not be parsed as <b>%s</b>.", label),
+        "Verify the <b>format</b> selector, and that the file uploaded completely."
+      ),
+      detail = msg
+    ))
+  }
+
+  # Fallback: still name the two usual culprits
+  list(
+    title = sprintf("Could not load the %s file", label),
+    hints = c(
+      sprintf("Something went wrong while reading the file as <b>%s</b>.", label),
+      "The two most common causes are a mismatched <b>format</b> selector and an incorrect <b>ploidity level</b>.",
+      "Your existing data has not been modified."
+    ),
+    detail = msg
+  )
+}
+
+#' Download a file, reporting failures instead of crashing
+#' @return Local temp path, or NULL if the download failed.
+#' @noRd
+geno_download <- function(url, what = "file") {
+  url <- trimws(url)
+  target <- tempfile(
+    tmpdir  = tempdir(),
+    fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", url)
+  )
+
+  ok <- tryCatch({
+    utils::download.file(url, target, quiet = TRUE)
+    TRUE
+  }, error = function(e) {
+    geno_show_error(
+      title  = "Download failed",
+      hints  = c(
+        sprintf("The %s could not be downloaded from the URL provided.", what),
+        "Check that the link is a <b>direct download</b> link and reachable from this machine."
+      ),
+      detail = conditionMessage(e)
+    )
+    FALSE
+  }, warning = function(w) {
+    # download.file signals non-200 responses as warnings
+    geno_show_error(
+      title  = "Download failed",
+      hints  = c(
+        sprintf("The %s could not be downloaded from the URL provided.", what),
+        "Check that the link is a <b>direct download</b> link and reachable from this machine."
+      ),
+      detail = conditionMessage(w)
+    )
+    FALSE
+  })
+
+  if (!ok) return(NULL)
+  if (!file.exists(target) || file.info(target)$size == 0) {
+    geno_show_error(
+      title = "Downloaded file is empty",
+      hints = c(sprintf("The %s downloaded with no content.", what),
+                "Check the URL points directly at the file.")
+    )
+    return(NULL)
+  }
+  target
+}
 #' getDataGenoCustom UI Function
 #'
 #' @description A shiny Module.
@@ -14,7 +201,8 @@ dartseq_formats <- c("dartseqsnp")
 #' @importFrom shiny NS tagList
 mod_getDataGeno_ui <- function(id) {
   ns <- NS(id)
-  tagList(tags$br(),
+  tagList(shinyjs::useShinyjs(),
+          tags$br(),
           navlistPanel("Steps:", id = ns("geno_load_navpanel"), widths = c(2, 10),
             tabPanel("1. Load data",
               column(width = 8,
@@ -127,6 +315,8 @@ mod_getDataGeno_ui <- function(id) {
                      uiOutput(ns("indManagementUI"))),
             tabPanel("4. Check status",
                      uiOutput(ns("warningMessage")),
+                     br(),
+                     uiOutput(ns("geno_raw_summary_ui"))
             )))}
 
 
@@ -151,7 +341,7 @@ mod_getDataGeno_server <-
         }
       }
 
-      rv <- reactiveValues(is_merging = FALSE)
+      rv <- reactiveValues(is_merging = FALSE, auto_resolved_count = 0)
 
       output$warningMessage <- renderUI(
         if(is.null(data())){
@@ -162,6 +352,47 @@ mod_getDataGeno_server <-
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.). ")) )}
         }
       )
+
+      # Individual Management summary table (modifications$geno_raw)
+      output$geno_raw_summary_ui <- renderUI({
+        tmp <- data()
+        geno_raw <- tmp[["modifications"]][["geno_raw"]]
+        if (is.null(geno_raw) || length(geno_raw) == 0) return(NULL)
+
+        # Convert the named list to a data.frame
+        summary_df <- do.call(rbind, lapply(names(geno_raw), function(desig) {
+          entry <- geno_raw[[desig]]
+          data.frame(
+            designation  = desig,
+            n_used       = as.integer(entry$n_used %||% NA_integer_),
+            n_total      = as.integer(entry$n_total %||% NA_integer_),
+            min_ibs      = as.numeric(entry$min_ibs %||% NA_real_),
+            max_ibs      = as.numeric(entry$max_ibs %||% NA_real_),
+            samples_used = as.character(entry$samples_used %||% NA_character_),
+            reason       = as.character(entry$reason %||% "consensus"),
+            stringsAsFactors = FALSE
+          )
+        }))
+
+        tagList(
+          tags$h4("Individual Management Summary"),
+          tags$p("The following designations were manually resolved during Individual Management:"),
+          DT::renderDT(
+            DT::datatable(
+              summary_df,
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Blfrtip',
+                scrollX = TRUE,
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, 'All'))
+              ),
+              rownames = FALSE
+            ) |> DT::formatRound(columns = c("min_ibs", "max_ibs"), digits = 3),
+            server = FALSE
+          )
+        )
+      })
 
       observeEvent(c(input$custom_geno_input, input$geno_input),{
         if(input$custom_geno_input != "dartag"){
@@ -221,7 +452,26 @@ mod_getDataGeno_server <-
 
           if (input$custom_geno_input %in% dartseq_formats) {
             print('dartseq format')
-            dart_cols <- dart_getCols(input$adegeno_file$datapath)
+
+            # Reading the header can fail if the file is not a DArT CSV.
+            # Report it inline instead of breaking the panel.
+            dart_cols <- tryCatch(
+              dart_getCols(input$adegeno_file$datapath),
+              error = function(e) {
+                print(e)
+                NULL
+              }
+            )
+
+            if (is.null(dart_cols) || length(dart_cols) == 0) {
+              return(tags$div(
+                style = "background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:10px;border-radius:6px;",
+                tags$b("Could not read column names from this file."),
+                tags$p(style = "margin-bottom:0;",
+                       "It does not look like a DArTSeq CSV. Check the format selector above.")
+              ))
+            }
+
             tags$span(
               selectInput(inputId = ns("dartseq_markerid"),
                           label = "Marker id:",
@@ -274,129 +524,257 @@ mod_getDataGeno_server <-
         }, ignoreNULL = TRUE)
 
         # Reactive function where input functions are called
+        #
+        # Contract: this reactive NEVER throws. On any problem it shows an
+        # explanatory dialog and returns NULL, leaving existing data untouched.
         get_geno_data <- reactive({
           print("Geno load btn clicked")
-          if(input$custom_geno_input != "dartag"){
-            if (input$geno_input == 'file') {
-              genotype_file <- input$adegeno_file$datapath
-            } else if (input$geno_input == 'url') {
-              temp_genofile <- tempfile(
-                tmpdir = tempdir(),
-                fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$adegeno_url))
-              # Download file
-              utils::download.file(input$adegeno_url, temp_genofile)
-              genotype_file <- temp_genofile
-              }
-            } else {
-              if (input$geno_input == 'file') {
-                dosage_file <- input$darttag_dosage_file$datapath
-                counts_file <- input$darttag_counts_file$datapath
-              } else if (input$geno_input == 'url') {
-                # Dosage file download
-                temp_dosagefile <- tempfile(
-                  tmpdir = tempdir(),
-                  fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$darttag_dosage_url))
-                utils::download.file(input$darttag_dosage_url, temp_dosagefile)
-                dosage_file <- temp_dosagefile
-                # Counts file download
-                temp_countsfile <- tempfile(
-                  tmpdir = tempdir(),
-                  fileext = sub(".*\\.([a-zA-Z0-9]+)$", ".\\1", input$darttag_counts_url))
-                utils::download.file(input$darttag_counts_url, temp_countsfile)
-                counts_file <- temp_countsfile
-              }
-            }
 
-            print(as.numeric(input$ploidlvl_input))
-            print(typeof(as.numeric(input$ploidlvl_input)))
-            switch(input$custom_geno_input,
-                   hapmap = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_hapmap(path = genotype_file,
-                                                              ploidity = as.numeric(input$ploidlvl_input))
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid hapmap file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   vcf = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_vcf(path = genotype_file,
-                                                           ploidity = as.numeric(input$ploidlvl_input))
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid VCF file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   dartseqsnp = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_DArTSeq_SNP(path = genotype_file,
-                                                                   snp_id = input$dartseq_markerid,
-                                                                   chr_name = input$dartseq_chrom,
-                                                                   pos_name = input$dartseq_position)
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid DArTSeq file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   dartag = {
-                     shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
-                     tryCatch({
-                       geno_data = cgiarGenomics::read_DArTag_count_dosage(dosage_path = dosage_file,
-                                                                           counts_path = counts_file,
-                                                                           ploidity = as.numeric(input$ploidlvl_input))
-                       }, error = function(e) {
-                         print(e)
-                         error_msg <- rlang::cnd_header(e)
-                         shinyWidgets::show_alert(title = 'Error !!',
-                                                  text = glue::glue("Not a valid DArTag file: {error_msg}"),
-                                                  type = 'error')
-                         })
-                     shinybusy::remove_modal_spinner()
-                     },
-                   {
-                     print("This should not execute D;")
-                     }
-                   )
-            dup_values$load_geno_data <- TRUE
-            return(geno_data)
-            })
+          fmt <- input$custom_geno_input
+          if (is.null(fmt) || !nzchar(fmt)) return(NULL)
+          fmt_label <- geno_format_label(fmt)
+
+          # Safety net: never leave a spinner running if we bail out early.
+          on.exit(shinybusy::remove_modal_spinner(), add = TRUE)
+
+          # ---- Validate ploidy ------------------------------------------
+          ploidity <- suppressWarnings(as.numeric(input$ploidlvl_input))
+          if (length(ploidity) != 1L || is.na(ploidity) ||
+              ploidity < 1 || ploidity != round(ploidity)) {
+            geno_show_error(
+              title = "Invalid ploidy level",
+              hints = "Select a valid <b>Ploidity level</b> before loading the file."
+            )
+            return(NULL)
+          }
+
+          # ---- Resolve input files --------------------------------------
+          genotype_file <- NULL
+          dosage_file   <- NULL
+          counts_file   <- NULL
+
+          if (fmt != "dartag") {
+            if (identical(input$geno_input, 'file')) {
+              if (is.null(input$adegeno_file) || is.null(input$adegeno_file$datapath)) {
+                geno_show_error(
+                  title = "No file selected",
+                  hints = "Choose a file to upload before clicking <b>Load</b>."
+                )
+                return(NULL)
+              }
+              genotype_file <- input$adegeno_file$datapath
+            } else if (identical(input$geno_input, 'url')) {
+              if (is.null(input$adegeno_url) || !nzchar(trimws(input$adegeno_url))) {
+                geno_show_error(
+                  title = "No URL provided",
+                  hints = "Paste a direct download link before clicking <b>Load</b>."
+                )
+                return(NULL)
+              }
+              shinybusy::show_modal_spinner('fading-circle', text = 'Downloading...')
+              genotype_file <- geno_download(input$adegeno_url, "genotype file")
+              shinybusy::remove_modal_spinner()
+              if (is.null(genotype_file)) return(NULL)
+            } else {
+              geno_show_error(
+                title = "No input source selected",
+                hints = "Choose whether to upload a file or provide a URL."
+              )
+              return(NULL)
+            }
+          } else {
+            if (identical(input$geno_input, 'file')) {
+              if (is.null(input$darttag_dosage_file$datapath) ||
+                  is.null(input$darttag_counts_file$datapath)) {
+                geno_show_error(
+                  title = "Missing DArTag files",
+                  hints = "DArTag requires <b>both</b> a dosage file and a counts file."
+                )
+                return(NULL)
+              }
+              dosage_file <- input$darttag_dosage_file$datapath
+              counts_file <- input$darttag_counts_file$datapath
+            } else if (identical(input$geno_input, 'url')) {
+              if (is.null(input$darttag_dosage_url) || !nzchar(trimws(input$darttag_dosage_url)) ||
+                  is.null(input$darttag_counts_url) || !nzchar(trimws(input$darttag_counts_url))) {
+                geno_show_error(
+                  title = "Missing DArTag URLs",
+                  hints = "DArTag requires a link for <b>both</b> the dosage file and the counts file."
+                )
+                return(NULL)
+              }
+              shinybusy::show_modal_spinner('fading-circle', text = 'Downloading...')
+              dosage_file <- geno_download(input$darttag_dosage_url, "dosage file")
+              counts_file <- if (!is.null(dosage_file)) {
+                geno_download(input$darttag_counts_url, "counts file")
+              } else NULL
+              shinybusy::remove_modal_spinner()
+              if (is.null(dosage_file) || is.null(counts_file)) return(NULL)
+            } else {
+              geno_show_error(
+                title = "No input source selected",
+                hints = "Choose whether to upload files or provide URLs."
+              )
+              return(NULL)
+            }
+          }
+
+          # ---- Format-specific prerequisites ----------------------------
+          if (fmt %in% dartseq_formats) {
+            # DArTSeq reading needs dartR.base, an optional dependency.
+            if (!requireNamespace("dartR.base", quietly = TRUE)) {
+              geno_show_error(
+                title = "Missing package: dartR.base",
+                hints = c(
+                  "Reading DArTSeq SNP files requires the R package <b>dartR.base</b>, which is not installed.",
+                  "It also needs two Bioconductor packages. Run this in the R console:",
+                  "<pre>install.packages(\"BiocManager\")\nBiocManager::install(c(\"SNPRelate\", \"snpStats\"))\ninstall.packages(\"dartR.base\")</pre>",
+                  "Then restart bioflow. The HapMap, VCF and DArTag formats work without it."
+                )
+              )
+              return(NULL)
+            }
+            if (is.null(input$dartseq_markerid) || is.null(input$dartseq_chrom) ||
+                is.null(input$dartseq_position)) {
+              geno_show_error(
+                title = "DArTSeq columns not selected",
+                hints = c(
+                  "Choose the <b>Marker id</b>, <b>Chromosome</b> and <b>Variant position</b> columns first.",
+                  "If those menus are empty the file could not be read as a DArTSeq CSV - check the format selector."
+                )
+              )
+              return(NULL)
+            }
+          }
+
+          # ---- Read ------------------------------------------------------
+          # Only `error` is trapped: reader warnings (e.g. "max dosage lower
+          # than ploidy") are informative and must not abort the load.
+          shinybusy::show_modal_spinner('fading-circle', text = 'Loading...')
+
+          geno_data <- tryCatch(
+            switch(
+              fmt,
+              hapmap = cgiarGenomics::read_hapmap(
+                path     = genotype_file,
+                ploidity = ploidity
+              ),
+              vcf = cgiarGenomics::read_vcf(
+                path     = genotype_file,
+                ploidity = ploidity
+              ),
+              dartseqsnp = cgiarGenomics::read_DArTSeq_SNP(
+                path     = genotype_file,
+                snp_id   = input$dartseq_markerid,
+                chr_name = input$dartseq_chrom,
+                pos_name = input$dartseq_position
+              ),
+              dartag = cgiarGenomics::read_DArTag_count_dosage(
+                dosage_path = dosage_file,
+                counts_path = counts_file,
+                ploidity    = ploidity
+              ),
+              NULL
+            ),
+            error = function(e) {
+              print(e)
+              help <- geno_error_help(e, fmt)
+              geno_show_error(
+                title  = help$title,
+                hints  = help$hints,
+                detail = help$detail
+              )
+              NULL
+            }
+          )
+
+          shinybusy::remove_modal_spinner()
+
+          # ---- Validate the result ---------------------------------------
+          if (is.null(geno_data)) {
+            # An explanatory dialog has already been shown.
+            return(NULL)
+          }
+
+          if (!inherits(geno_data, "genlight")) {
+            geno_show_error(
+              title = sprintf("Unexpected result from the %s reader", fmt_label),
+              hints = c(
+                "The file was read but did not produce a valid genotype object.",
+                "Check the <b>format</b> selector matches the uploaded file."
+              )
+            )
+            return(NULL)
+          }
+
+          n_ind <- tryCatch(adegenet::nInd(geno_data), error = function(e) 0L)
+          n_loc <- tryCatch(adegenet::nLoc(geno_data), error = function(e) 0L)
+
+          if (isTRUE(n_ind == 0L) || isTRUE(n_loc == 0L)) {
+            geno_show_error(
+              title = "No usable genotype data",
+              hints = c(
+                sprintf("The file was parsed as <b>%s</b> but produced %s individuals and %s markers.",
+                        fmt_label, n_ind, n_loc),
+                "Check that the file contains genotype calls and that the format selector is correct."
+              )
+            )
+            return(NULL)
+          }
+
+          # Only now is the load genuinely successful.
+          dup_values$load_geno_data <- TRUE
+          return(geno_data)
+        })
 
         # just to make button reactive
         observeEvent(input$load_geno_btn,{
           geno_data <- get_geno_data()
-          add_data()
+
+          # Loading failed: the reactive already explained why. Stay on this
+          # step so the user can fix the format/ploidy and retry.
+          if (is.null(geno_data)) return(invisible(NULL))
+
+          # Registering the data touches the whole data object; a failure here
+          # must not take the session down either.
+          added <- tryCatch({
+            add_data()
+            TRUE
+          }, error = function(e) {
+            print(e)
+            geno_show_error(
+              title  = "Could not register the genotype data",
+              hints  = c(
+                "The file was read successfully but could not be stored in the analysis environment.",
+                "If you already had genotype data loaded, try reloading the page and importing again."
+              ),
+              detail = conditionMessage(e)
+            )
+            FALSE
+          })
+          if (!isTRUE(added)) return(invisible(NULL))
+
           updateNavlistPanel(session = session,
                              inputId = "geno_load_navpanel",
                              selected = "2. Genotype data Summary")
 
           # Summary of genotypic data
           output$summary_by_chrom <- renderTable({
-            # geno_data <- get_geno_data()
             print("Processsing...")
-            geno_metadata <- data.frame(CHROM = geno_data@chromosome,
-                                        POS = geno_data@position)
-            data.frame(
-              chrom = unique(geno_metadata$CHROM),
-              min_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = min)[, 2],
-              max_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = max)[, 2],
-              snps_count = aggregate(POS ~ CHROM, data = geno_metadata, FUN = length)[, 2]
-            )
+            req(geno_data)
+            tryCatch({
+              geno_metadata <- data.frame(CHROM = geno_data@chromosome,
+                                          POS = geno_data@position)
+              data.frame(
+                chrom = unique(geno_metadata$CHROM),
+                min_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = min)[, 2],
+                max_pos = aggregate(POS ~ CHROM, data = geno_metadata, FUN = max)[, 2],
+                snps_count = aggregate(POS ~ CHROM, data = geno_metadata, FUN = length)[, 2]
+              )
+            }, error = function(e) {
+              print(e)
+              data.frame(message = "Chromosome summary unavailable for this dataset.")
+            })
           })
 
           output$geno_summary <- renderUI({
@@ -430,12 +808,14 @@ mod_getDataGeno_server <-
               sid_col <- if ("sample_id" %in% md$parameter) md$value[md$parameter == "sample_id"] else NA_character_
 
               # 1) prefer sample_id if present and valid
-              # 2) otherwise fall back to 'designation' if it exists in pedigree
+              # 2) otherwise fall back to mapped designation column
               key_col <- NULL
               if (!is.na(sid_col) && nzchar(sid_col) && sid_col %in% names(ped)) {
                 key_col <- sid_col
-              } else if ("designation" %in% names(ped)) {
-                key_col <- "designation"
+              } else {
+                desig_col <- if ("designation" %in% md$parameter) md$value[md$parameter == "designation"] else NA_character_
+                if (length(desig_col) != 1 || is.na(desig_col) || identical(desig_col, "")) desig_col <- "designation"
+                if (desig_col %in% names(ped)) key_col <- desig_col
               }
 
               if (!is.null(key_col) &&
@@ -568,10 +948,20 @@ mod_getDataGeno_server <-
                 !identical(col_name, "") &&
                 (col_name %in% colnames(ped))) {
 
-              # Build mapping: sample_id -> designation (pedigree must have 'designation' column)
-              if ("designation" %in% colnames(ped)) {
+              # Look up the actual designation column name from metadata mapping
+              desig_col <- if ("designation" %in% md_ped$parameter) {
+                md_ped$value[md_ped$parameter == "designation"]
+              } else {
+                NA_character_
+              }
+              if (length(desig_col) != 1 || is.na(desig_col) || identical(desig_col, "")) {
+                desig_col <- "designation"
+              }
+
+              # Build mapping: sample_id -> designation
+              if (desig_col %in% colnames(ped)) {
                 idx <- match(inds, ped[[col_name]])
-                mapped_designation <- ped$designation[idx]
+                mapped_designation <- ped[[desig_col]][idx]
 
                 df_out <- data.frame(
                   sample_id   = inds,
@@ -682,12 +1072,23 @@ mod_getDataGeno_server <-
           ped      <- temp$data$pedigree
           col_name <- md_ped$value[md_ped$parameter == "sample_id"]
 
+          # Look up the actual designation column name from metadata mapping
+          desig_col <- if ("designation" %in% md_ped$parameter) {
+            md_ped$value[md_ped$parameter == "designation"]
+          } else {
+            NA_character_
+          }
+          # Fallback: if metadata value is empty or not set, try literal "designation"
+          if (length(desig_col) != 1 || is.na(desig_col) || identical(desig_col, "")) {
+            desig_col <- "designation"
+          }
+
           if (length(col_name) != 1 || is.na(col_name) || identical(col_name, "") ||
-              !(col_name %in% colnames(ped)) || !("designation" %in% colnames(ped))) {
+              !(col_name %in% colnames(ped)) || !(desig_col %in% colnames(ped))) {
             return(NULL)
           }
 
-          out <- ped[, c(col_name, "designation"), drop = FALSE]
+          out <- ped[, c(col_name, desig_col), drop = FALSE]
           colnames(out) <- c("sample_id", "designation_id")
           # keep only non-empty sample_ids
           out <- out[!is.na(out$sample_id) & out$sample_id != "", , drop = FALSE]
@@ -719,6 +1120,13 @@ mod_getDataGeno_server <-
             mp    <- mp[!is_f1, , drop = FALSE]
           }
 
+          # Only consider sample_ids that still exist in the genlight object
+          gl <- temp$data$geno
+          if (!is.null(gl) && inherits(gl, "genlight")) {
+            existing <- as.character(adegenet::indNames(gl))
+            mp <- mp[mp$sample_id %in% existing, , drop = FALSE]
+          }
+
           if (!nrow(mp)) return(NULL)
 
           dplyr::count(mp, designation_id, name = "count") |>
@@ -746,9 +1154,122 @@ mod_getDataGeno_server <-
             }
 
             dup_values$dup_df <- dplyr::mutate(df, selected = FALSE)
-            updateNavlistPanel(session = session,
-                               inputId = "geno_load_navpanel",
-                               selected = "3. Individual Management")
+
+            # --- Auto-resolve groups with perfect IBS upfront ---
+            shinybusy::show_modal_spinner('fading-circle', text = 'Checking duplicate groups for identical genotypes...')
+
+            tmp <- data()
+            gl  <- tmp$data$geno
+            gl_src <- gl
+            ploidity <- as.numeric(input$ploidlvl_input)
+
+            # Get the filtered random genlight for IBS
+            nloc <- adegenet::nLoc(gl)
+            size_use <- max(1, min(100, nloc))  # default 100 markers for auto-resolve check
+            rand_gl <- tryCatch(
+              cgiarGenomics::random_select_loci(
+                gl, ind_miss = 0.2, loc_miss = 0, maf = 0,
+                size = size_use, seed = 7
+              ),
+              error = function(e) gl
+            )
+
+            # Find all unique designation groups
+            all_groups <- unique(df$designation_id)
+            auto_resolved <- character(0)
+
+            for (grp in all_groups) {
+              grp_samples <- df$sample_id[df$designation_id == grp]
+              # Need at least 2 samples to check IBS
+              if (length(grp_samples) < 2) next
+
+              # Subset the random gl for this group's samples
+              grp_idx <- match(grp_samples, adegenet::indNames(rand_gl))
+              grp_idx <- grp_idx[!is.na(grp_idx)]
+              if (length(grp_idx) < 2) next
+
+              grp_gl <- rand_gl[grp_idx, ]
+
+              # Compute IBS for this group
+              ibs_result <- tryCatch(
+                cgiarGenomics::ibs_matrix_purrr(grp_gl, ploidity),
+                error = function(e) NULL
+              )
+              if (is.null(ibs_result) || is.null(ibs_result$ibs)) next
+
+              m <- tryCatch(as.matrix(ibs_result$ibs), error = function(e) NULL)
+              if (is.null(m) || any(dim(m) < 2)) next
+
+              # Check if all off-diagonal IBS >= 0.999
+              off_diag <- m[row(m) != col(m)]
+              if (all(off_diag >= 0.999, na.rm = TRUE)) {
+                # Perfect IBS — auto-resolve by merging all into designation
+                all_samples   <- as.character(adegenet::indNames(gl))
+                sample_id_vec <- all_samples
+                target_vec    <- all_samples
+                merge_idx <- match(grp_samples, sample_id_vec)
+                merge_idx <- merge_idx[!is.na(merge_idx)]
+                if (length(merge_idx)) target_vec[merge_idx] <- grp
+
+                full_map <- data.frame(
+                  sample_id      = sample_id_vec,
+                  designation_id = target_vec,
+                  check.names    = FALSE, stringsAsFactors = FALSE
+                )
+
+                gl <- tryCatch(
+                  cgiarGenomics::merge_duplicate_inds(gl, full_map),
+                  error = function(e) gl
+                )
+
+                auto_resolved <- c(auto_resolved, grp)
+              }
+            }
+
+            # If we auto-resolved any groups, postprocess and save
+            if (length(auto_resolved) > 0) {
+              # Postprocess
+              if (!is.null(gl_src@position)   && length(gl_src@position)   == adegenet::nLoc(gl)) gl@position   <- gl_src@position
+              if (!is.null(gl_src@chromosome) && length(gl_src@chromosome) == adegenet::nLoc(gl)) gl@chromosome <- gl_src@chromosome
+              if (!is.null(gl_src@loc.all)    && length(gl_src@loc.all)    == adegenet::nLoc(gl)) gl@loc.all    <- gl_src@loc.all
+              if (adegenet::nInd(gl) > 0) {
+                gl <- tryCatch(cgiarGenomics::recalc_metrics(gl), error = function(e) gl)
+              }
+
+              tmp$data$geno <- gl
+              data(tmp)
+
+              # Refresh dup_df: remove auto-resolved samples
+              existing <- tryCatch(as.character(adegenet::indNames(gl)), error = function(e) character(0))
+              dup_values$dup_df <- dup_values$dup_df[dup_values$dup_df$sample_id %in% existing, , drop = FALSE]
+              if (nrow(dup_values$dup_df)) dup_values$dup_df$selected <- FALSE
+            }
+
+            # Store the count for the UI notice
+            rv$auto_resolved_count <- length(auto_resolved)
+
+            shinybusy::remove_modal_spinner()
+
+            # Check if there are remaining groups that need manual intervention
+            dgs <- dup_groups()
+            if (is.null(dgs) || !nrow(dgs)) {
+              # All groups were auto-resolved
+              updateNavlistPanel(session = session,
+                                 inputId = "geno_load_navpanel",
+                                 selected = "4. Check status")
+              shinyWidgets::show_alert(
+                title = "All duplicates resolved",
+                text = sprintf(
+                  "%d designation(s) had identical genotypes across all samples and were automatically resolved. No manual intervention needed.",
+                  length(auto_resolved)
+                ),
+                type = "success"
+              )
+            } else {
+              updateNavlistPanel(session = session,
+                                 inputId = "geno_load_navpanel",
+                                 selected = "3. Individual Management")
+            }
           } else {
             shinyWidgets::show_alert(
               title = "Individual management will be skipped",
@@ -806,6 +1327,8 @@ mod_getDataGeno_server <-
           default_val <- if (!is.null(prev) && is.finite(prev) && prev >= 1 && prev <= nloc) prev else min(100,nloc)
 
           tags$div(
+            # Auto-resolved notice
+            uiOutput(ns("auto_resolved_notice")),
             shinydashboard::box(width = 12, title = "Subset genotype matrix",
                                 fluidRow(
                                   column(
@@ -824,9 +1347,9 @@ mod_getDataGeno_server <-
                                       )
                                       ,
                                       sliderInput(ns("loc_miss_dup_slider"), "Set min locus missingness:",
-                                                  min = 0, max = 1, value = 0.2, step = 0.01),
+                                                  min = 0, max = 1, value = 0, step = 0.01),
                                       sliderInput(ns("maf_dup_slider"), "Set min MAF:",
-                                                  min = 0, max = 1, value = 0.05, step = 0.01),
+                                                  min = 0, max = 1, value = 0, step = 0.01),
                                       numericInput(ns("seed_dup"), "Random seed", value = 7, min = 0, step = 1)
                                     )
                                   )
@@ -854,7 +1377,10 @@ mod_getDataGeno_server <-
                                     #),
                                     div(
                                       style = "display:flex; gap:8px; flex-wrap:wrap;",
-                                      actionButton(ns("btn_apply_actions"), "Run consensus")
+                                      actionButton(ns("btn_apply_actions"), "Run consensus"),
+                                      actionButton(ns("btn_remove_designation"), "Remove designation",
+                                                   class = "btn-danger",
+                                                   title = "Remove all samples for this designation from the genotype matrix")
                                     )
                                   )
                                 )
@@ -1087,6 +1613,21 @@ mod_getDataGeno_server <-
           group_ids <- dup_values$dup_df$sample_id[dup_values$dup_df$designation_id == cur_grp]
           remove_ids <- setdiff(group_ids, merge_ids)
 
+          # Compute IBS directly for this group before merge
+          pre_merge_ibs <- tryCatch({
+            gl_current <- data()$data$geno
+            all_ind_names <- adegenet::indNames(gl_current)
+            # Match group sample_ids and also the designation itself if present
+            candidates <- unique(c(group_ids, cur_grp))
+            grp_idx <- which(all_ind_names %in% candidates)
+            if (length(grp_idx) >= 2) {
+              grp_gl <- gl_current[grp_idx, ]
+              cgiarGenomics::ibs_matrix_purrr(grp_gl, as.numeric(input$ploidlvl_input))
+            } else {
+              NULL
+            }
+          }, error = function(e) NULL)
+
           tmp <- data()
           if (is.null(tmp) || is.null(tmp$data) || is.null(tmp$data$geno)) {
             shinyWidgets::show_alert(title="Aborted", text="Genotype object not found.", type="error")
@@ -1101,10 +1642,9 @@ mod_getDataGeno_server <-
             if (!is.null(gl_ref@chromosome) && length(gl_ref@chromosome) == adegenet::nLoc(gl_new)) gl_new@chromosome <- gl_ref@chromosome
             if (!is.null(gl_ref@loc.all)    && length(gl_ref@loc.all)    == adegenet::nLoc(gl_new)) gl_new@loc.all    <- gl_ref@loc.all
             if (adegenet::nInd(gl_new) > 0) {
-              tryCatch(cgiarGenomics::recalc_metrics(gl_new), error=function(e) gl_new)
-            } else {
-              gl_new
+              gl_new <- tryCatch(cgiarGenomics::recalc_metrics(gl_new), error=function(e) gl_new)
             }
+            gl_new
           }
 
           # exactly one kept sample, no consensus needed
@@ -1137,6 +1677,25 @@ mod_getDataGeno_server <-
             }
 
             gl <- apply_postprocess(gl, gl_src)
+
+            # Store consensus uncertainty metadata for single-sample selection
+            if (!is.null(pre_merge_ibs) && !is.null(pre_merge_ibs$ibs)) {
+              m <- tryCatch(as.matrix(pre_merge_ibs$ibs), error = function(e) NULL)
+              if (!is.null(m) && all(dim(m) >= 2)) {
+                off_diag <- m[row(m) != col(m)]
+                consensus_entry <- list(
+                  n_used  = 1L,
+                  n_total = length(group_ids),
+                  min_ibs = min(off_diag, na.rm = TRUE),
+                  max_ibs = max(off_diag, na.rm = TRUE),
+                  samples_used = paste(merge_ids, collapse = ";")
+                )
+                if (is.null(tmp$modifications$geno_raw)) {
+                  tmp$modifications$geno_raw <- list()
+                }
+                tmp$modifications$geno_raw[[cur_grp]] <- consensus_entry
+              }
+            }
 
             # save back
             tmp$data$geno <- gl
@@ -1207,6 +1766,27 @@ mod_getDataGeno_server <-
             did_remove <- TRUE
           }
 
+          # 2.5) Store consensus uncertainty metadata
+          # Use IBS stats captured before the merge
+          if (!is.null(pre_merge_ibs) && !is.null(pre_merge_ibs$ibs)) {
+            m <- tryCatch(as.matrix(pre_merge_ibs$ibs), error = function(e) NULL)
+            if (!is.null(m) && all(dim(m) >= 2)) {
+              off_diag <- m[row(m) != col(m)]
+              consensus_entry <- list(
+                n_used  = length(merge_ids),
+                n_total = length(group_ids),
+                min_ibs = min(off_diag, na.rm = TRUE),
+                max_ibs = max(off_diag, na.rm = TRUE),
+                samples_used = paste(merge_ids, collapse = ";")
+              )
+              # Store in the main data object (survives genlight rebuilds)
+              if (is.null(tmp$modifications$geno_raw)) {
+                tmp$modifications$geno_raw <- list()
+              }
+              tmp$modifications$geno_raw[[cur_grp]] <- consensus_entry
+            }
+          }
+
           # 3) Postprocess (copy marker slots & recalc metrics if non-empty), save back
           gl <- apply_postprocess(gl, gl_src)
           tmp$data$geno <- gl
@@ -1245,6 +1825,136 @@ mod_getDataGeno_server <-
           } else {
             shinyWidgets::show_alert(title="Nothing to do",
                                      text="Select at least one sample to keep", type="info")
+          }
+        })
+
+
+        # --- Auto-resolved notice: shows how many groups were auto-resolved ---
+        output$auto_resolved_notice <- renderUI({
+          n <- rv$auto_resolved_count
+          if (is.null(n) || n == 0) return(NULL)
+          div(
+            style = "background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px;border-radius:6px;margin-bottom:12px;",
+            shiny::icon("check-circle"),
+            sprintf(
+              " %d designation(s) had identical genotypes across all samples and were automatically resolved without further inspection.",
+              n
+            )
+          )
+        })
+
+
+        # --- Remove designation: remove all samples for this group ---
+        observeEvent(input$btn_remove_designation, {
+          cur_grp <- isolate(input$dup_group_pick)
+          if (is.null(cur_grp) || !nzchar(cur_grp)) return(invisible(NULL))
+
+          # Confirm removal
+          shinyWidgets::ask_confirmation(
+            inputId = ns("confirm_remove_designation"),
+            title = "Remove designation?",
+            text = paste0(
+              "This will remove ALL samples for designation '", cur_grp,
+              "' from the genotype matrix. This action cannot be undone."
+            ),
+            type = "warning",
+            btn_labels = c("Cancel", "Remove"),
+            btn_colors = c("#6c757d", "#dc3545")
+          )
+        })
+
+        observeEvent(input$confirm_remove_designation, {
+          if (!isTRUE(input$confirm_remove_designation)) return(invisible(NULL))
+
+          rv$is_merging <- TRUE
+          shinybusy::show_modal_spinner('fading-circle', text = 'Removing designation...')
+          on.exit({ rv$is_merging <- FALSE; shinybusy::remove_modal_spinner() }, add = TRUE)
+
+          cur_grp <- isolate(input$dup_group_pick)
+
+          tmp <- data()
+          if (is.null(tmp) || is.null(tmp$data) || is.null(tmp$data$geno)) {
+            shinyWidgets::show_alert(title = "Aborted", text = "Genotype object not found.", type = "error")
+            return(invisible(NULL))
+          }
+
+          gl <- tmp$data$geno
+
+          # Identify all sample_ids for this designation group
+          group_ids <- dup_values$dup_df$sample_id[dup_values$dup_df$designation_id == cur_grp]
+
+          # Also remove the designation itself if it exists as a named individual
+          remove_ids <- unique(c(group_ids, cur_grp))
+          remove_ids <- intersect(remove_ids, adegenet::indNames(gl))
+
+          if (!length(remove_ids)) {
+            shinyWidgets::show_alert(title = "Nothing to remove", text = "No matching samples found.", type = "info")
+            return(invisible(NULL))
+          }
+
+          keep_idx <- which(!adegenet::indNames(gl) %in% remove_ids)
+          if (!length(keep_idx)) {
+            gl <- gl[0, ]
+          } else {
+            gl <- gl[keep_idx, ]
+          }
+
+          # Postprocess
+          gl_src <- tmp$data$geno
+          if (!is.null(gl_src@position)   && length(gl_src@position)   == adegenet::nLoc(gl)) gl@position   <- gl_src@position
+          if (!is.null(gl_src@chromosome) && length(gl_src@chromosome) == adegenet::nLoc(gl)) gl@chromosome <- gl_src@chromosome
+          if (!is.null(gl_src@loc.all)    && length(gl_src@loc.all)    == adegenet::nLoc(gl)) gl@loc.all    <- gl_src@loc.all
+          if (adegenet::nInd(gl) > 0) {
+            gl <- tryCatch(cgiarGenomics::recalc_metrics(gl), error = function(e) gl)
+          }
+
+          tmp$data$geno <- gl
+
+          # Store removal reason in modifications$geno_raw
+          if (is.null(tmp$modifications$geno_raw)) {
+            tmp$modifications$geno_raw <- list()
+          }
+          tmp$modifications$geno_raw[[cur_grp]] <- list(
+            n_used  = 0L,
+            n_total = length(group_ids),
+            min_ibs = NA_real_,
+            max_ibs = NA_real_,
+            samples_used = NA_character_,
+            reason  = "no_consensus"
+          )
+
+          data(tmp)
+
+          # Refresh dup_df
+          existing <- tryCatch(as.character(adegenet::indNames(gl)), error = function(e) character(0))
+          if (is.data.frame(dup_values$dup_df) && nrow(dup_values$dup_df)) {
+            dup_values$dup_df <- dup_values$dup_df[dup_values$dup_df$sample_id %in% existing, , drop = FALSE]
+            if (nrow(dup_values$dup_df)) dup_values$dup_df$selected <- FALSE
+          }
+          updateCheckboxGroupInput(session, "dup_merge_samples", selected = character(0))
+
+          # Advance to next group or finish
+          dgs <- dup_groups()
+          if (is.null(dgs) || !nrow(dgs)) {
+            updateNavlistPanel(session, "geno_load_navpanel", selected = "4. Check status")
+          } else {
+            new_choices <- dgs$designation_id
+            new_sel <- new_choices[[1]]
+            updateSelectInput(session, "dup_group_pick", choices = new_choices, selected = new_sel)
+          }
+
+          if (adegenet::nInd(gl) == 0) {
+            shinyWidgets::show_alert(
+              title = "All samples excluded",
+              text = "The genotype matrix is now empty. Load new data or go back.",
+              type = "warning"
+            )
+          } else {
+            shinyWidgets::show_alert(
+              title = "Done",
+              text = sprintf("Removed all samples for designation '%s'.", cur_grp),
+              type = "success"
+            )
           }
         })
 

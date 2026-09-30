@@ -187,9 +187,33 @@ if (is.null(result)){
 
 ```
 
-### Graph of QTL frequencies
+### Frecuency of Markers
 <p>&nbsp;</p>
 
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+	metrics<-result$metrics
+	metrics<-metrics[which( metrics$analysisId == idQa),]
+	wide <- tidyr::pivot_wider(metrics,
+                    id_cols = trait,
+                    names_from = environment,
+                    values_from = value)
+	if("params" %in% ls()){ # we will download the document
+    printTable(wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+           colNames = colnames(wide),
+           numericColNames =colnames(wide)[2:5],
+           numRound = 4)
+  }else{
+    DT::renderDT(printTable(wide,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(wide),
+                        numericColNames = colnames(wide)[2:5],
+                        numRound = 4), server = FALSE)
+  }
+}
+```
 
 ### References on methods used
 

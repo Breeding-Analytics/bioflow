@@ -1,5 +1,5 @@
 ---
-title: "Single Trial Analysis Report"
+title: "Single Occurrence Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
@@ -76,7 +76,7 @@ printTable <- function(DT, pageLength = 7,
 ```{r, include=FALSE}
 # Init Step to make sure that the dependencies are loaded
 htmltools::tagList(printTable(mtcars))
-htmltools::tagList(ggplotly(ggplot()))
+htmltools::tagList(ggplotly(ggplot()) %>% plotly::partial_bundle(type = "cartesian"))
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -89,11 +89,11 @@ get_h <- function() {
 }
 ```
 
-### Objectives of Single-Trial Analysis
+### Objectives of Single Occurrence Analysis
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. Overall number of designations and environments included in the single trial analysis (input)
+1. Overall number of designations and environments included in the single occurrence analysis (input)
 
 2. High-level summary statistics of the phenotypic information included (input)
 
@@ -105,7 +105,7 @@ The objective of this dashboard is to help scientist to understand the following
 
 6. Phenotypic correlation between environments for the traits present (output)
 
-Understanding these data features should allow the scientist to identify trait by environments combinations that have enough genetic signal and take the decision of which to include in the multi-trial analysis. It should also allow the scientist to assess the quality of the trials conducted and take corrective measures (e.g., change service providers, improve practices, etc.).  
+Understanding these data features should allow the scientist to identify trait by environments combinations that have enough genetic signal and take the decision of which to include in the multi occurrence analysis. It should also allow the scientist to assess the quality of the trials conducted and take corrective measures (e.g., change service providers, improve practices, etc.).  
 
 
 `r if(!is.null(result$data$weather)){"### Map of trials planted\n
@@ -199,7 +199,7 @@ if (is.null(result)){
   
 } else {
   
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   
   pred <- result$predictions
@@ -327,7 +327,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   traitFieldView <- unique(result$predictions[which( result$predictions$analysisId == idSta),"trait"])
   
@@ -439,7 +439,7 @@ if (is.null(result)){
             ggplot2::theme(panel.spacing = unit(1, 'lines'))
           # print(p) # static
           
-          print(htmltools::tagList(plotly::ggplotly(p) %>% layout(autosize = T, height = 800, margin = list(t = 70)))) # dynamic
+          print(htmltools::tagList(plotly::ggplotly(p) %>% layout(autosize = T, height = 800, margin = list(t = 70)) %>% plotly::partial_bundle(type = "cartesian"))) # dynamic
           
         }
         
@@ -491,7 +491,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   staTraits2 <- sort(setdiff( unique(modeling[which(modeling$analysisId == idSta),"trait"]), "inputObject"))
   
@@ -517,7 +517,7 @@ if (is.null(result)){
 } else {
   
   df2 <- result$metrics
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   df2 <- df2[df2$analysisId==idSta,]
   df2 <- df2[df2$parameter %in% c("Vr","Vg","V_designation","V_residual","V_repF","V_iBlockF","V_rowF","V_colF", "V_s(row, col)",
@@ -559,7 +559,7 @@ if (is.null(result)){
         ggplot2::xlab("Environment") + ggplot2::ylab("Variance") +
         ggplot2::facet_wrap(~type, labeller = labeller(type = c("designation" = "Variance")))
       
-      print(htmltools::tagList(plotly::subplot((plotly::ggplotly(p_proportion_variance)%>% style(showlegend = FALSE)), (plotly::ggplotly(p_value_variance) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)), nrows=2, shareX = TRUE, shareY = TRUE))) 
+      print(htmltools::tagList(plotly::subplot((plotly::ggplotly(p_proportion_variance)%>% style(showlegend = FALSE)), (plotly::ggplotly(p_value_variance) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)), nrows=2, shareX = TRUE, shareY = TRUE) %>% plotly::partial_bundle(type = "cartesian"))) 
       
       cat("\n")
     }
@@ -602,7 +602,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   metrics <- result$metrics
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   parameters <- metrics[which(metrics$analysisId == idSta),"parameter"]
   parameters <- parameters[!stringr::str_detect(parameters, "V_")]
@@ -678,7 +678,7 @@ if (is.null(result)){
               ggplot2::theme(axis.text.x=element_text(angle=45)) +
               facet_wrap(~trait, scales = "free_y", nrow = number_rows)
             
-              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
             } else{
             p <- ggplot2::ggplot(data=mydata2[which(mydata2$trait == iGroup),], aes(x=environment, y=value, fill=iGroup)) +
               ggplot2::geom_bar(stat="identity", position=position_dodge()) +
@@ -686,7 +686,7 @@ if (is.null(result)){
               ggplot2::labs(x="Environment", y="Parameter value") + 
               ggplot2::theme(axis.text.x=element_text(angle=45))
             
-              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45))))
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45)) %>% plotly::partial_bundle(type = "cartesian")))
             }
             
           }else{
@@ -699,7 +699,7 @@ if (is.null(result)){
               ggplot2::theme(axis.text.x=element_text(angle=45)) +
               facet_wrap(~environment, scales = "free_y", nrow = number_rows)
               
-              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45), autosize = T, height = 800)))
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45), autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
             } else{
               p <- ggplot2::ggplot(data=mydata2[which(mydata2$environment == iGroup),], aes(x=trait, y=value, fill=iGroup)) +
               ggplot2::geom_bar(stat="identity", position=position_dodge()) +
@@ -707,17 +707,17 @@ if (is.null(result)){
               ggplot2::labs(x="Trait", y="Parameter value") + 
               ggplot2::theme(axis.text.x=element_text(angle=45))
               
-              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45))))
+              print(htmltools::tagList(plotly::ggplotly(p) %>% layout(xaxis = list(tickangle =-45)) %>% plotly::partial_bundle(type = "cartesian")))
             }
           }
         } else{
-          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
+          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")) %>% plotly::partial_bundle(type = "cartesian")))
         }
         
       }
     }
       # combine plots
-      # print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+      # print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) %>% plotly::partial_bundle(type = "cartesian") ) )
       cat("\n")
       
     }
@@ -795,7 +795,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   modelingSta <- result$modeling[which(modeling$analysisId == idSta),]
   
@@ -815,7 +815,7 @@ if (is.null(result)){
 
 ### Predictions
 
-The adjusted means in the following visuualizations are the result of fitting a experimental-design agnostic mixed model where everything that can be fitted will be fitted in order to remove as much spatial noise as possible. That means that if a trial has block and incomplete block information both will be fitted. If the trial has also row and column information it will also be fitted together with a spatial kernel (Rodriguez-Alvarez et al., 2018). These table of adjusted means will be used as input information for the multi-trial analysis. We recommend you to don't take any selection decision at this point and wait until the multi-trial analysis is fitted.
+The adjusted means in the following visuualizations are the result of fitting a experimental-design agnostic mixed model where everything that can be fitted will be fitted in order to remove as much spatial noise as possible. That means that if a trial has block and incomplete block information both will be fitted. If the trial has also row and column information it will also be fitted together with a spatial kernel (Rodriguez-Alvarez et al., 2018). These table of adjusted means will be used as input information for the multi occurrence analysis. We recommend you to don't take any selection decision at this point and wait until the multi occurrence analysis is fitted.
 
 The following table allows you to check the trait by environment adjusted means for the different individuals in wide format.
 
@@ -826,7 +826,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   envs <- unique(result$predictions[which( result$predictions$analysisId == idSta),"environment"])
   
@@ -884,7 +884,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
   modeling <- setdiff(modeling, "inputObject")
@@ -924,7 +924,7 @@ if("params" %in% ls()){ # we will download the document
       ggplot2::theme(legend.position = "none") + 
       ggplot2::labs(x="", y="Trait value") #+ ggplot2::facet_grid(trait~., scales = "free") 
     # print(p) # static
-    print(htmltools::tagList(ggplotly(  p  ) %>% layout(xaxis = list(tickangle =-45)))) # dynamic
+    print(htmltools::tagList(ggplotly(  p  ) %>% layout(xaxis = list(tickangle =-45)) %>% plotly::partial_bundle(type = "cartesian"))) # dynamic
     
     cat("\n")
   }
@@ -957,14 +957,14 @@ if("params" %in% ls()){ # we will download the document
 
 ### Per-environment merit estimates of top designations (entries)
 
-In the following plot you can observe the comparison between the top 30 designations from each entry type category for the different traits. If a category has less than a 30 designations all individuals are displayed. This should allow you to identify the top designations in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi-trial analysis and selection indices.
+In the following plot you can observe the comparison between the top 30 designations from each entry type category for the different traits. If a category has less than a 30 designations all individuals are displayed. This should allow you to identify the top designations in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi occurrence analysis and selection indices.
 
 ```{r }
 if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   modeling <- modeling[which(modeling$analysisId == idSta),]
   
@@ -1068,11 +1068,11 @@ if (is.null(result)){
                            legend.position = "bottom", legend.title = element_blank() ) + ggplot2::facet_grid(~environment, scales = "free_x") +
             ggplot2::guides(colour = guide_legend(nrow = ceiling(length(unique(temp.predComp.box2$entryType))/3) )) +  ggplot2::scale_y_continuous(limits = c(lb,ub) ) 
           
-          print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) ) )
+          print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p1), plotly::ggplotly(p2), nrows=2 ) %>% plotly::partial_bundle(type = "cartesian") ) )
           cat("\n")
           cat("\n")
         } else{
-          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
+          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")) %>% plotly::partial_bundle(type = "cartesian")))
         }
         
       }
@@ -1158,7 +1158,7 @@ if (is.null(result)){
 
 ### Correlation between environments
 
-The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments for the traits available in order to identify if there is one or more environments that do not align with the target population of environments (i.e., negatively correlated with the main cluster across most environments). You may want to exclude such environments from the multi-trial analysis (MTA) to ensure that selected designations in the MTA achieve genetic gain in the main cluster of environments.
+The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments for the traits available in order to identify if there is one or more environments that do not align with the target population of environments (i.e., negatively correlated with the main cluster across most environments). You may want to exclude such environments from the multi occurrence analysis (MOA) to ensure that selected designations in the MOA achieve genetic gain in the main cluster of environments.
 
 <p>&nbsp;</p>
 
@@ -1167,7 +1167,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modeling <- result$modeling
-  idSta <- result$status[which(result$status$module == "sta"),"analysisId"];
+  idSta <- result$status[which(result$status$module == "soa"),"analysisId"];
   idSta <- idSta[length(idSta)]
   modeling <- modeling[which(modeling$analysisId == idSta),"trait"]
   modeling <- setdiff(modeling, "inputObject")
@@ -1259,15 +1259,15 @@ if (is.null(result)){
         if(iFreq == "with frequency distribution"){
           # combine plots
           if(nrow(corr) > 1){
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600))) 
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600) %>% plotly::partial_bundle(type = "cartesian"))) 
           } else{
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% plotly::partial_bundle(type = "cartesian") ))
           }
         } else{
           if(nrow(corr) > 1){
-            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
           }else{
-            print(htmltools::tagList(plotly::ggplotly(p)))
+            print(htmltools::tagList(plotly::ggplotly(p) %>% plotly::partial_bundle(type = "cartesian")))
           }
         }
         

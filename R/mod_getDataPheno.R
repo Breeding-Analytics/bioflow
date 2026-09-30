@@ -173,8 +173,10 @@ mod_getDataPheno_ui <- function(id){
                                                       p(strong("management-"),"The name of the column containing the labels listing the unique occurrences of a management (e.g., drought, irrigated, etc.) nested in a trial, nested in a year, country, location."),
                                                       p(strong("rep.-"),"The name of the column containing the labels of the replicates or big blocks within an study (year-season-country-location-trial concatenation)."),
                                                       p(strong("iBlock.-"),"The name of the column containing the labels of the incomplete blocks within an study."),
-                                                      p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study."),
-                                                      p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study."),
+                                                      p(strong("row.-"),"The name of the column containing the labels of the row coordinates for each record within an study for use in spatial analysis."),
+                                                      p(strong("column.-"),"The name of the column containing the labels of the column coordinates for each record within an study for use in spatial analysis."),
+                                                      p(strong("row Design.-"),"The name of the column containing the labels of the row coordinates for each record within an study for use as a design-specific factor."),
+                                                      p(strong("column Design.-"),"The name of the column containing the labels of the column coordinates for each record within an study for use as a design-specific factor."),
                                                       p(strong("designation.-"),"The name of the column containing the labels of the individuals tested in the environments (e.g., Borlaug123, IRRI-154, Campeon, etc. )."),
                                                       p(strong("gid.-"),"The name of the column containing the labels with the unique numerical identifier used within the database management system."),
                                                       p(strong("entryType.-"),"The name of the column containing the labels of the genotype category (check, tester, entry, etc.)."),
@@ -199,7 +201,7 @@ mod_getDataPheno_ui <- function(id){
                            shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
                                                hr(),
                                                # tags$div(id = ns('mapping_title_holder'),
-                                               #          HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "2. Match/map your columns")) ),
+                                               #          ( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "2. Match/map your columns")) ),
                                                # ),
                                                uiOutput(ns('pheno_map')),
                                                uiOutput(ns('brapi_trait_map')),
@@ -270,11 +272,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+        ( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use other modules.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","designation","trait"), data()$metadata$pheno$parameter), collapse = ", ") ) )) )
+        if(mappedColumns == 3){ ( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use other modules.")) )
+        }else{( as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","designation","trait"), data()$metadata$pheno$parameter), collapse = ", ") ) )) )
         }
       }
     )
@@ -874,9 +876,9 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                          buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                          lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))
                           )#,
-                          # caption = htmltools::tags$caption(
+                          # caption = tools::tags$caption(
                           #   style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
-                          #   htmltools::em('Data preview.')
+                          #   tools::em('Data preview.')
                           # )
             )
           }, server = FALSE)
@@ -885,7 +887,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             output$brapi_trait_map <- renderUI({
               selectInput(
                 inputId  = ns('brapi_traits'),
-                label    = HTML(as.character(p('trait', span('(*required)',style="color:red")))),
+                label    = (as.character(p('trait', span('(*required)',style="color:red")))),
                 multiple = TRUE,
                 choices  = as.list(c('', colnames(temp$data$pheno))),
               )
@@ -901,6 +903,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 iBlock = 'block',
                 row = 'positionCoordinateY', # 'designY',#
                 col =  'positionCoordinateX', # 'designX',
+                rowDes = 'rowBlock', #Design factor row
+                colDes = 'colBlock', #Design factor col
                 designation = 'germplasmName',
                 gid = 'germplasmDbId',
                 location = 'locationName',
@@ -914,6 +918,8 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                 iBlock = 'block',
                 row = 'positionCoordinateY',
                 col = 'positionCoordinateX',
+                rowDes = 'rowBlock', #Design factor row
+                colDes = 'colBlock', #Design factor col
                 designation = 'germplasmName',
                 gid = 'germplasmDbId',
                 location = 'studyName',
@@ -935,7 +941,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
               )
             )
 
-            for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')) {
+            for (field in c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'rowDes', 'colDes','designation', 'gid', 'location', 'trial', 'entryType')) {
               if (mapping[[input$pheno_db_type]][[field]] %in% colnames(temp$data$pheno)) {
                 if (field %in% temp$metadata$pheno$parameter) {
                   temp$metadata$pheno[temp$metadata$pheno$parameter == field, 'value'] <- mapping[[input$pheno_db_type]][[field]]
@@ -987,10 +993,12 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           column(3,
                  selectInput(
                    inputId  = ns(paste0('select', x)),
-                   label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
+                   #label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
+                   label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col','rowDes','colDes'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
                    multiple = ifelse(x == 'trait', TRUE, FALSE),
                    choices  = as.list(c('', header )),
-                   selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
+                   #selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
+                   selected = ifelse(length(grep(paste0("^", x, "$"),header, ignore.case = TRUE)) > 0, header[grep(paste0("^", x, "$"),header, ignore.case = TRUE)[1]], '')
                  ),
 
                  # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
@@ -1037,7 +1045,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         return(NULL)
       } else{
         temp <- data()
-        mapp2 <- c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'designation', 'gid', 'location', 'trial', 'entryType')
+        mapp2 <- c('year', 'study', 'rep', 'iBlock', 'row', 'col', 'rowDes', 'colDes','designation', 'gid', 'location', 'trial', 'entryType')
         header2 <- colnames(pheno_data())
         pheno_map2 <- lapply(mapp2, function(x) {
           column(3,
@@ -1138,7 +1146,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
       req(data())
       dtMta <- data()$metadata$pheno
       if(!is.null(dtMta)){
-        traitMtaInput <- intersect( c('pipeline','stage','year', 'season','timepoint', 'country', 'location', 'trial', 'study','management'), dtMta$parameter )
+        if (input$pheno_input == 'brapi') {
+          traitMtaInput <- intersect( c('trial'), dtMta$parameter )
+        }else{
+          traitMtaInput <- intersect( c('pipeline','stage','year', 'season','timepoint', 'country', 'location', 'trial', 'study','management'), dtMta$parameter )
+        }
         updateSelectInput(session, "featuresEnvironment", choices = traitMtaInput, selected = traitMtaInput)
       }
     })

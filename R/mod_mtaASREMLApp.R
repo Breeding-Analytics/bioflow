@@ -22,7 +22,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                            tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Multi Trial Analysis Module Using Asreml-R",
+                                           h1(strong(span("Multi Occurrence Analysis Module Using Asreml-R",
                                                           #tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7",icon("youtube") , target="_blank"),
                                                           style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),
@@ -36,7 +36,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                     ),
                                     column(width = 6,
                                            h2(strong("Details")),
-                                           p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis using Asreml-R,
+                                           p("The core algorithm of the genetic evaluation using the two-step approach is the multi occurrence analysis using Asreml-R,
                                            for use it you must have and ACTIVE LICENSE.
 
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
@@ -55,7 +55,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                            p(strong("mean(lower bound).-")," Value of trait mean to be used to remove trials with low means"),
                                            p(strong("mean(upper bound).-"),"  Value of trait mean to be used to remove trials with too high means"),
                                            p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                           #p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
+                                           #p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single occurrence analysis. The default is TRUE and should not be modified unless you know what you are doing."),
                                            h2(strong("References")),
                                            p("Butler, D.G., Cullis, B.R., Gilmour, A.R., Gogel, B.G. and Thompson, R. 2023. ASReml-R Reference Manual Version 4.2. VSN International Ltd., Hemel Hempstead, HP2 4TP, UK."),
                                            h2(strong("Software used")),
@@ -78,17 +78,17 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                    )
                                                ),
                                       ),
-                                      tabPanel(div( icon("dice-one"), "Pick STA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-one"), "Pick SOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8,
                                                              selectInput(ns("version2MtaAsr"),
                                                                          label = tags$span(
-                                                                           "STA version(s) to analyze",
+                                                                           "SOA version(s) to analyze",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
-                                                                             title = "Analysis ID(s) from STA runs that should be combined and used to fit a multi-trial analysis."
+                                                                             title = "Analysis ID(s) from SOA runs that should be combined and used to fit a multi occurrence analysis."
                                                                            )
                                                                          ),
                                                                          choices = NULL, multiple = TRUE),
@@ -98,7 +98,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
-                                                                             title = "Analysis ID(s) from Genotype QA/QC used to fit a multi-trial analysis."
+                                                                             title = "Analysis ID(s) from Genotype QA/QC used to fit a multi occurrence analysis."
                                                                            )
                                                                          ),
                                                                          choices = NULL, multiple = FALSE),
@@ -118,13 +118,26 @@ mod_mtaASREMLApp_ui <- function(id) {
                                       tabPanel(div(icon("dice-two"), "Pick trait(s)", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      conditionalPanel(
+                                                        condition = paste0("output['", ns("tppDataAvailableAsr"), "']"),
+                                                        selectInput(ns("tppIdMenuAsr"),
+                                                                    label = tags$span(
+                                                                      "TPP ID (Target Product Profile)",
+                                                                      tags$i(
+                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                        style = "color:#FFFFFF",
+                                                                        title = "Select a TPP ID to add environment-filtered TPP traits to the trait menu. Select 'None' to use only standard phenotypic traits."
+                                                                      )
+                                                                    ),
+                                                                    choices = c("None" = ""), multiple = FALSE)
+                                                      ),
                                                       selectInput(ns("trait2MtaAsr"),
                                                                   label = tags$span(
                                                                     "Trait(s) to analyze",
                                                                     tags$i(
                                                                       class = "glyphicon glyphicon-info-sign",
                                                                       style = "color:#FFFFFF",
-                                                                      title = "Only traits present in the STA runs selected will be available."
+                                                                      title = "Only traits present in the SOA runs selected will be available."
                                                                     )
                                                                   ),
                                                                   choices = NULL, multiple = TRUE),
@@ -1033,7 +1046,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       dtMtaAsr <- data() # dtMtaAsr <- result
       dtMtaAsr <- dtMtaAsr$status
       dtMtaAsrGeno <- dtMtaAsr[which(dtMtaAsr$module == "qaGeno"),]
-      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module == "sta"),]
+      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module == "soa"),]
       traitsMtaAsr <- unique(dtMtaAsr$analysisId)
       traitsMtaAsrGeno <- unique(dtMtaAsrGeno$analysisId)
 
@@ -1108,9 +1121,9 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("sta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
+          if("soa" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi occurrence analysis specifying your input parameters under the Input tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single occurrence analysis before performing a the multi occurrence analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -1139,6 +1152,70 @@ mod_mtaASREMLApp_server <- function(id, data){
       updateSelectInput(session, "parameterMetrics", choices = metricsMtaAsrInput)
     })
     #################
+    ## TPP ID Menu - conditionalPanel output and observers
+    ## Controls visibility of TPP_ID_Menu and updates Trait_Menu with TPP traits
+
+    # Output flag for conditionalPanel: TRUE when TPP data exists
+    output$tppDataAvailableAsr <- reactive({
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      return(length(tpp_ids) > 0)
+    })
+    outputOptions(output, "tppDataAvailableAsr", suspendWhenHidden = FALSE)
+
+    # Update TPP_ID_Menu choices when data changes
+    observeEvent(data(), {
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      tpp_choices <- c("None" = "")
+      if (length(tpp_ids) > 0) {
+        named_tpp <- stats::setNames(tpp_ids, tpp_ids)
+        tpp_choices <- c(tpp_choices, named_tpp)
+      }
+      updateSelectInput(session, "tppIdMenuAsr", choices = tpp_choices)
+    })
+
+    # Store standard pheno traits for restoration when TPP_ID is set to "None"
+    tppStandardTraitsAsr <- reactiveVal(character(0))
+
+    # Update stored standard traits when version changes (trait list refreshed)
+    observeEvent(c(data(), input$version2MtaAsr), {
+      req(data())
+      req(input$version2MtaAsr)
+      dtMtaAsr <- data()
+      dtMtaAsr <- dtMtaAsr$predictions
+      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$analysisId %in% input$version2MtaAsr),]
+      traitsMtaAsr <- unique(dtMtaAsr$trait)
+      tppStandardTraitsAsr(traitsMtaAsr)
+    }, priority = 10)
+
+    # Observer for TPP_ID_Menu changes
+    observeEvent(input$tppIdMenuAsr, {
+      req(data())
+      req(input$version2MtaAsr)
+
+      tpp_id <- input$tppIdMenuAsr
+      pheno_traits <- tppStandardTraitsAsr()
+
+      if (is.null(tpp_id) || tpp_id == "") {
+        # "None" selected: restore standard phenotypic traits only
+        updateSelectInput(session, "trait2MtaAsr", choices = pheno_traits)
+      } else {
+        # Valid TPP_ID selected: validate, get filtered traits, build choices
+        validation <- tpp_validate_metadata(data(), tpp_id)
+        if (!validation$valid) {
+          warning(paste("TPP metadata validation failed for", tpp_id, ":", validation$message))
+          updateSelectInput(session, "trait2MtaAsr", choices = pheno_traits)
+          return()
+        }
+
+        tpp_traits_df <- tpp_get_filtered_traits(data(), tpp_id)
+        new_choices <- tpp_build_trait_choices(pheno_traits, tpp_traits_df, tpp_id)
+        updateSelectInput(session, "trait2MtaAsr", choices = new_choices)
+      }
+    }, ignoreInit = TRUE)
+
+    #################
     # plots
     output$barplotPredictionsMetrics <- plotly::renderPlotly({
       req(data())
@@ -1150,7 +1227,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
       p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge())+
-        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the SOA stamp selected")
       if(input$checkbox1){
         p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
       }else{
@@ -1232,7 +1309,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       dtMta <- dtMta[which(dtMta$analysisId %in% input$version2MtaAsr),]
       envs <- unique(dtMta[,"environment"])
       envsDg <- paste0("env",envs)
-      if ( input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "mndg_model" | input$radio == "gca_model" | input$radio == "fa_model") {
+      if (input$radio == "ad_model" | input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "mndg_model" | input$radio == "gca_model" | input$radio == "fa_model") {
         n <- 2
       }else if( input$radio == "both_model" ){
         n <- 3
@@ -1320,6 +1397,15 @@ mod_mtaASREMLApp_server <- function(id, data){
             label = ifelse(i==1, "Random Effects",""),
             choices = choices, multiple = TRUE,
             selected = if(i==1){"designation"}else if(i==2){sort(c("designation","environment"))}  else{"designation"}
+          )
+        })
+      }else if ( input$radio == "ad_model" ) {
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"designation"} else{"designation"}
           )
         })
       }else if( input$radio == "dg_model" ){ # DIAG model
@@ -1617,6 +1703,13 @@ mod_mtaASREMLApp_server <- function(id, data){
               label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
               choices = choices, multiple = TRUE,
               selected = c("Relationship structure_GenoD"))
+          }else if(i==2){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoA"))
           }else{
             choices<-c(noness[1:tempval],choices)
             selectInput(
@@ -1775,7 +1868,8 @@ mod_mtaASREMLApp_server <- function(id, data){
                                        editable = TRUE,
                                        server = FALSE,
                                        options = list(
-                                         scrollX = TRUE
+                                         scrollX = TRUE,
+                                         autoWidth = TRUE
                                          # autoWidthOpt = TRUE, scrollXOpt = TRUE
                                          # paging=FALSE,
                                          #              searching=FALSE,
@@ -1813,7 +1907,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       df <- dtFieldMet()
       x$df <- df
     })
-    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE, options = list(scrollX = TRUE))
+    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE, options = list(scrollX = TRUE,autoWidth = TRUE))
     proxy = DT::dataTableProxy('fieldsMet')
     observeEvent(input$fieldsMet_cell_edit, {
       info = input$fieldsMet_cell_edit
@@ -1826,65 +1920,8 @@ mod_mtaASREMLApp_server <- function(id, data){
     #################
     ## render timestamps flow plot
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        xx$analysisIdName <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- as.character(zz$outputId)
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     #################
     ## render table of evaluation units
@@ -1967,7 +2004,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       req(input$entryTypeMtaAsr)
       dtMtaAsr <- data()
       mydata <- dtMtaAsr$predictions
-      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),] # only PREDICTIONS FROM THE SOA
       if(input$entryTypeMtaAsr != "Generic"){
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMtaAsr),]
       }
@@ -1985,7 +2022,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       req(input$heatmapFontSizeCor)
       dtMtaAsr <- data()
       mydata <- dtMtaAsr$predictions
-      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),] # only PREDICTIONS FROM THE SOA
       predictions.gcorrE <- subset(mydata, select = c(trait,designation,environment,predictedValue))
       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitCor, ]
       wide <- stats::reshape(predictions.gcorrE2,
@@ -2024,7 +2061,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       req(input$heatmapFontSize)
       dtMtaAsr <- data()
       mydata <- dtMtaAsr$predictions # extract predictions
-      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaAsr),] # only PREDICTIONS FROM THE SOA
       mydata <- mydata[which(mydata$trait %in% input$traitConnect),] # only PREDICTIONS FROM Trait selected
       if(input$entryTypeMtaAsr != "Generic"){ # use an specific type of entries
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMtaAsr),]
@@ -2113,14 +2150,14 @@ mod_mtaASREMLApp_server <- function(id, data){
       # inputFormulationFixed <- inputFormulaRandom()
       # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
       # run the modeling, but before test if sta was done
-      if(sum(dtMtaAsr$status$module %in% "sta") == 0) {
+      if(sum(dtMtaAsr$status$module %in% "soa") == 0) {
         output$qaQcMtaAsrInfo <- renderUI({
           if (hideAll$clearAll)
             return()
           else
             req(dtMtaAsr)
           HTML(as.character(div(style="color: brown;",
-                                "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
+                                "Please perform Single Occurrence Analysis before conducting a Multi Occurrence Analysis when using a two-stage analysis."))
           )
         })
       }else{ # sta is available
@@ -2153,7 +2190,23 @@ mod_mtaASREMLApp_server <- function(id, data){
 		#
         #save(dtMtaAsr,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
         #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METasr.RData")
-        #source("C:/Users/RAPACHECO/Downloads/metASREML.R")
+        #source("C:/Users/RAPACHECO/Downloads/metASREMLai.R")
+
+        ## --- TPP Analysis Config Assembly (Req 3.2, 7.3, 8.3) ---
+        tpp_id_selected <- input$tppIdMenuAsr
+        if (!is.null(tpp_id_selected) && nzchar(tpp_id_selected)) {
+          tpp_traits_df <- tpp_get_filtered_traits(dtMtaAsr, tpp_id_selected)
+          tpp_mapping <- tpp_resolve_trait_mapping(input$trait2MtaAsr, tpp_traits_df, tpp_id_selected)
+          dtMtaAsr$metadata$tpp_analysis_config <- list(
+            tpp_id = tpp_id_selected,
+            trait_map = tpp_mapping$pheno_map,
+            env_map = tpp_mapping$env_map
+          )
+        } else {
+          dtMtaAsr$metadata$tpp_analysis_config <- NULL
+        }
+        ## --- End TPP Analysis Config Assembly ---
+
         result <- try(
           cgiarPipeline::metASREML(
           #metASREML(
@@ -2172,7 +2225,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         if(!inherits(result,"try-error") ) {
           if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results
-          cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+          cat(paste("Multi occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
           updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         }else{
           cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
@@ -2185,7 +2238,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         ## alert status converge
         observeEvent(result$modeling,{
           modeling <- result$modeling
-          MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+          MtaAsrs <- result$status[which(result$status$module == "moaAsr"),"analysisId"]
           MtaAsrId <- MtaAsrs[length(MtaAsrs)]
           modeling <- modeling[which(modeling$analysisId == MtaAsrId),]
           modeling <- subset(modeling, select = -c(module,analysisId))
@@ -2213,7 +2266,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         ## predictions table
         output$predictionsMtaAsr <-  DT::renderDT({
           predictions <- result$predictions
-          predictions <- predictions[predictions$module=="mtaAsr",]
+          predictions <- predictions[predictions$module=="moaAsr",]
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -2228,7 +2281,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         output$metricsMtaAsr <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             metrics <- result$metrics
-            MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+            MtaAsrs <- result$status[which(result$status$module == "moaAsr"),"analysisId"]
             MtaAsrId <- MtaAsrs[length(MtaAsrs)]
             metrics <- metrics[which(metrics$analysisId == MtaAsrId),]
             metrics <- subset(metrics, select = -c(module,analysisId))
@@ -2243,7 +2296,7 @@ mod_mtaASREMLApp_server <- function(id, data){
         output$modelingMtaAsr <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             modeling <- result$modeling
-            MtaAsrs <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+            MtaAsrs <- result$status[which(result$status$module == "moaAsr"),"analysisId"]
             MtaAsrId <- MtaAsrs[length(MtaAsrs)]
             modeling <- modeling[which(modeling$analysisId == MtaAsrId),]
             modeling <- subset(modeling, select = -c(module,analysisId))

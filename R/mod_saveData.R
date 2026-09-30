@@ -120,7 +120,7 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
 
             s3_object_path <- paste0(data_domain, "/", input$fileNameUpload, ".RData")
 
-            s3 <- paws::s3()
+            s3 <- paws.storage::s3()
 
             shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
@@ -188,7 +188,28 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
     ## render data summary
     output$summary_data <- DT::renderDT({
       req(data())
-      DT::datatable(cgiarBase::summaryData(data()),
+      summary_df <- cgiarBase::summaryData(data())
+
+      # Add TPP row if TPP data exists
+      tpp_data <- data()$data$TPP
+      tpp_meta <- data()$metadata$TPP
+      if (!is.null(tpp_data) && length(tpp_data) > 0) {
+        n_tpp <- length(tpp_data)
+        n_features <- sum(sapply(tpp_data, ncol))
+        n_records <- sum(sapply(tpp_data, nrow))
+        n_mapped <- if (!is.null(tpp_meta)) length(tpp_meta) else 0
+        tpp_row <- data.frame(
+          nFeatures = n_features,
+          mapped = n_mapped,
+          nRecords = n_records,
+          nDataPoints = n_mapped * n_records,
+          modifications = 0,
+          row.names = "tpp"
+        )
+        summary_df <- rbind(summary_df, tpp_row)
+      }
+
+      DT::datatable(summary_df,
                     extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),

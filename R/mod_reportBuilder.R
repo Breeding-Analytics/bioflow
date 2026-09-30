@@ -32,7 +32,7 @@ mod_reportBuilder_ui <- function(id){
                                                re-run an analysis. The idea is that the user only has to specify the analysis type and time stamp and this should suffice.
                                                The arguments are used in the following way:"),
 
-                                             p(strong("Module report-")," This argument is used to subset the time stamps to specific type of analyisis. For example, if 'sta' is
+                                             p(strong("Module report-")," This argument is used to subset the time stamps to specific type of analyisis. For example, if 'soa' is
                                                selected only time stamps associated to sta analysis will be displayed in the next argument. ."),
                                              p(strong("Time stamp-"),"  This is a dropdown menu that contains the times stamps associated to the analysis type selected."),
                                              h2(strong("References")),
@@ -135,10 +135,10 @@ mod_reportBuilder_server <- function(id, data){
 
     ## model types
     observeEvent(c(data()), {
-      req(data()) # list(QA="qaRaw" , QAmarkers="qaGeno" , STA="sta" ,   MTA="mta",    Index="indexD", OCS="ocs",    RGG="rgg" ,   PGG="pgg" , OFT="oft")
+      req(data()) # list(QA="qaRaw" , QAmarkers="qaGeno" , SOA="soa" ,   MOA="mta",    Index="indexD", OCS="ocs",    RGG="rgg" ,   PGG="pgg" , OFT="oft")
       if(!is.null(data()$status)){
         traitsBuilder <- unique(data()$status$module)
-        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM") , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Trial Analysis (sta)", "Multi Trial Analysis (mta)", "Multi Trial Analysis (mtaFlex)","Multi Trial Analysis (mtaLmms)", "Multi Trial Analysis (mtaAsreml)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Genomic Prediction of Cross Peformance (gpcp)","Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)", "On Farm Trial (oft)", "Number of Founders (ne)", "Genotype verification (gVerif)","Marker assisted selection (mas)", "ABI dashboard (abiDash)", "Population Structure (PopStrM)") )
+        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","soa","mta","mtaFlex","moaLmms","moaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM") , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Occurrence Analysis (soa)", "Multi Occurrence Analysis (moa)", "Multi Occurrence Analysis (moaFlex)","Multi Occurrence Analysis (moaLmms)", "Multi Occurrence Analysis (moaAsr)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Genomic Prediction of Cross Peformance (gpcp)","Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)", "On Farm Trial (oft)", "Number of Founders (ne)", "Genotype verification (gVerif)","Marker assisted selection (mas)", "ABI dashboard (abiDash)", "Population Structure (PopStrM)") )
         updateSelectInput(session, "module", choices = traitsBuilder )
       }
     })
@@ -197,67 +197,8 @@ mod_reportBuilder_server <- function(id, data){
 
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- networkNames
-        colnames(X) <- networkNames
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
 
     #################################
@@ -270,8 +211,8 @@ mod_reportBuilder_server <- function(id, data){
 
       result <- data()
 
-      markdownType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd","reportCoreSet.Rmd") )
-      resultType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData","resultCoreSet.RData") )
+      markdownType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","soa","mta","mtaFlex","moaLmms","moaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd","reportCoreSet.Rmd") )
+      resultType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","soa","mta","mtaFlex","moaLmms","moaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData","resultCoreSet.RData") )
 
       src <- normalizePath(system.file("rmd",markdownType,package="bioflow"))
       src2 <- normalizePath(paste0('data/',resultType))
@@ -306,8 +247,8 @@ mod_reportBuilder_server <- function(id, data){
       moveTotheEnd <- which(result$status$analysisId == input$timestamp)
       keepAtTop <- setdiff(1:nrow(result$status), moveTotheEnd)
       result$status <- result$status[c(keepAtTop,moveTotheEnd),]
-      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd") )
-      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","mta","mtaFlex","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData") )
+      markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","soa","mta","mtaFlex","moaLmms","moaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd") )
+      resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","soa","mta","mtaFlex","moaLmms","moaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData") )
       ## end
       if(!inherits(result,"try-error")) {
         data(result) # update data with results

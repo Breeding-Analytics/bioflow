@@ -275,67 +275,8 @@ mod_masApp_server <- function(id, data){
       updateSelectInput(session, "version2Mta", choices = traitsMta)
     })
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- networkNames
-        colnames(X) <- networkNames
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     output$tableTraitTimeMASmps <-  DT::renderDT({
       req(data())
@@ -357,7 +298,7 @@ mod_masApp_server <- function(id, data){
                                    lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Traits available in the STA-IDs selected.')
+                      htmltools::em('Traits available in the SOA-IDs selected.')
                     )
       )
     }, server = FALSE)
@@ -373,7 +314,8 @@ mod_masApp_server <- function(id, data){
       dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
-		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		    req(length(qas) == 1)
 		    traitsMAS <- dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
         updateCheckboxInput(session, "checkbox", value = FALSE)
         updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
@@ -388,7 +330,8 @@ mod_masApp_server <- function(id, data){
       dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
-		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		    req(length(qas) == 1)
 		    traitsMAS <- dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
         if(input$checkbox == FALSE){
           updateSelectizeInput(session, "markers2MAS", choices = traitsMAS, selected = NULL)
@@ -426,7 +369,8 @@ mod_masApp_server <- function(id, data){
       dtMta <- as.data.frame(data()$data$geno)
       if(!is.null(dtMta)){
 		    dtMta <- data()
-		    qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+		    qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		    req(length(qas) == 1)
 		    namesput=dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
 		    dtMta <- as.data.frame(dtMta$data$geno_imp[qas])
 		    colnames(dtMta)<-namesput
@@ -541,7 +485,8 @@ mod_masApp_server <- function(id, data){
       req(input$markers2MAS)
       req(input$ploidy)
       dtMta <- data()
-      qas <- which(names(dtMta$data$geno_imp) == input$version2Mta)
+      qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+      req(length(qas) == 1)
       Markers <- as.data.frame(dtMta$data$geno_imp[qas])
 	    colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
       Markers <- Markers[,input$markers2MAS]
@@ -619,6 +564,11 @@ mod_masApp_server <- function(id, data){
       ## store the new modifications table
       alleles <- desireAlleleValues() # alleles <- result$metadata$geno[input$markers2MAS,"refAllele"]
       dtMta <- data()
+		qas <- cgiarBase::resolveGenoStamp(dtMta$data$geno_imp, input$version2Mta)
+		req(length(qas) == 1)
+      Markers <- as.data.frame(dtMta$data$geno_imp[qas])
+	  colnames(Markers)<-dtMta[["data"]][["geno_imp"]][[qas]]@loc.names
+      Markers <- Markers[,input$markers2MAS]
       X<- dtMta[["data"]][["geno"]]@loc.all
 	    names(X)<-dtMta[["data"]][["geno"]]@loc.names
 	    X<-X[names(X)%in%input$markers2MAS]
@@ -647,6 +597,24 @@ mod_masApp_server <- function(id, data){
           cat(paste("Marker Assisted Selection analysis saved with id:",as.POSIXct( result$status$analysisId[nrow(result$status)], origin="1970-01-01", tz="GMT") ))
         })
         if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+		  q <- vector(mode="numeric",length = length(input$markers2MAS))
+        for(k in 1:ncol(Markers)){
+			ttb <- table(0:input$ploidy)-1 # table of zeros for dosages
+			tto <- table(Markers[,k])
+			ttb[names(tto)] <- ttb[names(tto)] + tto
+			n <- sum(ttb)
+			q[k] <- ( ttb[length(ttb)] + (ttb[2:(length(ttb)-1)] / factorial(2:(length(ttb)-1)) ) ) / n
+        }
+        p <- 1 - q
+        df3 <- data.frame(module="mas", analysisId=result$status$analysisId[nrow(result$status)], 
+						trait=c(input$markers2MAS,input$markers2MAS),
+						environment = c(X$refAllele, X$altAllele),
+                        parameter=c(rep("reference",length(X$refAllele)), rep("alternate",length(X$altAllele)) ),
+						method="frequency",
+                        value=c( p, q),
+                        stdError=NA
+      )	  
+		result$metrics<-rbind(result$metrics,df3)
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         # predictions

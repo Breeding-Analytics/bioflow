@@ -1,5 +1,5 @@
 ---
-title: "Multi-Trial Analysis Report"
+title: "Multi Occurrence Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
@@ -79,7 +79,7 @@ printTable <- function(DT, pageLength = 7,
 ```{r, include=FALSE}
 # Init Step to make sure that the dependencies are loaded
 htmltools::tagList(printTable(mtcars))
-htmltools::tagList(ggplotly(ggplot()))
+htmltools::tagList(ggplotly(ggplot()) %>% plotly::partial_bundle(type = "cartesian"))
 # Get the current figure size in pixels:
 get_w <- function() {
   with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
@@ -108,7 +108,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   # result$status <- result$status[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaLmms"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
@@ -201,11 +201,11 @@ if (is.null(result)){
 }
 ```
 
-### Objectives of Multi-Trial Analysis
+### Objectives of Multi Occurrence Analysis
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. Overall number of entries and effect types included in the multi trial analysis (input)
+1. Overall number of entries and effect types included in the multi occurrence analysis (input)
 
 2. High-level view of the phenotypic adjusted means included in the analysis (input)
 
@@ -223,7 +223,7 @@ The objective of this dashboard is to help scientist to understand the following
 
 9. Genetic correlation between the traits (output)
 
-Understanding these data features should allow the scientist to identify which traits express more genotype by environment interactions and how they should be selected. It should also allow the scientist to assess the correlation between traits and how the product profile should be addressed to maximize genetic gains while developing the needed varieties at the same time. Materials with the highest performance and sensitivity to the environment could be potential nominations for advancement although we recommend to don't select new parents or products until the results from the multi-trial analysis are analyzed with a selection index.  
+Understanding these data features should allow the scientist to identify which traits express more genotype by environment interactions and how they should be selected. It should also allow the scientist to assess the correlation between traits and how the product profile should be addressed to maximize genetic gains while developing the needed varieties at the same time. Materials with the highest performance and sensitivity to the environment could be potential nominations for advancement although we recommend to don't select new parents or products until the results from the multi occurrence analysis are analyzed with a selection index.  
 
 ### Metrics: Table of parameters
 
@@ -404,15 +404,15 @@ if (is.null(result)){
             
             if(iType %in% c("environment_designation", "designation_environment",
                             "environment:designation", "designation:environment")){
-              print(htmltools::tagList(plotly::ggplotly(p + labs(x = "Environment")) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+              print(htmltools::tagList(plotly::ggplotly(p + labs(x = "Environment")) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
             } else{
-              print(htmltools::tagList(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank()))))
+              print(htmltools::tagList(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank())) %>% plotly::partial_bundle(type = "cartesian")))
             }
           }else{
-            print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
+            print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")) %>% plotly::partial_bundle(type = "cartesian")))
           }# end of nrow > 0
         }else{
-          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
+          print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")) %>% plotly::partial_bundle(type = "cartesian")))
         }
       }# end of for each trait
     } # enf of for each type
@@ -568,15 +568,15 @@ if (is.null(result)){
           cat("\n\n#####", iFreq, "{.tabset .tabset-pills}       \n\n")
           if(iFreq == "with frequency distribution"){
             # combine plots
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600) %>% plotly::partial_bundle(type = "cartesian")))
           } else{
-            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
           }
           
         }
         
       } else{
-        print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
+        print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")) %>% plotly::partial_bundle(type = "cartesian")))
       }
       
     }
@@ -656,7 +656,7 @@ if (is.null(result)){
 
 ### Predictions: Correlations between environments
 
-The following heatmap and histogram allows to assess the genetic correlations among the different environment one trait at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. We recommend that only environments that are on-average positively correlated with the main cluster (i.e., rG>0) are included in the multi-trial analysis to guarantee decent rates of genetic gain and adapted products in the TPE.
+The following heatmap and histogram allows to assess the genetic correlations among the different environment one trait at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. We recommend that only environments that are on-average positively correlated with the main cluster (i.e., rG>0) are included in the multi occurrence analysis to guarantee decent rates of genetic gain and adapted products in the TPE.
 
 <p>&nbsp;</p>
 
@@ -778,23 +778,23 @@ if (is.null(result)){
             # combine plots
             if(!is.null(wide2)){
               if(nrow(wide2) > 1){
-                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600) %>% plotly::partial_bundle(type = "cartesian")))
               } else{
-                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% plotly::partial_bundle(type = "cartesian") ))
               }
             }else{
-              print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))   
+              print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% plotly::partial_bundle(type = "cartesian") ))   
             }
             
           } else{
             if(!is.null(wide2)){
               if(nrow(wide2) > 1){
-                print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+                print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
               }else{
-                print(htmltools::tagList(plotly::ggplotly(p)))
+                print(htmltools::tagList(plotly::ggplotly(p) %>% plotly::partial_bundle(type = "cartesian")))
               }
             }else{
-              print(htmltools::tagList(plotly::ggplotly(p)))
+              print(htmltools::tagList(plotly::ggplotly(p) %>% plotly::partial_bundle(type = "cartesian")))
             }
           }
         }
@@ -949,30 +949,30 @@ if (is.null(result)){
             # combine plots
             if(!is.null(wide2)){
               if(nrow(wide2) > 1){
-                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600) %>% plotly::partial_bundle(type = "cartesian")))
               } else{
-                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+                print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% plotly::partial_bundle(type = "cartesian") ))
               }
             }else{
-              print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))   
+              print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% plotly::partial_bundle(type = "cartesian") ))   
             }
             
           } else{
             if(!is.null(wide2)){
               if(nrow(wide2) > 1){
-                print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+                print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
               }else{
-                print(htmltools::tagList(plotly::ggplotly(p)))
+                print(htmltools::tagList(plotly::ggplotly(p) %>% plotly::partial_bundle(type = "cartesian")))
               }
             }else{
-              print(htmltools::tagList(plotly::ggplotly(p)))
+              print(htmltools::tagList(plotly::ggplotly(p) %>% plotly::partial_bundle(type = "cartesian")))
             }
             
           }
           
         }
         # combine plots
-        # print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) ) )
+        # print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p), plotly::ggplotly(p2), nrows=1, shareY = TRUE, shareX = TRUE ) %>% plotly::partial_bundle(type = "cartesian") ) )
       }
       # }
       
@@ -1180,7 +1180,7 @@ if (is.null(result)){
         }else{ # end of if length > 0
           p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
         }
-        print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+        print(htmltools::tagList(plotly::ggplotly(p.mta.biplot) %>% plotly::partial_bundle(type = "cartesian")))
       }# end of for each trait
       
     }else{
@@ -1331,7 +1331,7 @@ if (is.null(result)){
           }else{ # end of if length > 0
             p.mta.biplot <- ggplot2::ggplot() + ggplot2::ggtitle("Combination not available or not enough environments")
           }
-          print(htmltools::tagList(plotly::ggplotly(p.mta.biplot)))
+          print(htmltools::tagList(plotly::ggplotly(p.mta.biplot) %>% plotly::partial_bundle(type = "cartesian")))
         }# end of for each trait
         
         # }
@@ -1558,7 +1558,7 @@ if (is.null(result)){
           }
           ply1 <- plotly::ggplotly(p1)
           ply2 <- plotly::ggplotly(p2)
-          print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = FALSE, nrows=2, heights = c(0.75,0.25) ) ) )
+          print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p2), plotly::ggplotly(p1), shareX = FALSE, nrows=2, heights = c(0.75,0.25) ) %>% plotly::partial_bundle(type = "cartesian") ) )
         } # enf of nrow > 0
         
       }
@@ -1855,15 +1855,15 @@ if (is.null(result)){
         if(iFreq == "with frequency distribution"){
           # combine plots
           if(!is.null(wideCorTrait2) & is.matrix(wideCorTrait2)){
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600)))
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank()) + geom_text(aes(label=Freq), size = 2)) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% layout(autosize = T, width = 1600) %>% plotly::partial_bundle(type = "cartesian")))
           }else{
-            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) ))
+            print(htmltools::tagList( plotly::subplot(plotly::ggplotly(p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank())) , plotly::ggplotly(p2), nrows=1, shareY = FALSE, shareX = FALSE ) %>% plotly::partial_bundle(type = "cartesian") ))
           }
         } else{
           if(!is.null(wideCorTrait2) & is.matrix(wideCorTrait2)){
-            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800)))
+            print(htmltools::tagList(plotly::ggplotly(p + geom_text(aes(label=Freq), size = 3)) %>% layout(xaxis = list(tickangle =-45),autosize = T, height = 800) %>% plotly::partial_bundle(type = "cartesian")))
           }else{
-            print(htmltools::tagList(plotly::ggplotly(p)))
+            print(htmltools::tagList(plotly::ggplotly(p) %>% plotly::partial_bundle(type = "cartesian")))
           }
         }
       }
@@ -1964,7 +1964,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   result$status <- result$status#[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaLmms"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
@@ -2063,7 +2063,7 @@ if (is.null(result)){
             ggplot2::labs(title = "Percentage over benchmark", x = "designation", y = "% over check entry", col = "Entry type") + ggplot2::geom_hline(yintercept=0, linetype='dotted', col = 'grey') +
             ggplot2::theme(axis.text.x = ggplot2::element_blank(), legend.position = "bottom") + ggplot2::guides(fill=guide_legend(nrow=3,byrow=TRUE)) #+ ggplot2::facet_wrap(~trait, scales = "free", ncol=2)
              
-            print(htmltools::tagList(plotly::ggplotly(pb)))
+            print(htmltools::tagList(plotly::ggplotly(pb) %>% plotly::partial_bundle(type = "cartesian")))
             
             # tablepb <- temp.pred.box.bench[which(temp.pred.box.bench$predictedValue2 > 0),]
             # 
@@ -2084,7 +2084,7 @@ if (is.null(result)){
             #                                     numRound = 4)))
         
           }else{
-            print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available"))))
+            print(htmltools::tagList(plotly::ggplotly(ggplot2::ggplot() + ggplot2::ggtitle("Combination not available")) %>% plotly::partial_bundle(type = "cartesian")))
           }
         }
 
@@ -2233,6 +2233,68 @@ if (is.null(result)){
   
 }
 
+```
+
+### TPP Overview
+
+This section links TPP (Target Product Profile) trait definitions with key MOA performance metrics.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  
+  # Get TPP analysis config
+  tpp_analysis_config <- result$metadata$tpp_analysis_config
+  
+  if (is.null(tpp_analysis_config) || is.null(tpp_analysis_config$tpp_id) || 
+      tpp_analysis_config$tpp_id == "") {
+    cat("No TPP information available\n")
+  } else {
+    tpp_id <- tpp_analysis_config$tpp_id
+    
+    # Check if TPP data exists
+    if (is.null(result$data$TPP) || is.null(result$data$TPP[[tpp_id]])) {
+      cat("No TPP information available\n")
+    } else {
+      tpp_data <- result$data$TPP[[tpp_id]]
+      
+      if (nrow(tpp_data) == 0) {
+        cat("No TPP traits defined\n")
+      } else {
+        # Get TPP traits metadata if available
+        tpp_traits_metadata <- NULL
+        if (!is.null(result$metadata$TPP) && !is.null(result$metadata$TPP[[tpp_id]])) {
+          tpp_traits_metadata <- result$metadata$TPP[[tpp_id]]$traits
+        }
+        
+        # Build the summary table
+        summaryTable <- build_tpp_overview_table(
+          tpp_data = tpp_data,
+          tpp_id = tpp_id,
+          trait_map = tpp_analysis_config$trait_map,
+          tpp_traits_metadata = tpp_traits_metadata,
+          metrics = result$metrics,
+          modeling = result$modeling,
+          analysisId = idMta
+        )
+        
+        numericColNames <- c("Mean", "r2", "Variance", "Error Variance", "Number of Environments")
+        
+        if("params" %in% ls()){
+          printTable(summaryTable, scrollXOpt = FALSE, autoWidthOpt = TRUE,
+                     colNames = colnames(summaryTable),
+                     numericColNames = numericColNames, numRound = 4)
+        } else {
+          DT::renderDT(printTable(summaryTable, scrollXOpt = TRUE, autoWidthOpt = FALSE,
+                                  colNames = colnames(summaryTable),
+                                  numericColNames = numericColNames, numRound = 4),
+                       server = FALSE)
+        }
+      }
+    }
+  }
+}
 ```
 
 

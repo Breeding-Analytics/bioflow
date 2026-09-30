@@ -34,10 +34,10 @@ mod_gwasqkApp_ui <- function(id){
                                             h2(strong("Details")),
                                             p("The Genome-Wide Association Studies (GWAS) is a popular model that have helped efforts to dissect causal biological mechanisms underlying various agronomically important traits.
                                 The way the options are used is the following:"),
-                                            #p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
-                                            p(strong("Traits to analyze.-")," Traits to be analyzed (from STA and MTA modules)."),
+                                            #p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single occurrence analysis step."),
+                                            p(strong("Traits to analyze.-")," Traits to be analyzed (from SOA and MOA modules)."),
                                             p(strong("Markers to analyze.-")," Markers to be analyzed (from filtered markers)."),
-                                            p(strong("Environments to analyze.-")," Differents environments to be considered (across for MTA)."),
+                                            p(strong("Environments to analyze.-")," Differents environments to be considered (across for MOA)."),
                                             p(strong("Additional settings.-")),
                                             p(strong("Model to use.-")," Whether rrBLUP or gBLUP should be considered."),
                                             p(strong("Print logs.-")," Whether the logs of the run should be printed in the screen or not."),
@@ -59,10 +59,10 @@ mod_gwasqkApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel("Pick STA or MTA-stamp(s)", icon = icon("dice-one"),
+                                      tabPanel("Pick SOA or MOA-stamp(s)", icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=3, selectInput(ns("version2Gwas"), "STA/MTA version(s) to analyze", choices = NULL, multiple = TRUE)),
+                                                      column(width=3, selectInput(ns("version2Gwas"), "SOA/MOA version(s) to analyze", choices = NULL, multiple = TRUE)),
                                                       column(width=3, selectInput(ns("versionMarker2Gwas"), "Marker QA version(s) to use", choices = NULL, multiple = TRUE)),
                                                       column(width=3, selectInput(ns("env2Gwas"), "Environment(s) to use", choices = NULL, multiple = TRUE)),
                                                       # column(width=3, tags$span(id = ns('isSta'), selectInput(ns("env2Gwas"), "Environment to use (required)", choices = NULL, multiple = TRUE), ),  ),
@@ -230,13 +230,13 @@ mod_gwasqkApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("mtaLmms" %in% data()$status$module){
+          if("moaLmms" %in% data()$status$module){
             if("qaGeno" %in% data()$status$module){ # user has markers
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the genome wide association study (GWAS) analysis specifying your input parameters under the Input tabs.")) )
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers (and QA the data) to run this module.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing genome wide association study (GWAS).")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before performing genome wide association study (GWAS).")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -279,7 +279,7 @@ mod_gwasqkApp_server <- function(id, data){
       if(!is.null(data())) {
         dtGwas <- data()
         dtGwas <- dtGwas$status
-        dtGwas <- dtGwas[which(dtGwas$module %in% c("mtaLmms")),]
+        dtGwas <- dtGwas[which(dtGwas$module %in% c("moaLmms")),]
         dtGwas <- dtGwas[length(dtGwas)]
         if (input$version2Gwas %in% dtGwas) {
           golem::invoke_js('hideid', ns('isSta'))
@@ -308,7 +308,7 @@ mod_gwasqkApp_server <- function(id, data){
       req(data())
       dtGwas <- data()
       dtGwas <- dtGwas$status
-      dtGwas <- dtGwas[which(dtGwas$module %in% c("sta","mtaLmms")),]
+      dtGwas <- dtGwas[which(dtGwas$module %in% c("soa","moaLmms")),]
       traitsGwas <- unique(dtGwas$analysisId)
       if(length(traitsGwas) > 0){
         if("analysisIdName" %in% colnames(dtGwas)){
@@ -381,10 +381,10 @@ mod_gwasqkApp_server <- function(id, data){
 
       envGwasSel <- data()
       envGwasSel <- envGwasSel$status
-      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("sta")),]
+      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("soa")),]
       envGwasSel <- envGwasSel[length(envGwasSel)]
 
-      idGwas <- data()$status[which(data()$status$module %in% "mtaLmms"),"analysisId"]
+      idGwas <- data()$status[which(data()$status$module %in% "moaLmms"),"analysisId"]
       idGwas <- idGwas[length(idGwas)]
 
       mydata <- mydata[which(mydata[,"trait"] %in% input$trait3Gwas),]
@@ -483,7 +483,7 @@ mod_gwasqkApp_server <- function(id, data){
                                    lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Traits available in the STA or MTA ID selected.')
+                      htmltools::em('Traits available in the SOA or MOA ID selected.')
                     )
       )
     })
@@ -497,7 +497,7 @@ mod_gwasqkApp_server <- function(id, data){
 
       envGwasSel <- data()
       envGwasSel <- envGwasSel$status
-      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("mtaLmms")),]
+      envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("moaLmms")),]
       envGwasSel <- envGwasSel[length(envGwasSel)]
       if(input$version2Gwas %in% envGwasSel){
         dtGwas <- dtGwas
@@ -508,7 +508,7 @@ mod_gwasqkApp_server <- function(id, data){
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                                     caption = htmltools::tags$caption(
                                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                                      htmltools::em('STA or MTA predictions table to be used as input.')
+                                      htmltools::em('SOA or MOA predictions table to be used as input.')
                                     )
       ), numeric.output)
     })
@@ -535,48 +535,8 @@ mod_gwasqkApp_server <- function(id, data){
 
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 == 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 == 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          X[,colnames(X1)] <- X1
-          X[,colnames(X2)] <- X2
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     ## render modeling
     # output$statusGwas <-  DT::renderDT({
@@ -592,7 +552,7 @@ mod_gwasqkApp_server <- function(id, data){
     #                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
     #                 caption = htmltools::tags$caption(
     #                   style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-    #                   htmltools::em('Past modeling parameters from MTA stamp(s) selected.')
+    #                   htmltools::em('Past modeling parameters from MOA stamp(s) selected.')
     #                 )
     #   )
     # })
@@ -641,14 +601,14 @@ mod_gwasqkApp_server <- function(id, data){
       # dt2Gwas <- dtGwas$predictions
       # dt2Gwas <- dt2Gwas[which(dt2Gwas$module %in% "mta"),]
       # run the modeling, but before test if mta was done
-      if(sum(dtGwas$status$module %in% c("mtaLmms")) == 0) {
+      if(sum(dtGwas$status$module %in% c("moaLmms")) == 0) {
         output$qaQcGwasInfo <- renderUI({
           if (hideAll$clearAll){
             return()
           }else{
             req(dtGwas)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Single/Multi-Trial-Analysis before conducting Genome wide association."))
+                                  "Please perform Single/Multi Occurrence Analysis before conducting Genome wide association."))
             )
           }
         })
@@ -676,7 +636,7 @@ mod_gwasqkApp_server <- function(id, data){
 
         # envGwasSel <- data()
         # envGwasSel <- envGwasSel$status
-        # envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("sta")),]
+        # envGwasSel <- envGwasSel[which(envGwasSel$module %in% c("soa")),]
         # envGwasSel <- envGwasSel[length(envGwasSel)]
         #
         # if(input$version2Gwas %in% envGwasSel) {
@@ -684,7 +644,7 @@ mod_gwasqkApp_server <- function(id, data){
         # }else{field <- "across"}
 
         mod <- data()$status[which(data()$status$analysisId == input$version2Gwas),"module"]
-        #if("sta" %in% mod){field <- input$env2Gwas}else{field <- "(Intercept)"}
+        #if("soa" %in% mod){field <- input$env2Gwas}else{field <- "(Intercept)"}
 
         result <- try(cgiarPipeline::gwas(
           phenoDTfile = dtGwas, # analysis to be picked from predictions database

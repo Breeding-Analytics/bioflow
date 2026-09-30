@@ -461,6 +461,13 @@ mod_hybridityApp_ui <- function(id){
                                              ),
                                              tabPanel("Predictions", icon = icon("table"),
                                                       br(),
+                                                      checkboxGroupInput(
+                                                        ns("filter_parental_uncertainty"),
+                                                        label = "Filter by parental uncertainty:",
+                                                        choices = c("No uncertainty", "1 uncertain parent", "2 uncertain parents"),
+                                                        selected = c("No uncertainty", "1 uncertain parent", "2 uncertain parents"),
+                                                        inline = TRUE
+                                                      ),
                                                       DT::DTOutput(ns("predictionsVerif")),
                                              ),
                                              tabPanel("Metrics", icon = icon("table"),
@@ -582,48 +589,8 @@ mod_hybridityApp_server <- function(id, data){
 
     ## render timestamps flow plot
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(!is.null(xx)){
-        colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };  rownames(X) <- as.character(zz$outputId)
-        rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-        colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        #library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) + ggplot2::ggtitle("Network plot of current analyses available") +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank()
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
 
 
@@ -693,7 +660,8 @@ mod_hybridityApp_server <- function(id, data){
       dtVerif <- data()
       #dtVerif <- dtVerif$data$geno
       if (class(dtVerif$data$geno)[1] == "genlight") {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        req(length(qas) == 1)
         #dtVerif <- as.data.frame(dtVerif$data$geno_imp[qas])
         traitsVerif <- adegenet::locNames(dtVerif$data$geno_imp[[qas]])
       }
@@ -731,10 +699,10 @@ mod_hybridityApp_server <- function(id, data){
 
       #genotypic data
       dtVerif <- data()
-      #dtVerif <- dtVerif$data$geno
       if (class(dtVerif$data$geno)[1] == "genlight") {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
-        Markers <- as.data.frame(dtVerif$data$geno_imp[qas])
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        req(length(qas) == 1)
+        Markers <- as.data.frame(dtVerif$data$geno_imp[[qas]])
       }
 
       #get ploidy
@@ -742,10 +710,19 @@ mod_hybridityApp_server <- function(id, data){
       ploidy = ploidy[ploidy$parameter == "ploidity","value"]
       ploidy = as.numeric(ploidy)
 
-      #pedigree
+      #pedigree - get unique crosses only
       dtPed <- dtVerif$data$pedigree
-      parents = dtPed[,input$units2Verif]
-      #keep only F1's with parental information
+      metaPed <- dtVerif$metadata$pedigree
+
+      # Filter to F1 rows only using the crossType column from metadata
+      ct_col <- metaPed$value[metaPed$parameter == "crossType"]
+      if (length(ct_col) == 1 && !is.na(ct_col) && nzchar(ct_col) && ct_col %in% colnames(dtPed)) {
+        f1_ped <- dtPed[!is.na(dtPed[[ct_col]]) & dtPed[[ct_col]] == "F1", , drop = FALSE]
+      } else {
+        f1_ped <- dtPed
+      }
+      parents = unique(f1_ped[, input$units2Verif, drop = FALSE])
+      #keep only crosses with parental information
       parents = stats::na.omit(parents)
 
       if(length(input$units2Verif) == 1){ #Assume selfing
@@ -776,22 +753,24 @@ mod_hybridityApp_server <- function(id, data){
         Mscore = list()
         idx = 1
         for(par in input$units2Verif){
-          M = Markers[parents[,par]%in%rownames(Markers),]
+          par_names <- parents[, par]
+          present_par <- par_names[par_names %in% rownames(Markers)]
+          M = Markers[present_par, , drop = FALSE]
           #Flag homozygous genotypes in M
           Mhomo = ((M/ploidy) == 0 |(M/ploidy) == 1)
 
           #If parents have missing genotypes
-          missing_par = parents[,par][!parents[,par] %in% rownames(Markers)]
+          missing_par = par_names[!par_names %in% rownames(Markers)]
           #Create matrix for parents without genotypes
           if(length(missing_par)!=0){
-            Mmiss = matrix(NA, nrow = length(missing_par),ncol = ncol(M))
+            Mmiss = matrix(NA, nrow = length(missing_par),ncol = ncol(Markers))
             rownames(Mmiss) = missing_par
-            colnames(Mmiss) = colnames(M)
+            colnames(Mmiss) = colnames(Markers)
 
-            Mhomo = rbind(Mhomo,Mmiss)
+            Mhomo = rbind(Mhomo, Mmiss)
           }
 
-          Mscore[[idx]] = Mhomo[match(parents[,par], rownames(Mhomo)),]
+          Mscore[[idx]] = Mhomo[match(par_names, rownames(Mhomo)),]
           idx = idx+1
         }
         Mscore = Reduce('+', Mscore)
@@ -848,8 +827,8 @@ mod_hybridityApp_server <- function(id, data){
       # --- Get genotype matrix with individuals as rows, markers as columns ---
       Markers <- NULL
       if (inherits(dtVerif$data$geno, "genlight")) {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
-        if (length(qas) > 0) {
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        if (length(qas) == 1) {
           gl_obj <- dtVerif$data$geno_imp[[qas]]
           Markers <- as.data.frame(gl_obj)
           rownames(Markers) <- adegenet::indNames(gl_obj)
@@ -996,8 +975,8 @@ mod_hybridityApp_server <- function(id, data){
       dtVerif <- data()
 
       if (inherits(dtVerif$data$geno, "genlight")) {
-        qas <- which(names(dtVerif$data$geno_imp) == input$version2F1qaqc)
-        if (length(qas) > 0) {
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        if (length(qas) == 1) {
           gl_obj <- dtVerif$data$geno_imp[[qas]]
           selMarkers<- adegenet::locNames(gl_obj)
         }
@@ -1040,8 +1019,6 @@ mod_hybridityApp_server <- function(id, data){
       idQa <- result$status[which(result$status$module %in% c("gVerif")),"analysisId"];
        idQa <- idQa[length(idQa)]
        
-       result$modeling=result$modeling[-which(result$modeling[result$modeling$analysisId==idQa,]$parameter=="MidMatchProbThres"),]
-       
        predictionsX <- result$predictions[which( result$predictions$analysisId == idQa),]
        modeling <- result$modeling[which(result$modeling$analysisId == idQa),]
        upperThres <- modeling[modeling$parameter == "UpperMatchProbThres","value"]
@@ -1060,6 +1037,11 @@ mod_hybridityApp_server <- function(id, data){
        prob_status <- unique(data.frame(designation = predictionsX$designation[idx],
                                       .status = status,
                                       stringsAsFactors = FALSE))
+       
+       # Override status for F1s whose parents failed the heterozygosity filter
+       idx_het <- (predictionsX$trait == "parHetFilter")
+       het_fail_desig <- predictionsX$designation[idx_het][predictionsX$predictedValue[idx_het] == 0]
+       prob_status$.status[prob_status$designation %in% het_fail_desig] <- "PARENT FAIL"
       
       na_status = prob_status[is.na(prob_status$.status),]
       
@@ -1078,6 +1060,84 @@ mod_hybridityApp_server <- function(id, data){
                                            ifelse(predictionsX$predictedValue[idx4] == 0, "PARENT FAIL",NA))))
       
       prob_status[is.na(prob_status$.status),".status"] = other_status
+
+      # Final catch-all: any remaining NA status (e.g. probMatch=NA with all data flags passing)
+      prob_status$.status[is.na(prob_status$.status)] <- "NO GENO DATA"
+
+      # --- Parental uncertainty classification ---
+      # Look up consensus_info from modifications or geno_imp to determine if parents have uncertain genotypes
+      consensus_info <- NULL
+      # Primary source: modifications$geno_raw (stored by Individual Management module)
+      if (!is.null(dtVerif$modifications$geno_raw) && is.list(dtVerif$modifications$geno_raw) && length(dtVerif$modifications$geno_raw) > 0) {
+        consensus_info <- dtVerif$modifications$geno_raw
+      } else if (inherits(dtVerif$data$geno, "genlight")) {
+        # Fallback: check geno_imp @other$consensus_info
+        qas <- cgiarBase::resolveGenoStamp(dtVerif$data$geno_imp, input$version2F1qaqc)
+        if (length(qas) == 1) {
+          consensus_info <- dtVerif$data$geno_imp[[qas]]@other$consensus_info
+        }
+      }
+
+      # For each F1, check if mother and/or father are in consensus_info (i.e., uncertain)
+      # Get the cross table (mother, father, hybrid) from pedigree
+      ped_unc <- dtVerif$data$pedigree
+      metaPed_unc <- dtVerif$metadata$pedigree
+      colnames(ped_unc) <- cgiarBase::replaceValues(colnames(ped_unc), Search = metaPed_unc$value, Replace = metaPed_unc$parameter)
+      if ("crossType" %in% colnames(ped_unc)) {
+        ped_f1 <- ped_unc[ped_unc$crossType == "F1", , drop = FALSE]
+      } else {
+        ped_f1 <- ped_unc
+      }
+
+      # Build per-F1 uncertainty label
+      if (!is.null(consensus_info) && length(consensus_info) > 0) {
+        # Only flag parents that went through manual consensus (not removed ones)
+        uncertain_parents <- names(consensus_info)[
+          vapply(consensus_info, function(x) {
+            is.null(x$reason) || x$reason != "no_consensus"
+          }, logical(1))
+        ]
+
+        # Map each F1 in prob_status to its mother/father
+        # prob_status$designation may contain sample_id or designation depending on pedigree structure
+        if ("sample_id" %in% colnames(ped_f1)) {
+          # predictions use sample_id as the identifier
+          cross_map <- unique(ped_f1[, c("sample_id", "mother", "father"), drop = FALSE])
+          colnames(cross_map)[1] <- "designation"  # align with prob_status$designation
+        } else {
+          cross_map <- unique(ped_f1[, c("designation", "mother", "father"), drop = FALSE])
+        }
+
+        prob_status <- merge(prob_status, cross_map, by = "designation", all.x = TRUE)
+
+        mother_uncertain <- prob_status$mother %in% uncertain_parents
+        father_uncertain <- prob_status$father %in% uncertain_parents
+        n_uncertain <- as.integer(mother_uncertain) + as.integer(father_uncertain)
+        prob_status$parental_uncertainty <- ifelse(
+          n_uncertain == 0, "No uncertainty",
+          ifelse(n_uncertain == 1, "1 uncertain parent", "2 uncertain parents")
+        )
+        # Remove helper columns
+        prob_status$mother <- NULL
+        prob_status$father <- NULL
+      } else {
+        prob_status$parental_uncertainty <- "No uncertainty"
+      }
+
+      # Store parental_uncertainty as a prediction row for each F1
+      unc_preds <- data.frame(
+        module = "gVerif", analysisId = idQa, pipeline = "unknown",
+        trait = "parentalUncertainty", gid = seq_len(nrow(prob_status)),
+        designation = prob_status$designation,
+        mother = NA_character_, father = NA_character_,
+        entryType = "unknown", effectType = "designation",
+        environment = "across",
+        predictedValue = as.numeric(factor(prob_status$parental_uncertainty,
+                                           levels = c("No uncertainty", "1 uncertain parent", "2 uncertain parents"))) - 1,
+        stdError = NA_real_, reliability = NA_real_,
+        stringsAsFactors = FALSE
+      )
+      result$predictions <- rbind(result$predictions, unc_preds[, colnames(result$predictions)])
       
       sst=match(prob_status$designation,result$data$pedigree$sample_id)
       result$modifications$pedigree<-data.frame(cbind(module="gVerif",analysisId=idQa,reason=prob_status[,2],row=sst))
@@ -1177,6 +1237,34 @@ mod_hybridityApp_server <- function(id, data){
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+
+          # Add parental_uncertainty column to the wide view
+          # Extract the uncertainty trait and map it to labels
+          unc_rows <- current.predictions[current.predictions$trait == "parentalUncertainty", , drop = FALSE]
+          unc_labels <- c("No uncertainty", "1 uncertain parent", "2 uncertain parents")
+          unc_map <- data.frame(
+            designation = unc_rows$designation,
+            parental_uncertainty = unc_labels[as.integer(unc_rows$predictedValue) + 1],
+            stringsAsFactors = FALSE
+          )
+
+          # Remove the parentalUncertainty rows from the display (it's now a column)
+          current.predictions <- current.predictions[current.predictions$trait != "parentalUncertainty", , drop = FALSE]
+
+          # Merge uncertainty info
+          if (nrow(unc_map) > 0) {
+            current.predictions <- merge(current.predictions, unc_map, by = "designation", all.x = TRUE)
+            current.predictions$parental_uncertainty[is.na(current.predictions$parental_uncertainty)] <- "No uncertainty"
+          } else {
+            current.predictions$parental_uncertainty <- "No uncertainty"
+          }
+
+          # Apply parental uncertainty filter
+          sel_unc <- input$filter_parental_uncertainty
+          if (!is.null(sel_unc) && length(sel_unc) > 0) {
+            current.predictions <- current.predictions[current.predictions$parental_uncertainty %in% sel_unc, , drop = FALSE]
+          }
+
           current.predictions <- subset(current.predictions, select = -c(module,analysisId))
           numeric.output <- c("predictedValue", "stdError", "reliability")
           DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',

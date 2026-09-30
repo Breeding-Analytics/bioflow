@@ -230,14 +230,14 @@ mod_rggApp_server <- function(id, data){
         pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
         mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),c(NA,"")))
         if(mappedColumns > 0){
-          if(any(c("sta","mtaLmms","mta","mtaFlex","mtaAsr") %in% data()$status$module)){
+          if(any(c("soa","moaLmms","mta","mtaFlex","moaAsr") %in% data()$status$module)){
             myYearOfOrigin <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure to map the column 'yearOfOrigin' in the 'Pedigree data' extraction section under the 'Data Retrieval' to perform the realized genetic gain analysis.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single-Trial or Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single-Trial or Multi Occurrence Analysis before performing a realized genetic gain analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -282,9 +282,9 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- data()
       dtRgg <- dtRgg$status
       if(input$methodRgg == "piepho"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("sta")),]
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("soa")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")),] #delete indexD from here because doesn't work
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","moaLmms","moaAsr")),] #delete indexD from here because doesn't work
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){
@@ -501,67 +501,8 @@ mod_rggApp_server <- function(id, data){
     })
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
-      req(data()) # req(input$version2Sta)
-      xx <- data()$status;  yy <- data()$modeling # xx <- result$status;  yy <- result$modeling
-      if("analysisIdName" %in% colnames(xx)){existNames=TRUE}else{existNames=FALSE}
-      if(existNames){
-        networkNames <- paste(xx$analysisIdName, as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT")),sep = "_" )
-        xx$analysisIdName <- as.character(as.POSIXct(as.numeric(xx$analysisId), origin="1970-01-01", tz="GMT"))
-      }
-      v <- which(yy$parameter == "analysisId")
-      if(length(v) > 0){
-        yy <- yy[v,c("analysisId","value")]
-        zz <- merge(xx,yy, by="analysisId", all.x = TRUE)
-      }else{ zz <- xx; zz$value <- NA}
-      if(existNames){
-        zz$analysisIdName <- cgiarBase::replaceValues(Source = zz$analysisIdName, Search = "", Replace = "?")
-        zz$analysisIdName2 <- cgiarBase::replaceValues(Source = zz$value, Search = zz$analysisId, Replace = zz$analysisIdName)
-      }
-      if(!is.null(xx)){
-        if(existNames){
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisIdName","analysisIdName2"), Replace = c("outputId","inputId") )
-        }else{
-          colnames(zz) <- cgiarBase::replaceValues(colnames(zz), Search = c("analysisId","value"), Replace = c("outputId","inputId") )
-        }
-        nLevelsCheck1 <- length(na.omit(unique(zz$outputId)))
-        nLevelsCheck2 <- length(na.omit(unique(zz$inputId)))
-        if(nLevelsCheck1 > 1 & nLevelsCheck2 > 1){
-          X <- with(zz, enhancer::overlay(outputId, inputId))
-        }else{
-          if(nLevelsCheck1 <= 1){
-            X1 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X1) <- as.character(na.omit(unique(c(zz$outputId))))
-          }else{X1 <- model.matrix(~as.factor(outputId)-1, data=zz); colnames(X1) <- levels(as.factor(zz$outputId))}
-          if(nLevelsCheck2 <= 1){
-            X2 <- matrix(ifelse(is.na(zz$inputId),0,1),nrow=length(zz$inputId),1); colnames(X2) <- as.character(na.omit(unique(c(zz$inputId))))
-          }else{X2 <- model.matrix(~as.factor(inputId)-1, data=zz); colnames(X2) <- levels(as.factor(zz$inputId))}
-          mynames <- unique(na.omit(c(zz$outputId,zz$inputId)))
-          X <- matrix(0, nrow=nrow(zz), ncol=length(mynames)); colnames(X) <- as.character(mynames)
-          if(!is.null(X1)){X[,colnames(X1)] <- X1}
-          if(!is.null(X2)){X[,colnames(X2)] <- X2}
-        };
-        rownames(X) <- networkNames
-        colnames(X) <- networkNames
-        if(existNames){
-
-        }else{
-          rownames(X) <-as.character(as.POSIXct(as.numeric(rownames(X)), origin="1970-01-01", tz="GMT"))
-          colnames(X) <-as.character(as.POSIXct(as.numeric(colnames(X)), origin="1970-01-01", tz="GMT"))
-        }
-        # make the network plot
-        n <- network::network(X, directed = FALSE)
-        network::set.vertex.attribute(n,"family",zz$module)
-        network::set.vertex.attribute(n,"importance",1)
-        e <- network::network.edgecount(n)
-        network::set.edge.attribute(n, "type", sample(letters[26], e, replace = TRUE))
-        network::set.edge.attribute(n, "day", sample(1, e, replace = TRUE))
-        library(ggnetwork)
-        ggplot2::ggplot(n, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-          ggnetwork::geom_edges(ggplot2::aes(color = family), arrow = ggplot2::arrow(length = ggnetwork::unit(6, "pt"), type = "closed") ) +
-          ggnetwork::geom_nodes(ggplot2::aes(color = family), alpha = 0.5, size=5 ) +
-          ggnetwork::geom_nodelabel_repel(ggplot2::aes(color = family, label = vertex.names ),
-                                          fontface = "bold", box.padding = ggnetwork::unit(1, "lines")) +
-          ggnetwork::theme_blank() + ggplot2::ggtitle("Network plot of current analyses available")
-      }
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
     })
     ## render the data to be analyzed
     output$phenoRgg <-  DT::renderDT({
@@ -603,9 +544,13 @@ mod_rggApp_server <- function(id, data){
       file.copy(src2, 'resultRgg.RData', overwrite = TRUE)
 
       outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
-                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
+                                     switch("HTML", HTML = rmdformats::robobook(toc_depth = 4, embed_fonts = FALSE)
                                             # HTML = rmarkdown::html_document()
                                      ))
+
+      html <- rawToChar(readBin(outReport, "raw", n = file.info(outReport)$size))
+      font_css <- paste0("(?s)<style type=\"text/css\">\\s*@font-face\\s*\\{", "\\s*font-family:\\s*'Fira Code'.*?</style>")
+      if (grepl(font_css, html, perl = TRUE)) {html <- sub(font_css, "", html, perl = TRUE); writeBin(charToRaw(html), outReport)}
 
       report(outReport)
 
@@ -633,7 +578,7 @@ mod_rggApp_server <- function(id, data){
       ### pseudo code to select top n (e.g., 5) lines per yearOfOrigin #########################
       # n_value <- 5
       #
-      # tmp <- dtRgg$predictions[dtRgg$predictions$module == "mtaLmms" &
+      # tmp <- dtRgg$predictions[dtRgg$predictions$module == "moaLmms" &
       #                          dtRgg$predictions$effectType == "designation", ]
       #
       # tmp <- merge(tmp, dtRgg$data$pedigree[, c("Geno", "yearOfOrigin")],
@@ -644,7 +589,7 @@ mod_rggApp_server <- function(id, data){
       #   dplyr::slice_max(order_by = predictedValue, n = n_value) %>%
       #   dplyr::select(yearOfOrigin, designation, predictedValue)
       #
-      # dtRgg$predictions <- dtRgg$predictions[!(dtRgg$predictions$module == "mtaLmms" &
+      # dtRgg$predictions <- dtRgg$predictions[!(dtRgg$predictions$module == "moaLmms" &
       #                                          dtRgg$predictions$effectType == "designation" &
       #                                        !(dtRgg$predictions$designation %in% top_geno$designation)),]
       # rm(tmp, top_geno)
