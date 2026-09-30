@@ -1,3 +1,92 @@
+# Read cloud storage configuration from the environment.
+get_cloud_storage_config <- function() {
+  config <- list(
+    bucket_name = Sys.getenv("CLOUD_STORAGE_BUCKET_NAME", ""),
+    region      = Sys.getenv("CLOUD_STORAGE_REGION", "ap-southeast-1"),
+    role_arn    = Sys.getenv("CLOUD_STORAGE_ROLE_ARN", ""),
+    external_id = Sys.getenv("CLOUD_STORAGE_EXTERNAL_ID", "")
+  )
+
+  missing <- names(Filter(function(v) nchar(v) == 0, config[c("bucket_name", "role_arn")]))
+  if (length(missing) > 0) {
+    warning(
+      "Cloud storage config incomplete; missing env var(s): ",
+      paste(toupper(paste0("CLOUD_STORAGE_", missing)), collapse = ", ")
+    )
+  }
+
+  config
+}
+
+# Build the session policy scoped to this user's prefix
+get_scoped_s3_client <- function(user_email) {
+
+  session_policy <- list(
+    Version = "2012-10-17",
+    Statement = list(
+      list(
+        Sid = "AllowListOwnPrefix",
+        Effect = "Allow",
+        Action = "s3:ListBucket",
+        Resource = paste0("arn:aws:s3:::", BUCKET_NAME),
+        Condition = list(
+          StringLike = list(
+            "s3:prefix" = list(
+              paste0(user_email, "/*"),
+              paste0(user_email, "/")
+            )
+          )
+        )
+      ),
+      list(
+        Sid = "AllowObjectActionsOwnPrefix",
+        Effect = "Allow",
+        Action = list("s3:GetObject", "s3:PutObject", "s3:DeleteObject"),
+        Resource = paste0("arn:aws:s3:::", BUCKET_NAME, "/", user_email, "/*")
+      ),
+      list(
+        Sid = "AllowPutDirectoryMarker",
+        Effect = "Allow",
+        Action = "s3:PutObject",
+        Resource = paste0("arn:aws:s3:::", BUCKET_NAME, "/", user_email, "/")
+      )
+    )
+  )
+
+  # Sanitize email for RoleSessionName
+  session_name <- gsub("@", "_at_", user_email)
+  session_name <- gsub("\\.", "_dot_", session_name)
+  session_name <- substr(session_name, 1, 64)
+
+  # Assume the cross-account role with the inline session policy
+
+  sts <- paws::sts(config = list(region = REGION))
+  response <- sts$assume_role(
+    RoleArn = ROLE_ARN,
+    RoleSessionName = session_name,
+    Policy = toJSON(session_policy, auto_unbox = TRUE),
+    DurationSeconds = 3600L,
+    ExternalId = EXTERNAL_ID
+  )
+
+  # Create an S3 client using the scoped temporary credentials
+  creds <- response$Credentials
+  s3 <- paws::s3(config = list(
+    region = REGION,
+    credentials = list(
+      creds = list(
+        access_key_id = creds$AccessKeyId,
+        secret_access_key = creds$SecretAccessKey,
+        session_token = creds$SessionToken
+      )
+    )
+  ))
+
+  return(s3)
+}
+
+
+
 #' saveData UI Function
 #'
 #' @description A shiny Module.
@@ -100,6 +189,7 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
 
             ### set up paws library ################################################
             # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
+
             Sys.setenv("AWS_PROFILE" = "bioflow")
             Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
 
