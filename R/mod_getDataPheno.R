@@ -199,7 +199,7 @@ mod_getDataPheno_ui <- function(id){
                            shinydashboard::box(width = 12, status = 'success', solidHeader = FALSE,
                                                hr(),
                                                # tags$div(id = ns('mapping_title_holder'),
-                                               #          HTML( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "2. Match/map your columns")) ),
+                                               #          ( as.character(div(style="color:cadetblue; font-weight:bold; font-size: 18px;", "2. Match/map your columns")) ),
                                                # ),
                                                uiOutput(ns('pheno_map')),
                                                uiOutput(ns('brapi_trait_map')),
@@ -270,11 +270,11 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     # warning message
     output$warningMessage <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+        ( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use other modules.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","designation","trait"), data()$metadata$pheno$parameter), collapse = ", ") ) )) )
+        if(mappedColumns == 3){ ( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use other modules.")) )
+        }else{( as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","designation","trait"), data()$metadata$pheno$parameter), collapse = ", ") ) )) )
         }
       }
     )
@@ -874,9 +874,9 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
                                          buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                          lengthMenu = list(c(5,20,50,-1), c(5,20,50,'All'))
                           )#,
-                          # caption = htmltools::tags$caption(
+                          # caption = tools::tags$caption(
                           #   style = 'color:cadetblue; font-weight:bold; font-size: 24px', #caption-side: bottom; text-align: center;
-                          #   htmltools::em('Data preview.')
+                          #   tools::em('Data preview.')
                           # )
             )
           }, server = FALSE)
@@ -885,7 +885,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             output$brapi_trait_map <- renderUI({
               selectInput(
                 inputId  = ns('brapi_traits'),
-                label    = HTML(as.character(p('trait', span('(*required)',style="color:red")))),
+                label    = (as.character(p('trait', span('(*required)',style="color:red")))),
                 multiple = TRUE,
                 choices  = as.list(c('', colnames(temp$data$pheno))),
               )
@@ -987,10 +987,12 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
           column(3,
                  selectInput(
                    inputId  = ns(paste0('select', x)),
-                   label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
+                   #label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
+                   label    = HTML(ifelse(x %in% c('designation','trait','location'), as.character(p(x, span('(*required)',style="color:red"))),  ifelse(x %in% c('rep','iBlock','row','col','rowDes','colDes'), as.character(p(x, span('(*recommended)',style="color:grey"))), as.character(p(x, span('(*optional)',style="color:grey")))  )   ) ) ,
                    multiple = ifelse(x == 'trait', TRUE, FALSE),
                    choices  = as.list(c('', header )),
-                   selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
+                   #selected = ifelse(length(grep(x,header, ignore.case = TRUE)) > 0, header[grep(x,header, ignore.case = TRUE)[1]], '')
+                   selected = ifelse(length(grep(paste0("^", x, "$"),header, ignore.case = TRUE)) > 0, header[grep(paste0("^", x, "$"),header, ignore.case = TRUE)[1]], '')
                  ),
 
                  # shinyBS::bsTooltip(ns(paste0('select', x)), 'Mapping this!', placement = 'left', trigger = 'hover'),
