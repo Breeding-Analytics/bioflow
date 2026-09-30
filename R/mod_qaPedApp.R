@@ -48,7 +48,7 @@ mod_qaPedApp_ui <- function(id) {
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel(div( icon("dice-one"), "Pick STA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-one"), "Pick SOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8,

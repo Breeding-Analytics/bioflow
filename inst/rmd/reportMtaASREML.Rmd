@@ -1,5 +1,5 @@
 ---
-title: "Multi-Trial Analysis ASReml-R Report"
+title: "Multi Occurrence Analysis ASReml-R Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
@@ -102,7 +102,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   # result$status <- result$status[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaAsr"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred$predictedValue<-as.numeric(pred$predictedValue)
@@ -189,11 +189,11 @@ if (is.null(result)){
 }
 ```
 
-### Objectives of Multi-Trial Analysis
+### Objectives of Multi Occurrence Analysis
 
 The objective of this dashboard is to help scientist to understand the following points:
   
-1. Overall number of entries and effect types included in the multi trial analysis (input)
+1. Overall number of entries and effect types included in the multi occurrence analysis (input)
 
 2. High-level view of the phenotypic adjusted means included in the analysis (input)
 
@@ -211,7 +211,7 @@ The objective of this dashboard is to help scientist to understand the following
 
 8. Genetic correlation between the traits (output)
 
-Understanding these data features should allow the scientist to identify which traits express more genotype by environment interactions and how they should be selected. It should also allow the scientist to assess the correlation between traits and how the product profile should be addressed to maximize genetic gains while developing the needed varieties at the same time. Materials with the highest performance and sensitivity to the environment could be potential nominations for advancement although we recommend to don't select new parents or products until the results from the multi-trial analysis are analyzed with a selection index.  
+Understanding these data features should allow the scientist to identify which traits express more genotype by environment interactions and how they should be selected. It should also allow the scientist to assess the correlation between traits and how the product profile should be addressed to maximize genetic gains while developing the needed varieties at the same time. Materials with the highest performance and sensitivity to the environment could be potential nominations for advancement although we recommend to don't select new parents or products until the results from the multi occurrence analysis are analyzed with a selection index.  
 
 ### Metrics: Table of parameters
 
@@ -580,7 +580,7 @@ if (is.null(result)){
 
 ### Predictions: Correlations between environments
 
-The following heatmap and histogram allows to assess the genetic correlations among the different environment one trait at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single-trial analysis estimates. We recommend that only environments that are on-average positively correlated with the main cluster (i.e., rG>0) are included in the multi-trial analysis to guarantee decent rates of genetic gain and adapted products in the TPE.
+The following heatmap and histogram allows to assess the genetic correlations among the different environment one trait at a time. If the user modeled GxE, this matrix is calculated as the correlation between the environment-specific estimates for individuals. If a pure main-effect model is specified this matrix is calculated as the correlation between the single occurrence analysis estimates. We recommend that only environments that are on-average positively correlated with the main cluster (i.e., rG>0) are included in the multi occurrence analysis to guarantee decent rates of genetic gain and adapted products in the TPE.
 
 <p>&nbsp;</p>
 
@@ -1662,7 +1662,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   result$status <- result$status#[1:6,]
-  idMta <- result$status[which(result$status$module == "mtaAsr"),"analysisId"]
+  idMta <- result$status[which(result$status$module == "moaAsr"),"analysisId"]
   idMta <- idMta[length(idMta)]
   pred <- result$predictions
   pred <- pred[pred$analysisId == idMta,]
@@ -1919,7 +1919,7 @@ if (is.null(result)){
 
 ### TPP Overview
 
-This section links TPP (Target Product Profile) trait definitions with key MTA performance metrics.
+This section links TPP (Target Product Profile) trait definitions with key MOA performance metrics.
 
 ```{r, results='asis'}
 if (is.null(result)){

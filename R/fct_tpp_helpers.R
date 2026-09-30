@@ -1759,7 +1759,7 @@ tpp_add_scatterplot_lines <- function(plot_obj, x_trait_desired, y_trait_desired
 
 #' Build TPP Overview Summary Table
 #'
-#' Constructs a data.frame summarizing TPP trait performance metrics from MTA results.
+#' Constructs a data.frame summarizing TPP trait performance metrics from MOA results.
 #'
 #' @param tpp_data A data.frame containing TPP trait definitions.
 #' @param tpp_id A character string identifying the TPP.
@@ -1767,7 +1767,7 @@ tpp_add_scatterplot_lines <- function(plot_obj, x_trait_desired, y_trait_desired
 #' @param tpp_traits_metadata A data.frame with tpp_trait and pheno_trait columns.
 #' @param metrics A data.frame with trait, parameter, value, environment, analysisId.
 #' @param modeling A data.frame with trait, parameter, value, environment, analysisId.
-#' @param analysisId A character string identifying the current MTA analysis.
+#' @param analysisId A character string identifying the current MOA analysis.
 #' @return A data.frame with overview columns.
 #' @noRd
 build_tpp_overview_table <- function(tpp_data, tpp_id, trait_map = NULL,
@@ -1865,7 +1865,7 @@ build_tpp_overview_table <- function(tpp_data, tpp_id, trait_map = NULL,
   return(result)
 }
 
-#' Resolve TPP Trait Name to MTA Metric Trait Name
+#' Resolve TPP Trait Name to MOA Metric Trait Name
 #' @noRd
 resolve_trait_name <- function(tpp_trait, trait_map, tpp_traits_metadata) {
   if (!is.null(trait_map) && tpp_trait %in% names(trait_map)) {

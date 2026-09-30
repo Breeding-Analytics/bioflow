@@ -32,7 +32,7 @@ mod_abiDashboard_ui <- function(id){
                                              The idea is that the user only has to specify the OCS and RGG analysis time stamps requested and a search for all needed metrics
                                              by ABI will be executed to build the desired dashboard. The arguments are used in the following way:"),
 
-                                             p(strong("Module report-")," This argument is used to subset the time stamps to specific type of analyisis. For example, if 'sta' is
+                                             p(strong("Module report-")," This argument is used to subset the time stamps to specific type of analyisis. For example, if 'soa' is
                                                selected only time stamps associated to sta analysis will be displayed in the next argument. ."),
                                              p(strong("Time stamp-"),"  This is a dropdown menu that contains the times stamps associated to the analysis type selected."),
                                              h2(strong("References")),
@@ -234,7 +234,7 @@ mod_abiDashboard_server <- function(id, data){
       result <- data()
       idAbi <- as.numeric(Sys.time())
       abiModeling <- data.frame(module="abiDash", analysisId=idAbi, trait="inputObject", environment=NA,
-                                parameter= c( "ocs", "rgg") , # "sta", "mta","indexD",
+                                parameter= c( "ocs", "rgg") , # "soa", "mta","indexD",
                                 value=c(input$versionSelection, input$versionHistory ) # input$versionMetrics, input$versionTraits, input$versionIndex,
       )
       abiStatus <- data.frame(module="abiDash", analysisId=idAbi, analysisIdName ="")

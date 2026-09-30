@@ -276,13 +276,13 @@ mod_ocsApp_ui <- function(id){
 #       }else{ # data is there
 #         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
 #         if(mappedColumns == 3){
-#           if(  any(c("mta","mtaFlex","mtaLmms") %in% data()$status$module) ){
+#           if(  any(c("mta","mtaFlex","moaLmms") %in% data()$status$module) ){
 #             if( ("qaGeno" %in% data()$status$module) | (!is.null(data()$metadata$pedigree) ) ){ # user has markers or pedigree
 #               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) specifying your input parameters under the Input tabs.")) )
 #             }else{
 #               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers or pedigree information (and QA the data) to run this module.")) )
 #             }
-#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
+#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
 #         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
 #       }
 #     )
@@ -623,14 +623,14 @@ mod_ocsApp_ui <- function(id){
 #     output$outOcs <- output$outOcs2 <- renderPrint({
 #
 #       # run the modeling, but before test if mta was done
-#       if(sum(data()$status$module %in% c("mta","mtaFlex","mtaLmms","indexD")) == 0) {
+#       if(sum(data()$status$module %in% c("mta","mtaFlex","moaLmms","indexD")) == 0) {
 #         output$qaQcOcsInfo <- renderUI({
 #           if (hideAll$clearAll){
 #             return()
 #           }else{
 #             req(data())
 #             HTML(as.character(div(style="color: brown;",
-#                                   "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+#                                   "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
 #             )
 #           }
 #         })
@@ -770,13 +770,13 @@ mod_ocsApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if(  any(c("mta","mtaAsr","mtaFlex","mtaLmms") %in% data()$status$module) ){
+          if(  any(c("mta","moaAsr","mtaFlex","moaLmms") %in% data()$status$module) ){
             if( ("qaGeno" %in% data()$status$module) | (!is.null(data()$metadata$pedigree) ) ){ # user has markers or pedigree
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the optimal cross selection (OCS) specifying your input parameters under the Input tabs.")) )
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers or pedigree information (and QA the data) to run this module.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -1154,14 +1154,14 @@ mod_ocsApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtOcs <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtOcs$status$module %in% c("mta","mtaAsr","mtaFlex","mtaLmms","indexD")) == 0) {
+      if(sum(dtOcs$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","indexD")) == 0) {
         output$qaQcOcsInfo <- renderUI({
           if (hideAll$clearAll){
             return()
           }else{
             req(dtOcs)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+                                  "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
             )
           }
         })

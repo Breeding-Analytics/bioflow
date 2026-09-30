@@ -35,7 +35,7 @@ mod_qaStaApp_ui <- function(id){
                                 ),
                                 column(width=6,   #style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
                                        h2(strong("Details")),
-                                       p("The two-step approach of genetic evaluation allows to identify noisy records after the single trial analysis.
+                                       p("The two-step approach of genetic evaluation allows to identify noisy records after the single occurrence analysis.
                                                              This option aims to allow users to select model-based outliers based on plot whiskers and absolute values applied on conditional residuals.
                                 The way arguments are used is the following:"),
 
@@ -128,9 +128,9 @@ mod_qaStaApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("sta" %in% data()$status$module){
+          if("soa" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers specifying your input parameters under the 'Input' tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single trial analysis before performing the QA model-based outlier detection.")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single occurrence analysis before performing the QA model-based outlier detection.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -182,7 +182,7 @@ mod_qaStaApp_server <- function(id, data){
     ## render the expected result
 
     output$plotPredictionsCleanOut <- shiny::renderPlot({ # plotly::renderPlotly({
-      if("sta" %in% data()$status$module){
+      if("soa" %in% data()$status$module){
         req(data())
         req(input$outlierCoefOutqFont)
         req(input$traitOutqPheno2)
@@ -215,7 +215,7 @@ mod_qaStaApp_server <- function(id, data){
     ## display the current outliers
     observeEvent(input$outlierCoefOutqPheno,{
       output$modificationsQa <-  DT::renderDT({
-        if("sta" %in% data()$status$module){
+        if("soa" %in% data()$status$module){
           req(data())
           req(input$outlierCoefOutqFont)
           req(input$outlierCoefOutqPheno)
@@ -292,7 +292,7 @@ mod_qaStaApp_server <- function(id, data){
     })
 
     outQaMb <- eventReactive(input$runQaMb, {
-      if("sta" %in% data()$status$module){
+      if("soa" %in% data()$status$module){
         req(data())
         req(input$outlierCoefOutqFont)
         req(input$traitOutqPhenoMultiple)

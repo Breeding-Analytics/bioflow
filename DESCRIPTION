@@ -1,7 +1,7 @@
 Package: bioflow
 Title: CGIAR Breeding Analytics Pipeline
 Description: CGIAR Breeding Analytics Pipeline
-Version: 3.0.0
+Version: 4.0.0
 Authors@R: c(
     person("Giovanny", "Covarrubias Pazaran", , "covaruberpaz@gmail.com", role = c("aut", "cre")),
     person("Ibnou", "Dieng", , "i.dieng@cgiar.org", role = c("aut")),
@@ -112,7 +112,6 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
-RoxygenNote: 7.3.3
 Remotes: 
     Breeding-Analytics/cgiarBase,
     Breeding-Analytics/cgiarPipeline,
@@ -121,3 +120,4 @@ Remotes:
     reyzaguirre/st4gi,
     covaruber/lme4breeding,
     icarda/QBMS
+Config/roxygen2/version: 8.1.0

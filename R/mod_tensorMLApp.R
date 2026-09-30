@@ -60,7 +60,7 @@ mod_tensorMLApp_ui <- function(id) {
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel(div( icon("dice-one"), "Pick STA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-one"), "Pick SOA-stamp", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, # style = "background-color:grey; color: #FFFFFF",
                                                       column(width=2, br(), actionButton(ns("runML"), "", icon = icon("play-circle")), ),
@@ -107,7 +107,7 @@ mod_tensorMLApp_ui <- function(id) {
                                       tabPanel("Run analysis", icon = icon("dice-three"),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       br(),
-                                                      actionButton(ns("runMta"), "Run MTA (click button)", icon = icon("play-circle")),
+                                                      actionButton(ns("runMta"), "Run MOA (click button)", icon = icon("play-circle")),
                                                       uiOutput(ns("qaQcMtaInfo")),
                                                       br(),
                                                ),

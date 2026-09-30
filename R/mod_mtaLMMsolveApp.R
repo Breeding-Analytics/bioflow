@@ -24,7 +24,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                            tabPanel(div(icon("book"), "Information") ,
                                     br(),
                                     column(width = 6,
-                                           h1(strong(span("Flexible Multi Trial Analysis Module Using LMMsolver",
+                                           h1(strong(span("Flexible Multi Occurrence Analysis Module Using LMMsolver",
                                                           tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7",
                                                                  icon("youtube") , target="_blank"), style="color:darkcyan"))),
                                            h2(strong("Data Status (wait to be displayed):")),
@@ -38,7 +38,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                     ),
                                     column(width = 6,
                                            h2(strong("Details")),
-                                           p("The core algorithm of the genetic evaluation using the two-step approach is the multi-trial analysis.
+                                           p("The core algorithm of the genetic evaluation using the two-step approach is the multi occurrence analysis.
                                           This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
                               analysis and optionally a relationship matrix between levels of the random effects. This module allows the flexibility to build your own customized module by specifying the
                               random effects and any relationship . In addition, the most popular GxE models can be selected with a single click to help the user understand how a
@@ -54,7 +54,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                            p(strong("mean(lower bound).-")," Value of trait mean to be used to remove trials with low means"),
                                            p(strong("mean(upper bound).-"),"  Value of trait mean to be used to remove trials with too high means"),
                                            p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
-                                           p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single trial analysis. The default is TRUE and should not be modified unless you know what you are doing."),
+                                           p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single occurrence analysis. The default is TRUE and should not be modified unless you know what you are doing."),
                                            p(strong("nPC.-")," Number of principal components for the big models. If the value is equal to 0 the kernel is used as is (full relationship matrix). Otherwise a principal component model is run according to Odegard et al. (2019)."),
                                            h2(strong("References")),
                                            p("Henderson Jr, C. R. (1982). Analysis of covariance in the mixed model: higher-level, nonhomogeneous, and random regressions. Biometrics, 623-640."),
@@ -72,17 +72,17 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel(div( icon("dice-one"), "Pick STA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-one"), "Pick SOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8,
                                                              selectInput(ns("version2Mta"),
                                                                          label = tags$span(
-                                                                           "STA version(s) to analyze",
+                                                                           "SOA version(s) to analyze",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
-                                                                             title = "Analysis ID(s) from STA runs that should be combined and used to fit a multi-trial analysis."
+                                                                             title = "Analysis ID(s) from SOA runs that should be combined and used to fit a multi occurrence analysis."
                                                                            )
                                                                          ),
                                                                          choices = NULL, multiple = TRUE),
@@ -123,7 +123,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     tags$i(
                                                                       class = "glyphicon glyphicon-info-sign",
                                                                       style = "color:#FFFFFF",
-                                                                      title = "Only traits present in the STA runs selected will be available."
+                                                                      title = "Only traits present in the SOA runs selected will be available."
                                                                     )
                                                                   ),
                                                                   choices = NULL, multiple = TRUE),
@@ -268,7 +268,7 @@ mod_mtaLMMsolveApp_ui <- function(id) {
                                                                     selectInput(ns("versionMarker2Mta"), label = tags$span("Marker QA version to use",
                                                                                                                            tags$i(class = "glyphicon glyphicon-info-sign",
                                                                                                                                   style = "color:#FFFFFF",
-                                                                                                                                  title = "Analysis ID(s) from QA geno modifications that should be combined and used to fit a multi-trial analysis.")),
+                                                                                                                                  title = "Analysis ID(s) from QA geno modifications that should be combined and used to fit a multi occurrence analysis.")),
                                                                                                                            choices = NULL, multiple = FALSE),
                                                                     uiOutput(ns("rightSidesRandom"))
                                                              ),
@@ -1123,7 +1123,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(data())
       dtMta <- data() # dtMta <- result
       dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module == "sta"),]
+      dtMta <- dtMta[which(dtMta$module == "soa"),]
       traitsMta <- unique(dtMta$analysisId)
       if(length(traitsMta) > 0){
         if("analysisIdName" %in% colnames(dtMta)){
@@ -1193,9 +1193,9 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("sta" %in% data()$status$module){
-            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi-trial analysis specifying your input parameters under the Input tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single-trial analysis before performing a the multi-trial analysis.")) ) }
+          if("soa" %in% data()$status$module){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi occurrence analysis specifying your input parameters under the Input tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single occurrence analysis before performing a the multi occurrence analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -1296,7 +1296,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
       p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge())+
-        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the STA stamp selected")
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the SOA stamp selected")
       if(input$checkbox1){
         p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
       }else{
@@ -1926,7 +1926,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(input$entryTypeMta)
       dtMta <- data()
       mydata <- dtMta$predictions
-      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE SOA
       if(input$entryTypeMta != "Generic"){
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
       }
@@ -1944,7 +1944,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(input$heatmapFontSizeCor)
       dtMta <- data()
       mydata <- dtMta$predictions
-      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE SOA
       predictions.gcorrE <- subset(mydata, select = c(trait,designation,environment,predictedValue))
       predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitCor, ]
       wide <- stats::reshape(predictions.gcorrE2,
@@ -1983,7 +1983,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(input$heatmapFontSize)
       dtMta <- data()
       mydata <- dtMta$predictions # extract predictions
-      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE STA
+      mydata <- mydata[which(mydata$analysisId %in% input$version2Mta),] # only PREDICTIONS FROM THE SOA
       mydata <- mydata[which(mydata$trait %in% input$traitConnect),] # only PREDICTIONS FROM Trait selected
       if(input$entryTypeMta != "Generic"){ # use an specific type of entries
         mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMta),]
@@ -2076,14 +2076,14 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       # inputFormulationFixed <- inputFormulaRandom()
       # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
       # run the modeling, but before test if sta was done
-      if(sum(dtMta$status$module %in% "sta") == 0) {
+      if(sum(dtMta$status$module %in% "soa") == 0) {
         output$qaQcMtaInfo <- renderUI({
           if (hideAll$clearAll)
             return()
           else
             req(dtMta)
           HTML(as.character(div(style="color: brown;",
-                                "Please perform Single-Trial-Analysis before conducting a Multi-Trial Analysis when using a two-stage analysis."))
+                                "Please perform Single Occurrence Analysis before conducting a Multi Occurrence Analysis when using a two-stage analysis."))
           )
         })
       }else{ # sta is available
@@ -2151,9 +2151,9 @@ mod_mtaLMMsolveApp_server <- function(id, data){
             if(!inherits(result2,"try-error")) {
               result <- result2
               data(result) # update data with results
-              cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+              cat(paste("Multi occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
               output$outMta2 <- renderPrint({
-                cat(paste("Multi-trial analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+                cat(paste("Multi occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
               })
               updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
             }else{
@@ -2182,7 +2182,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         ## predictions table
         output$predictionsMta <-  DT::renderDT({
           predictions <- result$predictions
-          predictions <- predictions[predictions$module=="mtaLmms",]
+          predictions <- predictions[predictions$module=="moaLmms",]
           predictions$analysisId <- as.numeric(predictions$analysisId)
           predictions <- predictions[!is.na(predictions$analysisId),]
           current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
@@ -2206,7 +2206,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         output$metricsMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             metrics <- result$metrics
-            mtas <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            mtas <- result$status[which(result$status$module == "moaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
             metrics <- metrics[which(metrics$analysisId == mtaId),]
             metrics <- subset(metrics, select = -c(module,analysisId))
             numeric.output <- c("value", "stdError")
@@ -2220,7 +2220,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
         output$modelingMta <-  DT::renderDT({
           if(!inherits(result,"try-error") ){
             modeling <- result$modeling
-            mtas <- result$status[which(result$status$module == "mtaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
+            mtas <- result$status[which(result$status$module == "moaLmms"),"analysisId"]; mtaId <- mtas[length(mtas)]
             modeling <- modeling[which(modeling$analysisId == mtaId),]
             modeling <- subset(modeling, select = -c(module,analysisId))
             DT::datatable(modeling, extensions = 'Buttons',

@@ -230,14 +230,14 @@ mod_rggApp_server <- function(id, data){
         pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
         mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),c(NA,"")))
         if(mappedColumns > 0){
-          if(any(c("sta","mtaLmms","mta","mtaFlex","mtaAsr") %in% data()$status$module)){
+          if(any(c("soa","moaLmms","mta","mtaFlex","moaAsr") %in% data()$status$module)){
             myYearOfOrigin <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure to map the column 'yearOfOrigin' in the 'Pedigree data' extraction section under the 'Data Retrieval' to perform the realized genetic gain analysis.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single-Trial or Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single-Trial or Multi Occurrence Analysis before performing a realized genetic gain analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -282,9 +282,9 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- data()
       dtRgg <- dtRgg$status
       if(input$methodRgg == "piepho"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("sta")),]
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("soa")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","mtaLmms","mtaAsr")),] #delete indexD from here because doesn't work
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","moaLmms","moaAsr")),] #delete indexD from here because doesn't work
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){
@@ -578,7 +578,7 @@ mod_rggApp_server <- function(id, data){
       ### pseudo code to select top n (e.g., 5) lines per yearOfOrigin #########################
       # n_value <- 5
       #
-      # tmp <- dtRgg$predictions[dtRgg$predictions$module == "mtaLmms" &
+      # tmp <- dtRgg$predictions[dtRgg$predictions$module == "moaLmms" &
       #                          dtRgg$predictions$effectType == "designation", ]
       #
       # tmp <- merge(tmp, dtRgg$data$pedigree[, c("Geno", "yearOfOrigin")],
@@ -589,7 +589,7 @@ mod_rggApp_server <- function(id, data){
       #   dplyr::slice_max(order_by = predictedValue, n = n_value) %>%
       #   dplyr::select(yearOfOrigin, designation, predictedValue)
       #
-      # dtRgg$predictions <- dtRgg$predictions[!(dtRgg$predictions$module == "mtaLmms" &
+      # dtRgg$predictions <- dtRgg$predictions[!(dtRgg$predictions$module == "moaLmms" &
       #                                          dtRgg$predictions$effectType == "designation" &
       #                                        !(dtRgg$predictions$designation %in% top_geno$designation)),]
       # rm(tmp, top_geno)

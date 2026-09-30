@@ -298,7 +298,7 @@ mod_masApp_server <- function(id, data){
                                    lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Traits available in the STA-IDs selected.')
+                      htmltools::em('Traits available in the SOA-IDs selected.')
                     )
       )
     }, server = FALSE)

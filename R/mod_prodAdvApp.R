@@ -6,7 +6,7 @@
 #' - mod_advMeetingApp.R (Advancement Meeting Dashboard)
 #'
 #' Both sub-modules are called directly from app_ui.R and app_server.R
-#' using the navlistPanel pattern (same as the STA module).
+#' using the navlistPanel pattern (same as the SOA module).
 #'
 #' @noRd
 NULL
