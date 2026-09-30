@@ -1307,7 +1307,6 @@ mod_staApp_server <- function(id,data){
       req(input$genoAsFixedSta)
       req(input$verboseSta)
       req(input$maxitSta)
-      req(input$rowColRoleSta)
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtSta <- data()
