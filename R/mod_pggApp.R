@@ -54,7 +54,7 @@ mod_pggApp_ui <- function(id){
                                        tabPanel(div( icon("dice-one"), "Pick Index-stamp", icon("arrow-right")  ), # icon = icon("dice-one"),
                                                 br(),
                                                 column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                       column(width=8, selectInput(ns("version2Pgg"), "MTA version to analyze", choices = NULL, multiple = FALSE)),
+                                                       column(width=8, selectInput(ns("version2Pgg"), "MOA version to analyze", choices = NULL, multiple = FALSE)),
 
                                                 ),
                                                 column(width=12),
@@ -180,7 +180,7 @@ mod_pggApp_server <- function(id, data){
       }else{ # data is there
         if( any(c("soa","moaLmms","mta","mtaFlex","moaAsr") %in% data()$status$module) ){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain analysis specifying your input parameters under the Input tabs.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single Trial or Multi-Trial Analysis before performing a predicted genetic gain analysis.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single Trial or Multi Occurrence Analysis before performing a predicted genetic gain analysis.")) ) }
       }
     )
     ## data example loading
@@ -400,7 +400,7 @@ mod_pggApp_server <- function(id, data){
           }else{
             req(dtPgg)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+                                  "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
             )
           }
         })

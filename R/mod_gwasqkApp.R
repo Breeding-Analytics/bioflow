@@ -34,10 +34,10 @@ mod_gwasqkApp_ui <- function(id){
                                             h2(strong("Details")),
                                             p("The Genome-Wide Association Studies (GWAS) is a popular model that have helped efforts to dissect causal biological mechanisms underlying various agronomically important traits.
                                 The way the options are used is the following:"),
-                                            #p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single trial analysis step."),
-                                            p(strong("Traits to analyze.-")," Traits to be analyzed (from STA and MTA modules)."),
+                                            #p(strong("Genetic evaluation unit.-")," One or more of the following; designation, mother, father to indicate which column(s) should be considered the unit of genetic evaluation to compute BLUEs or BLUPs in the single occurrence analysis step."),
+                                            p(strong("Traits to analyze.-")," Traits to be analyzed (from SOA and MOA modules)."),
                                             p(strong("Markers to analyze.-")," Markers to be analyzed (from filtered markers)."),
-                                            p(strong("Environments to analyze.-")," Differents environments to be considered (across for MTA)."),
+                                            p(strong("Environments to analyze.-")," Differents environments to be considered (across for MOA)."),
                                             p(strong("Additional settings.-")),
                                             p(strong("Model to use.-")," Whether rrBLUP or gBLUP should be considered."),
                                             p(strong("Print logs.-")," Whether the logs of the run should be printed in the screen or not."),
@@ -59,10 +59,10 @@ mod_gwasqkApp_ui <- function(id){
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel("Pick STA or MTA-stamp(s)", icon = icon("dice-one"),
+                                      tabPanel("Pick SOA or MOA-stamp(s)", icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                      column(width=3, selectInput(ns("version2Gwas"), "STA/MTA version(s) to analyze", choices = NULL, multiple = TRUE)),
+                                                      column(width=3, selectInput(ns("version2Gwas"), "SOA/MOA version(s) to analyze", choices = NULL, multiple = TRUE)),
                                                       column(width=3, selectInput(ns("versionMarker2Gwas"), "Marker QA version(s) to use", choices = NULL, multiple = TRUE)),
                                                       column(width=3, selectInput(ns("env2Gwas"), "Environment(s) to use", choices = NULL, multiple = TRUE)),
                                                       # column(width=3, tags$span(id = ns('isSta'), selectInput(ns("env2Gwas"), "Environment to use (required)", choices = NULL, multiple = TRUE), ),  ),
@@ -236,7 +236,7 @@ mod_gwasqkApp_server <- function(id, data){
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers (and QA the data) to run this module.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis before performing genome wide association study (GWAS).")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before performing genome wide association study (GWAS).")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -483,7 +483,7 @@ mod_gwasqkApp_server <- function(id, data){
                                    lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Traits available in the STA or MTA ID selected.')
+                      htmltools::em('Traits available in the SOA or MOA ID selected.')
                     )
       )
     })
@@ -508,7 +508,7 @@ mod_gwasqkApp_server <- function(id, data){
                                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
                                     caption = htmltools::tags$caption(
                                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                                      htmltools::em('STA or MTA predictions table to be used as input.')
+                                      htmltools::em('SOA or MOA predictions table to be used as input.')
                                     )
       ), numeric.output)
     })
@@ -552,7 +552,7 @@ mod_gwasqkApp_server <- function(id, data){
     #                                lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
     #                 caption = htmltools::tags$caption(
     #                   style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-    #                   htmltools::em('Past modeling parameters from MTA stamp(s) selected.')
+    #                   htmltools::em('Past modeling parameters from MOA stamp(s) selected.')
     #                 )
     #   )
     # })
@@ -608,7 +608,7 @@ mod_gwasqkApp_server <- function(id, data){
           }else{
             req(dtGwas)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Single/Multi-Trial-Analysis before conducting Genome wide association."))
+                                  "Please perform Single/Multi Occurrence Analysis before conducting Genome wide association."))
             )
           }
         })

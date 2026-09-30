@@ -237,7 +237,7 @@ mod_rggApp_server <- function(id, data){
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure to map the column 'yearOfOrigin' in the 'Pedigree data' extraction section under the 'Data Retrieval' to perform the realized genetic gain analysis.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single-Trial or Multi-Trial Analysis before performing a realized genetic gain analysis.")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single-Trial or Multi Occurrence Analysis before performing a realized genetic gain analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that the column: 'yearOfOrigin' has been mapped in the pedigree data using the 'Data Retrieval' tab.")) )}
       }
     )

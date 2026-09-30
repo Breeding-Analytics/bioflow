@@ -2,8 +2,8 @@ dependencyPlot <- function(){
   mm <- matrix(
     NA, nrow = 5, ncol = 8
   )
-  # colnames(mm) <- c("QA","STA","MTA","INDEX","OCS","RGG","PGG")
-  colnames(mm) <- c("Quality Assurance","Single Trial Analysis","Multi Trial Analysis","Selection Index","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain", "Population Structure")
+  # colnames(mm) <- c("QA","SOA","MOA","INDEX","OCS","RGG","PGG")
+  colnames(mm) <- c("Quality Assurance","Single Occurrence Analysis","Multi Occurrence Analysis","Selection Index","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain", "Population Structure")
   rownames(mm) <- c("QTL", "Weather","Pedigree", "Genotype", "Phenotype")
   mm[5,] = c(2,2,2,2,2,2,2,0)
   mm[4,] = c(1,0,1,0,2,0,0,2)

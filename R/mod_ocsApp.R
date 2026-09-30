@@ -282,7 +282,7 @@ mod_ocsApp_ui <- function(id){
 #             }else{
 #               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers or pedigree information (and QA the data) to run this module.")) )
 #             }
-#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
+#           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
 #         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
 #       }
 #     )
@@ -630,7 +630,7 @@ mod_ocsApp_ui <- function(id){
 #           }else{
 #             req(data())
 #             HTML(as.character(div(style="color: brown;",
-#                                   "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+#                                   "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
 #             )
 #           }
 #         })
@@ -776,7 +776,7 @@ mod_ocsApp_server <- function(id, data){
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers or pedigree information (and QA the data) to run this module.")) )
             }
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing optimal cross selection (OCS).")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )
@@ -1161,7 +1161,7 @@ mod_ocsApp_server <- function(id, data){
           }else{
             req(dtOcs)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+                                  "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
             )
           }
         })

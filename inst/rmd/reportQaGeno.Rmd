@@ -245,7 +245,7 @@ if(is.null(result)){
 ### Table of modifications
 <p>&nbsp;</p>
 
-The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw genotype data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., multi trial analysis module).
+The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw genotype data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., multi occurrence analysis module).
 
 ```{r}
 if(is.null(result)){

@@ -596,8 +596,8 @@ mod_qaPhenoApp_server <- function(id, data){
           result$modeling <- rbind(result$modeling, provMet[,colnames(result$modeling)])
         }
         data(result)
-        # cat(crayon::green(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis.")))
-        cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis."))
+        # cat(crayon::green(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Occurrence Analysis.")))
+        cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Occurrence Analysis."))
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         shinybusy::remove_modal_spinner()
 
@@ -622,7 +622,7 @@ mod_qaPhenoApp_server <- function(id, data){
           )
 
           output$outQaRaw2 <- renderPrint({
-            cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Trial Analysis."))
+            cat(paste("QA step with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT"),"for trait",paste(input$traitOutqPhenoMultiple, collapse = ", "),"saved. Now you can proceed to perform Single Occurrence Analysis."))
           })
 
         }else{ hideAll$clearAll <- TRUE}

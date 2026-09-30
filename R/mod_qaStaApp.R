@@ -35,7 +35,7 @@ mod_qaStaApp_ui <- function(id){
                                 ),
                                 column(width=6,   #style = "height:660px; overflow-y: scroll;overflow-x: scroll;",
                                        h2(strong("Details")),
-                                       p("The two-step approach of genetic evaluation allows to identify noisy records after the single trial analysis.
+                                       p("The two-step approach of genetic evaluation allows to identify noisy records after the single occurrence analysis.
                                                              This option aims to allow users to select model-based outliers based on plot whiskers and absolute values applied on conditional residuals.
                                 The way arguments are used is the following:"),
 
@@ -130,7 +130,7 @@ mod_qaStaApp_server <- function(id, data){
         if(mappedColumns == 3){
           if("soa" %in% data()$status$module){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to identify outliers specifying your input parameters under the 'Input' tabs.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single trial analysis before performing the QA model-based outlier detection.")) ) }
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform the single occurrence analysis before performing the QA model-based outlier detection.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
       }
     )

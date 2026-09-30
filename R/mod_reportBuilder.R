@@ -135,10 +135,10 @@ mod_reportBuilder_server <- function(id, data){
 
     ## model types
     observeEvent(c(data()), {
-      req(data()) # list(QA="qaRaw" , QAmarkers="qaGeno" , STA="soa" ,   MTA="mta",    Index="indexD", OCS="ocs",    RGG="rgg" ,   PGG="pgg" , OFT="oft")
+      req(data()) # list(QA="qaRaw" , QAmarkers="qaGeno" , SOA="soa" ,   MOA="mta",    Index="indexD", OCS="ocs",    RGG="rgg" ,   PGG="pgg" , OFT="oft")
       if(!is.null(data()$status)){
         traitsBuilder <- unique(data()$status$module)
-        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","soa","mta","mtaFlex","moaLmms","moaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM") , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Trial Analysis (sta)", "Multi Trial Analysis (mta)", "Multi Trial Analysis (mtaFlex)","Multi Trial Analysis (mtaLmms)", "Multi Trial Analysis (mtaAsreml)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Genomic Prediction of Cross Peformance (gpcp)","Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)", "On Farm Trial (oft)", "Number of Founders (ne)", "Genotype verification (gVerif)","Marker assisted selection (mas)", "ABI dashboard (abiDash)", "Population Structure (PopStrM)") )
+        names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","soa","mta","mtaFlex","moaLmms","moaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM") , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Occurrence Analysis (soa)", "Multi Occurrence Analysis (moa)", "Multi Occurrence Analysis (moaFlex)","Multi Occurrence Analysis (moaLmms)", "Multi Occurrence Analysis (moaAsr)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Genomic Prediction of Cross Peformance (gpcp)","Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)", "On Farm Trial (oft)", "Number of Founders (ne)", "Genotype verification (gVerif)","Marker assisted selection (mas)", "ABI dashboard (abiDash)", "Population Structure (PopStrM)") )
         updateSelectInput(session, "module", choices = traitsBuilder )
       }
     })

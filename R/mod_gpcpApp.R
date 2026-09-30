@@ -68,11 +68,11 @@ mod_gpcpApp_ui <- function(id){
                                                       column(width=8,
                                                              selectInput(ns("markerEffectsStamp"),
                                                                          label = tags$span(
-                                                                           "Marker effects MTA stamp (optional)",
+                                                                           "Marker effects MOA stamp (optional)",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",
-                                                                             title = "Optionally select an MTA stamp containing additive (marker_a) and dominance (marker_d) marker effects. When provided, these effects are used directly instead of back-solving from BLUPs. If left empty, existing back-solve behavior is used."
+                                                                             title = "Optionally select an MOA stamp containing additive (marker_a) and dominance (marker_d) marker effects. When provided, these effects are used directly instead of back-solving from BLUPs. If left empty, existing back-solve behavior is used."
                                                                            )
                                                                          ),
                                                                          choices = NULL, multiple = FALSE)
@@ -294,7 +294,7 @@ mod_gpcpApp_server <- function(id, data){
     #        }else{
     #          HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have markers (and QA the data) to run this module.")) )
     #        }
-    #      }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi-Trial Analysis or a selection index before performing genomic prediction of cross performance (GPCP).")) ) }
+    #      }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis or a selection index before performing genomic prediction of cross performance (GPCP).")) ) }
     #    }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
     #  }
     #)
@@ -338,12 +338,12 @@ mod_gpcpApp_server <- function(id, data){
             )
           }
 
-          ## 4. MTA (A+D) or GPCP slot missing --------------------------------------
+          ## 4. MOA (A+D) or GPCP slot missing --------------------------------------
           if (!hasMTA || !hasGPCPslot) {
             return(
               HTML(as.character(
                 div(style = "color:red; font-size:20px;",
-                    "You need to run the 'Main (A + D)' model in the MTA module before using this module.")
+                    "You need to run the 'Main (A + D)' model in the MOA module before using this module.")
               ))
             )
           }
@@ -413,7 +413,7 @@ mod_gpcpApp_server <- function(id, data){
     })
     #################
     ## marker effects stamp dropdown (optional)
-    ## Lists only MTA stamps that have both marker_a and marker_d effectType predictions
+    ## Lists only MOA stamps that have both marker_a and marker_d effectType predictions
     observeEvent(c(data()), {
       req(data())
       preds <- data()$predictions
@@ -533,7 +533,7 @@ mod_gpcpApp_server <- function(id, data){
     # Genotype-QA/QC stamp selector (shown only when relType == "grm")
     # ──────────────────────────────────────────────────────────────────────────
 
-    ## 2.1  Build the choice vector the same way the MTA module does ------------
+    ## 2.1  Build the choice vector the same way the MOA module does ------------
     qaGenoChoices <- reactive({
       req(data())
       st <- data()$status
@@ -763,7 +763,7 @@ mod_gpcpApp_server <- function(id, data){
           }else{
             req(dtGpcp)
             HTML(as.character(div(style="color: brown;",
-                                  "Please perform Multi-Trial-Analysis or Selection Index before conducting Optimal Cross Selection."))
+                                  "Please perform Multi Occurrence Analysis or Selection Index before conducting Optimal Cross Selection."))
             )
           }
         })

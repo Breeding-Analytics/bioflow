@@ -248,7 +248,7 @@ if (is.null(result)){
 
 ### Parent performance table
 
-This table shows the performance of the parents selected by the OCS algorithm. The parental means are extracted from the multi-trial analysis results.
+This table shows the performance of the parents selected by the OCS algorithm. The parental means are extracted from the multi occurrence analysis results.
 
 <p>&nbsp;</p>
 

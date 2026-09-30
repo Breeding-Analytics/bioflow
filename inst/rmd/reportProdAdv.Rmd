@@ -66,8 +66,8 @@ printTable <- function(DT, pageLength = 25,
 
 **Inputs used by the Pre-Advancement Module:**
 
-- **MTA predictions (BLUPs):** Multi-trial analysis best linear unbiased predictions across environments, providing the overall genetic merit estimates for each candidate.
-- **STA predictions:** Single-trial analysis per-environment estimates used for spatial performance visualisation and lollipop plots.
+- **MOA predictions (BLUPs):** Multi occurrence analysis best linear unbiased predictions across environments, providing the overall genetic merit estimates for each candidate.
+- **SOA predictions:** Single occurrence analysis per-environment estimates used for spatial performance visualisation and lollipop plots.
 - **Pedigree or genomic relatedness data (optional):** Used to compute family groupings and relatedness plots for diversity monitoring.
 - **Environmental covariates (optional):** Climate variables (temperature, rainfall, humidity indices) used for environment clustering and TPE (Target Population of Environments) visualisations.
 
