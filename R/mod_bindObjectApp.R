@@ -1,5 +1,16 @@
 # Read cloud storage configuration from the environment.
 get_cloud_storage_config <- function() {
+
+  # Cloud Storage (S3) Configuration Helper
+  # Reads S3 access configuration from environment variables so no
+  # bucket names, role ARNs, or external IDs are hardcoded in scripts.
+  #
+  # The container injects these via the ECS task definition:
+  #   CLOUD_STORAGE_BUCKET_NAME
+  #   CLOUD_STORAGE_REGION
+  #   CLOUD_STORAGE_ROLE_ARN
+  #   CLOUD_STORAGE_EXTERNAL_ID
+
   config <- list(
     bucket_name = Sys.getenv("CLOUD_STORAGE_BUCKET_NAME", ""),
     region      = Sys.getenv("CLOUD_STORAGE_REGION", "ap-southeast-1"),
@@ -242,18 +253,19 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       }
 
       ### set up paws library ##################################################
-      # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
 
-      Sys.setenv("AWS_PROFILE" = "bioflow")
-      Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+      config <- get_cloud_storage_config()
 
-      bucket_name <- "ebs-bioflow"
+      BUCKET_NAME <- config$bucket_name
+      REGION <- config$region
+      ROLE_ARN <- config$role_arn
+      EXTERNAL_ID <- config$external_id
 
       valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org", "bioflow-test.ebsproject.org")
 
       if (cloud_domain %in% valid_domains) {
         if (cloud_domain == "bioflow-test.ebsproject.org") {
-          data_domain <- "bioflow-test"
+          data_domain <- "bioflow@test.ebsproject.org"
         } else {
           data_domain <- result$user
         }
@@ -263,20 +275,20 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
       }
       ##########################################################################
 
-      s3 <- paws.storage::s3()
+      # s3 <- paws.storage::s3()
+      s3 <- get_scoped_s3_client(data_domain)
 
       shinybusy::show_modal_spinner('fading-circle', text = 'Retrieving...')
 
       tryCatch({
-        obj <- s3$list_objects(Bucket = bucket_name)
+        # obj <- s3$list_objects(Bucket = bucket_name)
+        obj <- s3$list_objects_v2(Bucket = BUCKET_NAME, Prefix = paste0(data_domain, "/"))
 
         df <- data.frame(
           domain = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][1], character(1)),
           file = vapply(obj$Contents, function(x) strsplit(x$Key, "/", fixed = TRUE)[[1]][2], character(1)),
           stringsAsFactors = FALSE
         )
-
-        df <- df[df$domain == data_domain,]
 
         output$aws_file_selector <- renderUI({
           selectInput(inputId = ns("aws_selected_file"), label = "Select file", choices = unique(df$file), multiple = TRUE)
@@ -308,18 +320,19 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         }
 
         ### set up paws library ################################################
-        # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
 
-        Sys.setenv("AWS_PROFILE" = "bioflow")
-        Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+        config <- get_cloud_storage_config()
 
-        bucket_name <- "ebs-bioflow"
+        BUCKET_NAME <- config$bucket_name
+        REGION <- config$region
+        ROLE_ARN <- config$role_arn
+        EXTERNAL_ID <- config$external_id
 
         valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org", "bioflow-test.ebsproject.org")
 
         if (cloud_domain %in% valid_domains) {
           if (cloud_domain == "bioflow-test.ebsproject.org") {
-            data_domain <- "bioflow-test"
+            data_domain <- "bioflow@test.ebsproject.org"
           } else {
             data_domain <- result$user
           }
@@ -331,11 +344,12 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
         req(input$aws_selected_file)
 
-        s3 <- paws.storage::s3()
+        # s3 <- paws.storage::s3()
+        s3 <- get_scoped_s3_client(data_domain)
 
         tryCatch({
           s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[1])
-          s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
+          s3_download <- s3$get_object(Bucket = BUCKET_NAME, Key = s3_object_path)
           raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
 
           if(length(input$aws_selected_file) > 1){
@@ -343,7 +357,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
             for(iFile in 2:length(input$aws_selected_file)){
               s3_object_path <- paste0(data_domain, "/", input$aws_selected_file[iFile])
-              s3_download <- s3$get_object(Bucket = bucket_name, Key = s3_object_path)
+              s3_download <- s3$get_object(Bucket = BUCKET_NAME, Key = s3_object_path)
               raw_con <- rawConnection(s3_download$Body); load(raw_con); close(raw_con)
 
               result2 <- result

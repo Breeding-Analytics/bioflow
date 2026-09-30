@@ -1,5 +1,16 @@
 # Read cloud storage configuration from the environment.
 get_cloud_storage_config <- function() {
+
+  # Cloud Storage (S3) Configuration Helper
+  # Reads S3 access configuration from environment variables so no
+  # bucket names, role ARNs, or external IDs are hardcoded in scripts.
+  #
+  # The container injects these via the ECS task definition:
+  #   CLOUD_STORAGE_BUCKET_NAME
+  #   CLOUD_STORAGE_REGION
+  #   CLOUD_STORAGE_ROLE_ARN
+  #   CLOUD_STORAGE_EXTERNAL_ID
+
   config <- list(
     bucket_name = Sys.getenv("CLOUD_STORAGE_BUCKET_NAME", ""),
     region      = Sys.getenv("CLOUD_STORAGE_REGION", "ap-southeast-1"),
@@ -188,18 +199,19 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
             result <- data()
 
             ### set up paws library ################################################
-            # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
 
-            Sys.setenv("AWS_PROFILE" = "bioflow")
-            Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+            config <- get_cloud_storage_config()
 
-            bucket_name <- "ebs-bioflow"
+            BUCKET_NAME <- config$bucket_name
+            REGION <- config$region
+            ROLE_ARN <- config$role_arn
+            EXTERNAL_ID <- config$external_id
 
             valid_domains <- c("bioflow.ebsproject.org", "bioflow-prd.ebsproject.org", "bioflow-test.ebsproject.org")
 
             if (cloud_domain %in% valid_domains) {
               if (cloud_domain == "bioflow-test.ebsproject.org") {
-                data_domain <- "bioflow-test"
+                data_domain <- "bioflow@test.ebsproject.org"
               } else {
                 data_domain <- result$user
               }
@@ -210,7 +222,8 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
 
             s3_object_path <- paste0(data_domain, "/", input$fileNameUpload, ".RData")
 
-            s3 <- paws.storage::s3()
+            # s3 <- paws.storage::s3()
+            s3 <- get_scoped_s3_client(data_domain)
 
             shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
 
@@ -221,7 +234,7 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
               # upload data object to S3 bucket
               s3$put_object(
                 Body = temp_file,
-                Bucket = bucket_name,
+                Bucket = BUCKET_NAME,
                 Key = s3_object_path
               )
 
