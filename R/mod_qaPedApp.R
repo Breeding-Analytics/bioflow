@@ -13,7 +13,7 @@ mod_qaPedApp_ui <- function(id) {
     # color guide for backgrounds: https://www.w3schools.com/colors/colors_names.asp
     # color guide for fonts: https://www.w3schools.com/html/html_colors_hex.asp
     tags$br(),
-    
+
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
                            type = "tabs",
@@ -37,7 +37,7 @@ mod_qaPedApp_ui <- function(id) {
                                            p("When pedigree information will be use for do analysis, we need to ensure the quality of relation of genetic markers for each triplet of individuals.
                                                              This option aims to allow users to identify bad individuals given certain QA parameters. The",strong(style="color: red; font-size: 15px;","RECOMENDATION is to keep the limits of arguments based in genetic theory")),
                                            p(strong("Threshold")," "),
-                                           
+
                                            h2(strong("References")),
                                            p(""),
                                            h2(strong("Software used")),
@@ -82,15 +82,15 @@ mod_qaPedApp_ui <- function(id) {
 														actionButton(ns("runParms"), "Calculate distributions", icon = icon("play-circle")),
 														br(),
 														br(),
-                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 100, step = 0.01),						
+                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 100, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
-										<strong>For each triplet of parents with a child, the veracity 
-										of the result is checked for each marker, that is, if there is AAA, 
-										this combination is a correct possibility, however, KMA is not correct. 
-										In this way, for each triplet, a percentage can be calculated that 
-										indicates how far the children are from the parents. Therefore, the 
-										higher this percentage, the lower the coincidence with the parents.</strong> 
+										<strong>For each triplet of parents with a child, the veracity
+										of the result is checked for each marker, that is, if there is AAA,
+										this combination is a correct possibility, however, KMA is not correct.
+										In this way, for each triplet, a percentage can be calculated that
+										indicates how far the children are from the parents. Therefore, the
+										higher this percentage, the lower the coincidence with the parents.</strong>
 										</div>"))
                                                  ),
                                                  column(width = 8,
@@ -107,12 +107,12 @@ mod_qaPedApp_ui <- function(id) {
                                                         numericInput(ns('GLMC'),'Mother correct [>=]:', value = 1.6, min = 0, max = 2, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
-								<strong>Let us remember that the kinship matrix calculated 
-								by VanRaden defines values close to 2 if the individuals 
-								have a greater genetic similarity, then with the help 
-								of the plot and your wisdom about the crop you are analyzing, 
-								verify that the threshold values to determine if the child 
-								resembles the mother are correct.</strong> 
+								<strong>Let us remember that the kinship matrix calculated
+								by VanRaden defines values close to 2 if the individuals
+								have a greater genetic similarity, then with the help
+								of the plot and your wisdom about the crop you are analyzing,
+								verify that the threshold values to determine if the child
+								resembles the mother are correct.</strong>
 										</div>"))
                                                  ),
                                                  column(width = 8,
@@ -129,12 +129,12 @@ mod_qaPedApp_ui <- function(id) {
                                                         numericInput(ns('GLFC'),'Father correct [>=]:', value = 1.5, min = 0, max = 1, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
-								<strong>Let us remember that the kinship matrix calculated 
-							   by VanRaden defines values close to 2 if the individuals have 
-							   a greater genetic similarity, then with the help of the plot 
-							   and your wisdom about the crop you are analyzing, verify that 
-							   the threshold values to determine if the child resembles the 
-							   father are correct.</strong> 
+								<strong>Let us remember that the kinship matrix calculated
+							   by VanRaden defines values close to 2 if the individuals have
+							   a greater genetic similarity, then with the help of the plot
+							   and your wisdom about the crop you are analyzing, verify that
+							   the threshold values to determine if the child resembles the
+							   father are correct.</strong>
 										</div>"))
                                                  ),
                                                  column(width = 8,
@@ -149,16 +149,16 @@ mod_qaPedApp_ui <- function(id) {
                                                         numericInput(ns('GDLMC'),'Correct (>):', value = 0.2, min = 0, max = 1, step = 0.01),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
-								<strong>Let us remember that the kinship matrix calculated 
-							   by VanRaden defines values close to 2 if the individuals 
-							   have a greater genetic similarity, in the case of the 
-							   diagonal the values must be 2 because it is the comparison 
-							   of the individual with itself, then if we take the value 
-							   of the child of the diagonal and subtract it from the 
-							   value that relates the mother with the child, this should 
-							   be very close to zero if they are related, then with 
-							   the help of the plot and your wisdom about the crop you 
-							   are analyzing, verify that the threshold value are correct.</strong> 
+								<strong>Let us remember that the kinship matrix calculated
+							   by VanRaden defines values close to 2 if the individuals
+							   have a greater genetic similarity, in the case of the
+							   diagonal the values must be 2 because it is the comparison
+							   of the individual with itself, then if we take the value
+							   of the child of the diagonal and subtract it from the
+							   value that relates the mother with the child, this should
+							   be very close to zero if they are related, then with
+							   the help of the plot and your wisdom about the crop you
+							   are analyzing, verify that the threshold value are correct.</strong>
 										</div>"))
                                                  ),
                                                  column(width = 8,
@@ -179,12 +179,12 @@ mod_qaPedApp_ui <- function(id) {
                                                              uiOutput(ns("qaPedInfo")),
                                                              br(),
                                                       ),
-                                                      
+
                                                ),
                                                textOutput(ns("outqaPed")),
                                       ),#end run analysis
                                     )#end tabset input
-                                    
+
                            ),#end input panel
                            tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
                                     tabsetPanel(
@@ -194,13 +194,14 @@ mod_qaPedApp_ui <- function(id) {
                                                br(),
                                                actionButton(ns("renderReportqaPed"), "Download dashboard", icon = icon("download")),
                                                downloadButton(ns("downloadReportqaPed"), "Download dashboard", style = "visibility:hidden;"),
+                                               uiOutput(ns('ebsReportButton')),
                                                br(),
                                                uiOutput(ns('reportqaPed'))
                                       )
                                     ) # end of tabset
                            )# end of output panel
               )) # end mainpanel
-    
+
   )
 }
 
@@ -210,13 +211,13 @@ mod_qaPedApp_ui <- function(id) {
 mod_qaPedApp_server <- function(id, data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
-    
+
     ############################################################################ clear the console
     hideAll <- reactiveValues(clearAll = TRUE)
     observeEvent(data(), {
       hideAll$clearAll <- TRUE
     })
-    
+
     #################
     ## version
     observeEvent(c(data()), {
@@ -225,7 +226,7 @@ mod_qaPedApp_server <- function(id, data){
       dtMtaAsr <- dtMtaAsr$status
       dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module == "qaGeno"),]
       traitsMtaAsrGeno <- unique(dtMtaAsr$analysisId)
-      
+
       if(!is.null(traitsMtaAsrGeno)){
       #if(length(traitsMtaAsrGeno)==0){traitsMtaAsrGeno="No data available"}
       if(length(traitsMtaAsrGeno) > 0){
@@ -235,7 +236,7 @@ mod_qaPedApp_server <- function(id, data){
           names(traitsMtaAsrGeno) <- as.character(as.POSIXct(traitsMtaAsrGeno, origin="1970-01-01", tz="GMT"))
         }
       }}
-      
+
       updateSelectInput(session, "version2qaPed", choices = traitsMtaAsrGeno)
     })
 
@@ -273,13 +274,13 @@ mod_qaPedApp_server <- function(id, data){
         shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
       }
     }, ignoreNULL = TRUE)
-    
-    
+
+
     # functions for checking pedigree (father) data
     is_valid_fatherCol <- function(x) {
       !is.null(x) && length(x) > 0 && !is.na(x) && nzchar(x)
     }
-    
+
     #################
     # warning message
     output$warningMessage <- renderUI(
@@ -299,17 +300,17 @@ mod_qaPedApp_server <- function(id, data){
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you load you Pedigree data.")) )}
       }
     )
-    
+
     #################
     ## render timestamps flow plot
     output$plotTimeStamps <- shiny::renderPlot({
       req(data())
       build_network_plot(data()$status, data()$modeling)
     })
-    
-    
+
+
     ped_qa_data <- reactiveValues(GRM_metric = NULL, impossible_metric = NULL, thr=list() )
-  
+
     plot_impossible<-function(peddata,metaped,glgeno){
       print("Comparison of triplets")
       #load("data/InputInfo.RData")
@@ -323,7 +324,7 @@ mod_qaPedApp_server <- function(id, data){
       #save(peddata,metaped,glgeno,file="ver.RData")
       if((length(which(dimres==3))*100)/dim(peddata)[1]>=0.8){
         resDMF<-resDMF[which(dimres==3)]
-        
+
         #CompareTriplets file
         iupac_map <- c(
           "A" = "A", "T" = "T", "C" = "C", "G" = "G",
@@ -357,7 +358,7 @@ mod_qaPedApp_server <- function(id, data){
               sums <- colSums(wrtst, na.rm=TRUE)
               c(sums, round(100*sums[1]/sums[2],3))
           }else{
-              c(NA,NA,NA)            
+              c(NA,NA,NA)
             }
           }
           n <- length(resDMF)
@@ -365,15 +366,15 @@ mod_qaPedApp_server <- function(id, data){
             incProgress(1/n, detail="processing")
             calc_fun(resDMF[[i]])
           })
-          
+
         })
         return(impossible_metric=list(useful,dimres,resDMF))
       }else{
         return(impossible_metric=list(useful,dimres))
       }
-      
+
     }
-    
+
     plot_GRM<-function(peddata,metaped,geno,useful){
       print("Calculate GRM")
       uno=data.frame(value=names(peddata))
@@ -396,20 +397,20 @@ mod_qaPedApp_server <- function(id, data){
       means <- sort(fit$parameters$mean)
       thr_low  <- means[1] + 0.25 * (means[2] - means[1])
       thr_high <- means[1] + 0.75 * (means[2] - means[1])
-      
+
       fit2 <- mclust::Mclust(GLF_metric, G = 2)
       means2 <- sort(fit2$parameters$mean)
       thr_low2  <- means2[1] + 0.25 * (means2[2] - means2[1])
       thr_high2 <- means2[1] + 0.75 * (means2[2] - means2[1])
-      
+
       fit3 <- mclust::Mclust(GDLM_metric, G = 2)
       means3 <- sort(fit3$parameters$mean)
       threshold <- mean(means3)
       thr<-list(mother=c(thr_low,thr_high),father=c(thr_low2,thr_high2),MD=list(threshold,means3[1],means3[2],fit3$classification))
-      
+
       return(list(GRM_metric,thr))
     }
-    
+
     filters_ped<-function(peddata,metaped,GRM_metric,impossible_metric,pwrong,mlong,mborder,mcorrect,flong,fborder,fcorrect,dllcorrect){
       print("Pedigree classification")
       #load("InputInfo.RData")
@@ -431,15 +432,15 @@ mod_qaPedApp_server <- function(id, data){
       #save(condtest,FinalClass,file="ver.RData")
       finaltab <- cbind(condtest,FinalClass[match(condtest$Condicional, FinalClass$Condicional), -1])
       finaltab<-finaltab[,c(2,4)]
-      finaltab$Final.Classification[is.na(finaltab$Final.Classification)] <- "NO GENO DATA" 
-      finaltab$Category[is.na(finaltab$Category)] <- "NO GENO DATA" 
+      finaltab$Final.Classification[is.na(finaltab$Final.Classification)] <- "NO GENO DATA"
+      finaltab$Category[is.na(finaltab$Category)] <- "NO GENO DATA"
       tmp=do.call(rbind,impossible_metric[[3]])
       tmp=cbind(namesline,tmp,QCc,GRM_metric[[1]],GmatFL,GRM_metric[[2]],GmatML,GRM_metric[[3]],GmatD_FL,finaltab)
       names(tmp)=c("designation","Mother","Father","wrong","testable","QCPer_wrong","QCPer_wrong_class","G_matrix_Line_Female","G_matrix_Line_Female_Class","G_matrix_Line_Male","G_matrix_Line_Male_Class",
                    "Diagonal_minus_Female_G_matrix","Diagonal_Female_G_matrix_Class","Final_Classification","Status")
       return(tmp)
     }
-	
+
 	 modifyGeno<-function(geno, geno_imp){
         #geno<-result$data$geno
         #geno_imp<-result$data$geno_imp[[1]]
@@ -451,7 +452,7 @@ mod_qaPedApp_server <- function(id, data){
         return(geno)
     }
   ###Inicia boton parametros
-  observeEvent(input$runParms, { 
+  observeEvent(input$runParms, {
 		req(data())
       req(input$version2qaPed)
       geno <- data()$data$geno
@@ -473,8 +474,8 @@ mod_qaPedApp_server <- function(id, data){
         ped_qa_data$thr=thr
 		 maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
          p <- pmin(maf, 1 - maf)
-         expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)      
-       shinybusy::remove_modal_spinner()     	  
+         expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
+       shinybusy::remove_modal_spinner()
       p1<-thr[[1]]
       p2<-thr[[2]]
       p3<-thr[[3]]
@@ -485,7 +486,7 @@ mod_qaPedApp_server <- function(id, data){
       updateNumericInput(session, "GDLMC", value = round(as.numeric(p3[[1]]),1))
       updateNumericInput(session, "wrongG", value = expected_error)
     })
-    
+
     output$hist_wrongG<- plotly::renderPlotly({
       req(ped_qa_data$impossible_metric)
       req(data())
@@ -497,19 +498,19 @@ mod_qaPedApp_server <- function(id, data){
       geno<-modifyGeno(geno,geno_imp)
       peddata<-data()$data$pedigree
       metaped<-data()$metadata$pedigree
-        
+
         if((length(which(ped_qa_data$impossible_metric[[2]]==3))*100)/dim(peddata)[1]>=0.8){
           maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
           p <- pmin(maf, 1 - maf)
           expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
-          
+
           w<-sapply(ped_qa_data$impossible_metric[[3]], function(x) x[3])
           status <- ifelse(w < expected_error, "GOOD","BAD")
           status_colors <- c(
             "GOOD" = "#A8E6A3",         # verde claro
             "BAD" = "#F5A3A3",      # rojo claro
             "QUESTIONABLE" = "#F2D16B"  # mostaza claro
-          )                 
+          )
           df <- data.frame(
             w = w,
             status=status
@@ -539,9 +540,9 @@ mod_qaPedApp_server <- function(id, data){
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
     })
-    
-   
-    
+
+
+
     output$hist_GLM<- plotly::renderPlotly({
       req(ped_qa_data$impossible_metric)
 	  req(ped_qa_data$GRM_metric)
@@ -553,7 +554,7 @@ mod_qaPedApp_server <- function(id, data){
       Markers <- as.data.frame(data()$data$geno_imp[[qas]])
       peddata<-data()$data$pedigree
       metaped<-data()$metadata$pedigree
-      
+
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
         useful=ped_qa_data$impossible_metric[[1]]
         #resultgrm=plot_GRM(peddata,metaped,Markers,useful)
@@ -561,7 +562,7 @@ mod_qaPedApp_server <- function(id, data){
         thr=ped_qa_data$thr
         shinybusy::remove_modal_spinner()
         if( (length(useful)*100)/dim(peddata)[1]>=0.8){
-          
+
           thr_low  <- thr[[1]][1]
           thr_high <- thr[[1]][2]
           status <- ifelse(GRM_metric[[1]] < thr_low, "BAD",
@@ -609,14 +610,14 @@ mod_qaPedApp_server <- function(id, data){
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
     })
-    
-    output$hist_GLF<- plotly::renderPlotly({      
+
+    output$hist_GLF<- plotly::renderPlotly({
       req(ped_qa_data$impossible_metric)
 	  req(ped_qa_data$GRM_metric)
 	  req(ped_qa_data$thr)
 	  req(data())
       peddata<-data()$data$pedigree
-      
+
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
         useful=ped_qa_data$impossible_metric[[1]]
         GRM_metric=ped_qa_data$GRM_metric
@@ -669,15 +670,15 @@ mod_qaPedApp_server <- function(id, data){
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
     })
-    
-    
-    output$hist_GDLM<- plotly::renderPlotly({      
+
+
+    output$hist_GDLM<- plotly::renderPlotly({
       req(ped_qa_data$impossible_metric)
 	  req(ped_qa_data$GRM_metric)
-	  req(ped_qa_data$thr)	  
+	  req(ped_qa_data$thr)
 	  req(data())
       peddata<-data()$data$pedigree
-      
+
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
         useful=ped_qa_data$impossible_metric[[1]]
         GRM_metric=ped_qa_data$GRM_metric
@@ -692,7 +693,7 @@ mod_qaPedApp_server <- function(id, data){
             "BAD" = "#F5A3A3",      # rojo claro
             "QUESTIONABLE" = "#F2D16B"  # mostaza claro
           )
-          
+
           df <- data.frame(
             D = D,
             #cluster = as.factor(ped_qa_data$thr[[3]][[4]])
@@ -742,76 +743,76 @@ mod_qaPedApp_server <- function(id, data){
           ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
         }
     })
-   
-    
+
+
     report <- reactiveVal(NULL)
-    
+
     observeEvent(input$renderReportqaPed,{
       shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
-      
+
       result <- data()
-      
+
       src <- normalizePath(system.file("rmd","reportqaPed.Rmd",package="bioflow"))
       src2 <- normalizePath('data/resultqaPed.RData')
-      
+
       # temporarily switch to the temp dir, in case you do not have write
       # permission to the current working directory
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      
+
       file.copy(src, 'report.Rmd', overwrite = TRUE)
       file.copy(src2, 'resultqaPed.RData', overwrite = TRUE)
-      
+
       outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
                                      switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
                                             # HTML = rmarkdown::html_document()
                                      ))
-      
+
       report(outReport)
-      
+
       shinybusy::remove_modal_spinner()
-      
+
       shinyjs::click("downloadReportqaPed")
     })
-    
+
     ## render result of "run" button click
     outqaPed1 <- eventReactive(input$runqaPed, {
       req(data())
       req(input$version2qaPed)
       req(ped_qa_data$GRM_metric)
       req(ped_qa_data$impossible_metric)
-      
+
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-      
+
       peddata<-data()$data$pedigree
       metaped<-data()$metadata$pedigree
       GRM_metric<-ped_qa_data$GRM_metric
       impossible_metric<-ped_qa_data$impossible_metric
-        
+
       decisionped<-try(filters_ped(peddata,metaped,GRM_metric,impossible_metric,input$wrongG,input$GLML,input$GLMB,input$GLMC,
                                  input$GLFL,input$GLFB,input$GLFC,input$GDLMC),
                        silent=TRUE
       )
-      
+
       if(!inherits(decisionped,"try-error") ) {
-        result<-data()        
-        
+        result<-data()
+
 		Idstatus<-as.numeric(Sys.time())
 		newStatus <- data.frame(module="qaPed", analysisId=Idstatus, analysisIdName=input$analysisIdName)
         if(!is.null(result$status)){
           result$status <- rbind(result$status, newStatus)
         }else{result$status <- newStatus}
-        
+
 		#newModeling <- data.frame(module=rep("qaPed",8), analysisId=rep(Idstatus,8), trait=rep("none",8), environment=rep("general",8) , parameter=c("pwrong","G_matrix_Line_Male_wrong","G_matrix_Line_Male_borderline","G_matrix_Line_Male_correct",
 		#"G_matrix_Line_Female_wrong","G_matrix_Line_Female_borderline","G_matrix_Line_Female_correct", "Diagonal_minus_Female_G_matrix_correct"), value=c(input$wrongG,input$GLML,input$GLMB,input$GLMC,input$GLFL,input$GLFB,input$GLFC,input$GDLMC))
-		
+
 		newModeling <- data.frame(module=rep("qaPed",6), analysisId=rep(Idstatus,6), trait=rep("none",6), environment=rep("general",6) , parameter=c("pwrong","G_matrix_Line_Male_wrong","G_matrix_Line_Male_correct",
 		 "G_matrix_Line_Female_wrong","G_matrix_Line_Female_correct", "Diagonal_minus_Female_G_matrix_correct"), value=c(input$wrongG,input$GLML,input$GLMC,input$GLFL,input$GLFC,input$GDLMC))
-		
+
 		if(!is.null(result$modeling)){
           result$modeling <- rbind(result$modeling, newModeling)
         }else{result$modeling <- newModeling}
-        
+
 		delrow<-which(decisionped$Status=="BAD")
 		if(length(delrow)!=0){
 			newModifications <-data.frame(module=rep("qaPed",length(delrow)), analysisId=rep(Idstatus,length(delrow)), reason=rep("BAD",length(delrow)),row=delrow)
@@ -821,13 +822,13 @@ mod_qaPedApp_server <- function(id, data){
         if(!is.null(result$modifications$pedigree)){
           result$modifications$pedigree <- rbind(result$modifications$pedigree, newModifications)
         }else{result$modifications$pedigree <- newModifications}
-		
-		
+
+
 		df_long1 <- decisionped[,1:7] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father, QCPer_wrong_class), names_to = "variable", values_to = "value")
-    df_long2 <- decisionped[,c(1:3,8:9)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father, G_matrix_Line_Female_Class), names_to = "variable", values_to = "value") 
-		df_long3 <- decisionped[,c(1:3,10:11)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father, G_matrix_Line_Male_Class), names_to = "variable", values_to = "value") 
-		df_long4 <- decisionped[,c(1:3,12:13)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father, Diagonal_Female_G_matrix_Class), names_to = "variable", values_to = "value") 
-		df_long5 <- decisionped[,c(1:3,15,15)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father,Status.1), names_to = "variable", values_to = "value") 
+    df_long2 <- decisionped[,c(1:3,8:9)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father, G_matrix_Line_Female_Class), names_to = "variable", values_to = "value")
+		df_long3 <- decisionped[,c(1:3,10:11)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father, G_matrix_Line_Male_Class), names_to = "variable", values_to = "value")
+		df_long4 <- decisionped[,c(1:3,12:13)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father, Diagonal_Female_G_matrix_Class), names_to = "variable", values_to = "value")
+		df_long5 <- decisionped[,c(1:3,15,15)] %>% tidyr::pivot_longer(cols = -c(designation, Mother, Father,Status.1), names_to = "variable", values_to = "value")
 		df_long5$value <- as.numeric(as.factor(df_long5$value))
 		names(df_long1)=c("designation","mother","father","entryType","trait","predictedValue")
 		names(df_long2)=c("designation","mother","father","entryType","trait","predictedValue")
@@ -838,24 +839,24 @@ mod_qaPedApp_server <- function(id, data){
 		lldf<-dim(df_long)[1]
         tmpP<-data.frame(module=rep("qaPed",lldf),analysisId=rep(Idstatus,lldf), pipeline=rep("unknown",lldf), trait=df_long[,5], gid=rep("unknown",lldf), designation=df_long[,1], mother=df_long[,2], father=df_long[,3],
 		effectType=rep("unknown",lldf), entryType=df_long[,4], environment=rep("general",lldf), predictedValue=df_long[,6], stdError=rep(NA,lldf), reliability=rep(NA,lldf))
-		
-		
+
+
 		if(!is.null(result$predictions)){
           result$predictions <- rbind(result$predictions, tmpP)
         } else {
           result$predictions <- tmpP
         }
-		
+
 		geno <- result$data$geno
-		vars <- apply(as.matrix(geno), 2, var, na.rm = TRUE)        
+		vars <- apply(as.matrix(geno), 2, var, na.rm = TRUE)
 		newmetrics <- data.frame(module=rep("qaPed",6), analysisId=rep(Idstatus,6), trait=rep("none",6),environment=rep("general",6),parameter=c("nMarkers","nInds","monomorphicMarkersN","polymorphicMarkersN","indivMatchedN","indivUnmatchedN"),
 		method=rep("sum",6),value=c(dim(geno)[2],dim(decisionped)[1],round(sum(vars == 0)),dim(geno)[2]-round(sum(vars == 0)),length(which(decisionped[,15]=="GOOD")),(dim(decisionped)[1]-length(which(decisionped[,15]=="GOOD")))),stdError=rep(NA,6) )
 		#save(newmetrics,file="ver.RData")
         if(!is.null(result$metrics)){
           result$metrics <- rbind(result$metrics, newmetrics)
         }else{result$metrics <- newmetrics}
-		
-		
+
+
         #if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
         data(result) # update data with results
         #save(result,file="res.RData")
@@ -864,15 +865,15 @@ mod_qaPedApp_server <- function(id, data){
       }else{
         cat(paste("Analysis failed"))
       }
-    
+
       shinybusy::remove_modal_spinner()
-      
+
       ## Report tab
       output$reportqaPed <- renderUI({
         data(result)
         HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportqaPed.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
       })
-      
+
       output$downloadReportqaPed <- downloadHandler(
         filename = function() {
           paste(paste0('qaPed_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
@@ -880,27 +881,101 @@ mod_qaPedApp_server <- function(id, data){
           ))
         },
         content = function(file) {
-          
+
           out <- report()
-          
+
           file.rename(out, file)
         }
       )
-      
+
       hideAll$clearAll <- FALSE
-      
+
     }) ## end eventReactive
-    
+
     output$outqaPed <- renderPrint({
       outqaPed1()
     })
-      
-  })  
+
+
+    output$ebsReportButton <- renderUI({
+      query <- parseQueryString(session$clientData$url_search)
+
+      # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+      if (is.character(query$task) &&
+          is.character(query$domain) &&
+          grepl("^[a-f0-9]{32}$", query$task) &&
+          grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
+
+        s3 <- paws.storage::s3()
+
+        bucket_name <- "ebs-bioflow"
+        s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
+
+        tryCatch({
+          s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
+          actionButton(ns("ebsStaReport"), "Submit Results to EBS")
+        }, error = function(e) {
+          # no such file on the S3 bucket clipboard
+          NULL
+        })
+      } else {
+        # parameters does not match the expected format
+        NULL
+      }
+    })
+
+    observeEvent(input$ebsStaReport, {
+      req(data())
+
+      query <- parseQueryString(session$clientData$url_search)
+
+      # check if task id exists, and verify (sanitize) this md5 parameter ;-)
+      if (is.character(query$task) &&
+          is.character(query$domain) &&
+          grepl("^[a-f0-9]{32}$", query$task) &&
+          grepl("^[a-z_0-9\\.\\-]+$", query$domain)) {
+
+        shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+
+        result <- data()
+        s3 <- paws.storage::s3()
+
+        # set S3 bucket parameters
+        bucket_name <- "ebs-bioflow"
+        s3_object_path <- paste0(query$domain, "/", query$task, ".RData")
+
+        tryCatch({
+          # update S3 metadata
+          s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
+          s3_object_metadata <- s3_object_head$Metadata
+          s3_object_metadata[["Upload-Origin"]] <- "bioflow"
+
+          temp_file <- paste0(tempdir(), "/", query$task, ".RData")
+          save(result, file = temp_file)
+
+          # upload data object to S3 bucket
+          s3$put_object(
+            Body = temp_file,
+            Bucket = bucket_name,
+            Key = s3_object_path,
+            Metadata = s3_object_metadata
+          )
+
+          shinybusy::remove_modal_spinner()
+          shinyalert::shinyalert(title = "Success!", text = "Analysis results successfully submitted to EBS.", type = "success")
+        }, error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyalert::shinyalert(title = "Failed!", text = e$message, type = "error")
+        })
+      }
+    })
+
+  })
   }
-  
-  
+
+
   ## To be copied in the UI
   # mod_qaPedApp_ui("qaPedApp_1")
-  
+
   ## To be copied in the server
-  # mod_qaPedApp_server("qaPedApp_1")    
+  # mod_qaPedApp_server("qaPedApp_1")
