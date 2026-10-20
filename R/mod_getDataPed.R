@@ -125,14 +125,9 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
 
     # warning message
     output$warningMessage <- renderUI({
-      if (is.null(data())) {
-        return(HTML(as.character(div(style="color: red; font-size: 20px;",
-                                     "Please retrieve or load your data using the 'Data' tab."))))
-      }
-
       if (is.null(data()$data$pedigree)) {
         return(HTML(as.character(div(style="color: red; font-size: 20px;",
-                                     "Please retrieve or load your data using the 'Data' tab. "))))
+                                     "Please retrieve or load your Pedigree & Geno Metadata using the 'Data Retrieval' tab. "))))
       }
 
       md <- data()$metadata$pedigree
@@ -147,8 +142,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
         HTML(as.character(div(style="color: green; font-size: 20px;",
                               "Data is complete, you can proceed to use the other modules.")))
       } else {
-        HTML(as.character(div(style="color: red; font-size: 20px;",
-                              "Please map/match your columns (required: designation, mother, father).")))
+        HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("designation","mother","father"), data()$metadata$pedigree$parameter), collapse = ", ") ) )))
       }
     })
 
@@ -322,7 +316,7 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
           ),
           choices  = as.list(c('', header))
         )),
-        
+
         renderPrint({
           temp <- data()
 
@@ -373,13 +367,13 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
           } else {
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "batch", value = input$ped_batchqaPed))
           }
-          
+
           if ("plate" %in% temp$metadata$pedigree$parameter) {
             temp$metadata$pedigree[temp$metadata$pedigree$parameter == "plate", 'value'] <- input$ped_plateqaPed
           } else {
             temp$metadata$pedigree <- rbind(temp$metadata$pedigree, data.frame(parameter = "plate", value = input$ped_plateqaPed))
           }
-          
+
           if ("position" %in% temp$metadata$pedigree$parameter) {
             temp$metadata$pedigree[temp$metadata$pedigree$parameter == "position", 'value'] <- input$ped_posqaPed
           } else {

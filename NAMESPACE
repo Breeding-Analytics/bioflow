@@ -3,17 +3,20 @@
 export("%>%")
 export(run_app)
 import(shiny)
-importFrom(golem,activate_js)
-importFrom(golem,add_resource_path)
-importFrom(golem,bundle_resources)
-importFrom(golem,favicon)
-importFrom(golem,with_golem_options)
+importFrom(golem,
+  activate_js,
+  add_resource_path,
+  bundle_resources,
+  favicon,
+  with_golem_options
+)
 importFrom(magrittr,"%>%")
-importFrom(shiny,HTML)
-importFrom(shiny,NS)
-importFrom(shiny,column)
-importFrom(shiny,moduleServer)
-importFrom(shiny,shinyApp)
-importFrom(shiny,tagAppendAttributes)
-importFrom(shiny,tagList)
-importFrom(shiny,tags)
+importFrom(shiny,
+  HTML,
+  NS,
+  column,
+  shinyApp,
+  tagAppendAttributes,
+  tagList,
+  tags
+)
