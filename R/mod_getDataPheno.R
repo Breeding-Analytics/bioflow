@@ -251,6 +251,7 @@ mod_getDataPheno_ui <- function(id){
                   tabPanel(div("4. Check status" ),
                            uiOutput(ns("warningMessage")),
                   ),
+
     )
 
 
@@ -270,16 +271,18 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
     # })
 
     # warning message
-    output$warningMessage <- renderUI(
-      if(is.null(data())){
-        ( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+    output$warningMessage <- renderUI({
+      if(is.null(data()$data$pheno)){
+        HTML(as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your Phenotypic data using the 'Data Retrieval' tab.")))
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
-        if(mappedColumns == 3){ ( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use other modules.")) )
-        }else{( as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","designation","trait"), data()$metadata$pheno$parameter), collapse = ", ") ) )) )
+        if(mappedColumns == 3){
+          HTML(as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use other modules.")))
+        } else{
+          HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","designation","trait"), data()$metadata$pheno$parameter), collapse = ", ") ) )))
         }
       }
-    )
+    })
 
     golem::invoke_js('hideid', ns('pheno_brapi_options'))
     golem::invoke_js('hideid', ns('pheno_url'))
