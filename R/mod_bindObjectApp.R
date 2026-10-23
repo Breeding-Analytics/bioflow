@@ -165,7 +165,7 @@ mod_bindObjectApp_ui <- function(id){
                                        br(),
                                        uiOutput(ns('pheno_map')),
                              ),
-                             tabPanel( div(icon("code-fork"), "Pedigree" ),
+                             tabPanel( div(icon("code-fork"), "Pedigree & Geno metadata" ),
                                        br(),
                                        uiOutput(ns('ped_map')),
                              ),
@@ -551,7 +551,21 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
     })
 
     ####  Pedigree Data Mapping ####
-    ped_mapp <- c("designation", "mother", "father", "yearOfOrigin")
+    ped_mapp <- c("designation", "mother", "father", "yearOfOrigin",
+                  "sample_id", "crossType", "other", "batch", "plate", "position")
+
+    ped_label_display <- c(
+      designation = "designation",
+      mother = "mother",
+      father = "father",
+      yearOfOrigin = "Year of Origin",
+      sample_id = "sample_id",
+      crossType = "crossType",
+      other = "F1 qa/qc other metadata",
+      batch = "Pedigree qa/qc batch",
+      plate = "Pedigree qa/qc plate",
+      position = "Pedigree qa/qc position"
+    )
 
     output$ped_map <- renderUI({
       req(data())
@@ -559,15 +573,31 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
       ped_header <- colnames(data()$data$pedigree)
 
+      ped_labels <- function(x){
+        x <- as.character(x)
+
+        if (x %in% c("designation", "mother", "father")) {
+          suffix <- '(*required)'
+        } else if (x %in% c("sample_id", "crossType", "other", "batch", "plate", "position")) {
+          suffix <- '(*optional)'
+        } else {
+          suffix <- ''
+        }
+
+        color <- ifelse (suffix == '(*required)','red','grey')
+
+        HTML(paste0(ped_label_display[[x]], " <span style='color:", color, "'>", suffix, "</span>"))
+      }
+
       tagList(
         fluidRow(
           lapply(ped_mapp, function(x) {
             column(
-              width = 3,
+              width = 4,
               if(any(c("sourceId", "source") %in% data()$metadata$pheno$parameter)){
                 shinyjs::disabled(selectInput(
                   inputId  = ns(paste0("ped_select", x)),
-                  label    = x,
+                  label    = ped_labels(x),
                   multiple = FALSE,
                   choices  = c("", ped_header),
                   selected = if (x %in% isolate(data()$metadata$pedigree$parameter)) {
@@ -577,7 +607,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
               } else{
                 selectInput(
                   inputId  = ns(paste0("ped_select", x)),
-                  label    = x,
+                  label    = ped_labels(x),
                   multiple = FALSE,
                   choices  = c("", ped_header),
                   selected = if (x %in% isolate(data()$metadata$pedigree$parameter)) {
@@ -628,11 +658,11 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         fluidRow(
           lapply(qtl_mapp, function(x) {
             column(
-              width = ifelse(x == 'qtl', 9, 3),
+              width = ifelse(x == 'qtl', 8, 4),
               if(any(c("sourceId", "source") %in% data()$metadata$pheno$parameter)){
                 shinyjs::disabled(selectInput(
                   inputId  = ns(paste0("qtl_select", x)),
-                  label    = x,
+                  label    = HTML(paste0(x, " <span style='color:", 'red', "'>", '(*required)', "</span>")),
                   multiple = ifelse(x == 'qtl', TRUE, FALSE),
                   choices  = c("", qtl_header),
                   selected = if (x %in% isolate(data()$metadata$qtl$parameter)) {
@@ -643,7 +673,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
               } else{
                 selectInput(
                   inputId  = ns(paste0("qtl_select", x)),
-                  label    = x,
+                  label    = HTML(paste0(x, " <span style='color:", 'red', "'>", '(*required)', "</span>")),
                   multiple = ifelse(x == 'qtl', TRUE, FALSE),
                   choices  = c("", qtl_header),
                   selected = if (x %in% isolate(data()$metadata$qtl$parameter)) {
