@@ -191,11 +191,11 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
                   if(all(c("latitude", "longitude", "trait") %in% data()$metadata$weather$parameter)){
                     HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
                   } else{
-                    HTML( as.character(div(style="color: red; font-size: 20px;", "Please specify the coordinates and retrieve weather data.")) )
+                    HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","latitude","longitude", "trait"), data()$metadata$weather$parameter), collapse = ", ") ) )))
                   }
                 }
               } else{
-                HTML( as.character(div(style="color: red; font-size: 20px;", "Please specify the 'environment' column and retrieve weather data.")) )
+                HTML( as.character(div(style="color: red; font-size: 20px;", "Please select the 'environment' column first.")) )
               }
             } else{
               HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","latitude","longitude", "trait"), data()$metadata$weather$parameter), collapse = ", ") ) )))
