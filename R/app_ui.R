@@ -100,7 +100,12 @@ app_ui <- function(request) {
     useShinydashboard(),
     tags$head(
       tags$style(type="text/css", "#inline label{ display: table-cell; text-align: center; vertical-align: middle; }
-                #inline .form-group { display: table-row;}")
+                #inline .form-group { display: table-row;}"),
+      tags$script(HTML("
+      Shiny.addCustomMessageHandler('go_to_phen_tab', function(tab) {
+        $('#PhenQA_tabs').find('a[data-value=\"' + tab + '\"]').tab('show');
+      });
+    "))
     ),
 
     ### START Macro Recording ##################################################
@@ -167,8 +172,15 @@ app_ui <- function(request) {
                  tabPanel(div( icon("floppy-disk"), "Save Data/Results",  ), mod_saveData_ui("saveData_1")  ),
 
                  tabPanel(strong("DATA QUALITY CHECK"), mod_sectionInfoQAApp_ui("sectionInfoQAApp_1") ),
-                 tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
-                 tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
+                 #tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")" ), mod_qaPhenoApp_ui("qaPhenoApp_1") ),
+                tabPanel(div(icon("soap"), "Phenotype QA/QC (", icon("seedling"),")"), value = "PhenApp_tab",
+                          navlistPanel(id = "PhenQA_tabs","Steps:", widths = c(1, 11),
+                                       tabPanel(div(icon("soap"), "1) Data consistency (", icon("seedling"),")"), mod_qaDataConsistApp_ui("qaDataConsistApp_1") ),
+                                       tabPanel(div(icon("soap"), "2) Missingness (", icon("seedling"),")"), value="PhenMissApp_tab",mod_qaDataMissApp_ui("qaDataMissApp_1") ),
+                                       tabPanel(div(icon("soap"), "3) Experimental Design (", icon("seedling"),")"), value="PhenExpApp_tab",mod_qaDataExpDesignApp_ui("qaDataExpDesignApp_1") )
+                          )
+                 ),
+				tabPanel(div(icon("soap"), "Genotype QA/QC (", icon("dna"), ")" ), mod_qaGenoApp_ui("qaGenoApp_1") ),
                  tabPanel(div(icon("soap"), "Pedigree QA/QC (", icon("network-wired"),")"), value = "qaPed_tab",
                           navlistPanel("Options:", widths = c(1, 11), id = "qaPed",
                                        tabPanel(div("F1 (", icon("network-wired"), ")"), mod_hybridityApp_ui("hybridityApp_1"), value = "hybridityApp_subtab"),
@@ -194,8 +206,8 @@ app_ui <- function(request) {
 
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single Occurrence Analysis (", icon("seedling"), ")"), value = "staApp_tab",
                           navlistPanel( "Options:", widths = c(1, 11),
-                                        tabPanel(div("Single Occurrence Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
-                                        tabPanel(div("Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
+										                    tabPanel(div("1) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
+                                        tabPanel(div("2) Single Occurrence Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
                           )
                  ),
 

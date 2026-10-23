@@ -1,10 +1,10 @@
 ---
-title: "Quality Assurance Phenotypic Report"
+title: "Model-Based Outlier Detection Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
 date: "`r format(Sys.time(), '%B %d, %Y')`"  
 output: html_document
 params:
-  toDownload: FALSE
+  toDownload: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -73,24 +73,44 @@ printTable <- function(DT, pageLength = 7,
     table
   }
 ```
+<div style = "width:auto; height:auto; overflow:auto">
+
+```{r plot_init, include = FALSE}
+# Init Step to make sure that the dependencies are loaded
+# was done to enable proper printing of the tab header and the graphs within the for loop below using print(htmltools::tagList(ggplotly(...)))
+library(ggplot2)
+htmltools::tagList(plotly::ggplotly(ggplot2::ggplot()))
+htmltools::tagList(printTable(mtcars))
+# Get the current figure size in pixels:
+get_w <- function() {
+  with(knitr::opts_current$get(c("fig.width", "dpi", "fig.retina")),
+       fig.width*dpi/fig.retina)
+}
+
+get_h <- function() {
+  with(knitr::opts_current$get(c("fig.height", "dpi", "fig.retina")),
+       fig.height*dpi/fig.retina)
+}
+
+```
+</div>
 
 ```{r }
 
 suppressWarnings(tryCatch({
-  if(file.exists("./outputs/result.RData")){
-    load("./outputs/resultQaPheno.RData")
-  }else{
-    load("resultQaPheno.RData")
-  }
+  candidatePaths <- c(file.path(tempdir(), "resultQaPheno.RData"),
+                      "./outputs/resultQaPheno.RData",
+                      "data/resultQaPheno.RData",
+                      "resultQaPheno.RData")
+  hit <- candidatePaths[which(file.exists(candidatePaths))[1]]
+  if(length(hit) == 1 && !is.na(hit)) load(hit)
 }, error = function(e) {
   shinyjs::hide()
 }))
 
 ```
 
-
 ### Table of modifications
-<p>&nbsp;</p>
 
 The following table shows the modifications that have been saved in your analysis object and that will be applied to the raw phenotypic data when this specific time stamp (ID) is selected/used in other analytical modules (e.g., single occurrence analysis module).
 
@@ -100,7 +120,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   modifications <- result$modifications$pheno
-  idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign","qaConsist")),"analysisId"];
+  idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign","qaConsist","qaConsistency")),"analysisId"];
   idQa <- idQa[length(idQa)]
   idQaType <- result$status[result$status$analysisId == idQa, "module"]
   modifications <- modifications[which( modifications$analysisId == idQa & modifications$module == idQaType),]
@@ -110,16 +130,17 @@ if (is.null(result)){
   if("params" %in% ls()){ # we will download the document
     shinyjs::hide()
   }else{
+    inputPanel(
     shiny::selectInput(ns("traitQa"), 
-                       label = "Trait:", 
+                       label = "Trait to visualize:", 
                        choices = traitsTable, 
+    ),
     )
   }
   
 }
 
 ```
-
 
 ```{r, results='asis'}
 if (is.null(result)){
@@ -144,59 +165,102 @@ if (is.null(result)){
 
 ```
 
-
-
 <p>&nbsp;</p>
 
-### Boxplot of modifications
-
-The following boxplot allows you to visualize which records were tagged as outliers and will be ignored in posterior analyses if this QA time stamp is selected in the posterior analyses.
-
-<p>&nbsp;</p>
-
-```{r }
-
-if (is.null(result)){
-  # invisible(NULL)
-} else {
-  # modifications <- result$modifications$pheno
-  # idQa <- result$status[which(result$status$module %in% c("qaRaw","qaMb","qaFilter","qaDesign","qaConsist")),"analysisId"];
-  # idQa <- idQa[length(idQa)]
-  # idQaType <- result$status[result$status$analysisId == idQa, "module"]
-  traitsBoxplot <- unique(modifications[which( modifications$analysisId == idQa),"trait"])
-  if(idQaType == "qaMb"){traitsBoxplot <- paste0(traitsBoxplot,"-residual")}
-  
-  if("params" %in% ls()){ # we will download the document
-    shinyjs::hide()
-  }else{
-    shiny::selectInput(ns("traitQaBox"), 
-                       label = "Trait:", 
-                       choices = traitsBoxplot, 
-    )
-  }
-  
-}
-
-```
+### Diagnostic plot after modifications
+After remove the outlier in te step before, you can see in the plots the final behavior of the residual test.
 
 ```{r, results='asis'}
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  
-  # object <- result
+  resRes<-data.frame(result$predictions)
+  idQa <- result$status[which(result$status$module%in%"qaMb"),"analysisId"];
+  idQa <- idQa[length(idQa)]
+  idQaType <- result$status[result$status$analysisId == idQa, "module"]
+  resRes <- resRes[which( resRes$analysisId == idQa & resRes$module == idQaType),]
+  traitsResP <- unique(resRes$trait)
+  envResP<-unique(resRes$environment)
+  if("params" %in% ls()){ # we will download the document
+    shinyjs::hide()
+  }else{
+    inputPanel(
+    shiny::selectInput(ns("traitQaResP"), 
+                       label = "Trait to visualize:", 
+                       choices = traitsResP, 
+    ),
+    column(width=12),
+    shiny::selectInput(ns("envQaResP"), 
+                       label = "Environment to vizualize:", 
+                       choices = envResP, 
+    ),
+    )
+  }
+}
+```
+
+<div style = "width:auto; height:900px; overflow:auto">
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
+  if("params" %in% ls()){ # we will download the document
+    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
+    for(iTrait in traitsResP){#iTrait=traitsResP[1]
+      #cat("\n\n#### ",iTrait, " {.tabset .tabset-pills}\n\n", sep="")
+      for(iEnv in envResP){#iEnv=envResP[1]
+        cat("\n\n#### ",iTrait,"_",iEnv," {.tabset .tabset-pills}\n\n", sep="")
+        tmpResP <- resRes[resRes$trait == iTrait & resRes$environment == iEnv,]
+        tmpResP <- tmpResP[,-c(1,2)]
+        tmp <- strsplit(tmpResP[,3], "_")
+        tmpResP <- tmpResP[,-3]
+        names(tmpResP)<-c("idRow","trait","designation","repF","stdt","outlier",
+					"environment","fitted","residuals","cookD","leverage")
+        tmpResP$N   <- sapply(tmp, `[`, 1)
+        tmpResP$p <- sapply(tmp, `[`, 2)
+        colsR <- c("idRow","p","N","fitted","residuals","cookD","leverage","stdt")
+        tmpResP[,colsR] <- lapply(tmpResP[,colsR], as.numeric)
+        p<-cgiarPipeline::pplotmod(df = tmpResP)
+        print(htmltools::tagList(p))
+        cat("\n\n")
+      }#fin env
+      #cat("\n\n")
+    }#fin trait
+  }else{
+    plotly::renderPlotly({
+        tmpResP <- resRes[resRes$trait == input$traitQaResP & resRes$environment == input$envQaResP,]
+        tmpResP <- tmpResP[,-c(1,2)]
+        tmp <- strsplit(tmpResP[,3], "_")
+        tmpResP <- tmpResP[,-3]
+        names(tmpResP)<-c("idRow","trait","designation","repF","stdt","outlier",
+					"environment","fitted","residuals","cookD","leverage")
+        tmpResP$N   <- sapply(tmp, `[`, 1)
+        tmpResP$p <- sapply(tmp, `[`, 2)
+        colsR <- c("idRow","p","N","fitted","residuals","cookD","leverage","stdt")
+        tmpResP[,colsR] <- lapply(tmpResP[,colsR], as.numeric)
+        p<-cgiarPipeline::pplotmod(df = tmpResP)
+        p
+    })
+  }
+}
+```
+</div>
+
+<p>&nbsp;</p>
+
+### Outlier warnings
+
+The following table shows a summary about a percent of outliers found it.
+
+```{r, results='asis'}
+if (is.null(result)){
+  # invisible(NULL)
+} else {
   mydata <- result$data$pheno
   ### change column names for mapping
   paramsPheno <- result$metadata$pheno
   paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
-  for(i in 1:length(paramsPheno$parameter)){
-    if((paramsPheno$parameter[i] %in% colnames(mydata)) & 
-       (paramsPheno$parameter[i] != paramsPheno$value[i])){
-      colnames(mydata) <- replace(colnames(mydata), 
-                                 colnames(mydata) == paramsPheno$parameter[i],
-                                 paste0(paramsPheno$parameter[i],"_dup"))
-    }
-  }
   colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), 
                                                Search = paramsPheno$value, 
                                                Replace = paramsPheno$parameter )
@@ -208,61 +272,70 @@ if (is.null(result)){
   analysisIds <- unique(mo$analysisId)
   analysisIds <- analysisIds[length(analysisIds)]
   mo <- mo[which(mo$analysisId == analysisIds),]
-  if(idQaType == "qaMb"){
-    mo$trait <- paste0(mo$trait,"-residual")
+  
+ pct_tagged<-list()
+for(iTrait in traitsTable){#iTrait=traitsBoxplot[1]
+  tmp<-mydata
+  tmp$color <- "valid"
+  if(nrow(mo) > 0){
+    tmp$color[which(tmp$rowindex %in% unique(mo$row[which(mo$trait == iTrait)]))]="tagged"
   }
+  tmp$color <- as.factor(tmp$color)
+  stmp<-split(tmp,tmp$environment)
+  sstmp<-sapply(stmp, function(x){mean(x$color == "tagged", na.rm = TRUE) * 100})
+  ssstmp<-data.frame(cbind(environment=names(stmp),pct_outlier=round(sstmp,2)))
+  ssstmp$pct_outlier<-as.numeric(ssstmp$pct_outlier)
+  ssstmp <- ssstmp %>%
+    dplyr::mutate(
+      quality = case_when(
+        pct_outlier < 5  ~ "Good",
+        pct_outlier >= 5  &
+          pct_outlier < 15 ~ "Moderate",
+        pct_outlier >= 15 &
+          pct_outlier < 30 ~ "Problematic",
+        pct_outlier >= 30 ~ "Potentially unusable"
+      )
+    )
+  ssstmp<-cbind(trait=iTrait,ssstmp)
+  pct_tagged[[iTrait]] <-ssstmp 
+}    
+pct<-do.call(rbind,pct_tagged)
+ 
+  numericalColumns2 <- c("pct_outlier") 
   
   if("params" %in% ls()){ # we will download the document
-    
-    cat(paste0("###   {.tabset .tabset-pills}    \n\n  "))
-    
-    for(iTrait in traitsBoxplot){
-      cat("\n\n####", iTrait, "{.tabset .tabset-pills}       \n\n")
-      
-      mydata$color <- "valid"
-      if(nrow(mo) > 0){
-        mydata$color[which(mydata$rowindex %in% unique(mo$row[which(mo$trait == iTrait)]))]="tagged"
-      }
-      mydata$color <- as.factor(mydata$color)
-      mydata$predictedValue <- mydata[,iTrait]
-      
-      p <- ggplot(mydata, aes(x=as.factor(environment), y=as.numeric(predictedValue))) +
-        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
-        theme_classic()+
-        geom_jitter(aes(colour = color), alpha = 0.6) +
-        xlab("Environment") + ylab("Trait value") +
-        theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-        scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
-      print(p)
-    }
-    
+    printTable(pct, autoWidthOpt = TRUE, scrollXOpt = FALSE,
+             colNames = colnames(pct),
+           numericColNames = numericalColumns2,
+           numRound = 4)|>
+    DT::formatStyle('quality',
+      backgroundColor = DT::styleEqual(
+        c("Good","Moderate","Problematic", "Potentially unusable"),
+        c("#A4D65E","#fff3cd","#f8d7da","#FF7F7F")
+      ),
+      fontWeight = 'bold'
+    )
   }else{
     
-    shiny::renderPlot({
-      
-      mydata$color <- "valid"
-      if(nrow(mo) > 0){
-        mydata$color[which(mydata$rowindex %in% unique(mo$row[which(mo$trait == input$traitQaBox)]))]="tagged"
-      }
-      mydata$color <- as.factor(mydata$color)
-      mydata$predictedValue <- mydata[,input$traitQaBox]
-      
-      ggplot(mydata, aes(x=as.factor(environment), y=as.numeric(predictedValue))) +
-        geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
-        theme_classic()+
-        geom_jitter(aes(colour = color), alpha = 0.6) +
-        xlab("Environment") + ylab("Trait value") +
-        theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-        scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62"))
-      
-    })
+    DT::renderDT(printTable(pct,
+                        autoWidthOpt = FALSE, scrollXOpt = TRUE,
+                        colNames = colnames(pct),
+                        numericColNames = numericalColumns2,
+                        numRound = 4)|>
+    DT::formatStyle('quality',
+      backgroundColor = DT::styleEqual(
+        c("Good","Moderate","Problematic", "Potentially unusable"),
+        c("#A4D65E","#fff3cd","#f8d7da","#FF7F7F")
+      ),
+      fontWeight = 'bold'
+    ),server = FALSE)
     
   }
-  
 }
+
 ```
 
-
+<p>&nbsp;</p>
 
 ### References on methods used
 
