@@ -155,7 +155,7 @@ app_server <- function(input, output, session) {
     check_credentials = shinymanager::check_credentials( users  )
   )
   data <- reactiveVal()
-  observe({data <- cgiarBase::create_getData_object()})
+  observe({ data<-cgiarBase::create_getData_object() })
   # Your application server logic
   required_mapping <- c("pipeline", "stage", "year", "season", "timepoint",
                         "country", "location", "trial","study", "management","rep", "iBlock",
@@ -442,7 +442,10 @@ app_server <- function(input, output, session) {
   mod_bindObjectApp_server("bindObjectApp_1", data = data, res_auth=res_auth)
 
   ## QUALITY ASSURANCE tabs
-  mod_qaPhenoApp_server("qaPhenoApp_1", data = data)
+  #mod_qaPhenoApp_server("qaPhenoApp_1", data = data)
+  mod_qaDataConsistApp_server("qaDataConsistApp_1", data = data)
+  mod_qaDataMissApp_server("qaDataMissApp_1", data=data)
+  mod_qaDataExpDesignApp_server("qaDataExpDesignApp_1", data=data)  
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
   mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
   mod_qaPedApp_server("qaPedApp_1",data = data)
@@ -458,8 +461,8 @@ app_server <- function(input, output, session) {
   #mod_dataConsistApp_server("dataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
+  mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA  
   mod_staApp_server("staApp_1", data = data) # single occurrence analysis
-  mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
   mod_mtaASREMLApp_server("mtaASREMLApp_1", data = data)
