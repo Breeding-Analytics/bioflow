@@ -454,7 +454,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
     ####  Phenotypic Data Mapping ####
     mapp <- c("pipeline", "stage", "year", "season","timepoint",
       "country", "location", "trial","study", "management","rep", "iBlock",
-      "row", "col", "designation", "gid", "entryType", "trait")
+      "row", "col",'rowDes','colDes', "designation", "gid", "entryType", "trait")
 
     output$pheno_map <- renderUI({
       req(data())
@@ -467,7 +467,7 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
 
         if (x %in% c('designation','trait','location')) {
           suffix <- '(*required)'
-        } else if (x %in% c('rep','iBlock','row','col')) {
+        } else if (x %in% c('rep','iBlock','row','col','rowDes','colDes')) {
           suffix <- '(*recommended)'
         } else {
           suffix <- '(*optional)'
