@@ -175,10 +175,10 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
 
     output$warningMessage2 <- renderUI(
       if(is.null(data())){
-        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data first to identify the environments.")) )
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your Phenotypic data first to identify the environments.")) )
       } else{ # data is there
         if(is.null(data()$data$pheno)){
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data first to identify the environments.")) )
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your Phenotypic data first to identify the environments.")) )
         } else{
           if(!is.null(data()$data$weather)){
             if(!is.null(data()$metadata$weather)){
@@ -198,10 +198,10 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
                 HTML( as.character(div(style="color: red; font-size: 20px;", "Please specify the 'environment' column and retrieve weather data.")) )
               }
             } else{
-              HTML( as.character(div(style="color: red; font-size: 20px;", "Please map/match your columns.")) )
+              HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","latitude","longitude", "trait"), data()$metadata$weather$parameter), collapse = ", ") ) )))
             }
           } else{
-            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your data using the 'Data' tab. ")) )}
+            HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your Weather data using the 'Data Retrieval' tab. ")) )}
         }
       }
     )

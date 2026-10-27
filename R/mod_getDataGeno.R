@@ -345,11 +345,11 @@ mod_getDataGeno_server <-
 
       output$warningMessage <- renderUI(
         if(is.null(data())){
-          HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.).")) )
+          HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your Genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.).")) )
         }else{ # data is there
           if(!is.null(data()$data$geno)){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
-          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.). ")) )}
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your Genotype data using the 'Data Retrieval' tab. Make sure you use the right data format (e.g., single header, etc.). ")) )}
         }
       )
 
