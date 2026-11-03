@@ -1,7 +1,7 @@
 ---
 title: "Model-Based Outlier Detection Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 22, 2026"  
+date: "October 27, 2026"  
 output: html_document
 params:
   toDownload: TRUE
@@ -36,7 +36,7 @@ The following table shows the modifications that have been saved in your analysi
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-out581918126a93d089" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-out6d0d2a01c98e55f2" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -75,7 +75,7 @@ After remove the outlier in te step before, you can see in the plots the final b
 
 <div style = "width:auto; height:900px; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="qaStaApp_1-outec63565eafbdb4e1" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="qaStaApp_1-out0e97678deb1d1e7b" style="width:100%;height:400px;"></div><!--/html_preserve-->
 </div>
 
 <p>&nbsp;</p>
@@ -84,7 +84,7 @@ After remove the outlier in te step before, you can see in the plots the final b
 
 The following table shows a summary about a percent of outliers found it.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-out814a5f0b93b07af1" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-out77d5f2adb20d8035" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 

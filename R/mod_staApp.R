@@ -97,7 +97,7 @@ mod_staApp_server <- function(id,data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
       }else{
-        if("sta" %in% data()$status$module){
+        if("qaMb" %in% data()$status$module){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Single Occurrence Analysis results are ready. See the report under the 'Output tabs'.")) )
         }else{
           HTML( as.character(div(style="color: red; font-size: 20px;", "Please run the Model-Based QA/QC module first. The Single Occurrence Analysis is computed there and its report is shown here automatically.")) )
@@ -108,7 +108,7 @@ mod_staApp_server <- function(id,data){
     ## latest Single-Trial Analysis (sta) stamp available in the object
     latestStaId <- reactive({
       req(data())
-      ids <- data()$status$analysisId[which(data()$status$module == "sta")]
+      ids <- data()$status$analysisId[which(data()$status$module == "soa")]
       if(length(ids) == 0) return(NULL)
       ids[length(ids)]
     })
@@ -135,11 +135,11 @@ mod_staApp_server <- function(id,data){
     output$predictionsSta <- DT::renderDT({
       req(latestStaId())
       result <- data()
-      ids <- data()$status$analysisId[which(data()$status$module == "sta")]
+      ids <- result$status$analysisId[which(result$status$module == "soa")]
       ids<-ids[length(ids)]
       predictions <- result$predictions
-      predictions <- predictions[predictions$module == "sta", ]
-      predictions$analysisId <- as.numeric(predictions$analysisId)
+      predictions <- predictions[predictions$module == "soa", ]
+      #predictions$analysisId <- as.numeric(predictions$analysisId)
       predictions <- predictions[!is.na(predictions$analysisId), ]
       current.predictions <- predictions[predictions$analysisId == ids, ]
       current.predictions <- subset(current.predictions, select = -c(module, analysisId))
@@ -153,11 +153,11 @@ mod_staApp_server <- function(id,data){
     output$metricsSta <- DT::renderDT({
       req(latestStaId())
       result <- data()
-      ids <- data()$status$analysisId[which(data()$status$module == "sta")]
+      ids <- result$status$analysisId[which(result$status$module == "soa")]
       ids<-ids[length(ids)]
       metrics <- result$metrics
-      metrics <- metrics[metrics$module == "sta", ]
-      metrics$analysisId <- as.numeric(metrics$analysisId)
+      metrics <- metrics[metrics$module == "soa", ]
+      #metrics$analysisId <- as.numeric(metrics$analysisId)
       metrics <- metrics[!is.na(metrics$analysisId), ]
       current.metrics <- metrics[metrics$analysisId == ids, ]
       current.metrics <- subset(current.metrics, select = -c(module, analysisId))
@@ -171,11 +171,11 @@ mod_staApp_server <- function(id,data){
     output$modelingSta <- DT::renderDT({
       req(latestStaId())
       result <- data()
-      ids <- data()$status$analysisId[which(data()$status$module == "sta")]
+      ids <- result$status$analysisId[which(result$status$module == "soa")]
       ids<-ids[length(ids)]
       modeling <- result$modeling
-      modeling <- modeling[modeling$module == "sta", ]
-      modeling$analysisId <- as.numeric(modeling$analysisId)
+      modeling <- modeling[modeling$module == "soa", ]
+      #modeling$analysisId <- as.numeric(modeling$analysisId)
       modeling <- modeling[!is.na(modeling$analysisId), ]
       current.modeling <- modeling[modeling$analysisId == ids, ]
       current.modeling <- subset(current.modeling, select = -c(module, analysisId))
@@ -193,7 +193,7 @@ mod_staApp_server <- function(id,data){
 
     output$downloadReportSta <- downloadHandler(
       filename = function() {
-        paste(paste0('sta_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
+        paste(paste0('SOA_dashboard_',gsub("-", "", as.integer(Sys.time()))), sep = '.', switch(
           "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
         ))
       },
