@@ -100,6 +100,8 @@ suppressWarnings(tryCatch({
 
 3. OUTPUT: Probability that the F1 individual matches the genotype of the parents (matchProb)
 
+3. OUTPUT: Probability that the F1 individual is a self of the mother, computed like matchProb but under mother x mother (probSelf). A true F1 has high probMatch and low probSelf; a self shows the opposite.
+
 4. OUTPUT: Expected heterozygosity in the progeny (HeteroMexp) 
 
 5. OUTPUT: Observed heterozygosity in the progeny (HeteroMp) 
@@ -336,8 +338,8 @@ if (is.null(result)){
                               timevar  = "trait",
                               v.names  = "predictedValue")
   
-  OutputCols <- c("designation","mother","father","status","parental_uncertainty","probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
-  numericalColumns <- c("probMatch","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers")
+  OutputCols <- c("designation","mother","father","status","parental_uncertainty","probMatch","probSelf","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
+  numericalColumns <- c("probMatch","probSelf","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers")
   
   predictions_wide <- predictions_wide[,c(which(colnames(predictions_wide)%in%c("designation","mother","father") ), grep("predictedValue",colnames(predictions_wide)))]
   
@@ -399,7 +401,7 @@ if (has_sample || has_other) {
     if (has_sample) "sample_id" else NULL,
     if (has_other) "other" else NULL,
     "designation",
-    "mother","father","status","parental_uncertainty","probMatch",
+    "mother","father","status","parental_uncertainty","probMatch","probSelf",
     "heteroMexp","heteroMp","heteroDeviation",
     "avgScore","nScore2","nMarkers",
     "HasGeno","HasPed","parHetFilter","ParentHasGeno"
