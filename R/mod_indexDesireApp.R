@@ -251,7 +251,7 @@ mod_indexDesireApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if( any( c("mta","moaAsr","mtaFlex","moaLmms","mas") %in% data()$status$module ) ){
+          if( any( c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -300,7 +300,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       dtIdxD <- data()
       dtIdxD <- dtIdxD$status
-      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas") ),]
+      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ),]
       traitsIdxD <- unique(dtIdxD$analysisId)
       if(length(traitsIdxD) > 0){
         if("analysisIdName" %in% colnames(dtIdxD)){
@@ -372,7 +372,7 @@ mod_indexDesireApp_server <- function(id, data){
       traitsIdxD <- unique(dtIdxD$entryType)
       updateSelectInput(session, "entryType2IdxD", choices = traitsIdxD, selected = traitsIdxD)
     })
-	
+
 	rv <- reactiveValues(sync = TRUE)
     ####################
     ## desired changes for Desire Index
@@ -481,7 +481,7 @@ observe({
                                    lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Traits available in the SOA-IDs selected.')
+                      htmltools::em('Traits available in the MOA-IDs selected.')
                     )
       )
     }, server = FALSE)
@@ -588,22 +588,22 @@ observe({
         dtIdxD <- dtIdxD[which(dtIdxD$entryType %in% input$entryType2IdxD),]
       }
       values <- desireValues()
-	 
+
       if(!is.null(values)){
         ## ensure product profile means come sorted
         if(length(input$trait2IdxD) == length(values) ){
 		 if(all(values==0)){
 			 df <- data.frame(trait = input$trait2IdxD,value = as.numeric(rep(0,length(input$trait2IdxD))), meanS = rep(0,length(input$trait2IdxD)), meanAc= rep(0,length(input$trait2IdxD)),desired= rep(0,length(input$trait2IdxD)))
 		 }else{
-		  traitVals <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD), ]		  
+		  traitVals <- dtIdxD[which(dtIdxD$trait %in% input$trait2IdxD), ]
 		  wide0 <- reshape(traitVals[,c("designation","trait","predictedValue")], direction = "wide", idvar = "designation",timevar = "trait", v.names = "predictedValue", sep= "_")
 		  wide <- as.matrix(wide0[,-1])
-		  colnames(wide) <- gsub("predictedValue_","", colnames(wide0)[-1])#unique(mydata$trait) 
+		  colnames(wide) <- gsub("predictedValue_","", colnames(wide0)[-1])#unique(mydata$trait)
 		  rownames(wide) <- wide0[,1]
 		  wide <- apply(wide,2,enhancer::imputev)
 		  wide <- wide[, input$trait2IdxD]
 		  wideO<-wide
-		if(input$scaledIndex){			
+		if(input$scaledIndex){
 			wide <- apply(wide,2,scale)
 			wide[which(is.na(wide), arr.ind = TRUE)] <- 0
 		}
@@ -611,7 +611,7 @@ observe({
 		sdd<-apply(wideO,2,sd,na.rm=T)
 		G <- cov(wide, use="pairwise.complete.obs")
 		G[which(is.na(G), arr.ind = TRUE)] <- 0
-		b <- MASS::ginv(G)%*%values # desired weights Ginv*d, equivalent to knowing w (economic weights)		
+		b <- MASS::ginv(G)%*%values # desired weights Ginv*d, equivalent to knowing w (economic weights)
 		merit <- wide %*% b
 		wideO<-wideO[order(merit,decreasing=T),]
 		set2<-apply(wideO[1:round(nrow(wideO)*input$proportion),],2,mean,na.rm=T)
@@ -620,7 +620,7 @@ observe({
           #dd <- data.frame(trait=input$trait2IdxD, value=values )
           #dd <- dd[with(dd, order(as.numeric(as.factor(trait)))), ]
           #desireRp <- dd[,"value"]
-          #traitRp <- dd[,"trait"]		 
+          #traitRp <- dd[,"trait"]
 		  if(input$scaledIndex){desired=values}else{desired=values/sdd}
 		  df <- data.frame(trait = names(usefull),value = as.numeric(usefull), meanS = set2, meanAc= set1,desired=desired)
 		  }
@@ -629,7 +629,7 @@ observe({
         #          proportion=input$proportion,meanGroupPredictionsRadar= paste(desireRp, collapse = ", "),
         #          fontSizeRadar=input$fontSizeRadar, r0Radar=NULL, neRadar=NULL, plotSdRadar=FALSE,
         #          title="Radar plot to inspect population values versus target values.") # send to setting plotSdRadar # send to argument meanGroupPredictionsRadar
-		
+
 		plotly::plot_ly() %>% plotly::add_bars(data = df,x = ~trait,y = 10,base = -5, marker = list(color = "rgba(180,180,180,0.25)"), width = 0.80,hoverinfo = "skip",showlegend = FALSE) %>%
 				plotly::add_bars(data = df, x = ~trait, y = ~desired, name="Desired values",width = 0.65, marker = list(color = "rgba(46,204,113,0.40)"),hoverinfo = "skip", showlegend = TRUE) %>%
 				plotly::add_bars(data = subset(df, value >= 0),x = ~trait,y = ~value,name = "Trait improves",width = 0.45,marker = list(color = "steelblue"),hovertext = ~paste0("<b>", trait, "</b><br>","StdGain: ", sprintf("%.3f", value), "<br>",
@@ -704,7 +704,7 @@ observe({
       # define values for slider all traits for base index
       values <- desireValues()
       # run the modeling, but before test if mta was done
-      if(sum(dtIdxD$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas") ) == 0) {
+      if(sum(dtIdxD$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ) == 0) {
         output$qaQcIdxDInfo <- renderUI({
           if (hideAll$clearAll)
             return()

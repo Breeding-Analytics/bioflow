@@ -55,7 +55,7 @@ mod_hybridityApp_ui <- function(id){
                                              tabPanel(div( icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                       br(),
                                                       column(width=12, style = "background-color:grey; color: #FFFFFF",
-                                                             column(width=8, selectInput(ns("version2F1qaqc"), "QA-geno stamp(s) to apply", choices = NULL, multiple = TRUE)),
+                                                             column(width=8, selectInput(ns("version2F1qaqc"), "QA-geno stamp(s) to analyze", choices = NULL, multiple = TRUE)),
 
                                                       ),
                                                       column(width=12),
@@ -114,20 +114,17 @@ mod_hybridityApp_ui <- function(id){
 
                                                  # Row: genetic units to average (default mother + father) + explainer
                                                  fluidRow(
-                                                   column(
-                                                     width = 6,
-                                                     column(width=8, selectizeInput(ns("units2Verif"),
-                                                                                    label = tags$span(
-                                                                                      "Genetic unit(s) to average for expected genotype",
-                                                                                      tags$i(
-                                                                                        class = "glyphicon glyphicon-info-sign",
-                                                                                        style = "color:#FFFFFF",
-                                                                                        title = "Genetic units that will be averaged for estimating the expected F1 dosage at each marker. Defaults are the indicated mother and father columns in the pedigree file"
-                                                                                      ))
-                                                                                    , choices = NULL, multiple = TRUE)
-                                                            )
-                                                     )
-                                                   ),
+                                                   column(width=8, selectizeInput(ns("units2Verif"),
+                                                                                  label = tags$span(
+                                                                                    "Genetic unit(s) to average for expected genotype",
+                                                                                    tags$i(
+                                                                                      class = "glyphicon glyphicon-info-sign",
+                                                                                      style = "color:#FFFFFF",
+                                                                                      title = "Genetic units that will be averaged for estimating the expected F1 dosage at each marker. Defaults are the indicated mother and father columns in the pedigree file"
+                                                                                    ))
+                                                                                  , width = "45%", choices = NULL, multiple = TRUE)
+                                                   )
+                                                 ),
 
                                                  # Row: informativeness filtering options for each cross
                                                  fluidRow(
@@ -231,7 +228,7 @@ mod_hybridityApp_ui <- function(id){
                                              # ------------ Parental Quality Control ------------
 
                                              tabPanel(
-                                               div(icon("dice-two"), "Parental homozygosity"),
+                                               div(icon("dice-three"), "Parental homozygosity"),
                                                br(),
 
                                                # --- Bioflow panels ---
@@ -322,7 +319,7 @@ mod_hybridityApp_ui <- function(id){
 
                                              # ------------ Match Probability thresholds ------------
 
-                                             tabPanel("Set match thresholds", icon = icon("dice-two"),
+                                             tabPanel("Set match thresholds", icon = icon("dice-four"),
                                                       br(),
 
                                                       # --- Bioflow panels ---
@@ -405,7 +402,7 @@ mod_hybridityApp_ui <- function(id){
                                              # ------------ Run analysis ------------
 
                                              tabPanel(
-                                               "Run analysis", icon = icon("dice-four"),
+                                               "Run analysis", icon = icon("dice-five"),
                                                br(),
                                                column(
                                                  width = 12, style = "background-color:grey; color: #FFFFFF",

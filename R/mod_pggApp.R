@@ -178,9 +178,9 @@ mod_pggApp_server <- function(id, data){
       if(is.null(data())){
         HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab, compute the 'environment' column, map the 'designation' and at least one trait.")) )
       }else{ # data is there
-        if( any(c("soa","moaLmms","mta","mtaFlex","moaAsr") %in% data()$status$module) ){
+        if( any(c("moaLmms","mta","mtaFlex","moaAsr","mtaLmms","mtaAsr") %in% data()$status$module) ){
           HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the predicted genetic gain analysis specifying your input parameters under the Input tabs.")) )
-        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Single Trial or Multi Occurrence Analysis before performing a predicted genetic gain analysis.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before performing a predicted genetic gain analysis.")) ) }
       }
     )
     ## data example loading
@@ -222,7 +222,7 @@ mod_pggApp_server <- function(id, data){
       req(data())
       dtPgg <- data()
       dtPgg <- dtPgg$status
-      dtPgg <- dtPgg[which(dtPgg$module %in% c("moaLmms","mta","mtaFlex","moaAsr")),]
+      dtPgg <- dtPgg[which(dtPgg$module %in% c("moaLmms","mta","mtaFlex","moaAsr","mtaLmms","mtaAsr")),]
       traitsPgg <- unique(dtPgg$analysisId)
       if(length(traitsPgg) > 0){
         if("analysisIdName" %in% colnames(dtPgg)){
@@ -289,8 +289,8 @@ mod_pggApp_server <- function(id, data){
         ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge()) +  ggplot2::ggtitle("Metrics associated to this stamp selected")
       plotly::ggplotly(res)
     })
-    
-    
+
+
     observeEvent(c(data(),input$version2Pgg), {
       req(data())
       req(input$version2Pgg)
@@ -303,7 +303,7 @@ mod_pggApp_server <- function(id, data){
       updateNumericInput(session,"Nproportion",value = round(Ntotal * input$proportion / 100))
       updating(FALSE)
     }, ignoreInit = FALSE)
-    
+
     updating <- reactiveVal(FALSE)
     observeEvent(input$proportion, {
       req(data())
@@ -317,7 +317,7 @@ mod_pggApp_server <- function(id, data){
       updateNumericInput(session,"Nproportion",value = round(Ntotal * input$proportion / 100))
       updating(FALSE)
     })
-    
+
     observeEvent(input$Nproportion, {
       req(data())
       req(input$version2Pgg)
@@ -393,7 +393,7 @@ mod_pggApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtPgg <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtPgg$status$module %in% c("moaLmms","mta","mtaFlex","moaAsr")) == 0) {
+      if(sum(dtPgg$status$module %in% c("moaLmms","mta","mtaFlex","moaAsr","mtaLmms","mtaAsr")) == 0) {
         output$qaQcPggInfo <- renderUI({
           if (hideAll$clearAll){
             return()

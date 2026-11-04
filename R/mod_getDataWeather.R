@@ -25,7 +25,7 @@ mod_getDataWeather_ui <- function(id){
                                  ),
                           )
                  ),
-                 tabPanel(div("2. Set coordinates" ),
+                 tabPanel(div("2. Load data/Set coordinates" ),
                           tags$span(id = ns('apiOptionsInput'),
                                     tabPanel("Specify coordinates", icon = icon("magnifying-glass-chart"),
                                              tags$span(id = ns('weather_message_holder'),
@@ -93,7 +93,7 @@ mod_getDataWeather_ui <- function(id){
                                     ),
                            ), # end of file upload options
                   ),
-                  tabPanel(div("3. Retrieve/Match data" ),
+                  tabPanel(div("3. Match/Extract data" ),
                            tags$span(id = ns('apiOptionsRetrieve'),
                                      actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
                                      textOutput(ns("outgetWeather")),

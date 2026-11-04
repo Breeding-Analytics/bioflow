@@ -1123,7 +1123,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       req(data())
       dtMta <- data() # dtMta <- result
       dtMta <- dtMta$status
-      dtMta <- dtMta[which(dtMta$module == "soa"),]
+      dtMta <- dtMta[which(dtMta$module %in% c("sta", "soa")),]
       traitsMta <- unique(dtMta$analysisId)
       if(length(traitsMta) > 0){
         if("analysisIdName" %in% colnames(dtMta)){
@@ -1193,7 +1193,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("soa" %in% data()$status$module){
+          if(any(c('sta','soa') %in% data()$status$module)){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi occurrence analysis specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single occurrence analysis before performing a the multi occurrence analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -2076,7 +2076,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
       # inputFormulationFixed <- inputFormulaRandom()
       # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
       # run the modeling, but before test if sta was done
-      if(sum(dtMta$status$module %in% "soa") == 0) {
+      if(sum(dtMta$status$module %in% c("soa","sta")) == 0) {
         output$qaQcMtaInfo <- renderUI({
           if (hideAll$clearAll)
             return()
