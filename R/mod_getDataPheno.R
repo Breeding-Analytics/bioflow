@@ -409,77 +409,22 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
         tryCatch(
           expr = {
             if (input$pheno_db_type == 'ebs') {
-              ebs_instance <- sub('https?://([^\\.]+)\\.([^/]+).*', '\\1', input$pheno_db_url)
-              ebs_domain   <- sub('https?://([^\\.]+)\\.([^/]+).*', '\\2', input$pheno_db_url)
 
-              if (ebs_domain == 'ebs.irri.org') {
+              # Load the EBS environment variables (BrAPI URL, OAuth endpoints and
+              # client credentials) from the JSON catalog instead of a
+              # hardcoded if/else chain. See R/ebs_env_helper.R.
+              ebs_env <- resolve_ebs_env(input$pheno_db_url)
 
-                ebs_brapi         <- paste0('https://prod-cbbrapi.', ebs_domain)
-                ebs_authorize_url <- 'https://auth-irri.ebsproject.org/oauth2/authorize'
-                ebs_access_url    <- 'https://auth-irri.ebsproject.org/oauth2/token'
-                ebs_client_id     <- '5qo8e9j6m61bqgbjvudhujpg7'
-                ebs_client_secret <- 'eke3bke2ikcl20955so16lesi7r6sml1mr9qd6ai6abqcpg7ibn'
-
-              } else if (ebs_domain == 'icarda.ebsproject.org') {
-
-                ebs_brapi         <- paste0('https://app-cbbrapi.', ebs_domain)
-                ebs_authorize_url <- 'https://auth.icarda.ebsproject.org/oauth2/authorize'
-                ebs_access_url    <- 'https://auth.icarda.ebsproject.org/oauth2/token'
-                ebs_client_id     <- 'b27e613di2vtmrm3okfhajidl'
-                ebs_client_secret <- '11dj6g7n5eellkmodat0n4qic7tas2iauhrov8d5ksup4suo15kb'
-
-              } else if (ebs_domain == 'ciat.ebsproject.org') {
-
-                ebs_brapi         <- paste0('https://cbbrapi.', ebs_domain)
-                ebs_authorize_url <- 'https://auth.ciat.ebsproject.org/oauth2/authorize'
-                ebs_access_url    <- 'https://auth.ciat.ebsproject.org/oauth2/token'
-                ebs_client_id     <- '58n0nccnih9qc0iibd9l735ksv'
-                ebs_client_secret <- '1gqsfcj2kb1p4jtdfnlu8u5jsgnom9psu7cebgfq1i2lljcv97kd'
-
-              } else {
-                ebs_instance <- sub('(.*-)', '', ebs_instance)
-                ebs_brapi    <- paste0('https://cbbrapi-', ebs_instance, '.', ebs_domain)
-
-                if (ebs_instance %in% c('qa', 'dev')) {
-
-                  ebs_authorize_url <- 'https://auth-dev.ebsproject.org/oauth2/authorize'
-                  ebs_access_url    <- 'https://auth-dev.ebsproject.org/oauth2/token'
-                  ebs_client_id     <- '5crahiqorgj0lppt3n9dkulkst'
-                  ebs_client_secret <- '1sf4tipbp4arj3d5cncjmrvk9c2cu30gor5618hnh8rgkp6v5fs'
-
-                } else if (ebs_instance %in% c('legumes')) {
-
-                  ebs_authorize_url <- 'https://auth.ebs.iita.org/oauth2/authorize'
-                  ebs_access_url    <- 'https://auth.ebs.iita.org/oauth2/token'
-                  ebs_client_id     <- '2kvos0ijj8q3a6ek2okf431p2i'
-                  ebs_client_secret <- '1p1i9ehhuf5fjg2an0qoaau3vb1c5bsmir9ci96rrpobd5mv4iqd'
-
-                } else if (ebs_instance %in% c('dcp')) {
-
-                  ebs_authorize_url <- 'https://auth.ebsproject.org/oauth2/authorize'
-                  ebs_access_url    <- 'https://auth.ebsproject.org/oauth2/token'
-                  ebs_client_id     <- 'lo1fpgt1gi2aucf4oj2dbgshu'
-                  ebs_client_secret <- 'k95d36vdaqugvi95augdk2k45omc44p1godm48jko17vqjrcdc0'
-
-                } else if (ebs_instance %in% c('staging', 'wheat', 'maize', 'wee', 'mee', 'ree')) {
-
-                  ebs_authorize_url <- 'https://auth.ebsproject.org/oauth2/authorize'
-                  ebs_access_url    <- 'https://auth.ebsproject.org/oauth2/token'
-                  ebs_client_id     <- '346lau0avcptntd1ksbmgdi5c'
-                  ebs_client_secret <- 'q5vnvakfj800ibh5tvqut73vj8klv1tpt6ugtmuneh6d2jb28i3'
-
-                } else if (ebs_instance %in% c('demo')) {
-
-                  ebs_authorize_url <- 'https://auth-sandbox.ebsproject.org/oauth2/authorize'
-                  ebs_access_url    <- 'https://auth-sandbox.ebsproject.org/oauth2/token'
-                  ebs_client_id     <- '14lqul2cds3o917vnu5aaququ4'
-                  ebs_client_secret <- '1mk05qlg0l8lm2vfegj2m6hei0ig9dl80al26r9no771tcfc97mo'
-
-                } else {
-                  shinyWidgets::show_alert(title = 'Oops!', type = 'warning', "We can't recognize this EBS instance :-(")
-                  return()
-                }
+              if (is.null(ebs_env) || is.null(ebs_env$client_id) || nchar(ebs_env$client_id) == 0) {
+                shinyWidgets::show_alert(title = 'Oops!', type = 'warning', "We can't recognize this EBS instance :-(")
+                return()
               }
+
+              ebs_brapi         <- ebs_env$brapi
+              ebs_authorize_url <- ebs_env$authorize_url
+              ebs_access_url    <- ebs_env$access_url
+              ebs_client_id     <- ebs_env$client_id
+              ebs_client_secret <- ebs_env$client_secret
 
               golem::invoke_js('showid', ns('pheno_db_token_holder'))
 
