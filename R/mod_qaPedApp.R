@@ -12,7 +12,7 @@ mod_qaPedApp_ui <- function(id) {
   tagList(
     # color guide for backgrounds: https://www.w3schools.com/colors/colors_names.asp
     # color guide for fonts: https://www.w3schools.com/html/html_colors_hex.asp
-    tags$br(),
+    # tags$br(),
 
     mainPanel(width = 12,
               tabsetPanel( id=ns("tabsMain"),
@@ -48,13 +48,13 @@ mod_qaPedApp_ui <- function(id) {
                            ),
                            tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                     tabsetPanel(
-                                      tabPanel(div( icon("dice-one"), "Pick SOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-one"), "Pick QA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8,
                                                              selectInput(ns("version2qaPed"),
                                                                          label = tags$span(
-                                                                           "Genotype QA/QC version(s) to analyze",
+                                                                           "QA-geno stamps(s) to analyze",
                                                                            tags$i(
                                                                              class = "glyphicon glyphicon-info-sign",
                                                                              style = "color:#FFFFFF",

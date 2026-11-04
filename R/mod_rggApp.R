@@ -230,9 +230,10 @@ mod_rggApp_server <- function(id, data){
         pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
         mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),c(NA,"")))
         if(mappedColumns > 0){
-          if(any(c("soa","moaLmms","mta","mtaFlex","moaAsr") %in% data()$status$module)){
+          if(any(c("sta","soa","moaLmms","mta","mtaFlex","moaAsr","mtaLmms","mtaAsr") %in% data()$status$module)){
             myYearOfOrigin <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
-            if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
+            # if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
+            if(length(myYearOfOrigin) > 0 && !is.na(myYearOfOrigin) && nzchar(myYearOfOrigin)){
               HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the realized genetic gain specifying your input parameters under the Input tabs.")) )
             }else{
               HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure to map the column 'yearOfOrigin' in the 'Pedigree data' extraction section under the 'Data Retrieval' to perform the realized genetic gain analysis.")) )
@@ -282,9 +283,9 @@ mod_rggApp_server <- function(id, data){
       dtRgg <- data()
       dtRgg <- dtRgg$status
       if(input$methodRgg == "piepho"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("soa")),]
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("sta","soa")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","moaLmms","moaAsr")),] #delete indexD from here because doesn't work
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","moaLmms","moaAsr","mtaLmms","mtaAsr")),] #delete indexD from here because doesn't work
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){

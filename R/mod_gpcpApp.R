@@ -323,7 +323,7 @@ mod_gpcpApp_server <- function(id, data){
             ))
           )
         }else{
-          hasMTA       <- any(data()$status$module %in% c("mta", "moaAsr","mtaFlex", "moaLmms"))
+          hasMTA       <- any(data()$status$module %in% c("mta", "moaAsr","mtaFlex", "moaLmms","mtaLmms","mtaAsr"))
           hasMarkers   <- "qaGeno" %in% data()$status$module
           #hasGPCPslot  <- ("GPCP" %in% names(data())) && !is.null(data()$GPCP)
 		  hasGPCPslot   <- !is.null(which(data()$predictions$effectType=="designationA")) && !is.null(which(data()$predictions$effectType=="designationD")) && !is.null(which(data()$predictions$effectType=="inbreeding"))
@@ -756,7 +756,7 @@ mod_gpcpApp_server <- function(id, data){
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       dtGpcp <- data()
       # run the modeling, but before test if mta was done
-      if(sum(dtGpcp$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","indexD")) == 0) {
+      if(sum(dtGpcp$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","indexD","mtaLmms","mtaAsr")) == 0) {
         output$qaQcGpcpInfo <- renderUI({
           if (hideAll$clearAll){
             return()
