@@ -269,8 +269,8 @@ mod_qaDataMissApp_server <- function(id, data){
       # 6. Variables opcionales de diseño
       rep_col <- if ("rep" %in% design_vars) "rep" else NULL
       blk_col <- if ("iBlock" %in% design_vars) "iBlock" else NULL
-      row_col <- if ("row" %in% design_vars) "row" else NULL
-      col_col <- if ("col" %in% design_vars) "col" else NULL
+      row_col <- if ("rowDes" %in% design_vars) "rowDes" else NULL
+      col_col <- if ("colDes" %in% design_vars) "colDes" else NULL
       
       # 7. Ejecutar el análisis solo cuando los datos estén listos
       res <- tryCatch({
