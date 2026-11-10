@@ -1,7 +1,7 @@
 ---
 title: "Model-Based Outlier Detection Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 27, 2026"  
+date: "November 04, 2026"  
 output: html_document
 params:
   toDownload: TRUE
@@ -27,8 +27,12 @@ The following table shows the modifications that have been saved in your analysi
 <div class="form-group shiny-input-container">
 <label class="control-label" id="qaStaApp_1-traitQa-label" for="qaStaApp_1-traitQa">Trait to visualize:</label>
 <div>
-<select id="qaStaApp_1-traitQa" class="shiny-input-select"><option value="Ear_Height_cm" selected>Ear_Height_cm</option>
-<option value="Grain_Moisture">Grain_Moisture</option></select>
+<select id="qaStaApp_1-traitQa" class="shiny-input-select"><option value="TKW" selected>TKW</option>
+<option value="TWT">TWT</option>
+<option value="SVOL">SVOL</option>
+<option value="SIND">SIND</option>
+<option value="GIND">GIND</option>
+<option value="WGLU">WGLU</option></select>
 <script type="application/json" data-for="qaStaApp_1-traitQa" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -36,7 +40,7 @@ The following table shows the modifications that have been saved in your analysi
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-out6d0d2a01c98e55f2" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-outf82ffdfb99ebd6cd" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -49,10 +53,15 @@ After remove the outlier in te step before, you can see in the plots the final b
 <div class="form-group shiny-input-container">
 <label class="control-label" id="qaStaApp_1-traitQaResP-label" for="qaStaApp_1-traitQaResP">Trait to visualize:</label>
 <div>
-<select id="qaStaApp_1-traitQaResP" class="shiny-input-select"><option value="Plant_Height_cm" selected>Plant_Height_cm</option>
-<option value="Ear_Height_cm">Ear_Height_cm</option>
-<option value="Yield_Mg_ha">Yield_Mg_ha</option>
-<option value="Grain_Moisture">Grain_Moisture</option></select>
+<select id="qaStaApp_1-traitQaResP" class="shiny-input-select"><option value="TKW" selected>TKW</option>
+<option value="TWT">TWT</option>
+<option value="TKW2">TKW2</option>
+<option value="GPC">GPC</option>
+<option value="SVOL">SVOL</option>
+<option value="SIND">SIND</option>
+<option value="YCOL">YCOL</option>
+<option value="GIND">GIND</option>
+<option value="WGLU">WGLU</option></select>
 <script type="application/json" data-for="qaStaApp_1-traitQaResP" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -64,8 +73,7 @@ After remove the outlier in te step before, you can see in the plots the final b
 <div class="form-group shiny-input-container">
 <label class="control-label" id="qaStaApp_1-envQaResP-label" for="qaStaApp_1-envQaResP">Environment to vizualize:</label>
 <div>
-<select id="qaStaApp_1-envQaResP" class="shiny-input-select"><option value="NYS1y2021" selected>NYS1y2021</option>
-<option value="TXH2y2021">TXH2y2021</option></select>
+<select id="qaStaApp_1-envQaResP" class="shiny-input-select"><option value="envD26YSXYTFI4" selected>envD26YSXYTFI4</option></select>
 <script type="application/json" data-for="qaStaApp_1-envQaResP" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
 </div>
 </div>
@@ -75,7 +83,7 @@ After remove the outlier in te step before, you can see in the plots the final b
 
 <div style = "width:auto; height:900px; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="qaStaApp_1-out0e97678deb1d1e7b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="qaStaApp_1-out803e05bec1512f34" style="width:100%;height:400px;"></div><!--/html_preserve-->
 </div>
 
 <p>&nbsp;</p>
@@ -84,7 +92,7 @@ After remove the outlier in te step before, you can see in the plots the final b
 
 The following table shows a summary about a percent of outliers found it.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-out77d5f2adb20d8035" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="qaStaApp_1-outc31d41d7ec160580" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 

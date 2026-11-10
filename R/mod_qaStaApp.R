@@ -366,12 +366,17 @@ mod_qaStaApp_server <- function(id, data){
       # req(input$genoUnitOutqP)
       obj <- data()
       mods <- obj$modifications$pheno
-      traitsQaMb <- character(0)
+      traitsQaMb <- obj$metadata$pheno
+      traitsQaMb <- traitsQaMb$value[which(traitsQaMb$parameter=="trait")]
       if(!is.null(mods)){
         mods <- mods[which(mods$module %in% c("qaMissing","qaConsistency","qaExpDesign") &
                              mods$analysisId %in% input$version2qSta), , drop = FALSE]
-        traitsQaMb <- unique(mods$trait)
-        traitsQaMb <- traitsQaMb[!is.na(traitsQaMb)]
+        dT<-which(mods$reason=="dropTrait")
+        if(length(dT)!=0){
+          mods<-mods[dT,]
+          mods <- unique(mods$trait)
+          traitsQaMb<-c(setdiff(traitsQaMb, mods), setdiff(mods, traitsQaMb))
+        }
       }
       # fallback: if the selected stamp(s) carry no trait-level modifications,
       # offer every mapped trait so the user can still run the model-based QA.
@@ -379,8 +384,9 @@ mod_qaStaApp_server <- function(id, data){
         traitsQaMb <- unique(obj$metadata$pheno[obj$metadata$pheno$parameter == "trait", "value"])
       }
       updateSelectInput(session, "traitOutqPhenoMultiple", choices = traitsQaMb, selected = NULL)
+      updateSelectInput(session, "trait3Sta", choices = traitsQaMb)
     })
-   
+  
    observeEvent(c(data(),input$version2qSta,input$traitOutqPhenoMultiple), {
       req(data())
       req(input$version2qSta)
@@ -470,56 +476,40 @@ mod_qaStaApp_server <- function(id, data){
           traitsSta <- setdiff(paramsPheno$parameter, c("trait","designation"))
           updateSelectInput(session, "feature", choices = traitsSta)
         })
-        observeEvent(c(data(),input$version2qSta), { # update trait
-          req(data())
-          req(input$version2qSta)
-          dtSta <- data()
-          dtSta <- dtSta$modifications$pheno
-          dtSta <- dtSta[which(dtSta$analysisId %in% input$version2qSta),] # only traits that have been QA
-          traitsSta <- unique(dtSta$trait)
-          updateSelectInput(session, "trait3Sta", choices = traitsSta)
-        })
-        output$plotPredictionsCleanOut <- plotly::renderPlotly({ # shiny::renderPlot({ #
+        
+        output$plotPredictionsCleanOut <- plotly::renderPlotly({ 
           req(data())
           req(input$version2qSta)
           req(input$trait3Sta)
-          mydata <- data()$data$pheno
+          result<-data()
+          mydata <- result$data$pheno
           ### change column names for mapping
-          paramsPheno <- data()$metadata$pheno
+          paramsPheno <- result$metadata$pheno
           paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
           colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-          cleaning <- data()$modifications$pheno # extract outliers
-          cleaning <- cleaning[which(as.numeric(cleaning$analysisId) %in% as.numeric(input$version2qSta)),]
+          cleaning <- result$modifications$pheno # extract outliers
+          cleaning <- cleaning[which(as.character(cleaning$analysisId) %in% as.character(as.numeric(input$version2qSta))),]
           mydata <- mydata[-as.numeric(cleaning$row),]
           ###
-          mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+          mappedColumns <- length(which(c("environment","designation","trait") %in% result$metadata$pheno$parameter))
           if(mappedColumns == 3){ # all required columns are present
             mydata$rowindex <- 1:nrow(mydata)
-            mydata[, "environment"] <- as.factor(mydata[, "environment"]);mydata[, "designation"] <- as.factor(mydata[, "designation"])
-            mo <- data()$modifications$pheno
-            mo <- mo[which(mo[,"trait"] %in% input$trait3Sta),]
-            mydata$color <- "valid"
-            if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
+            mydata[, "environment"] <- as.factor(mydata[, "environment"])
+            mydata[, "designation"] <- as.factor(mydata[, "designation"])
+            #mo <- cleaning[which(cleaning[,"trait"] %in% input$trait3Sta),]
+            #mydata$color <- "valid"
+            #if(nrow(mo) > 0){mydata$color[which(mydata$rowindex %in% unique(mo$row))]="tagged"}
             mydata$predictedValue <- mydata[,input$trait3Sta]
             mydata <- mydata[,which(!duplicated(colnames(mydata)))]
             p <- ggplot2::ggplot(mydata, ggplot2::aes(x=predictedValue, fill=environment)) +
               ggplot2::geom_histogram(ggplot2::aes(y=ggplot2::after_stat(density)), position="identity", alpha=input$transparency ) +
-              # ggplot2::geom_boxplot(fill='#A4A4A4', color="black", notch = TRUE, outliers = FALSE)+
               ggplot2::theme_classic() + ggplot2::ggtitle("Histogram of trait dispersion by environment") +
-              # ggplot2::geom_jitter(ggplot2::aes(colour = color), alpha = 0.4) +
               ggplot2::ylab("Density") + ggplot2::xlab("Trait value") + ggplot2::scale_color_brewer(palette="Accent")
-            # ggplot2::scale_color_manual(values = c(valid = "#66C2A5", tagged = "#FC8D62")) # specifying colors names avoids having valid points in orange in absence of potential outliers. With only colour = color, valid points are in orange in that case.
-            # if(input$checkbox){
-            #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
-            # }else{
-            #   p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
-            # }
-            # p
             plotly::ggplotly(p)
           }else{}
         })
         # render fieldGrid heatmap
-        output$plotFieldGrid <- plotly::renderPlotly({ # shiny::renderPlot({ #
+        output$plotFieldGrid <- plotly::renderPlotly({ 
           req(data())
           req(input$version2qSta)
           req(input$trait3Sta)
@@ -529,13 +519,13 @@ mod_qaStaApp_server <- function(id, data){
           paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
           colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
           cleaning <- data()$modifications$pheno # extract outliers
-          cleaning <- cleaning[which(as.numeric(cleaning$analysisId) %in% as.numeric(input$version2qSta)),]
+          cleaning <- cleaning[which(as.character(cleaning$analysisId) %in% as.character(as.numeric(input$version2qSta))),]
           mydata <- mydata[-as.numeric(cleaning$row),]
           ###
           mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
           if(mappedColumns == 3){ # all required columns are present
 
-            mappedCoordColumns <- length(which(c("row","col") %in% paramsPheno$parameter))
+            mappedCoordColumns <- length(which(c("rowDes","colDes") %in% paramsPheno$parameter))
             if(mappedCoordColumns == 2){
 
               mydata$value <- mydata[, input$trait3Sta]
@@ -544,7 +534,7 @@ mod_qaStaApp_server <- function(id, data){
               meanVal <- mean(mydata$value, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
 
               if(!is.na(meanVal)){ # there is data
-                pf <- ggplot2::ggplot(data = mydata, ggplot2::aes(row, col, fill = value))+
+                pf <- ggplot2::ggplot(data = mydata, ggplot2::aes(rowDes, colDes, fill = value))+
                   ggplot2::geom_tile(color = "white")+
                   ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "gold",
                                                 midpoint = meanVal, limit = c(minVal,maxVal), space = "Lab",
@@ -600,7 +590,7 @@ mod_qaStaApp_server <- function(id, data){
       #mydata <- filtered_data()
       mydata <- data()$data$pheno
       cleaning <- data()$modifications$pheno # extract outliers
-      cleaning <- cleaning[which(as.numeric(cleaning$analysisId) %in% as.numeric(input$version2qSta)),]
+      cleaning <- cleaning[which(as.character(cleaning$analysisId) %in% as.character(as.numeric(input$version2qSta))),]
       mydata <- mydata[-as.numeric(cleaning$row),]
       
       if(length(input$traitOutqPhenoMultiple) > 1){
@@ -746,7 +736,7 @@ mod_qaStaApp_server <- function(id, data){
       if(!is.null(paramsPheno)){
         paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
         colnames(dtProv) <- cgiarBase::replaceValues(colnames(dtProv), Search = paramsPheno$value, Replace = paramsPheno$parameter )
-        dtProvNames <- c("row","col","rep","iBlock")
+        dtProvNames <- c("rowDes","colDes","rep","iBlock")
         envCol <- paramsPheno[which(paramsPheno$parameter == "environment"),"value"]
         if(length(envCol) > 0){
           fieldNames <- as.character(unique(dtProv[,"environment"]))

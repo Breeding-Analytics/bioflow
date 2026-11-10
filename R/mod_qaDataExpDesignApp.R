@@ -260,7 +260,7 @@ mod_qaDataExpDesignApp_server <- function(id, data){
                                                    Replace = paramsPheno$parameter)
       
       # Validación mínima
-      if (!all(c("environment", "row", "col", "designation") %in% colnames(mydata))) {
+      if (!all(c("environment", "rowDes", "colDes", "designation") %in% colnames(mydata))) {
         return(plotly::plot_ly() %>%
                  plotly::add_annotations(text = "No row and column information available for this field",
                                          x = 1, y = 1, showarrow = FALSE))
@@ -270,8 +270,8 @@ mod_qaDataExpDesignApp_server <- function(id, data){
       mydata2 <- mydata[mydata$environment %in% env_selected, , drop = FALSE]
       
       # Forzar caracteres para evitar factores raros
-      mydata2$row <- as.character(mydata2$row)
-      mydata2$col <- as.character(mydata2$col)
+      mydata2$row <- as.character(mydata2$rowDes)
+      mydata2$col <- as.character(mydata2$colDes)
       mydata2$designation <- as.character(mydata2$designation)
       if ("rep" %in% names(mydata2)) mydata2$rep <- as.character(mydata2$rep)
       if ("iBlock" %in% names(mydata2)) mydata2$iBlock <- as.character(mydata2$iBlock)
@@ -282,31 +282,31 @@ mod_qaDataExpDesignApp_server <- function(id, data){
       for (i in seq_along(ambientes)) {
         amb <- ambientes[i]
         sub <- mydata2[mydata2$environment == amb, , drop = FALSE]
-        subs<- sub[,c("designation","row","col")]
-        subs$row<-as.numeric(subs$row)
-        subs$col<-as.numeric(subs$col)
-        subs<- subs |> tidyr::complete(row=seq(min(subs$row),max(subs$row)),col=seq(min(subs$col),max(subs$col)))
+        subs<- sub[,c("designation","rowDes","colDes")]
+        subs$row<-as.numeric(subs$rowDes)
+        subs$col<-as.numeric(subs$colDes)
+        subs<- subs |> tidyr::complete(rowDes=seq(min(subs$rowDes),max(subs$rowDes)),colDes=seq(min(subs$colDes),max(subs$colDes)))
         # Agregado
-        agg <- aggregate(designation ~ row + col, data = subs,
+        agg <- aggregate(designation ~ rowDes + colDes, data = subs,
                          FUN = function(x) length(unique(na.omit(x))))
         names(agg)[names(agg) == "designation"] <- "n_distinct"
         
         # Determinar filas/cols únicas en el orden que corresponda
         # Si son numéricos usamos orden numérico; si no, preservamos orden alfabético/encuentro
-        possible_row_nums <- suppressWarnings(as.numeric(unique(subs$row)))
+        possible_row_nums <- suppressWarnings(as.numeric(unique(subs$rowDes)))
         is_row_num <- !any(is.na(possible_row_nums))
-        possible_col_nums <- suppressWarnings(as.numeric(unique(subs$col)))
+        possible_col_nums <- suppressWarnings(as.numeric(unique(subs$colDes)))
         is_col_num <- !any(is.na(possible_col_nums))
         
         if (is_row_num) {
-          rows_u <- as.character(sort(as.numeric(unique(subs$row))))
+          rows_u <- as.character(sort(as.numeric(unique(subs$rowDes))))
         } else {
-          rows_u <- unique(subs$row) # conserva la aparición
+          rows_u <- unique(subs$rowDes) # conserva la aparición
         }
         if (is_col_num) {
-          cols_u <- as.character(sort(as.numeric(unique(subs$col))))
+          cols_u <- as.character(sort(as.numeric(unique(subs$colDes))))
         } else {
-          cols_u <- unique(subs$col)
+          cols_u <- unique(subs$colDes)
         }
         
         nrowm <- length(rows_u)
@@ -318,8 +318,8 @@ mod_qaDataExpDesignApp_server <- function(id, data){
         
         # Rellenar: usar índices numéricos vía match()
         if (nrow(agg) > 0) {
-          r_pos <- match(as.character(agg$row), rows_u)
-          c_pos <- match(as.character(agg$col), cols_u)
+          r_pos <- match(as.character(agg$rowDes), rows_u)
+          c_pos <- match(as.character(agg$colDes), cols_u)
           for (k in seq_len(nrow(agg))) {
             ri <- r_pos[k]; ci <- c_pos[k]
             if (is.na(ri) || is.na(ci)) next  # seguridad adicional
@@ -373,8 +373,8 @@ mod_qaDataExpDesignApp_server <- function(id, data){
         # Para calcular límites convertimos filas/cols a índices (1..n)
         # sub_indexed contiene índices coincidentes con rows_u/cols_u
         sub_indexed <- sub
-        sub_indexed$.r_idx <- match(as.character(sub_indexed$row), rows_u)
-        sub_indexed$.c_idx <- match(as.character(sub_indexed$col), cols_u)
+        sub_indexed$.r_idx <- match(as.character(sub_indexed$rowDes), rows_u)
+        sub_indexed$.c_idx <- match(as.character(sub_indexed$colDes), cols_u)
         
         # rep como rectángulos (contorno negro)
         if ("rep" %in% names(sub_indexed)) {
@@ -488,7 +488,7 @@ mod_qaDataExpDesignApp_server <- function(id, data){
         
         # Verificar las columnas necesarias
         required_cols <- c(
-          "environment", "row", "col", "designation"
+          "environment", "rowDes", "colDes", "designation"
         )
         
         if (!all(required_cols %in% names(dtProv))) {
@@ -501,7 +501,7 @@ mod_qaDataExpDesignApp_server <- function(id, data){
         
         # Identificar conflictos en las mismas coordenadas
         conflictos <- dtProv |>
-          dplyr::group_by(environment, row, col) |>
+          dplyr::group_by(environment, rowDes, colDes) |>
           dplyr::summarise(
             n_designation = dplyr::n_distinct(designation),
             designation = paste(
@@ -568,8 +568,8 @@ mod_qaDataExpDesignApp_server <- function(id, data){
     output$plotGridTrait <- plotly::renderPlotly({
       req(data())
       result <- data()
-      coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("row","col"), "value"]
-      rowcol <- length(which(result$metadata$pheno$parameter %in% c("row","col")))
+      coordNames <- result$metadata$pheno[result$metadata$pheno$parameter %in% c("rowDes","colDes"), "value"]
+      rowcol <- length(which(result$metadata$pheno$parameter %in% c("rowDes","colDes")))
       if (rowcol != 2) {
         return(plotly::plot_ly() %>% plotly::add_annotations(text = "No row and column information available for this field", x=0.5, y=0.5, showarrow=FALSE))
       }
@@ -583,12 +583,12 @@ mod_qaDataExpDesignApp_server <- function(id, data){
       
       pheno2 <- pheno %>%
         dplyr::mutate(
-          .r_num = suppressWarnings(as.numeric(as.character(row))),
-          .c_num = suppressWarnings(as.numeric(as.character(col)))
+          .r_num = suppressWarnings(as.numeric(as.character(rowDes))),
+          .c_num = suppressWarnings(as.numeric(as.character(colDes)))
         ) %>%
         dplyr::mutate(
-          .r_num = ifelse(is.na(.r_num), as.numeric(as.factor(row)), .r_num),
-          .c_num = ifelse(is.na(.c_num), as.numeric(as.factor(col)), .c_num)
+          .r_num = ifelse(is.na(.r_num), as.numeric(as.factor(rowDes)), .r_num),
+          .c_num = ifelse(is.na(.c_num), as.numeric(as.factor(colDes)), .c_num)
         ) %>%
         dplyr::filter(!is.na(.r_num) & !is.na(.c_num))
       
@@ -1171,9 +1171,9 @@ mod_qaDataExpDesignApp_server <- function(id, data){
       envs <- unique(as.character(mydata$environment))
 
       # 1) Plot conflicts: same environment/row/col holds more than one designation
-      if(all(c("row","col","designation") %in% colnames(mydata))){
+      if(all(c("rowDes","colDes","designation") %in% colnames(mydata))){
         conf <- mydata |>
-          dplyr::group_by(environment, row, col) |>
+          dplyr::group_by(environment, rowDes, colDes) |>
           dplyr::summarise(n = dplyr::n_distinct(designation), .groups = "drop") |>
           dplyr::filter(n > 1)
         if(nrow(conf) > 0) addReason(unique(conf$environment), "Plot conflict")
@@ -1302,7 +1302,7 @@ mod_qaDataExpDesignApp_server <- function(id, data){
       }else{ # data is there
         ## pheno check
         shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
-        available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("row","col","iBlock","rep"), "value"]
+        available <- data()$metadata$pheno[data()$metadata$pheno$parameter %in% c("rowDes","colDes","iBlock","rep"), "value"]
         available <- setdiff(available,"")
         if( length(available) == 0 ){
           cat( "Please map some of your experimental design columns using the 'Data Retrieval' tab in the 'Phenotype' section to use this module.")
