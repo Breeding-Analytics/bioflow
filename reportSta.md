@@ -1,7 +1,7 @@
 ---
-title: "Single Trial Analysis Report"
+title: "Single Occurrence Analysis Report"
 author: "Contact:<a href = 'https://github.com/Breeding-Analytics/bioflow' target = '_blank'>Breeding Analytics Team, OneCGIAR</a> breedinganalytics@cgiar.org"
-date: "October 22, 2026"  
+date: "October 27, 2026"  
 output: html_document
 params:
   toDownload: FALSE
@@ -13,11 +13,11 @@ params:
 
 
 
-### Objectives of Single-Trial Analysis
+### Objectives of Single Occurrence Analysis
 
 The objective of this dashboard is to help scientist to understand the following points:
 
-1. Overall number of designations and environments included in the single trial analysis (input)
+1. Overall number of designations and environments included in the single occurrence analysis (input)
 
 2. High-level summary statistics of the phenotypic information included (input)
 
@@ -29,15 +29,12 @@ The objective of this dashboard is to help scientist to understand the following
 
 6. Phenotypic correlation between environments for the traits present (output)
 
-Understanding these data features should allow the scientist to identify trait by environments combinations that have enough genetic signal and take the decision of which to include in the multi-trial analysis. It should also allow the scientist to assess the quality of the trials conducted and take corrective measures (e.g., change service providers, improve practices, etc.).  
+Understanding these data features should allow the scientist to identify trait by environments combinations that have enough genetic signal and take the decision of which to include in the multi occurrence analysis. It should also allow the scientist to assess the quality of the trials conducted and take corrective measures (e.g., change service providers, improve practices, etc.).  
 
 
-### Map of trials planted
-
-The following map allows you to assess the location where trials are planted.
 
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out6297973c36d18822" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out0f7ceee879a93c5f" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 ### Entries and traits by environment table
 
@@ -45,7 +42,7 @@ The following table allows to see how many locations had data for the different 
 
 <p>&nbsp;</p>
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out3579e1c777b71a3c" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out7d316e6267a4f272" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -66,7 +63,7 @@ The following table allows you to verify some quality metrics (KPIs) for the dif
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out63c62ddc3234e9ec" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out85ac68caaafa44c0" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -90,7 +87,7 @@ The following heatmaps allow you to inspect the spatial trends in the different 
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outb41167d1d5f64e8a" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outda4ee47b2bf51605" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
@@ -115,7 +112,7 @@ This barplot allows you to see the variance components values and ratios for the
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out29bc3f6b3d0f550b" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outcb59525717552f52" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
@@ -166,7 +163,7 @@ The following barplot is designed to provide a high-level view of estimated para
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-oute8708571d4c2b1ce" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-outb85e2a8a0feed192" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
@@ -174,12 +171,12 @@ The following barplot is designed to provide a high-level view of estimated para
 
 This section aims to provide the modeling table for the analysis in order to keep track of which environments were used in the analysis, what was the final model used for each trait and other potentially important parameters for future reference.
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-outecd1141c1282b55e" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out8bca10f4386c0e9f" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 
 ### Predictions
 
-The adjusted means in the following visuualizations are the result of fitting a experimental-design agnostic mixed model where everything that can be fitted will be fitted in order to remove as much spatial noise as possible. That means that if a trial has block and incomplete block information both will be fitted. If the trial has also row and column information it will also be fitted together with a spatial kernel (Rodriguez-Alvarez et al., 2018). These table of adjusted means will be used as input information for the multi-trial analysis. We recommend you to don't take any selection decision at this point and wait until the multi-trial analysis is fitted.
+The adjusted means in the following visuualizations are the result of fitting a experimental-design agnostic mixed model where everything that can be fitted will be fitted in order to remove as much spatial noise as possible. That means that if a trial has block and incomplete block information both will be fitted. If the trial has also row and column information it will also be fitted together with a spatial kernel (Rodriguez-Alvarez et al., 2018). These table of adjusted means will be used as input information for the multi occurrence analysis. We recommend you to don't take any selection decision at this point and wait until the multi occurrence analysis is fitted.
 
 The following table allows you to check the trait by environment adjusted means for the different individuals in wide format.
 
@@ -194,7 +191,7 @@ The following table allows you to check the trait by environment adjusted means 
 </div>
 </div><!--/html_preserve-->
 
-<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out1512f59e447db2db" style="width:100%;height:auto;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="datatables html-widget html-widget-output shiny-report-size html-fill-item" id="staApp_1-out299d60539920e457" style="width:100%;height:auto;"></div><!--/html_preserve-->
 
 <p>&nbsp;</p>
 
@@ -215,7 +212,7 @@ The following boxplot allows you to see the distribution of predicted values by 
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out24d4d66ace4f879e" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out3ef291866efd5bfc" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
@@ -223,7 +220,7 @@ The following boxplot allows you to see the distribution of predicted values by 
 
 ### Per-environment merit estimates of top designations (entries)
 
-In the following plot you can observe the comparison between the top 30 designations from each entry type category for the different traits. If a category has less than a 30 designations all individuals are displayed. This should allow you to identify the top designations in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi-trial analysis and selection indices.
+In the following plot you can observe the comparison between the top 30 designations from each entry type category for the different traits. If a category has less than a 30 designations all individuals are displayed. This should allow you to identify the top designations in each environment. We would NOT recommend you to use this for selection of parents or products. Wait until you have the results of the multi occurrence analysis and selection indices.
 
 <!--html_preserve--><div class="shiny-input-panel">
 <div class="shiny-flow-layout">
@@ -254,13 +251,13 @@ In the following plot you can observe the comparison between the top 30 designat
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out53ad119cb0d611c6" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-oute5121ca3a4343098" style="width:100%;height:400px;"></div><!--/html_preserve-->
 
 </div>
 
 ### Correlation between environments
 
-The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments for the traits available in order to identify if there is one or more environments that do not align with the target population of environments (i.e., negatively correlated with the main cluster across most environments). You may want to exclude such environments from the multi-trial analysis (MTA) to ensure that selected designations in the MTA achieve genetic gain in the main cluster of environments.
+The following plot aims to show the correlation between BLUEs or BLUPs (depending on the parameter settings) among the different environments for the traits available in order to identify if there is one or more environments that do not align with the target population of environments (i.e., negatively correlated with the main cluster across most environments). You may want to exclude such environments from the multi occurrence analysis (MOA) to ensure that selected designations in the MOA achieve genetic gain in the main cluster of environments.
 
 <p>&nbsp;</p>
 
@@ -293,7 +290,7 @@ The following plot aims to show the correlation between BLUEs or BLUPs (dependin
 
 <div style = "width:auto; height:auto; overflow:auto">
 
-<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-out1b1d2d92f9b78044" style="width:100%;height:400px;"></div><!--/html_preserve-->
+<!--html_preserve--><div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item" id="staApp_1-oute6cf0a114c4bcac8" style="width:100%;height:400px;"></div><!--/html_preserve-->
 </div>
 
 ### References of methods used

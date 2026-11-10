@@ -489,8 +489,8 @@ mod_qaStaApp_server <- function(id, data){
           paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
           colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
           cleaning <- data()$modifications$pheno # extract outliers
-          cleaning <- cleaning[which(cleaning$analysisId %in% input$version2qSta),]
-          mydata <- mydata[-cleaning$row,]
+          cleaning <- cleaning[which(as.numeric(cleaning$analysisId) %in% as.numeric(input$version2qSta)),]
+          mydata <- mydata[-as.numeric(cleaning$row),]
           ###
           mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
           if(mappedColumns == 3){ # all required columns are present
@@ -529,8 +529,8 @@ mod_qaStaApp_server <- function(id, data){
           paramsPheno <- paramsPheno[which(paramsPheno$parameter != "trait"),]
           colnames(mydata) <- cgiarBase::replaceValues(colnames(mydata), Search = paramsPheno$value, Replace = paramsPheno$parameter )
           cleaning <- data()$modifications$pheno # extract outliers
-          cleaning <- cleaning[which(cleaning$analysisId %in% input$version2qSta),]
-          mydata <- mydata[-cleaning$row,]
+          cleaning <- cleaning[which(as.numeric(cleaning$analysisId) %in% as.numeric(input$version2qSta)),]
+          mydata <- mydata[-as.numeric(cleaning$row),]
           ###
           mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
           if(mappedColumns == 3){ # all required columns are present
@@ -600,8 +600,8 @@ mod_qaStaApp_server <- function(id, data){
       #mydata <- filtered_data()
       mydata <- data()$data$pheno
       cleaning <- data()$modifications$pheno # extract outliers
-      cleaning <- cleaning[which(cleaning$analysisId %in% input$version2qSta),]
-      mydata <- mydata[-cleaning$row,]
+      cleaning <- cleaning[which(as.numeric(cleaning$analysisId) %in% as.numeric(input$version2qSta)),]
+      mydata <- mydata[-as.numeric(cleaning$row),]
       
       if(length(input$traitOutqPhenoMultiple) > 1){
         df_num <- dplyr::select(mydata[, input$traitOutqPhenoMultiple, drop = FALSE], where(is.numeric))
@@ -1019,7 +1019,7 @@ output$warnRes <- renderUI({
 		  if("analysisIdName" %in% colnames(resSta$status)){resSta$status$analysisIdName[nrow(resSta$status)] <- paste(input$analysisIdName,"_SOA")}
 		  data(resSta) # update data with results
 		  # persist to tempdir() so the Output-tab report can load the STA results
-		  try({ save(resSta, file = file.path(tempdir(), "resultSta.RData")) }, silent = TRUE)
+		  #try({ save(resSta, file = file.path(tempdir(), "resultSta.RData")) }, silent = TRUE)
 		  cat(paste("Single Occurrence Analysis step with id:",as.POSIXct(resSta$status$analysisId[length(resSta$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your Multi Occurrence Analysis using this time stamp."))
 		  output$outSta2 <- renderPrint({
 		    cat(paste("Single Occurrence Analysis step with id:",as.POSIXct(resSta$status$analysisId[length(resSta$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to perform your Multi Occurrence Analysis using this time stamp."))
@@ -1034,7 +1034,7 @@ output$warnRes <- renderUI({
     
         # persist to tempdir() (always writable / stable in the session) so the
         # report shown in the Output tab can load the qaMb results.
-        try({ save(result, file = file.path(tempdir(), "resultQaPheno.RData")) }, silent = TRUE)
+        #try({ save(result, file = file.path(tempdir(), "resultQaPheno.RData")) }, silent = TRUE)
         cat(paste("Modifications to phenotype information saved with id:",as.POSIXct( analysisId, origin="1970-01-01", tz="GMT")))
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
         shinybusy::remove_modal_spinner()
@@ -1047,7 +1047,7 @@ output$warnRes <- renderUI({
 
           output$downloadReportQaPheno <- downloadHandler(
             filename = function() {
-              paste(paste0('qaSta_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
+              paste(paste0('qaSOA_dashboard_',gsub("-", "", Sys.Date())), sep = '.', switch(
                 "HTML", PDF = 'pdf', HTML = 'html', Word = 'docx'
               ))
             },

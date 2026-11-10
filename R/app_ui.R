@@ -77,15 +77,6 @@ recorder_js <- tags$script(HTML('
 '))
 
 
-# The action names on the left are local button IDs, their values are names for the saved steps
-# "Run analysis" tabPanel, then actionButton ns name
-workflow_config <- list(
-  qa = list(namespace = "qaPhenoApp_1", actions = c(runQaRaw = "runQaRaw"), exclude = character()),
-  sta = list(namespace = "staApp_1", actions = c(runSta = "runSta"), exclude = character()),
-  mta = list(namespace = "mtaLMMsolveApp_1", actions = c(runMta = "runMta"), exclude = character()),
-  rgg = list(namespace = "rggApp_1", actions = c(runRgg = "runRgg"), exclude = character())
-)
-
 ### END Macro Recording ########################################################
 
 #' The application User-Interface

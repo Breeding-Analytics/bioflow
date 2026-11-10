@@ -445,7 +445,7 @@ app_server <- function(input, output, session) {
   #mod_qaPhenoApp_server("qaPhenoApp_1", data = data)
   mod_qaDataConsistApp_server("qaDataConsistApp_1", data = data)
   mod_qaDataMissApp_server("qaDataMissApp_1", data=data)
-  mod_qaDataExpDesignApp_server("qaDataExpDesignApp_1", data=data)  
+  mod_qaDataExpDesignApp_server("qaDataExpDesignApp_1", data=data)
   mod_qaGenoApp_server("qaGenoApp_1",data = data)
   mod_hybridityApp_server("hybridityApp_1", data = data) # hybridity test
   mod_qaPedApp_server("qaPedApp_1",data = data)
@@ -461,7 +461,7 @@ app_server <- function(input, output, session) {
   #mod_dataConsistApp_server("dataConsistApp_1", data = data)
 
   # SELECTION - genetic evaluation
-  mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA  
+  mod_qaStaApp_server("qaStaApp_1",data = data) # model-based QA
   mod_staApp_server("staApp_1", data = data) # single occurrence analysis
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
@@ -548,10 +548,10 @@ app_server <- function(input, output, session) {
       # Sys.setenv("AWS_SESSION_TOKEN"     = "xxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxx=")
 
       # # to access AWS using a pre-configured SSO (Single Sign-On) profile (switch to paws R package?)
-      Sys.setenv("AWS_PROFILE" = "bioflow")
-      Sys.setenv("AWS_DEFAULT_REGION" = "ap-southeast-1")
+      Sys.setenv("AWS_PROFILE" = Sys.getenv("AWS_PROFILE", "bioflow"))
+      Sys.setenv("AWS_DEFAULT_REGION" = Sys.getenv("AWS_DEFAULT_REGION", "ap-southeast-1"))
 
-      bucket_name <- "ebs-bioflow"
+      bucket_name <- Sys.getenv("AWS_BUCKET_NAME", "ebs-bioflow")
 
       ### get RData object file from EBS S3 clipboard ##########################
 
