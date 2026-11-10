@@ -122,6 +122,23 @@ This dashboard also helps users to identify problems in the input data with flag
 
 Additionally, ungenotyped F1 indviduals are also flagged (HasGeno / NO GENO DATA).
 
+#### F1 or self? (Warning column)
+
+When the two parents share most markers, a self can still reach a high match probability, because it matches the parents at every marker where they are identical. Only the markers where the parents' genotypes differ ("differing markers") can tell an F1 from a self. For each F1, the module therefore compares how likely its genotype calls are under three explanations: the intended F1, a self of the mother and a self of the father. It allows a genotyping error rate of 1%, typical of KASP markers (Semagn, Babu, Hearne & Olsen, 2014, *Single nucleotide polymorphism genotyping using Kompetitive Allele Specific PCR (KASP): overview of the technology and its application in crop improvement*), and requires odds of at least 70:1 to decide. This check can only make a status stricter, never better:
+
+- If a self fits at least 70 times better than the F1, the status becomes **BAD**.
+- If neither the F1 nor a self is clearly better, **GOOD** becomes **QUESTIONABLE**.
+- Otherwise the status from the match probability is kept.
+
+The **Warning** column explains the outcome:
+
+- *Cannot distinguish F1 from self*: the calls at the differing markers (if any) do not separate an F1 from a self.
+- *Matches mother (likely self)* / *Matches father (likely self)*: the plant fits a self of that parent; at most a few calls deviate, as genotyping errors would.
+- *Not F1 (mixed parental calls)*: the plant does not fit an F1, but neither does it fit a self of one parent (e.g. calls of both parents, a seed mix-up or a backcross-like pattern).
+- *Parents differ at only N markers*: the verdict rests on only one or two markers; treat it with caution.
+
+The check uses the markers selected in this analysis and needs observed genotype calls: run Genotype QA/QC with **Skip imputation** before F1 QA/QC.
+
 #### Parental uncertainty
 
 The **parental_uncertainty** column indicates the confidence level in the parental genotypes used for F1 verification. During genotype loading, when multiple samples map to the same parental designation, the Individual Management module resolves them by computing pairwise IBS (Identity By State). Parents where all samples were identical (IBS = 1) are auto-resolved with high confidence. However, when samples disagree and the user manually selects a consensus, that parent is flagged as "uncertain" because the true parental genotype could not be unambiguously determined from the available data. The categories are:
@@ -147,7 +164,7 @@ if (is.null(result)){
   idQa <- idQa[length(idQa)]
   predictions <- predictions[which( predictions$analysisId == idQa),]
   traitsTable <- unique(predictions$trait)
-  traitsTable <- traitsTable[traitsTable != "parentalUncertainty"]
+  traitsTable <- traitsTable[!traitsTable %in% c("parentalUncertainty", "selfEvidence", "nDiffCross")]
   
   
   if("params" %in% ls()){ # we will download the document
@@ -222,6 +239,15 @@ if (is.null(result)){
   
   # Final catch-all: any remaining NA status gets NO GENO DATA
   prob_status$.status[is.na(prob_status$.status)] <- "NO GENO DATA"
+
+  # Self evidence (intended F1 vs self of either parent) can only make the status stricter; adds the Warning text
+  evTr  <- predictionsX[predictionsX$trait == "selfEvidence", c("designation", "predictedValue")]
+  ndcTr <- predictionsX[predictionsX$trait == "nDiffCross", c("designation", "predictedValue")]
+  finSt <- cgiarBase::selfEvidenceStatus(prob_status$.status,
+                                         evTr$predictedValue[match(prob_status$designation, evTr$designation)],
+                                         ndcTr$predictedValue[match(prob_status$designation, ndcTr$designation)])
+  prob_status$.status <- finSt$status
+  prob_status$Warning <- finSt$Warning
   
   if("params" %in% ls()){ # we will download the document
     
@@ -338,7 +364,7 @@ if (is.null(result)){
                               timevar  = "trait",
                               v.names  = "predictedValue")
   
-  OutputCols <- c("designation","mother","father","status","parental_uncertainty","probMatch","probSelf","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
+  OutputCols <- c("designation","mother","father","status","Warning","parental_uncertainty","probMatch","probSelf","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers","HasGeno","HasPed","parHetFilter","ParentHasGeno")
   numericalColumns <- c("probMatch","probSelf","heteroMexp","heteroMp","heteroDeviation","avgScore","nScore2","nMarkers")
   
   predictions_wide <- predictions_wide[,c(which(colnames(predictions_wide)%in%c("designation","mother","father") ), grep("predictedValue",colnames(predictions_wide)))]
@@ -401,7 +427,7 @@ if (has_sample || has_other) {
     if (has_sample) "sample_id" else NULL,
     if (has_other) "other" else NULL,
     "designation",
-    "mother","father","status","parental_uncertainty","probMatch","probSelf",
+    "mother","father","status","Warning","parental_uncertainty","probMatch","probSelf",
     "heteroMexp","heteroMp","heteroDeviation",
     "avgScore","nScore2","nMarkers",
     "HasGeno","HasPed","parHetFilter","ParentHasGeno"
@@ -413,12 +439,15 @@ if (has_sample || has_other) {
 
   predictions_wide <- predictions_wide[, OutputCols, drop = FALSE]
 }
+  # factor -> dropdown in the table's filter row (e.g. list every "likely self")
+  if ("Warning" %in% colnames(predictions_wide)) predictions_wide$Warning <- factor(predictions_wide$Warning)
   
   if("params" %in% ls()){ # we will download the document
     printTable(predictions_wide, autoWidthOpt = TRUE, scrollXOpt = FALSE,
              colNames = colnames(predictions_wide),
            numericColNames = numericalColumns,
            numRound = 3)%>%
+  DT::formatStyle("Warning", whiteSpace = "normal", minWidth = "150px", maxWidth = "220px") %>%
   DT::formatStyle(
     'status',
     target = 'row',
@@ -437,7 +466,7 @@ if (has_sample || has_other) {
     DT::renderDT({
   base_cols <- OutputCols[
     OutputCols %in% c("sample_id", "other", "designation",
-                    "mother", "father", "status", "parental_uncertainty")
+                    "mother", "father", "status", "Warning", "parental_uncertainty")
     ]
   
   cols <- c(base_cols, input$traitQa) 
@@ -457,6 +486,7 @@ if (has_sample || has_other) {
     numericColNames = intersect(input$traitQa, cols),
     numRound     = 3
   ) %>%
+    DT::formatStyle("Warning", whiteSpace = "normal", minWidth = "150px", maxWidth = "220px") %>%
     DT::formatStyle(
       "status",
       target = "row",
