@@ -358,7 +358,9 @@ if (is.null(result)){
 if (is.null(result)){
   # invisible(NULL)
 } else {
-  predictions_wide <- reshape(predictionsX,
+  # parentalUncertainty rows have no mother/father: reshape would collapse them into one extra row carrying
+  # the first F1's name (duplicated first individual). Its value is merged back below as a column.
+  predictions_wide <- reshape(predictionsX[predictionsX$trait != "parentalUncertainty", , drop = FALSE],
                               direction = "wide",
                               idvar    = c("designation","mother","father"),
                               timevar  = "trait",
