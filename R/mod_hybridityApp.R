@@ -968,6 +968,16 @@ mod_hybridityApp_server <- function(id, data){
       req(data())
       req(input$version2F1qaqc)
 
+      # F1 QA/QC handles missing calls itself: refuse imputed genotype versions (checked before the spinner starts)
+      qasImp <- tryCatch(cgiarBase::resolveGenoStamp(data()$data$geno_imp, input$version2F1qaqc), error = function(e) character(0))
+      impLog <- if (length(qasImp) == 1) data()$modifications$geno_imp[[qasImp]] else NULL
+      if (!is.null(impLog) && any(!is.na(unlist(impLog)))) {
+        shinyalert::shinyalert(title = "Imputed genotypes",
+                               text = "The selected Genotype QA/QC version was imputed. F1 QA/QC handles missing data itself: please re-run Genotype QA/QC with 'Skip imputation' and select that version.",
+                               type = "error")
+        return(NULL)
+      }
+
       shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
       ##
       ## store the new modifications table
@@ -1065,6 +1075,13 @@ mod_hybridityApp_server <- function(id, data){
       # Final catch-all: any remaining NA status (e.g. probMatch=NA with all data flags passing)
       prob_status$.status[is.na(prob_status$.status)] <- "NO GENO DATA"
 
+      # Self evidence (intended F1 vs self of either parent) can only make the status stricter
+      evTr  <- predictionsX[predictionsX$trait == "selfEvidence", c("designation", "predictedValue")]
+      ndcTr <- predictionsX[predictionsX$trait == "nDiffCross", c("designation", "predictedValue")]
+      prob_status$.status <- cgiarBase::selfEvidenceStatus(prob_status$.status,
+                                                           evTr$predictedValue[match(prob_status$designation, evTr$designation)],
+                                                           ndcTr$predictedValue[match(prob_status$designation, ndcTr$designation)])$status
+
       # --- Parental uncertainty classification ---
       # Look up consensus_info from modifications or geno_imp to determine if parents have uncertain genotypes
       consensus_info <- NULL
@@ -1140,7 +1157,8 @@ mod_hybridityApp_server <- function(id, data){
       )
       result$predictions <- rbind(result$predictions, unc_preds[, colnames(result$predictions)])
 
-      sst=match(prob_status$designation,result$data$pedigree$sample_id)
+      # match on the mapped columns (ped_unc), not on a column literally named 'sample_id'
+      sst=match(prob_status$designation, if ("sample_id" %in% colnames(ped_unc)) ped_unc$sample_id else ped_unc$designation)
       result$modifications$pedigree<-data.frame(cbind(module="gVerif",analysisId=idQa,reason=prob_status[,2],row=sst))
 
       #If checkbox is ticked
@@ -1249,8 +1267,8 @@ mod_hybridityApp_server <- function(id, data){
             stringsAsFactors = FALSE
           )
 
-          # Remove the parentalUncertainty rows from the display (it's now a column)
-          current.predictions <- current.predictions[current.predictions$trait != "parentalUncertainty", , drop = FALSE]
+          # Remove the parentalUncertainty rows from the display (it's now a column), and the internal self-evidence traits
+          current.predictions <- current.predictions[!current.predictions$trait %in% c("parentalUncertainty", "selfEvidence", "nDiffCross"), , drop = FALSE]
 
           # Merge uncertainty info
           if (nrow(unc_map) > 0) {
