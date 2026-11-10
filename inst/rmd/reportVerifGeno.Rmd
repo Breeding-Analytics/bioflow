@@ -124,7 +124,7 @@ Additionally, ungenotyped F1 indviduals are also flagged (HasGeno / NO GENO DATA
 
 #### F1 or self? (Warning column)
 
-When the two parents share most markers, a self can still reach a high match probability, because it matches the parents at every marker where they are identical. Only the markers where the parents' genotypes differ ("differing markers") can tell an F1 from a self. For each F1, the module therefore compares how likely its genotype calls are under three explanations: the intended F1, a self of the mother and a self of the father. It allows a genotyping error rate of 1%, typical of KASP markers, and requires odds of at least 70:1 to decide. This check can only make a status stricter, never better:
+When the two parents share most markers, a self can still reach a high match probability, because it matches the parents at every marker where they are identical. Only the markers where the parents' genotypes differ ("differing markers") can tell an F1 from a self. For each F1, the module therefore compares how likely its genotype calls are under three explanations: the intended F1, a self of the mother and a self of the father. It allows a genotyping error rate of 1% and requires odds of at least 70:1 to decide. This check can only make a status stricter, never better:
 
 - If a self fits at least 70 times better than the F1, the status becomes **BAD**.
 - If neither the F1 nor a self is clearly better, **GOOD** becomes **QUESTIONABLE**.
