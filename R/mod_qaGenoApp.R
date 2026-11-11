@@ -38,7 +38,7 @@ mod_qaGenoApp_ui <- function(id) {
                                  ),
                                  tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
                                           tabsetPanel(
-                                            tabPanel(div( icon("dice-one"), "Set thresholds", icon("arrow-right") ), # icon = icon("dice-one"),
+                                            tabPanel(div( icon("dice-one"), "Set threshold(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                      br(),
                                                      # Parameter table and histogram tabset
                                                      column(width = 12, style = "background-color:grey; color: #FFFFFF",
@@ -743,13 +743,13 @@ mod_qaGenoApp_server <- function(id, data) {
         # Check Beagle requirements automatically
         beagle_status <- cgiarGenomics::check_beagle_requirements()
         default_threads <- cgiarGenomics::get_default_beagle_threads()
-        
+
         status_style <- if (beagle_status$ready) {
           "background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:10px;border-radius:6px;margin-bottom:12px;"
         } else {
           "background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:10px;border-radius:6px;margin-bottom:12px;"
         }
-        
+
         tagList(
           # Status indicator
           tags$div(

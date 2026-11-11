@@ -78,7 +78,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                    )
                                                ),
                                       ),
-                                      tabPanel(div( icon("dice-one"), "Pick SOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
+                                      tabPanel(div( icon("dice-two"), "Pick SOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
                                                br(),
                                                column(width=12, style = "background-color:grey; color: #FFFFFF",
                                                       column(width=8,
@@ -115,7 +115,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                    DT::DTOutput(ns("statusMtaAsr")), # modeling table
                                                ),
                                       ),
-                                      tabPanel(div(icon("dice-two"), "Pick trait(s)", icon("arrow-right") ),
+                                      tabPanel(div(icon("dice-three"), "Pick trait(s)", icon("arrow-right") ),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       conditionalPanel(
@@ -156,7 +156,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                    ),
                                                ),
                                       ),
-                                      tabPanel(div(icon("dice-three"), "Form your model", icon("arrow-right") ), # icon = icon("dice-two"),
+                                      tabPanel(div(icon("dice-four"), "Form your model", icon("arrow-right") ), # icon = icon("dice-two"),
                                                br(),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       column(
@@ -294,7 +294,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                                    ),
                                                ),
                                       ),),#end form your model
-                                      tabPanel(div(icon("dice-four"), "Other options", icon("arrow-right") ),
+                                      tabPanel(div(icon("dice-five"), "Other options", icon("arrow-right") ),
                                                br(),
                                                column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
                                                       br(),
@@ -366,7 +366,7 @@ mod_mtaASREMLApp_ui <- function(id) {
                                                       ),
                                                ),
                                       ),#end other options
-                                      tabPanel("Run analysis", icon = icon("dice-five"),
+                                      tabPanel("Run analysis", icon = icon("dice-six"),
                                                br(),
                                                column(width=12,style = "background-color:grey; color: #FFFFFF",
                                                       column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
@@ -1046,7 +1046,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       dtMtaAsr <- data() # dtMtaAsr <- result
       dtMtaAsr <- dtMtaAsr$status
       dtMtaAsrGeno <- dtMtaAsr[which(dtMtaAsr$module == "qaGeno"),]
-      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module == "soa"),]
+      dtMtaAsr <- dtMtaAsr[which(dtMtaAsr$module %in% c("sta","soa")),]
       traitsMtaAsr <- unique(dtMtaAsr$analysisId)
       traitsMtaAsrGeno <- unique(dtMtaAsrGeno$analysisId)
 
@@ -1121,7 +1121,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if("soa" %in% data()$status$module){
+          if(any(c("sta","soa") %in% data()$status$module)){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi occurrence analysis specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single occurrence analysis before performing a the multi occurrence analysis.")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -2150,7 +2150,7 @@ mod_mtaASREMLApp_server <- function(id, data){
       # inputFormulationFixed <- inputFormulaRandom()
       # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
       # run the modeling, but before test if sta was done
-      if(sum(dtMtaAsr$status$module %in% "soa") == 0) {
+      if(sum(dtMtaAsr$status$module %in% c("sta","soa")) == 0) {
         output$qaQcMtaAsrInfo <- renderUI({
           if (hideAll$clearAll)
             return()

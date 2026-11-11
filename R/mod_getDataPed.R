@@ -134,15 +134,22 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
       # required fields for completeness
       req_params <- c("designation", "mother", "father")
 
+      missing_cols <- if (is.null(md)) {
+        req_params
+      } else {
+        req_params[is.na(md$value[match(req_params, md$parameter)]) | md$value[match(req_params, md$parameter)] == ""]
+      }
+
       ok <- !is.null(md) &&
         all(req_params %in% md$parameter) &&
-        all(md$value[match(req_params, md$parameter)] != "")
+        all(!is.na(md$value[match(req_params, md$parameter)])) &&
+        all(md$value[match(req_params, md$parameter)] != '')
 
       if (ok) {
         HTML(as.character(div(style="color: green; font-size: 20px;",
                               "Data is complete, you can proceed to use the other modules.")))
       } else {
-        HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("designation","mother","father"), data()$metadata$pedigree$parameter), collapse = ", ") ) )))
+        HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste(missing_cols, collapse = ", ") ) )))
       }
     })
 
@@ -175,13 +182,19 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
     ped_data <- reactive({
       if(length(input$ped_input) > 0){ # added
         if (input$ped_input == 'file') {
-          if (is.null(input$ped_file)) return(NULL)
-          data <- as.data.frame(data.table::fread(input$ped_file$datapath, sep = input$ped_sep,
-                                                  quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
+          if (is.null(input$ped_file)){
+            return(NULL)
+          } else{
+            data <- as.data.frame(data.table::fread(input$ped_file$datapath, sep = input$ped_sep,
+                                                    quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
+          }
         } else if (input$ped_input == 'url') {
-          if (input$ped_url == '') return(NULL)
+          if (input$ped_url == ''){
+            return(NULL)
+          } else{
           data <- as.data.frame(data.table::fread(input$ped_url, sep = input$ped_sep,
                                                   quote = input$ped_quote, dec = input$ped_dec, header = TRUE))
+          }
         } else {
           return(NULL)
         }
@@ -231,88 +244,88 @@ mod_getDataPed_server <- function(id, data = NULL, res_auth=NULL){
 
       header <- colnames(ped_data())
       fluidRow(
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_designation'),
-          label    = 'designation',
+          label    = HTML(as.character(p('designation', span('(*required)',style="color:red")))),
           choices  = as.list(c('', header)),
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_mother'),
-          label    = 'mother',
+          label    = HTML(as.character(p('mother', span('(*required)',style="color:red")))),
           choices  = as.list(c('', header)),
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_father'),
-          label    = 'father',
+          label    = HTML(as.character(p('father', span('(*required)',style="color:red")))),
           choices  = as.list(c('', header)),
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_year'),
-          label    = 'Year of Origin',
+          label    = HTML(as.character(p('Year of Origin'))),
           choices  = as.list(c('', header)),
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_sample_id'),
-          label    = 'sample_id (optional)',
+          label    = HTML(as.character(p('sample_id', span('(*optional)',style="color:grey")))),
           choices  = as.list(c('', header))
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_crossType'),
           label    = tags$span(
-            "crossType (optional)",
+            HTML(as.character(p('crossType', span('(*optional)',style="color:grey"),
             tags$i(
               class = "glyphicon glyphicon-info-sign",
               style = "color:#000000",
               title = "Mandatory to run F1 qa/qc module. Select column that indicates whether an individual is an F1 or a parent"
-            )
+            ))))
           ),
           choices  = as.list(c('', header))
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_otherF1'),
           label    = tags$span(
-            "F1 qa/qc other metadata (optional)",
+            HTML(as.character(p('F1 qa/qc other metadata', span('(*optional)',style="color:grey"),
             tags$i(
               class = "glyphicon glyphicon-info-sign",
               style = "color:#000000",
               title = "Allow inclusion of plant number or other metadata relevant for F1 qa/qc"
-            )
+            ))))
           ),
           choices  = as.list(c('', header))
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_batchqaPed'),
           label    = tags$span(
-            "Pedigree qa/qc batch (optional)",
+            HTML(as.character(p('Pedigree qa/qc batch', span('(*optional)',style="color:grey"),
             tags$i(
               class = "glyphicon glyphicon-info-sign",
               style = "color:#000000",
               title = "Select batch number for each designation"
-            )
+            ))))
           ),
           choices  = as.list(c('', header))
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_plateqaPed'),
           label    = tags$span(
-            "Pedigree qa/qc plate (optional)",
+            HTML(as.character(p('Pedigree qa/qc plate', span('(*optional)',style="color:grey"),
             tags$i(
               class = "glyphicon glyphicon-info-sign",
               style = "color:#000000",
               title = "Select plate number for each designation"
-            )
+            ))))
           ),
           choices  = as.list(c('', header))
         )),
-        column(3, selectInput(
+        column(4, selectInput(
           inputId  = ns('ped_posqaPed'),
           label    = tags$span(
-            "Pedigree qa/qc position (optional)",
+            HTML(as.character(p('Pedigree qa/qc position', span('(*optional)',style="color:grey"),
             tags$i(
               class = "glyphicon glyphicon-info-sign",
               style = "color:#000000",
               title = "Select position number for each designation"
-            )
+            ))))
           ),
           choices  = as.list(c('', header))
         )),

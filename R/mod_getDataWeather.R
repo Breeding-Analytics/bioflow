@@ -25,7 +25,7 @@ mod_getDataWeather_ui <- function(id){
                                  ),
                           )
                  ),
-                 tabPanel(div("2. Set coordinates" ),
+                 tabPanel(div("2. Load data/Set coordinates" ),
                           tags$span(id = ns('apiOptionsInput'),
                                     tabPanel("Specify coordinates", icon = icon("magnifying-glass-chart"),
                                              tags$span(id = ns('weather_message_holder'),
@@ -93,7 +93,7 @@ mod_getDataWeather_ui <- function(id){
                                     ),
                            ), # end of file upload options
                   ),
-                  tabPanel(div("3. Retrieve/Match data" ),
+                  tabPanel(div("3. Match/Extract data" ),
                            tags$span(id = ns('apiOptionsRetrieve'),
                                      actionButton(ns("rungetWeather"), "Extract", icon = icon("play-circle")),
                                      textOutput(ns("outgetWeather")),
@@ -191,11 +191,11 @@ mod_getDataWeather_server <- function(id, map=NULL, data = NULL, res_auth=NULL){
                   if(all(c("latitude", "longitude", "trait") %in% data()$metadata$weather$parameter)){
                     HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, you can proceed to use the other modules.")) )
                   } else{
-                    HTML( as.character(div(style="color: red; font-size: 20px;", "Please specify the coordinates and retrieve weather data.")) )
+                    HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","latitude","longitude", "trait"), data()$metadata$weather$parameter), collapse = ", ") ) )))
                   }
                 }
               } else{
-                HTML( as.character(div(style="color: red; font-size: 20px;", "Please specify the 'environment' column and retrieve weather data.")) )
+                HTML( as.character(div(style="color: red; font-size: 20px;", "Please select the 'environment' column first.")) )
               }
             } else{
               HTML(as.character(div(style="color: red; font-size: 20px;", paste("You are still missing columns: ", paste( setdiff(c("environment","latitude","longitude", "trait"), data()$metadata$weather$parameter), collapse = ", ") ) )))
