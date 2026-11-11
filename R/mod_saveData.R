@@ -197,6 +197,10 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
             }
 
             result <- data()
+            if(!is_valid_bioflow_object(result)){
+              shinyalert::shinyalert(title = "Nothing to save!", text = "The current data object is empty, so nothing was saved. Please reload your data and rerun the analysis before saving.", type = "error")
+              return(cat("The current data object is empty. Nothing was saved."))
+            }
 
             ### set up paws library ################################################
 
@@ -262,6 +266,10 @@ mod_saveData_server <- function(id, data, res_auth=NULL){
 
             content = function(file) {
               result= data()
+              if(!is_valid_bioflow_object(result)){
+                shinyalert::shinyalert(title = "Nothing to save!", text = "The current data object is empty, so no file was written. Please reload your data and rerun the analysis before saving.", type = "error")
+                stop("The current data object is empty. Nothing was saved.", call. = FALSE)
+              }
               save(result, file = file)
             }
           )

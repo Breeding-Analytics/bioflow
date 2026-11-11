@@ -389,20 +389,39 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
         # }else{ iFile=1 }
       }else if(input$previous_object_input == 'pcfile'){ # upload rds
         req(input$previous_object_file)
-        load(input$previous_object_file$datapath[1]) # old dataset
-        if(length(input$previous_object_file$datapath) > 1){
+        # load each file and reject any that does not hold a usable Bioflow object
+        loadedObjects <- list()
+        for(iFile in seq_along(input$previous_object_file$datapath)){
+          envFile <- new.env()
+          load(input$previous_object_file$datapath[iFile], envir = envFile) # old dataset
+          if(!is_valid_bioflow_object(envFile$result)){
+            shinybusy::remove_modal_spinner()
+            shinyalert::shinyalert(title = "Invalid file!", text = paste0("'", input$previous_object_file$name[iFile], "' does not contain Bioflow data. It may have been saved after an analysis failed and left the data object empty. Your current data was not changed."), type = "error")
+            return(invisible(NULL))
+          }
+          loadedObjects[[iFile]] <- envFile$result
+        }
+        result <- loadedObjects[[1]]
+        if(length(loadedObjects) > 1){
           result1 <- result
-          for(iFile in 2:length(input$previous_object_file$datapath)){
-            load(input$previous_object_file$datapath[iFile])  # old dataset
-            result2 <- result
+          for(iFile in 2:length(loadedObjects)){
             result1 <- try(cgiarBase::bindObjects(object1 = result1,
-                                                  object2 = result2
+                                                  object2 = loadedObjects[[iFile]]
             ), silent = TRUE
             )
+            if(inherits(result1, "try-error")){
+              shinybusy::remove_modal_spinner()
+              shinyalert::shinyalert(title = "Failed to bind files!", text = paste0("Could not bind '", input$previous_object_file$name[iFile], "': ", conditionMessage(attr(result1, "condition"))), type = "error")
+              return(invisible(NULL))
+            }
           }
-
           result <- result1
         }else{ iFile=1 }
+      }
+      if(!exists("result", inherits = FALSE) || !is_valid_bioflow_object(result)){
+        shinybusy::remove_modal_spinner()
+        shinyalert::shinyalert(title = "Failed!", text = "The loaded file(s) did not produce a valid Bioflow object. Your current data was not changed.", type = "error")
+        return(invisible(NULL))
       }
       result <- update_module_ids(result)
       ## replace tables
