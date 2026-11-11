@@ -399,10 +399,24 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
                                                   object2 = result2
             ), silent = TRUE
             )
+            if(inherits(result1, "try-error")){
+              shinybusy::remove_modal_spinner()
+              shinyalert::shinyalert(
+                title = "Failed to bind files!",
+                text = paste0("Could not bind '", input$previous_object_file$name[iFile], "': ",
+                              conditionMessage(attr(result1, "condition"))),
+                type = "error")
+              return(invisible(NULL))
+            }
           }
 
           result <- result1
         }else{ iFile=1 }
+      }
+      if(!is.list(result)){
+        shinybusy::remove_modal_spinner()
+        shinyalert::shinyalert(title = "Failed!", text = "The loaded file(s) did not produce a valid Bioflow object.", type = "error")
+        return(invisible(NULL))
       }
       result <- update_module_ids(result)
       ## replace tables
