@@ -1350,6 +1350,10 @@ mod_staApp_server <- function(id,data){
                                             maxit = input$maxitSta),
                       silent=TRUE
         )
+        # never replace the session object with an empty result (e.g. staLMM returning NULL)
+        if(!inherits(result,"try-error") && !is.list(result)){
+          result <- structure("The single occurrence analysis returned no results. Your data was not modified. Please check the QA/QC stamps selected and try again.", class = "try-error")
+        }
         if(!inherits(result,"try-error")) {
           if("analysisIdName" %in% colnames(result$status)){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
           data(result) # update data with results

@@ -89,6 +89,10 @@ mod_getOldAnalysis_server <- function(id, data, res_auth){
             req(input$previous_object_file)
             load(input$previous_object_file$datapath)
           }
+          if(!exists("result", inherits = FALSE) || !is_valid_bioflow_object(result)){
+            shinyalert::shinyalert(title = "Invalid file!", text = "This file does not contain Bioflow data. It may have been saved after an analysis failed and left the data object empty. Your current data was not changed.", type = "error")
+            return(invisible(NULL))
+          }
           result <- update_module_ids(result)
           shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
           ## replace tables

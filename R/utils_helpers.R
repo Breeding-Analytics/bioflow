@@ -29,3 +29,12 @@ update_module_ids <- function(object) {
   }
   object
 }
+
+#' Check that an object is a usable Bioflow data object
+#'
+#' Used before saving and after loading RData files so that an empty object
+#' (e.g. NULL left behind by a failed analysis) is never written or loaded.
+#' @noRd
+is_valid_bioflow_object <- function(object) {
+  is.list(object) && is.list(object$data) && length(object$data) > 0
+}
