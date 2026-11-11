@@ -51,7 +51,7 @@ mod_masApp_ui <- function(id){
                                                               column(width=8,
                                                                      selectInput(ns("version2Mta"),
                                                                                  label = tags$span(
-                                                                                   "QA-geno stamp(s) to apply",
+                                                                                   "QA-geno stamp(s) to analyze",
                                                                                    tags$i(
                                                                                      class = "glyphicon glyphicon-info-sign",
                                                                                      style = "color:#FFFFFF",
@@ -298,7 +298,7 @@ mod_masApp_server <- function(id, data){
                                    lengthMenu = list(c(8,20,50,-1), c(8,20,50,'All'))),
                     caption = htmltools::tags$caption(
                       style = 'color:cadetblue', #caption-side: bottom; text-align: center;
-                      htmltools::em('Traits available in the SOA-IDs selected.')
+                      htmltools::em('Traits available in the QA-Geno-IDs selected.')
                     )
       )
     }, server = FALSE)
@@ -606,14 +606,14 @@ mod_masApp_server <- function(id, data){
 			q[k] <- ( ttb[length(ttb)] + (ttb[2:(length(ttb)-1)] / factorial(2:(length(ttb)-1)) ) ) / n
         }
         p <- 1 - q
-        df3 <- data.frame(module="mas", analysisId=result$status$analysisId[nrow(result$status)], 
+        df3 <- data.frame(module="mas", analysisId=result$status$analysisId[nrow(result$status)],
 						trait=c(input$markers2MAS,input$markers2MAS),
 						environment = c(X$refAllele, X$altAllele),
                         parameter=c(rep("reference",length(X$refAllele)), rep("alternate",length(X$altAllele)) ),
 						method="frequency",
                         value=c( p, q),
                         stdError=NA
-      )	  
+      )
 		result$metrics<-rbind(result$metrics,df3)
         data(result)
         updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
