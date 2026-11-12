@@ -126,7 +126,7 @@ mod_qaStaApp_ui <- function(id){
                                                                       p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
                                                                       DT::DTOutput(ns("traitDistqaSta")),
                                                   ),
-                                                  
+
                                            ),
                                            #column(width=3, numericInput(ns("outlierCoefOutqPheno"), label = "IQR coefficient", value = 5) ),
                                            column(width=12),
@@ -140,7 +140,7 @@ mod_qaStaApp_ui <- function(id){
                                                                                 column(width=9, selectInput(ns("trait3Sta"), "Trait to visualize", choices = NULL, multiple = FALSE) ),
                                                                                 # column(width=3, checkboxInput(ns("checkbox"), label = "Include x-axis labels", value = TRUE) ),
                                                                                 column(width=3, numericInput(ns("transparency"),"Plot transparency",value=0.5, min=0, max=1, step=0.1) ),
-                                                                                column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ), 
+                                                                                column(width=12, plotly::plotlyOutput(ns("plotPredictionsCleanOut"))  ),
                                                                                 column(width=12, plotly::plotlyOutput(ns("plotFieldGrid"))  ),
 																				column(width=6,selectInput(ns("correlationType"),label = "Correlation Method:",choices = c("spearman","pearson","kendall") )),
                                                                                 column(width=12, plotly::plotlyOutput(ns("plotCorrTrait"))  ),
@@ -162,7 +162,7 @@ mod_qaStaApp_ui <- function(id){
 									                                   ),
 									                                   choices = NULL, multiple = TRUE)
 									                ),
-									                column(width=2,br(),actionButton(ns("runONE"), "Calculate Residuals", icon = icon("play-circle")),br()),	  
+									                column(width=2,br(),actionButton(ns("runONE"), "Calculate Residuals", icon = icon("play-circle")),br()),
 									                uiOutput(ns("outStaRes2")),
 									                column( width=8,
 									                        br(),
@@ -190,7 +190,7 @@ mod_qaStaApp_ui <- function(id){
 									                                            selectInput(ns("verboseSta"),"Print log file?",choices=list("Yes"=TRUE,"No"=FALSE),selected=FALSE)
 									                        ),
 									                ),
-									                
+
 									         ),
 									         column(width=12),
 									         shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
@@ -234,7 +234,7 @@ mod_qaStaApp_ui <- function(id){
                                                                       column(width=12,DT::DTOutput(ns("ResOut"))),
 																	  br(),
 																	  br(),
-																	  column(width=12, plotly::plotlyOutput(ns("plotResidual"),height = "800px" ) )       
+																	  column(width=12, plotly::plotlyOutput(ns("plotResidual"),height = "800px" ) )
                                                                ),
 															   textOutput(ns("outSta")),
                                            ),
@@ -333,7 +333,7 @@ mod_qaStaApp_server <- function(id, data){
         shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
       }
     }, ignoreNULL = TRUE)
-	
+
 	#pick stamp
 	observeEvent(c(data()), {
       req(data())
@@ -350,7 +350,7 @@ mod_qaStaApp_server <- function(id, data){
         stamp <- as.character(as.POSIXct(idsSta, origin="1970-01-01", tz="GMT"))
         if("analysisIdName" %in% colnames(dtSta)){
           nm <- ifelse(is.na(dtSta$analysisIdName) | dtSta$analysisIdName == "",
-                       stamp, paste(dtSta$analysisIdName, stamp, sep = " - "))
+                       stamp, paste(dtSta$analysisIdName, stamp, sep = "_"))
         }else{
           nm <- stamp
         }
@@ -358,8 +358,8 @@ mod_qaStaApp_server <- function(id, data){
       }
       updateSelectInput(session, "version2qSta", choices = idsSta)
     })
-	
-	
+
+
 	observeEvent(c(data(),input$version2qSta), {
       req(data())
       req(input$version2qSta)
@@ -386,7 +386,7 @@ mod_qaStaApp_server <- function(id, data){
       updateSelectInput(session, "traitOutqPhenoMultiple", choices = traitsQaMb, selected = NULL)
       updateSelectInput(session, "trait3Sta", choices = traitsQaMb)
     })
-  
+
    observeEvent(c(data(),input$version2qSta,input$traitOutqPhenoMultiple), {
       req(data())
       req(input$version2qSta)
@@ -399,7 +399,7 @@ mod_qaStaApp_server <- function(id, data){
       # genetic.evaluation <- c("designation", "mother","father")
       updateSelectInput(session, "genoUnitOutqP",choices = genetic.evaluation, selected = "designation")
     })
-     
+
     ## render timestamps flow
     output$plotTimeStamps <- shiny::renderPlot({
       req(data()) # req(input$version2qSta)
@@ -476,8 +476,8 @@ mod_qaStaApp_server <- function(id, data){
           traitsSta <- setdiff(paramsPheno$parameter, c("trait","designation"))
           updateSelectInput(session, "feature", choices = traitsSta)
         })
-        
-        output$plotPredictionsCleanOut <- plotly::renderPlotly({ 
+
+        output$plotPredictionsCleanOut <- plotly::renderPlotly({
           req(data())
           req(input$version2qSta)
           req(input$trait3Sta)
@@ -509,7 +509,7 @@ mod_qaStaApp_server <- function(id, data){
           }else{}
         })
         # render fieldGrid heatmap
-        output$plotFieldGrid <- plotly::renderPlotly({ 
+        output$plotFieldGrid <- plotly::renderPlotly({
           req(data())
           req(input$version2qSta)
           req(input$trait3Sta)
@@ -580,7 +580,7 @@ mod_qaStaApp_server <- function(id, data){
       }
       return(list(cor = cor.mat, p = p.mat))
     }
-	
+
     output$plotCorrTrait <- plotly::renderPlotly({
       req(data())
       req(input$traitOutqPhenoMultiple)
@@ -592,7 +592,7 @@ mod_qaStaApp_server <- function(id, data){
       cleaning <- data()$modifications$pheno # extract outliers
       cleaning <- cleaning[which(as.character(cleaning$analysisId) %in% as.character(as.numeric(input$version2qSta))),]
       mydata <- mydata[-as.numeric(cleaning$row),]
-      
+
       if(length(input$traitOutqPhenoMultiple) > 1){
         df_num <- dplyr::select(mydata[, input$traitOutqPhenoMultiple, drop = FALSE], where(is.numeric))
         p.mat <- cor_pval_matrix(df_num, method = input$correlationType, conf.level = 0.95)
@@ -656,10 +656,10 @@ mod_qaStaApp_server <- function(id, data){
                                          # initComplete = I("function(settings, json) {alert('Done.');}")
                                        )
     )
-    
+
     ##
     proxy = DT::dataTableProxy('traitDistqaSta')
-    
+
     observeEvent(input$traitDistSta_cell_edit, {
       info = input$traitDistSta_cell_edit
       utils::str(info)
@@ -667,8 +667,8 @@ mod_qaStaApp_server <- function(id, data){
       j = info$col
       v = info$value
       xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
-    })  
-    
+    })
+
     ## render summaries
     output$summariesSta <-  DT::renderDT({
       req(data())
@@ -682,9 +682,9 @@ mod_qaStaApp_server <- function(id, data){
       colnames(dtSta$data$pheno) <- cgiarBase::replaceValues(colnames(dtSta$data$pheno), Search = paramsPheno$value, Replace = paramsPheno$parameter )
       ### avoid columns mother and father in the pehnotype file
       '%!in%' <- function(x,y)!('%in%'(x,y))
-      
+
       null.pedigree <- as.logical(max(!is.na(c(dtSta$data$pedigree$mother, dtSta$data$pedigree$father))))
-      
+
       if(null.pedigree){
         paramsPed <- data()$metadata$pedigree
         colnames(dtSta$data$pedigree) <- cgiarBase::replaceValues(colnames(dtSta$data$pedigree), Search = paramsPed$value, Replace = paramsPed$parameter )
@@ -701,7 +701,7 @@ mod_qaStaApp_server <- function(id, data){
         cleaning <- cleaning[which(cleaning$analysisId %in% input$version2qSta),]
         mydata[cleaning$row,]<-NA
       }
-      
+
       if(null.pedigree){
         m1 <- aggregate(as.formula(paste("designation~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
         m2 <- aggregate(as.formula(paste("mother~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
@@ -710,8 +710,8 @@ mod_qaStaApp_server <- function(id, data){
       }else{
         resTable <- aggregate(as.formula(paste("designation~" ,input$feature)), FUN=function(x){length(unique(x))}, data=mydata)
       }
-      
-      
+
+
       DT::datatable(resTable, extensions = 'Buttons',
                     options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                    lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All'))),
@@ -720,9 +720,9 @@ mod_qaStaApp_server <- function(id, data){
                       htmltools::em('Summary of number of individuals, mothers and fathers available in the dataset.')
                     )
       )
-      
+
     }, server = FALSE)
-    
+
     ## render designs
     output$dtFieldTraC <-  DT::renderDT({
       req(data())
@@ -746,7 +746,7 @@ mod_qaStaApp_server <- function(id, data){
             apply(x[,presentFactors, drop=FALSE], 2, function(y){length(unique(y))})
           })
           presentFactorsPerField <- do.call(rbind, presentFactorsPerField)
-          dtProvTable = as.data.frame(presentFactorsPerField)  
+          dtProvTable = as.data.frame(presentFactorsPerField)
           #print(rownames(dtProvTable))
           #print(fieldNames)
           #rownames(dtProvTable) <- fieldNames
@@ -761,9 +761,9 @@ mod_qaStaApp_server <- function(id, data){
         }
       }
     }, server = FALSE)
-    
-    
-    
+
+
+
 #Start calculate residuals
 ## reactiveValues GLOBAL del server
 rv <- reactiveValues(allRes = NULL)
@@ -796,7 +796,7 @@ observeEvent(input$runONE, {
 	)
 	updateTabsetPanel(session,"tabInput",selected = "ResAna")
   shinybusy::remove_modal_spinner()
- 
+
   if(!inherits(res, "try-error")) {
     updateSelectInput(session, "traitOutqPheno2", choices = unique(res$trait), selected = unique(res$trait)[1])
     updateSelectInput(session, "EnvOutqPheno2", choices = unique(res$environment), selected = unique(res$environment)[1])
@@ -837,7 +837,7 @@ output$ResOut <- DT::renderDT({
 
   req(rv$allRes)
   req(input$traitOutqPheno2)
-  req(input$EnvOutqPheno2) 
+  req(input$EnvOutqPheno2)
 
   tmpRes <- rv$allRes[
     rv$allRes$trait == input$traitOutqPheno2 &
@@ -852,11 +852,11 @@ comp=data.frame(rv$allRes)
   DT::formatRound( DT::datatable(tmpRes, editable = list(target = "cell", disable = list(columns = c(0:14,16:17))),
       options = list(dom = 'Blfrtip',scrollX = TRUE, buttons = c('copy','csv','excel','pdf'),
         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')),
-		columnDefs = list(list(targets = 15,createdCell = htmlwidgets::JS("function(td, cellData, rowData, row, col) {$(td).attr('title','Editable column: double click to modify');}")))    
-		)),numeric_output)|>  
+		columnDefs = list(list(targets = 15,createdCell = htmlwidgets::JS("function(td, cellData, rowData, row, col) {$(td).attr('title','Editable column: double click to modify');}")))
+		)),numeric_output)|>
   DT::formatStyle('outlier (editable)',backgroundColor = DT::styleEqual( c("GOOD","outlier"), c("#A4D65E","#FF7F7F")))|>
   DT::formatStyle('outlierFinal',backgroundColor = DT::styleEqual( c("GOOD","outlier"), c("#A4D65E","#FF7F7F")))
-  
+
 })
 
 #----------------------------------------------------------
@@ -899,7 +899,7 @@ output$plotResidual <- plotly::renderPlotly({
   ]
   tmpResP$outlier<-tmpResP$outlierFinal
   cgiarPipeline::pplotmod(df = tmpResP)
-  #pplotmod(df = tmpResP)  
+  #pplotmod(df = tmpResP)
 })
 
 #----------------------------------------------------------
@@ -916,7 +916,7 @@ output$warnRes <- renderUI({
     rv$allRes$environment == input$EnvOutqPheno2,
   ]
 
-  if(length(which(tmpResP$outlier == "outlier")) >= (nrow(tmpResP) * 0.15)) {  
+  if(length(which(tmpResP$outlier == "outlier")) >= (nrow(tmpResP) * 0.15)) {
 
     div(
       style = "
@@ -929,7 +929,7 @@ output$warnRes <- renderUI({
       ",
 
       strong("Warning: "),
-      
+
       "A large proportion of observations have been flagged as outliers, ",
       "indicating non-normal residuals. Apply a variance-stabilising ",
       "transformation (log, square-root, Box-Cox) and refit. ",
@@ -942,10 +942,10 @@ output$warnRes <- renderUI({
 
 })
 
-    outQaMb <- eventReactive(input$runQaMb, {      
+    outQaMb <- eventReactive(input$runQaMb, {
         req(data())
 		    req(rv$allRes)
-        
+
 		shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
         ## get the outlier table
         tmpOut<-rv$allRes[which(rv$allRes$outlierFinal=="outlier"),]
@@ -962,9 +962,9 @@ output$warnRes <- renderUI({
 		  newParamsPheno<-data.frame(cbind("qaMb",as.POSIXct(analysisId, origin="1970-01-01", tz="GMT"),df_unique$trait,df_unique$environment,"cookD",round(4/unique(df_unique$N),4)))
 		  names(newParamsPheno)<-c("module","analysisId","trait","environment","parameter","value")
 		  parms2<-data.frame(cbind("qaMb",as.POSIXct(analysisId, origin="1970-01-01", tz="GMT"),df_unique$trait,df_unique$environment,"leverage",round((2*unique(df_unique$p))/unique(df_unique$N),4)))
-		  names(parms2)<-c("module","analysisId","trait","environment","parameter","value")          
+		  names(parms2)<-c("module","analysisId","trait","environment","parameter","value")
 		  newParamsPheno<-rbind(newParamsPheno,parms2)
-		  names(newParamsPheno)<-c("module","analysisId","trait","environment","parameter","value")          
+		  names(newParamsPheno)<-c("module","analysisId","trait","environment","parameter","value")
       result$modeling <- rbind(result$modeling, newParamsPheno)
       newStatus <- data.frame(module="qaMb", analysisId=analysisId, analysisIdName=input$analysisIdName)
       result$status <- rbind(result$status, newStatus)
@@ -973,38 +973,38 @@ output$warnRes <- renderUI({
     myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
     dontHaveDist <- which(is.na(myFamily))
     if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian(link = 'identity')"}
-    
-        
+
+
 		res2 <- try(
 		  cgiarPipeline::resMod(
 		  #resMod(
 			  phenoDTfile = result,
 			  analysisId = input$version2qSta,
 			  trait = input$traitOutqPhenoMultiple,
-			  genoUnit = input$genoUnitOutqP,	
+			  genoUnit = input$genoUnitOutqP,
 			  addRes=TRUE,
 			  verbose = TRUE
 		),
 		silent = TRUE
 		)
-		
+
 		predRes<-data.frame(cbind("qaMb",as.POSIXct(analysisId, origin="1970-01-01", tz="GMT"),res2$idRowR,as.character(res2$trait),paste0(res2$N,"_",res2$p),as.character(res2$designation),res2$repF,res2$stdt,res2$outlierFinal,
 		                          as.character(res2$environment),res2$fitted,res2$residuals,res2$cookD,res2$leverage))
 		names(predRes)<-c("module","analysisId","pipeline","trait","gid","designation","mother","father","entryType","environment","predictedValue","stdError","reliability","effectType")
 		result$predictions <- rbind(result$predictions, predRes)
 		data(result)
-		
+
 		resSta <- try(cgiarPipeline::staLMM(phenoDTfile = result, analysisId=input$version2qSta,
 		                                    trait=input$traitOutqPhenoMultiple,
 		                                    traitFamily = myFamily,
 		                                    fixedTerm = input$fixedTermqaSta2,
-		                                    returnFixedGeno=input$genoAsFixedSta, 
+		                                    returnFixedGeno=input$genoAsFixedSta,
 		                                    genoUnit = input$genoUnitOutqP,
-		                                    verbose = input$verboseSta, 
+		                                    verbose = input$verboseSta,
 		                                    maxit = input$maxitSta),
 		              silent=TRUE
 		)
-		
+
 		if(!inherits(resSta,"try-error")) {
 		  if("analysisIdName" %in% colnames(resSta$status)){resSta$status$analysisIdName[nrow(resSta$status)] <- paste(input$analysisIdName,"_SOA")}
 		  data(resSta) # update data with results
@@ -1021,7 +1021,7 @@ output$warnRes <- renderUI({
 		    cat(paste("Analysis failed with the following error message: \n\n",resSta[[1]]))
 		  })
 		}
-    
+
         # persist to tempdir() (always writable / stable in the session) so the
         # report shown in the Output tab can load the qaMb results.
         #try({ save(result, file = file.path(tempdir(), "resultQaPheno.RData")) }, silent = TRUE)
@@ -1030,7 +1030,7 @@ output$warnRes <- renderUI({
         shinybusy::remove_modal_spinner()
 
         if(!inherits(result,"try-error")) { # if all goes well in the run
-          # ## Report tab		  
+          # ## Report tab
           output$reportQaPheno <- renderUI({
             HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportQaPheno.Rmd",package="bioflow"), quiet = TRUE), fragment.only=TRUE))
           })
@@ -1068,7 +1068,7 @@ output$warnRes <- renderUI({
         }else{ hideAll$clearAll <- TRUE}
 
         hideAll$clearAll <- FALSE
-      
+
     })
 
     output$outQaMb <- renderPrint({

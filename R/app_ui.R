@@ -196,7 +196,7 @@ app_ui <- function(request) {
                  tabPanel(div(icon("barcode"), "Marker-assisted selection (", icon("anchor"),")"), mod_masApp_ui("masApp_1") ), # icon = icon("barcode")),# user needs to perform a multi-year genetic evaluation to provide the MET as input
 
                  tabPanel(div(icon("calculator"), icon("dice-one"), "Single Occurrence Analysis (", icon("seedling"), ")"), value = "staApp_tab",
-                          navlistPanel( "Options:", widths = c(1, 11),
+                          navlistPanel( "Steps:", widths = c(1, 11),
 										                    tabPanel(div("1) Model-Based QA/QC (", icon("seedling"), ")" ), mod_qaStaApp_ui("qaStaApp_1") ),
                                         tabPanel(div("2) Single Occurrence Analysis (", icon("seedling"), ")"),  mod_staApp_ui("staApp_1") ),
                           )

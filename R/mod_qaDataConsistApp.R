@@ -59,9 +59,9 @@ mod_qaDataConsistApp_ui <- function(id){
                                                     p(strong("Categories.-")," determines the list of possible values for trait."),
                                                     p(strong("Comparative.-")," rule comparing two traits."),
                                                     p(strong("Condition.-")," rule which sets a condition for trait value(s)."),
-                                                    h2(strong("References")),
-                                                    # p("Tukey, J. W. (1977). Exploratory Data Analysis. Section 2C."),
-                                                    # column(width = 12, shiny::plotOutput(ns("plotDataDependencies")), ),
+                                                    h2(strong("Software used")),
+                                                    p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                            Vienna, Austria. URL https://www.R-project.org/."),
                                                   )
                                            ),
                                   ),
@@ -203,8 +203,7 @@ mod_qaDataConsistApp_ui <- function(id){
                                              tabPanel(div(icon("dice-three"), "View", icon("arrow-right") ), #icon = icon("dice-one"),
                                                       br(),
                                                       column(width = 12, style = "background-color:grey; color: #FFFFFF",
-                                                             tags$div(tags$h5(strong("To load impossible values based on set ranges and rules, click the 'Load' button.
-                                                             To exclude an impossible value in the analysis, select the row(s) then click the 'Exclude' button."), style = "color: #FFFFFF;")),
+                                                             tags$div(tags$h5(strong("To load impossible values based on set ranges and rules, click the 'Load' button."), style = "color: #FFFFFF;")),
                                                              column(width = 12,
                                                                     downloadButton(ns("download_filt"), "Download Ranges/Rules")),
                                                              column(width = 12,

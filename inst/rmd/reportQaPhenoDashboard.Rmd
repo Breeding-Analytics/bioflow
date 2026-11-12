@@ -78,7 +78,7 @@ printTable <- function(DT, pageLength = 7,
 
 showTable <- function(df, colNames = NULL) {
   if (download) {
-    printTable(df, autoWidthOpt = TRUE, scrollXOpt = TRUE, colNames = colNames,
+    printTable(df, autoWidthOpt = TRUE, scrollXOpt = FALSE, colNames = colNames,
                numericColNames = names(which(vapply(df, is.numeric, logical(1)))), numRound = 4)
   } else {
    # df2 <- df
@@ -87,8 +87,8 @@ showTable <- function(df, colNames = NULL) {
   #  if (is.null(colNames)) colNames <- colnames(df2)
   #  knitr::kable(df2, format = "html", col.names = colNames,
   #               table.attr = 'class="table table-striped" style="width:auto;"')
-      DT::renderDT(printTable(df, autoWidthOpt = TRUE, scrollXOpt = TRUE, colNames = colNames,
-               numericColNames = names(which(vapply(df, is.numeric, logical(1)))), numRound = 4)
+      DT::renderDT(printTable(df, autoWidthOpt = FALSE, scrollXOpt = TRUE, colNames = colNames,
+               numericColNames = names(which(vapply(df, is.numeric, logical(1)))), numRound = 4), server = FALSE
                )
     }
 }
@@ -129,38 +129,13 @@ suppressWarnings(tryCatch({
   shinyjs::hide()
 }))
 ```
+<p>&nbsp;</p>
 
 This report consolidates the three Phenotype QA/QC steps into a single dashboard. Each section is filled only if the corresponding step has been executed and saved into the analysis object.
 
 <p>&nbsp;</p>
 
-### 1. Missingness
-
-```{r}
-idMiss <- lastIdForModule(result, "qaMissing")
-dfMiss <- NULL
-if (!is.null(result) && !is.null(idMiss) && !is.null(result$modeling)) {
-  dfMiss <- result$modeling[result$modeling$module == "qaMissing" &
-                              result$modeling$analysisId == idMiss,
-                            c("parameter", "value"), drop = FALSE]
-}
-```
-
-```{r, results='asis'}
-if (is.null(result) || is.null(idMiss)) {
-  cat("_The Missingness step has not been run for this analysis object._")
-}
-```
-
-```{r}
-if (!is.null(dfMiss) && nrow(dfMiss) > 0) {
-  showTable(dfMiss, colNames = c("Decision", "Value"))
-}
-```
-
-<p>&nbsp;</p>
-
-### 2. Data consistency
+### 1. Data consistency
 
 ```{r}
 idCons    <- lastIdForModule(result, "qaConsistency")
@@ -188,7 +163,7 @@ if (is.null(result) || is.null(idCons)) {
 
 ```{r}
 if (!is.null(modelCons) && nrow(modelCons) > 0) {
-  showTable(modelCons)
+  showTable(modelCons, colnames(modelCons))
 }
 ```
 
@@ -198,7 +173,33 @@ if (!is.null(idCons)) cat("#### Tagged impossible values (modifications)")
 
 ```{r}
 if (!is.null(modCons) && nrow(modCons) > 0) {
-  showTable(modCons)
+  showTable(modCons, colnames(modCons))
+}
+```
+
+<p>&nbsp;</p>
+
+### 2. Missingness
+
+```{r}
+idMiss <- lastIdForModule(result, "qaMissing")
+dfMiss <- NULL
+if (!is.null(result) && !is.null(idMiss) && !is.null(result$modeling)) {
+  dfMiss <- result$modeling[result$modeling$module == "qaMissing" &
+                              result$modeling$analysisId == idMiss,
+                            c("parameter", "value"), drop = FALSE]
+}
+```
+
+```{r, results='asis'}
+if (is.null(result) || is.null(idMiss)) {
+  cat("_The Missingness step has not been run for this analysis object._")
+}
+```
+
+```{r}
+if (!is.null(dfMiss) && nrow(dfMiss) > 0) {
+  showTable(dfMiss, colNames = c("Decision", "Value"))
 }
 ```
 
