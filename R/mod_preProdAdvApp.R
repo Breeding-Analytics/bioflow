@@ -1140,6 +1140,17 @@ build_cluster_map_plotly <- function(weather_summary, cluster_assignments, tpe_p
   lon_center <- (lon_min + lon_max) / 2
   lat_center <- (lat_min + lat_max) / 2
 
+  # A square window wider than half the globe pushes the latitude range past
+  # +/-90 degrees and plotly collapses the map to a dot, so trial networks that
+  # span continents get the whole world instead.
+  if (max_span >= 180) {
+    lon_rng <- c(-180, 180)
+    lat_rng <- c(-60, 85)
+  } else {
+    lon_rng <- lon_center + c(-1, 1) * max_span / 2
+    lat_rng <- pmin(pmax(lat_center + c(-1, 1) * max_span / 2, -90), 90)
+  }
+
   p <- plotly::layout(
     p,
     geo = list(
@@ -1154,12 +1165,8 @@ build_cluster_map_plotly <- function(weather_summary, cluster_assignments, tpe_p
       showlakes = TRUE,
       lakecolor = "rgb(204, 229, 255)",
       projection = list(type = "natural earth"),
-      lonaxis = list(
-        range = c(lon_center - max_span / 2, lon_center + max_span / 2)
-      ),
-      lataxis = list(
-        range = c(lat_center - max_span / 2, lat_center + max_span / 2)
-      )
+      lonaxis = list(range = lon_rng),
+      lataxis = list(range = lat_rng)
     ),
     showlegend = TRUE,
     legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.05),
