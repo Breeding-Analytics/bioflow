@@ -428,32 +428,44 @@ mod_indexDesireApp_server <- function(id, data){
 		tagList(ui_list)
 	})
 
-sync_pair <- function(session, rv, slider_id, numeric_id) {
-	# slider -> numeric
-	observeEvent(input[[slider_id]], {
-		if (!rv$sync) return()
-		if (is.null(input[[slider_id]])) return()
-		if (input[[slider_id]] == input[[numeric_id]]) return()
-		rv$sync <- FALSE
-		updateNumericInput(session,numeric_id,value = input[[slider_id]])
-		rv$sync <- TRUE
-	})
-  # numeric -> slider
-	observeEvent(input[[numeric_id]], {
-		if (!rv$sync) return()
-		if (is.null(input[[numeric_id]])) return()
-		if (input[[numeric_id]] == input[[slider_id]]) return()
-		rv$sync <- FALSE
-		updateSliderInput(session,slider_id,value = input[[numeric_id]])
-		rv$sync <- TRUE
-  })
+# a valid, finite number (numericInput returns NA while the box is empty or
+# holds a partial entry such as "-" or ".")
+is_valid_num <- function(x) {
+  !is.null(x) && length(x) == 1 && is.numeric(x) && is.finite(x)
 }
 
+sync_pair <- function(session, slider_id, numeric_id) {
+  # slider -> numeric
+  observeEvent(input[[slider_id]], {
+    s <- input[[slider_id]]
+    n <- input[[numeric_id]]
+    if (!is_valid_num(s)) return()
+    if (is_valid_num(n) && isTRUE(all.equal(s, n))) return()
+    updateNumericInput(session, numeric_id, value = s)
+  }, ignoreInit = TRUE)
+  # numeric -> slider
+  observeEvent(input[[numeric_id]], {
+    s <- input[[slider_id]]
+    n <- input[[numeric_id]]
+    if (!is_valid_num(n)) return() # user is still typing; keep the slider as is
+    if (is_valid_num(s) && isTRUE(all.equal(n, s))) return()
+    updateSliderInput(session, slider_id, value = n)
+  }, ignoreInit = TRUE)
+}
+
+# register each slider/numeric pair only once (re-running observe() used to
+# stack duplicate observers every time the trait selection changed)
+syncedPairs <- character(0)
 observe({
   req(input$trait2IdxD)
-  lapply(seq_along(input$trait2IdxD), function(i) {
-    sync_pair(session,rv,slider_id = paste0("SliderDesireIndex", i),numeric_id = paste0("numericDesireIndex", i))
-  })
+  for (i in seq_along(input$trait2IdxD)) {
+    pair_id <- paste0("SliderDesireIndex", i)
+    if (pair_id %in% syncedPairs) next
+    syncedPairs <<- c(syncedPairs, pair_id)
+    sync_pair(session,
+              slider_id = pair_id,
+              numeric_id = paste0("numericDesireIndex", i))
+  }
 })
 
 
