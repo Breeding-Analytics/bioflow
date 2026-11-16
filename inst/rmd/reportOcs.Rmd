@@ -111,6 +111,7 @@ if (is.null(result)){
   idOcs <- idOcs[length(idOcs)]
   ocsTrait <- unique(result$modeling[which(result$modeling$analysisId == idOcs & result$modeling$parameter == "ocsFormula"),"trait"]);
   mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+  mydata$trait <- sub("_scaled$", "", mydata$trait) # OCS reports values on the original (unscaled) scale
   
   treatments <- unique(mydata$environment)
   wideList <- list()
@@ -159,7 +160,7 @@ if (is.null(result)){
   predictions <- result$predictions
   idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
   idOcs <- idOcs[length(idOcs)]
-  myTraits <- predictions[which(predictions$analysisId == idOcs),"trait"]
+  myTraits <- sub("_scaled$", "", predictions[which(predictions$analysisId == idOcs),"trait"]) # OCS reports values on the original (unscaled) scale
   
   if("params" %in% ls()){  # if user will download the report
     shinyjs::hide()
@@ -193,6 +194,7 @@ if (is.null(result)){
       idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
       idOcs <- idOcs[length(idOcs)]
       mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+      mydata$trait <- sub("_scaled$", "", mydata$trait) # OCS reports values on the original (unscaled) scale
       ## get the required traits
       mydata <- mydata[which(mydata$trait %in% c(iTrait)),]
       ##
@@ -219,6 +221,7 @@ if (is.null(result)){
       idOcs <- result$status[which(result$status$module == "ocs"),"analysisId"];
       idOcs <- idOcs[length(idOcs)]
       mydata <- mydata[which(mydata$analysisId %in% c(idOcs)),]
+      mydata$trait <- sub("_scaled$", "", mydata$trait) # OCS reports values on the original (unscaled) scale
       ## get the required traits
       mydata <- mydata[which(mydata$trait %in% c(input$traitFilterPredictions2D2)),]
       ##
