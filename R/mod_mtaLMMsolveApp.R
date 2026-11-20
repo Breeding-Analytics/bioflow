@@ -2319,7 +2319,7 @@ mod_mtaLMMsolveApp_server <- function(id, data){
           # update S3 metadata
           s3_object_head <- s3$head_object(Bucket = bucket_name, Key = s3_object_path)
           s3_object_metadata <- s3_object_head$Metadata
-          s3_object_metadata[["Upload-Origin"]] <- "bioflow"
+          s3_object_metadata[["upload-origin"]] <- "bioflow"
 
           temp_file <- paste0(tempdir(), "/", query$task, ".RData")
           save(result, file = temp_file)
