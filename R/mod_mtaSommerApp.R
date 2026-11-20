@@ -1,0 +1,2354 @@
+#' mtaSommerApp UI Function
+#'
+#' @description A shiny Module.
+#'
+#' @param id,input,output,session Internal parameters for {shiny}.
+#'
+#' @noRd
+#'
+#' @importFrom shiny NS tagList
+mod_mtaSommerApp_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+
+
+    # color guide for backgrounds: https://www.w3schools.com/colors/colors_names.asp
+    # color guide for fonts: https://www.w3schools.com/html/html_colors_hex.asp
+    tags$br(),
+
+    mainPanel(width = 12,
+              tabsetPanel( id=ns("tabsMain"),
+                           type = "tabs",
+                           tabPanel(div(icon("book"), "Information") ,
+                                    br(),
+                                    column(width = 6,
+                                           h1(strong(span("Multi Occurrence Analysis Module Using sommer",
+                                                          #tags$a(href="https://www.youtube.com/watch?v=rR1DhTt25n4&list=PLZ0lafzH_UmclOPifjCntlMzysEB2_2wX&index=7",icon("youtube") , target="_blank"),
+                                                          style="color:darkcyan"))),
+                                           h2(strong("Data Status (wait to be displayed):")),
+                                           uiOutput(ns("warningMessage")),
+                                           tags$br(),
+                                           # column(width=4, tags$br(),
+                                           shinyWidgets::prettySwitch( inputId = ns('launch'), label = "Load example dataset", status = "success"),
+                                           # ),
+                                           tags$br(),
+                                           img(src = "www/mta.png", height = 375, width = 450), # add an image
+                                    ),
+                                    column(width = 6,
+                                           h2(strong("Details")),
+                                           p("Multi occurrence analysis using sommer does not require a license."),
+                                           p("
+
+                                          This option aims to model breeding values across environments using the results from the single trial (weighted by the standard errors)
+                              analysis and optionally a relationship matrix between levels of the random effects. This module allows the flexibility to build your own customized module by specifying the
+                              random effects and any relationship . In addition, the most popular GxE models can be selected with a single click to help the user understand how a
+                              specific model could be specified.
+                                The way the arguments are used is the following:"),
+
+                                           p("Requires cgiarPipeline::metSommer and sommer >= 4.5.25. Gaussian, binomial, Gamma and Poisson families are available; non-Gaussian fits use PQL."),
+                                           p(strong("Traits to analyze.-")," Traits to be analyzed."),
+                                           p(strong("Fixed effects.-")," Variables to be fitted as fixed effects."),
+                                           p(strong("Random effects.-")," Variables to be fitted as random effects."),
+                                           p(strong("Additional settings:")),
+                                           p(strong("H2(lower bound).-")," Value of H2 to be used to remove trials with low heritability."),
+                                           p(strong("H2(upper bound).-"),"  Value of H2 to be used to remove trials with too high heritability."),
+                                           p(strong("mean(lower bound).-")," Value of trait mean to be used to remove trials with low means"),
+                                           p(strong("mean(upper bound).-"),"  Value of trait mean to be used to remove trials with too high means"),
+                                           p(strong("Number of iterations.-")," Maximum number of restricted maximum likelihood iterations to be run for each trait."),
+                                           #p(strong("Use weights.-")," a TRUE/FALSE statement indicating if the analysis should be weighted using the standard errors from the single occurrence analysis. The default is TRUE and should not be modified unless you know what you are doing."),
+                                           h2(strong("References")),
+                                           p("Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15."),
+                                           h2(strong("Software used")),
+                                           p("R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+                                Vienna, Austria. URL https://www.R-project.org/."),
+                                           p("sommer: mixed model estimation and prediction."),
+                                    ),
+                           ),
+                           tabPanel(div(icon("arrow-right-to-bracket"), "Input steps"),
+                                    tabsetPanel(
+                                      tabPanel(div( icon("dice-one"), "Engine status", icon("arrow-right") ), # icon = icon("dice-one"),
+                                               br(),
+                                               column(width=12),
+                                               shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = FALSE, collapsed = FALSE, title = "Check sommer engine",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("Status (wait to be displayed):", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          uiOutput(ns("statusSommer")),
+                                                                   )
+                                               ),
+                                      ),
+                                      tabPanel(div( icon("dice-two"), "Pick SOA-stamp(s)", icon("arrow-right") ), # icon = icon("dice-one"),
+                                               br(),
+                                               column(width=12, style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=8,
+                                                             selectInput(ns("version2MtaSommer"),
+                                                                         label = tags$span(
+                                                                           "SOA version(s) to analyze",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Analysis ID(s) from SOA runs that should be combined and used to fit a multi occurrence analysis."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = TRUE),
+                                                             selectInput(ns("version2MtaSommerGeno"),
+                                                                         label = tags$span(
+                                                                           "Genotype QA/QC version(s) to analyze",
+                                                                           tags$i(
+                                                                             class = "glyphicon glyphicon-info-sign",
+                                                                             style = "color:#FFFFFF",
+                                                                             title = "Analysis ID(s) from Genotype QA/QC used to fit a multi occurrence analysis."
+                                                                           )
+                                                                         ),
+                                                                         choices = NULL, multiple = FALSE),
+                                                      ),
+                                               ),
+                                               column(width=12),
+                                               tagAppendAttributes(shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   column( width=12, shiny::plotOutput(ns("plotTimeStamps")) ),
+                                                                   DT::DTOutput(ns("statusMtaSommer")), # modeling table
+                                               ), style = "padding-left:0; padding-right:0;"),
+                                      ),
+                                      tabPanel(div(icon("dice-three"), "Pick trait(s)", icon("arrow-right") ),
+                                               br(),
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      conditionalPanel(
+                                                        condition = paste0("output['", ns("tppDataAvailableSommer"), "']"),
+                                                        selectInput(ns("tppIdMenuSommer"),
+                                                                    label = tags$span(
+                                                                      "TPP ID (Target Product Profile)",
+                                                                      tags$i(
+                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                        style = "color:#FFFFFF",
+                                                                        title = "Select a TPP ID to add environment-filtered TPP traits to the trait menu. Select 'None' to use only standard phenotypic traits."
+                                                                      )
+                                                                    ),
+                                                                    choices = c("None" = ""), multiple = FALSE)
+                                                      ),
+                                                      selectInput(ns("trait2MtaSommer"),
+                                                                  label = tags$span(
+                                                                    "Trait(s) to analyze",
+                                                                    tags$i(
+                                                                      class = "glyphicon glyphicon-info-sign",
+                                                                      style = "color:#FFFFFF",
+                                                                      title = "Only traits present in the SOA runs selected will be available."
+                                                                    )
+                                                                  ),
+                                                                  choices = NULL, multiple = TRUE),
+                                               ),
+                                               tagAppendAttributes(shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameters to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   column(width=12,
+                                                                          column(width=5, selectInput(ns("traitMetrics"), "Trait to visualize", choices = NULL, multiple = TRUE) ),
+                                                                          column(width=5, selectInput(ns("parameterMetrics"), "Parameter to visualize", choices = NULL, multiple = FALSE) ),
+                                                                          column(width=2, checkboxInput(ns("checkbox1"), label = "Include x-axis labels", value = TRUE) ),
+                                                                          column(width=12, plotly::plotlyOutput(ns("barplotPredictionsMetrics")) ),
+                                                                   ),
+                                               ), style = "padding-left:0; padding-right:0;"),
+                                      ),
+                                      tabPanel(div(icon("dice-four"), "Form your model", icon("arrow-right") ), # icon = icon("dice-two"),
+                                               br(),
+                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
+                                                      column(
+                                                        width = 12,
+                                                        tags$div(
+                                                          style = "background:#e8f4f8;border:1px solid #9ecfe0;color:#1B4F72;padding:12px;border-radius:6px;margin-bottom:12px;",
+                                                          tags$div(
+                                                            style = "display:flex;align-items:center;justify-content:space-between;gap:12px;",
+                                                            tags$div(
+                                                              tags$b("Need help choosing a model?"),
+                                                              tags$p(
+                                                                style = "margin:4px 0 0 0;",
+                                                                "Answer a few questions and Bioflow will suggest the model shortcut and covariance structure."
+                                                              )
+                                                            ),
+                                                            actionButton(ns("mtaWizardStart"), "Help me choose", icon = icon("wand-magic-sparkles"))
+                                                          ),
+                                                          uiOutput(ns("mtaWizardPanel"))
+                                                        )
+                                                      ),
+                                                      #start radio button
+                                                      column(width=12,
+                                                                    radioButtons(ns("radio"),
+                                                                                 label = tags$span("Shortcut to popular genetic evaluation models",
+                                                                                                   tags$i(
+                                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                                     style = "color:#FFFFFF",
+                                                                                                     title = "Selecting a popular genetic model sets a default, but if you change the terms, it may no longer match the selected model and will instead follow the terms you specified."
+                                                                                                   )
+                                                                                 ),
+                                                                                 choices = list(
+                                                                                   "Main effect" = "mn_model",
+                                                                                   "Compound symmetry" = "cs_model",
+                                                                                   "Finlay-Wilkinson"="fw_model",
+                                                                                   "Diagonal" = "dg_model",
+                                                                                   "Main+Diagonal" = "mndg_model",
+                                                                                   "Main effects (A+D)" = "ad_model",
+                                                                                   "Factor Analityc"="fa_model",
+                                                                                   "SCA/GCA" = "both_model",
+                                                                                   "GCA" = "gca_model"
+                                                                                 ),
+                                                                                 selected = "mn_model",
+                                                                                 inline=TRUE),
+                                                                    radioTooltip(id = ns("radio"), choice = "mn_model", title = "The main effect model assumes that there is no genotype by environment interaction or that can be ignored to focus on average effects. This can occur when we are interested in selecting the best individuals across the TPE without further consideration to specific environments.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "cs_model", title = "The compound symmetry model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and all pairs of environments have the same genetic covariance.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "fw_model", title = "The Finlay-Wilkinson model assumes that there is a main effect driving the performance of the genotypes but also specific deviations in each environment. The assumption is that all environments have the same genetic variance and deviations are with respect to an environmental covariate which can be the trait means at different environments or any other covariate.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "dg_model", title = "The diagonal model assumes that there is a different genetic variance at each environment and that genetic covariance between environments is zero. This relaxes he assumption of the main effect model and ignores a main effect.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "mndg_model", title = "The diagonal plus main effect model assumes that there is a main effect for genotypes but at the same time each enviroment causes the expression of environment specific genetic variance. The covariance between genotype effects between environments is assumed to be the same.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "ad_model", title = "This model includes additive and dominance random effects for the designation. Only use in order to run GPCP in the mate optimization module", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "fa_model", title = "This is the basic structure to run FA(2) model, take in consideration that you must have more than 5 environments for see GxE patterns clearly, improved accuracy in predictions and load stability.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "both_model", title = "This model needs to upload pedigree information and to add genomic information select genoD as a covariate of random effect for designation.", placement = "right", trigger = "hover"),
+                                                                    radioTooltip(id = ns("radio"), choice = "gca_model", title = "This model needs to upload pedigree information and to add genomic information select genoA as a covariate of random effects for mother and father.", placement = "right", trigger = "hover"),
+                                                             )
+                                                   ),
+                                                  column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
+                                                      column(width=12,
+                                                             #finish radio button
+                                                             column(width=3,
+                                                                    numericInput(ns("nTermsFixed"),
+                                                                                 label = tags$span(
+                                                                                   "nTerms fixed",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Number of fixed effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
+                                                                                   )
+                                                                                 ),
+                                                                                 value = NULL), # , step = 1, min = 1, max=10
+                                                                    uiOutput(ns("leftSidesFixed"))
+                                                             ),
+                                                             column(width=3,
+                                                                    numericInput(ns("nTermsRandom"),
+                                                                                 label = tags$span(
+                                                                                   "nTerms random",
+                                                                                   tags$i(
+                                                                                     class = "glyphicon glyphicon-info-sign",
+                                                                                     style = "color:#FFFFFF",
+                                                                                     title = "Number of random effect to specify in your model. If more than one factor is selected in a white box this is considered to be an interaction."
+                                                                                   )
+                                                                                 ),
+                                                                                 value = NULL), #
+                                                                    uiOutput(ns("leftSidesRandom"))
+                                                             ),
+                                                             br(),
+                                                             br(),
+                                                             br(),
+                                                             br(),
+                                                             column(width=3,
+                                                                uiOutput(ns("rightSidesRandom"))
+                                                             ),
+                                                             column(width=3,
+                                                                uiOutput(ns("nFATerm"))
+                                                             ),
+
+                                                      ),
+                                               ),
+                                               column(width=12, style = "padding-left:0; padding-right:0;",
+                                               tagAppendAttributes(shinydashboard::box(width = 12, status = "success",solidHeader=TRUE,collapsible = TRUE, collapsed = TRUE, title = "Visual aid (click on the '+' symbol on the right to open)",
+                                                                   column(width=12,
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                          h5(strong(span("The visualizations of the input-data located below will not affect your analysis but may help you pick the right input-parameter values to be specified in the grey boxes above.", style="color:green"))),
+                                                                          hr(style = "border-top: 3px solid #4c4c4c;"),
+                                                                   ),
+                                                                   tags$span(id = ns('holder3'),
+                                                                             column(width=12, p(span("Connectivity between data types.", style="color:black")) ),
+                                                                             selectInput(ns("evaluationUnitsTrait"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                             shiny::plotOutput(ns("evaluationUnits")) ,
+                                                                   ),
+                                                                   tags$span(id = ns('holder4'),
+                                                                             column(width=12, p(span("Connectivity between environments.", style="color:black")) ),
+                                                                             column(width = 3,
+                                                                                    selectInput(ns("traitConnect"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                                    selectInput(ns("entryTypeMtaSommer"), "Entry type to visualize", choices = NULL, multiple = TRUE),
+                                                                                    checkboxGroupInput(ns("checkboxText"), label = "", choices = list("Add connectivity labels?" = TRUE), selected = FALSE),
+                                                                                    checkboxGroupInput(ns("checkboxAxis"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                                                    numericInput(ns("heatmapFontSize"), label = "Font size", value = 6),
+                                                                             ),
+                                                                             column(width = 9, shiny::plotOutput(ns("plotPredictionsConnectivity")) ),
+                                                                   ),
+                                                                   tags$span(id = ns('holder5'),
+                                                                             column(width=12, p(span("Genotypic correlation between environments based on sta.", style="color:black")) ),
+                                                                             column(width=3,
+                                                                                    selectInput(ns("traitCor"), "Trait to visualize", choices = NULL, multiple = FALSE),
+                                                                                    checkboxGroupInput(ns("checkboxTextCor"), label = "", choices = list("Add correlation labels?" = TRUE), selected = FALSE),
+                                                                                    checkboxGroupInput(ns("checkboxAxisCor"), label = "", choices = list("Add axis labels?" = TRUE), selected = FALSE),
+                                                                                    numericInput(ns("heatmapFontSizeCor"), label = "Font size", value = 6),
+                                                                             ),
+                                                                             column(width=9, shiny::plotOutput(ns("plotPredictionsCor")) ),
+                                                                   ),
+                                                                   tags$span(id = ns('holder6'),
+                                                                             column(width=12, p(span("Sparsity between environments.", style="color:black")) ),
+                                                                             column(width=6, sliderInput(ns("slider1"), label = "Number of genotypes", min = 1, max = 2000, value = c(1, 100)) ),
+                                                                             column(width=6, sliderInput(ns("slider2"), label = "Number of environments", min = 1, max = 500, value = c(1, 25)) ),
+                                                                             column(width=12, shiny::plotOutput(ns("plotPredictionsSparsity")) ),
+                                                                   ),
+                                               ), style = "padding-left:0; padding-right:0;"),
+                                      ),),#end form your model
+                                      tabPanel(div(icon("dice-five"), "Other options", icon("arrow-right") ),
+                                               br(),
+                                               column(width=12, style = "background-color:DarkGray; color: #FFFFFF",
+                                                      br(),
+                                                      shinydashboard::box(width = 12,style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Fields to exclude (optional)...",
+                                                                          p(span("Fields to exclude in the analysis (double click in the cell and set to zero if you would like to ignore an environment for a given trait).", style="color:black")),
+                                                                          div(style = "overflow-x:auto;", DT::dataTableOutput(ns("fieldsMet"))),
+                                                      ),
+                                               ),
+                                               column(width=6, style = "background-color:LightGray; color: #FFFFFF",
+                                                      br(),
+                                                      shinydashboard::box(width = 12, style = "color: #000000", status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Additional model settings...",
+                                                                         textInput(ns("heritLBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Lower H2 and R2 bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value of heritability and reliability is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0.1"),
+                                                                          textInput(ns("heritUBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Upper H2 and R2 bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value of heritability and reliability is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0.95"),
+                                                                          textInput(ns("meanLBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Lower environment-mean bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value for trait means is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="0"),
+                                                                          textInput(ns("meanUBMet"),
+                                                                                    label = tags$span(
+                                                                                      "Upper environment-mean bound",
+                                                                                      tags$i(
+                                                                                        class = "glyphicon glyphicon-info-sign",
+                                                                                        style = "color:#000000",
+                                                                                        title = "If a single value for trait means is specified it will be used across all traits. If a different value is required per trait please separate the values by comma."
+                                                                                      )
+                                                                                    ),
+                                                                                    value="1000000"),
+                                                                          numericInput(ns("maxitMet"),
+                                                                                       label = tags$span(
+                                                                                         "Maximum # of iterations",
+                                                                                         tags$i(
+                                                                                           class = "glyphicon glyphicon-info-sign",
+                                                                                           style = "color:#000000",
+                                                                                           title = "Restricted Maximum Likelihood iterations. If the model doesn't converge you will see that in the metrics output table."
+                                                                                         )
+                                                                                       ),
+                                                                                       value = 35),
+                                                      ),
+                                               ),
+                                               column(width = 6, style = "background-color:LightGray; color: #FFFFFF",
+                                                      br(),
+                                                      shinydashboard::box(width = 12, status = "success", solidHeader=FALSE,collapsible = TRUE, collapsed = TRUE, title = "Alternative response distributions...",
+                                                                          p(span("The Normal distribution is assumed as default for all traits. If you wish to specify a different trait distribution for a given trait double click in the cell corresponding for the trait by distribution combination and make it a '1'.", style="color:black")),
+                                                                          div(style = "overflow-x:auto;", DT::DTOutput(ns("traitDistMet"))),
+                                                      ),
+                                               ),
+                                      ),#end other options
+                                      tabPanel("Run analysis", icon = icon("dice-six"),
+                                               br(),
+                                               column(width=12,style = "background-color:grey; color: #FFFFFF",
+                                                      column(width=3, tags$div(textInput(ns("analysisIdName"), label = tags$span(
+                                                        "Analysis Name (optional)", tags$i( class = "glyphicon glyphicon-info-sign", style = "color:#FFFFFF",
+                                                                                            title = "An optional name for the analysis besides the timestamp if desired.") ), #width = "100%",
+                                                        placeholder = "(optional name)") ) ),
+                                                      column(width=3,
+                                                             br(),
+                                                             actionButton(ns("runMtaSommer"), "Run analysis", icon = icon("play-circle")),
+                                                             uiOutput(ns("qaQcMtaSommerInfo")),
+                                                             br(),
+                                                      ),
+
+                                               ),
+                                               textOutput(ns("outMtaSommer")),
+                                      ),#end run analysis
+                                      )#end tabset input
+
+                           ),#end input panel
+                           tabPanel(div(icon("arrow-right-from-bracket"), "Output tabs" ) , value = "outputTabs",
+                                    tabsetPanel(
+                                      tabPanel("Dashboard", icon = icon("file-image"),
+                                               br(),
+                                               textOutput(ns("outMtaSommer2")),
+                                               br(),
+                                               actionButton(ns("renderReportMtaSommer"), "Download dashboard", icon = icon("download")),
+                                               downloadButton(ns("downloadReportMtaSommer"), "Download dashboard", style = "visibility:hidden;"),
+                                               br(),
+                                               uiOutput(ns('reportMtaSommer'))
+                                      ),
+                                      tabPanel("Predictions", icon = icon("table"),
+                                               br(),
+                                               DT::DTOutput(ns("predictionsMtaSommer")),
+                                      ),
+                                      tabPanel("Metrics", icon = icon("table"),
+                                               br(),
+                                               DT::DTOutput(ns("metricsMtaSommer")),
+                                      ),
+                                      tabPanel("Modeling", icon = icon("table"),
+                                               br(),
+                                               DT::DTOutput(ns("modelingMtaSommer")),
+                                      ),
+
+                                    ) # end of tabset
+                           )# end of output panel
+              )) # end mainpanel
+
+    )
+}
+
+#' mtaSommerApp Server Functions
+#'
+#' @noRd
+mod_mtaSommerApp_server <- function(id, data){
+  moduleCode <- "moaSommer"
+  moduleServer(id, function(input, output, session){
+    ns <- session$ns
+
+    ###############################################################################
+    ## Help me choose model wizard - sommer workflow
+    ###############################################################################
+
+    mtaWizardTree <- list(
+
+      start = list(
+        type = "question",
+        question = "Type of breeding program",
+        choices = list(
+          "Line" = "gxe_important",
+          "Hybrid" = "hybrid_material",
+          "Clone" = "clone_type",
+          "Landraces" = "landrace_objective"
+        )
+      ),
+
+      ## ===== SHARED GxE PATH =====
+      gxe_important = list(
+        type = "question",
+        question = "Is G×E interaction important?",
+        choices = list(
+          "No" = "set_main_effects",
+          "Yes" = "gxe_connectivity"
+        )
+      ),
+
+      gxe_connectivity = list(
+        type = "question",
+        question = "Is there good connectivity between environments?",
+        choices = list(
+          "No" = "gxe_relationship_before_variance",
+          "Yes" = "gxe_environment_variance"
+        )
+      ),
+
+      gxe_relationship_before_variance = list(
+        type = "question",
+        question = "Will you use a relationship matrix?",
+        choices = list(
+          "No" = "set_main_effects",
+          "Yes" = "gxe_environment_variance"
+        )
+      ),
+
+      gxe_environment_variance = list(
+        type = "question",
+        question = "Enough data to estimate environment-specific variances?",
+        choices = list(
+          "No" = "gxe_measure_no_variance",
+          "Yes" = "gxe_measure_yes_variance"
+        )
+      ),
+
+      gxe_measure_no_variance = list(
+        type = "question",
+        question = "Do you want to measure?",
+        choices = list(
+          "Overall performance" = "set_compound_symmetry",
+          "Response to environment" = "gxe_env6_fw"
+        )
+      ),
+
+      gxe_env6_fw = list(
+        type = "question",
+        question = "Do you have at least 6 environments?",
+        choices = list(
+          "Yes" = "set_finlay_wilkinson",
+          "No" = "not_enough_data"
+        )
+      ),
+
+      gxe_measure_yes_variance = list(
+        type = "question",
+        question = "Do you want to measure?",
+        choices = list(
+          "Overall performance" = "set_main_diagonal",
+          "Environment-specific performance" = "set_diagonal",
+          "Response to environment" = "gxe_env6_fa"
+        )
+      ),
+
+      gxe_env6_fa = list(
+        type = "question",
+        question = "Do you have at least 6 environments?",
+        choices = list(
+          "Yes" = "set_fa",
+          "No" = "not_enough_data"
+        )
+      ),
+
+      ## ===== MODEL SETTERS =====
+      set_main_effects = list(
+        type = "set_model",
+        model_label = "Main effects model",
+        radio = "mn_model",
+        `next` = "som_relationship"
+      ),
+
+      set_compound_symmetry = list(
+        type = "set_model",
+        model_label = "Compound symmetric model",
+        radio = "cs_model",
+        `next` = "som_relationship"
+      ),
+
+      set_finlay_wilkinson = list(
+        type = "set_model",
+        model_label = "Finlay-Wilkinson model",
+        radio = "fw_model",
+        `next` = "som_relationship"
+      ),
+
+      set_diagonal = list(
+        type = "set_model",
+        model_label = "Diagonal model",
+        radio = "dg_model",
+        `next` = "som_relationship"
+      ),
+
+      set_main_diagonal = list(
+        type = "set_model",
+        model_label = "Main + diagonal model",
+        radio = "mndg_model",
+        `next` = "som_relationship"
+      ),
+
+      set_fa = list(
+        type = "set_model",
+        model_label = "FA model",
+        radio = "fa_model",
+        `next` = "som_relationship"
+      ),
+
+      set_ad_gtgv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects A+D model",
+        merit_label = "GTGV",
+        radio = "ad_model",
+        covar = "Relationship structure_GenoAD",
+        message = "Recommended model: Main effects A+D model + GTGV."
+      ),
+
+      ## ===== SURROGATE OF MERIT =====
+      som_relationship = list(
+        type = "question",
+        question = "Will you use a relationship matrix?",
+        choices = list(
+          "No" = "som_tgv",
+          "Yes" = "som_kind"
+        )
+      ),
+
+      som_kind = list(
+        type = "question",
+        question = "Which kind?",
+        choices = list(
+          "Pedigree" = "som_ebv",
+          "Genomic" = "som_genomic_model"
+        )
+      ),
+
+      som_genomic_model = list(
+        type = "question",
+        question = "Do you want to model?",
+        choices = list(
+          "Only additive effects" = "som_gebv",
+          "Additive + other genetic effects" = "som_gtgv"
+        )
+      ),
+
+      som_tgv = list(
+        type = "terminal_merit",
+        merit_label = "TGV",
+        covar = "none"
+      ),
+
+      som_ebv = list(
+        type = "terminal_merit",
+        merit_label = "EBV",
+        covar = "Relationship structure_Pedigree"
+      ),
+
+      som_gebv = list(
+        type = "terminal_merit",
+        merit_label = "GEBV",
+        covar = "Relationship structure_GenoA"
+      ),
+
+      som_gtgv = list(
+        type = "terminal_merit",
+        merit_label = "GTGV",
+        covar = "Relationship structure_GenoAD"
+      ),
+
+      ## ===== HYBRID PATH =====
+      hybrid_material = list(
+        type = "question",
+        question = "What type of breeding material is under selection?",
+        choices = list(
+          "Line" = "hybrid_testcross",
+          "Hybrid" = "gxe_important"
+        )
+      ),
+
+      hybrid_testcross = list(
+        type = "question",
+        question = "Is the phenotypic data coming from testcrosses?",
+        choices = list(
+          "No" = "set_main_effects",
+          "Yes" = "hybrid_tester"
+        )
+      ),
+
+      hybrid_tester = list(
+        type = "question",
+        question = "Is there more than one tester?",
+        choices = list(
+          "No" = "set_gca",
+          "Yes" = "hybrid_specific_combinations"
+        )
+      ),
+
+      hybrid_specific_combinations = list(
+        type = "question",
+        question = "Are you interested in advancing specific hybrid combinations at this stage?",
+        choices = list(
+          "No" = "set_gca",
+          "Yes" = "set_sca_gca"
+        )
+      ),
+
+      set_gca = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "GCA model",
+        merit_label = "GCA",
+        radio = "gca_model",
+        covar = "none",
+        message = "Recommended model: GCA model."
+      ),
+
+      set_sca_gca = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "GCA + SCA model",
+        merit_label = "SCA/GCA",
+        radio = "both_model",
+        covar = "none",
+        message = "Recommended model: GCA + SCA model."
+      ),
+
+      ## ===== CLONE PATH =====
+      clone_type = list(
+        type = "question",
+        question = "Type of selection",
+        choices = list(
+          "Advancement" = "gxe_important",
+          "Recycling" = "clone_genomic"
+        )
+      ),
+
+      clone_genomic = list(
+        type = "question",
+        question = "Will you use genomic data?",
+        choices = list(
+          "Yes" = "set_ad_gtgv",
+          "No" = "clone_pedigree"
+        )
+      ),
+
+      clone_pedigree = list(
+        type = "question",
+        question = "Will you use pedigree information?",
+        choices = list(
+          "Yes" = "clone_ebv",
+          "No" = "clone_tgv"
+        )
+      ),
+
+      clone_ebv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects model",
+        merit_label = "EBV",
+        radio = "mn_model",
+        covar = "Relationship structure_Pedigree",
+        message = "Recommended model: Main effects model + EBV."
+      ),
+
+      clone_tgv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects model",
+        merit_label = "TGV",
+        radio = "mn_model",
+        covar = "none",
+        message = "Recommended model: Main effects model + TGV."
+      ),
+
+      ## ===== LANDRACES PATH =====
+      landrace_objective = list(
+        type = "question",
+        question = "Objective",
+        choices = list(
+          "Diversity maintenance" = "landrace_diversity_relationship",
+          "Breeding" = "landrace_local_adaptation"
+        )
+      ),
+
+      landrace_diversity_relationship = list(
+        type = "question",
+        question = "Are you using a relationship matrix?",
+        choices = list(
+          "No" = "landrace_diversity_tgv",
+          "Yes" = "landrace_diversity_kind"
+        )
+      ),
+
+      landrace_diversity_kind = list(
+        type = "question",
+        question = "Which kind?",
+        choices = list(
+          "Pedigree" = "landrace_diversity_ebv",
+          "Genomic" = "landrace_diversity_genomic_model"
+        )
+      ),
+
+      landrace_diversity_genomic_model = list(
+        type = "question",
+        question = "Do you want to model?",
+        choices = list(
+          "Only additive effects" = "landrace_diversity_gebv",
+          "Additive + other genetic effects" = "landrace_diversity_gtgv"
+        )
+      ),
+
+      landrace_diversity_tgv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects model",
+        merit_label = "TGV",
+        radio = "mn_model",
+        covar = "none",
+        message = "Recommended model: Main effects model + TGV."
+      ),
+
+      landrace_diversity_ebv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects model",
+        merit_label = "EBV",
+        radio = "mn_model",
+        covar = "Relationship structure_Pedigree",
+        message = "Recommended model: Main effects model + EBV."
+      ),
+
+      landrace_diversity_gebv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects model",
+        merit_label = "GEBV",
+        radio = "mn_model",
+        covar = "Relationship structure_GenoA",
+        message = "Recommended model: Main effects model + GEBV."
+      ),
+
+      landrace_diversity_gtgv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects model",
+        merit_label = "GTGV",
+        radio = "mn_model",
+        covar = "Relationship structure_GenoAD",
+        message = "Recommended model: Main effects model + GTGV."
+      ),
+
+      landrace_local_adaptation = list(
+        type = "question",
+        question = "Is the material locally adapted?",
+        choices = list(
+          "No" = "do_not_use_for_breeding",
+          "Yes" = "landrace_breeding_relationship"
+        )
+      ),
+
+      landrace_breeding_relationship = list(
+        type = "question",
+        question = "Are you using a relationship matrix?",
+        choices = list(
+          "No" = "landrace_breeding_tgv",
+          "Yes" = "landrace_breeding_env6"
+        )
+      ),
+
+      landrace_breeding_tgv = list(
+        type = "terminal",
+        available = TRUE,
+        model_label = "Main effects model",
+        merit_label = "TGV",
+        radio = "mn_model",
+        covar = "none",
+        message = "Recommended model: Main effects model + TGV."
+      ),
+
+      landrace_breeding_env6 = list(
+        type = "question",
+        question = "Do you have at least 6 environments?",
+        choices = list(
+          "No" = "not_enough_data",
+          "Yes" = "set_fa"
+        )
+      ),
+
+      ## ===== NON-APPLICABLE TERMINALS =====
+      not_enough_data = list(
+        type = "terminal",
+        available = FALSE,
+        model_label = "Not enough data",
+        merit_label = NA_character_,
+        radio = NA_character_,
+        covar = NA_character_,
+        message = "Not enough data for this response-to-environment path."
+      ),
+
+      do_not_use_for_breeding = list(
+        type = "terminal",
+        available = FALSE,
+        model_label = "Do not use for breeding",
+        merit_label = NA_character_,
+        radio = NA_character_,
+        covar = NA_character_,
+        message = "Recommendation: do not use this landrace material for breeding."
+      )
+    )
+
+    mtaWizard <- reactiveValues(
+      open = FALSE,
+      node = "start",
+      history = character(),
+      model_label = NULL,
+      radio = NULL,
+      terminal = NULL,
+      applied_covar = NULL
+    )
+
+    mtaWizardEnterNode <- function(nodeId) {
+      node <- mtaWizardTree[[nodeId]]
+
+      while (!is.null(node) && identical(node$type, "set_model")) {
+        mtaWizard$model_label <- node$model_label
+        mtaWizard$radio <- node$radio
+        nodeId <- node[["next"]]
+        node <- mtaWizardTree[[nodeId]]
+      }
+
+      if (!is.null(node) && identical(node$type, "terminal_merit")) {
+        mtaWizard$terminal <- list(
+          type = "terminal",
+          available = TRUE,
+          model_label = mtaWizard$model_label,
+          merit_label = node$merit_label,
+          radio = mtaWizard$radio,
+          covar = node$covar,
+          message = paste0(
+            "Recommended model: ",
+            mtaWizard$model_label,
+            "."
+          )
+        )
+      } else if (!is.null(node) && identical(node$type, "terminal")) {
+        mtaWizard$terminal <- node
+      } else {
+        mtaWizard$terminal <- NULL
+      }
+
+      mtaWizard$node <- nodeId
+    }
+
+    observeEvent(input$mtaWizardStart, {
+      mtaWizard$open <- TRUE
+      mtaWizard$history <- character()
+      mtaWizard$model_label <- NULL
+      mtaWizard$radio <- NULL
+      mtaWizard$terminal <- NULL
+      mtaWizardEnterNode("start")
+    })
+
+    observeEvent(input$mtaWizardNext, {
+      node <- mtaWizardTree[[mtaWizard$node]]
+      req(node)
+      req(input$mtaWizardAnswer)
+
+      mtaWizard$history <- c(mtaWizard$history, mtaWizard$node)
+      mtaWizardEnterNode(input$mtaWizardAnswer)
+    })
+
+    observeEvent(input$mtaWizardBack, {
+      if (length(mtaWizard$history) > 0) {
+        previous <- tail(mtaWizard$history, 1)
+        mtaWizard$history <- head(mtaWizard$history, -1)
+        mtaWizard$terminal <- NULL
+        mtaWizardEnterNode(previous)
+      }
+    })
+
+    observeEvent(input$mtaWizardReset, {
+      mtaWizard$history <- character()
+      mtaWizard$model_label <- NULL
+      mtaWizard$radio <- NULL
+      mtaWizard$terminal <- NULL
+      mtaWizard$applied_covar <- NULL
+      mtaWizardEnterNode("start")
+    })
+
+    observeEvent(input$mtaWizardClose, {
+      mtaWizard$open <- FALSE
+    })
+
+    observeEvent(input$mtaWizardApply, {
+      rec <- mtaWizard$terminal
+      req(rec)
+      req(isTRUE(rec$available))
+
+      mtaWizard$applied_covar <- rec$covar
+      updateRadioButtons(session, "radio", selected = rec$radio)
+
+      showNotification(
+        paste0("Applied: ", rec$message),
+        type = "message"
+      )
+    })
+
+    output$mtaWizardPanel <- renderUI({
+      if (!isTRUE(mtaWizard$open)) return(NULL)
+
+      node <- mtaWizardTree[[mtaWizard$node]]
+      rec <- mtaWizard$terminal
+
+      if (!is.null(rec)) {
+        return(
+          tags$div(
+            style = "background:white;color:#000;padding:12px;border-radius:6px;margin-top:12px;",
+            tags$h4(strong("Recommendation")),
+            tags$p(rec$message),
+            if (!is.null(rec$model_label) && !is.na(rec$model_label)) {
+              tags$p(tags$b("Model: "), rec$model_label)
+            },
+            if (!is.null(rec$covar) && !is.na(rec$covar)) {
+              tags$p(tags$b("Designation covariance structure: "), rec$covar)
+            },
+            tags$div(
+              style = "display:flex;gap:8px;flex-wrap:wrap;",
+              if (isTRUE(rec$available)) {
+                actionButton(ns("mtaWizardApply"), "Apply recommendation", icon = icon("check"))
+              },
+              actionButton(ns("mtaWizardBack"), "Back", icon = icon("arrow-left")),
+              actionButton(ns("mtaWizardReset"), "Start over", icon = icon("rotate-left")),
+              actionButton(ns("mtaWizardClose"), "Close", icon = icon("xmark"))
+            )
+          )
+        )
+      }
+
+      choices <- node$choices
+      choiceValues <- unlist(choices, use.names = FALSE)
+      names(choiceValues) <- names(choices)
+
+      tags$div(
+        style = "background:white;color:#000;padding:12px;border-radius:6px;margin-top:12px;",
+        tags$h4(strong(node$question)),
+        radioButtons(
+          ns("mtaWizardAnswer"),
+          label = NULL,
+          choices = choiceValues,
+          selected = choiceValues[[1]]
+        ),
+        tags$div(
+          style = "display:flex;gap:8px;flex-wrap:wrap;",
+          actionButton(ns("mtaWizardNext"), "Next", icon = icon("arrow-right")),
+          if (length(mtaWizard$history) > 0) {
+            actionButton(ns("mtaWizardBack"), "Back", icon = icon("arrow-left"))
+          },
+          actionButton(ns("mtaWizardReset"), "Start over", icon = icon("rotate-left")),
+          actionButton(ns("mtaWizardClose"), "Close", icon = icon("xmark"))
+        )
+      )
+    })
+
+
+    # output$plotDataDependencies <- shiny::renderPlot({ dependencyPlot() })
+    ############################################################################ clear the console
+    hideAll <- reactiveValues(clearAll = TRUE)
+    observeEvent(data(), {
+      hideAll$clearAll <- TRUE
+    })
+
+
+    ################
+    ## sommer engine status
+    output$statusSommer <- renderUI({
+      ready <- requireNamespace("sommer", quietly = TRUE) &&
+        utils::packageVersion("sommer") >= "4.5.25" &&
+        requireNamespace("cgiarPipeline", quietly = TRUE) &&
+        "metSommer" %in% getNamespaceExports("cgiarPipeline")
+      div(style = if (ready) "color:green;" else "color:brown;",
+          if (ready) paste("sommer", utils::packageVersion("sommer"), "- no license required")
+          else "Install sommer >= 4.5.25 and a cgiarPipeline version exporting metSommer.")
+    })
+    #################
+    ## version
+    observeEvent(data(), {
+      req(data())
+      dtMtaSommer <- data() # dtMtaSommer <- result
+      dtMtaSommer <- dtMtaSommer$status
+      dtMtaSommerGeno <- dtMtaSommer[which(dtMtaSommer$module == "qaGeno"),]
+      dtMtaSommer <- dtMtaSommer[which(dtMtaSommer$module %in% c("sta","soa")),]
+      traitsMtaSommer <- unique(dtMtaSommer$analysisId)
+      traitsMtaSommerGeno <- unique(dtMtaSommerGeno$analysisId)
+
+      if(length(traitsMtaSommerGeno)==0){traitsMtaSommerGeno="No data available"}
+
+      if(length(traitsMtaSommer) > 0){
+        if("analysisIdName" %in% colnames(dtMtaSommer)){
+          names(traitsMtaSommer) <- paste(dtMtaSommer$analysisIdName, as.POSIXct(traitsMtaSommer, origin="1970-01-01", tz="GMT"), sep = "_")
+        }else{
+          names(traitsMtaSommer) <- as.character(as.POSIXct(traitsMtaSommer, origin="1970-01-01", tz="GMT"))
+        }
+      }
+      updateSelectInput(session, "version2MtaSommer", choices = traitsMtaSommer)
+      updateSelectInput(session, "version2MtaSommerGeno", choices = traitsMtaSommerGeno)
+    })
+    #################
+    ## data example loading
+    observeEvent(
+      input$launch,
+      if(length(input$launch) > 0){
+        if (input$launch) {
+          shinyWidgets::ask_confirmation(
+            inputId = ns("myconfirmation"),
+            text = "Are you sure you want to load the example data? This will delete any data currently in the environment.",
+            title = "Data replacement warning"
+          )
+        }
+      }
+    )
+    observeEvent(input$myconfirmation, {
+      if (isTRUE(input$myconfirmation)) {
+        shinybusy::show_modal_spinner('fading-circle', text = 'Loading example...')
+        ## replace tables
+        exampleEnv <- new.env()
+        utils::data(DT_example, package = "cgiarPipeline", envir = exampleEnv)
+        result <- exampleEnv$result
+        tmp <- cgiarBase::create_getData_object()
+        if(!is.null(result$data)){tmp$data <- result$data}
+        if(!is.null(result$metadata)){tmp$metadata <- result$metadata}
+        if(!is.null(result$modifications)){tmp$modifications <- result$modifications}
+        if(!is.null(result$predictions)){tmp$predictions <- result$predictions}
+        if(!is.null(result$metrics)){tmp$metrics <- result$metrics}
+        if(!is.null(result$modeling)){tmp$modeling <- result$modeling}
+        if(!is.null(result$status)){tmp$status <- result$status}
+        data(tmp) # update data with results
+        shinybusy::remove_modal_spinner()
+      }else{
+        shinyWidgets::updatePrettySwitch(session, "launch", value = FALSE)
+      }
+    }, ignoreNULL = TRUE)
+    #################
+    # show shinyWidgets until the user can use the module (after sta)
+    observeEvent(c(data(), input$version2MtaSommer), {
+      req(data())
+      mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+      if(mappedColumns == 3 & length(input$version2MtaSommer)>0 ){
+        golem::invoke_js('showid', ns('holder3'))
+        golem::invoke_js('showid', ns('holder4'))
+        golem::invoke_js('showid', ns('holder5'))
+        golem::invoke_js('showid', ns('holder6'))
+      }else{
+        golem::invoke_js('hideid', ns('holder3'))
+        golem::invoke_js('hideid', ns('holder4'))
+        golem::invoke_js('hideid', ns('holder5'))
+        golem::invoke_js('hideid', ns('holder6'))
+      }
+    })
+    #################
+    # warning message
+    output$warningMessage <- renderUI(
+      if(is.null(data())){
+        HTML( as.character(div(style="color: red; font-size: 20px;", "Please retrieve or load your phenotypic data using the 'Data Retrieval' tab.")) )
+      }else{ # data is there
+        mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
+        if(mappedColumns == 3){
+          if(any(c("sta","soa") %in% data()$status$module)){
+            HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the multi occurrence analysis specifying your input parameters under the Input tabs.")) )
+          }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform single occurrence analysis before performing a the multi occurrence analysis.")) ) }
+        }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
+      }
+    )
+    #################
+    ## traits available
+    observeEvent(c(data(), input$version2MtaSommer), {
+      req(data())
+      req(input$version2MtaSommer)
+      dtMtaSommer <- data()
+      dtMtaSommer <- dtMtaSommer$predictions
+      dtMtaSommer <- dtMtaSommer[which(dtMtaSommer$analysisId %in% input$version2MtaSommer),]
+      traitsMtaSommer <- unique(dtMtaSommer$trait)
+      updateSelectInput(session, "trait2MtaSommer", choices = traitsMtaSommer)
+      updateSelectInput(session, "traitCor", choices = traitsMtaSommer)
+      updateSelectInput(session, "traitConnect", choices = traitsMtaSommer)
+      updateSelectInput(session, "evaluationUnitsTrait", choices = traitsMtaSommer)
+      updateSelectInput(session, "traitMetrics", choices = traitsMtaSommer, selected = traitsMtaSommer)
+    })
+    observeEvent(c(data(),input$version2MtaSommer), { # update parameter
+      req(data())
+      req(input$version2MtaSommer)
+      dtMtaSommer <- data()
+      dtMtaSommer <- dtMtaSommer$metrics
+      dtMtaSommer <- dtMtaSommer[which(dtMtaSommer$analysisId %in% input$version2MtaSommer),] # only traits that have been QA
+      metricsMtaSommerInput <- unique(dtMtaSommer$parameter)
+      updateSelectInput(session, "parameterMetrics", choices = metricsMtaSommerInput)
+    })
+    #################
+    ## TPP ID Menu - conditionalPanel output and observers
+    ## Controls visibility of TPP_ID_Menu and updates Trait_Menu with TPP traits
+
+    # Output flag for conditionalPanel: TRUE when TPP data exists
+    output$tppDataAvailableSommer <- reactive({
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      return(length(tpp_ids) > 0)
+    })
+    outputOptions(output, "tppDataAvailableSommer", suspendWhenHidden = FALSE)
+
+    # Update TPP_ID_Menu choices when data changes
+    observeEvent(data(), {
+      req(data())
+      tpp_ids <- tpp_get_tpp_ids(data())
+      tpp_choices <- c("None" = "")
+      if (length(tpp_ids) > 0) {
+        named_tpp <- stats::setNames(tpp_ids, tpp_ids)
+        tpp_choices <- c(tpp_choices, named_tpp)
+      }
+      updateSelectInput(session, "tppIdMenuSommer", choices = tpp_choices)
+    })
+
+    # Store standard pheno traits for restoration when TPP_ID is set to "None"
+    tppStandardTraitsSommer <- reactiveVal(character(0))
+
+    # Update stored standard traits when version changes (trait list refreshed)
+    observeEvent(c(data(), input$version2MtaSommer), {
+      req(data())
+      req(input$version2MtaSommer)
+      dtMtaSommer <- data()
+      dtMtaSommer <- dtMtaSommer$predictions
+      dtMtaSommer <- dtMtaSommer[which(dtMtaSommer$analysisId %in% input$version2MtaSommer),]
+      traitsMtaSommer <- unique(dtMtaSommer$trait)
+      tppStandardTraitsSommer(traitsMtaSommer)
+    }, priority = 10)
+
+    # Observer for TPP_ID_Menu changes
+    observeEvent(input$tppIdMenuSommer, {
+      req(data())
+      req(input$version2MtaSommer)
+
+      tpp_id <- input$tppIdMenuSommer
+      pheno_traits <- tppStandardTraitsSommer()
+
+      if (is.null(tpp_id) || tpp_id == "") {
+        # "None" selected: restore standard phenotypic traits only
+        updateSelectInput(session, "trait2MtaSommer", choices = pheno_traits)
+      } else {
+        # Valid TPP_ID selected: validate, get filtered traits, build choices
+        validation <- tpp_validate_metadata(data(), tpp_id)
+        if (!validation$valid) {
+          warning(paste("TPP metadata validation failed for", tpp_id, ":", validation$message))
+          updateSelectInput(session, "trait2MtaSommer", choices = pheno_traits)
+          return()
+        }
+
+        tpp_traits_df <- tpp_get_filtered_traits(data(), tpp_id)
+        new_choices <- tpp_build_trait_choices(pheno_traits, tpp_traits_df, tpp_id)
+        updateSelectInput(session, "trait2MtaSommer", choices = new_choices)
+      }
+    }, ignoreInit = TRUE)
+
+    #################
+    # plots
+    output$barplotPredictionsMetrics <- plotly::renderPlotly({
+      req(data())
+      req(input$version2MtaSommer)
+      dtMtaSommer <- data()
+      mydata <- dtMtaSommer$metrics
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaSommer),]
+      mydata = mydata[which(mydata$parameter %in% input$parameterMetrics),]
+      mydata = mydata[which(mydata$trait %in% input$traitMetrics),]
+      p <- ggplot2::ggplot(data=mydata, ggplot2::aes(x=environment, y=value, fill=trait)) +
+        ggplot2::geom_bar(stat="identity", position=ggplot2::position_dodge())+
+        ggplot2::theme_minimal()+  ggplot2::ggtitle("Metrics associated to the SOA stamp selected")
+      if(input$checkbox1){
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+      }else{
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+      }
+      plotly::ggplotly(p)
+    })
+
+    # functions for checking pedigree (father) data
+    is_valid_fatherCol <- function(x) {
+      !is.null(x) && length(x) > 0 && !is.na(x) && nzchar(x)
+    }
+
+    has_pedigree_data <- function(x) {
+      if(!is.null(data()$data$pedigree)){
+        x %in% colnames(data()$data$pedigree) &
+          !all(is.na(data()$data$pedigree[[x]]))
+      } else{
+        FALSE
+      }
+    }
+
+    #enable and disable radio buttons when detect pedigree data
+    observeEvent(c(data(),input$version2MtaSommerGeno),{
+      req(data())
+      req(input$version2MtaSommerGeno)
+      fatherCol <- NULL
+      if(!is.null(data()$metadata$pedigree)){
+        if("father" %in% data()$metadata$pedigree$parameter){
+          fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+        }
+      }
+
+      if(is_valid_fatherCol(fatherCol)){
+        if(has_pedigree_data(fatherCol)){ #pedrigree data exist
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', false);", ns("radio")))
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', false);", ns("radio")))
+        }else{
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', true);", ns("radio")))
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', true);", ns("radio")))
+        }
+      }else{
+        shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"both_model\"]').prop('disabled', true);", ns("radio")))
+        shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"gca_model\"]').prop('disabled', true);", ns("radio")))
+      }
+
+        if(input$version2MtaSommerGeno!="No data available"){
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', false);", ns("radio")))
+        }else{
+          shinyjs::runjs(sprintf("$('input[name=\"%s\"][value=\"ad_model\"]').prop('disabled', true);", ns("radio")))
+        }
+
+    })
+
+    #################
+    ## nTermsFixed
+    observeEvent(c(data(), input$version2MtaSommer, input$radio), {
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$radio)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2MtaSommer),]
+      envs <- unique(dtMta[,"environment"])
+      envsDg <- paste0("env",envs)
+      if (input$radio == "ad_model") {
+        n2 <- 2  # <- add 'f' alongside 'environment'
+      }else{n2 <- 1}
+      updateNumericInput(session, "nTermsFixed", value = n2, step = 1, min = 1, max=10)
+    })
+    #################
+    ## nTermsRandom
+    observeEvent(c(data(), input$version2MtaSommer, input$radio), {
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$radio)
+      dtMta <- data()
+      dtMta <- dtMta$predictions
+      dtMta <- dtMta[which(dtMta$analysisId %in% input$version2MtaSommer),]
+      envs <- unique(dtMta[,"environment"])
+      envsDg <- paste0("env",envs)
+      if (input$radio == "ad_model" | input$radio == "cs_model" | input$radio == "fw_model" | input$radio == "mndg_model" | input$radio == "gca_model" | input$radio == "fa_model") {
+        n <- 2
+      }else if( input$radio == "both_model" ){
+        n <- 3
+      }else{n <- 1}
+      updateNumericInput(session, "nTermsRandom", value = n, step = 1, min = 1, max=10)
+    })
+    ## fixed effects
+    output$leftSidesFixed <- renderUI({ # input <- list(version2Mta=result$status$analysisId[3], trait2Mta="YLD_TON",nTermsFixed=1)
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$trait2MtaSommer)
+      req(input$nTermsFixed)
+      req(input$radio)
+      dtMta <- data() # dtMta <- result
+      mydata <- dtMta$predictions #
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaSommer),]
+      metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("pipeline","stage","environment","year","season","timepoint","country","location","trial","study","management")),]
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
+      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
+      mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
+      #WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(object=dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
+      #mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
+
+      choices <- setdiff(colnames(mydata), c("predictedValue","stdError","reliability","analysisId","module") )
+	  choices <- c("none",sort(c("inbreeding",choices)))
+      envs <- unique(mydata[,"environment"])
+      envs <- gsub(" ", "",envs )
+      envsDg <- paste0("env",envs)
+      if(input$radio == "ad_model"){
+        lapply(1:input$nTermsFixed, function(i) {
+          defaultFixed <- character()
+          if (i == 1) {
+            defaultFixed <- "environment"
+          } else if (i == 2 && input$radio == "ad_model") {
+            defaultFixed <- "inbreeding"
+          }
+          selectInput(
+            session$ns(paste0('leftSidesFixed', i)),
+            label = ifelse(i == 1, "Fixed Effects", ""),
+            choices = choices,multiple = TRUE,selected = defaultFixed
+          )
+        })
+      }else{
+      lapply(1:input$nTermsFixed, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesFixed',i)),
+            label = ifelse(i==1, "Fixed Effects",""),
+            choices = choices, multiple = TRUE, selected = "environment"
+          )
+        })
+      }
+    })
+    ## left formula (actual effects)
+    output$leftSidesRandom <- renderUI({
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$trait2MtaSommer)
+      req(input$nTermsRandom)
+      req(input$radio)
+      dtMta <- data()
+      mydata <- dtMta$predictions #
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaSommer),]
+      # choices
+      metaPheno <- dtMta$metadata$pheno[which(dtMta$metadata$pheno$parameter %in% c("pipeline","stage","environment","year","season","timepoint","country","location","trial","study","management")),]
+      otherMetaCols <- unique(dtMta$data$pheno[,metaPheno$value,drop=FALSE])
+      colnames(otherMetaCols) <- cgiarBase::replaceValues(Source = colnames(otherMetaCols), Search = metaPheno$value, Replace = metaPheno$parameter )
+      otherMetaCols <- otherMetaCols[which(!duplicated(otherMetaCols[,"environment"])),,drop=FALSE] # we do this in case the users didn't define the environment properly
+      mydata <- merge(mydata, otherMetaCols, by="environment", all.x = TRUE)
+      #WeatherRow <- as.data.frame(cgiarPipeline::summaryWeather(dtMta, wide=TRUE)); WeatherRow$environment <- rownames(WeatherRow)
+      #mydata <- merge(mydata, WeatherRow, by="environment", all.x = TRUE)
+      choices <- c( setdiff( setdiff(colnames(mydata),"designation"), c("predictedValue","stdError","reliability","analysisId","module") ), "designation")
+      #fwvars <- colnames(WeatherRow)[grep("envIndex",colnames(WeatherRow))]
+      # selected
+      choices<-sort(c(choices,"envIndex"))
+      #envs <- unique(mydata[,"environment"])
+      #envs <- gsub(" ", "",envs )
+      #envsDg <- paste0("env",envs)
+      #envsDg2 <- paste0(rep("environment",10),"")
+      #desDg <-rep("designation",length(envsDg))
+      if ( input$radio == "cs_model" | input$radio == "mndg_model" | input$radio == "fa_model") {
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"designation"}else if(i==2){sort(c("designation","environment"))}  else{"designation"}
+          )
+        })
+      }else if ( input$radio == "ad_model" ) {
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"designation"} else{"designation"}
+          )
+        })
+      }else if( input$radio == "dg_model" ){ # DIAG model
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){sort(c("designation","environment"))}else{"designation"}
+          )
+        })
+      }else if(input$radio == "fw_model"){ # FW model
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"designation"}else if(i==2){sort(c("designation","envIndex"))}else{"designation"}
+          )
+        })
+      }else if(input$radio == "gca_model"){ # GCA
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom', i)),
+            label = ifelse(i == 1, "Random Effects", ""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"mother"}else if(i==2){"father"}  else {"designation"}
+          )
+        })
+      }else if(input$radio == "both_model"){ # SCA/GCA
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom', i)),
+            label = ifelse(i == 1, "Random Effects", ""),
+            choices = choices, multiple = TRUE,
+            selected = if(i==1){"mother"}else if(i==2){"father"}else if(i==3){"designation"} else {"designation"}
+          )
+        })
+      }else { # main model specified
+        lapply(1:input$nTermsRandom, function(i) {
+          selectInput(
+            session$ns(paste0('leftSidesRandom',i)),
+            label = ifelse(i==1, "Random Effects",""),
+            choices = choices, multiple = TRUE,
+            selected = "designation"
+          )
+        })
+      }
+    })
+    # right-side equation (Cov structure)
+    output$rightSidesRandom <- renderUI({
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$trait2MtaSommer)
+      req(input$nTermsRandom)
+      req(input$radio)
+      req(input$version2MtaSommerGeno)
+      mydata <- data()$predictions #
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaSommer),]
+
+      fatherCol <- NULL
+      if(!is.null(data()$metadata$pedigree)){
+        if("father" %in% data()$metadata$pedigree$parameter){
+          fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+        }
+      }
+
+      if(is_valid_fatherCol(fatherCol)){
+        if(input$version2MtaSommerGeno!="No data available" & has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#geno,pedrigree,weather data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaSommerGeno!="No data available" & has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#geno,pedrigree, NO weather data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaSommerGeno!="No data available" & !has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#geno and NO pedrigree data
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaSommerGeno!="No data available" & !has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#geno and NO pedrigree data, NO weather
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaSommerGeno=="No data available" & has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#NO geno and pedrigree, weather data
+          choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaSommerGeno=="No data available" & has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#NO geno and pedrigree, NO weather data
+          choices <- c("Relationship structure_Pedigree","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaSommerGeno=="No data available" & !has_pedigree_data(fatherCol) & !is.null(data()$data$weather)){#NO geno and NO pedrigree data weather
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaSommerGeno=="No data available" & !has_pedigree_data(fatherCol) & is.null(data()$data$weather)){#NO geno and NO pedrigree data NO weather
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
+        }
+      }else{
+        if(input$version2MtaSommerGeno!="No data available" & !is.null(data()$data$weather)){#geno and NO pedrigree data,weather
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaSommerGeno!="No data available" & is.null(data()$data$weather)){#geno and NO pedrigree data,no weather
+          choices <- c("Relationship structure_GenoA","Relationship structure_GenoD","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+        }
+        if(input$version2MtaSommerGeno=="No data available" & !is.null(data()$data$weather)){#NO geno and NO pedrigree data,weather
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us","weatherInfo")
+        }
+        if(input$version2MtaSommerGeno=="No data available" & is.null(data()$data$weather)){#NO geno and NO pedrigree data,no weather
+          choices <- c("Structure model_fa","Structure model_diag","Structure model_us")
+        }
+      }
+
+
+      choices <- sort(choices)
+
+      wizardCovar <- mtaWizard$applied_covar
+
+      useWizardCovar <- function(i, default, choices) {
+
+        if (
+          is.null(wizardCovar) ||
+          is.na(wizardCovar) ||
+          !wizardCovar %in% choices
+        ) {
+          return(default)
+        }
+
+        lhs <- input[[paste0("leftSidesRandom", i)]]
+
+        if (is.null(lhs) || !"designation" %in% lhs) {
+          return(default)
+        }
+
+        out <- default
+        out[which(lhs == "designation")] <- wizardCovar
+        out
+      }
+
+
+      if(input$radio=="mndg_model"){
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
+          if (i==1){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }else if(i==2){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(
+                i,
+                c("none", "Structure model_diag"),
+                choices
+              ))
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }
+        })
+      }else if(input$radio=="dg_model"){
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
+          if(i==1){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(
+                i,
+                c("none", "Structure model_diag"),
+                choices
+              ))
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }
+        })
+      }else if(input$radio=="fa_model"){
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
+          if (i==1){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }else if(i==2){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(
+                i,
+                c("none", "Structure model_fa"),
+                choices
+              ))
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }
+        })
+      }else if(input$radio=="gca_model" & input$version2MtaSommerGeno!="No data available"){
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
+          if (i==1){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoA"))
+          }else if(i==2){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoA"))
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }
+        })
+      }else if(input$radio=="both_model" & input$version2MtaSommerGeno!="No data available"){
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
+          if (i==1){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoA"))
+          }else if(i==2){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoA"))
+          }else if(i==3){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoD"))
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }
+        })
+      }else if(input$radio=="ad_model" & input$version2MtaSommerGeno!="No data available"){
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          noness <- c("none","none.","none..","none...", "none....")
+          if (i==1){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoD"))
+          }else if(i==2){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = c("Relationship structure_GenoA"))
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }
+        })
+      }else{
+        lapply(1:input$nTermsRandom, function(i) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          tempval <- length(eval( parse(text = tempval() ) ))
+          #choices <- c("Relationship structure_Geno","Relationship structure_Pedigree","Relationship structure_GenoAD","Structure model_fa","Structure model_diag","Structure model_us")
+          noness <- c("none","none.","none..","none...", "none....")
+
+          if (i==1){
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = tags$span("Covariance of random effect based on:",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Select one relationship or structure model for each random effect in a white box.")),
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }else{
+            choices<-c(noness[1:tempval],choices)
+            selectInput(
+              inputId=session$ns(paste0('rightSidesRandom',i)),
+              label = "",
+              choices = choices, multiple = TRUE,
+              selected = useWizardCovar(i, noness[1:tempval], choices))
+          }
+        })
+      }
+
+    })
+    # inputFormula summarizing the fixed effects
+    inputFormulaFixed = reactive({
+      req(data());  req(input$version2MtaSommer);  req(input$trait2MtaSommer); req(input$nTermsFixed)
+      if (length(input$trait2MtaSommer) != 0) {
+        values <- vector(mode = "list", length = input$nTermsFixed)
+        for (i in 1:input$nTermsFixed) {
+          tempval <- reactive({paste0('input$','leftSidesFixed',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
+      }
+    })
+    # inputFormula summarizing the random effects
+    inputFormulaRandom = reactive({
+      req(data());  req(input$version2MtaSommer);  req(input$trait2MtaSommer); req(input$nTermsRandom)
+      if (length(input$trait2MtaSommer) != 0) {
+        values <- vector(mode = "list", length = input$nTermsRandom)
+        for (i in 1:input$nTermsRandom) {
+          tempval <- reactive({paste0('input$','leftSidesRandom',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
+      }
+    })
+    # inputFormula summarizing the covariates
+    inputFormulaCovars = reactive({
+      req(data());  req(input$version2MtaSommer);  req(input$trait2MtaSommer); req(input$nTermsRandom)
+      if (length(input$trait2MtaSommer) != 0) {
+        values <- vector(mode = "list", length = input$nTermsRandom)
+        for (i in 1:input$nTermsRandom) {
+          tempval <- reactive({paste0('input$','rightSidesRandom',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
+      }
+    })
+    ####number of factor analytic
+    output$nFATerm <- renderUI({
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$trait2MtaSommer)
+      req(input$nTermsRandom)
+      #req(input$rightSidesRandom)
+      dtMtaSommer <- data() # dtMtaSommer <- result
+      dtMtaSommer <- dtMtaSommer$predictions #
+      dtMtaSommer <- dtMtaSommer[which(dtMtaSommer$analysisId %in% input$version2MtaSommer),]
+
+      lapply(1:input$nTermsRandom, function(i) {
+        tempval <- reactive({paste0('input$','rightSidesRandom',i)})
+        s1 <- eval( parse(text = tempval() ) )
+        if("Structure model_fa"%in%s1){
+          tempval2 <- reactive({paste0('input$','leftSidesRandom',i)})
+          s2 <- eval( parse(text = tempval2() ) )
+          s2 <- s2[which(s1 == "Structure model_fa")][1]
+          envs <- if (s2 %in% colnames(dtMtaSommer)) unique(dtMtaSommer[,s2]) else character()
+          n2 <- max(1, length(envs)-1)
+          if(i==1){
+            numericInput(
+              inputId=session$ns(paste0('nFATerm',i)),
+              label = tags$span("FA term",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Number of factor analytic term in the Structure model_fa.")),
+              value = min(2, n2),step=1,min=1,max=n2)
+          }else{
+            numericInput(
+              inputId=session$ns(paste0('nFATerm',i)),
+              label = "",
+              value = min(2, n2),step=1,min=1,max=n2)
+          }
+        }else{
+          if(i==1){
+          numericInput(
+            inputId=session$ns(paste0('nFATerm',i)),
+            label = tags$span("FA term",tags$i(class = "glyphicon glyphicon-info-sign",style = "color:#FFFFFF",title = "Number of factor analytic term in the Structure model_fa.")),
+            value = 0,step=0,min=0,max=0)
+          }else{
+            numericInput(
+              inputId=session$ns(paste0('nFATerm',i)),
+              label = "",
+              value = 0,step=0,min=0,max=0)
+          }
+        }
+
+      })
+
+    })
+    # inputFormula summarizing the nFATerm
+    inputFormulanFATerm = reactive({
+      req(data());  req(input$version2MtaSommer);  req(input$trait2MtaSommer); req(input$nTermsRandom)
+      if (length(input$trait2MtaSommer) != 0) {
+        values <- vector(mode = "list", length = input$nTermsRandom)
+        for (i in 1:input$nTermsRandom) {
+          tempval <- reactive({paste0('input$','nFATerm',i)})
+          s1 <- eval( parse(text = tempval() ) )
+          values[[i]] <- s1
+        }
+        return(values)
+      }
+    })
+    # model-term inputs must exist even if the user never opens the "Form your model" tab
+    for (termOutput in c("leftSidesFixed", "leftSidesRandom", "rightSidesRandom", "nFATerm")) {
+      outputOptions(output, termOutput, suspendWhenHidden = FALSE)
+    }
+    #################
+    # reactive table for trait family distributions
+    dtDistTrait = reactive({
+      traitNames = input$trait2MtaSommer
+      mm = matrix(0,nrow = 4, ncol = length(traitNames));
+      rownames(mm) <- c("gaussian", "binomial", "Gamma", "poisson")
+      colnames(mm) <- traitNames
+      dtProvTable = as.data.frame(mm);  colnames(dtProvTable) <- traitNames
+      return(dtProvTable)
+    })
+    xx = reactiveValues(df = NULL)
+    observe({
+      df <- dtDistTrait()
+      xx$df <- df
+    })
+    output$traitDistMet = DT::renderDT(xx$df,
+                                       selection = 'none',
+                                       editable = TRUE,
+                                       server = FALSE,
+                                       options = list(
+                                         scrollX = FALSE,
+                                         autoWidth = FALSE
+                                       )
+    )
+    proxy = DT::dataTableProxy('traitDistMet')
+    observeEvent(input$traitDistMet_cell_edit, {
+      info = input$traitDistMet_cell_edit
+      utils::str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      xx$df[i, j] <- isolate(DT::coerceValue(v, xx$df[i, j]))
+    })
+
+    #################
+    # reactive table for environments to be included
+    dtFieldMet = reactive({
+      req(data())
+      req(input$version2MtaSommer)
+      dtMtaSommer <- data()
+      dtProv = dtMtaSommer$predictions
+      if(!is.null(dtProv)){
+        dtProv <- dtProv[which(dtProv$analysisId %in% input$version2MtaSommer),]
+        dtProvTable=  as.data.frame( do.call( rbind, list (with(dtProv, table(environment,trait)) ) ) )
+        bad <- which(dtProvTable <= 1, arr.ind = TRUE)
+        if(nrow(bad) > 0){dtProvTable[bad] = 0}
+        dtProvTable[which(dtProvTable > 1, arr.ind = TRUE)] = 1
+      }else{dtProvTable <- data.frame()}
+      return(dtProvTable)
+    })
+    x = reactiveValues(df = NULL)
+    observe({
+      df <- dtFieldMet()
+      x$df <- df
+    })
+    # scrollX splits header/body into separate tables whose widths are wrong when drawn inside a hidden box
+    output$fieldsMet = DT::renderDT(x$df, selection = 'none', editable = TRUE, server = FALSE, options = list(scrollX = FALSE, autoWidth = FALSE))
+    proxy = DT::dataTableProxy('fieldsMet')
+    observeEvent(input$fieldsMet_cell_edit, {
+      info = input$fieldsMet_cell_edit
+      utils::str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      x$df[i, j] <- isolate(DT::coerceValue(v, x$df[i, j]))
+    })
+    #################
+    ## render timestamps flow plot
+    output$plotTimeStamps <- shiny::renderPlot({
+      req(data())
+      build_network_plot(data()$status, data()$modeling)
+    })
+    #################
+    ## render table of evaluation units
+    output$evaluationUnits <-  shiny::renderPlot({ #DT::renderDT({
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$evaluationUnitsTrait)
+      object <- data()
+      if(!is.null(object$predictions)){
+        phenoNames <- na.omit(unique(object$predictions[which(object$predictions$analysisId %in% input$version2MtaSommer  &  object$predictions$trait == input$evaluationUnitsTrait),"designation"]))
+      }else{ phenoNames <- character() }
+
+      if(!is.null(object$data$geno)){
+        genoNames <- rownames(as.data.frame(object$data$geno))
+      }else{ genoNames <- character() }
+
+      fatherCol <- NULL
+      if(!is.null(data()$metadata$pedigree)){
+        if("father" %in% data()$metadata$pedigree$parameter){
+          fatherCol <- data()$metadata$pedigree[which(data()$metadata$pedigree$parameter == 'father'),'value']
+        }
+      }
+
+      if(is_valid_fatherCol(fatherCol)){
+        if(has_pedigree_data(fatherCol)){
+          metaPed <- object$metadata$pedigree
+          pedCols <- metaPed[which(metaPed$parameter %in% c("designation","mother","father")), "value"]
+          pedCols <- setdiff(pedCols,"")
+          pedNames <- na.omit(unique(unlist(as.vector(object$data$pedigree[,pedCols, drop=FALSE]))))
+        } else{ pedNames <- character() }
+      }else{ pedNames <- character() }
+
+      if(!is.null(object$data$qtl)){
+        metaQtl <- object$metadata$qtl
+        qtlCols <- metaQtl[which(metaQtl$parameter %in% c("designation")), "value"]
+        qtlCols <- setdiff(qtlCols,"")
+        qtlNames <- na.omit(unique(object$data$qtl[,qtlCols]))
+      }else{ qtlNames <- character() }
+
+      splitAggregate <- list(phenoNames, genoNames, pedNames, qtlNames)
+      names(splitAggregate) <- c("With-Phenotype","With-Genotype","With-Pedigree","With-QTL")
+
+      nagm <- matrix(0,length(splitAggregate),length(splitAggregate)); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      midval <- (max(nagm, na.rm = TRUE) - min(nagm, na.rm = TRUE) )/2
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+ ggplot2::ggtitle("Available data for this trait.") +
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = midval, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity (data types)") +
+        ggplot2::theme_minimal()+
+        ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = 3 ) +
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,  hjust = 1, face = "bold"))+
+        ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1,  hjust = 1, face = "bold")) +
+        ggplot2::coord_fixed()
+      p
+    })
+    #####################
+    ## render connectivity plot
+    observeEvent(c(data(),input$version2MtaSommer), { # update entry types included in the plot
+      req(data())
+      req(input$version2MtaSommer)
+      dtMtaSommer <- data()
+      dtMtaSommer <- dtMtaSommer$predictions
+      dtMtaSommer <- dtMtaSommer[which(dtMtaSommer$analysisId %in% input$version2MtaSommer),] # only traits that have been QA
+      entryTypeMtaSommerInput <- unique(dtMtaSommer$entryType)
+      updateSelectInput(session, "entryTypeMtaSommer", choices = c(entryTypeMtaSommerInput,"Generic"), selected = "Generic")
+    })
+    output$plotPredictionsSparsity <- shiny::renderPlot({
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$entryTypeMtaSommer)
+      dtMtaSommer <- data()
+      mydata <- dtMtaSommer$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaSommer),] # only PREDICTIONS FROM THE SOA
+      if(!"Generic" %in% input$entryTypeMtaSommer){
+        mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMtaSommer),]
+      }
+      M <- table(mydata$designation, mydata$environment)
+      M2 <- matrix(M, nrow = nrow(M), ncol = ncol(M))
+      validate(need(nrow(M2) > 0 && ncol(M2) > 0, "No predictions available for the selected entry types."))
+      envRange <- min(input$slider2[1], ncol(M2)):min(input$slider2[2], ncol(M2))
+      genoRange <- min(input$slider1[1], nrow(M2)):min(input$slider1[2], nrow(M2))
+      M2 <- M2[genoRange, envRange, drop=FALSE]
+      Matrix::image(as(t(M2), Class = "dgCMatrix"), xlab="Genotypes", ylab="Environments", colorkey=TRUE)
+    })
+    # render correlation plot
+    output$plotPredictionsCor <-  shiny::renderPlot({
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$traitCor)
+      req(input$heatmapFontSizeCor)
+      dtMtaSommer <- data()
+      mydata <- dtMtaSommer$predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaSommer),] # only PREDICTIONS FROM THE SOA
+      predictions.gcorrE <- subset(mydata, select = c(trait,designation,environment,predictedValue))
+      predictions.gcorrE2 <- predictions.gcorrE[predictions.gcorrE$trait == input$traitCor, ]
+      wide <- stats::reshape(predictions.gcorrE2,
+                             direction = "wide", idvar = "designation",
+                             timevar = "environment", v.names = "predictedValue", sep= "")
+      colnames(wide) <- gsub("predictedValue","",colnames(wide))
+      wide2 <- as.data.frame(wide[,-c(1:2)]); colnames(wide2) <- colnames(wide)[-c(1:2)]
+      corr <- round(stats::cor(wide2, use="pairwise.complete.obs"),2)
+      mydata4 <- cgiarBase::matToTab(corr)
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "#E46726", high = "#038542", mid = "white",
+                                      midpoint = 0, limit = c(-1,1), space = "Lab",
+                                      name="Pearson\nCorrelation") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      if(!is.null(input$checkboxTextCor)){ # if user wants to fill cell values
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = round(Freq,2) ), color = "black", size = max(c(input$heatmapFontSizeCor-3, 1)))
+      }
+      if(!is.null(input$checkboxAxisCor)){ # if user wants to add axis labels
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face="bold"))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSizeCor, hjust = 1, face = "bold"))
+      }else{
+        p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
+      }
+      p
+
+    })
+    # render sparsity plot
+    output$plotPredictionsConnectivity <-  shiny::renderPlot({ # plotly::renderPlotly({
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$traitConnect)
+      req(input$entryTypeMtaSommer)
+      req(input$heatmapFontSize)
+      dtMtaSommer <- data()
+      mydata <- dtMtaSommer$predictions # extract predictions
+      mydata <- mydata[which(mydata$analysisId %in% input$version2MtaSommer),] # only PREDICTIONS FROM THE SOA
+      mydata <- mydata[which(mydata$trait %in% input$traitConnect),] # only PREDICTIONS FROM Trait selected
+      if(!"Generic" %in% input$entryTypeMtaSommer){ # use an specific type of entries
+        mydata <- mydata[which(mydata[,"entryType"] %in% input$entryTypeMtaSommer),]
+      }
+      splitAggregate <- with(mydata,  split(mydata[,"designation"],mydata[,"environment"]) ) # split by environment
+      splitAggregate <- lapply(splitAggregate,unique); nag <- length(splitAggregate) # get unique individual names
+      nagm <- matrix(0,nag,nag); rownames(nagm) <- colnames(nagm) <- names(splitAggregate) # prefilled matrix
+      for(i in 1:length(splitAggregate)){ # fill the matrix of intersection of individuals between pair of environments
+        for(j in 1:i){
+          nagm[i,j] <- length(intersect(splitAggregate[[i]],splitAggregate[[j]]))
+        }
+      }
+      nagm[upper.tri(nagm)] <- t(nagm)[upper.tri(nagm)] # fill the upper triangular
+      mydata4 <- cgiarBase::matToTab(nagm) # matrix to a dataframe for plot
+      maxVal <- max(nagm, na.rm = TRUE) # get the maximum value found in the matrix of connectivity
+      p <- ggplot2::ggplot(data = mydata4, ggplot2::aes(Var2, Var1, fill = Freq))+
+        ggplot2::geom_tile(color = "white")+
+        ggplot2::scale_fill_gradient2(low = "firebrick", high = "#038542", mid = "gold",
+                                      midpoint = maxVal/2, limit = c(0,maxVal), space = "Lab",
+                                      name="Connectivity") +
+        ggplot2::theme_minimal()+
+        ggplot2::ylab("") + ggplot2::xlab("") +
+        ggplot2::coord_fixed()
+      if(!is.null(input$checkboxText)){ # if user wants to add text to the cells
+        p <- p + ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", size = max(c(input$heatmapFontSize-3,1)))
+      }
+      if(!is.null(input$checkboxAxis)){ # if user wants to add labels to the axis
+        p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))+
+          ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, vjust = 1, size = input$heatmapFontSize, hjust = 1, face = "bold"))
+      }else{
+        p <- p + ggplot2::theme( axis.text.x=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank() )
+      }
+      p
+    })
+
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+    ###################################
+
+    report <- reactiveVal(NULL)
+
+    observeEvent(input$renderReportMtaSommer,{
+      shinybusy::show_modal_spinner(spin = "fading-circle", text = "Generating Report...")
+
+      result <- data()
+
+      src <- normalizePath(system.file("rmd","reportMtaSommer.Rmd",package="bioflow"))
+
+      reportDir <- tempfile("mta-report-")
+      dir.create(reportDir)
+      session$onSessionEnded(function() unlink(reportDir, recursive = TRUE))
+      on.exit(shinybusy::remove_modal_spinner(), add = TRUE)
+      reportSource <- file.path(reportDir, "report.Rmd")
+      file.copy(src, reportSource, overwrite = TRUE)
+
+      outReport <- tryCatch(
+        rmarkdown::render(reportSource, params = list(toDownload=TRUE),
+                          envir = environment(),
+                          switch("HTML", HTML = rmdformats::robobook(toc_depth = 4))),
+        error = function(e) {
+          shiny::showNotification(paste("Dashboard could not be generated:", conditionMessage(e)), type = "error", duration = NULL)
+          NULL
+        }
+      )
+      req(outReport)
+
+      report(outReport)
+
+      shinybusy::remove_modal_spinner()
+
+      shinyjs::click("downloadReportMtaSommer")
+    })
+
+    output$downloadReportMtaSommer <- downloadHandler(
+      filename = function() {
+        paste0("MtaSommer_dashboard_", gsub("-", "", Sys.Date()), ".html")
+      },
+      content = function(file) {
+        out <- report()
+        if (is.null(out) || !file.copy(out, file, overwrite = TRUE)) stop("Unable to copy the dashboard download.")
+      }
+    )
+
+    ## render result of "run" button click
+    outMtaSommer1 <- eventReactive(input$runMtaSommer, {
+    #outMtaSommer <- eventReactive(input$runMtaSommer, {
+      req(data())
+      req(input$version2MtaSommer)
+      req(input$trait2MtaSommer)
+      req(input$nTermsFixed)
+      req(input$nTermsRandom)
+
+      shinybusy::show_modal_spinner('fading-circle', text = 'Processing...')
+      on.exit(shinybusy::remove_modal_spinner(), add = TRUE)
+      dtMtaSommer <- data()
+      # inputFormulationFixed <- inputFormulaRandom()
+      # saveRDS(inputFormulationFixed, file = "inputFormulationFixed.rds")
+      # run the modeling, but before test if sta was done
+      if(sum(dtMtaSommer$status$module %in% c("sta","soa")) == 0) {
+        output$qaQcMtaSommerInfo <- renderUI({
+          if (hideAll$clearAll)
+            return()
+          else
+            req(dtMtaSommer)
+          HTML(as.character(div(style="color: brown;",
+                                "Please perform Single Occurrence Analysis before conducting a Multi Occurrence Analysis when using a two-stage analysis."))
+          )
+        })
+        return(invisible(NULL))
+      }else{ # sta is available
+
+        output$qaQcMtaSommerInfo <- renderUI({return(NULL)})
+
+        # family distributions input
+        myFamily = apply(xx$df,2,function(y){rownames(xx$df)[which(y > 0)[1]]})
+        dontHaveDist <- which(is.na(myFamily))
+        if(length(dontHaveDist) > 0){myFamily[dontHaveDist] <- "gaussian"}
+
+        # as.matrix keeps environment row names even when only one environment is available
+        myEnvsTI = as.matrix(x$df)
+
+
+        #analysisId=input$version2MtaSommer
+        #fixedTerm= input$TermsFixed
+        #randomTerm=input$TermsRandom
+        #envsToInclude=myEnvsTI
+        #trait= input$trait2MtaSommer
+        #traitFamily=myFamily
+        #useWeights=TRUE
+        #modelo=input$radio
+        #modeloG=input$radioModel
+        #calculateSE=TRUE
+        #heritLB= as.numeric(unlist(strsplit(input$heritLBMet,",")))
+        #heritUB= as.numeric(unlist(strsplit(input$heritUBMet,",")))
+        #meanLB = as.numeric(unlist(strsplit(input$meanLBMet,",")))
+        #meanUB = as.numeric(unlist(strsplit(input$meanUBMet,",")))
+        #maxIters=input$maxitMet
+		#
+        #save(dtMtaSommer,analysisId,fixedTerm, randomTerm, envsToInclude,trait, traitFamily, useWeights,modelo, modeloG,
+        #     calculateSE, heritLB,  heritUB, meanLB, meanUB, maxIters,file="METsommer.RData")
+
+        ## --- TPP Analysis Config Assembly (Req 3.2, 7.3, 8.3) ---
+        tpp_id_selected <- input$tppIdMenuSommer
+        if (!is.null(tpp_id_selected) && nzchar(tpp_id_selected)) {
+          tpp_traits_df <- tpp_get_filtered_traits(dtMtaSommer, tpp_id_selected)
+          tpp_mapping <- tpp_resolve_trait_mapping(input$trait2MtaSommer, tpp_traits_df, tpp_id_selected)
+          dtMtaSommer$metadata$tpp_analysis_config <- list(
+            tpp_id = tpp_id_selected,
+            trait_map = tpp_mapping$pheno_map,
+            env_map = tpp_mapping$env_map
+          )
+        } else {
+          dtMtaSommer$metadata$tpp_analysis_config <- NULL
+        }
+        ## --- End TPP Analysis Config Assembly ---
+
+        result <- try(
+          cgiarPipeline::metSommer(
+            phenoDTfile= dtMtaSommer, analysisId=input$version2MtaSommer,analysisIdgeno=input$version2MtaSommerGeno,
+            fixedTerm= inputFormulaFixed(),  randomTerm=inputFormulaRandom(), covMod=inputFormulaCovars(), addG=inputFormulaCovars(),nFA=inputFormulanFATerm(),
+            envsToInclude=myEnvsTI, trait= input$trait2MtaSommer, traitFamily=myFamily, useWeights=TRUE,
+            calculateSE=TRUE, heritLB= as.numeric(unlist(strsplit(input$heritLBMet,","))),
+            heritUB= as.numeric(unlist(strsplit(input$heritUBMet,","))),
+            meanLB = as.numeric(unlist(strsplit(input$meanLBMet,","))),
+            meanUB = as.numeric(unlist(strsplit(input$meanUBMet,","))),
+            maxIters=input$maxitMet,  verbose=TRUE
+          ),
+          silent=TRUE
+        )
+
+        if(!inherits(result,"try-error") ) {
+          if("analysisIdName" %in% colnames(result$status) ){result$status$analysisIdName[nrow(result$status)] <- input$analysisIdName}
+          data(result) # update data with results
+          cat(paste("Multi occurrence analysis step with id:",as.POSIXct(result$status$analysisId[length(result$status$analysisId)], origin="1970-01-01", tz="GMT"),"saved. Please proceed to construct a selection index using this time stamp."))
+          updateTabsetPanel(session, "tabsMain", selected = "outputTabs")
+        }else{
+          cat(paste("Analysis failed with the following error message: \n\n",result[[1]]))
+          shiny::showNotification(paste("Analysis failed:", result[[1]]), type = "error", duration = NULL)
+        }
+      }
+      #save(result,file="sommerResult.RData")
+      shinybusy::remove_modal_spinner()
+
+      if(!inherits(result,"try-error")) { # if all goes well in the run
+        ## alert status converge (direct call: an observer here would pile up with every run)
+        local({
+          modeling <- result$modeling
+          MtaSommers <- result$status[which(result$status$module == moduleCode),"analysisId"]
+          MtaSommerId <- MtaSommers[length(MtaSommers)]
+          modeling <- modeling[which(modeling$analysisId == MtaSommerId),]
+          modeling <- subset(modeling, select = -c(module,analysisId))
+          vmod<-modeling[which(modeling$parameter=="convergence"),c("trait","value")]
+          cmod<-c()
+          for(imod in seq_len(nrow(vmod))){
+            if(vmod$value[imod]=="TRUE"){
+              cmod[imod]<-paste("<font color=\"#008000\"><b>", vmod[imod,2], "</b></font>", " for trait ", vmod[imod,1])
+              #paste("div(style='color: green;', 'Convergence status: ",vmod[imod,2]," for trait: ",vmod[imod,1],"')")
+            }else{
+              cmod[imod]<-paste("<font color=\"#FF0000\"><b>", vmod[imod,2], "</b></font>", " for trait ", vmod[imod,1])
+              #paste("div(style='color: red;', 'Convergence status: ",vmod[imod,2]," for trait: ",vmod[imod,1],"')")
+            }
+          }
+          #vmod<-apply(vmod,1,function(x){paste0("Convergence status ",x[2]," for trait ",x[1])})
+          cmod<-paste(cmod,collapse="<br>")
+          shinyWidgets::show_alert(
+            inputId = ns("mystatus"),
+            text = HTML(cmod),
+            title = "Convergence status",
+            type= "info",
+            html= TRUE
+          )
+        })
+        ## predictions table
+        output$predictionsMtaSommer <-  DT::renderDT({
+          predictions <- result$predictions
+          predictions <- predictions[predictions$module==moduleCode,]
+          predictions$analysisId <- as.numeric(predictions$analysisId)
+          predictions <- predictions[!is.na(predictions$analysisId),]
+          current.predictions <- predictions[predictions$analysisId==max(predictions$analysisId),]
+          current.predictions <- subset(current.predictions, select = -c(module,analysisId))
+          numeric.output <- c("predictedValue", "stdError", "reliability")
+          DT::formatRound(DT::datatable(current.predictions, extensions = 'Buttons',
+                                        options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                       lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+          ), numeric.output)
+        }, server = FALSE)
+        # metrics table
+        output$metricsMtaSommer <-  DT::renderDT({
+          if(!inherits(result,"try-error") ){
+            metrics <- result$metrics
+            MtaSommers <- result$status[which(result$status$module == moduleCode),"analysisId"]
+            MtaSommerId <- MtaSommers[length(MtaSommers)]
+            metrics <- metrics[which(metrics$analysisId == MtaSommerId),]
+            metrics <- subset(metrics, select = -c(module,analysisId))
+            numeric.output <- c("value", "stdError")
+            DT::formatRound(DT::datatable(metrics, extensions = 'Buttons',
+                                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            ), numeric.output)
+          }
+        }, server = FALSE)
+        # modeling table
+        output$modelingMtaSommer <-  DT::renderDT({
+          if(!inherits(result,"try-error") ){
+            modeling <- result$modeling
+            MtaSommers <- result$status[which(result$status$module == moduleCode),"analysisId"]
+            MtaSommerId <- MtaSommers[length(MtaSommers)]
+            modeling <- modeling[which(modeling$analysisId == MtaSommerId),]
+            modeling <- subset(modeling, select = -c(module,analysisId))
+            DT::datatable(modeling, extensions = 'Buttons',
+                          options = list(dom = 'Blfrtip',scrollX = TRUE,buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                         lengthMenu = list(c(10,20,50,-1), c(10,20,50,'All')))
+            )
+          }
+        }, server = FALSE)
+        ## Report tab
+        output$reportMtaSommer <- renderUI({
+          params <- list(toDownload = FALSE)
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd","reportMtaSommer.Rmd",package="bioflow"), output = tempfile(fileext = ".md"), quiet = TRUE), fragment.only=TRUE))
+          # HTML(markdown::markdownToHTML(knitr::knit("./R/reportMta.Rmd", quiet = TRUE), fragment.only=TRUE))
+        })
+
+      } else {
+        output$predictionsMtaSommer <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$metricsMtaSommer <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        output$modelingMtaSommer <- DT::renderDT({DT::datatable(NULL)}, server = FALSE)
+        hideAll$clearAll <- TRUE
+      } ### enf of if(!inherits(result,"try-error"))
+
+      hideAll$clearAll <- FALSE
+
+    }) ## end eventReactive
+
+    output$outMtaSommer <- renderPrint({
+      outMtaSommer1()
+    })
+
+    })
+}
+
+
+## To be copied in the UI
+# mod_mtaSommerApp_ui("mtaSommerApp_1")
+
+## To be copied in the server
+# mod_mtaSommerApp_server("mtaSommerApp_1")
+
