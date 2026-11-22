@@ -835,7 +835,7 @@ mod_getDataPheno_server <- function(id, map = NULL, data = NULL, res_auth=NULL){
             output$brapi_trait_map <- renderUI({
               selectInput(
                 inputId  = ns('brapi_traits'),
-                label    = (as.character(p('trait', span('(*required)',style="color:red")))),
+                label    = HTML(as.character(p('trait', span('(*required)',style="color:red")))),
                 multiple = TRUE,
                 choices  = as.list(c('', colnames(temp$data$pheno))),
               )

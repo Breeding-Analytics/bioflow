@@ -553,7 +553,7 @@ if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTra
                          axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
           ggplot2::labs(x="crosses", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
         ply3 <- plotly::ggplotly(p3)
-        myPlots <- c(myPlots, ply3)
+        myPlots <- c(myPlots, list(ply3))
       }
       print(htmltools::tagList( plotly::subplot( myPlots, nrows=1) ) )
       
@@ -593,7 +593,7 @@ if( length(na.omit(unique(predTrait$mother)))> 0 & length(na.omit(unique(predTra
                            axis.text.x = ggplot2::element_text(angle = 45), legend.position = "none") +
             ggplot2::labs(x="crosses", y="Trait value") #+ ggplot2::facet_grid(trait~environment, scales = "free")
           ply3 <- plotly::ggplotly(p3)
-          myPlots <- c(myPlots, ply3)
+          myPlots <- c(myPlots, list(ply3))
         }
         plotly::subplot(myPlots, nrows=1)
         
