@@ -899,7 +899,45 @@ mod_getDataGeno_server <-
             }
           }
 
-          if (!warn_needed) return(NULL)
+          # 4) If a valid sample_id mapping exists, check that the loaded
+          #    genotype names actually occupy the sample_id or designation
+          #    space. If they match neither, warn instead of silently
+          #    mislabeling.
+          mismatch_warn <- FALSE
+          if (!warn_needed) {
+            gl <- temp$data$geno
+            if (!is.null(gl) && inherits(gl, "genlight")) {
+              inds <- as.character(adegenet::indNames(gl))
+              sid_col   <- md_ped$value[md_ped$parameter == "sample_id"]
+              desig_col <- if ("designation" %in% md_ped$parameter) md_ped$value[md_ped$parameter == "designation"] else "designation"
+              if (length(desig_col) != 1 || is.na(desig_col) || identical(desig_col, "")) desig_col <- "designation"
+              sid_vals   <- if (sid_col %in% colnames(ped)) ped[[sid_col]] else character(0)
+              desig_vals <- if (desig_col %in% colnames(ped)) ped[[desig_col]] else character(0)
+              if (length(inds) > 0 && !any(inds %in% sid_vals) && !any(inds %in% desig_vals)) {
+                mismatch_warn <- TRUE
+              }
+            }
+          }
+
+          if (!warn_needed && !mismatch_warn) return(NULL)
+
+          # If the names match neither identifier space, show a distinct
+          # error-style warning and stop here.
+          if (mismatch_warn) {
+            return(HTML(as.character(
+              div(
+                style = "background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:12px;border-radius:6px;margin-bottom:12px;",
+                tags$b("Warning: genotype names match neither sample_id nor designation."),
+                tags$p(
+                  "The individual names in the loaded genotypic data do not correspond to
+                  either the mapped sample_id column or the designation column of your
+                  pedigree. Bioflow will not translate these names. Please check that the
+                  genotypic file and the Pedigree & Geno metadata mapping refer to the same
+                  individuals before proceeding."
+                ),
+              )
+            )))
+          }
 
           # Warning UI
           HTML(as.character(
@@ -958,14 +996,28 @@ mod_getDataGeno_server <-
                 desig_col <- "designation"
               }
 
-              # Build mapping: sample_id -> designation
+              # Build mapping per individual, orientation-aware.
+              # A file name that is itself a designation is shown under
+              # `designation`; a name that resolves via the sample_id column is
+              # shown under `sample_id` with its mapped designation. This covers
+              # designation-keyed, sample_id-keyed and mixed files.
               if (desig_col %in% colnames(ped)) {
-                idx <- match(inds, ped[[col_name]])
-                mapped_designation <- ped[[desig_col]][idx]
+                sid_vals    <- ped[[col_name]]
+                desig_vals  <- ped[[desig_col]]
+
+                is_designation <- inds %in% desig_vals
+                idx            <- match(inds, sid_vals)
+                mapped_desig   <- desig_vals[idx]
+
+                # sample_id column: the file name when it is a sample_id, else blank
+                sample_id_col  <- ifelse(is_designation, NA_character_, inds)
+                # designation column: the name itself when it is already a
+                # designation, otherwise the designation mapped from sample_id
+                designation_col <- ifelse(is_designation, inds, mapped_desig)
 
                 df_out <- data.frame(
-                  sample_id   = inds,
-                  designation = mapped_designation,
+                  sample_id   = sample_id_col,
+                  designation = designation_col,
                   check.names = FALSE,
                   stringsAsFactors = FALSE
                 )
@@ -1965,12 +2017,20 @@ mod_getDataGeno_server <-
           if (is.null(ped_map) || !inherits(gl, "genlight")) return(gl)
 
           inds <- adegenet::indNames(gl)
-          # final name defaults to current sample_id
+          # final name defaults to current individual name
           final <- inds
 
           # build mapping vectors aligned to inds
           m_idx <- match(inds, ped_map$sample_id)
           desig <- ped_map$designation_id[m_idx]
+
+          # Orientation detection (per individual): only names that resolve via
+          # the sample_id column AND are not already a designation are candidates
+          # for translation. This lets a designation-keyed file (or the parental
+          # part of a mixed file) pass through untouched, while sample_id-keyed
+          # individuals are still translated as before.
+          is_designation <- inds %in% ped_map$designation_id
+          translatable   <- !is.na(desig) & nzchar(as.character(desig)) & !is_designation
 
           et_status <- crosstype$status
           if (et_status == "has_f1") {
@@ -1981,13 +2041,14 @@ mod_getDataGeno_server <-
             # cross type for each sample_id in inds
             et_vec <- ped[[et_col]][match(inds, ped[[sid_col]])]
             is_f1  <- toupper(as.character(et_vec)) == "F1"
-            # non-F1: use designation if available
-            use_desig <- !is_f1 & !is.na(desig) & nzchar(as.character(desig))
+            # non-F1, translatable sample_ids: use designation; F1 rows and
+            # already-designation names keep their current name.
+            use_desig <- !is_f1 & translatable
             final[use_desig] <- as.character(desig[use_desig])
-            # F1 rows keep sample_id (no translation)
           } else {
-            # no crossType or all NA or present without F1 -> translate all with available designation
-            use_desig <- !is.na(desig) & nzchar(as.character(desig))
+            # no crossType or all NA or present without F1 -> translate the
+            # sample_id-keyed individuals; leave designation-keyed names as is.
+            use_desig <- translatable
             final[use_desig] <- as.character(desig[use_desig])
           }
 

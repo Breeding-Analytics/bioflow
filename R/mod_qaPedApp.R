@@ -82,7 +82,7 @@ mod_qaPedApp_ui <- function(id) {
 														actionButton(ns("runParms"), "Calculate distributions", icon = icon("play-circle")),
 														br(),
 														br(),
-                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 100, step = 0.01),
+                                                        numericInput(ns('wrongG'),'% wrong (Impossible genotypes >):', value = 5, min = 0, max = 100, step = 0.1),
                                                         wellPanel(
                                                           HTML("<div style='text-align: justify; font-size: 15px; line-height: 1.6; padding: 10px;'>
 										<strong>For each triplet of parents with a child, the veracity
@@ -311,68 +311,26 @@ mod_qaPedApp_server <- function(id, data){
 
     ped_qa_data <- reactiveValues(GRM_metric = NULL, impossible_metric = NULL, thr=list() )
 
-    plot_impossible<-function(peddata,metaped,glgeno){
-      print("Comparison of triplets")
-      #load("data/InputInfo.RData")
-	  utils::data(InputInfo, package = "bioflow")
-      uno=data.frame(value=names(peddata))
-      #tres=merge(uno,dos,by="value")
-      names(peddata)=metaped$parameter[which(metaped$value%in%uno$value==T)]
-      resDMF<-lapply(split(peddata[,c("designation","mother","father")],1:dim(peddata)[1]),unlist)
-      dimres<-unlist(lapply(resDMF,length))
-      useful<-which(dimres==3)
-      #save(peddata,metaped,glgeno,file="ver.RData")
-      if((length(which(dimres==3))*100)/dim(peddata)[1]>=0.8){
-        resDMF<-resDMF[which(dimres==3)]
+    plot_impossible<-function(peddata,metaped,gl, min_coverage = 0.8){
 
-        #CompareTriplets file
-        iupac_map <- c(
-          "A" = "A", "T" = "T", "C" = "C", "G" = "G",
-          "AG" = "R", "CT" = "Y", "GC" = "S", "AT" = "W",
-          "GA" = "R", "TC" = "Y", "CG" = "S", "TA" = "W",
-          "GT" = "K", "AC" = "M", "NN" = "N",
-          "TG" = "K", "CA" = "M"
-        )
-        withProgress(message="Calculating percent of wrong for each designation...",value=0, {
-          # Separar alelos una sola vez
-          alleles <- do.call(rbind, strsplit(glgeno$loc.all, "/", fixed = TRUE))
-          # Lookup hash ultra rápido
-          lookup <- setNames(as.matrix(CompareTriplets[,2:3]), CompareTriplets$Combi)
-          # Conversión a matriz (mucho más rápido que data.frame)
-          geno_matrix <- as.matrix(glgeno)
-          calc_fun <- function(idx){
-            if(all(idx %in% rownames(geno_matrix))) {
-              geno_ind <- t(geno_matrix[idx,,drop=FALSE])
-              geno_ind[is.na(geno_ind)] <- "NN"
-              combi <- apply(cbind(alleles, geno_ind), 1, function(r){
-                a1 <- r[1]
-                a2 <- r[2]
-                g <- r[3:5]
-                g[g=="0"] <- a1
-                g[g=="2"] <- a2
-                g[g=="1"] <- paste0(a1,a2)
-                g[g=="NN"] <- "NN"
-                paste(iupac_map[g], collapse="")
-              })
-              wrtst <- lookup[match(combi, CompareTriplets$Combi),,drop=FALSE]
-              sums <- colSums(wrtst, na.rm=TRUE)
-              c(sums, round(100*sums[1]/sums[2],3))
-          }else{
-              c(NA,NA,NA)
-            }
-          }
-          n <- length(resDMF)
-          resDMF <- lapply(seq_along(resDMF), function(i){
-            incProgress(1/n, detail="processing")
-            calc_fun(resDMF[[i]])
-          })
+      col_of <- function(p) metaped$value[metaped$parameter == p][1]
+      trios <- data.frame(
+        designation = as.character(peddata[[col_of("designation")]]),
+        mother      = as.character(peddata[[col_of("mother")]]),
+        father      = as.character(peddata[[col_of("father")]]),
+        stringsAsFactors = FALSE
+      )
+      me <- withProgress(message = "Computing Mendelian errors per triplet...", value = 0.5,
+                         cgiarGenomics::get_mendelian_error_counts(gl, trios))
 
-        })
-        return(impossible_metric=list(useful,dimres,resDMF))
-      }else{
-        return(impossible_metric=list(useful,dimres))
-      }
+      me$error_rate <- me$error_rate*100
 
+      list(
+        useful   = seq_len(nrow(me)),                 # keep every pedigree row so row indexes still line up
+        coverage = mean(me$pedigree_present),
+        enough   = mean(me$pedigree_present) >= min_coverage,
+        me       = me
+      )
     }
 
     plot_GRM<-function(peddata,metaped,geno,useful){
@@ -418,8 +376,9 @@ mod_qaPedApp_server <- function(id, data){
       uno=data.frame(value=names(peddata))
       names(peddata)=metaped$parameter[which(metaped$value%in%uno$value==T)]
       #save(peddata,GRM_metric,impossible_metric,pwrong,mlong,mborder,mcorrect,flong,fborder,fcorrect,dllcorrect,file="list.RData")
-      namesline=peddata[impossible_metric[[1]],c("designation","mother","father")]
-      QCc<-sapply(impossible_metric[[3]], function(x) x[3])
+      me     <- as.data.frame(impossible_metric$me)[impossible_metric$useful, ]
+      namesline <- me[,c("designation", "mother", "father")]
+      QCc <- me$error_rate
       GmatFL<-GRM_metric[[1]]
       GmatML<-GRM_metric[[2]]
       GmatD_FL<-GRM_metric[[3]]
@@ -434,8 +393,10 @@ mod_qaPedApp_server <- function(id, data){
       finaltab<-finaltab[,c(2,4)]
       finaltab$Final.Classification[is.na(finaltab$Final.Classification)] <- "NO GENO DATA"
       finaltab$Category[is.na(finaltab$Category)] <- "NO GENO DATA"
-      tmp=do.call(rbind,impossible_metric[[3]])
-      tmp=cbind(namesline,tmp,QCc,GRM_metric[[1]],GmatFL,GRM_metric[[2]],GmatML,GRM_metric[[3]],GmatD_FL,finaltab)
+
+      tmp <- cbind(namesline, me[, c("n_errors", "n_evaluated", "error_rate")],
+                   QCc, GRM_metric[[1]], GmatFL, GRM_metric[[2]], GmatML,
+                   GRM_metric[[3]], GmatD_FL, finaltab)
       names(tmp)=c("designation","Mother","Father","wrong","testable","QCPer_wrong","QCPer_wrong_class","G_matrix_Line_Female","G_matrix_Line_Female_Class","G_matrix_Line_Male","G_matrix_Line_Male_Class",
                    "Diagonal_minus_Female_G_matrix","Diagonal_Female_G_matrix_Class","Final_Classification","Status")
       return(tmp)
@@ -454,43 +415,48 @@ mod_qaPedApp_server <- function(id, data){
   ###Inicia boton parametros
   observeEvent(input$runParms, {
 		req(data())
-      req(input$version2qaPed)
-      geno <- data()$data$geno
-      qas <- cgiarBase::resolveGenoStamp(data()$data$geno_imp, input$version2qaPed)
-      req(length(qas) == 1)
-      geno_imp<-data()$data$geno_imp[[qas]]
-      geno<-modifyGeno(geno,geno_imp)
+    req(input$version2qaPed)
+
+    qas <- cgiarBase::resolveGenoStamp(data()$data$geno_imp, input$version2qaPed)
+    req(length(qas) == 1)
+
+    geno <- data()$data$geno
+
+
 	  Markers <- as.data.frame(data()$data$geno_imp[[qas]])
-      peddata<-data()$data$pedigree
-      metaped<-data()$metadata$pedigree
-       shinybusy::show_modal_spinner('fading-circle', text = 'Long process...')
-         impossible_metric=plot_impossible(peddata,metaped,geno)
-         ped_qa_data$impossible_metric=impossible_metric
-		 useful=impossible_metric[[1]]
-         resultgrm=plot_GRM(peddata,metaped,Markers,useful)
-		 GRM_metric=resultgrm[[1]]
-		 thr=resultgrm[[2]]
-        ped_qa_data$GRM_metric=GRM_metric
-        ped_qa_data$thr=thr
-		 maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
-         p <- pmin(maf, 1 - maf)
-         expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
-       shinybusy::remove_modal_spinner()
-      p1<-thr[[1]]
-      p2<-thr[[2]]
-      p3<-thr[[3]]
-      updateNumericInput(session, "GLML", value = round(as.numeric(p1[1]),1))
-      updateNumericInput(session, "GLMC", value = round(as.numeric(p1[2]),1))
-      updateNumericInput(session, "GLFL", value = round(as.numeric(p2[1]),1))
-      updateNumericInput(session, "GLFC", value = round(as.numeric(p2[2]),1))
-      updateNumericInput(session, "GDLMC", value = round(as.numeric(p3[[1]]),1))
-      updateNumericInput(session, "wrongG", value = expected_error)
+    peddata<-data()$data$pedigree
+    metaped<-data()$metadata$pedigree
+    shinybusy::show_modal_spinner('fading-circle', text = 'Long process...')
+      impossible_metric=plot_impossible(peddata,metaped,geno)
+      ped_qa_data$impossible_metric=impossible_metric
+  		useful=impossible_metric$useful
+      resultgrm=plot_GRM(peddata,metaped,Markers,useful)
+  		GRM_metric=resultgrm[[1]]
+  		thr=resultgrm[[2]]
+      ped_qa_data$GRM_metric=GRM_metric
+      ped_qa_data$thr=thr
+
+
+    maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
+    p <- pmin(maf, 1 - maf)
+    expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))), 2)*100
+
+    shinybusy::remove_modal_spinner()
+    p1<-thr[[1]]
+    p2<-thr[[2]]
+    p3<-thr[[3]]
+    updateNumericInput(session, "GLML", value = round(as.numeric(p1[1]),1))
+    updateNumericInput(session, "GLMC", value = round(as.numeric(p1[2]),1))
+    updateNumericInput(session, "GLFL", value = round(as.numeric(p2[1]),1))
+    updateNumericInput(session, "GLFC", value = round(as.numeric(p2[2]),1))
+    updateNumericInput(session, "GDLMC", value = round(as.numeric(p3[[1]]),1))
+    updateNumericInput(session, "wrongG", value = expected_error)
     })
 
     output$hist_wrongG<- plotly::renderPlotly({
       req(ped_qa_data$impossible_metric)
       req(data())
-	  req(input$version2qaPed)
+  	  req(input$version2qaPed)
       geno <- data()$data$geno
       qas <- cgiarBase::resolveGenoStamp(data()$data$geno_imp, input$version2qaPed)
       req(length(qas) == 1)
@@ -498,47 +464,48 @@ mod_qaPedApp_server <- function(id, data){
       geno<-modifyGeno(geno,geno_imp)
       peddata<-data()$data$pedigree
       metaped<-data()$metadata$pedigree
+      im <- ped_qa_data$impossible_metric
 
-        if((length(which(ped_qa_data$impossible_metric[[2]]==3))*100)/dim(peddata)[1]>=0.8){
-          maf <- colMeans(as.matrix(geno), na.rm = TRUE) / 2
-          p <- pmin(maf, 1 - maf)
-          expected_error <- round(mean(p * (1 - p) * (1 - p * (1 - p))) * 100, 1)
-
-          w<-sapply(ped_qa_data$impossible_metric[[3]], function(x) x[3])
-          status <- ifelse(w < expected_error, "GOOD","BAD")
-          status_colors <- c(
-            "GOOD" = "#A8E6A3",         # verde claro
-            "BAD" = "#F5A3A3",      # rojo claro
-            "QUESTIONABLE" = "#F2D16B"  # mostaza claro
-          )
-          df <- data.frame(
-            w = w,
-            status=status
-          )
-          plotly::plot_ly(df, x = ~w, color = ~status, colors=status_colors,type = "histogram",
-                          opacity = 0.6, nbinsx = 60) %>%
-            plotly::layout(
-              title = "Diagnostic Plot",
-              barmode = "overlay",
-              shapes = list(
-                # threshold
-                list(
-                  type = "line",
-                  x0 = expected_error,
-                  x1 = expected_error,
-                  y0 = 0,
-                  y1 = 1,
-                  yref = "paper",
-                  line = list(color = "red", width = 3, dash = "dash")
-                )
+      if(im$enough){
+        w <- im$me$error_rate
+        w <- w[!is.na(w)]
+        # w<-sapply(ped_qa_data$impossible_metric[[3]], function(x) x[3])
+        # status <- ifelse(w < expected_error, "GOOD","BAD")
+        status <- ifelse(w < input$wrongG, "GOOD", "BAD")
+        status_colors <- c(
+          "GOOD" = "#A8E6A3",         # verde claro
+          "BAD" = "#F5A3A3",      # rojo claro
+          "QUESTIONABLE" = "#F2D16B"  # mostaza claro
+        )
+        df <- data.frame(
+          w = w,
+          status=status
+        )
+        plotly::plot_ly(df, x = ~w, color = ~status, colors=status_colors,type = "histogram",
+                        opacity = 0.6, nbinsx = 60) %>%
+          plotly::layout(
+            title = "Diagnostic Plot",
+            barmode = "overlay",
+            shapes = list(
+              # threshold
+              list(
+                type = "line",
+                x0 = input$wrongG,
+                x1 = input$wrongG,
+                y0 = 0,
+                y1 = 1,
+                yref = "paper",
+                line = list(color = "red", width = 3, dash = "dash")
               )
             )
-          #plotly::plot_ly(x = sapply(impossible_metric[[3]], function(x) x[3]),
-          #               type = "histogram",
-          #               name = "Percentage of wrong")
-        }else{
-          ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
-        }
+          )
+        #plotly::plot_ly(x = sapply(impossible_metric[[3]], function(x) x[3]),
+        #               type = "histogram",
+        #               name = "Percentage of wrong")
+
+      }else{
+        ggplot2::ggplot() + ggplot2::ggtitle("Not enough matching information was found")
+      }
     })
 
 
@@ -556,12 +523,12 @@ mod_qaPedApp_server <- function(id, data){
       metaped<-data()$metadata$pedigree
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
-        useful=ped_qa_data$impossible_metric[[1]]
+        useful=ped_qa_data$impossible_metric$useful
         #resultgrm=plot_GRM(peddata,metaped,Markers,useful)
         GRM_metric=ped_qa_data$GRM_metric
         thr=ped_qa_data$thr
         shinybusy::remove_modal_spinner()
-        if( (length(useful)*100)/dim(peddata)[1]>=0.8){
+        if(ped_qa_data$impossible_metric$enough){
 
           thr_low  <- thr[[1]][1]
           thr_high <- thr[[1]][2]
@@ -619,10 +586,10 @@ mod_qaPedApp_server <- function(id, data){
       peddata<-data()$data$pedigree
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
-        useful=ped_qa_data$impossible_metric[[1]]
+        useful=ped_qa_data$impossible_metric$useful
         GRM_metric=ped_qa_data$GRM_metric
         shinybusy::remove_modal_spinner()
-        if((length(useful)*100)/dim(peddata)[1]>=0.8){
+        if(ped_qa_data$impossible_metric$enough){
           thr_low  <- ped_qa_data$thr[[2]][1]
           thr_high <- ped_qa_data$thr[[2]][2]
           status <- ifelse(GRM_metric[[2]] < thr_low, "BAD",
@@ -680,10 +647,10 @@ mod_qaPedApp_server <- function(id, data){
       peddata<-data()$data$pedigree
 
         shinybusy::show_modal_spinner('fading-circle', text = 'Calculated GRM...')
-        useful=ped_qa_data$impossible_metric[[1]]
+        useful=ped_qa_data$impossible_metric$useful
         GRM_metric=ped_qa_data$GRM_metric
         shinybusy::remove_modal_spinner()
-        if((length(useful)*100)/dim(peddata)[1]>=0.8){
+        if(ped_qa_data$impossible_metric$enough){
           means <- c(ped_qa_data$thr[[3]][[2]],ped_qa_data$thr[[3]][[3]])
           threshold <- ped_qa_data$thr[[3]][[1]]
           D = GRM_metric[[3]][!is.na(GRM_metric[[3]])]
@@ -791,8 +758,9 @@ mod_qaPedApp_server <- function(id, data){
 
       decisionped<-try(filters_ped(peddata,metaped,GRM_metric,impossible_metric,input$wrongG,input$GLML,input$GLMB,input$GLMC,
                                  input$GLFL,input$GLFB,input$GLFC,input$GDLMC),
-                       silent=TRUE
+                       silent=FALSE
       )
+
 
       if(!inherits(decisionped,"try-error") ) {
         result<-data()

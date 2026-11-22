@@ -112,6 +112,7 @@ Understanding these data features should allow the scientist to identify trait b
 The following map allows you to assess the location where trials are planted.\n"}`
 
 ```{r, results='asis'}
+result<-data()
 if (is.null(result)){
   # invisible(NULL)
 } else {
@@ -908,6 +909,7 @@ if (is.null(result)){
 
 ```{r, results='asis'}
 predTrait <- result$predictions[which(result$predictions$analysisId == idSta),]
+predTrait$predictedValue<-as.numeric(predTrait$predictedValue)
 
 if("params" %in% ls()){ # we will download the document
   traits <- sort(unique(modeling))
@@ -1002,6 +1004,7 @@ if (is.null(result)){
 } else {
   
   predComp <- result$predictions[which(result$predictions$analysisId == idSta),]
+  predComp$predictedValue<-as.numeric(predComp$predictedValue)
   
   if("params" %in% ls()){ # we will download the document
     
@@ -1199,7 +1202,7 @@ if (is.null(result)){
   # invisible(NULL)
 } else {
   
-  predictions.gcorrE <- subset(pred, select = c(trait,designation,environment,predictedValue))
+  predictions.gcorrE <- subset(predComp, select = c(trait,designation,environment,predictedValue))
   
   # addTextInPlots <- ifelse(length(envs) > 30, FALSE, TRUE)
   if("params" %in% ls()){ # we will download the document

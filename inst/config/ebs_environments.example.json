@@ -1,0 +1,6 @@
+{
+  "environments": [
+    { "match": { "domain": "xxx.ebsproject.org" }, "brapi_prefix": "xxx-cbbrapi", "authorize_url": "https://auth-xxxx.ebsproject.org/oauth2/authorize", "access_url": "https://auth-xxxx.ebsproject.org/oauth2/token", "client_id": "<client-id>", "client_secret": "<client-secret>" },
+    { "match": { "instance": ["test"] }, "brapi_prefix": null, "authorize_url": "https://auth-xxxx.ebsproject.org/oauth2/authorize", "access_url": "https://auth-xxxx.ebsproject.org/oauth2/token", "client_id": "<client-id>", "client_secret": "<client-secret>" }
+  ]
+}

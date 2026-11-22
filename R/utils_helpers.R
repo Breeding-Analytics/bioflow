@@ -5,9 +5,11 @@
 #' @return The return value, if any, from executing the utility.
 #'
 #' @noRd
+NULL
 
 #' Convert pre-EBS module IDs in a loaded analysis object
-#' sta -> soa, mtaLmms -> moaLmms, mtaAsr -> moaAsr
+#'
+#' Maps sta to soa, mtaLmms to moaLmms, mtaAsr to moaAsr.
 #' @noRd
 update_module_ids <- function(object) {
   if (!is.list(object)) return(object)

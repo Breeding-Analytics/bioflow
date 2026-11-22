@@ -411,16 +411,20 @@ mod_bindObjectApp_server <- function(id, data=NULL, res_auth=NULL){
             )
             if(inherits(result1, "try-error")){
               shinybusy::remove_modal_spinner()
-              shinyalert::shinyalert(title = "Failed to bind files!", text = paste0("Could not bind '", input$previous_object_file$name[iFile], "': ", conditionMessage(attr(result1, "condition"))), type = "error")
+              shinyalert::shinyalert(
+                title = "Failed to bind files!",
+                text = paste0("Could not bind '", input$previous_object_file$name[iFile], "': ",
+                              conditionMessage(attr(result1, "condition"))),
+                type = "error")
               return(invisible(NULL))
             }
           }
           result <- result1
         }else{ iFile=1 }
       }
-      if(!exists("result", inherits = FALSE) || !is_valid_bioflow_object(result)){
+      if(!is.list(result)){
         shinybusy::remove_modal_spinner()
-        shinyalert::shinyalert(title = "Failed!", text = "The loaded file(s) did not produce a valid Bioflow object. Your current data was not changed.", type = "error")
+        shinyalert::shinyalert(title = "Failed!", text = "The loaded file(s) did not produce a valid Bioflow object.", type = "error")
         return(invisible(NULL))
       }
       result <- update_module_ids(result)
