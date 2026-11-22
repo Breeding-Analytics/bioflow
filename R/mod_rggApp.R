@@ -230,7 +230,7 @@ mod_rggApp_server <- function(id, data){
         pick2 <- which(colnames(data()$data$pedigree) %in% mappedColName)
         mappedColumns <- length(setdiff(unique(eval(parse(text=paste0("data()$data$pedigree[,",pick2,"]")))),c(NA,"")))
         if(mappedColumns > 0){
-          if(any(c("sta","soa","moaLmms","mta","mtaFlex","moaAsr","mtaLmms","mtaAsr") %in% data()$status$module)){
+          if(any(c("sta","soa","moaLmms","mta","mtaFlex","moaAsr","moaSommer","mtaLmms","mtaAsr") %in% data()$status$module)){
             myYearOfOrigin <- data()$metadata$pedigree[data()$metadata$pedigree$parameter=="yearOfOrigin","value"]
             # if(!is.null(myYearOfOrigin) & !is.na(myYearOfOrigin)){
             if(length(myYearOfOrigin) > 0 && !is.na(myYearOfOrigin) && nzchar(myYearOfOrigin)){
@@ -285,7 +285,7 @@ mod_rggApp_server <- function(id, data){
       if(input$methodRgg == "piepho"){
         dtRgg <- dtRgg[which(dtRgg$module %in% c("sta","soa")),]
       }else if(input$methodRgg == "mackay"){
-        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","moaLmms","moaAsr","mtaLmms","mtaAsr")),] #delete indexD from here because doesn't work
+        dtRgg <- dtRgg[which(dtRgg$module %in% c("mta","mtaFlex","moaLmms","moaAsr","moaSommer","mtaLmms","mtaAsr")),] #delete indexD from here because doesn't work
       }
       traitsRgg <- unique(dtRgg$analysisId)
       if(length(traitsRgg) > 0){

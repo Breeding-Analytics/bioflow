@@ -73,6 +73,25 @@ This code will install an R package named "pak" which is meant to optimize the i
 Then bioflow will be installed as an r package in your computer.
 And the last line in the code will start the application.
 
+### Multi occurrence analysis with sommer
+
+The Multi Occurrence Analysis menu includes a **sommer** engine alongside
+ASReml and LMMsolver. Install sommer >= 4.5.25 and a cgiarPipeline version
+exporting `metSommer()` before using it. No ASReml license is needed.
+
+The sommer tab has its own independent module and report, with a model wizard,
+custom fixed/random terms,
+covariance and relationship menus, SOA/marker stamp selection, TPP trait
+mapping, environment and quality filters, result tables and downloadable
+dashboard. Non-Gaussian families use PQL; merits are on the response scale,
+while fixed coefficients, component BLUPs and slopes remain on the link scale.
+Engine estimates need not equal ASReml estimates.
+The ASReml module and report are unchanged; sommer does not call either.
+
+Results use the `moaSommer` module ID and are available to selection indices
+and the downstream modules accepting multi occurrence analyses. See
+`cgiarPipeline::metSommer` for model and weighting conventions.
+
 ## Cloning the repositories to contribute
 
 You can clone the development version of bioflow like this:

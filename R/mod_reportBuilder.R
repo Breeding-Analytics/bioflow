@@ -139,6 +139,7 @@ mod_reportBuilder_server <- function(id, data){
       if(!is.null(data()$status)){
         traitsBuilder <- unique(data()$status$module)
         names(traitsBuilder) <- cgiarBase::replaceValues(Source = traitsBuilder, Search = c("qaRaw","qaGeno","sta","soa","mta","mtaFlex","moaLmms","moaAsr","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM") , Replace = c("QA phenotypes (qaRaw)", "QA genotypes (qaGeno)", "Single Occurrence Analysis (soa)", "Single Occurrence Analysis (soa)", "Multi Occurrence Analysis (moa)", "Multi Occurrence Analysis (moaFlex)","Multi Occurrence Analysis (moaLmms)", "Multi Occurrence Analysis (moaAsr)","Multi Occurrence Analysis (moaLmms)", "Multi Occurrence Analysis (moaAsr)", "Selection Index (indexD)", "Optimal Cross Selection (ocs)", "Genomic Prediction of Cross Peformance (gpcp)","Realized Genetic Gain (rgg)", "Predicted Genetic Gain (pgg)", "On Farm Trial (oft)", "Number of Founders (ne)", "Genotype verification (gVerif)","Marker assisted selection (mas)", "ABI dashboard (abiDash)", "Population Structure (PopStrM)") )
+        names(traitsBuilder)[traitsBuilder == "moaSommer"] <- "Multi Occurrence Analysis (sommer)"
         updateSelectInput(session, "module", choices = traitsBuilder )
       }
     })
@@ -214,18 +215,30 @@ mod_reportBuilder_server <- function(id, data){
       markdownType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","sta","soa","mta","mtaFlex","moaLmms","moaAsr","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd","reportCoreSet.Rmd") )
       resultType <- cgiarBase::replaceValues(Source = result$status$module[nrow(result$status)], Search = c("qaRaw","qaGeno","sta","soa","mta","mtaFlex","moaLmms","moaAsr","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM","CoreSetM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData","resultCoreSet.RData") )
 
+      isSommer <- tail(result$status$module, 1) == "moaSommer"
+      if (isSommer) {
+        markdownType <- "reportMtaSommer.Rmd"
+        resultType <- "resultMtaSommer.RData"
+      }
       src <- normalizePath(system.file("rmd",markdownType,package="bioflow"))
-      src2 <- normalizePath(paste0('data/',resultType))
+      src2 <- if (!isSommer) normalizePath(paste0('data/',resultType))
 
-      # temporarily switch to the temp dir, in case you do not have write
-      # permission to the current working directory
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
+      reportDir <- tempdir()
+      if (isSommer) {
+        reportDir <- tempfile("sommer-report-")
+        dir.create(reportDir)
+        session$onSessionEnded(function() unlink(reportDir, recursive = TRUE))
+      } else {
+        owd <- setwd(reportDir)
+        on.exit(setwd(owd))
+      }
 
-      file.copy(src, 'report.Rmd', overwrite = TRUE)
-      file.copy(src2, resultType, overwrite = TRUE)
+      reportSource <- file.path(reportDir, "report.Rmd")
+      file.copy(src, reportSource, overwrite = TRUE)
+      if (!isSommer) file.copy(src2, resultType, overwrite = TRUE)
 
-      outReport <- rmarkdown::render('report.Rmd', params = list(toDownload=TRUE ),
+      reportParams <- list(toDownload = TRUE)
+      outReport <- rmarkdown::render(reportSource, params = reportParams,
                                      switch("HTML", HTML = rmdformats::robobook(toc_depth = 4)
                                             # HTML = rmarkdown::html_document()
                                      ))
@@ -249,6 +262,10 @@ mod_reportBuilder_server <- function(id, data){
       result$status <- result$status[c(keepAtTop,moveTotheEnd),]
       markdownType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","soa","mta","mtaFlex","moaLmms","moaAsr","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("reportQaPheno.Rmd","reportQaGeno.Rmd","reportSta.Rmd","reportSta.Rmd","reportMta.Rmd","reportMtaFlex.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportMtaLMMsolver.Rmd","reportMtaASREML.Rmd","reportIndex.Rmd","reportOcs.Rmd","reportGpcp.Rmd","reportRgg.Rmd","reportPgg.Rmd", "reportOft.Rmd", "reportNeGeno.Rmd", "reportVerifGeno.Rmd","reportMas.Rmd","reportAbi.Rmd","reportPopStr.Rmd") )
       resultType <- cgiarBase::replaceValues(Source = input$module, Search = c("qaRaw","qaGeno","sta","soa","mta","mtaFlex","moaLmms","moaAsr","mtaLmms","mtaAsr","indexD","ocs","gpcp","rgg","pgg","oft","neMarker","gVerif","mas","abiDash","PopStrM" ) , Replace = c("resultQaPheno.RData","resultQaGeno.RData","resultSta.RData","resultSta.RData","resultMta.RData", "resultMtaFlex.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultMtaLMMsolver.RData","resultMtaASREML.RData","resultIndex.RData","resultOcs.RData","resultGpcp.RData","resultRgg.RData","resultPgg.RData","resultOft.RData", "resultNeGeno.RData", "resultVerifGeno.RData", "resultMas.RData","resultAbi.RData","resultPopStr.RData") )
+      if (identical(input$module, "moaSommer")) {
+        markdownType <- "reportMtaSommer.Rmd"
+        resultType <- "resultMtaSommer.RData"
+      }
       ## end
       if(!inherits(result,"try-error")) {
         data(result) # update data with results
@@ -323,7 +340,10 @@ mod_reportBuilder_server <- function(id, data){
 
         ## Report tab
         output$reportReport <- shiny::renderUI({
-          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd",markdownType,package="bioflow"), quiet = TRUE), fragment.only=TRUE))
+          if (identical(markdownType, "reportMtaSommer.Rmd")) {
+            params <- list(toDownload = FALSE)
+          }
+          HTML(markdown::markdownToHTML(knitr::knit(system.file("rmd",markdownType,package="bioflow"), output = tempfile(fileext = ".md"), quiet = TRUE), fragment.only=TRUE))
         })
 
         output$downloadReportReport <- shiny::downloadHandler(

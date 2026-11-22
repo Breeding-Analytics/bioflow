@@ -3459,7 +3459,7 @@ mod_preProdAdvApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if( any( c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") %in% data()$status$module ) ){
+          if( any( c("mta","moaAsr","moaSommer","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before Product Advancement")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -3483,7 +3483,7 @@ mod_preProdAdvApp_server <- function(id, data){
       dtSta <- dt[which(dt$module %in% c("sta","soa")),]
       stampsSta <- unique(dtSta$analysisId)
 
-      dtMta <- dt[which(dt$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ),]
+      dtMta <- dt[which(dt$module %in% c("mta","moaAsr","moaSommer","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ),]
       stampsMta <- unique(dtMta$analysisId)
 
       dtIdxD <- dt[which(dt$module %in% c("indexD")),]
@@ -5631,7 +5631,7 @@ mod_preProdAdvApp_server <- function(id, data){
       dt <- data()$status
 
       dtSta <- dt[dt$module %in% c("sta","soa"), , drop = FALSE]
-      dtMta <- dt[dt$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr"), , drop = FALSE]
+      dtMta <- dt[dt$module %in% c("mta","moaAsr","moaSommer","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr"), , drop = FALSE]
       dtIdxD <- dt[dt$module %in% c("indexD"), , drop = FALSE]
 
       dtInitSel  <- dt[dt$module == "Init_prodAdv",  , drop = FALSE]

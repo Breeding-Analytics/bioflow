@@ -19,8 +19,8 @@ if (production_server) {
 
 oauth2_scope <- "openid profile"
 
-modules <- data.frame(module = c("qaRaw","soa","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","moaLmms","qaFilter","qaDesign","qaConsist"),
-                      moduleName = c("Quality Assurance Phenotypes","Single Occurrence Analysis","Multi Occurrence Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MOA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering"))
+modules <- data.frame(module = c("qaRaw","soa","mta","indexD","ocs","rgg","pgg","qaGeno","mas","gVerif","neMarker","popStrM","moaLmms","qaFilter","qaDesign","qaConsist","moaSommer"),
+                      moduleName = c("Quality Assurance Phenotypes","Single Occurrence Analysis","Multi Occurrence Analysis","Selection Indices","Optimal Cross Selection","Realized Genetic Gain","Predicted Genetic Gain","Quality Assurance Genotypes","Marker Assisted Selection","Genotype Verification","Number of Founders","Population Structure","Flexible MOA using LMMsolver","Trial Filtering","Design Filtering","Consistency Filtering","MOA using sommer"))
 
 # NOTE: set cookie function
 set_cookie <- function(session, name, value){
@@ -466,6 +466,7 @@ app_server <- function(input, output, session) {
   mod_oftStaApp_server("oftStaApp_1",data = data) # OFT report
   mod_mtaLMMsolveApp_server("mtaLMMsolveApp_1",data = data)
   mod_mtaASREMLApp_server("mtaASREMLApp_1", data = data)
+  mod_mtaSommerApp_server("mtaSommerApp_1", data = data)
   # mod_mtaRRBLUPApp_server("mtaRRBLUPApp_1", data = data)
   # mod_retrieveMarkerEffectsApp_server("retrieveMarkerEffectsApp_1", data = data)
   # mod_mtaApp_server("mtaApp_1",data = data) # multi occurrence analysis

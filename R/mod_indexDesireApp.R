@@ -251,7 +251,7 @@ mod_indexDesireApp_server <- function(id, data){
       }else{ # data is there
         mappedColumns <- length(which(c("environment","designation","trait") %in% data()$metadata$pheno$parameter))
         if(mappedColumns == 3){
-          if( any( c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") %in% data()$status$module ) ){
+          if( any( c("mta","moaAsr","moaSommer","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") %in% data()$status$module ) ){
             HTML( as.character(div(style="color: green; font-size: 20px;", "Data is complete, please proceed to perform the selection index specifying your input parameters under the Input tabs.")) )
           }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please perform a Multi Occurrence Analysis before performing a selection index")) ) }
         }else{HTML( as.character(div(style="color: red; font-size: 20px;", "Please make sure that you have computed the 'environment' column, and that column 'designation' and \n at least one trait have been mapped using the 'Data Retrieval' tab.")) )}
@@ -300,7 +300,7 @@ mod_indexDesireApp_server <- function(id, data){
       req(data())
       dtIdxD <- data()
       dtIdxD <- dtIdxD$status
-      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ),]
+      dtIdxD <- dtIdxD[which(dtIdxD$module %in% c("mta","moaAsr","moaSommer","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ),]
       traitsIdxD <- unique(dtIdxD$analysisId)
       if(length(traitsIdxD) > 0){
         if("analysisIdName" %in% colnames(dtIdxD)){
@@ -716,7 +716,7 @@ observe({
       # define values for slider all traits for base index
       values <- desireValues()
       # run the modeling, but before test if mta was done
-      if(sum(dtIdxD$status$module %in% c("mta","moaAsr","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ) == 0) {
+      if(sum(dtIdxD$status$module %in% c("mta","moaAsr","moaSommer","mtaFlex","moaLmms","mas","mtaLmms","mtaAsr") ) == 0) {
         output$qaQcIdxDInfo <- renderUI({
           if (hideAll$clearAll)
             return()
